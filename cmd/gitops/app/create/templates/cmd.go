@@ -32,7 +32,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Config struct {
@@ -247,11 +246,15 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 	if err != nil {
 		return nil, fmt.Errorf("failed to create tmp dir: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			log.Error(err, "failed to remove temporary chart cache")
+		}
+	}()
 
 	chartsCache, err := helm.NewChartIndexer(tmpDir, DefaultCluster)
 	if err != nil {
-		return nil, fmt.Errorf("could not create charts cache: %w", err)
+		return nil, fmt.Errorf("could not create charts cache in %s: %w", tmpDir, err)
 	}
 
 	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
@@ -276,15 +279,9 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		controller.LoadIndex(index, chartsCache, types.NamespacedName{Name: DefaultCluster}, helmRepo, log)
 	}
 
-	// no need for a real client as we're providing the helm repo
-	nilKubeClient := (client.Client)(nil)
-
-	// FIXME: no create message request, generated resources won't be "editable" in the UI
-	emptpyCreateMessageRequest := (*capiv1_proto.CreatePullRequestRequest)(nil)
-
 	templateResources, err := server.GetFiles(
 		context.Background(),
-		nilKubeClient,
+		nil, // no need for a kube client as we're providing the helm repo no
 		logr.Discard(),
 		estimation.NilEstimator(),
 		chartsCache,
@@ -297,7 +294,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 			HelmRepository:  helmRepo,
 			Profiles:        profiles,
 		},
-		emptpyCreateMessageRequest,
+		nil, // FIXME: no create message request, generated resources won't be "editable" in the UI
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get template resources: %w", err)
@@ -312,7 +309,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 func localHelmRepo(repoName string, settings *cli.EnvSettings) (*repo.Entry, *repo.IndexFile, error) {
 	if settings == nil {
-		return nil, nil, fmt.Errorf("helm settings missing")
+		return nil, nil, fmt.Errorf("helm settings missing for repo %s", repoName)
 	}
 
 	f, err := repo.LoadFile(settings.RepositoryConfig)

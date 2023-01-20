@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -604,7 +603,7 @@ func TestParseProfileFlags(t *testing.T) {
 	// make an example values.yaml in a temp dir
 	tmpDir := t.TempDir()
 	valuesFile := filepath.Join(tmpDir, "values.yaml")
-	err := ioutil.WriteFile(valuesFile, []byte("foo: bar"), 0644)
+	err := os.WriteFile(valuesFile, []byte("foo: bar"), 0644)
 	assert.NoError(t, err)
 
 	tests := []struct {
@@ -641,14 +640,19 @@ func TestParseProfileFlags(t *testing.T) {
 			expectedErr: "profile name must be specified",
 		},
 		{
+			testName:    "invalid name",
+			profiles:    []string{"name='how do you do'"},
+			expectedErr: `invalid value for name "'how do you do'"`,
+		},
+		{
 			testName:    "invalid version",
 			profiles:    []string{"name=profile-a,version=foo"},
-			expectedErr: "invalid semver for version: foo, improper constraint: foo",
+			expectedErr: `invalid semver for version "foo": improper constraint: foo`,
 		},
 		{
 			testName:    "invalid namespace",
 			profiles:    []string{"name=profile-a,namespace='how do you do'"},
-			expectedErr: "invalid value for namespace: 'how do you do'",
+			expectedErr: `invalid value for namespace "'how do you do'"`,
 		},
 		{
 			testName: "multiple profiles",
@@ -664,7 +668,7 @@ func TestParseProfileFlags(t *testing.T) {
 		t.Run(tt.testName, func(t *testing.T) {
 			actual, err := templates.ParseProfileFlags(tt.profiles)
 			if tt.expectedErr != "" {
-				assert.EqualError(t, err, tt.expectedErr)
+				assert.Regexp(t, tt.expectedErr, err)
 			} else {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.expected, actual)

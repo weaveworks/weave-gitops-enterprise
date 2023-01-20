@@ -2,14 +2,13 @@ package templates
 
 import (
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
-	"regexp"
 	"strings"
 
 	"github.com/Masterminds/semver/v3"
+	"k8s.io/apimachinery/pkg/util/validation"
 )
 
 type TemplateKind string
@@ -461,9 +460,6 @@ func GetTemplateProfiles(name string, namespace string, r TemplatesRetriever, w 
 func ParseProfileFlags(profiles []string) ([]ProfileValues, error) {
 	var profilesValues []ProfileValues
 
-	// Validate values include alphanumeric or - or .
-	r := regexp.MustCompile(`^[A-Za-z0-9]([A-Za-z0-9.-]*[A-Za-z0-9])?$`)
-
 	for _, p := range profiles {
 		valuesPairs := strings.Split(p, ",")
 		profileMap := make(map[string]string)
@@ -473,38 +469,47 @@ func ParseProfileFlags(profiles []string) ([]ProfileValues, error) {
 
 			if kv[0] != "name" && kv[0] != "version" && kv[0] != "values" && kv[0] != "namespace" {
 				return nil, fmt.Errorf("invalid key: %s", kv[0])
-			} else if kv[0] == "values" {
-				file, err := os.ReadFile(kv[1])
-				if err == nil {
-					profileMap[kv[0]] = base64.StdEncoding.EncodeToString(file)
-				}
-			} else if kv[0] == "version" {
-				_, err := semver.NewConstraint(kv[1])
-				if err != nil {
-					return nil, fmt.Errorf("invalid semver for %s: %s, %w", kv[0], kv[1], err)
-				}
-				profileMap[kv[0]] = kv[1]
-			} else if !r.MatchString(kv[1]) {
-				return nil, fmt.Errorf("invalid value for %s: %s", kv[0], kv[1])
-			} else {
-				profileMap[kv[0]] = kv[1]
 			}
+
+			profileMap[kv[0]] = kv[1]
 		}
 
 		if _, ok := profileMap["name"]; !ok {
-			return nil, fmt.Errorf("profile name must be specified")
+			return nil, fmt.Errorf("profile name must be specified, profile: %q", p)
 		}
 
-		profileJson, err := json.Marshal(profileMap)
-		if err != nil {
-			return nil, err
+		// use k8s validation to check if the name is valid
+		errs := validation.IsDNS1123Subdomain(profileMap["name"])
+		if len(errs) > 0 {
+			return nil, fmt.Errorf("invalid value for name %q: %s", profileMap["name"], strings.Join(errs, ". "))
 		}
 
-		var profileValues ProfileValues
+		profileValues := ProfileValues{
+			Name: profileMap["name"],
+		}
 
-		err = json.Unmarshal(profileJson, &profileValues)
-		if err != nil {
-			return nil, err
+		if version, ok := profileMap["version"]; ok {
+			_, err := semver.NewConstraint(version)
+			if err != nil {
+				return nil, fmt.Errorf("invalid semver for version %q: %w", version, err)
+			}
+			profileValues.Version = version
+		}
+
+		if namespace, ok := profileMap["namespace"]; ok {
+			// use k8s validation to check if the namespace is valid
+			errs := validation.IsDNS1123Label(namespace)
+			if len(errs) > 0 {
+				return nil, fmt.Errorf("invalid value for namespace %q: %s", namespace, strings.Join(errs, ". "))
+			}
+			profileValues.Namespace = namespace
+		}
+
+		if values, ok := profileMap["values"]; ok {
+			file, err := os.ReadFile(values)
+			if err == nil {
+				profileValues.Values = base64.StdEncoding.EncodeToString(file)
+			}
 		}
 
 		profilesValues = append(profilesValues, profileValues)

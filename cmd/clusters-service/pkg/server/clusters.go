@@ -320,7 +320,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 					Content: nil,
 				})
 			}
-
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {

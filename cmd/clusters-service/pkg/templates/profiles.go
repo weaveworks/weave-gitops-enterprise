@@ -33,6 +33,9 @@ type profileAnnotation struct {
 	Values    string `json:"values"`
 }
 
+// GetProfilesFromAnnotations returns a list of profiles defined in the template.
+// Both the annotations and the spec are used to determine the profiles.
+// spec.Charts takes precedence over annotations if both are defined for the same profile.
 func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
 	profilesIndex, err := getProfilesFromAnnotations(tl)
 	if err != nil {
@@ -108,6 +111,10 @@ func getProfilesFromAnnotations(tl templatesv1.Template) (map[string]*capiv1_pro
 	return profilesIndex, nil
 }
 
+// TemplateHasRequiredProfiles returns true if the template has any required profiles.
+// Note: Its an implicit system requirement that annotations are valid JSON before being
+// rendered, so we can determine button status in the UI etc. This fn will raise an error on
+// invalid JSON and thats ok, users need to fix their templates.
 func TemplateHasRequiredProfiles(tl templatesv1.Template) (bool, error) {
 	profiles, err := GetProfilesFromTemplate(tl)
 	if err != nil {

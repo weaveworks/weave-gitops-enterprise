@@ -206,8 +206,8 @@ func TestRunWithProfiles(t *testing.T) {
 	// Set and restore some env
 	keyCache := "HELM_REPOSITORY_CACHE"
 	keyConfig := "HELM_REPOSITORY_CONFIG"
-	repoCache, _ := os.LookupEnv(keyCache)
-	repoConfig, _ := os.LookupEnv(keyConfig)
+	repoCache := os.Getenv(keyCache)
+	repoConfig := os.Getenv(keyConfig)
 	// Set up the test paths for helm repo and cache
 	os.Setenv(keyCache, testSettings.RepositoryCache)
 	os.Setenv(keyConfig, testSettings.RepositoryConfig)
