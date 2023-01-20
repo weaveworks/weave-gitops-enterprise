@@ -107,6 +107,13 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			}
 			paramNames.Insert(names...)
 		}
+		if profile.HelmReleaseTemplate.Path != "" {
+			names, err := p.Processor.ParamNames([]byte(profile.HelmReleaseTemplate.Path))
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Chart, err)
+			}
+			paramNames.Insert(names...)
+		}
 		if profile.Values != nil {
 			names, err := p.Processor.ParamNames(profile.Values.Raw)
 			if err != nil {
@@ -114,6 +121,15 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			}
 			paramNames.Insert(names...)
 		}
+	}
+
+	if p.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
+		helmRepoTemplatePath := p.GetSpec().Charts.HelmRepositoryTemplate.Path
+		names, err := p.Processor.ParamNames([]byte(helmRepoTemplatePath))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from chart.helmRepositoryTemplate.path of %s: %w", helmRepoTemplatePath, err)
+		}
+		paramNames.Insert(names...)
 	}
 
 	paramsMeta := map[string]Param{}

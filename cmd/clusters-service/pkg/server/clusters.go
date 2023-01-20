@@ -561,31 +561,51 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider
 	}, nil
 }
 
-func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease) ([]byte, error) {
-	out := [][]byte{}
-	// Add HelmRepository object
+// createProfileYAML creates a map of file paths to YAML bytes for a profile
+// takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
+func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
+	profileObjects := make(map[string][][]byte)
+
+	// Helm repository template
+	helmRepoPath := defaultPath
+	if template.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
+		helmRepoPath = template.GetSpec().Charts.HelmRepositoryTemplate.Path
+	}
 	b, err := yaml.Marshal(helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
 	}
-	out = append(out, b)
-	// Add HelmRelease objects
+	profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
+
+	// Helm release templates
 	for _, v := range helmReleases {
+		helmReleasePath := defaultPath
+
+		// See if a path is specified in the template
+		chartItems := template.GetSpec().Charts.Items
+		for i := range chartItems {
+			if chartItems[i].Chart == v.Name && chartItems[i].HelmReleaseTemplate.Path != "" {
+				helmReleasePath = chartItems[i].HelmReleaseTemplate.Path
+			}
+		}
+
 		b, err := yaml.Marshal(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal HelmRelease object to YAML: %w", err)
 		}
-		out = append(out, b)
+		profileObjects[helmReleasePath] = append(profileObjects[helmReleasePath], b)
+
 	}
 
-	return bytes.Join(out, []byte("---\n")), nil
+	return profileObjects, nil
+
 }
 
 // generateProfileFiles to create a HelmRelease object with the profile and values.
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
 	helmRepo := &sourcev1.HelmRepository{}
 	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
 	if err != nil {
@@ -705,19 +725,34 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
-	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
+
+	// profilesBytes is a map of {path: []byte} where []byte is the content of the profile.
+	profilesByPath, err := createProfileYAML(helmRepoTemplate, helmReleases, tmpl, getClusterProfilesPath(cluster))
 	if err != nil {
 		return nil, err
 	}
 
-	profilePath := getClusterProfilesPath(cluster)
-	profileContent := string(c)
-	file := &gitprovider.CommitFile{
-		Path:    &profilePath,
-		Content: &profileContent,
+	commitFiles := []gitprovider.CommitFile{}
+	// For each path, we join the content of relative profiles and add to a commit file
+	for path := range profilesByPath {
+		profileContent := string(bytes.Join(profilesByPath[path], []byte("---\n")))
+		renderedPath, err := tmplProcessor.Render([]byte(path), args.parameterValues)
+		if err != nil {
+			return nil, fmt.Errorf("cannot render path %s: %w", path, err)
+		}
+		renderedPathStr := string(renderedPath)
+		file := &gitprovider.CommitFile{
+			Path:    &renderedPathStr,
+			Content: &profileContent,
+		}
+		commitFiles = append(commitFiles, *file)
 	}
 
-	return file, nil
+	sort.Slice(commitFiles, func(i, j int) bool {
+		return *commitFiles[i].Path < *commitFiles[j].Path
+	})
+
+	return commitFiles, nil
 }
 
 func validateNamespace(namespace string) error {

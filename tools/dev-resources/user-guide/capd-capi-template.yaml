@@ -6,7 +6,7 @@ metadata:
   annotations:
     templates.weave.works/profiles-enabled: "true"
 spec:
-  description: A simple CAPD template
+  description: A simple CAPD template with profile paths
   params:
     - name: CLUSTER_NAME
       required: true
@@ -26,10 +26,14 @@ spec:
       description: Number of control planes
       default: "1"
   charts:
+    helmRepositoryTemplate:
+      path: helm-repo.yaml
     items:
       - chart: cert-manager
         targetNamespace: cert-manager
         version: 0.0.8
+        template:
+          path: cert-manager.yaml
         spec:
           install:
             remediation:
