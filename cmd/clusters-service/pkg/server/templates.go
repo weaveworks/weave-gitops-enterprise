@@ -522,9 +522,6 @@ func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 
 	profiles := []*capiv1_proto.TemplateProfile{}
 	for _, v := range profilesIndex {
-		if !v.Required {
-			v.Editable = true
-		}
 		profiles = append(profiles, v)
 	}
 	sort.Slice(profiles, func(i, j int) bool { return profiles[i].Name < profiles[j].Name })

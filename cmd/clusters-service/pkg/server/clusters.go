@@ -735,7 +735,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	commitFiles := []gitprovider.CommitFile{}
 	// For each path, we join the content of relative profiles and add to a commit file
 	for path := range profilesByPath {
-		profileContent := string(bytes.Join(profilesByPath[path], []byte("\n---\n")))
+		profileContent := string(bytes.Join(profilesByPath[path], []byte("---\n")))
 		renderedPath, err := tmplProcessor.Render([]byte(path), args.parameterValues)
 		if err != nil {
 			return nil, fmt.Errorf("cannot render path %s: %w", path, err)

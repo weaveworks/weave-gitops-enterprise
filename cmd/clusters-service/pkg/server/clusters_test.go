@@ -2736,7 +2736,7 @@ status: {}
 }
 
 func concatYaml(yamls ...string) string {
-	return strings.Join(yamls, "\n---\n")
+	return strings.Join(yamls, "---\n")
 }
 
 func makeCommitFile(path, content string) gitprovider.CommitFile {
@@ -2755,13 +2755,15 @@ func makeTestTemplateWithPaths(renderType string, helmRepoPath string, fooPath s
 		},
 		Items: []templatesv1.Chart{
 			{
-				Chart: "foo",
+				Chart:    "foo",
+				Editable: true,
 				HelmReleaseTemplate: templatesv1.HelmReleaseTemplateSpec{
 					Path: fooPath,
 				},
 			},
 			{
-				Chart: "bar",
+				Chart:    "bar",
+				Editable: true,
 				HelmReleaseTemplate: templatesv1.HelmReleaseTemplateSpec{
 					Path: barPath,
 				},
