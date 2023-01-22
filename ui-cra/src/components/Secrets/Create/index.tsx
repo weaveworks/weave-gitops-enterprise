@@ -1,12 +1,11 @@
 import { MenuItem } from '@material-ui/core';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Dispatch, useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
   ExternalSecretStore,
   GitopsCluster,
 } from '../../../cluster-services/cluster_services.pb';
-import useClusters from '../../../hooks/clusters';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import useNotifications from '../../../contexts/Notifications';
@@ -41,7 +40,6 @@ import { getGitRepos } from '../../Clusters';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { clearCallbackState } from '../../GitAuth/utils';
-import { GitopsClusterEnriched } from '../../../types/custom';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -72,16 +70,16 @@ interface FormData {
   commitMessage: string;
   pullRequestDescription: string;
   clusterAutomations: {
-    target_cluster: string;
-    cluster_name: string;
-    cluster_namespace: string;
+    targetCluster: string;
+    clusterName: string;
+    clusterNamespace: string;
     isControlPlane: boolean;
-    secret_name: string;
-    secret_namespace: string;
+    secretName: string;
+    secretNamespace: string;
     secretStoreRef: string;
-    data_secretKey: string;
-    data_remoteRef_key: string;
-    data_remoteRef_property: string;
+    dataSecretKey: string;
+    dataRemoteRefKey: string;
+    dataRemoteRef_property: string;
   }[];
 }
 
@@ -95,8 +93,9 @@ interface SelectSecretStoreProps {
   formError: string;
   secretStoreRef: string;
   secretStoreType: string;
-  secret_namespace: string;
+  secretNamespace: string;
   selectedSecretStore: ExternalSecretStore;
+  setSelectedSecretStore: Dispatch<React.SetStateAction<any>>;
 }
 
 function getInitialData(
@@ -112,21 +111,21 @@ function getInitialData(
     pullRequestDescription: 'This PR adds a new External Secret',
     clusterAutomations: [
       {
-        cluster_name: '',
-        cluster_namespace: '',
+        clusterName: '',
+        clusterNamespace: '',
         isControlPlane: false,
-        secret_name: '',
-        secret_namespace: '',
+        secretName: '',
+        secretNamespace: '',
         refreshInterval: '1h',
         secretStoreRef: '',
         secretStoreType: '',
-        data_secretKey: '',
-        data_remoteRef_key: '',
-        data_remoteRef_property: '',
+        dataSecretKey: '',
+        dataRemoteRefKey: '',
+        dataRemoteRef_property: '',
       },
     ],
   };
-  
+
   const initialFormData = {
     ...defaultFormData,
     ...callbackState?.state?.formData,
@@ -153,8 +152,6 @@ const CreateSecret = () => {
   const [submitType, setSubmitType] = useState<string>('');
   const [selectedSecretStore, setSelectedSecretStore] =
     useState<ExternalSecretStore>();
-  const [selectedCluster, setSelectedCluster] =
-    useState<GitopsClusterEnriched>();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const { data } = useListSources();
@@ -168,17 +165,17 @@ const CreateSecret = () => {
   const automation = formData.clusterAutomations[0];
 
   const {
-    secret_name,
-    secret_namespace,
-    data_secretKey,
-    cluster_name,
+    secretName,
+    secretNamespace,
+    dataSecretKey,
+    clusterName,
     secretStoreRef,
     secretStoreType,
-    data_remoteRef_key,
-    data_remoteRef_property,
-    cluster_namespace,
+    dataRemoteRefKey,
+    dataRemoteRef_property,
+    clusterNamespace,
     isControlPlane,
-    target_cluster,
+    targetCluster,
   } = automation;
 
   useEffect(() => clearCallbackState(), []);
@@ -190,7 +187,10 @@ const CreateSecret = () => {
         repo: initialGitRepo,
       }));
     }
-  }, [initialGitRepo, formData.repo]);
+    if (targetCluster) {
+      setIsclusterSelected(true);
+    }
+  }, [initialGitRepo, formData.repo, targetCluster]);
 
   const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
     const sercetStore = event.target.value;
@@ -201,7 +201,7 @@ const CreateSecret = () => {
     currentAutomation[0] = {
       ...automation,
       secretStoreRef: value.name,
-      secret_namespace: value.namespace,
+      secretNamespace: value.namespace,
       secretStoreType: value.type,
     };
 
@@ -216,15 +216,14 @@ const CreateSecret = () => {
     const value = JSON.parse(cluster);
     let currentAutomation = [...formData.clusterAutomations];
     setSelectedSecretStore({});
-    setSelectedCluster(cluster);
     currentAutomation[0] = {
       ...automation,
       isControlPlane: value.name === 'management' ? true : false,
-      cluster_name: value.name,
-      cluster_namespace: value.namespace,
-      target_cluster: cluster,
+      clusterName: value.name,
+      clusterNamespace: value.namespace,
+      targetCluster: cluster,
       secretStoreType: '',
-      secret_namespace: '',
+      secretNamespace: '',
     };
     setFormData({
       ...formData,
@@ -236,7 +235,7 @@ const CreateSecret = () => {
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add External Secret ${formData.clusterAutomations[0].secret_name}`,
+      pullRequestTitle: `Add External Secret ${formData.clusterAutomations[0].secretName}`,
     }));
   }, [formData.clusterAutomations]);
 
@@ -262,14 +261,14 @@ const CreateSecret = () => {
     let clusterAutomations: ClusterAutomation[] = [];
     clusterAutomations.push({
       cluster: {
-        name: cluster_name,
-        namespace: cluster_namespace,
+        name: clusterName,
+        namespace: clusterNamespace,
       },
       isControlPlane: isControlPlane,
       externalSecret: {
         metadata: {
-          name: secret_name,
-          namespace: secret_namespace,
+          name: secretName,
+          namespace: secretNamespace,
         },
         spec: {
           refreshInterval: '1h',
@@ -277,13 +276,13 @@ const CreateSecret = () => {
             name: secretStoreRef,
           },
           target: {
-            name: data_secretKey,
+            name: dataSecretKey,
           },
           data: {
-            secretKey: data_secretKey,
+            secretKey: dataSecretKey,
             remoteRef: {
-              key: data_remoteRef_key,
-              property: data_remoteRef_property,
+              key: dataRemoteRefKey,
+              property: dataRemoteRef_property,
             },
           },
         },
@@ -291,15 +290,15 @@ const CreateSecret = () => {
     });
     return clusterAutomations;
   }, [
-    cluster_name,
-    cluster_namespace,
+    clusterName,
+    clusterNamespace,
     isControlPlane,
-    secret_name,
-    secret_namespace,
+    secretName,
+    secretNamespace,
     secretStoreRef,
-    data_secretKey,
-    data_remoteRef_key,
-    data_remoteRef_property,
+    dataSecretKey,
+    dataRemoteRefKey,
+    dataRemoteRef_property,
   ]);
 
   const handleCreateSecret = useCallback(() => {
@@ -378,29 +377,29 @@ const CreateSecret = () => {
                   <Input
                     className="form-section"
                     required
-                    name="secret_name"
+                    name="secretName"
                     label="EXTERNAL SECRET NAME"
-                    value={secret_name}
-                    onChange={event => handleFormData(event, 'secret_name')}
-                    error={formError === 'secret_name' && !secret_name}
+                    value={secretName}
+                    onChange={event => handleFormData(event, 'secretName')}
+                    error={formError === 'secretName' && !secretName}
                   />
                   <Input
                     className="form-section"
                     required
-                    name="data_secretKey"
+                    name="dataSecretKey"
                     label="TARGET K8s SECRET NAME"
-                    value={data_secretKey}
-                    onChange={event => handleFormData(event, 'data_secretKey')}
-                    error={formError === 'data_secretKey' && !data_secretKey}
+                    value={dataSecretKey}
+                    onChange={event => handleFormData(event, 'dataSecretKey')}
+                    error={formError === 'dataSecretKey' && !dataSecretKey}
                   />
                   <Select
                     className="form-section"
-                    name="cluster_name"
+                    name="clusterName"
                     required={true}
                     label="TARGET CLUSTER"
-                    value={target_cluster}
+                    value={targetCluster}
                     onChange={HandleSelectCluster}
-                    error={formError === 'cluster_name' && !cluster_name}
+                    error={formError === 'clusterName' && !clusterName}
                   >
                     {!clusters?.length ? (
                       <MenuItem disabled={true}>Loading...</MenuItem>
@@ -418,44 +417,41 @@ const CreateSecret = () => {
                 {isclusterSelected && (
                   <SelectSecretStore
                     cluster={
-                      cluster_namespace
-                        ? `${cluster_namespace}/${cluster_name}`
-                        : cluster_name
+                      clusterNamespace
+                        ? `${clusterNamespace}/${clusterName}`
+                        : clusterName
                     }
                     handleSelectSecretStore={handleSelectSecretStore}
                     formError={formError}
                     handleFormData={handleFormData}
                     secretStoreRef={secretStoreRef}
                     secretStoreType={secretStoreType}
-                    secret_namespace={secret_namespace}
+                    secretNamespace={secretNamespace}
                     selectedSecretStore={selectedSecretStore || {}}
+                    setSelectedSecretStore={setSelectedSecretStore}
                   />
                 )}
                 <Input
                   className="form-section"
                   required
-                  name="data_remoteRef_key"
+                  name="dataRemoteRefKey"
                   label="SECRET PATH"
-                  value={data_remoteRef_key}
-                  onChange={event =>
-                    handleFormData(event, 'data_remoteRef_key')
-                  }
-                  error={
-                    formError === 'data_remoteRef_key' && !data_remoteRef_key
-                  }
+                  value={dataRemoteRefKey}
+                  onChange={event => handleFormData(event, 'dataRemoteRefKey')}
+                  error={formError === 'dataRemoteRefKey' && !dataRemoteRefKey}
                 />
                 <Input
                   className="form-section"
                   required
-                  name="data_remoteRef_property"
+                  name="dataRemoteRef_property"
                   label="PROPERTY"
-                  value={data_remoteRef_property}
+                  value={dataRemoteRef_property}
                   onChange={event =>
-                    handleFormData(event, 'data_remoteRef_property')
+                    handleFormData(event, 'dataRemoteRef_property')
                   }
                   error={
-                    formError === 'data_remoteRef_property' &&
-                    !data_remoteRef_property
+                    formError === 'dataRemoteRef_property' &&
+                    !dataRemoteRef_property
                   }
                 />
               </div>
@@ -496,13 +492,21 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
     formError,
     secretStoreRef,
     secretStoreType,
-    secret_namespace,
+    secretNamespace,
     selectedSecretStore,
+    setSelectedSecretStore,
   } = props;
   const { data, isLoading } = useGetSecretStoreDetails({
     clusterName: cluster,
   });
   const secretStores = data?.stores;
+  useEffect(() => {
+    if (secretStoreRef) {
+      const selectedStore =
+        secretStores?.filter(item => item.name === secretStoreRef) || [];
+      setSelectedSecretStore(selectedStore[0]);
+    }
+  });
   return (
     <div className="form-group">
       <Select
@@ -541,12 +545,12 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
       <Input
         className="form-section"
         required
-        name="secret_namespace"
+        name="secretNamespace"
         label="TARGET NAMESPACE"
-        value={secret_namespace}
+        value={secretNamespace}
         disabled={selectedSecretStore.namespace?.length ? true : false}
-        onChange={event => handleFormData(event, 'secret_namespace')}
-        error={formError === 'secret_namespace' && !secret_namespace}
+        onChange={event => handleFormData(event, 'secretNamespace')}
+        error={formError === 'secretNamespace' && !secretNamespace}
       />
     </div>
   );
