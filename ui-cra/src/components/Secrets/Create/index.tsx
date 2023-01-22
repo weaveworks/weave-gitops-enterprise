@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import {
   ClusterAutomation,
   ExternalSecretStore,
+  GitopsCluster,
 } from '../../../cluster-services/cluster_services.pb';
 import useClusters from '../../../hooks/clusters';
 import { useCallbackState } from '../../../utils/callback-state';
@@ -27,7 +28,10 @@ import {
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import { CreateDeploymentObjects } from '../../Applications/utils';
+import {
+  CreateDeploymentObjects,
+  useClustersWithSources,
+} from '../../Applications/utils';
 import {
   getInitialGitRepo,
   getRepositoryUrl,
@@ -37,6 +41,7 @@ import { getGitRepos } from '../../Clusters';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { clearCallbackState } from '../../GitAuth/utils';
+import { GitopsClusterEnriched } from '../../../types/custom';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -121,7 +126,7 @@ function getInitialData(
       },
     ],
   };
-
+  
   const initialFormData = {
     ...defaultFormData,
     ...callbackState?.state?.formData,
@@ -132,7 +137,7 @@ function getInitialData(
 const CreateSecret = () => {
   const history = useHistory();
 
-  const { clusters, isLoading: isClustersLoading } = useClusters();
+  let clusters: GitopsCluster[] | undefined = useClustersWithSources(true);
   const { setNotifications } = useNotifications();
 
   const callbackState = useCallbackState();
@@ -148,7 +153,8 @@ const CreateSecret = () => {
   const [submitType, setSubmitType] = useState<string>('');
   const [selectedSecretStore, setSelectedSecretStore] =
     useState<ExternalSecretStore>();
-
+  const [selectedCluster, setSelectedCluster] =
+    useState<GitopsClusterEnriched>();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const { data } = useListSources();
@@ -210,7 +216,7 @@ const CreateSecret = () => {
     const value = JSON.parse(cluster);
     let currentAutomation = [...formData.clusterAutomations];
     setSelectedSecretStore({});
-
+    setSelectedCluster(cluster);
     currentAutomation[0] = {
       ...automation,
       isControlPlane: value.name === 'management' ? true : false,
@@ -396,7 +402,7 @@ const CreateSecret = () => {
                     onChange={HandleSelectCluster}
                     error={formError === 'cluster_name' && !cluster_name}
                   >
-                    {isClustersLoading ? (
+                    {!clusters?.length ? (
                       <MenuItem disabled={true}>Loading...</MenuItem>
                     ) : (
                       clusters?.map((option, index: number) => {
