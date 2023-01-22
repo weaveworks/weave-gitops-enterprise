@@ -22,6 +22,7 @@ import (
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -136,7 +137,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		msg.TemplateKind = capiv1.Kind
 	}
 
-	gp, err := getGitProvider(ctx)
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -172,7 +173,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			types.NamespacedName{Name: s.cluster},
 			s.profileHelmRepository,
 			tmpl,
-			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations, msg.PreviousValues.ExternalSecrets},
+			GetFilesRequest{
+				ClusterNamespace: clusterNamespace,
+				TemplateName:     msg.TemplateName,
+				ParameterValues:  msg.PreviousValues.ParameterValues,
+				Credentials:      msg.PreviousValues.Credentials,
+				Profiles:         msg.PreviousValues.Values,
+				Kustomizations:   msg.PreviousValues.Kustomizations,
+				ExternalSecrets:  msg.PreviousValues.ExternalSecrets,
+			},
 			msg,
 		)
 		if err != nil {
@@ -190,7 +199,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tmpl,
-		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.ExternalSecrets},
+		GetFilesRequest{
+			ClusterNamespace: clusterNamespace,
+			TemplateName:     msg.TemplateName,
+			ParameterValues:  msg.ParameterValues,
+			Credentials:      msg.Credentials,
+			Profiles:         msg.Values,
+			Kustomizations:   msg.Kustomizations,
+			ExternalSecrets:  msg.ExternalSecrets,
+		},
 		msg,
 	)
 	if err != nil {
@@ -253,7 +270,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 }
 
 func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
-	gp, err := getGitProvider(ctx)
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -303,7 +320,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 					Content: nil,
 				})
 			}
-
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
@@ -530,62 +546,81 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 	return file, nil
 }
 
-func getGitProvider(ctx context.Context) (*git.GitProvider, error) {
+func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
 	}
 
+	// defaults from config
+	repoType := viper.GetString("git-provider-type")
+	repoHostname := viper.GetString("git-provider-hostname")
+
+	// if user supplies a different gitrepo, derive the provider and the host etc from
+	if repositoryURL != "" {
+		repoURL, err := gitproviders.NewRepoURL(repositoryURL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse repository URL: %w", err)
+		}
+
+		// override defaults
+		repoType = string(repoURL.Provider())
+		repoHostname = repoURL.URL().Host
+	}
+
 	return &git.GitProvider{
-		Type:      viper.GetString("git-provider-type"),
+		Type:      repoType,
 		TokenType: tokenType,
 		Token:     token,
-		Hostname:  viper.GetString("git-provider-hostname"),
+		Hostname:  repoHostname,
 	}, nil
 }
 
-func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease) ([]byte, error) {
-	out := [][]byte{}
-	// Add HelmRepository object
+// createProfileYAML creates a map of file paths to YAML bytes for a profile
+// takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
+func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
+	profileObjects := make(map[string][][]byte)
+
+	// Helm repository template
+	helmRepoPath := defaultPath
+	if template.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
+		helmRepoPath = template.GetSpec().Charts.HelmRepositoryTemplate.Path
+	}
 	b, err := yaml.Marshal(helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
 	}
-	out = append(out, b)
-	// Add HelmRelease objects
+	profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
+
+	// Helm release templates
 	for _, v := range helmReleases {
+		helmReleasePath := defaultPath
+
+		// See if a path is specified in the template
+		chartItems := template.GetSpec().Charts.Items
+		for i := range chartItems {
+			if chartItems[i].Chart == v.Name && chartItems[i].HelmReleaseTemplate.Path != "" {
+				helmReleasePath = chartItems[i].HelmReleaseTemplate.Path
+			}
+		}
+
 		b, err := yaml.Marshal(v)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal HelmRelease object to YAML: %w", err)
 		}
-		out = append(out, b)
+		profileObjects[helmReleasePath] = append(profileObjects[helmReleasePath], b)
+
 	}
 
-	return bytes.Join(out, []byte("---\n")), nil
+	return profileObjects, nil
+
 }
 
 // generateProfileFiles to create a HelmRelease object with the profile and values.
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) (*gitprovider.CommitFile, error) {
-	helmRepo := &sourcev1.HelmRepository{}
-	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
-	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
-	}
-	helmRepoTemplate := &sourcev1.HelmRepository{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      args.helmRepository.Name,
-			Namespace: args.helmRepository.Namespace,
-		},
-		Spec: helmRepo.Spec,
-	}
-
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -593,7 +628,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl)
+	requiredProfiles, err := templates.GetProfilesFromTemplate(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
@@ -688,19 +723,34 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	if err != nil {
 		return nil, fmt.Errorf("making helm releases for cluster %w", err)
 	}
-	c, err := createProfileYAML(helmRepoTemplate, helmReleases)
+
+	// profilesBytes is a map of {path: []byte} where []byte is the content of the profile.
+	profilesByPath, err := createProfileYAML(helmRepo, helmReleases, tmpl, getClusterProfilesPath(cluster))
 	if err != nil {
 		return nil, err
 	}
 
-	profilePath := getClusterProfilesPath(cluster)
-	profileContent := string(c)
-	file := &gitprovider.CommitFile{
-		Path:    &profilePath,
-		Content: &profileContent,
+	commitFiles := []gitprovider.CommitFile{}
+	// For each path, we join the content of relative profiles and add to a commit file
+	for path := range profilesByPath {
+		profileContent := string(bytes.Join(profilesByPath[path], []byte("---\n")))
+		renderedPath, err := tmplProcessor.Render([]byte(path), args.parameterValues)
+		if err != nil {
+			return nil, fmt.Errorf("cannot render path %s: %w", path, err)
+		}
+		renderedPathStr := string(renderedPath)
+		file := &gitprovider.CommitFile{
+			Path:    &renderedPathStr,
+			Content: &profileContent,
+		}
+		commitFiles = append(commitFiles, *file)
 	}
 
-	return file, nil
+	sort.Slice(commitFiles, func(i, j int) bool {
+		return *commitFiles[i].Path < *commitFiles[j].Path
+	})
+
+	return commitFiles, nil
 }
 
 func validateNamespace(namespace string) error {
@@ -920,7 +970,6 @@ func generateKustomizationFile(
 	ctx context.Context,
 	isControlPlane bool,
 	cluster types.NamespacedName,
-	kubeClient client.Client,
 	kustomization *capiv1_proto.Kustomization,
 	filePath string) (gitprovider.CommitFile, error) {
 	kustomizationYAML := createKustomizationObject(kustomization)

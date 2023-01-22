@@ -14,7 +14,7 @@ import (
 func installWorkspaces(clusterName string, workspacesYaml string) {
 
 	ginkgo.By(fmt.Sprintf("Add workspaces to the '%s' cluster", clusterName), func() {
-		createTenant(workspacesYaml)
+		createTenant(workspacesYaml, gitProviderEnv)
 	})
 }
 
@@ -188,7 +188,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		ginkgo.JustAfterEach(func() {
 			deleteWorkspaces("management")
 		})
-		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////start here
 		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
@@ -230,7 +229,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces)
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
-			// verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces)
 			verifyWrokspacePolicies(workspaceName, workspaceNamespaces)
 

@@ -6,7 +6,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/http/cookiejar"
 	"net/url"
@@ -336,7 +335,7 @@ func deleteCluster(clusterType string, cluster string, nameSpace string) {
 }
 
 func verifyCapiClusterKubeconfig(kubeconfigPath string, capiCluster string) {
-	contents, err := ioutil.ReadFile(kubeconfigPath)
+	contents, err := os.ReadFile(kubeconfigPath)
 	gomega.Expect(err).ShouldNot(gomega.HaveOccurred())
 	gomega.Eventually(contents).Should(gomega.MatchRegexp(fmt.Sprintf(`context:\s+cluster: %s`, capiCluster)))
 
@@ -383,7 +382,7 @@ func verifyCapiClusterHealth(kubeconfigPath string, applications []Application) 
 // This function generates multiple template files from a single template to be used as test data
 func generateTestTemplates(templateCount int, templateFile string) (templateFiles []string, err error) {
 	// Read input capitemplate
-	contents, err := ioutil.ReadFile(templateFile)
+	contents, err := os.ReadFile(templateFile)
 
 	if err != nil {
 		return templateFiles, err
@@ -499,9 +498,25 @@ func createPATSecret(clusterNamespace string, patSecret string) {
 	})
 }
 
+// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
+func copyFluxSystemGitRepo(namespace string) {
+	ginkgo.By("Copy flux-system git repo and its secret from the flux-system namespace a tenant namespace", func() {
+		// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
+		// This is required for the cluster to be able to sync with the git repo
+		err := runCommandPassThrough("sh", "-c", "kubectl get gitrepositories -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get gitrepositories from flux-system namespace")
+
+		err = runCommandPassThrough("sh", "-c", "kubectl get secret -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get secret from flux-system namespace")
+
+		err = runCommandPassThrough("sh", "-c", "kubectl annotate -n "+namespace+" gitrepo flux-system weave.works/repo-role=default")
+		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to annotate gitrepo with weave.works/repo-role=default")
+	})
+}
+
 func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs.yaml"))
+		contents, err := os.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read calico-crs template yaml")
 
 		t := template.Must(template.New("cluster-resource-set").Parse(string(contents)))
@@ -530,7 +545,7 @@ func createClusterResourceSet(clusterName string, nameSpace string) (resourceSet
 
 func createCRSConfigmap(clusterName string, nameSpace string) (configmap string) {
 	ginkgo.By(fmt.Sprintf("Add ClusterResourceSet configmap resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs-configmap.yaml"))
+		contents, err := os.ReadFile(path.Join(testDataPath, "bootstrap/calico-crs-configmap.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read calico-crs-configmap template yaml")
 
 		t := template.Must(template.New("crs-configmap").Parse(string(contents)))
@@ -583,7 +598,7 @@ func createClusterBootstrapConfig(clusterName string, nameSpace string, bootstra
 
 func connectGitopsCluster(clusterName string, nameSpace string, bootstrapLabel string, kubeconfigSecret string) (gitopsCluster string) {
 	ginkgo.By(fmt.Sprintf("Add GitopsCluster resource for %s cluster to management cluster", clusterName), func() {
-		contents, err := ioutil.ReadFile(path.Join(testDataPath, "kustomization/gitops-cluster.yaml"))
+		contents, err := os.ReadFile(path.Join(testDataPath, "kustomization/gitops-cluster.yaml"))
 		gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
 
 		t := template.Must(template.New("gitops-cluster").Parse(string(contents)))

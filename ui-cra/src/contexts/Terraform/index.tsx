@@ -4,6 +4,7 @@ import * as React from 'react';
 import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetTerraformObjectResponse,
+  GetTerraformObjectPlanResponse,
   ListTerraformObjectsResponse,
   Terraform,
 } from '../../api/terraform/terraform.pb';
@@ -32,6 +33,7 @@ function useTerraform() {
 }
 
 const TERRAFORM_KEY = 'terraform';
+const TERRAFORM_PLAN_KEY = 'terraform_plan';
 
 export function useListTerraformObjects() {
   const tf = useTerraform();
@@ -63,6 +65,21 @@ export function useGetTerraformObjectDetail(
   return useQuery<GetTerraformObjectResponse, RequestError>(
     [TERRAFORM_KEY, clusterName, namespace, name],
     () => tf.GetTerraformObject({ name, namespace, clusterName }),
+    { onError, enabled, refetchInterval: 5000 },
+  );
+}
+
+export function useGetTerraformObjectPlan(
+  { name, namespace, clusterName }: DetailParams,
+  enabled?: boolean,
+) {
+  const tf = useTerraform();
+
+  const onError = (error: Error) => {};
+
+  return useQuery<GetTerraformObjectPlanResponse, RequestError>(
+    [TERRAFORM_PLAN_KEY, clusterName, namespace, name],
+    () => tf.GetTerraformObjectPlan({ name, namespace, clusterName }),
     { onError, enabled, refetchInterval: 5000 },
   );
 }

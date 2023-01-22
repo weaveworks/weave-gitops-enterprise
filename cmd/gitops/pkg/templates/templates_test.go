@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/jarcoal/httpmock"
@@ -149,7 +150,7 @@ func TestGetTemplates(t *testing.T) {
 					Name: "template-b",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\t\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\t\t\t\t\n",
 		},
 		{
 			name: "templates include all fields",
@@ -166,20 +167,20 @@ func TestGetTemplates(t *testing.T) {
 					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\t\t\tb desc\tsomething went wrong\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\t\t\tb desc\tsomething went wrong\n",
 		},
 		{
-			name: "templates with template kind",
+			name: "templates with template type",
 			ts: []templates.Template{
 				{
 					Name:         "template-a",
 					Description:  "a desc",
 					Provider:     "azure",
-					TemplateKind: "CAPITemplate",
+					TemplateType: "cluster",
 					Error:        "",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\tCAPITemplate\ta desc\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\tcluster\ta desc\t\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -224,7 +225,7 @@ func TestGetTemplate(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -273,7 +274,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Provider: "aws",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\taws\t\t\t\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\taws\t\t\t\ntemplate-b\taws\t\t\t\n",
 		},
 		{
 			name:     "templates include all fields",
@@ -292,7 +293,7 @@ func TestGetTemplatesByProvider(t *testing.T) {
 					Error:       "something went wrong",
 				},
 			},
-			expected: "NAME\tPROVIDER\tKIND\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\tazure\t\tb desc\tsomething went wrong\n",
+			expected: "NAME\tPROVIDER\tTYPE\tDESCRIPTION\tERROR\ntemplate-a\tazure\t\ta desc\t\ntemplate-b\tazure\t\tb desc\tsomething went wrong\n",
 		},
 		{
 			name:             "error retrieving templates",
@@ -592,6 +593,85 @@ func TestGetTemplateProfiles(t *testing.T) {
 			assert.Equal(t, tt.expected, w.String())
 			if err != nil {
 				assert.EqualError(t, err, tt.expectedErrorStr)
+			}
+		})
+	}
+}
+
+func TestParseProfileFlags(t *testing.T) {
+
+	// make an example values.yaml in a temp dir
+	tmpDir := t.TempDir()
+	valuesFile := filepath.Join(tmpDir, "values.yaml")
+	err := os.WriteFile(valuesFile, []byte("foo: bar"), 0644)
+	assert.NoError(t, err)
+
+	tests := []struct {
+		testName    string
+		profiles    []string
+		expected    []templates.ProfileValues
+		expectedErr string
+	}{
+		{
+			testName: "no profiles",
+			profiles: []string{"name=profile-a,version=v0.0.15"},
+			expected: []templates.ProfileValues{
+				{
+					Name:    "profile-a",
+					Version: "v0.0.15",
+				},
+			},
+		},
+		{
+			testName: "with values",
+			profiles: []string{fmt.Sprintf("name=profile-a,version=v0.0.15,values=%s", valuesFile)},
+			expected: []templates.ProfileValues{
+				{
+					Name:    "profile-a",
+					Version: "v0.0.15",
+					// base64 encoded version of "foo: bar"
+					Values: "Zm9vOiBiYXI=",
+				},
+			},
+		},
+		{
+			testName:    "missing name",
+			profiles:    []string{"version=v0.0.15"},
+			expectedErr: "profile name must be specified",
+		},
+		{
+			testName:    "invalid name",
+			profiles:    []string{"name='how do you do'"},
+			expectedErr: `invalid value for name "'how do you do'"`,
+		},
+		{
+			testName:    "invalid version",
+			profiles:    []string{"name=profile-a,version=foo"},
+			expectedErr: `invalid semver for version "foo": improper constraint: foo`,
+		},
+		{
+			testName:    "invalid namespace",
+			profiles:    []string{"name=profile-a,namespace='how do you do'"},
+			expectedErr: `invalid value for namespace "'how do you do'"`,
+		},
+		{
+			testName: "multiple profiles",
+			profiles: []string{"name=profile-a,version=v0.0.15", "name=profile-b,version=v0.0.16"},
+			expected: []templates.ProfileValues{
+				{Name: "profile-a", Version: "v0.0.15"},
+				{Name: "profile-b", Version: "v0.0.16"},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.testName, func(t *testing.T) {
+			actual, err := templates.ParseProfileFlags(tt.profiles)
+			if tt.expectedErr != "" {
+				assert.Regexp(t, tt.expectedErr, err)
+			} else {
+				assert.NoError(t, err)
+				assert.Equal(t, tt.expected, actual)
 			}
 		})
 	}

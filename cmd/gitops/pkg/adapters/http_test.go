@@ -33,19 +33,22 @@ func TestRetrieveTemplates(t *testing.T) {
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
 				assert.ElementsMatch(t, ts, []templates.Template{
 					{
-						Name:        "cluster-template",
-						Provider:    "",
-						Description: "this is test template 1",
+						Name:         "cluster-template",
+						Provider:     "",
+						Description:  "this is test template 1",
+						TemplateType: "cluster",
 					},
 					{
-						Name:        "cluster-template-2",
-						Provider:    "aws",
-						Description: "this is test template 2",
+						Name:         "cluster-template-2",
+						Provider:     "aws",
+						Description:  "this is test template 2",
+						TemplateType: "cluster",
 					},
 					{
-						Name:        "cluster-template-3",
-						Description: "this is test template 3",
-						Provider:    "azure",
+						Name:         "cluster-template-3",
+						Description:  "this is test template 3",
+						Provider:     "azure",
+						TemplateType: "cluster",
 					},
 				})
 			},
@@ -193,9 +196,10 @@ func TestRetrieveTemplatesByProvider(t *testing.T) {
 			assertFunc: func(t *testing.T, ts []templates.Template, err error) {
 				assert.ElementsMatch(t, ts, []templates.Template{
 					{
-						Name:        "cluster-template-2",
-						Provider:    "aws",
-						Description: "this is test template 2",
+						Name:         "cluster-template-2",
+						Provider:     "aws",
+						Description:  "this is test template 2",
+						TemplateType: "cluster",
 					},
 				})
 			},

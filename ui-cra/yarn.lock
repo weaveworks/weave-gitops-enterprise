@@ -2335,10 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.14.1":
-  version "0.14.1"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.14.1/61a5aed67207b76fd195fa7a03a2f61a823ce4b7#61a5aed67207b76fd195fa7a03a2f61a823ce4b7"
-  integrity sha512-xhcsRQmdOB7xREPqXcBkX8oYJfthvmPdjG/mUiwie7yUGrbZ/iPRgaOke/rjOduQVc+2k8mCq5cwb7E7pxeBTQ==
+"@weaveworks/weave-gitops@0.15.0":
+  version "0.15.0"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.15.0/7dbd0c4c8f4f155489f43dd9c588dff4066ab901#7dbd0c4c8f4f155489f43dd9c588dff4066ab901"
+  integrity sha512-RiDFcxyJmV+39zEQeT/IB4eXk4xPGSZRD8xM3a0Me9AIwYBpg/DJfDw3weQmrknjCi+eHX3Sa/MAXlms49YTyw==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2352,7 +2352,7 @@
     jest-worker "^27.5.1"
     js-sha3 "0.8.0"
     lodash "^4.17.21"
-    luxon "^1.27.0"
+    luxon "^3.2.1"
     mnemonic-browser "^0.0.1"
     postcss "^8.3.11"
     query-string "^4.3.4"
@@ -5235,10 +5235,10 @@ git-up@^7.0.0:
     is-ssh "^1.4.0"
     parse-url "^8.1.0"
 
-git-url-parse@^13.0.0:
-  version "13.0.0"
-  resolved "https://registry.yarnpkg.com/git-url-parse/-/git-url-parse-13.0.0.tgz#9a18d0eaec579fb6379c368aecb09f00b544669c"
-  integrity sha512-X1kozCqKL82dMrCLi4vie9SHDC+QugKskAMs4VUbIkhURKg5yDwxDmf6Ixg73J+/xVgK5TXKhzn8a94nHJHpnA==
+git-url-parse@13.1.0:
+  version "13.1.0"
+  resolved "https://registry.yarnpkg.com/git-url-parse/-/git-url-parse-13.1.0.tgz#07e136b5baa08d59fabdf0e33170de425adf07b4"
+  integrity sha512-5FvPJP/70WkIprlUZ33bm4UAaFdjcLkJLpWft1BeZKqwR0uhhNGoKwlUaPtVb4LxCSQ++erHapRak9kWGj+FCA==
   dependencies:
     git-up "^7.0.0"
 
@@ -6913,10 +6913,10 @@ lru-cache@^6.0.0:
   dependencies:
     yallist "^4.0.0"
 
-luxon@^1.27.0:
-  version "1.28.0"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-1.28.0.tgz#e7f96daad3938c06a62de0fb027115d251251fbf"
-  integrity sha512-TfTiyvZhwBYM/7QdAVDh+7dBTBA29v4ik0Ce9zda3Mnf8on1S5KJI8P2jKFZ8+5C0jhmr0KwJEO/Wdpm0VeWJQ==
+luxon@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.2.1.tgz#14f1af209188ad61212578ea7e3d518d18cee45f"
+  integrity sha512-QrwPArQCNLAKGO/C+ZIilgIuDnEnKx5QYODdDtbFaxzsbZcc/a7WFq7MhsVYgRlwawLtvOUESTlfJ+hc/USqPg==
 
 lz-string@^1.4.4:
   version "1.4.4"

@@ -10,6 +10,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 )
 
+const TemplateTypeLabel = "weave.works/template-type"
+
 func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 	var annotation string
 	templateKind := t.GetObjectKind().GroupVersionKind().Kind
@@ -19,6 +21,9 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 	case gapiv1.Kind:
 		annotation = templates.GitOpsTemplateNameAnnotation
 	}
+
+	templateType := t.GetLabels()[TemplateTypeLabel]
+
 	res := &capiv1_proto.Template{
 		Name:         t.GetName(),
 		Description:  t.GetSpec().Description,
@@ -26,6 +31,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		Annotations:  t.GetAnnotations(),
 		Labels:       t.GetLabels(),
 		TemplateKind: templateKind,
+		TemplateType: templateType,
 		Namespace:    t.GetNamespace(),
 	}
 
@@ -54,7 +60,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		})
 	}
 
-	res.Profiles, err = getProfilesFromTemplate(t)
+	res.Profiles, err = templates.GetProfilesFromTemplate(t)
 	if err != nil {
 		res.Error = fmt.Sprintf("Couldn't load profiles from template: %s", err.Error())
 		return res

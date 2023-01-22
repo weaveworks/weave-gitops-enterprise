@@ -62,6 +62,8 @@ config:
     claimGroups: ""
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
     clientCredentialsSecret: ""
+    # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
+    customScopes: ""
   auth:
     userAccount:
       enabled: true
@@ -163,8 +165,18 @@ global:
 
 templates-controller:
   enabled: true
+  # templates-controller-controller-manager etc
   fullnameOverride: templates-controller
   controllerManager:
     manager:
       image:
-        tag: v0.1.1
+        tag: v0.1.2
+
+gitopssets-controller:
+  enabled: false
+  # gitops-controller-manager etc
+  fullnameOverride: gitopssets
+  controllerManager:
+    manager:
+      image:
+        tag: v0.1.0

@@ -89,19 +89,24 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 		}
 	}
 
-	for k, v := range p.GetAnnotations() {
-		if strings.HasPrefix(k, "capi.weave.works/profile-") {
-			names, err := p.Processor.ParamNames([]byte(v))
-			if err != nil {
-				return nil, fmt.Errorf("failed to get params from annotation: %w", err)
-			}
-			paramNames.Insert(names...)
+	for _, v := range ProfileAnnotations(p) {
+		names, err := p.Processor.ParamNames([]byte(v))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from annotation: %w", err)
 		}
+		paramNames.Insert(names...)
 	}
 
 	for _, profile := range p.GetSpec().Charts.Items {
 		if profile.HelmReleaseTemplate.Content != nil {
 			names, err := p.Processor.ParamNames(profile.HelmReleaseTemplate.Content.Raw)
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Chart, err)
+			}
+			paramNames.Insert(names...)
+		}
+		if profile.HelmReleaseTemplate.Path != "" {
+			names, err := p.Processor.ParamNames([]byte(profile.HelmReleaseTemplate.Path))
 			if err != nil {
 				return nil, fmt.Errorf("failed to get params from profile.spec of %s: %w", profile.Chart, err)
 			}
@@ -114,6 +119,15 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			}
 			paramNames.Insert(names...)
 		}
+	}
+
+	if p.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
+		helmRepoTemplatePath := p.GetSpec().Charts.HelmRepositoryTemplate.Path
+		names, err := p.Processor.ParamNames([]byte(helmRepoTemplatePath))
+		if err != nil {
+			return nil, fmt.Errorf("failed to get params from chart.helmRepositoryTemplate.path of %s: %w", helmRepoTemplatePath, err)
+		}
+		paramNames.Insert(names...)
 	}
 
 	paramsMeta := map[string]Param{}
@@ -242,7 +256,10 @@ func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([
 	}
 
 	var out bytes.Buffer
-	if err := parsed.Execute(&out, map[string]interface{}{"params": values}); err != nil {
+	if err := parsed.Execute(&out, map[string]interface{}{
+		"params":   values,
+		"template": templateMetadata(p.template),
+	}); err != nil {
 		return nil, fmt.Errorf("failed to render template: %w", err)
 	}
 
@@ -328,4 +345,14 @@ func makeTemplateFunctions() template.FuncMap {
 		delete(f, v)
 	}
 	return f
+}
+
+// this could add additional fields from the data.
+func templateMetadata(t templatesv1.Template) map[string]any {
+	return map[string]any{
+		"meta": map[string]any{
+			"name":      t.GetName(),
+			"namespace": t.GetNamespace(),
+		},
+	}
 }

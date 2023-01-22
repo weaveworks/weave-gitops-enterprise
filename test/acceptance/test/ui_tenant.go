@@ -3,7 +3,9 @@ package acceptance
 import (
 	"context"
 	"fmt"
+	"os"
 	"path"
+	"text/template"
 
 	"github.com/onsi/ginkgo/v2"
 	"github.com/onsi/gomega"
@@ -20,11 +22,34 @@ func getTenantYamlPath() string {
 	return path.Join("/tmp", "generated-tenant.yaml")
 }
 
-func createTenant(tenatDefination string) {
+func renderTenants(tenantDefinition string, gp GitProviderEnv) string {
+	// render the tenant file out
+	gitRepoURL := fmt.Sprintf("ssh://git@%s/%s/%s", gp.Hostname, gp.Org, gp.Repo)
+	contents, err := os.ReadFile(tenantDefinition)
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to read GitopsCluster template yaml")
+	t := template.Must(template.New(tenantDefinition).Parse(string(contents)))
+	input := struct {
+		MainRepoURL string
+	}{
+		MainRepoURL: gitRepoURL,
+	}
+	path := path.Join("/tmp", "rendered-tenant.yaml")
+	f, err := os.Create(path)
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to create rendered tenant yaml")
+
+	err = t.Execute(f, input)
+	gomega.Expect(err).To(gomega.BeNil(), "Failed to render tenant yaml")
+
+	return path
+}
+
+func createTenant(tenantDefinition string, gp GitProviderEnv) {
 	tenantYaml := getTenantYamlPath()
 
+	renderedTenantsPath := renderTenants(tenantDefinition, gp)
+
 	// Export tenants resources to output file (required to delete tenant resources after test completion)
-	_, stdErr := runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, tenatDefination, tenantYaml))
+	_, stdErr := runGitopsCommand(fmt.Sprintf(`create tenants --from-file %s --export > %s`, renderedTenantsPath, tenantYaml))
 	gomega.Expect(stdErr).Should(gomega.BeEmpty(), "gitops create tenant command failed with an error")
 
 	// Create tenant resource using default kubeconfig
@@ -92,6 +117,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 				Path:            "./kustomize",
 				SyncInterval:    "10m",
 				Tenant:          "test-team",
+				GitRepository:   "https://github.com/stefanprodan/podinfo",
 			}
 
 			appEvent := ApplicationEvent{
@@ -108,7 +134,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			}
 
 			defer deleteTenants([]string{getTenantYamlPath()})
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 
 			// Add GitRepository source
 			sourceURL := "https://github.com/stefanprodan/podinfo"
@@ -139,9 +166,16 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 					g.Eventually(application.Source.Click).Should(gomega.Succeed(), "Failed to click Select Source list")
 					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.Source))
 				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s source is not listed in source's list", podinfo.Source))
-
-				gomega.Eventually(application.SelectListItem(webDriver, podinfo.Source).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from sources list")
 				gomega.Eventually(application.SourceHref.Text).Should(gomega.MatchRegexp(sourceURL), "Failed to find the source href")
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.GitRepository).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from git repos list")
+			})
+
+			ginkgo.By(fmt.Sprintf("And select %s GitRepository for PR", podinfo.GitRepository), func() {
+				gomega.Eventually(func(g gomega.Gomega) bool {
+					g.Eventually(application.GitRepository.Click).Should(gomega.Succeed(), "Failed to click Select GitRepository list")
+					return pages.ElementExist(application.SelectListItem(webDriver, podinfo.GitRepository))
+				}, ASSERTION_2MINUTE_TIME_OUT, POLL_INTERVAL_5SECONDS).Should(gomega.BeTrue(), fmt.Sprintf("GitRepository %s is not listed in the gitrepo list", podinfo.GitRepository))
+				gomega.Eventually(application.SelectListItem(webDriver, podinfo.GitRepository).Click).Should(gomega.Succeed(), "Failed to select GitRepository source from git repos list")
 			})
 
 			AddKustomizationApp(application, podinfo)
@@ -214,7 +248,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			}
 
 			defer deleteTenants([]string{getTenantYamlPath()})
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 
 			// Add HelmRepository source
 			sourceURL := "https://raw.githubusercontent.com/weaveworks/profiles-catalog/gh-pages"
@@ -375,7 +410,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 
 			useClusterContext(mgmtClusterContext)
 			// Installing tenant resources to management cluster. This is an easy way to add oidc tenant user rbac
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 			createPATSecret(leafCluster.Namespace, patSecret)
 			clusterBootstrapCopnfig = createClusterBootstrapConfig(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, patSecret)
 			gitopsCluster = connectGitopsCluster(leafCluster.Name, leafCluster.Namespace, bootstrapLabel, leafClusterkubeconfig)
@@ -388,7 +424,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			})
 
 			// Installing tenant resources to leaf cluster after leaf-cluster is bootstrapped
-			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml"))
+			createTenant(path.Join(testDataPath, "tenancy", "multiple-tenant.yaml.tpl"), gitProviderEnv)
+			copyFluxSystemGitRepo("test-kustomization")
 			// Add GitRepository source to leaf cluster
 			addSource("git", podinfo.Source, podinfo.Namespace, sourceURL, "master", "")
 

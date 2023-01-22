@@ -48,6 +48,12 @@ spec:
               charts:
                 description: Charts is the set of charts that are used in this template.
                 properties:
+                  helmRepositoryTemplate:
+                    description: Template for the HelmRepository. Shortcut to template.content.spec.chart.spec.helmRepositoryTemplate
+                    properties:
+                      path:
+                        type: string
+                    type: object
                   items:
                     items:
                       description: Chart is the set of values that control the default
@@ -73,12 +79,15 @@ spec:
                           type: string
                         template:
                           description: Template for the HelmRelease, merged with the
-                            default template
+                            default template.
                           properties:
                             content:
                               description: Content of the template
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
+                            path:
+                              description: Path of the template
+                              type: string
                           type: object
                         values:
                           description: Shortcut to template.content.spec.values
@@ -170,6 +179,12 @@ spec:
               charts:
                 description: Charts is the set of charts that are used in this template.
                 properties:
+                  helmRepositoryTemplate:
+                    description: Template for the HelmRepository. Shortcut to template.content.spec.chart.spec.helmRepositoryTemplate
+                    properties:
+                      path:
+                        type: string
+                    type: object
                   items:
                     items:
                       description: Chart is the set of values that control the default
@@ -195,12 +210,15 @@ spec:
                           type: string
                         template:
                           description: Template for the HelmRelease, merged with the
-                            default template
+                            default template.
                           properties:
                             content:
                               description: Content of the template
                               type: object
                               x-kubernetes-preserve-unknown-fields: true
+                            path:
+                              description: Path of the template
+                              type: string
                           type: object
                         values:
                           description: Shortcut to template.content.spec.values

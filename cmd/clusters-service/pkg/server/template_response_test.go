@@ -154,9 +154,10 @@ func TestToTemplate(t *testing.T) {
 				},
 				Profiles: []*capiv1_protos.TemplateProfile{
 					{
-						Name:    "cert-manager",
-						Version: "0.0.7",
-						Values:  "installCRDs: ${INSTALL_CRDS}",
+						Name:     "cert-manager",
+						Version:  "0.0.7",
+						Values:   "installCRDs: ${INSTALL_CRDS}",
+						Required: true,
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
@@ -192,15 +193,40 @@ func TestToTemplate(t *testing.T) {
 				},
 				Profiles: []*capiv1_protos.TemplateProfile{
 					{
-						Name:    "cert-manager",
-						Version: "0.0.7",
-						Values:  "installCRDs: {{ .params.INSTALL_CRDS }}",
+						Name:     "cert-manager",
+						Version:  "0.0.7",
+						Values:   "installCRDs: {{ .params.INSTALL_CRDS }}",
+						Required: true,
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
 					{
 						Name: "INSTALL_CRDS",
 					},
+				},
+			},
+		},
+		{
+			name: "with template type label",
+			value: &capiv1.CAPITemplate{
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "capi.weave.works/v1alpha2",
+					Kind:       "CAPITemplate",
+				},
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "foo",
+					Labels: map[string]string{
+						"weave.works/template-type": "cluster",
+					},
+				},
+			},
+			expected: &capiv1_protos.Template{
+				Name:         "foo",
+				Provider:     "",
+				TemplateKind: "CAPITemplate",
+				TemplateType: "cluster",
+				Labels: map[string]string{
+					"weave.works/template-type": "cluster",
 				},
 			},
 		},

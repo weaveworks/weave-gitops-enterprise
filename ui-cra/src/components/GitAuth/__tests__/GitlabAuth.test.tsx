@@ -9,7 +9,7 @@ import {
   promisify,
   withContext,
 } from '../../../utils/test-utils';
-import RepoInputWithAuth from '../RepoInputWithAuth';
+import { RepoInputWithAuth } from '../RepoInputWithAuth';
 import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 
 Object.assign(navigator, {
@@ -21,6 +21,12 @@ Object.assign(navigator, {
 describe('Gitlab Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
+
+  const gitRepoUrl = 'https://gitlab.git.dev.weave.works/test';
+
+  const onProviderChange = jest.fn();
+  const onAuthClick = jest.fn();
+  const setFormData = jest.fn();
 
   beforeEach(() => {
     let clipboardContents = '';
@@ -48,7 +54,14 @@ describe('Gitlab Authenticate', () => {
             state: { foo: 'bar' },
           }}
         >
-          <RepoInputWithAuth onAuthClick={() => null} />
+          <RepoInputWithAuth
+            value={gitRepoUrl}
+            onProviderChange={onProviderChange}
+            onAuthClick={onAuthClick}
+            label=""
+            formData=""
+            setFormData={setFormData}
+          />
         </CallbackStateContextProvider>,
       );
       render(c);
@@ -56,7 +69,6 @@ describe('Gitlab Authenticate', () => {
   });
 
   it('displays a button for GitLab auth', async () => {
-    const repoUrl = 'https://gitlab.git.something/someuser/somerepo';
     const oauthUrl = 'https://gitlab.com/oauth/something';
 
     const capture = jest.fn();
@@ -76,9 +88,6 @@ describe('Gitlab Authenticate', () => {
       valid: false,
     };
 
-    const onProviderChange = jest.fn();
-    const onAuthClick = jest.fn();
-
     await act(async () => {
       const c = wrap(
         <CallbackStateContextProvider
@@ -88,9 +97,12 @@ describe('Gitlab Authenticate', () => {
           }}
         >
           <RepoInputWithAuth
-            value={repoUrl}
+            value={gitRepoUrl}
             onProviderChange={onProviderChange}
             onAuthClick={onAuthClick}
+            label=""
+            formData=""
+            setFormData={setFormData}
           />
         </CallbackStateContextProvider>,
       );

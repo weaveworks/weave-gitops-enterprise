@@ -99,7 +99,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		msg.CommitMessage = "Add Kustomization Manifests"
 	}
 
-	gp, err := getGitProvider(ctx)
+	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
 	}
@@ -177,7 +177,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 					})
 				}
 
-				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
+				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, c.Kustomization, c.FilePath)
 
 				if err != nil {
 					return nil, err
