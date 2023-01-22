@@ -23,6 +23,9 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
+const semverClean = require('semver/functions/clean')
+const semverValid = require('semver/functions/valid')
+const semverMaxSatisfying = require('semver/ranges/max-satisfying')
 
 const ProfileWrapper = styled.div`
   display: flex;
@@ -66,6 +69,8 @@ const ProfilesListItem: FC<{
   const handleSelectVersion = useCallback(
     (value: string | null) => {
       // const value = event.target.value as string;
+      console.log(semverValid(value))
+      console.log(semverMaxSatisfying(profile.values.map(item=>item.version),value))
 
       value && setVersion(value);
       console.log({ value });
@@ -158,6 +163,7 @@ const ProfilesListItem: FC<{
               onChange={(event, newValue) => {
                 handleSelectVersion(newValue);
               }}
+           
               autoSelect
               renderInput={params => (
                 <TextField
@@ -165,6 +171,7 @@ const ProfilesListItem: FC<{
                   label="freeSolo"
                   margin="normal"
                   variant="outlined"
+                  error={!semverValid(semverClean(version))}
                 />
               )}
             />
