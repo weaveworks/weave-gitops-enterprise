@@ -2,9 +2,11 @@ import { Box } from '@material-ui/core';
 import {
   Button,
   Flex,
+  formatURL,
   InfoList,
   Interval,
   KubeStatusIndicator,
+  LinkResolverProvider,
   Metadata,
   RouterTab,
   SubRouterTabs,
@@ -20,14 +22,16 @@ import {
   useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';
 import { Routes } from '../../utils/nav';
+import CodeView from '../CodeView';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
-import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
+import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
+import TerraformPlanView from './TerraformPlanView';
 
 type Props = {
   className?: string;
@@ -116,6 +120,16 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         ]);
       })
       .finally(() => setSuspending(false));
+  };
+
+  const resolver = (type: string, params: any) => {
+    return (
+      formatURL(Routes.TerraformDetail, {
+        name: params.name,
+        namespace: params.namespace,
+        clusterName: params.clusterName,
+      }) || ''
+    );
   };
 
   return (
@@ -207,17 +221,23 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 }}
               />
             </RouterTab>
+            <RouterTab name="Dependencies" path={`${path}/dependencies`}>
+              <LinkResolverProvider resolver={resolver}>
+                <TerraformDependenciesView object={object || {}} />
+              </LinkResolverProvider>
+            </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
-              <>
-                <YamlView
-                  kind="Terraform"
-                  object={{
-                    name: object?.name,
-                    namespace: object?.namespace,
-                  }}
-                  yaml={yaml as string}
-                />
-              </>
+              <CodeView
+                kind="Terraform"
+                object={{
+                  name: object?.name,
+                  namespace: object?.namespace,
+                }}
+                code={yaml || ''}
+              />
+            </RouterTab>
+            <RouterTab name="Plan" path={`${path}/plan`}>
+              <TerraformPlanView {...params} />
             </RouterTab>
           </SubRouterTabs>
         </div>

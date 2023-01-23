@@ -8,24 +8,45 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	securejoin "github.com/cyphar/filepath-securejoin"
+	"github.com/fluxcd/go-git-providers/gitprovider"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	clitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"helm.sh/helm/v3/pkg/cli"
+	"helm.sh/helm/v3/pkg/helmpath"
+	"helm.sh/helm/v3/pkg/repo"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type templateCommandFlags struct {
-	parameterValues []string
-	export          bool
-	outputDir       string
+type Config struct {
+	ParameterValues []string `mapstructure:"values"`
+	Export          bool     `mapstructure:"export"`
+	OutputDir       string   `mapstructure:"output-dir"`
+	TemplateFile    string   `mapstructure:"template-file"`
+	HelmRepoName    string   `mapstructure:"helm-repo-name"`
+	Profiles        []string `mapstructure:"profiles"`
 }
 
-var flags templateCommandFlags
+var config Config
+var configPath string
+
+var DefaultCluster = "default"
 
 var CreateCommand = &cobra.Command{
 	Use:   "template",
@@ -36,60 +57,113 @@ var CreateCommand = &cobra.Command{
 
 	  # apply rendered resources of template to path
 	  gitops create template.yaml --values key1=value1,key2=value2 --output-dir ./out 
+
+	  # specify a template file and a config file
+	  gitops create template.yaml --config config.yaml --output-dir ./out
+
+	  # specify template file and values in a config file
+	  gitops create --config config.yaml --output-dir ./out
 	`,
+	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
+		return initializeConfig(cmd)
+	},
 	RunE: templatesCmdRunE(),
 }
 
 func init() {
-	CreateCommand.Flags().StringSliceVar(&flags.parameterValues, "values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
-	CreateCommand.Flags().BoolVar(&flags.export, "export", false, "export in YAML format to stdout")
-	CreateCommand.Flags().StringVar(&flags.outputDir, "output-dir", "", "write YAML format to file")
+	flags := CreateCommand.Flags()
+	flags.StringSlice("values", []string{}, "Set parameter values on the command line (can specify multiple or separate values with commas: key1=val1,key2=val2)")
+	flags.Bool("export", false, "export in YAML format to stdout")
+	flags.String("output-dir", "", "write YAML format to file")
+	flags.String("template-file", "", "template file to use")
+	flags.StringArray("profiles", []string{}, "Set profiles values files on the command line (--profile 'name=foo-profile,version=0.0.1,namespace=foo-system' --profile 'name=bar-profile,namespace=bar-system,values=bar-values.yaml')")
+	flags.String("helm-repo-name", "weaveworks-charts", "name of the helm repo in the helm local cache")
+	flags.StringVar(&configPath, "config", "", "config file to use")
+}
+
+// initializeConfig reads in config file.
+func initializeConfig(cmd *cobra.Command) error {
+	v := viper.New()
+
+	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_"))
+
+	v.AutomaticEnv()
+
+	err := v.BindPFlags(cmd.Flags())
+	if err != nil {
+		return err
+	}
+
+	if configPath != "" {
+		v.SetConfigFile(configPath)
+		if err = v.ReadInConfig(); err != nil {
+			return err
+		}
+	}
+
+	err = v.Unmarshal(&config)
+	if err != nil {
+		return fmt.Errorf("error unmarshalling flags and env into config struct %w", err)
+	}
+
+	return nil
 }
 
 func templatesCmdRunE() func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if len(args) == 0 {
-			return errors.New("template file is required")
-		}
-
-		parsedTemplate, err := parseTemplate(args[0])
+		log, err := logger.New(logger.DefaultLogLevel, true)
 		if err != nil {
-			return fmt.Errorf("failed to parse template file %s: %w", args[0], err)
+			return fmt.Errorf("failed to create logger: %w", err)
 		}
 
-		ctx := context.Background()
-		vals := make(map[string]string)
+		// set template name from args if not set in flags
+		templateFile := config.TemplateFile
+		if len(args) > 0 {
+			templateFile = args[0]
+		}
+
+		if templateFile == "" {
+			return errors.New("must specify template file")
+		}
+
+		parsedTemplate, err := parseTemplate(templateFile)
+		if err != nil {
+			return fmt.Errorf("failed to parse template file %s: %w", templateFile, err)
+		}
+
+		params := make(map[string]string)
 
 		// parse parameter values
-		for _, v := range flags.parameterValues {
+		for _, v := range config.ParameterValues {
 			kv := strings.SplitN(v, "=", 2)
 			if len(kv) == 2 {
-				vals[kv[0]] = kv[1]
+				params[kv[0]] = kv[1]
 			}
 		}
 
-		getFilesRequest := server.GetFilesRequest{
-			ParameterValues: vals,
-			TemplateName:    parsedTemplate.Name,
-			TemplateKind:    parsedTemplate.Kind,
-		}
-
-		templateResources, err := server.GetFiles(
-			ctx, nil, logr.Discard(), estimation.NilEstimator(), nil,
-			types.NamespacedName{}, types.NamespacedName{}, parsedTemplate, getFilesRequest, nil)
+		profilesValues, err := clitemplates.ParseProfileFlags(config.Profiles)
 		if err != nil {
-			return fmt.Errorf("failed to get template resources: %w", err)
+			return fmt.Errorf("error parsing profiles: %w", err)
+		}
+		capiProfileValues := []*capiv1_proto.ProfileValues{}
+		for _, profile := range profilesValues {
+			capiProfileValues = append(capiProfileValues, &capiv1_proto.ProfileValues{
+				Name:      profile.Name,
+				Namespace: profile.Namespace,
+				Version:   profile.Version,
+				Values:    profile.Values,
+			})
 		}
 
-		renderedTemplate := ""
-		for _, file := range templateResources.RenderedTemplate {
-			renderedTemplate += *file.Content
+		files, err := generateFilesLocally(parsedTemplate, params, config.HelmRepoName, capiProfileValues, cli.New(), log)
+		if err != nil {
+			return fmt.Errorf("failed to generate files locally: %w", err)
 		}
 
-		if flags.export {
+		if config.Export {
 			renderedTemplate := ""
-			for _, file := range templateResources.RenderedTemplate {
-				renderedTemplate += "\n# path: " + *file.Path + "\n---\n" + *file.Content
+			for _, file := range files {
+				renderedTemplate += fmt.Sprintf("# path: %s\n---\n%s\n\n", *file.Path, *file.Content)
 			}
 
 			err := export(renderedTemplate, os.Stdout)
@@ -100,27 +174,26 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
-		if flags.outputDir != "" {
-			for _, res := range templateResources.RenderedTemplate {
-				filePath := filepath.Join(flags.outputDir, *res.Path)
+		if config.OutputDir != "" {
+			for _, res := range files {
+				filePath, err := securejoin.SecureJoin(config.OutputDir, *res.Path)
+				if err != nil {
+					return fmt.Errorf("failed to join %s to %s: %w", config.OutputDir, *res.Path, err)
+				}
 				directoryPath := filepath.Dir(filePath)
 
-				err := os.MkdirAll(directoryPath, 0755)
-
+				err = os.MkdirAll(directoryPath, 0755)
 				if err != nil {
 					return fmt.Errorf("failed to create directory: %w", err)
 				}
 
 				file, err := os.Create(filePath)
-
 				if err != nil {
 					return fmt.Errorf("failed to create file: %w", err)
 				}
-
 				defer file.Close()
 
 				_, err = file.Write([]byte(*res.Content))
-
 				if err != nil {
 					return fmt.Errorf("failed to write to file: %w", err)
 				}
@@ -128,7 +201,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 			return nil
 		}
 
-		return errors.New("Please provide either --export or --output-dir")
+		return errors.New("please provide either --export or --output-dir")
 	}
 }
 
@@ -165,4 +238,112 @@ func export(template string, out io.Writer) error {
 	}
 
 	return nil
+}
+
+func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]gitprovider.CommitFile, error) {
+	// create tmp dir for charts cache
+	tmpDir, err := os.MkdirTemp("", "gitops")
+	if err != nil {
+		return nil, fmt.Errorf("failed to create tmp dir: %w", err)
+	}
+	defer func() {
+		if err := os.RemoveAll(tmpDir); err != nil {
+			log.Error(err, "failed to remove temporary chart cache")
+		}
+	}()
+
+	chartsCache, err := helm.NewChartIndexer(tmpDir, DefaultCluster)
+	if err != nil {
+		return nil, fmt.Errorf("could not create charts cache in %s: %w", tmpDir, err)
+	}
+
+	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
+	if err != nil {
+		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
+	}
+
+	var helmRepo *sourcev1.HelmRepository
+	var helmRepoRef types.NamespacedName
+	if len(profiles) > 0 || templateHasRequiredProfiles {
+		entry, index, err := localHelmRepo(helmRepoName, settings)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"template has profiles and loading local helm repo data failed, try `helm repo add`. (RepositoryConfig: %s, RepositoryCache: %s): %w",
+				settings.RepositoryConfig,
+				settings.RepositoryCache,
+				err,
+			)
+		}
+		helmRepo = fluxHelmRepo(entry)
+		helmRepoRef = types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace}
+		controller.LoadIndex(index, chartsCache, types.NamespacedName{Name: DefaultCluster}, helmRepo, log)
+	}
+
+	templateResources, err := server.GetFiles(
+		context.Background(),
+		nil, // no need for a kube client as we're providing the helm repo no
+		logr.Discard(),
+		estimation.NilEstimator(),
+		chartsCache,
+		types.NamespacedName{Name: DefaultCluster},
+		helmRepoRef,
+		tmpl,
+		server.GetFilesRequest{
+			ParameterValues: params,
+			TemplateName:    tmpl.Name,
+			HelmRepository:  helmRepo,
+			Profiles:        profiles,
+		},
+		nil, // FIXME: no create message request, generated resources won't be "editable" in the UI
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get template resources: %w", err)
+	}
+
+	files := templateResources.RenderedTemplate
+	files = append(files, templateResources.ProfileFiles...)
+	files = append(files, templateResources.KustomizationFiles...)
+
+	return files, nil
+}
+
+func localHelmRepo(repoName string, settings *cli.EnvSettings) (*repo.Entry, *repo.IndexFile, error) {
+	if settings == nil {
+		return nil, nil, fmt.Errorf("helm settings missing for repo %s", repoName)
+	}
+
+	f, err := repo.LoadFile(settings.RepositoryConfig)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load helm repo file: %w", err)
+	}
+
+	r := f.Get(repoName)
+	if r == nil {
+		return nil, nil, fmt.Errorf("failed to find helm repo %s", repoName)
+	}
+
+	indexPath := filepath.Join(settings.RepositoryCache, helmpath.CacheIndexFile(r.Name))
+	index, err := repo.LoadIndexFile(indexPath)
+	if err != nil {
+		return nil, nil, fmt.Errorf("failed to load helm repo index file: %w", err)
+	}
+
+	return r, index, nil
+}
+
+func fluxHelmRepo(r *repo.Entry) *sourcev1.HelmRepository {
+	return &sourcev1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      r.Name,
+			Namespace: "flux-system",
+		},
+		Spec: sourcev1.HelmRepositorySpec{
+			Interval: metav1.Duration{Duration: 10 * time.Minute},
+			URL:      r.URL,
+		},
+	}
 }

@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230111081739-3c2197da9546
+	github.com/weaveworks/weave-gitops v0.15.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -55,12 +55,14 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.5.1
+	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
+	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
-	github.com/weaveworks/templates-controller v0.1.1
+	github.com/weaveworks/templates-controller v0.1.2
 	github.com/xanzy/go-gitlab v0.77.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/oauth2 v0.2.0
@@ -124,7 +126,6 @@ require (
 	github.com/otiai10/copy v1.7.0 // indirect
 	github.com/rhysd/go-github-selfupdate v1.2.3 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
-	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
@@ -156,7 +157,7 @@ require (
 	github.com/pkg/browser v0.0.0-20210911075715-681adbf594b8 // indirect
 	github.com/pkg/profile v1.6.0 // indirect
 	github.com/rs/cors v1.8.2 // indirect
-	github.com/rs/xid v1.2.1 // indirect
+	github.com/rs/xid v1.4.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/weaveworks/pipeline-controller/api v0.0.0-20230112113438-e3f798eb925b
 	go.opencensus.io v0.23.0 // indirect
@@ -197,7 +198,7 @@ require (
 	github.com/clbanning/mxj/v2 v2.3.3-0.20201214204241-e937bdee5a3e // indirect
 	github.com/containerd/containerd v1.6.6 // indirect
 	github.com/coreos/go-oidc/v3 v3.1.0 // indirect
-	github.com/cyphar/filepath-securejoin v0.2.3 // indirect
+	github.com/cyphar/filepath-securejoin v0.2.3
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.4.0 // indirect

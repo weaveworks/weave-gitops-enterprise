@@ -4,7 +4,7 @@ import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import YamlView from '../../YamlView';
+import CodeView from '../../CodeView';
 
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
@@ -64,9 +64,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
             <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
-            <YamlView
+            <CodeView
               kind="Pipeline"
-              yaml={data?.pipeline?.yaml || ''}
+              code={data?.pipeline?.yaml || ''}
               object={data?.pipeline || {}}
             />
           </RouterTab>

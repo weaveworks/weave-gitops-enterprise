@@ -1241,8 +1241,8 @@ github.com/rogpeppe/go-internal v1.8.1 h1:geMPLpDpQOgVyCg5z5GoRwLHepNdb71NXb67XF
 github.com/rs/cors v1.7.0/go.mod h1:gFx+x8UowdsKA9AchylcLynDq+nNFfI8FkUZdN/jGCU=
 github.com/rs/cors v1.8.2 h1:KCooALfAYGs415Cwu5ABvv9n9509fSiG5SQJn/AQo4U=
 github.com/rs/cors v1.8.2/go.mod h1:XyqrcTp5zjWr1wsJ8PIRZssZ8b/WMcMf71DJnit4EMU=
-github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
-github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
+github.com/rs/xid v1.4.0 h1:qd7wPTDkN6KQx2VmMBLrpHkiyQwgFXRnkOLacUiaSNY=
+github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rubenv/sql-migrate v1.1.2 h1:9M6oj4e//owVVHYrFISmY9LBRw6gzkCNmD9MV36tZeQ=
 github.com/rubenv/sql-migrate v1.1.2/go.mod h1:/7TZymwxN8VWumcIxw1jjHEcR1djpdkMHQPT4FWdnbQ=
 github.com/russross/blackfriday v1.5.2/go.mod h1:JO/DiYxRf+HjHt06OyowR9PTA263kcR/rfWxYHBV53g=
@@ -1367,6 +1367,8 @@ github.com/tomasen/realip v0.0.0-20180522021738-f0c99a92ddce/go.mod h1:o8v6yHRoi
 github.com/tommy-muehle/go-mnd/v2 v2.4.0/go.mod h1:WsUAkMJMYww6l/ufffCD3m+P7LEvr8TnZn9lwVDlgzw=
 github.com/tomwright/dasel v1.22.1 h1:Y1wefjI7UlhEsHdOozzp3aGMsipKGGyaft6waUU1m24=
 github.com/tomwright/dasel v1.22.1/go.mod h1:YmXrjcQHjmOfvG/ZVg7P0hhURwRlqtbNhSWQu0fOeRQ=
+github.com/tonglil/buflogr v1.0.1 h1:WXFZLKxLfqcVSmckwiMCF8jJwjIgmStJmg63YKRF1p0=
+github.com/tonglil/buflogr v1.0.1/go.mod h1:yYWwvSpn/3uAaqjf6mJg/XMiAciaR0QcRJH2gJGDxNE=
 github.com/ugorji/go/codec v0.0.0-20181204163529-d75b2dcb6bc8/go.mod h1:VFNgLljTbGfSG7qAOspJ7OScBnGdDN/yBr0sguwnwf0=
 github.com/ulikunitz/xz v0.5.9 h1:RsKRIA2MO8x56wkkcd3LbtcE/uMszhb6DpRf+3uwa3I=
 github.com/ulikunitz/xz v0.5.9/go.mod h1:nbz6k7qbPmH4IRqmfOplQw/tblSgqTqBwxkY0oWt/14=
@@ -1390,12 +1392,12 @@ github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34 h1:/
 github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34/go.mod h1:Bzy4vzn0cAfnzllxsPI7pnUgMwAL97QqBdV/3cDTW50=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1:EG/SrRMfrUAUCclChn8JwPBlZ5mFtstsnQ1hc241GLg=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
-github.com/weaveworks/templates-controller v0.1.1 h1:+L2td92fTTmRXsIML5xU8JRlU/VhLrRy7LPh5yN0w3w=
-github.com/weaveworks/templates-controller v0.1.1/go.mod h1:iLs/20GkUY94KzDhRvmctwun7yX3SGJWs8q0gbTu53I=
+github.com/weaveworks/templates-controller v0.1.2 h1:PVPePP8NUnB2OqCsNvHvp8zm2vkxttWwS8pMZo+1U/I=
+github.com/weaveworks/templates-controller v0.1.2/go.mod h1:iLs/20GkUY94KzDhRvmctwun7yX3SGJWs8q0gbTu53I=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4 h1:RRpzQlhbEC5WjL0jaMEvGUSZ8EsxzdqSSzginwSBTyc=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4/go.mod h1:VK60b9WR7XEK1DvQNOpKEOlIQ56Qcy5KlAIFksQmUxI=
-github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230111081739-3c2197da9546 h1:J9euKFq98oklO2Ms4qatpmW6ZcmdukaNMoHyDNjhJaU=
-github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230111081739-3c2197da9546/go.mod h1:XhJjaBe0LMZjsCeZJjVdj6EpTgHhlEuX+mAMhedjadk=
+github.com/weaveworks/weave-gitops v0.15.0 h1:CjDdXL+6l7T3CuGfouggVh9x6fJvWmJSz0qkC2nQ1hg=
+github.com/weaveworks/weave-gitops v0.15.0/go.mod h1:cUnWoB/os7EQY8yxKn9fr+f3Ny8wCXnnF74PPd0l+PU=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.77.0 h1:UrbGlxkWVCbkpa6Fk6cM8ARh+rLACWemkJnsawT7t98=

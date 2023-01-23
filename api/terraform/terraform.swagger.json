@@ -268,6 +268,12 @@
       "properties": {
         "plan": {
           "type": "string"
+        },
+        "enablePlanViewing": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "string"
         }
       }
     },
@@ -316,6 +322,17 @@
           "items": {
             "$ref": "#/definitions/v1TerraformListError"
           }
+        }
+      }
+    },
+    "v1NamespacedObjectReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
         }
       }
     },
@@ -450,6 +467,12 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
+          }
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1NamespacedObjectReference"
           }
         },
         "suspended": {

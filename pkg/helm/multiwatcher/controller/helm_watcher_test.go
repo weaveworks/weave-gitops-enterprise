@@ -8,6 +8,7 @@ import (
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
@@ -177,6 +178,81 @@ func TestReconcileGetChartFails(t *testing.T) {
 		},
 	})
 	assert.EqualError(t, err, "nope")
+}
+
+func TestLoadIndex(t *testing.T) {
+	helmRepo := makeTestHelmRepo()
+
+	index := &repo.IndexFile{
+		APIVersion: "v1",
+		Generated:  time.Now(),
+		Entries: map[string]repo.ChartVersions{
+			"chart1": {
+				{
+					Metadata: &chart.Metadata{
+						Name:    "chart1",
+						Version: "1.0.0",
+					},
+				},
+			},
+			"profile1": {
+				{
+					Metadata: &chart.Metadata{
+						Name:    "profile1",
+						Version: "2.0.0",
+						Annotations: map[string]string{
+							"weave.works/profile": "true",
+							"weave.works/layer":   "layer-0",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	fakeCache := helmfakes.NewFakeChartCache()
+	LoadIndex(index, fakeCache, clusterRef, helmRepo, logr.Discard())
+
+	// Should detect the kind of the chart
+	charts, err := fakeCache.ListChartsByRepositoryAndCluster(
+		context.Background(),
+		clusterRef,
+		helm.ObjectReference{
+			Name:      helmRepo.Name,
+			Namespace: helmRepo.Namespace,
+		},
+		"chart",
+	)
+	expected := []helm.Chart{
+		{
+			Name:    "chart1",
+			Version: "1.0.0",
+			Kind:    "chart",
+		},
+	}
+	assert.NoError(t, err)
+	assert.Equal(t, expected, charts)
+
+	// and see we can get the profiles too
+	profiles, err := fakeCache.ListChartsByRepositoryAndCluster(
+		context.Background(),
+		clusterRef,
+		helm.ObjectReference{
+			Name:      helmRepo.Name,
+			Namespace: helmRepo.Namespace,
+		},
+		"profile",
+	)
+	expected = []helm.Chart{
+		{
+			Name:    "profile1",
+			Version: "2.0.0",
+			Kind:    "profile",
+			Layer:   "layer-0",
+		},
+	}
+	assert.NoError(t, err)
+	assert.Equal(t, expected, profiles)
 }
 
 func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetcher, fakeCache helm.ChartsCacherWriter) *HelmWatcherReconciler {
