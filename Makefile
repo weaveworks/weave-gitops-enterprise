@@ -15,12 +15,6 @@ CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 GOOS := $(shell go env GOOS)
 TIER=enterprise
-ifeq ($(GOOS),linux)
-	cgo_ldflags=-linkmode external -w -extldflags "-static"
-else
-	# darwin doesn't like -static
-	cgo_ldflags=-linkmode external -w
-endif
 
 # The GOOS to use for local binaries that we `make install`
 LOCAL_BINARIES_GOOS ?= $(GOOS)
@@ -56,7 +50,7 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 
 
 cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
-	CGO_ENABLED=0 go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
+	go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
 ui-cra/.uptodate: ui-cra/*
@@ -137,7 +131,7 @@ lint:
 	bin/go-lint
 
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
-	CGO_ENABLED=0 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
+	go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG)" -o $@ ./cmd/clusters-service
 
 BRANCH?=main
 update-weave-gitops:
