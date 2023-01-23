@@ -11,6 +11,7 @@ import (
 	"net/url"
 	"sort"
 	"strconv"
+	"strings"
 	"testing"
 	"text/template"
 	"time"
@@ -19,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 
+	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
@@ -1730,85 +1732,6 @@ func makeTestGitopsCluster(opts ...func(*gitopsv1alpha1.GitopsCluster)) *gitopsv
 	}
 	return c
 }
-
-// func NewFakeGitProvider(url string, repo *git.GitRepo, err error, OriginalFilesPaths []string) git.Provider {
-// 	return &FakeGitProvider{
-// 		url:           url,
-// 		repo:          repo,
-// 		err:           err,
-// 		OriginalFiles: OriginalFilesPaths,
-// 	}
-// }
-
-// type FakeGitProvider struct {
-// 	url            string
-// 	repo           *git.GitRepo
-// 	err            error
-// 	CommittedFiles []gitprovider.CommitFile
-// 	OriginalFiles  []string
-// }
-
-// func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req git.WriteFilesToBranchAndCreatePullRequestRequest) (*git.WriteFilesToBranchAndCreatePullRequestResponse, error) {
-// 	if p.err != nil {
-// 		return nil, p.err
-// 	}
-// 	p.CommittedFiles = append(p.CommittedFiles, req.Files...)
-// 	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
-// }
-
-// func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) (*git.CloneRepoToTempDirResponse, error) {
-// 	if p.err != nil {
-// 		return nil, p.err
-// 	}
-// 	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
-// }
-
-// func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
-// 	if p.err != nil {
-// 		return nil, p.err
-// 	}
-// 	return nil, nil
-// }
-
-// func (p *FakeGitProvider) GetCommittedFiles() []*capiv1_protos.CommitFile {
-// 	var CommittedFiles []*capiv1_protos.CommitFile
-// 	for _, f := range p.CommittedFiles {
-// 		content := ""
-// 		if f.Content != nil {
-// 			content = *f.Content
-// 		}
-
-// 		CommittedFiles = append(CommittedFiles, &capiv1_protos.CommitFile{
-// 			Path:    *f.Path,
-// 			Content: content,
-// 		})
-// 	}
-// 	sortCommitFiles(CommittedFiles)
-// 	return CommittedFiles
-// }
-
-// func (p *FakeGitProvider) GetTreeList(ctx context.Context, gp git.GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error) {
-// 	if p.err != nil {
-// 		return nil, p.err
-// 	}
-
-// 	var treeEntries []*gitprovider.TreeEntry
-// 	for _, filePath := range p.OriginalFiles {
-// 		if path == "" || (path != "" && strings.HasPrefix(filePath, path)) {
-// 			treeEntries = append(treeEntries, &gitprovider.TreeEntry{
-// 				Path:    filePath,
-// 				Mode:    "",
-// 				Type:    "",
-// 				Size:    0,
-// 				SHA:     "",
-// 				Content: "",
-// 				URL:     "",
-// 			})
-// 		}
-
-// 	}
-// 	return treeEntries, nil
-// }
 
 func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 	mux := http.NewServeMux()
