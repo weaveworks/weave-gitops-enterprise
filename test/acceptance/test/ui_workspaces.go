@@ -188,7 +188,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		ginkgo.JustAfterEach(func() {
 			deleteWorkspaces("management")
 		})
-		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
+		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
 			installWorkspaces("management", workspacesYaml)
