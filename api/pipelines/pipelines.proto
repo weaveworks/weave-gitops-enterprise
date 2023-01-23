@@ -41,7 +41,8 @@ service Pipelines {
 
     rpc ListPullRequests(ListPullRequestsRequest) returns (ListPullRequestsResponse) {
         option (google.api.http) = {
-            get : "/v1/pipelines/list_prs/{pipelineName}"
+            post : "/v1/pipelines/list_prs/{pipelineName}"
+            body: "*"
         };
     }
 }

@@ -44,7 +44,7 @@ func TestGetListPullRequest(t *testing.T) {
 	}
 	require.NoError(t, kclient.Create(ctx, p))
 
-	prs := []gitprovider.PullRequest{gitfakes.NewPullRequest(0, "testing", "default/pipe-2/env-1", "http://example.com/foo/bar/pulls/1", false, "main")}
+	prs := []gitprovider.PullRequest{gitfakes.NewPullRequest(0, "testing", pipelineNamespace.Name+"/pipe-2/env-1", "http://example.com/foo/bar/pulls/1", false, "main")}
 	fakeGitProvider := gitfakes.NewFakeGitProvider("", nil, nil, nil, prs)
 
 	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
@@ -56,9 +56,9 @@ func TestGetListPullRequest(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	assert.Equal(t, res.PullRequests, map[string]string{
+	assert.Equal(t, map[string]string{
 		"env-1": "http://example.com/foo/bar/pulls/1",
-	})
+	}, res.PullRequests)
 }
 
 func createSecret(ctx context.Context, t *testing.T, k client.Client, name string, ns string, data map[string][]byte) *corev1.Secret {

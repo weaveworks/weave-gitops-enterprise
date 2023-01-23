@@ -61,6 +61,6 @@ export class Pipelines {
     return fm.fetchReq<ApprovePromotionRequest, ApprovePromotionResponse>(`/v1/pipelines/approve/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListPullRequests(req: ListPullRequestsRequest, initReq?: fm.InitReq): Promise<ListPullRequestsResponse> {
-    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list_prs/${req["pipelineName"]}?${fm.renderURLSearchParams(req, ["pipelineName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list_prs/${req["pipelineName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

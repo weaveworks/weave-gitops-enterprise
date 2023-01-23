@@ -97,7 +97,7 @@
       }
     },
     "/v1/pipelines/list_prs/{pipelineName}": {
-      "get": {
+      "post": {
         "operationId": "Pipelines_ListPullRequests",
         "responses": {
           "200": {
@@ -121,10 +121,17 @@
             "type": "string"
           },
           {
-            "name": "pipelineNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "pipelineNamespace": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "tags": [

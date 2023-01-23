@@ -3,7 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"regexp"
+	"net/url"
+	"strings"
 
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -36,51 +37,54 @@ func (s *server) ListPullRequests(ctx context.Context, msg *pb.ListPullRequestsR
 	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
 	p.SetGroupVersionKind(ctrl.GroupVersion.WithKind(ctrl.PipelineKind))
 
-	if p.Spec.Promotion == nil || p.Spec.Promotion.Strategy.PullRequest == nil {
-		return &pb.ListPullRequestsResponse{
-			PullRequests: map[string]string{},
-		}, nil
-	}
-
 	sc, err := s.clients.GetServerClient(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed getting server client: %w", err)
 	}
 
-	// getting provider token from pipeline definition
-	var secret corev1.Secret
-	if err := sc.Get(ctx, s.cluster, client.ObjectKey{Namespace: msg.PipelineNamespace, Name: p.Spec.Promotion.Strategy.PullRequest.SecretRef.Name}, &secret); err != nil {
-		return nil, fmt.Errorf("failed to fetch Secret: %w", err)
-	}
-
-	gp := git.GitProvider{
-		Token: string(secret.Data["token"]),
-		Type:  p.Spec.Promotion.Strategy.PullRequest.Type.String(),
-	}
-
-	allPrs, err := s.gitProvider.ListPullRequests(ctx, gp, p.Spec.Promotion.Strategy.PullRequest.URL)
-	if err != nil {
-		return nil, fmt.Errorf("failed listing pull requests: %w", err)
-	}
-
 	openPrs := map[string]string{}
 
-	pathPattern := regexp.MustCompile("([^/]+)/([^/]+)/([^/]+)")
+	for _, e := range p.Spec.Environments {
+		promotion := p.Spec.GetPromotion(e.Name)
 
-	for _, pr := range allPrs {
-		prInfo := pr.Get()
-		if prInfo.Merged {
+		// if no PullRequest promotion is defined for the environment, skip
+		if promotion == nil || promotion.Strategy.PullRequest == nil {
 			continue
 		}
 
-		pathMatches := pathPattern.FindStringSubmatch(prInfo.Description)
-		if pathMatches == nil {
-			continue
+		// getting provider token from pipeline definition
+		var secret corev1.Secret
+		if err := sc.Get(ctx, s.cluster, client.ObjectKey{Namespace: msg.PipelineNamespace, Name: promotion.Strategy.PullRequest.SecretRef.Name}, &secret); err != nil {
+			return nil, fmt.Errorf("failed to fetch Secret: %w", err)
 		}
 
-		env := pathMatches[3]
+		url, err := url.Parse(promotion.Strategy.PullRequest.URL)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse URL: %w", err)
+		}
 
-		openPrs[env] = prInfo.WebURL
+		gp := git.GitProvider{
+			Token:    string(secret.Data["token"]),
+			Type:     promotion.Strategy.PullRequest.Type.String(),
+			Hostname: url.Hostname(),
+		}
+
+		allPrs, err := s.gitProvider.ListPullRequests(ctx, gp, promotion.Strategy.PullRequest.URL)
+		if err != nil {
+			return nil, fmt.Errorf("failed listing pull requests: %w", err)
+		}
+
+		for _, pr := range allPrs {
+			prInfo := pr.Get()
+
+			if prInfo.Merged {
+				continue
+			}
+
+			if strings.Contains(prInfo.Description, fmt.Sprintf("%s/%s/%s", p.Namespace, p.Name, e.Name)) {
+				openPrs[e.Name] = prInfo.WebURL
+			}
+		}
 	}
 
 	return &pb.ListPullRequestsResponse{
