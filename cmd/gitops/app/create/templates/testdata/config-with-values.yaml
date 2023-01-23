@@ -1,4 +1,5 @@
-template-file: template.yaml
+template-file: testdata/template-with-charts.yaml
+helm-repo-name: test-repo
 values:
   - CLUSTER_NAME=test-cluster
   - RESOURCE_NAME=test-resource
@@ -6,3 +7,5 @@ values:
   - GIT_REPO_NAMESPACE=test-git-repo-namespace
   - GIT_REPO_NAME=test-git-repo-name
   - PATH=clusters/out.yaml
+profiles:
+  - name=cert-manager,namespace=foo,version=>0.1,values=testdata/cert-manager-values.yaml

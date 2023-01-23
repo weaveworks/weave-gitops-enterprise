@@ -4,7 +4,7 @@ dependencies:
   version: 1.0.0
 - name: templates-controller
   repository: file://../templates-controller
-  version: 0.1.0
+  version: 0.1.1
 - name: policy-agent
   repository: https://weaveworks.github.io/policy-agent
   version: 2.2.0
@@ -14,5 +14,5 @@ dependencies:
 - name: gitopssets-controller
   repository: file://../gitopssets-controller
   version: 0.1.0
-digest: sha256:c9171c94a2aff78d86767e01682653f4e2f319226b0c1a44c9201a6007fe9466
-generated: "2023-01-16T10:45:53.26668+01:00"
+digest: sha256:f6ef215e50714c6d4c61f35a73440497b5c9aeb305cdc5d85c9becc3ecc6773f
+generated: "2023-01-19T14:51:36.550255205+02:00"

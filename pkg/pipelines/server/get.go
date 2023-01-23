@@ -76,7 +76,10 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			}
 
 			if err := c.Get(ctx, clusterName, client.ObjectKeyFromObject(app), app); err != nil {
-				return nil, fmt.Errorf("failed getting app=%s on cluster=%s: %w", app.GetName(), clusterName, err)
+				pipelineErrors = append(
+					pipelineErrors,
+					fmt.Sprintf("failed getting app=%s on cluster=%s: %s", app.GetName(), clusterName, err),
+				)
 			}
 
 			ws, err := getWorkloadStatus(app)

@@ -325,5 +325,5 @@ func TestParseProfiles_InvalidValue(t *testing.T) {
 	})
 
 	err := cmd.Execute()
-	assert.EqualError(t, err, "error parsing profiles: invalid value for name: foo;profile")
+	assert.Regexp(t, `error parsing profiles: invalid value for name "foo;profile"`, err)
 }
