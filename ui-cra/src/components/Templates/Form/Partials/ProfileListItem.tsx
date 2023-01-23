@@ -2,8 +2,9 @@ import {
   FormControl,
   Input,
   MenuItem,
-  Select,
   TextField,
+  createStyles,
+  makeStyles
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
@@ -26,10 +27,16 @@ import ChartValuesDialog from './ChartValuesDialog';
 const semverClean = require('semver/functions/clean')
 const semverValid = require('semver/functions/valid')
 const semverMaxSatisfying = require('semver/ranges/max-satisfying')
+const semverCoerce = require('semver/functions/coerce')
+
+
 
 const ProfileWrapper = styled.div`
   display: flex;
   justify-content: space-around;
+  .MuiAutocomplete-root {
+    min-width: 155px;
+  }
 `;
 
 const ProfilesListItem: FC<{
@@ -44,6 +51,20 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
+
+
+  const useStyles = makeStyles(() =>
+  createStyles({
+    autoComplete: {
+      width: '100%',
+      cursor: 'pointer',
+      minWidth: '155px',
+      userSelect: 'none',
+      borderRadius: 0
+    },
+  }),
+);
+const classes = useStyles();
 
   const profileVersions = (profile: UpdatedProfile) => [
     ...profile.values.map((value, index) => {
@@ -69,7 +90,9 @@ const ProfilesListItem: FC<{
   const handleSelectVersion = useCallback(
     (value: string | null) => {
       // const value = event.target.value as string;
-      console.log(semverValid(value))
+      // semverCoerce
+      console.log(semverCoerce(' > v 2.1.5foo', { loose: true }).version)
+      console.log(semverValid(semverCoerce(value, { loose: true }).version))
       console.log(semverMaxSatisfying(profile.values.map(item=>item.version),value))
 
       value && setVersion(value);
@@ -145,32 +168,22 @@ const ProfilesListItem: FC<{
     <>
       <ProfileWrapper data-profile-name={profile.name}>
         <div className="profile-version">
-          <FormControl>
-            {/* <Select
-              disabled={profile.required && profile.values.length === 1}
-              value={version}
-              onChange={handleSelectVersion}
-              autoWidth
-              label="Versions"
-            >
-              {profileVersions(profile)}
-            </Select> */}
+          <FormControl >
             <Autocomplete
               disabled={profile.required && profile.values.length === 1}
-              id="free-solo-demo"
+              disableClearable
               freeSolo
+              className={classes.autoComplete}
               options={profile.values.map(option => option.version)}
               onChange={(event, newValue) => {
                 handleSelectVersion(newValue);
               }}
-           
               autoSelect
               renderInput={params => (
                 <TextField
                   {...params}
-                  label="freeSolo"
-                  margin="normal"
-                  variant="outlined"
+                  variant="standard"
+                  fullWidth
                   error={!semverValid(semverClean(version))}
                 />
               )}
