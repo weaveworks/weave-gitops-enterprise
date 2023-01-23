@@ -240,19 +240,6 @@ func export(template string, out io.Writer) error {
 }
 
 func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]gitprovider.CommitFile, error) {
-	// create tmp dir for charts cache
-	tmpDir, err := os.MkdirTemp("", "gitops")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create tmp dir: %w", err)
-	}
-	defer func() {
-		if err := os.RemoveAll(tmpDir); err != nil {
-			log.Error(err, "failed to remove temporary chart cache")
-		}
-	}()
-
-	var chartsCache helm.ChartsCacheReader = helm.NilCache{}
-
 	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
@@ -260,6 +247,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	var helmRepo *sourcev1.HelmRepository
 	var helmRepoRef types.NamespacedName
+	var chartsCache helm.ChartsCacheReader = helm.NilCache{}
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {
