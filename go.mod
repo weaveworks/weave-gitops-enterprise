@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.15.0
+	github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230120141701-f1fd7b3d95da
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -59,6 +59,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
+	github.com/weaveworks/gitopssets-controller v0.1.0
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
@@ -128,7 +129,6 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
-	github.com/weaveworks/gitopssets-controller v0.1.0 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	k8s.io/klog v1.0.0 // indirect

@@ -19,6 +19,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GitOpsSetsClient interface {
 	ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error)
+	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
 }
 
 type gitOpsSetsClient struct {
@@ -38,11 +39,21 @@ func (c *gitOpsSetsClient) ListGitOpsSets(ctx context.Context, in *ListGitOpsSet
 	return out, nil
 }
 
+func (c *gitOpsSetsClient) GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error) {
+	out := new(GetGitOpsSetResponse)
+	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/GetGitOpsSet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GitOpsSetsServer is the server API for GitOpsSets service.
 // All implementations must embed UnimplementedGitOpsSetsServer
 // for forward compatibility
 type GitOpsSetsServer interface {
 	ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error)
+	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }
 
@@ -52,6 +63,9 @@ type UnimplementedGitOpsSetsServer struct {
 
 func (UnimplementedGitOpsSetsServer) ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitOpsSets not implemented")
+}
+func (UnimplementedGitOpsSetsServer) GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGitOpsSet not implemented")
 }
 func (UnimplementedGitOpsSetsServer) mustEmbedUnimplementedGitOpsSetsServer() {}
 
@@ -84,6 +98,24 @@ func _GitOpsSets_ListGitOpsSets_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitOpsSets_GetGitOpsSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGitOpsSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitOpsSetsServer).GetGitOpsSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitopssets.v1.GitOpsSets/GetGitOpsSet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitOpsSetsServer).GetGitOpsSet(ctx, req.(*GetGitOpsSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GitOpsSets_ServiceDesc is the grpc.ServiceDesc for GitOpsSets service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -94,6 +126,10 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGitOpsSets",
 			Handler:    _GitOpsSets_ListGitOpsSets_Handler,
+		},
+		{
+			MethodName: "GetGitOpsSet",
+			Handler:    _GitOpsSets_GetGitOpsSet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

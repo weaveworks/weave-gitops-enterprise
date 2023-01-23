@@ -17,6 +17,54 @@
     "application/json"
   ],
   "paths": {
+    "/v1/gitopsset/{name}": {
+      "get": {
+        "operationId": "GitOpsSets_GetGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "kind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
     "/v1/gitopssets": {
       "get": {
         "operationId": "GitOpsSets_ListGitOpsSets",
@@ -37,6 +85,12 @@
         "parameters": [
           {
             "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -96,6 +150,14 @@
         }
       }
     },
+    "v1GetGitOpsSetResponse": {
+      "type": "object",
+      "properties": {
+        "gitopsSet": {
+          "$ref": "#/definitions/v1GitOpsSet"
+        }
+      }
+    },
     "v1GitOpsSet": {
       "type": "object",
       "properties": {
@@ -116,6 +178,36 @@
           "items": {
             "$ref": "#/definitions/v1Condition"
           }
+        },
+        "generators": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
+        },
+        "suspended": {
+          "type": "boolean"
         }
       }
     },
@@ -154,6 +246,23 @@
           "type": "string"
         },
         "version": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SourceRef": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
           "type": "string"
         }
       }

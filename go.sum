@@ -405,8 +405,6 @@ github.com/fluxcd/image-automation-controller/api v0.27.0 h1:Dm2dY6JzTgoIGombOjl
 github.com/fluxcd/image-automation-controller/api v0.27.0/go.mod h1:XYlBpgZ8C2Kgm7SrQWIhDoNA3Hv1rLBZrI9u3s8z/Go=
 github.com/fluxcd/image-reflector-controller/api v0.23.0 h1:Ww3EjZD6Xm+UebS+VdXh3UE7rkLSr/1ulIz0FLgUAf0=
 github.com/fluxcd/image-reflector-controller/api v0.23.0/go.mod h1:uomyKK0ZWFOsG40wqmCJvIN8OpAiPKFteXe+cdhB/Z0=
-github.com/fluxcd/kustomize-controller/api v0.31.0 h1:3KmZa/NYuC1zqc5Qp9jR3pxtkH5P/1UA513xUEJxkUY=
-github.com/fluxcd/kustomize-controller/api v0.31.0/go.mod h1:t2pqIe1SMzdZIAG/aietrg3XpRXmpcubf0uxDJOryEA=
 github.com/fluxcd/kustomize-controller/api v0.32.0 h1:5QGLV5xRI8S3tUFJNV+vVzy/pdl0d6Ua0AccWwGRKfs=
 github.com/fluxcd/kustomize-controller/api v0.32.0/go.mod h1:t2pqIe1SMzdZIAG/aietrg3XpRXmpcubf0uxDJOryEA=
 github.com/fluxcd/notification-controller/api v0.29.1 h1:gNLbJ18TprLPFVYNXpDRNOX42nzLBi/UYj/HPH19nAk=
@@ -418,8 +416,6 @@ github.com/fluxcd/pkg/apis/kustomize v0.7.0/go.mod h1:Mu+KdktsEKWA4l/33CZdY5lB4h
 github.com/fluxcd/pkg/apis/meta v0.18.0 h1:s0LeulWcQ4DxVX6805vgDTxlA6bAYk+Lq1QHSnNdqLM=
 github.com/fluxcd/pkg/apis/meta v0.18.0/go.mod h1:pYvXRFi1UKNNrGR34jw3uqOnMXw9X6dTkML8j5Z7tis=
 github.com/fluxcd/pkg/kustomize v0.10.0 h1:EG5MbYrLtxeCiZxeFUgvyBhFZaXnKfeqqpg7O+J7o3s=
-github.com/fluxcd/pkg/runtime v0.24.0 h1:rQmm5Xq8K7f8xcPj1oNOInM1x4YwmgTucZJOP51Xmr4=
-github.com/fluxcd/pkg/runtime v0.24.0/go.mod h1:I2T+HWVNzX0cxm9TgH+SVNHTwqlmEDiSke43JXsq9iY=
 github.com/fluxcd/pkg/runtime v0.25.0 h1:Lk5WrKDJKsayymLnnSCY/Zn77/mrlIf+skYz64suoww=
 github.com/fluxcd/pkg/runtime v0.25.0/go.mod h1:I2T+HWVNzX0cxm9TgH+SVNHTwqlmEDiSke43JXsq9iY=
 github.com/fluxcd/pkg/ssa v0.22.0 h1:HvJTuiYLZMxCjin7bAqBgnc2RjSqEfYrMbV5yINoM64=
@@ -1402,8 +1398,8 @@ github.com/weaveworks/templates-controller v0.1.2 h1:PVPePP8NUnB2OqCsNvHvp8zm2vk
 github.com/weaveworks/templates-controller v0.1.2/go.mod h1:iLs/20GkUY94KzDhRvmctwun7yX3SGJWs8q0gbTu53I=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4 h1:RRpzQlhbEC5WjL0jaMEvGUSZ8EsxzdqSSzginwSBTyc=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4/go.mod h1:VK60b9WR7XEK1DvQNOpKEOlIQ56Qcy5KlAIFksQmUxI=
-github.com/weaveworks/weave-gitops v0.15.0 h1:CjDdXL+6l7T3CuGfouggVh9x6fJvWmJSz0qkC2nQ1hg=
-github.com/weaveworks/weave-gitops v0.15.0/go.mod h1:cUnWoB/os7EQY8yxKn9fr+f3Ny8wCXnnF74PPd0l+PU=
+github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230120141701-f1fd7b3d95da h1:eLLjMP7dhKfwaXahEV/eFMAydyL4AM7KGSkkPvjslIw=
+github.com/weaveworks/weave-gitops v0.15.0-rc.1.0.20230120141701-f1fd7b3d95da/go.mod h1:XhJjaBe0LMZjsCeZJjVdj6EpTgHhlEuX+mAMhedjadk=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.76.0 h1:mkmuB27RDVZY/iXR61pEUfIqJ15Iivfu1kc3KZtBICI=

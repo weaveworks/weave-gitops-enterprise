@@ -29,7 +29,7 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 		}
 		gitOpsList := namespacedList.List.(*ctrl.GitOpsSetList)
 		for _, gs := range gitOpsList.Items {
-			gitopssets = append(gitopssets, convert.GitOpsToProto(gs))
+			gitopssets = append(gitopssets, convert.GitOpsToProto(msg.ClusterName,gs))
 		}
 	}
 

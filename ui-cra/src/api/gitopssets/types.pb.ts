@@ -8,6 +8,20 @@ export type GitOpsSet = {
   namespace?: string
   inventory?: ResourceRef[]
   conditions?: Condition[]
+  generators?: string[]
+  clusterName?: string
+  type?: string
+  labels?: {[key: string]: string}
+  annotations?: {[key: string]: string}
+  sourceRef?: SourceRef
+  suspended?: boolean
+}
+
+export type SourceRef = {
+  apiVersion?: string
+  kind?: string
+  name?: string
+  namespace?: string
 }
 
 export type ListError = {
@@ -26,4 +40,9 @@ export type Condition = {
   reason?: string
   message?: string
   timestamp?: string
+}
+
+export type GitOpsSetGenerator = {
+  list?: string
+  gitRepository?: string
 }

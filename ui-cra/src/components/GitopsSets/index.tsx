@@ -10,6 +10,7 @@ import {
   filterByStatusCallback,
   statusSortHelper,
   Timestamp,
+  formatURL,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core';
@@ -18,6 +19,7 @@ import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
 import _ from 'lodash';
+import { Routes } from '../../utils/nav';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -29,7 +31,6 @@ const useStyles = makeStyles(() =>
 
 const GitopsSets: FC = () => {
   const { data, isLoading } = useGitOpsSets();
-  console.log(data);
   const gitopssets = data?.gitopssets;
 
   let initialFilterState = {
@@ -43,13 +44,15 @@ const GitopsSets: FC = () => {
   let fields: Field[] = [
     {
       label: 'Name',
-      value: (gs: GitOpsSet) => (
+      value: ({ name, namespace, clusterName }: GitOpsSet) => (
         <Link
-          to={`/${gs.name}`}
-          color={theme.colors.primary}
-          data-gs-name={gs.name}
+          to={formatURL(Routes.GitOpsSetDetail, {
+            name,
+            namespace,
+            clusterName,
+          })}
         >
-          {gs.name}
+          {name}
         </Link>
       ),
       sortValue: ({ name }) => name,

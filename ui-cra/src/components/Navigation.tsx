@@ -170,7 +170,7 @@ const NavItems = () => {
 
     {
       name: 'GITOPS SETS',
-      link: Routes.GitopsSets,
+      link: Routes.GitOpsSets,
       icon: <Applications />,
     },
     {

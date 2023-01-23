@@ -8,6 +8,7 @@ import * as fm from "../../fetch.pb"
 import * as GitopssetsV1Types from "./types.pb"
 export type ListGitOpsSetsRequest = {
   namespace?: string
+  clusterName?: string
 }
 
 export type ListGitOpsSetsResponse = {
@@ -15,8 +16,22 @@ export type ListGitOpsSetsResponse = {
   errors?: GitopssetsV1Types.ListError[]
 }
 
+export type GetGitOpsSetRequest = {
+  name?: string
+  namespace?: string
+  kind?: string
+  clusterName?: string
+}
+
+export type GetGitOpsSetResponse = {
+  gitopsSet?: GitopssetsV1Types.GitOpsSet
+}
+
 export class GitOpsSets {
   static ListGitOpsSets(req: ListGitOpsSetsRequest, initReq?: fm.InitReq): Promise<ListGitOpsSetsResponse> {
     return fm.fetchReq<ListGitOpsSetsRequest, ListGitOpsSetsResponse>(`/v1/gitopssets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetGitOpsSet(req: GetGitOpsSetRequest, initReq?: fm.InitReq): Promise<GetGitOpsSetResponse> {
+    return fm.fetchReq<GetGitOpsSetRequest, GetGitOpsSetResponse>(`/v1/gitopsset/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }

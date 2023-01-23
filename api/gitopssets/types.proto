@@ -5,16 +5,29 @@ package gitopssets.v1;
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
 
 message GitOpsSet {
-    string         name                     = 1;
-    string         namespace                = 2;
-    repeated ResourceRef inventory   = 3;
-    repeated Condition   conditions  = 4;
+    string                name                     = 1;
+    string                namespace                = 2;
+    repeated ResourceRef  inventory                = 3;
+    repeated Condition    conditions               = 4;
+    repeated string       generators               = 5;
+    string                cluster_name             = 6;
+    string                type                     = 7;
+    map<string, string>                labels      = 8;
+    map<string, string>                annotations = 9;
+    SourceRef sourceRef            = 10;
+    bool suspended = 11;
+}
+
+message SourceRef {
+    string apiVersion = 1;
+    string kind       = 2;
+    string name       = 3;
+    string namespace  = 4;
 }
 
 message ListError {
     string namespace = 1;
     string message = 2;
-
 }
 
 message ResourceRef {
@@ -29,3 +42,11 @@ message Condition {
     string message = 4;
     string timestamp = 5;
 }
+
+// GitOpsSet describes the configured generators.
+message GitOpsSetGenerator { 
+   string list = 1;
+   string git_repository = 2;
+}
+
+

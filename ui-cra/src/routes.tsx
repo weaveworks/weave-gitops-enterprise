@@ -43,6 +43,7 @@ import { GitProvider } from './api/gitauth/gitauth.pb';
 import SecretsList from './components/Secrets';
 import SecretDetails from './components/Secrets/SecretDetails';
 import GitopsSets from './components/GitopsSets';
+import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -263,7 +264,23 @@ const AppRoutes = () => {
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
-      <Route exact path={Routes.GitopsSets} component={GitopsSets} />
+      <Route
+        exact
+        path={Routes.GitOpsSets}
+        component={withSearchParams(GitopsSets)}
+      />
+      {/* <Route
+        path={Routes.GitOpsSetDetail}
+        component={withSearchParams(GitOpsSetDetail)}
+      /> */}
+      <Route
+        component={withSearchParams((props: any) => (
+          <CoreWrapper>
+            <GitOpsSetDetail {...props} />
+          </CoreWrapper>
+        ))}
+        path={Routes.GitOpsSetDetail}
+      />
       <Route
         exact
         path={Routes.GitlabOauthCallback}
