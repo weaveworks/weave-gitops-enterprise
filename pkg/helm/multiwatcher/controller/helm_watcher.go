@@ -38,7 +38,7 @@ type HelmWatcherReconciler struct {
 	UseProxy      bool
 	ClusterRef    types.NamespacedName
 	Cluster       cluster.Cluster
-	Cache         helm.ChartsCacherWriter
+	Cache         helm.ChartsCacheWriter
 	ValuesFetcher helm.ValuesFetcher
 }
 
@@ -114,7 +114,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 }
 
 // LoadIndex loads the index file for a HelmRepository into the charts cache
-func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
+func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacheWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
 	for name, versions := range index.Entries {
 		for _, version := range versions {
 			isProfile := Profiles(helmRepo, version)

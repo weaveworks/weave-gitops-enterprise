@@ -21,7 +21,7 @@ import (
 type Options struct {
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
-	Cache         helm.ChartsCacherWriter
+	Cache         helm.ChartsCacheWriter
 	ValuesFetcher helm.ValuesFetcher
 	UseProxy      bool
 }
@@ -30,7 +30,7 @@ type Watcher struct {
 	scheme        *runtime.Scheme
 	clusterRef    types.NamespacedName
 	cluster       cluster.Cluster
-	cache         helm.ChartsCacherWriter
+	cache         helm.ChartsCacheWriter
 	valuesFetcher helm.ValuesFetcher
 	stopFn        context.CancelFunc
 	log           logr.Logger
