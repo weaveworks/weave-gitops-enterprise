@@ -19,14 +19,19 @@ type ChartsCacheWriter interface {
 	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
 }
 
+// GenerateProfiles is all that is needed to generate the profiles for a cluster
+type GenerateProfilesCache interface {
+	GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error)
+	GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error)
+}
+
 // ChartsCacheReader is the "reading" interface to the cache, used by api etc
 type ChartsCacheReader interface {
+	GenerateProfilesCache
 	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error)
 	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error)
 	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error)
 	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error
-	GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error)
-	GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error)
 }
 
 type ChartsCache interface {
@@ -51,40 +56,12 @@ type Chart struct {
 }
 
 // Implementation of ChartsCache that does nothing.
-type NilCache struct{}
+type NilGenerateProfilesCache struct{}
 
-func (n NilCache) AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
-	return nil
-}
-
-func (n NilCache) Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error {
-	return nil
-}
-
-func (n NilCache) DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error {
-	return nil
-}
-
-func (n NilCache) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error) {
-	return nil, nil
-}
-
-func (n NilCache) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error) {
-	return false, nil
-}
-
-func (n NilCache) GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error) {
-	return nil, nil
-}
-
-func (n NilCache) UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error {
-	return nil
-}
-
-func (n NilCache) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
+func (n NilGenerateProfilesCache) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
 	return "", nil
 }
 
-func (n NilCache) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
+func (n NilGenerateProfilesCache) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
 	return "", nil
 }
