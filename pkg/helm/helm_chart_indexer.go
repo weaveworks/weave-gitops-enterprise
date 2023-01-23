@@ -9,8 +9,8 @@ import (
 	"sort"
 
 	"github.com/Masterminds/semver"
-	_ "github.com/mattn/go-sqlite3"
 	"k8s.io/apimachinery/pkg/types"
+	_ "modernc.org/sqlite"
 )
 
 // dbFile is the name of the sqlite3 database file
@@ -354,7 +354,7 @@ func createDB(cacheLocation string) (*sql.DB, error) {
 	if err := os.MkdirAll(cacheLocation, os.ModePerm); err != nil {
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
-	db, err := sql.Open("sqlite3", dbFileLocation)
+	db, err := sql.Open("sqlite", dbFileLocation)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %q, %w", cacheLocation, err)
 	}

@@ -29,15 +29,15 @@ install:
 
 .PHONY: build
 build:
-	CGO_ENABLED=1 go build -ldflags "$(cgo_ldflags)" -a -installsuffix cgo -o bin/clusters-service main.go
+	CGO_ENABLED=0 go build -ldflags "$(cgo_ldflags)" -a -installsuffix cgo -o bin/clusters-service main.go
 
 .PHONY: build-linux
 build-linux:
 # set CC and CXX cross compile vars for darwin
 ifeq ($(shell uname),Darwin)
-	CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ GOARCH=amd64 GOOS=linux CGO_ENABLED=1 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
+	CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
 else
-	GOARCH=amd64 GOOS=linux CGO_ENABLED=1 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
+	GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -ldflags "-linkmode external -extldflags -static" -a -installsuffix cgo -o bin/clusters-service main.go
 endif
 
 .PHONY: crd-manifests

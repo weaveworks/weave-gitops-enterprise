@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"testing"
 
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/types"
+	_ "modernc.org/sqlite"
 )
 
 func TestUpdateValuesYaml(t *testing.T) {
@@ -418,7 +418,7 @@ func nsn(name, namespace string) types.NamespacedName {
 func testCreateDB(t *testing.T) *sql.DB {
 	t.Helper()
 
-	db, err := sql.Open("sqlite3", "file::memory:?cache=shared")
+	db, err := sql.Open("sqlite", "file::memory:?cache=shared")
 	if err != nil {
 		t.Fatal(err)
 	}
