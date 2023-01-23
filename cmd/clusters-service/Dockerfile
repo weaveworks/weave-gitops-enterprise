@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.3
 
-FROM golang:1.18 AS build
+FROM --platform=linux/amd64 golang:1.18 AS build
 
 WORKDIR /app
 COPY Makefile /app/
