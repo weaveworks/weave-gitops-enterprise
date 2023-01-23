@@ -24,11 +24,6 @@ const ProfileAnnotation = "weave.works/profile"
 // have to indicate that all charts are to be considered as Profiles.
 const RepositoryProfilesAnnotation = "weave.works/profiles"
 
-// LayerAnnotation specifies profile application order.
-// Profiles are sorted by layer and those at a higher "layer" are only installed after
-// lower layers have successfully installed and started.
-const LayerAnnotation = "weave.works/layer"
-
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
 var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
@@ -43,7 +38,7 @@ type HelmWatcherReconciler struct {
 	UseProxy      bool
 	ClusterRef    types.NamespacedName
 	Cluster       cluster.Cluster
-	Cache         helm.ChartsCacherWriter
+	Cache         helm.ChartsCacheWriter
 	ValuesFetcher helm.ValuesFetcher
 }
 
@@ -119,7 +114,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 }
 
 // LoadIndex loads the index file for a HelmRepository into the charts cache
-func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
+func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacheWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
 	for name, versions := range index.Entries {
 		for _, version := range versions {
 			isProfile := Profiles(helmRepo, version)
@@ -132,7 +127,7 @@ func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef 
 				name,
 				version.Version,
 				chartKind,
-				version.Annotations[LayerAnnotation],
+				version.Annotations[helm.LayerAnnotation],
 				clusterRef,
 				helm.ObjectReference{Name: helmRepo.Name, Namespace: helmRepo.Namespace},
 			)
