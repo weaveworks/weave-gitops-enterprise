@@ -272,7 +272,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		}
 		helmRepo = fluxHelmRepo(entry)
 		helmRepoRef = types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace}
-		chartsCache = helm.NewHelmChartLocalCache(index)
+		chartsCache = helm.NewHelmIndexFileReader(index)
 	}
 
 	templateResources, err := server.GetFiles(

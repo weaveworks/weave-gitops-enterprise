@@ -4,24 +4,23 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 
 	"helm.sh/helm/v3/pkg/repo"
 	"k8s.io/apimachinery/pkg/types"
 )
 
-type HelmLocalChartsCacheReader struct {
+type HelmIndexFileReader struct {
 	index *repo.IndexFile
 }
 
-func NewHelmChartLocalCache(index *repo.IndexFile) HelmLocalChartsCacheReader {
-	return HelmLocalChartsCacheReader{
+func NewHelmIndexFileReader(index *repo.IndexFile) *HelmIndexFileReader {
+	return &HelmIndexFileReader{
 		index: index,
 	}
 }
 
-// implements ChartsCacheReader
-
-func (c HelmLocalChartsCacheReader) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error) {
+func (c HelmIndexFileReader) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error) {
 	var charts []Chart
 
 	for _, chart := range c.index.Entries {
@@ -29,16 +28,19 @@ func (c HelmLocalChartsCacheReader) ListChartsByRepositoryAndCluster(ctx context
 			charts = append(charts, Chart{
 				Name:    version.Name,
 				Version: version.Version,
-				Kind:    kind,
 				Layer:   version.Annotations[LayerAnnotation],
 			})
 		}
 	}
 
+	sort.Slice(charts, func(i, j int) bool {
+		return charts[i].Name < charts[j].Name
+	})
+
 	return charts, nil
 }
 
-func (c HelmLocalChartsCacheReader) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error) {
+func (c HelmIndexFileReader) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error) {
 	for _, version := range c.index.Entries[chart.Name] {
 		if version.Version == chart.Version {
 			return true, nil
@@ -48,7 +50,7 @@ func (c HelmLocalChartsCacheReader) IsKnownChart(ctx context.Context, clusterRef
 	return false, nil
 }
 
-func (c HelmLocalChartsCacheReader) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
+func (c HelmIndexFileReader) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
 	versions := []string{}
 	for _, v := range c.index.Entries[name] {
 		versions = append(versions, v.Version)
@@ -62,7 +64,7 @@ func (c HelmLocalChartsCacheReader) GetLatestVersion(ctx context.Context, cluste
 	return sorted[0], nil
 }
 
-func (c HelmLocalChartsCacheReader) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
+func (c HelmIndexFileReader) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
 	versions := c.index.Entries[name]
 
 	for _, v := range versions {
@@ -75,11 +77,11 @@ func (c HelmLocalChartsCacheReader) GetLayer(ctx context.Context, clusterRef, re
 }
 
 // not implmented, this does not support reading values.yaml
-func (c HelmLocalChartsCacheReader) GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error) {
+func (c HelmIndexFileReader) GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error) {
 	return nil, errors.New("not implemented")
 }
 
 // not implmented, this does not support reading values.yaml
-func (c HelmLocalChartsCacheReader) UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error {
+func (c HelmIndexFileReader) UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error {
 	return errors.New("not implemented")
 }
