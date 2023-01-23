@@ -1,0 +1,3 @@
+repositories:
+  - name: test-repo
+    url: "https://charts.example.com"

@@ -177,7 +177,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 					})
 				}
 
-				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
+				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, c.Kustomization, c.FilePath)
 
 				if err != nil {
 					return nil, err
