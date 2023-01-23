@@ -12,12 +12,14 @@ import (
 // lower layers have successfully installed and started.
 const LayerAnnotation = "weave.works/layer"
 
-type ChartsCacherWriter interface {
+// ChartsCacheWriter is the "writing" interface to the cache, used by the reconciler etc
+type ChartsCacheWriter interface {
 	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
 	Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error
 	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
 }
 
+// ChartsCacheReader is the "reading" interface to the cache, used by api etc
 type ChartsCacheReader interface {
 	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error)
 	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error)
@@ -29,7 +31,7 @@ type ChartsCacheReader interface {
 
 type ChartsCache interface {
 	ChartsCacheReader
-	ChartsCacherWriter
+	ChartsCacheWriter
 }
 
 // ObjectReference points to a resource.

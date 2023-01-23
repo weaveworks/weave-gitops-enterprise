@@ -14,12 +14,18 @@ type HelmIndexFileReader struct {
 	index *repo.IndexFile
 }
 
+// Returns a new HelmIndexFileReader a ChartsCacheReader implementation
+// that reads from a Helm IndexFile. As we're only reading from a single
+// index file, we ignore the repoRef and clusterRef parameters provided
+// to most methods.
 func NewHelmIndexFileReader(index *repo.IndexFile) *HelmIndexFileReader {
 	return &HelmIndexFileReader{
 		index: index,
 	}
 }
 
+// ListChartsByRepositoryAndCluster returns a list of charts from the
+// index file. The repoRef and clusterRef parameters are ignored.
 func (c HelmIndexFileReader) ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error) {
 	var charts []Chart
 
@@ -40,6 +46,8 @@ func (c HelmIndexFileReader) ListChartsByRepositoryAndCluster(ctx context.Contex
 	return charts, nil
 }
 
+// IsKnownChart returns true if the chart is in the index file. The repoRef
+// and clusterRef parameters are ignored.
 func (c HelmIndexFileReader) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error) {
 	for _, version := range c.index.Entries[chart.Name] {
 		if version.Version == chart.Version {
@@ -50,6 +58,8 @@ func (c HelmIndexFileReader) IsKnownChart(ctx context.Context, clusterRef types.
 	return false, nil
 }
 
+// GetLatestVersion returns the latest version of the chart. The repoRef
+// and clusterRef parameters are ignored.
 func (c HelmIndexFileReader) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
 	versions := []string{}
 	for _, v := range c.index.Entries[name] {
@@ -64,6 +74,8 @@ func (c HelmIndexFileReader) GetLatestVersion(ctx context.Context, clusterRef, r
 	return sorted[0], nil
 }
 
+// GetLayer returns the layer of the chart. The repoRef
+// and clusterRef parameters are ignored.
 func (c HelmIndexFileReader) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
 	versions := c.index.Entries[name]
 
