@@ -23,7 +23,6 @@ import (
 	clitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/helmpath"
@@ -252,10 +251,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		}
 	}()
 
-	chartsCache, err := helm.NewChartIndexer(tmpDir, DefaultCluster)
-	if err != nil {
-		return nil, fmt.Errorf("could not create charts cache in %s: %w", tmpDir, err)
-	}
+	var chartsCache helm.ChartsCacheReader = helm.NilCache{}
 
 	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
@@ -276,7 +272,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		}
 		helmRepo = fluxHelmRepo(entry)
 		helmRepoRef = types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace}
-		controller.LoadIndex(index, chartsCache, types.NamespacedName{Name: DefaultCluster}, helmRepo, log)
+		chartsCache = helm.NewHelmChartLocalCache(index)
 	}
 
 	templateResources, err := server.GetFiles(

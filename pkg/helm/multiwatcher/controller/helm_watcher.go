@@ -24,11 +24,6 @@ const ProfileAnnotation = "weave.works/profile"
 // have to indicate that all charts are to be considered as Profiles.
 const RepositoryProfilesAnnotation = "weave.works/profiles"
 
-// LayerAnnotation specifies profile application order.
-// Profiles are sorted by layer and those at a higher "layer" are only installed after
-// lower layers have successfully installed and started.
-const LayerAnnotation = "weave.works/layer"
-
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
 var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
@@ -132,7 +127,7 @@ func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacherWriter, clusterRef 
 				name,
 				version.Version,
 				chartKind,
-				version.Annotations[LayerAnnotation],
+				version.Annotations[helm.LayerAnnotation],
 				clusterRef,
 				helm.ObjectReference{Name: helmRepo.Name, Namespace: helmRepo.Namespace},
 			)
