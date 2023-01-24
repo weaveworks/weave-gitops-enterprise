@@ -78,11 +78,8 @@ const classes = useStyles();
   );
 
   const validateVersion =(version:string)=>{
-    if (semverValid(semverCoerce(version, { loose: true })?.version)){
-      if(semverMaxSatisfying(profile.values.map(item=>item.version),version))
-      {
-        setVersion(semverMaxSatisfying(profile.values.map(item=>item.version),version))
-      }
+    if (semverValid(version)){
+        setVersion(semverMaxSatisfying(profile.values.map(item=>item.version),version)||version)
     }else{
       setInValidVersionErrorMessage('The provided semver is invalid or not matching please select one of the available versions')
       setIsValidVersion(true)
