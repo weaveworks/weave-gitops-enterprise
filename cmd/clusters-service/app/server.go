@@ -316,8 +316,6 @@ func StartServer(ctx context.Context, p Params) error {
 		stdlog.Fatalf("Couldn't set up logger: %v", err)
 	}
 
-	log.V(logger.LogLevelDebug).Info("Starting server", "params", p)
-
 	featureflags.SetFromEnv(os.Environ())
 
 	if p.CAPITemplatesNamespace == "" {
