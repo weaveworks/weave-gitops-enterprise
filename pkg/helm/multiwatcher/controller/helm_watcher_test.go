@@ -255,7 +255,7 @@ func TestLoadIndex(t *testing.T) {
 	assert.Equal(t, expected, profiles)
 }
 
-func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetcher, fakeCache helm.ChartsCacherWriter) *HelmWatcherReconciler {
+func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetcher, fakeCache helm.ChartsCacheWriter) *HelmWatcherReconciler {
 	scheme := runtime.NewScheme()
 	utilruntime.Must(sourcev1.AddToScheme(scheme))
 

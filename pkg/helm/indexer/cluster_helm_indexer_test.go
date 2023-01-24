@@ -186,7 +186,7 @@ func clusterNames(c map[string]indexer.Watcher) []string {
 	return names
 }
 
-func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (indexer.Watcher, error) {
+func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacheWriter) (indexer.Watcher, error) {
 	return &fakeWatcher{isManagementCluster: isManagementCluster}, nil
 }
 
