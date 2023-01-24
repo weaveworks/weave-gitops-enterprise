@@ -66,9 +66,8 @@ func verifySearchWorkspaceByName(workspaceName string) {
 	})
 }
 
-func verifyWorkspaceDetailsPage(workspaceName string, WorkspaceNamespaces string) {
+func verifyWorkspaceDetailsPage(workspaceName string, WorkspaceNamespaces string, WorkspacesDetailPage *pages.WorkspaceDetailsPage) {
 
-	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 	ginkgo.By(fmt.Sprintf("Then verify '%s' workspace details page", workspaceName), func() {
 		gomega.Eventually(WorkspacesDetailPage.Header.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify get the details page's header for '%s' workspace", workspaceName))
 		gomega.Eventually(WorkspacesDetailPage.GoToTenantApplicationsBtn).Should(matchers.BeEnabled(), fmt.Sprintf("'Go'To'Tenant'Applications' button is not visible/enable for '%s' workspace", workspaceName))
@@ -161,6 +160,7 @@ func verifyWrokspacePolicies(workspaceName string, WorkspaceNamespaces string) {
 }
 
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("ui", "workspaces"), func() {
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -225,7 +225,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			ginkgo.By(fmt.Sprintf("And navigate to '%s' workspace details page", workspaceName), func() {
 				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
 			})
-			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces)
+
+			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, WorkspacesDetailPage)
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces)
 			verifyWrokspacePolicies(workspaceName, workspaceNamespaces)
