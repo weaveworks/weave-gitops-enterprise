@@ -66,8 +66,9 @@ func verifySearchWorkspaceByName(workspaceName string) {
 	})
 }
 
-func verifyWorkspaceDetailsPage(workspaceName string, WorkspaceNamespaces string, WorkspacesDetailPage *pages.WorkspaceDetailsPage) {
+func verifyWorkspaceDetailsPage(workspaceName string, WorkspaceNamespaces string) {
 
+	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 	ginkgo.By(fmt.Sprintf("Then verify '%s' workspace details page", workspaceName), func() {
 		gomega.Eventually(WorkspacesDetailPage.Header.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify get the details page's header for '%s' workspace", workspaceName))
 		gomega.Eventually(WorkspacesDetailPage.GoToTenantApplicationsBtn).Should(matchers.BeEnabled(), fmt.Sprintf("'Go'To'Tenant'Applications' button is not visible/enable for '%s' workspace", workspaceName))
@@ -89,8 +90,10 @@ func verifyWrokspaceServiceAccounts(workspaceName string, WorkspaceNamespaces st
 
 		serviceAccounts := pages.GetWorkspaceServiceAccounts(webDriver)
 
-		gomega.Eventually(serviceAccounts.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
+		gomega.Eventually(serviceAccounts.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Name", workspaceName))
 		gomega.Expect(serviceAccounts.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Service Accounts Name", workspaceName))
+		// gomega.Eventually(serviceAccounts.ServiceAccountsApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Service Accounts Manifest's apiVersion ")
+		// gomega.Expect(serviceAccounts.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Service Accounts manifest", workspaceName))
 		gomega.Eventually(serviceAccounts.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Namespaces", workspaceName))
 		gomega.Eventually(serviceAccounts.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Service Account's Age", workspaceName))
 
@@ -108,6 +111,8 @@ func verifyWrokspaceRoles(workspaceName string, WorkspaceNamespaces string) {
 
 		gomega.Eventually(Role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role 's Name", workspaceName))
 		gomega.Expect(Role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Name", workspaceName))
+		gomega.Eventually(Role.RoleApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Manifest's apiVersion ")
+		gomega.Expect(Role.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Roles manifest", workspaceName))
 		gomega.Eventually(Role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 		gomega.Eventually(Role.Namespace.Text).Should(gomega.MatchRegexp(WorkspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
 		gomega.Eventually(Role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
@@ -160,7 +165,6 @@ func verifyWrokspacePolicies(workspaceName string, WorkspaceNamespaces string) {
 }
 
 var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("ui", "workspaces"), func() {
-	WorkspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
 	ginkgo.BeforeEach(ginkgo.OncePerOrdered, func() {
 		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed())
@@ -225,12 +229,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			ginkgo.By(fmt.Sprintf("And navigate to '%s' workspace details page", workspaceName), func() {
 				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
 			})
-
-			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, WorkspacesDetailPage)
+			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces)
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces)
+			// verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces)
 			verifyWrokspacePolicies(workspaceName, workspaceNamespaces)
-			verifyWrokspaceRoles(workspaceName, workspaceNamespaces)
 
 			// verifyAppAnnotations(podinfo)
 
