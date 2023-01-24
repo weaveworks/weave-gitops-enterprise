@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/rest"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -49,7 +50,7 @@ type server struct {
 	chartsCache       helm.ChartsCacheReader
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 	estimator         estimation.Estimator
-	uiConfig          string
+	uiConfig          config.ConfigUI
 }
 
 type ServerOpts struct {
@@ -68,7 +69,7 @@ type ServerOpts struct {
 	ValuesFetcher         helm.ValuesFetcher
 	ManagementFetcher     *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Estimator             estimation.Estimator
-	UIConfig              string
+	UIConfig              config.ConfigUI
 }
 
 func NewClusterServer(opts ServerOpts) capiv1_proto.ClustersServiceServer {

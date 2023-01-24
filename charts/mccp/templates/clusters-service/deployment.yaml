@@ -15,6 +15,7 @@ spec:
       # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
       annotations:
         checksum/config: {{ include (print $.Template.BasePath "/clusters-service/configmap.yaml") . | sha256sum }}
+        checksum/config: {{ include (print $.Template.BasePath "/clusters-service/values-yaml-configmap.yaml") . | sha256sum }}
       labels:
         app: clusters-service
         {{- include "mccp.selectorLabels" . | nindent 8 }}
@@ -90,6 +91,9 @@ spec:
           volumeMounts:
             - name: ui-server-volume
               mountPath: /html
+            - name: clusters-service-config-file
+              mountPath: /etc/cluster-service/config
+              subPath: values.yaml
             {{- if .Values.tls.secretName }}
             - name: clusters-service-tls-volume
               mountPath: /etc/clusters-service-tls
@@ -101,6 +105,9 @@ spec:
             {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
             {{- end }}
       volumes:
+      - name: clusters-service-config-file
+        configMap:
+          name: {{ include "mccp.fullname" . }}-cluster-service-values
       {{- if .Values.tls.secretName }}
       - name: clusters-service-tls-volume
         secret:

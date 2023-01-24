@@ -4,6 +4,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
@@ -39,7 +40,7 @@ type Options struct {
 	HtmlRootPath              string
 	ClientGetter              kube.ClientGetter
 	AuthMethods               map[auth.AuthMethod]bool
-	OIDC                      OIDCAuthenticationOptions
+	OIDC                      config.ConfigOIDC
 	TLSCert                   string
 	TLSKey                    string
 	NoTLS                     bool
@@ -50,7 +51,7 @@ type Options struct {
 	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                   string
 	Estimator                 estimation.Estimator
-	UIConfig                  string
+	UIConfig                  config.ConfigUI
 	PipelineControllerAddress string
 }
 
@@ -169,7 +170,7 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 }
 
 // WithAuthConfig is used to set the auth configuration including OIDC
-func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc config.ConfigOIDC) Option {
 	return func(o *Options) {
 		o.AuthMethods = authMethods
 		o.OIDC = oidc
@@ -242,7 +243,7 @@ func WithTemplateCostEstimator(estimator estimation.Estimator) Option {
 	}
 }
 
-func WithUIConfig(uiConfig string) Option {
+func WithUIConfig(uiConfig config.ConfigUI) Option {
 	return func(o *Options) {
 		o.UIConfig = uiConfig
 	}

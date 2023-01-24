@@ -6,6 +6,9 @@ policy-agent:
     accountId: "weaveworks"
     clusterId: "tilt-cluster"
 
+config:
+  logLevel: "debug"
+
 tls:
   enabled: false
 

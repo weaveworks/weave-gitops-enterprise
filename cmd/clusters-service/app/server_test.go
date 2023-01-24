@@ -38,6 +38,7 @@ import (
 	pipectrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
@@ -205,7 +206,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
 			app.WithAuthConfig(
 				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
-				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
+				config.ConfigOIDC{TokenDuration: time.Hour},
 			),
 			app.WithKubernetesClientSet(clientSet),
 			app.WithClustersManager(grpctesting.MakeClustersManager(k)),

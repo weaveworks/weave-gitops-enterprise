@@ -44,6 +44,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
+	server_config "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app/config"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -110,57 +111,8 @@ func EnterprisePublicRoutes() []string {
 	return core.PublicRoutes
 }
 
-// Options contains all the options for the `ui run` command.
-type Params struct {
-	EntitlementSecretName             string                    `mapstructure:"entitlement-secret-name"`
-	EntitlementSecretNamespace        string                    `mapstructure:"entitlement-secret-namespace"`
-	HelmRepoNamespace                 string                    `mapstructure:"helm-repo-namespace"`
-	HelmRepoName                      string                    `mapstructure:"helm-repo-name"`
-	ProfileCacheLocation              string                    `mapstructure:"profile-cache-location"`
-	HtmlRootPath                      string                    `mapstructure:"html-root-path"`
-	OIDC                              OIDCAuthenticationOptions `mapstructure:",squash"`
-	GitProviderType                   string                    `mapstructure:"git-provider-type"`
-	GitProviderHostname               string                    `mapstructure:"git-provider-hostname"`
-	CAPIClustersNamespace             string                    `mapstructure:"capi-clusters-namespace"`
-	CAPITemplatesNamespace            string                    `mapstructure:"capi-templates-namespace"`
-	InjectPruneAnnotation             string                    `mapstructure:"inject-prune-annotation"`
-	AddBasesKustomization             string                    `mapstructure:"add-bases-kustomization"`
-	CAPIEnabled                       bool                      `mapstructure:"capi-enabled"`
-	CAPITemplatesRepositoryUrl        string                    `mapstructure:"capi-templates-repository-url"`
-	CAPIRepositoryPath                string                    `mapstructure:"capi-repository-path"`
-	CAPIRepositoryClustersPath        string                    `mapstructure:"capi-repository-clusters-path"`
-	CAPITemplatesRepositoryApiUrl     string                    `mapstructure:"capi-templates-repository-api-url"`
-	CAPITemplatesRepositoryBaseBranch string                    `mapstructure:"capi-templates-repository-base-branch"`
-	RuntimeNamespace                  string                    `mapstructure:"runtime-namespace"`
-	GitProviderToken                  string                    `mapstructure:"git-provider-token"`
-	AuthMethods                       []string                  `mapstructure:"auth-methods"`
-	TLSCert                           string                    `mapstructure:"tls-cert"`
-	TLSKey                            string                    `mapstructure:"tls-key"`
-	NoTLS                             bool                      `mapstructure:"no-tls"`
-	DevMode                           bool                      `mapstructure:"dev-mode"`
-	Cluster                           string                    `mapstructure:"cluster-name"`
-	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
-	UIConfig                          string                    `mapstructure:"ui-config"`
-	PipelineControllerAddress         string                    `mapstructure:"pipeline-controller-address"`
-	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
-	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
-	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
-	LogLevel                          string                    `mapstructure:"log-level"`
-}
-
-type OIDCAuthenticationOptions struct {
-	IssuerURL     string        `mapstructure:"oidc-issuer-url"`
-	ClientID      string        `mapstructure:"oidc-client-id"`
-	ClientSecret  string        `mapstructure:"oidc-client-secret"`
-	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
-	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
-	ClaimUsername string        `mapstructure:"oidc-claim-username"`
-	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
-	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
-}
-
 func NewAPIServerCommand() *cobra.Command {
-	p := &Params{}
+	p := &server_config.Values{}
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -179,7 +131,7 @@ func NewAPIServerCommand() *cobra.Command {
 			return nil
 		},
 		PreRunE: func(cmd *cobra.Command, args []string) error {
-			return checkParams(*p)
+			return checkParams(p.Config)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return StartServer(context.Background(), *p)
@@ -216,7 +168,6 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.Bool("no-tls", false, "do not attempt to read TLS certificates")
 	cmdFlags.String("cluster-name", "management", "name of the management cluster")
 
-	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmdFlags.String("oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
@@ -236,6 +187,9 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
 	cmdFlags.String("cost-estimation-csv-file", "", "Filename to parse as Cost Estimation data")
 
+	// deprecated, no longer used
+	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
+
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
 			cobra.CheckErr(cmdFlags.MarkHidden(fl.Name))
@@ -245,17 +199,21 @@ func NewAPIServerCommand() *cobra.Command {
 	return cmd
 }
 
-func checkParams(params Params) error {
-	issuerURL := params.OIDC.IssuerURL
-	clientID := params.OIDC.ClientID
-	clientSecret := params.OIDC.ClientSecret
-	redirectURL := params.OIDC.RedirectURL
-
-	authMethods, err := auth.ParseAuthMethodArray(params.AuthMethods)
-	if err != nil {
-		return fmt.Errorf("could not parse auth methods while checking params: %w", err)
+func getAuthMethods(c server_config.ValuesConfig) map[auth.AuthMethod]bool {
+	return map[auth.AuthMethod]bool{
+		auth.UserAccount:      c.Auth.UserAccount.Enabled,
+		auth.OIDC:             c.OIDC.Enabled,
+		auth.TokenPassthrough: c.Auth.TokenPassthrough.Enabled,
 	}
+}
 
+func checkParams(c server_config.ValuesConfig) error {
+	issuerURL := c.OIDC.IssuerURL
+	clientID := c.OIDC.ClientID
+	clientSecret := c.OIDC.ClientSecret
+	redirectURL := c.OIDC.RedirectURL
+
+	authMethods := getAuthMethods(c)
 	if !authMethods[auth.OIDC] {
 		return nil
 	}
@@ -285,7 +243,7 @@ func initializeConfig(cmd *cobra.Command) error {
 	// Set the base name of the config file, without the file extension.
 	viper.SetConfigName(defaultConfigFilename)
 
-	viper.AddConfigPath(".")
+	viper.AddConfigPath("/etc/cluster-service")
 
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
@@ -310,7 +268,8 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func StartServer(ctx context.Context, p Params) error {
+func StartServer(ctx context.Context, values server_config.Values) error {
+	p := values.Config
 	log, err := logger.New(p.LogLevel, os.Getenv("HUMAN_LOGS") != "")
 	if err != nil {
 		stdlog.Fatalf("Couldn't set up logger: %v", err)
@@ -320,7 +279,7 @@ func StartServer(ctx context.Context, p Params) error {
 
 	featureflags.SetFromEnv(os.Environ())
 
-	if p.CAPITemplatesNamespace == "" {
+	if p.CAPI.Templates.Namespace == "" {
 		return errors.New("CAPI templates namespace not set")
 	}
 
@@ -333,7 +292,7 @@ func StartServer(ctx context.Context, p Params) error {
 		authv1.AddToScheme,
 	}
 
-	if p.CAPIEnabled {
+	if p.CAPI.Enabled {
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
@@ -363,7 +322,7 @@ func StartServer(ctx context.Context, p Params) error {
 		return fmt.Errorf("could not create wego default config: %w", err)
 	}
 
-	chartsCache, err := helm.NewChartIndexer(p.ProfileCacheLocation, p.Cluster)
+	chartsCache, err := helm.NewChartIndexer(p.Internal.ProfileCacheLocation, p.Cluster.Name)
 	if err != nil {
 		return fmt.Errorf("could not create charts cache: %w", err)
 	}
@@ -406,11 +365,7 @@ func StartServer(ctx context.Context, p Params) error {
 		return fmt.Errorf("could not create scheme: %w", err)
 	}
 
-	authMethods, err := auth.ParseAuthMethodArray(p.AuthMethods)
-	if err != nil {
-		return fmt.Errorf("could not parse auth methods: %w", err)
-	}
-
+	authMethods := getAuthMethods(p)
 	builder := runtime.NewSchemeBuilder(
 		capiv1.AddToScheme,
 		pacv2beta1.AddToScheme,
@@ -427,7 +382,7 @@ func StartServer(ctx context.Context, p Params) error {
 		return err
 	}
 
-	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
+	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster.Name, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
@@ -441,18 +396,31 @@ func StartServer(ctx context.Context, p Params) error {
 		}
 	}
 
-	if p.UseK8sCachedClients {
+	if values.Global.UseK8sCachedClients {
 		log.Info("Using cached clients")
 		mgmtCluster = cluster.NewDelegatingCacheCluster(mgmtCluster, rest, clustersManagerScheme)
 	} else {
 		log.Info("Using un-cached clients")
 	}
 
-	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	gcf := fetcher.NewGitopsClusterFetcher(
+		log,
+		mgmtCluster,
+		p.CAPI.Clusters.Namespace,
+		clustersManagerScheme,
+		values.Global.UseK8sCachedClients,
+		cluster.DefaultKubeConfigOptions...,
+	)
 	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
 	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
-		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+		sessionFetcher := fetcher.NewRunSessionFetcher(
+			log,
+			mgmtCluster,
+			clustersManagerScheme,
+			values.Global.UseK8sCachedClients,
+			cluster.DefaultKubeConfigOptions...,
+		)
 		fetchers = append(fetchers, sessionFetcher)
 	}
 
@@ -464,7 +432,7 @@ func StartServer(ctx context.Context, p Params) error {
 
 	controllerContext := ctrl.SetupSignalHandler()
 
-	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
+	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster.Name, indexer.NewIndexer)
 	go func() {
 		err := indexer.Start(controllerContext, clustersManager, log)
 		if err != nil {
@@ -478,7 +446,7 @@ func StartServer(ctx context.Context, p Params) error {
 	var estimator estimation.Estimator
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_COST_ESTIMATION") != "" {
 		log.Info("Cost estimation feature flag is enabled")
-		est, err := makeCostEstimator(ctx, log, p)
+		est, err := makeCostEstimator(ctx, log, p.CostEstimation)
 		if err != nil {
 			return err
 		}
@@ -492,12 +460,22 @@ func StartServer(ctx context.Context, p Params) error {
 		return err
 	}
 
+	tlsEnabled := false
+	if values.TLS.Enabled != nil {
+		tlsEnabled = *values.TLS.Enabled
+	} else if values.Config.Internal.NoTLS != nil {
+		tlsEnabled = *values.Config.Internal.NoTLS
+	}
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
-		WithProfileHelmRepository(types.NamespacedName{Name: p.HelmRepoName, Namespace: p.HelmRepoNamespace}),
+		WithProfileHelmRepository(types.NamespacedName{
+			Name:      p.Internal.HelmRepo.Name,
+			Namespace: p.Internal.HelmRepo.Namespace,
+		}),
 		WithEntitlementSecretKey(client.ObjectKey{
-			Name:      p.EntitlementSecretName,
-			Namespace: p.EntitlementSecretNamespace,
+			Name:      p.Internal.EntitlementSecret.Name,
+			Namespace: p.Internal.EntitlementSecret.Namespace,
 		}),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
@@ -511,21 +489,21 @@ func StartServer(ctx context.Context, p Params) error {
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
-		WithCAPIClustersNamespace(p.CAPIClustersNamespace),
-		WithHtmlRootPath(p.HtmlRootPath),
+		WithCAPIClustersNamespace(p.CAPI.Clusters.Namespace),
+		WithHtmlRootPath(p.Internal.HtmlRootPath),
 		WithClientGetter(clientGetter),
 		WithAuthConfig(authMethods, p.OIDC),
-		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
-		WithCAPIEnabled(p.CAPIEnabled),
-		WithRuntimeNamespace(p.RuntimeNamespace),
-		WithDevMode(p.DevMode),
+		WithTLSConfig(p.Internal.TLSCert, p.Internal.TLSKey, tlsEnabled),
+		WithCAPIEnabled(p.CAPI.Enabled),
+		WithRuntimeNamespace(p.Internal.RuntimeNamespace),
+		WithDevMode(p.Internal.DevMode),
 		WithClustersManager(clustersManager),
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
-		WithManagementCluster(p.Cluster),
+		WithManagementCluster(p.Cluster.Name),
 		WithTemplateCostEstimator(estimator),
-		WithUIConfig(p.UIConfig),
-		WithPipelineControllerAddress(p.CAPIRepositoryClustersPath),
+		WithUIConfig(p.UI),
+		WithPipelineControllerAddress(p.CAPI.RepositoryClustersPath),
 	)
 }
 
@@ -973,20 +951,20 @@ func (fs *spaFileSystem) Open(name string) (http.File, error) {
 	return f, err
 }
 
-func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimation.Estimator, error) {
+func makeCostEstimator(ctx context.Context, log logr.Logger, p server_config.ConfigCostEstimation) (estimation.Estimator, error) {
 	var pricer estimation.Pricer
-	if p.CostEstimationFilename != "" {
-		log.Info("configuring cost estimation from CSV", "filename", p.CostEstimationFilename)
-		pr, err := estimation.NewCSVPricerFromFile(log, p.CostEstimationFilename)
+	if p.CSVFile != "" {
+		log.Info("configuring cost estimation from CSV", "filename", p.CSVFile)
+		pr, err := estimation.NewCSVPricerFromFile(log, p.CSVFile)
 		if err != nil {
 			return nil, err
 		}
 		pricer = pr
 	} else {
-		if p.CostEstimationFilters == "" {
+		if p.EstimationFilter == "" {
 			return nil, errors.New("cost estimation filters cannot be empty")
 		}
-		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.CostEstimationAPIRegion))
+		cfg, err := awsconfig.LoadDefaultConfig(ctx, awsconfig.WithRegion(p.APIRegion))
 		if err != nil {
 			log.Error(err, "unable to load AWS SDK config, cost estimation will not be available")
 		} else {
@@ -994,8 +972,8 @@ func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimati
 			pricer = estimation.NewAWSPricer(log, svc)
 		}
 	}
-	log.Info("Setting default cost estimation filters", "filters", p.CostEstimationFilters)
-	filters, err := estimation.ParseFilterQueryString(p.CostEstimationFilters)
+	log.Info("Setting default cost estimation filters", "filters", p.EstimationFilter)
+	filters, err := estimation.ParseFilterQueryString(p.EstimationFilter)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse cost estimation filters: %w", err)
 	}
