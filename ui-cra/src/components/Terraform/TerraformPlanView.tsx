@@ -1,27 +1,17 @@
 import styled from 'styled-components';
-import { GetTerraformObjectPlanResponse } from '../../api/terraform/terraform.pb';
-import { useGetTerraformObjectPlan } from '../../contexts/Terraform';
 import CodeView from '../CodeView';
 import { Body, Message, Title } from '../Shared';
+import { Link } from '@weaveworks/weave-gitops';
 
 type Props = {
-  className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
+  plan?: string;
+  error?: string;
 };
 
-function TerraformPlanView({ className, ...params }: Props) {
-  const { data, isLoading } = useGetTerraformObjectPlan(params);
-  const { plan } = (data || {}) as GetTerraformObjectPlanResponse;
-
-  if (isLoading) {
-    return <></>;
-  }
-
+function TerraformPlanView({ plan, error }: Props) {
   return (
     <>
-      {plan ? (
+      {plan && !error ? (
         <CodeView
           kind="Terraform"
           code={plan.trimStart() || ''}
@@ -31,6 +21,19 @@ function TerraformPlanView({ className, ...params }: Props) {
         <Message>
           <Title>Terraform Plan</Title>
           <Body>No plan available.</Body>
+          <Body>
+            To enable the plan view, please set the field
+            `spec.storeReadablePlan` to `human`.
+          </Body>
+          <Body>
+            To learn more about planning Terraform resources,&nbsp;
+            <Link
+              href="https://docs.gitops.weave.works/docs/terraform/Using%20Terraform%20CR/plan-and-manually-apply-terraform-resources/"
+              newTab
+            >
+              visit our documentation
+            </Link>
+          </Body>
         </Message>
       )}
     </>

@@ -142,4 +142,39 @@ describe('TerraformObjectDetail', () => {
       clusterName: 'Default',
     });
   });
+  it('calls replan terraform object', async () => {
+    const params: any = res.object;
+    api.GetTerraformObjectReturns = res;
+    const recorder = jest.fn();
+
+    api.ReplanTerraformObject = (...args) => {
+      recorder(...args);
+      return new Promise(() => ({}));
+    };
+
+    await act(async () => {
+      const c = wrap(
+        <TerraformObjectDetail
+          name={params.name}
+          namespace={params.namespace}
+          clusterName="Default"
+        />,
+      );
+      render(c);
+    });
+
+    const tab = await screen.findByText('Plan');
+
+    fireEvent.click(tab);
+
+    const replanBtn = await screen.findByTestId('replan-btn');
+
+    fireEvent.click(replanBtn);
+
+    expect(recorder).toHaveBeenCalledWith({
+      name: 'helloworld',
+      namespace: 'flux-system',
+      clusterName: 'Default',
+    });
+  });
 });
