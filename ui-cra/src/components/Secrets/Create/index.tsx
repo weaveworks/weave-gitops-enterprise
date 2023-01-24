@@ -76,6 +76,7 @@ interface FormData {
     isControlPlane: boolean;
     secretName: string;
     secretNamespace: string;
+    secretStoreKind: string;
     secretStoreRef: string;
     dataSecretKey: string;
     dataRemoteRefKey: string;
@@ -167,6 +168,7 @@ const CreateSecret = () => {
   const {
     secretName,
     secretNamespace,
+    secretStoreKind,
     dataSecretKey,
     clusterName,
     secretStoreRef,
@@ -203,6 +205,7 @@ const CreateSecret = () => {
       secretStoreRef: value.name,
       secretNamespace: value.namespace,
       secretStoreType: value.type,
+      secretStoreKind: value.kind,
     };
 
     setFormData({
@@ -274,6 +277,7 @@ const CreateSecret = () => {
           refreshInterval: '1h',
           secretStoreRef: {
             name: secretStoreRef,
+            kind: secretStoreKind,
           },
           target: {
             name: dataSecretKey,
@@ -296,6 +300,7 @@ const CreateSecret = () => {
     secretName,
     secretNamespace,
     secretStoreRef,
+    secretStoreKind,
     dataSecretKey,
     dataRemoteRefKey,
     dataRemoteRef_property,

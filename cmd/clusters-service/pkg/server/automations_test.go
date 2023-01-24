@@ -685,6 +685,7 @@ status: {}
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
+									Kind: "SecretStore",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
@@ -751,6 +752,7 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
+									Kind: "SecretStore",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
@@ -814,6 +816,7 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
+									Kind: "SecretStore",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
@@ -880,6 +883,7 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
+									Kind: "SecretStore",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
@@ -944,7 +948,9 @@ status:
 							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
 							Spec: &capiv1_protos.ExternalSecretSpec{
 								RefreshInterval: "1h",
-								SecretStoreRef:  &capiv1_protos.ExternalSecretStoreRef{},
+								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+									Kind: "SecretStore",
+								},
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
@@ -1010,6 +1016,7 @@ status:
 								RefreshInterval: "1h",
 								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
 									Name: "testname",
+									Kind: "SecretStore",
 								},
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
