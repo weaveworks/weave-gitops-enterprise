@@ -66,5 +66,5 @@ export enum Routes {
   SecretDetails = '/secrets/details',
 
   GitOpsSets = '/gitopssets',
-  GitOpsSetDetail = '/gitopssets/details',
+  GitOpsSetDetail = '/gitopsset',
 }

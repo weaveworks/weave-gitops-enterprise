@@ -56,6 +56,7 @@ function GitOpsDetail({
 }: Props) {
   console.log(gitOpsSet);
   const { path } = useRouteMatch();
+  console.log(path);
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
