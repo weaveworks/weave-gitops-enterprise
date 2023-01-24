@@ -89,8 +89,6 @@ const classes = useStyles();
 
   const handleSelectVersion = useCallback(
     (value: string | null) => {
-      // const value = event.target.value as string;
-      // semverCoerce
       console.log(semverCoerce(' > v 2.1.5foo', { loose: true }).version)
       console.log(semverValid(semverCoerce(value, { loose: true }).version))
       console.log(semverMaxSatisfying(profile.values.map(item=>item.version),value))
@@ -178,13 +176,13 @@ const classes = useStyles();
               onChange={(event, newValue) => {
                 handleSelectVersion(newValue);
               }}
+              value={version}
               autoSelect
               renderInput={params => (
                 <TextField
                   {...params}
                   variant="standard"
                   fullWidth
-                  error={!semverValid(semverClean(version))}
                 />
               )}
             />
