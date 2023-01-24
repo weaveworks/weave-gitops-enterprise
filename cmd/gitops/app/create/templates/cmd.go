@@ -247,7 +247,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	var helmRepo *sourcev1.HelmRepository
 	var helmRepoRef types.NamespacedName
-	var chartsCache helm.GenerateProfilesCache = helm.NilGenerateProfilesCache{}
+	var chartsCache helm.ProfilesGeneratorCache = helm.NilProfilesGeneratorCache{}
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {

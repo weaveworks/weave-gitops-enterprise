@@ -270,7 +270,7 @@ func GetFiles(
 	client client.Client,
 	log logr.Logger,
 	estimator estimation.Estimator,
-	chartsCache helm.GenerateProfilesCache,
+	chartsCache helm.ProfilesGeneratorCache,
 	profileHelmRepositoryCluster types.NamespacedName,
 	profileHelmRepository types.NamespacedName,
 	tmpl templatesv1.Template,

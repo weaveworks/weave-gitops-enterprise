@@ -60,7 +60,7 @@ var (
 type generateProfileFilesParams struct {
 	helmRepositoryCluster types.NamespacedName
 	helmRepository        types.NamespacedName
-	chartsCache           helm.GenerateProfilesCache
+	chartsCache           helm.ProfilesGeneratorCache
 	profileValues         []*capiv1_proto.ProfileValues
 	parameterValues       map[string]string
 }

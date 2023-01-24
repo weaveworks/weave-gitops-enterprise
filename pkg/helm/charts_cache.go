@@ -19,15 +19,15 @@ type ChartsCacheWriter interface {
 	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
 }
 
-// GenerateProfiles is all that is needed to generate the profiles for a cluster
-type GenerateProfilesCache interface {
+// ProfilesGeneratorCache is all that is needed to generate the profiles for a cluster
+type ProfilesGeneratorCache interface {
 	GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error)
 	GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error)
 }
 
 // ChartsCacheReader is the "reading" interface to the cache, used by api etc
 type ChartsCacheReader interface {
-	GenerateProfilesCache
+	ProfilesGeneratorCache
 	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error)
 	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error)
 	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error)
@@ -55,13 +55,13 @@ type Chart struct {
 	Layer   string
 }
 
-// Implementation of ChartsCache that does nothing.
-type NilGenerateProfilesCache struct{}
+// Implementation of ProfilesGeneratorCache that does nothing.
+type NilProfilesGeneratorCache struct{}
 
-func (n NilGenerateProfilesCache) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
+func (n NilProfilesGeneratorCache) GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error) {
 	return "", nil
 }
 
-func (n NilGenerateProfilesCache) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
+func (n NilProfilesGeneratorCache) GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error) {
 	return "", nil
 }
