@@ -134,9 +134,12 @@
     }
   },
   "definitions": {
-    "PipelineStatusTargetStatusList": {
+    "PipelineStatusEnvironmentStatus": {
       "type": "object",
       "properties": {
+        "waitingStatus": {
+          "$ref": "#/definitions/v1WaitingStatus"
+        },
         "targetsStatuses": {
           "type": "array",
           "items": {
@@ -325,7 +328,7 @@
         "environments": {
           "type": "object",
           "additionalProperties": {
-            "$ref": "#/definitions/PipelineStatusTargetStatusList"
+            "$ref": "#/definitions/PipelineStatusEnvironmentStatus"
           }
         }
       }
@@ -355,6 +358,14 @@
         },
         "clusterRef": {
           "$ref": "#/definitions/v1ClusterRef"
+        }
+      }
+    },
+    "v1WaitingStatus": {
+      "type": "object",
+      "properties": {
+        "revision": {
+          "type": "string"
         }
       }
     },
