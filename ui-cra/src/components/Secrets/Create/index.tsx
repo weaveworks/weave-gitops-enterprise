@@ -99,6 +99,80 @@ interface SelectSecretStoreProps {
   setSelectedSecretStore: Dispatch<React.SetStateAction<any>>;
 }
 
+export const SelectSecretStore = (props: SelectSecretStoreProps) => {
+  const {
+    cluster,
+    handleSelectSecretStore,
+    handleFormData,
+    formError,
+    secretStoreRef,
+    secretStoreType,
+    secretNamespace,
+    selectedSecretStore,
+    setSelectedSecretStore,
+  } = props;
+  const { data, isLoading } = useGetSecretStoreDetails({
+    clusterName: cluster,
+  });
+  const secretStores = data?.stores;
+  useEffect(() => {
+    if (secretStoreRef) {
+      const selectedStore =
+        secretStores?.filter(item => item.name === secretStoreRef) || [];
+      setSelectedSecretStore(selectedStore[0]);
+    }
+  });
+  return (
+    <div className="form-group">
+      <Select
+        className="form-section"
+        name="secretStoreRef"
+        required
+        label="SECRET STORE"
+        value={
+          selectedSecretStore.name ? JSON.stringify(selectedSecretStore) : ''
+        }
+        onChange={handleSelectSecretStore}
+        error={formError === 'secretStoreRef' && !secretStoreRef}
+      >
+        {isLoading ? (
+          <MenuItem disabled={true}>Loading...</MenuItem>
+        ) : secretStores?.length ? (
+          secretStores.map((option, index: number) => {
+            return (
+              <MenuItem key={index} value={JSON.stringify(option)}>
+                {option.name}
+              </MenuItem>
+            );
+          })
+        ) : (
+          <MenuItem disabled={true}>
+            No SecretStore found on that cluster
+          </MenuItem>
+        )}
+      </Select>
+      <Input
+        className="form-section"
+        name="secret_store_kind"
+        label="SECRET STORE TYPE"
+        value={secretStoreType}
+        disabled={true}
+        error={false}
+      />
+      <Input
+        className="form-section"
+        required
+        name="secretNamespace"
+        label="TARGET NAMESPACE"
+        value={secretNamespace}
+        disabled={selectedSecretStore.namespace?.length ? true : false}
+        onChange={event => handleFormData(event, 'secretNamespace')}
+        error={formError === 'secretNamespace' && !secretNamespace}
+      />
+    </div>
+  );
+};
+
 function getInitialData(
   callbackState: { state: { formData: FormData } } | null,
   random: string,
@@ -402,7 +476,7 @@ const CreateSecret = () => {
                     name="clusterName"
                     required={true}
                     label="TARGET CLUSTER"
-                    value={targetCluster}
+                    value={targetCluster || ''}
                     onChange={HandleSelectCluster}
                     error={formError === 'clusterName' && !clusterName}
                   >
@@ -488,75 +562,3 @@ const CreateSecret = () => {
 };
 
 export default CreateSecret;
-
-export const SelectSecretStore = (props: SelectSecretStoreProps) => {
-  const {
-    cluster,
-    handleSelectSecretStore,
-    handleFormData,
-    formError,
-    secretStoreRef,
-    secretStoreType,
-    secretNamespace,
-    selectedSecretStore,
-    setSelectedSecretStore,
-  } = props;
-  const { data, isLoading } = useGetSecretStoreDetails({
-    clusterName: cluster,
-  });
-  const secretStores = data?.stores;
-  useEffect(() => {
-    if (secretStoreRef) {
-      const selectedStore =
-        secretStores?.filter(item => item.name === secretStoreRef) || [];
-      setSelectedSecretStore(selectedStore[0]);
-    }
-  });
-  return (
-    <div className="form-group">
-      <Select
-        className="form-section"
-        name="secretStoreRef"
-        required
-        label="SECRET STORE"
-        value={JSON.stringify(selectedSecretStore)}
-        onChange={handleSelectSecretStore}
-        error={formError === 'secretStoreRef' && !secretStoreRef}
-      >
-        {isLoading ? (
-          <MenuItem disabled={true}>Loading...</MenuItem>
-        ) : secretStores?.length ? (
-          secretStores.map((option, index: number) => {
-            return (
-              <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}
-              </MenuItem>
-            );
-          })
-        ) : (
-          <MenuItem disabled={true}>
-            No SecretStore found on that cluster
-          </MenuItem>
-        )}
-      </Select>
-      <Input
-        className="form-section"
-        name="secret_store_kind"
-        label="SECRET STORE TYPE"
-        value={secretStoreType}
-        disabled={true}
-        error={false}
-      />
-      <Input
-        className="form-section"
-        required
-        name="secretNamespace"
-        label="TARGET NAMESPACE"
-        value={secretNamespace}
-        disabled={selectedSecretStore.namespace?.length ? true : false}
-        onChange={event => handleFormData(event, 'secretNamespace')}
-        error={formError === 'secretNamespace' && !secretNamespace}
-      />
-    </div>
-  );
-};
