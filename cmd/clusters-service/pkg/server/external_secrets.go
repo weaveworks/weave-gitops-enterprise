@@ -142,10 +142,22 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			response.Version = externalSecret.Spec.Data[0].RemoteRef.Version
 		}
 
-		//Get SecretStore
-		var externalSecretStore esv1beta1.SecretStore
-		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &externalSecretStore); err == nil {
-			response.SecretStoreType = getSecretStoreType(externalSecretStore.Spec.Provider)
+		var secretStoreProvider *esv1beta1.SecretStoreProvider
+		if externalSecret.Spec.SecretStoreRef.Kind == esv1beta1.ClusterSecretStoreKind {
+			var clusterSecretStore esv1beta1.ClusterSecretStore
+			if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name}, &clusterSecretStore); err == nil {
+				secretStoreProvider = clusterSecretStore.Spec.Provider
+			}
+
+		} else {
+			var secretStore esv1beta1.SecretStore
+			if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &secretStore); err == nil {
+				secretStoreProvider = secretStore.Spec.Provider
+			}
+		}
+
+		if secretStoreProvider != nil {
+			response.SecretStoreType = getSecretStoreType(secretStoreProvider)
 		}
 
 		return &response, nil
