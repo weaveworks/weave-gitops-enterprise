@@ -24,7 +24,6 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
-const semverClean = require('semver/functions/clean')
 const semverValid = require('semver/functions/valid')
 const semverMaxSatisfying = require('semver/ranges/max-satisfying')
 const semverCoerce = require('semver/functions/coerce')
@@ -34,9 +33,6 @@ const semverCoerce = require('semver/functions/coerce')
 const ProfileWrapper = styled.div`
   display: flex;
   justify-content: space-around;
-  .MuiAutocomplete-root {
-    min-width: 155px;
-  }
 `;
 
 const ProfilesListItem: FC<{
@@ -51,31 +47,24 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
+  const [inValidVersionErrorMessage, setInValidVersionErrorMessage] = useState<string>('');
+  const [isValidVersion, setIsValidVersion] = useState<boolean>(false);
 
 
   const useStyles = makeStyles(() =>
   createStyles({
     autoComplete: {
-      width: '100%',
       cursor: 'pointer',
       minWidth: '155px',
       userSelect: 'none',
-      borderRadius: 0
-    },
+      borderRadius: 0,
+      overflow: 'hidden',
+      minHeight: '1.1876em',
+      marginRight: '24px'
+    }
   }),
 );
 const classes = useStyles();
-
-  const profileVersions = (profile: UpdatedProfile) => [
-    ...profile.values.map((value, index) => {
-      const { version } = value;
-      return (
-        <MenuItem key={index} value={version}>
-          {version}
-        </MenuItem>
-      );
-    }),
-  ];
 
   const handleUpdateProfile = useCallback(
     profile => {
@@ -87,15 +76,24 @@ const classes = useStyles();
     [setUpdatedProfiles],
   );
 
+  const validateVersion =(version:string)=>{
+    if (semverValid(semverCoerce(version, { loose: true })?.version)){
+      if(semverMaxSatisfying(profile.values.map(item=>item.version),version))
+      {
+        setVersion(semverMaxSatisfying(profile.values.map(item=>item.version),version))
+      }
+    }else{
+      setInValidVersionErrorMessage('The provided semver is invalid or not matching please select one of the available versions')
+      setIsValidVersion(true)
+    }
+
+  }
+
   const handleSelectVersion = useCallback(
-    (value: string | null) => {
-      console.log(semverCoerce(' > v 2.1.5foo', { loose: true }).version)
-      console.log(semverValid(semverCoerce(value, { loose: true }).version))
-      console.log(semverMaxSatisfying(profile.values.map(item=>item.version),value))
-
-      value && setVersion(value);
-      console.log({ value });
-
+    (value: string) => {
+      setInValidVersionErrorMessage('')
+      setIsValidVersion(false)
+      validateVersion(value);
       profile.values.forEach(item =>
         item.selected === true ? (item.selected = false) : null,
       );
@@ -137,7 +135,6 @@ const classes = useStyles();
       if (item.version === version) {
         item.yaml = yaml;
       }
-      // console.log({ yaml });
     });
 
     handleUpdateProfile(profile);
@@ -182,7 +179,8 @@ const classes = useStyles();
                 <TextField
                   {...params}
                   variant="standard"
-                  fullWidth
+                  error={isValidVersion}
+                  helperText={!!inValidVersionErrorMessage && inValidVersionErrorMessage}
                 />
               )}
             />
