@@ -54,7 +54,7 @@ if 'gitopssets-controller' in to_edit:
    if not os.path.exists("../gitopssets-controller"):
       fail("You need to git clone https://github.com/weaveworks/gitopssets-controller to a directory next to this")
    docker_build('ghcr.io/weaveworks/gitopssets-controller', '../gitopssets-controller/')
-   templates_controller_labels = ["local"]
+   gitopssets_controller_labels = ["local"]
 
 # --- rename chart resources to human readable 
 
