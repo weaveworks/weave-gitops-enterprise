@@ -56,11 +56,12 @@ const ProfilesListItem: FC<{
     autoComplete: {
       cursor: 'pointer',
       minWidth: '155px',
-      userSelect: 'none',
-      borderRadius: 0,
       overflow: 'hidden',
       minHeight: '1.1876em',
-      marginRight: '24px'
+      marginRight: '24px',
+      'input':{
+        padding:'10px'
+      }
     }
   }),
 );
