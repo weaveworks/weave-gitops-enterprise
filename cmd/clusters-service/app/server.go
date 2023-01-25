@@ -41,6 +41,7 @@ import (
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	pd "github.com/weaveworks/progressive-delivery/pkg/server"
+	"github.com/weaveworks/progressive-delivery/pkg/services/crd"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -491,14 +492,20 @@ func StartServer(ctx context.Context, p Params) error {
 
 	controllerContext := ctrl.SetupSignalHandler()
 
-	indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
-	go func() {
-		err := indexer.Start(controllerContext, clustersManager, log)
-		if err != nil {
-			log.Error(err, "failed to start indexer")
-			os.Exit(1)
-		}
-	}()
+	// Disable the cache in some cases for debugging and testing
+	// especially when querying leaf clusters with token passthrough
+	// enabled.
+	// TODO: Remove this once we have a better way..
+	if featureflags.Get("DEBUG_DISABLE_HELM_CACHE") != "true" {
+		indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
+		go func() {
+			err := indexer.Start(controllerContext, clustersManager, log)
+			if err != nil {
+				log.Error(err, "failed to start indexer")
+				os.Exit(1)
+			}
+		}()
+	}
 
 	clustersManager.Start(ctx)
 
@@ -515,6 +522,11 @@ func StartServer(ctx context.Context, p Params) error {
 	coreCfg, err := core_core.NewCoreConfig(
 		log, rest, clusterName, clustersManager,
 	)
+
+	if featureflags.Get(auth.FeatureFlagOIDCPassthrough) == auth.FeatureFlagSet {
+		coreCfg.CRDService = crd.NewNoCacheFetcher(clustersManager)
+	}
+
 	if err != nil {
 		return err
 	}
@@ -652,6 +664,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if err := pd.Hydrate(ctx, grpcMux, pd.ServerOpts{
 		ClustersManager: args.CoreServerConfig.ClustersManager,
 		Logger:          args.Log,
+		CRDService:      args.CoreServerConfig.CRDService,
 	}); err != nil {
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
