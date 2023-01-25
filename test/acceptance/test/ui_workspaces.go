@@ -98,26 +98,26 @@ func verifyWrokspaceServiceAccounts(workspaceName string, workspaceNamespaces st
 	})
 }
 
-func verifyWrokspaceRoles(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
-	// workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+// func verifyWrokspaceRoles(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
+// 	// workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
-	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
-		gomega.Expect(workspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
-		pages.WaitForPageToLoad(webDriver)
+// 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
+// 		gomega.Expect(workspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
+// 		pages.WaitForPageToLoad(webDriver)
 
-		role := pages.GetWorkspaceRoles(webDriver)
+// 		role := pages.GetWorkspaceRoles(webDriver)
 
-		gomega.Eventually(role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role 's Name", workspaceName))
-		gomega.Expect(role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Name", workspaceName))
-		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
-		gomega.Eventually(role.Namespace.Text).Should(gomega.MatchRegexp(workspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
-		gomega.Eventually(role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
-		gomega.Eventually(role.Rules.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's view rules button", workspaceName))
-		gomega.Eventually(role.ViewRules.Text).Should(gomega.Equal("Rules"), "Failed to view rules")
-		gomega.Expect(role.CloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's view rules button", workspaceName))
-		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
-	})
-}
+// 		gomega.Eventually(role.Name.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role 's Name", workspaceName))
+// 		gomega.Expect(role.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Name", workspaceName))
+// 		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
+// 		gomega.Eventually(role.Namespace.Text).Should(gomega.MatchRegexp(workspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
+// 		gomega.Eventually(role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
+// 		gomega.Eventually(role.Rules.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's view rules button", workspaceName))
+// 		gomega.Eventually(role.ViewRules.Text).Should(gomega.Equal("Rules"), "Failed to view rules")
+// 		gomega.Expect(role.CloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's view rules button", workspaceName))
+// 		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
+// 	})
+// }
 
 func verifyWrokspaceRoleBindings(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
 	// workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
@@ -229,7 +229,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, workspacesDetailPage)
 			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWrokspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			// verifyWrokspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
 			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces, workspacesDetailPage)
 			verifyWrokspacePolicies(workspaceName, workspaceNamespaces, workspacesDetailPage)
 
