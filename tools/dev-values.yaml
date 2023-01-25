@@ -19,10 +19,23 @@ enablePipelines: true
 enableTerraformUI: true
 
 extraEnvVars:
-  - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
-    value: ""
+  # Can bump this up to >= 6 to get more verbose logging
+  - name: KLOG_VERBOSITY
+    value: "0"
   - name: WEAVE_GITOPS_FEATURE_TELEMETRY
     value: "false"
+  # token pass through flags
+  - name: WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES
+    value: "true"
+  - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
+    value: "true"
+  # debug flag, set to true to disable helm cache, useful if it doesn't
+  # have access to much due to token passthrough
+  - name: DEBUG_DISABLE_HELM_CACHE
+    value: "false"
+  # cost estimation feature
+  - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
+    value: ""
 
 extraEnvVarsSecret: ""
 

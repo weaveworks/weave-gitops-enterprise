@@ -496,7 +496,8 @@ func StartServer(ctx context.Context, p Params) error {
 	// especially when querying leaf clusters with token passthrough
 	// enabled.
 	// TODO: Remove this once we have a better way..
-	if featureflags.Get("DEBUG_DISABLE_HELM_CACHE") != "true" {
+	if os.Getenv("DEBUG_DISABLE_HELM_CACHE") != "true" {
+		log.Info("Starting helm chart cache indexer")
 		indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
 		go func() {
 			err := indexer.Start(controllerContext, clustersManager, log)
