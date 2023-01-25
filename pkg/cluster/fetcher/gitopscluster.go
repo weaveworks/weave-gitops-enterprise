@@ -115,6 +115,7 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 
 	for _, cluster := range goClusters.Items {
 		if !isReady(cluster) || !hasConnectivity(cluster) {
+			f.log.V(logger.LogLevelDebug).Info("Ignoring GitOps Cluster, not ready or not connectivity", "cluster", cluster.Name, "ready", isReady(cluster), "connectivity", hasConnectivity(cluster))
 			continue
 		}
 

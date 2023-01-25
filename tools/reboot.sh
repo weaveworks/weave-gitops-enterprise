@@ -54,7 +54,7 @@ do_capi(){
   tool_check "clusterctl"
 
   EXP_CLUSTER_RESOURCE_SET=true ${TOOLS}/clusterctl init \
-    --infrastructure docker
+    --infrastructure vcluster
 }
 
 do_flux(){
@@ -116,7 +116,7 @@ run_custom_scripts(){
 
 main() {
   github_env_check
-  do_kind
+  # do_kind
   do_capi
   do_flux
   create_local_values_file

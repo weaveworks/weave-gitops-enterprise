@@ -8,6 +8,18 @@ policy-agent:
 
 config:
   logLevel: debug
+  auth:
+    userAccount:
+      enabled: false
+    tokenPassthrough:
+      enabled: true
+  oidc:
+    enabled: true
+    issuerURL: "https://dev-46517780.okta.com/oauth2/default"
+    redirectURL: "http://localhost:9001/oauth2/callback"
+    cookieDuration: 1h
+    claimUsername: "email"
+    clientCredentialsSecret: "oidc-auth"
 
 tls:
   enabled: false
@@ -23,6 +35,10 @@ extraEnvVars:
     value: ""
   - name: WEAVE_GITOPS_FEATURE_TELEMETRY
     value: "false"
+  - name: WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES
+    value: "true"
+  - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
+    value: "true"
 
 extraEnvVarsSecret: ""
 
