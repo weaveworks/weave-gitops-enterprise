@@ -45,6 +45,7 @@ type Roles struct {
 	ManifestCloseBtn *agouti.Selection
 	Namespace        *agouti.Selection
 	Rules            *agouti.Selection
+	RullesBtn        *agouti.Selection
 	ViewRules        *agouti.Selection
 	CloseBtn         *agouti.Selection
 	Age              *agouti.Selection
@@ -123,6 +124,7 @@ func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 		ManifestCloseBtn: webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Rules:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
+		RullesBtn:        webDriver.FindByXPath(`(//span[contains(text(),'View Rules')])[1]`),
 		ViewRules:        webDriver.FindByXPath(`//ul[@class='sc-dFtzxp idYztQ']//li`),
 		CloseBtn:         webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Age:              webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
