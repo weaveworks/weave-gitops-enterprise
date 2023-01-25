@@ -31,6 +31,10 @@ import {
   FluxObject,
   FluxObjectNode,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { ObjectRef } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { Routes } from '../../utils/nav';
+import { PageTemplate } from '../Layout/PageTemplate';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 
 export interface routeTab {
   name: string;
@@ -54,9 +58,44 @@ function GitOpsDetail({
   customTabs,
   customActions,
 }: Props) {
+  // remove hardcoded object only detail link is fixed
+  var gitOpsSet = {
+    name: 'gitopsset-configmaps',
+    namespace: 'default',
+    inventory: [
+      { id: 'default_dev-info-configmap__ConfigMap', version: 'v1' },
+      { id: 'default_production-info-configmap__ConfigMap', version: 'v1' },
+      { id: 'default_staging-info-configmap__ConfigMap', version: 'v1' },
+    ],
+    conditions: [
+      {
+        type: 'Ready',
+        status: 'True',
+        reason: 'ReconciliationSucceeded',
+        message: '3 resources created',
+        timestamp: '2023-01-24 13:27:17 +0000 UTC',
+      },
+    ],
+    generators: [
+      '{"elements":[{"env":"dev","team":"dev-team"},{"env":"production","team":"ops-team"},{"env":"staging","team":"ops-team"}]}',
+    ],
+    clusterName: '',
+    type: 'GitOpsSet',
+    labels: {},
+    annotations: {
+      'kubectl.kubernetes.io/last-applied-configuration':
+        '{"apiVersion":"templates.weave.works/v1alpha1","kind":"GitOpsSet","metadata":{"annotations":{},"name":"gitopsset-configmaps","namespace":"default"},"spec":{"generators":[{"list":{"elements":[{"env":"dev","team":"dev-team"},{"env":"production","team":"ops-team"},{"env":"staging","team":"ops-team"}]}}],"templates":[{"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":"{{ .env }}-info-configmap","namespace":"default"},"spec":{"data":{"description":"This is a configmap for the {{ .env }} environment","env":"{{ .env }}","team":"{{ .team }}"}}}]}}\n',
+    },
+    sourceRef: {
+      apiVersion: 'templates.weave.works/v1alpha1',
+      kind: 'GitOpsSet',
+      name: 'gitopsset-configmaps',
+      namespace: 'default',
+    },
+    suspend: false,
+  } as GitOpsSet;
   console.log(gitOpsSet);
   const { path } = useRouteMatch();
-  console.log(path);
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
   const sync = useSyncFluxObject([
@@ -124,7 +163,7 @@ function GitOpsDetail({
         return (
           <ReconciliationGraph
             parentObject={gitOpsSet}
-            source={gitOpsSet.sourceRef}
+            source={gitOpsSet.sourceRef || ({} as ObjectRef)}
           />
         );
       },
@@ -156,70 +195,89 @@ function GitOpsDetail({
   ];
 
   return (
-    <Flex wide tall column className={className}>
-      <Text size="large" semiBold titleHeight>
-        {gitOpsSet.name}
-      </Text>
-      <PageStatus
-        conditions={gitOpsSet.conditions || []}
-        suspended={gitOpsSet.suspended}
-      />
-      <Flex wide start>
-        <SyncButton
-          onClick={opts => sync.mutateAsync(opts)}
-          loading={sync.isLoading}
-          disabled={gitOpsSet.suspended}
-        />
-        <Spacer padding="xs" />
-        <Button
-          onClick={() => suspend.mutateAsync()}
-          loading={suspend.isLoading}
-        >
-          {gitOpsSet.suspended ? 'Resume' : 'Suspend'}
-        </Button>
-        {customActions && <CustomActions actions={customActions} />}
-      </Flex>
-
-      <SubRouterTabs rootPath={`${path}/details`}>
-        {defaultTabs.map(
-          (subRoute, index) =>
-            subRoute.visible && (
-              <RouterTab name={subRoute.name} path={subRoute.path} key={index}>
-                {subRoute.component()}
-              </RouterTab>
-            ),
-        )}
-        {customTabs?.map(
-          (customTab, index) =>
-            customTab.visible && (
-              <RouterTab
-                name={customTab.name}
-                path={customTab.path}
-                key={index}
-              >
-                {customTab.component()}
-              </RouterTab>
-            ),
-        )}
-      </SubRouterTabs>
-      {nodeYaml && (
-        <Dialog
-          open={!!nodeYaml}
-          onClose={() => setNodeYaml({} as FluxObjectNode | FluxObject)}
-          maxWidth="md"
-          fullWidth
-        >
-          <DialogYamlView
-            object={{
-              name: nodeYaml.name,
-              namespace: nodeYaml.namespace,
-              kind: nodeYaml.type,
-            }}
-            yaml={nodeYaml.yaml}
+    <PageTemplate
+      documentTitle="GitOpsSets"
+      path={[
+        {
+          label: 'GitOpsSet',
+          url: Routes.GitOpsSets,
+        },
+        {
+          label: gitOpsSet?.name || '',
+        },
+      ]}
+    >
+      <ContentWrapper>
+        <Flex wide tall column className={className}>
+          <Text size="large" semiBold titleHeight>
+            {gitOpsSet.name}
+          </Text>
+          <PageStatus
+            conditions={gitOpsSet.conditions || []}
+            suspended={gitOpsSet.suspended || false}
           />
-        </Dialog>
-      )}
-    </Flex>
+          <Flex wide start>
+            <SyncButton
+              onClick={opts => sync.mutateAsync(opts)}
+              loading={sync.isLoading}
+              disabled={gitOpsSet.suspended}
+            />
+            <Spacer padding="xs" />
+            <Button
+              onClick={() => suspend.mutateAsync()}
+              loading={suspend.isLoading}
+            >
+              {gitOpsSet.suspended ? 'Resume' : 'Suspend'}
+            </Button>
+            {customActions && <CustomActions actions={customActions} />}
+          </Flex>
+
+          <SubRouterTabs rootPath={`${path}/details`}>
+            {defaultTabs.map(
+              (subRoute, index) =>
+                subRoute.visible && (
+                  <RouterTab
+                    name={subRoute.name}
+                    path={subRoute.path}
+                    key={index}
+                  >
+                    {subRoute.component()}
+                  </RouterTab>
+                ),
+            )}
+            {customTabs?.map(
+              (customTab, index) =>
+                customTab.visible && (
+                  <RouterTab
+                    name={customTab.name}
+                    path={customTab.path}
+                    key={index}
+                  >
+                    {customTab.component()}
+                  </RouterTab>
+                ),
+            )}
+          </SubRouterTabs>
+          {nodeYaml && (
+            <Dialog
+              open={!!nodeYaml}
+              onClose={() => setNodeYaml({} as FluxObjectNode | FluxObject)}
+              maxWidth="md"
+              fullWidth
+            >
+              <DialogYamlView
+                object={{
+                  name: nodeYaml.name,
+                  namespace: nodeYaml.namespace,
+                  kind: nodeYaml.type,
+                }}
+                yaml={nodeYaml.yaml}
+              />
+            </Dialog>
+          )}
+        </Flex>
+      </ContentWrapper>
+    </PageTemplate>
   );
 }
 

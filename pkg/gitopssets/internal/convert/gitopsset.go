@@ -13,7 +13,7 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 	if gs.Status.Inventory != nil {
 		for _, r := range gs.Status.Inventory.Entries {
 			inv = append(inv, &pb.ResourceRef{
-				ID:      r.ID,
+				Id:      r.ID,
 				Version: r.Version,
 			})
 		}
@@ -65,6 +65,6 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		Conditions: conditions,
 		Generators: generators,
 		Type:         gs.GetObjectKind().GroupVersionKind().Kind,
-		// Suspended: gs.Spec.Suspend,
+		Suspended: gs.Spec.Suspend,
 	}
 }

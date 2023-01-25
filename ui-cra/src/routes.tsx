@@ -273,14 +273,6 @@ const AppRoutes = () => {
         path={Routes.GitOpsSetDetail}
         component={withSearchParams(GitOpsSetDetail)}
       />
-      {/* <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <GitOpsSetDetail {...props} />
-          </CoreWrapper>
-        ))}
-        path={Routes.GitOpsSetDetail}
-      /> */}
       <Route
         exact
         path={Routes.GitlabOauthCallback}

@@ -31,7 +31,7 @@ message ListError {
 }
 
 message ResourceRef {
-    string ID       = 1;
+    string id       = 1;
     string version  = 2;
 }
 

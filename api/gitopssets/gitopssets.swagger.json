@@ -242,7 +242,7 @@
     "v1ResourceRef": {
       "type": "object",
       "properties": {
-        "ID": {
+        "id": {
           "type": "string"
         },
         "version": {
