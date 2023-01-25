@@ -53,6 +53,12 @@ service Terraform {
         };
     }
 
+    rpc ReplanTerraformObject(ReplanTerraformObjectRequest) returns (ReplanTerraformObjectResponse) {
+        option (google.api.http) = {
+            post : "/v1/terraform_objects/replan"
+            body: "*"
+        };  
+    }
 }
 
 message ListTerraformObjectsRequest {
@@ -110,4 +116,14 @@ message  GetTerraformObjectPlanResponse {
     string plan              = 1;
     bool   enablePlanViewing = 2;
     string error             = 3;
+}
+
+message ReplanTerraformObjectRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+}
+
+message  ReplanTerraformObjectResponse {
+    bool replanRequested = 1;
 }

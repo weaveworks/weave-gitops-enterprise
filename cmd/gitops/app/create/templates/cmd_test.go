@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -244,7 +243,7 @@ func TestRunWithProfiles(t *testing.T) {
 	}
 
 	// check that the profiles.yaml file contains the expected values
-	profilesFile, err := ioutil.ReadFile(filepath.Join(tmpDir, "test-namespace/test-resource/profiles.yaml"))
+	profilesFile, err := os.ReadFile(filepath.Join(tmpDir, "test-namespace/test-resource/profiles.yaml"))
 	assert.NoError(t, err)
 	assert.Contains(t, string(profilesFile), "version: '>0.1'")
 	assert.Contains(t, string(profilesFile), "cert-manager")

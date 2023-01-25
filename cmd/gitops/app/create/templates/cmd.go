@@ -23,7 +23,6 @@ import (
 	clitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"helm.sh/helm/v3/pkg/cli"
 	"helm.sh/helm/v3/pkg/helmpath"
@@ -241,22 +240,6 @@ func export(template string, out io.Writer) error {
 }
 
 func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]gitprovider.CommitFile, error) {
-	// create tmp dir for charts cache
-	tmpDir, err := os.MkdirTemp("", "gitops")
-	if err != nil {
-		return nil, fmt.Errorf("failed to create tmp dir: %w", err)
-	}
-	defer func() {
-		if err := os.RemoveAll(tmpDir); err != nil {
-			log.Error(err, "failed to remove temporary chart cache")
-		}
-	}()
-
-	chartsCache, err := helm.NewChartIndexer(tmpDir, DefaultCluster)
-	if err != nil {
-		return nil, fmt.Errorf("could not create charts cache in %s: %w", tmpDir, err)
-	}
-
 	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
@@ -264,6 +247,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	var helmRepo *sourcev1.HelmRepository
 	var helmRepoRef types.NamespacedName
+	var chartsCache helm.ProfilesGeneratorCache = helm.NilProfilesGeneratorCache{}
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {
@@ -276,13 +260,13 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		}
 		helmRepo = fluxHelmRepo(entry)
 		helmRepoRef = types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace}
-		controller.LoadIndex(index, chartsCache, types.NamespacedName{Name: DefaultCluster}, helmRepo, log)
+		chartsCache = helm.NewHelmIndexFileReader(index)
 	}
 
 	templateResources, err := server.GetFiles(
 		context.Background(),
 		nil, // no need for a kube client as we're providing the helm repo no
-		logr.Discard(),
+		log,
 		estimation.NilEstimator(),
 		chartsCache,
 		types.NamespacedName{Name: DefaultCluster},

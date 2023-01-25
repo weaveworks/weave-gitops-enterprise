@@ -22,37 +22,36 @@ import (
 // Options specifies the options that can be set
 // in RunInProcessGateway.
 type Options struct {
-	Log                          logr.Logger
-	KubernetesClient             client.Client
-	DiscoveryClient              discovery.DiscoveryInterface
-	GitProvider                  git.Provider
-	ApplicationsConfig           *gitauth.ApplicationsConfig
-	CoreServerConfig             core.CoreServerConfig
-	ApplicationsOptions          []gitauth.ApplicationsOption
-	ClusterFetcher               clustersmngr.ClusterFetcher
-	GrpcRuntimeOptions           []runtime.ServeMuxOption
-	RuntimeNamespace             string
-	ProfileHelmRepository        types.NamespacedName
-	HelmRepositoryCacheDirectory string
-	CAPIClustersNamespace        string
-	CAPIEnabled                  bool
-	EntitlementSecretKey         client.ObjectKey
-	HtmlRootPath                 string
-	ClientGetter                 kube.ClientGetter
-	AuthMethods                  map[auth.AuthMethod]bool
-	OIDC                         OIDCAuthenticationOptions
-	TLSCert                      string
-	TLSKey                       string
-	NoTLS                        bool
-	DevMode                      bool
-	ClustersManager              clustersmngr.ClustersManager
-	ChartsCache                  *helm.HelmChartIndexer
-	KubernetesClientSet          kubernetes.Interface
-	ManagementFetcher            *mgmtfetcher.ManagementCrossNamespacesFetcher
-	Cluster                      string
-	Estimator                    estimation.Estimator
-	UIConfig                     string
-	PipelineControllerAddress    string
+	Log                       logr.Logger
+	KubernetesClient          client.Client
+	DiscoveryClient           discovery.DiscoveryInterface
+	GitProvider               git.Provider
+	ApplicationsConfig        *gitauth.ApplicationsConfig
+	CoreServerConfig          core.CoreServerConfig
+	ApplicationsOptions       []gitauth.ApplicationsOption
+	ClusterFetcher            clustersmngr.ClusterFetcher
+	GrpcRuntimeOptions        []runtime.ServeMuxOption
+	RuntimeNamespace          string
+	ProfileHelmRepository     types.NamespacedName
+	CAPIClustersNamespace     string
+	CAPIEnabled               bool
+	EntitlementSecretKey      client.ObjectKey
+	HtmlRootPath              string
+	ClientGetter              kube.ClientGetter
+	AuthMethods               map[auth.AuthMethod]bool
+	OIDC                      OIDCAuthenticationOptions
+	TLSCert                   string
+	TLSKey                    string
+	NoTLS                     bool
+	DevMode                   bool
+	ClustersManager           clustersmngr.ClustersManager
+	ChartsCache               *helm.HelmChartIndexer
+	KubernetesClientSet       kubernetes.Interface
+	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
+	Cluster                   string
+	Estimator                 estimation.Estimator
+	UIConfig                  string
+	PipelineControllerAddress string
 }
 
 type Option func(*Options)
@@ -150,14 +149,6 @@ func WithCAPIClustersNamespace(namespace string) Option {
 func WithEntitlementSecretKey(key client.ObjectKey) Option {
 	return func(o *Options) {
 		o.EntitlementSecretKey = key
-	}
-}
-
-// WithHelmRepositoryCacheDirectory is used to set the directory
-// for the Helm repository cache.
-func WithHelmRepositoryCacheDirectory(cacheDir string) Option {
-	return func(o *Options) {
-		o.HelmRepositoryCacheDirectory = cacheDir
 	}
 }
 
