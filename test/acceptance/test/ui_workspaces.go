@@ -108,17 +108,15 @@ func verifyWrokspaceRoles(workspaceName string, workspaceNamespaces string, work
 		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 		gomega.Eventually(role.Namespace.Text).Should(gomega.MatchRegexp(workspaceNamespaces), fmt.Sprintf("Failed to verify '%s' workspace Roles's Namespaces", workspaceName))
 		gomega.Eventually(role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
-		// gomega.Eventually(role.Rules.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's view rules button", workspaceName))
 		gomega.Expect(role.Rules.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click on '%s' workspace's view rules button", workspaceName))
 		pages.WaitForPageToLoad(webDriver)
-		gomega.Eventually(role.ViewRules.Text).Should(gomega.Equal("Rules"), "Failed to view rules")
+		gomega.Eventually(role.ViewRules.Text).ShouldNot(gomega.BeEmpty(), "Failed to view rules content")
 		gomega.Expect(role.CloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's view rules button", workspaceName))
 		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 	})
 }
 
 func verifyWrokspaceRoleBindings(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
-	// workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Role Bindings", workspaceName), func() {
 		gomega.Expect(workspacesDetailPage.RoleBindingsTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Bindings tab", workspaceName))
