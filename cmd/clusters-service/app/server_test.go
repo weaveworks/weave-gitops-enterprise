@@ -9,14 +9,12 @@ import (
 	"io"
 	"net/http"
 	"net/http/cookiejar"
-	"os"
 	"testing"
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
@@ -295,50 +293,41 @@ func createSecret(s string) *corev1.Secret {
 }
 
 func TestNoIssuerURL(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "*")
-	require.NoError(t, err)
-	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd := app.NewAPIServerCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-client-id=client-id",
 	})
 
-	err = cmd.Execute()
+	err := cmd.Execute()
 	assert.ErrorIs(t, err, app.ErrNoIssuerURL)
 }
 
 func TestNoClientID(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "*")
-	require.NoError(t, err)
-	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd := app.NewAPIServerCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-issuer-url=http://weave.works",
 	})
 
-	err = cmd.Execute()
+	err := cmd.Execute()
 	assert.ErrorIs(t, err, app.ErrNoClientID)
 }
 
 func TestNoClientSecret(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "*")
-	require.NoError(t, err)
-	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd := app.NewAPIServerCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-issuer-url=http://weave.works",
 		"--oidc-client-id=client-id",
 	})
 
-	err = cmd.Execute()
+	err := cmd.Execute()
 	assert.ErrorIs(t, err, app.ErrNoClientSecret)
 }
 
 func TestNoRedirectURL(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "*")
-	require.NoError(t, err)
-	defer os.Remove(tempDir)
-	cmd := app.NewAPIServerCommand(logr.Discard(), tempDir)
+	cmd := app.NewAPIServerCommand()
 	cmd.SetArgs([]string{
 		"ui", "run",
 		"--oidc-issuer-url=http://weave.works",
@@ -346,6 +335,6 @@ func TestNoRedirectURL(t *testing.T) {
 		"--oidc-client-secret=client-secret",
 	})
 
-	err = cmd.Execute()
+	err := cmd.Execute()
 	assert.ErrorIs(t, err, app.ErrNoRedirectURL)
 }
