@@ -61,6 +61,16 @@ export type GetTerraformObjectPlanResponse = {
   error?: string
 }
 
+export type ReplanTerraformObjectRequest = {
+  clusterName?: string
+  name?: string
+  namespace?: string
+}
+
+export type ReplanTerraformObjectResponse = {
+  replanRequested?: boolean
+}
+
 export class Terraform {
   static ListTerraformObjects(req: ListTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ListTerraformObjectsResponse> {
     return fm.fetchReq<ListTerraformObjectsRequest, ListTerraformObjectsResponse>(`/v1/terraform_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -76,5 +86,8 @@ export class Terraform {
   }
   static GetTerraformObjectPlan(req: GetTerraformObjectPlanRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectPlanResponse> {
     return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/terraform_objects/plan?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ReplanTerraformObject(req: ReplanTerraformObjectRequest, initReq?: fm.InitReq): Promise<ReplanTerraformObjectResponse> {
+    return fm.fetchReq<ReplanTerraformObjectRequest, ReplanTerraformObjectResponse>(`/v1/terraform_objects/replan`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
