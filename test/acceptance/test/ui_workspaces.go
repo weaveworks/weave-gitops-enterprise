@@ -110,7 +110,7 @@ func verifyWrokspaceRoles(workspaceName string, workspaceNamespaces string, work
 		gomega.Eventually(role.Rules.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Role's Rules", workspaceName))
 		gomega.Expect(role.RullesBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to click on '%s' workspace's view rules button", workspaceName))
 		pages.WaitForPageToLoad(webDriver)
-		gomega.Eventually(role.ViewRules.Text).ShouldNot(gomega.BeEmpty(), "Failed to view rules content")
+		gomega.Eventually(role.ViewRules.Text).Should(gomega.Equal("Resources:"), "Failed to view rules content")
 		gomega.Expect(role.CloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to close '%s' workspace's view rules button", workspaceName))
 		gomega.Eventually(role.Age.Text).ShouldNot(gomega.BeEmpty(), fmt.Sprintf("Failed to verify '%s' workspace Roles's Age", workspaceName))
 	})

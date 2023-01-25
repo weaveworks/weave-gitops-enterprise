@@ -125,7 +125,7 @@ func GetWorkspaceRoles(webDriver *agouti.Page) *Roles {
 		Namespace:        webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[2]`),
 		Rules:            webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[3]`),
 		RullesBtn:        webDriver.FindByXPath(`(//span[contains(text(),'View Rules')])[1]`),
-		ViewRules:        webDriver.FindByXPath(`//ul[@class='sc-dFtzxp idYztQ']//li`),
+		ViewRules:        webDriver.FindByXPath(`(//label[normalize-space()='Resources:'])[1]`),
 		CloseBtn:         webDriver.FindByXPath(`(//*[name()='svg'][@class='MuiSvgIcon-root'])[3]`),
 		Age:              webDriver.FindByXPath(`(//td[@class='MuiTableCell-root MuiTableCell-body'])[4]`),
 	}
