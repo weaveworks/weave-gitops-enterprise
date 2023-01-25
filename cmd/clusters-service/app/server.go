@@ -314,7 +314,6 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-
 // configureKlogVerbosity sets the klog verbosity level.
 // This log is used by the client-go k8s libraries and can be useful for debugging
 // client-go's network requests.
@@ -324,12 +323,13 @@ func initializeConfig(cmd *cobra.Command) error {
 // v=7 - log req/res headers
 // v=8 - log res body
 func configureKLogVerbosity(v string) error {
-	klog.InitFlags(nil)
-	err := flag.Set("v", v)
+	var tmpFlagSet = flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	klog.InitFlags(tmpFlagSet)
+	err := tmpFlagSet.Set("v", v)
 	if err != nil {
 		return fmt.Errorf("could not set klog verbosity: %w", err)
 	}
-	flag.Parse()
+	tmpFlagSet.Parse([]string{os.Args[0]})
 	return nil
 }
 
@@ -342,7 +342,7 @@ func StartServer(ctx context.Context, p Params) error {
 	featureflags.SetFromEnv(os.Environ())
 
 	log.Info("Setting klog verbosity", "verbosity", p.KLogVerbosity)
-	err := configureKLogVerbosity(p.KLogVerbosity)
+	err = configureKLogVerbosity(p.KLogVerbosity)
 	if err != nil {
 		return fmt.Errorf("could not configure klog verbosity: %w", err)
 	}
