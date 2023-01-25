@@ -1,0 +1,24 @@
+apiVersion: pipelines.weave.works/v1alpha1
+kind: Pipeline
+metadata:
+  name: podinfo-gitlab
+  namespace: flux-system
+spec:
+  appRef:
+    apiVersion: helm.toolkit.fluxcd.io/v2beta1
+    kind: HelmRelease
+    name: podinfo
+  environments:
+    - name: dev
+      targets:
+        - namespace: dev-gitlab
+    - name: prod
+      targets:
+        - namespace: prod-gitlab
+  promotion:
+    strategy:
+      pull-request:
+        type: "gitlab"
+        url: "https://gitlab.git.dev.weave.works/pipeline-controller/pipeline-controller-e2e"
+        secretRef:
+          name: "gitlab-ee-promotion-credentials"
