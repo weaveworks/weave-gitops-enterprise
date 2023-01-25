@@ -79,7 +79,7 @@ func verifyWorkspaceDetailsPage(workspaceName string, workspaceNamespaces string
 	})
 }
 
-func verifyWrokspaceServiceAccounts(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
+func verifyWorkspaceServiceAccounts(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
 
 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Service Accounts", workspaceName), func() {
 		gomega.Expect(workspacesDetailPage.ServiceAccountsTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Service Accounts tab", workspaceName))
@@ -95,7 +95,7 @@ func verifyWrokspaceServiceAccounts(workspaceName string, workspaceNamespaces st
 	})
 }
 
-func verifyWrokspaceRoles(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
+func verifyWorkspaceRoles(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
 
 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Roles", workspaceName), func() {
 		gomega.Expect(workspacesDetailPage.RolesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles tab", workspaceName))
@@ -116,7 +116,7 @@ func verifyWrokspaceRoles(workspaceName string, workspaceNamespaces string, work
 	})
 }
 
-func verifyWrokspaceRoleBindings(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
+func verifyWorkspaceRoleBindings(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
 
 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Role Bindings", workspaceName), func() {
 		gomega.Expect(workspacesDetailPage.RoleBindingsTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Bindings tab", workspaceName))
@@ -124,7 +124,7 @@ func verifyWrokspaceRoleBindings(workspaceName string, workspaceNamespaces strin
 
 		roleBindings := pages.GetWorkspaceRoleBindings(webDriver)
 
-		gomega.Eventually(roleBindings.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Namespaces", workspaceName))
+		gomega.Eventually(roleBindings.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' workspace Role Bindings's Name", workspaceName))
 		gomega.Expect(roleBindings.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Roles Bindings Name", workspaceName))
 		gomega.Eventually(roleBindings.RoleBindingApi.Text).Should(gomega.Equal("apiVersion"), "Failed to verify Role Bindings Manifest's apiVersion ")
 		gomega.Expect(roleBindings.ManifestCloseBtn.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to Close '%s' workspace's Roles Bindings manifest", workspaceName))
@@ -135,8 +135,7 @@ func verifyWrokspaceRoleBindings(workspaceName string, workspaceNamespaces strin
 	})
 }
 
-func verifyWrokspacePolicies(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
-	// workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
+func verifyWorkspacePolicies(workspaceName string, workspaceNamespaces string, workspacesDetailPage *pages.WorkspaceDetailsPage) {
 
 	ginkgo.By(fmt.Sprintf("After that verify '%s' workspace Policies", workspaceName), func() {
 		gomega.Expect(workspacesDetailPage.PoliciesTab.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Policies tab", workspaceName))
@@ -144,7 +143,7 @@ func verifyWrokspacePolicies(workspaceName string, workspaceNamespaces string, w
 
 		policies := pages.GetWorkspacePolicies(webDriver)
 
-		gomega.Eventually(policies.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' Policies Name's Namespaces", workspaceName))
+		gomega.Eventually(policies.Name.Text).Should(gomega.MatchRegexp(workspaceName), fmt.Sprintf("Failed to verify '%s' Policies Name", workspaceName))
 		gomega.Expect(policies.Name.Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to open '%s' workspace's Policies Name", workspaceName))
 
 		// Navigate back to the policies list
@@ -224,10 +223,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
 			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWrokspaceServiceAccounts(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWrokspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWrokspaceRoleBindings(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWrokspacePolicies(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceServiceAccounts(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceRoleBindings(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspacePolicies(workspaceName, workspaceNamespaces, workspacesDetailPage)
 
 		})
 
