@@ -1,5 +1,5 @@
 import { Link } from '@weaveworks/weave-gitops';
-import { Body, Message, Title } from '../Shared';
+import { Body, Message, Title } from '../../Shared';
 
 const NoRunsMessage = () => {
   return (
