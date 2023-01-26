@@ -61,6 +61,36 @@
         ]
       }
     },
+    "/v1/gitauth/auth_providers/bitbucketserver": {
+      "get": {
+        "operationId": "GitAuth_GetBitbucketServerAuthURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetBitbucketServerAuthURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
     "/v1/gitauth/auth_providers/github": {
       "get": {
         "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
@@ -301,6 +331,14 @@
         }
       }
     },
+    "v1GetBitbucketServerAuthURLResponse": {
+      "type": "object",
+      "properties": {
+        "url": {
+          "type": "string"
+        }
+      }
+    },
     "v1GetGithubAuthStatusRequest": {
       "type": "object",
       "properties": {
@@ -351,7 +389,8 @@
       "enum": [
         "Unknown",
         "GitHub",
-        "GitLab"
+        "GitLab",
+        "BitBucketServer"
       ],
       "default": "Unknown"
     },
