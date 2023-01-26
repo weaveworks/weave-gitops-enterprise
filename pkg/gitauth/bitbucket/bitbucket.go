@@ -7,7 +7,10 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 )
+
+var bitbucketScopes = []string{"REPO_WRITE", "REPO_READ", "PUBLIC_REPOS"}
 
 type AuthClient interface {
 	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
@@ -48,7 +51,7 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 
 	// params.Set("code_challenge", codeChallenge)
 	// params.Set("code_challenge_method", "S256")
-	// params.Set("scope", strings.Join(scopes, " "))
+	params.Set("scope", strings.Join(bitbucketScopes, " "))
 	u.RawQuery = params.Encode()
 	return u, nil
 }

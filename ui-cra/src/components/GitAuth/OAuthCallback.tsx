@@ -1,25 +1,34 @@
 import { CircularProgress } from '@material-ui/core';
+import { Alert, AlertTitle } from '@material-ui/lab';
 import {
   Flex,
-  useRequestState,
   useLinkResolver,
+  useRequestState,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { getCallbackState, storeProviderToken } from './utils';
-import { gitlabOAuthRedirectURI } from '../../utils/formatters';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import useNotifications from '../../contexts/Notifications';
-import { GitAuth } from '../../contexts/GitAuth';
 import {
   AuthorizeGitlabResponse,
   GitProvider,
 } from '../../api/gitauth/gitauth.pb';
+import { GitAuth } from '../../contexts/GitAuth';
+import useNotifications from '../../contexts/Notifications';
+import { gitlabOAuthRedirectURI } from '../../utils/formatters';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
+import { getCallbackState, storeProviderToken } from './utils';
 
 type Props = {
   code: string;
   provider: GitProvider;
+};
+
+type BitBucketErrorParams = {
+  error?: string[];
+  error_description?: string[];
 };
 
 function OAuthCallback({ code, provider }: Props) {
@@ -28,6 +37,7 @@ function OAuthCallback({ code, provider }: Props) {
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
   const { gitAuthClient } = React.useContext(GitAuth);
+  const params = qs.parse(history.location.search);
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
@@ -52,8 +62,8 @@ function OAuthCallback({ code, provider }: Props) {
 
     const state = getCallbackState();
 
-    if (state?.page) {
-      history.push(linkResolver(state.page));
+    if (state?.page || !params.error) {
+      history.push(linkResolver(state?.page || ''));
       return;
     }
   }, [res, history, linkResolver]);
@@ -65,11 +75,24 @@ function OAuthCallback({ code, provider }: Props) {
   }, [error, setNotifications]);
 
   return (
-    <ContentWrapper loading={loading}>
-      <Flex wide align center>
-        {loading && <CircularProgress />}
-      </Flex>
-    </ContentWrapper>
+    <PageTemplate path={[{ label: 'OAuth Callback', url: '' }]}>
+      <ContentWrapper loading={loading}>
+        <Flex wide align center>
+          {loading && <CircularProgress />}
+          {(params as BitBucketErrorParams)?.error && (
+            <Alert severity="error">
+              <AlertTitle>
+                Oauth Error:{' '}
+                {_.isArray(params?.error)
+                  ? params?.error.join(', ')
+                  : params?.error}
+              </AlertTitle>
+              {(params as BitBucketErrorParams)?.error_description?.join('\n')}
+            </Alert>
+          )}
+        </Flex>
+      </ContentWrapper>
+    </PageTemplate>
   );
 }
 
