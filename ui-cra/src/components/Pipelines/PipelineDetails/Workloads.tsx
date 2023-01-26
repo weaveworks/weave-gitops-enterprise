@@ -1,12 +1,12 @@
-import React from 'react';
-import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
-import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import { Button, Flex, formatURL, Link } from '@weaveworks/weave-gitops';
 import {
   Pipeline,
   PipelineTargetStatus,
 } from '../../../api/pipelines/types.pb';
+import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 
 import { Grid } from '@material-ui/core';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 import {
   CardContainer,
   ClusterName,
@@ -18,7 +18,7 @@ import {
   WorkloadWrapper,
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
-import { useListConfigContext } from '../../../contexts/ListConfig';
+import PromotePipeline from './PromotePipeline';
 
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
@@ -92,6 +92,9 @@ function Workloads({ pipeline }: { pipeline: Pipeline }) {
     <Grid className={classes.gridWrapper} container spacing={4}>
       {environments.map((env, index) => {
         const status = targetsStatuses[env.name!].targetsStatuses || [];
+        const promoteVersion =
+          targetsStatuses[env.name!].waitingStatus?.revision || '';
+
         return (
           <Grid
             item
@@ -109,6 +112,17 @@ function Workloads({ pipeline }: { pipeline: Pipeline }) {
             {status.map((target, indx) => (
               <TargetStatus target={target} classes={classes} key={indx} />
             ))}
+
+            {promoteVersion && (
+              <PromotePipeline
+                req={{
+                  name: pipeline.name,
+                  env: env.name,
+                  namespace: pipeline.namespace,
+                }}
+                promoteVersion={promoteVersion || ''}
+              />
+            )}
           </Grid>
         );
       })}
