@@ -26,9 +26,9 @@ extraEnvVars:
     value: "false"
   # token pass through flags
   - name: WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES
-    value: "true"
+    value: "false"
   - name: WEAVE_GITOPS_FEATURE_OIDC_AUTH_PASSTHROUGH
-    value: "true"
+    value: "false"
   # debug flag, set to true to disable helm cache, useful if it doesn't
   # have access to much due to token passthrough
   - name: DEBUG_DISABLE_HELM_REPO_WATCHER
