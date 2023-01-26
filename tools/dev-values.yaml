@@ -31,7 +31,7 @@ extraEnvVars:
     value: "true"
   # debug flag, set to true to disable helm cache, useful if it doesn't
   # have access to much due to token passthrough
-  - name: DEBUG_DISABLE_HELM_CACHE
+  - name: DEBUG_DISABLE_HELM_REPO_WATCHER
     value: "false"
   # cost estimation feature
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION

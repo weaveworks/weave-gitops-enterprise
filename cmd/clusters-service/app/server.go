@@ -496,8 +496,8 @@ func StartServer(ctx context.Context, p Params) error {
 	// especially when querying leaf clusters with token passthrough
 	// enabled.
 	// TODO: Remove this once we have a better way..
-	if os.Getenv("DEBUG_DISABLE_HELM_CACHE") != "true" {
-		log.Info("Starting helm chart cache indexer")
+	if os.Getenv("DEBUG_DISABLE_HELM_REPO_WATCHER") != "true" {
+		log.Info("Starting helm repo watcher")
 		indexer := indexer.NewClusterHelmIndexerTracker(chartsCache, p.Cluster, indexer.NewIndexer)
 		go func() {
 			err := indexer.Start(controllerContext, clustersManager, log)
@@ -524,7 +524,9 @@ func StartServer(ctx context.Context, p Params) error {
 		log, rest, clusterName, clustersManager,
 	)
 
-	if featureflags.Get(auth.FeatureFlagOIDCPassthrough) == auth.FeatureFlagSet {
+	// If user-client-for-namespaces is enabled we likey don't have access to
+	// other clusters via the service account.
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_USE_USER_CLIENT_FOR_NAMESPACES") == auth.FeatureFlagSet {
 		coreCfg.CRDService = crd.NewNoCacheFetcher(clustersManager)
 	}
 

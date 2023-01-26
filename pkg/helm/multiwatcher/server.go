@@ -65,7 +65,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 }
 
 func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
-	w.log = log.WithName("multi-helm-watcher")
+	w.log = log.WithName("helm-repo-watcher")
 
 	ctx, cancel := context.WithCancel(ctx)
 	w.stopFn = cancel
