@@ -330,7 +330,10 @@ func configureKLogVerbosity(v string) error {
 	if err != nil {
 		return fmt.Errorf("could not set klog verbosity: %w", err)
 	}
-	tmpFlagSet.Parse([]string{os.Args[0]})
+	err = tmpFlagSet.Parse([]string{os.Args[0]})
+	if err != nil {
+		return fmt.Errorf("could not parse klog verbosity flags: %w", err)
+	}
 	return nil
 }
 
