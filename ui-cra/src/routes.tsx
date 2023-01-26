@@ -284,6 +284,19 @@ const AppRoutes = () => {
           );
         }}
       />
+      <Route
+        exact
+        path={Routes.BitBucketOauthCallback}
+        component={({ location }: any) => {
+          const params = qs.parse(location.search);
+          return (
+            <OAuthCallback
+              provider={GitProvider.BitBucketServer}
+              code={params.code as string}
+            />
+          );
+        }}
+      />
       <Route exact render={Page404} />
     </Switch>
   );
