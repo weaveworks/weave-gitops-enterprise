@@ -18,6 +18,8 @@ export type SourceFormData = {
   data: string;
 };
 
+export type ClusterFormData = {};
+
 export type GitopsFormData = {
   repo: GitRepository | null;
   provider: string;
@@ -36,7 +38,6 @@ export type GitopsFormData = {
     cluster_isControlPlane: boolean;
     createNamespace: boolean;
     path: string;
-    source: SourceFormData;
   }[];
 };
 

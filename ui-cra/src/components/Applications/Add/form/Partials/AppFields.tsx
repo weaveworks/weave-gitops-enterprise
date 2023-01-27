@@ -63,6 +63,7 @@ const AppFields: FC<{
   formError,
 }) => {
   const { data } = useListSources();
+  const { source } = formData;
   const app = formData.clusterAutomations[index];
   const history = useHistory();
   const location = useLocation();
@@ -156,7 +157,6 @@ const AppFields: FC<{
     const newAutomations = [...formData.clusterAutomations];
     newAutomations[index] = {
       ...newAutomations[index],
-      source: selectedSource,
     };
 
     setFormData({
@@ -240,7 +240,7 @@ const AppFields: FC<{
             name="source"
             required={true}
             label="SELECT SOURCE"
-            value={app.source.data || ''}
+            value={source.data || ''}
             onChange={handleSelectSource}
             defaultValue={''}
             description="The name and type of source"

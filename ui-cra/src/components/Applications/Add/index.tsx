@@ -46,6 +46,7 @@ import {
   getInitialGitRepo,
   getRepositoryUrl,
   GitopsFormData,
+  SourceFormData,
 } from '../../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
@@ -113,14 +114,6 @@ function getInitialData(
         cluster_isControlPlane: false,
         createNamespace: false,
         path: '',
-        source: {
-          name: '',
-          namespace: '',
-          data: '',
-          type: '',
-          url: '',
-          branch: '',
-        },
       },
     ],
   } as GitopsFormData;
@@ -134,6 +127,7 @@ function getInitialData(
 }
 
 function toKustomization(
+  source: SourceFormData,
   kustomization: GitopsFormData['clusterAutomations'][number],
 ): ClusterAutomation {
   return {
@@ -150,8 +144,8 @@ function toKustomization(
       spec: {
         path: kustomization.path,
         sourceRef: {
-          name: kustomization.source.name,
-          namespace: kustomization.source.namespace,
+          name: source.name,
+          namespace: source.namespace,
         },
         targetNamespace: kustomization.target_namespace,
         createNamespace: kustomization.createNamespace,
@@ -197,9 +191,7 @@ function toHelmRelease(
 }
 
 function getAutomations(
-  sourceType: string,
-  sourceName: string,
-  sourceNamespace: string,
+  source: SourceFormData,
   automations: GitopsFormData['clusterAutomations'],
   profiles: ProfilesIndex,
 ): ClusterAutomation[] {
@@ -208,7 +200,7 @@ function getAutomations(
     p => p.selected,
   );
 
-  if (sourceType === 'HelmRepository') {
+  if (source.type === 'HelmRepository') {
     for (let helmRelease of automations) {
       for (let profile of selectedProfilesList) {
         let values: string = '';
@@ -221,8 +213,8 @@ function getAutomations(
               toHelmRelease(
                 helmRelease,
                 profile,
-                sourceName,
-                sourceNamespace,
+                source.name,
+                source.namespace,
                 version,
                 values,
               ),
@@ -232,7 +224,7 @@ function getAutomations(
       }
     }
   } else {
-    clusterAutomations = automations.map(ks => toKustomization(ks));
+    clusterAutomations = automations.map(ks => toKustomization(source, ks));
   }
 
   return clusterAutomations;
@@ -277,21 +269,21 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const initialFormData = getInitialData(callbackState, random);
 
   const [formData, setFormData] = useState<GitopsFormData>(initialFormData);
-  const firstAuto = formData.clusterAutomations[0];
+  const app = formData.clusterAutomations[0];
+  const { source } = formData;
   const helmRepo: RepositoryRef = useMemo(() => {
     return {
-      name: firstAuto.source.name,
-      namespace: firstAuto.source.namespace,
+      name: source.name,
+      namespace: source.namespace,
       cluster: {
-        name: firstAuto.cluster_name,
-        namespace: firstAuto.cluster_namespace,
+        name: app.cluster_name,
+        namespace: app.cluster_namespace,
       },
     };
-  }, [firstAuto]);
+  }, [app, source]);
 
-  console.log({ firstAuto, autos: formData.clusterAutomations });
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
-    firstAuto.source.type === 'HelmRepository',
+    source.type === 'HelmRepository',
     undefined,
     undefined,
     helmRepo,
@@ -345,9 +337,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     return api
       .RenderAutomation({
         clusterAutomations: getAutomations(
-          formData.source.type,
-          formData.source.name,
-          formData.source.namespace,
+          formData.source,
           formData.clusterAutomations,
           updatedProfiles,
         ),
@@ -370,9 +360,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     api,
     setOpenPreview,
     setNotifications,
-    formData.source.type,
-    formData.source.name,
-    formData.source.namespace,
+    formData.source,
     formData.clusterAutomations,
     updatedProfiles,
   ]);
@@ -384,9 +372,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getAutomations(
-        formData.source.type,
-        formData.source.name,
-        formData.source.namespace,
+        formData.source,
         formData.clusterAutomations,
         updatedProfiles,
       ),
