@@ -20,6 +20,11 @@ export function getProviderToken(providerName: GitProvider): string | null {
   return localStorage.getItem(tokenKey(providerName));
 }
 
+export function getProviderTokenHeader(providerName: GitProvider): Headers {
+  const token = getProviderToken(providerName);
+  return new Headers({ 'Git-Provider-Token': `token ${token}` });
+}
+
 const CALLBACK_STATE_KEY = 'oauth_callback_state';
 
 export type CallbackSessionState = {

@@ -10,9 +10,9 @@ import {
   Dialog,
   Box,
 } from '@material-ui/core';
-import { AppPRPreview, ClusterPRPreview } from '../../../../types/custom';
 import {
   CommitFile,
+  RenderAutomationResponse,
   RenderTemplateResponse,
 } from '../../../../cluster-services/cluster_services.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -76,10 +76,10 @@ const saveAs = (content: Blob, fileName: string) => {
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
-  PRPreview: RenderTemplateResponse;
+  prPreview: RenderTemplateResponse | RenderAutomationResponse;
   sourceType?: string;
   context?: string;
-}> = ({ PRPreview, openPreview, setOpenPreview, sourceType, context }) => {
+}> = ({ prPreview, openPreview, setOpenPreview, sourceType, context }) => {
   const initialIndex =
     context === 'app' && sourceType === 'HelmRepository' ? 1 : 0;
 
@@ -94,25 +94,25 @@ const Preview: FC<{
       ? [
           {
             tabName: 'Kustomizations',
-            files: PRPreview.kustomizationFiles,
+            files: prPreview.kustomizationFiles,
           },
           {
             tabName: 'Helm Releases',
-            files: (PRPreview as AppPRPreview).helmReleaseFiles,
+            files: (prPreview as RenderAutomationResponse).helmReleaseFiles,
           },
         ]
       : [
           {
             tabName: 'Resource Definition',
-            files: (PRPreview as ClusterPRPreview).renderedTemplate,
+            files: (prPreview as RenderTemplateResponse).renderedTemplate,
           },
           {
             tabName: 'Profiles',
-            files: (PRPreview as ClusterPRPreview).profileFiles,
+            files: (prPreview as RenderTemplateResponse).profileFiles,
           },
           {
             tabName: 'Kustomizations',
-            files: PRPreview.kustomizationFiles,
+            files: prPreview.kustomizationFiles,
           },
         ];
 

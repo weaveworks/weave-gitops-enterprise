@@ -1,9 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { AddApplicationRequest, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
@@ -19,16 +24,13 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
 import {
   ClusterAutomation,
+  RenderAutomationResponse,
   RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
 import _ from 'lodash';
 import useProfiles from '../../../hooks/profiles';
 import { useCallbackState } from '../../../utils/callback-state';
-import {
-  AppPRPreview,
-  ProfilesIndex,
-  ClusterPRPreview,
-} from '../../../types/custom';
+import { ProfilesIndex } from '../../../types/custom';
 import { validateFormData } from '../../../utils/form';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
@@ -36,7 +38,10 @@ import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import {
+  clearCallbackState,
+  getProviderTokenHeader,
+} from '../../GitAuth/utils';
 import {
   getInitialGitRepo,
   getRepositoryUrl,
@@ -45,6 +50,7 @@ import {
 import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -117,8 +123,114 @@ function getInitialData(
   return initialFormData;
 }
 
+function toKustomization(
+  kustomization: GitopsFormData['clusterAutomations'][number],
+): ClusterAutomation {
+  return {
+    cluster: {
+      name: kustomization.cluster_name,
+      namespace: kustomization.cluster_namespace,
+    },
+    isControlPlane: kustomization.cluster_isControlPlane,
+    kustomization: {
+      metadata: {
+        name: kustomization.name,
+        namespace: kustomization.namespace,
+      },
+      spec: {
+        path: kustomization.path,
+        sourceRef: {
+          name: kustomization.source_name,
+          namespace: kustomization.source_namespace,
+        },
+        targetNamespace: kustomization.target_namespace,
+        createNamespace: kustomization.createNamespace,
+      },
+    },
+  };
+}
+
+function toHelmRelease(
+  helmRelease: GitopsFormData['clusterAutomations'][number],
+  profile: ProfilesIndex[string],
+  sourceName: string,
+  sourceNamespace: string,
+  version: string,
+  values: string,
+): ClusterAutomation {
+  return {
+    cluster: {
+      name: helmRelease.cluster_name,
+      namespace: helmRelease.cluster_namespace,
+    },
+    isControlPlane: helmRelease.cluster_isControlPlane,
+    helmRelease: {
+      metadata: {
+        name: profile.name,
+        namespace: profile.namespace,
+      },
+      spec: {
+        chart: {
+          spec: {
+            chart: profile.name,
+            sourceRef: {
+              name: sourceName,
+              namespace: sourceNamespace,
+            },
+            version,
+          },
+        },
+        values,
+      },
+    },
+  };
+}
+
+function getAutomations(
+  sourceType: string,
+  sourceName: string,
+  sourceNamespace: string,
+  automations: GitopsFormData['clusterAutomations'],
+  profiles: ProfilesIndex,
+): ClusterAutomation[] {
+  let clusterAutomations: ClusterAutomation[] = [];
+  const selectedProfilesList = _.sortBy(Object.values(profiles), 'name').filter(
+    p => p.selected,
+  );
+
+  if (sourceType === 'HelmRepository') {
+    for (let helmRelease of automations) {
+      for (let profile of selectedProfilesList) {
+        let values: string = '';
+        let version: string = '';
+        for (let value of profile.values) {
+          if (value.selected === true) {
+            version = value.version;
+            values = value.yaml;
+            clusterAutomations.push(
+              toHelmRelease(
+                helmRelease,
+                profile,
+                sourceName,
+                sourceNamespace,
+                version,
+                values,
+              ),
+            );
+          }
+        }
+      }
+    }
+  } else {
+    clusterAutomations = automations.map(ks => toKustomization(ks));
+  }
+
+  return clusterAutomations;
+}
+
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
+  const { api } = useContext(EnterpriseClientContext);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { setNotifications } = useNotifications();
   const history = useHistory();
@@ -177,9 +289,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<
-    ClusterPRPreview | AppPRPreview | null
-  >(null);
+  const [prPreview, setPRPreview] = useState<RenderAutomationResponse | null>(
+    null,
+  );
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
@@ -209,86 +321,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     }));
   }, [formData.clusterAutomations]);
 
-  const getKustomizations = useCallback(() => {
-    let clusterAutomations: ClusterAutomation[] = [];
-    const selectedProfilesList = _.sortBy(
-      Object.values(updatedProfiles),
-      'name',
-    ).filter(p => p.selected);
-    if (formData.source_type === 'HelmRepository') {
-      for (let kustomization of formData.clusterAutomations) {
-        for (let profile of selectedProfilesList) {
-          let values: string = '';
-          let version: string = '';
-          for (let value of profile.values) {
-            if (value.selected === true) {
-              version = value.version;
-              values = value.yaml;
-              clusterAutomations.push({
-                cluster: {
-                  name: kustomization.cluster_name,
-                  namespace: kustomization.cluster_namespace,
-                },
-                isControlPlane: kustomization.cluster_isControlPlane,
-                helmRelease: {
-                  metadata: {
-                    name: profile.name,
-                    namespace: profile.namespace,
-                  },
-                  spec: {
-                    chart: {
-                      spec: {
-                        chart: profile.name,
-                        sourceRef: {
-                          name: formData.source_name,
-                          namespace: formData.source_namespace,
-                        },
-                        version,
-                      },
-                    },
-                    values,
-                  },
-                },
-              });
-            }
-          }
-        }
-      }
-    } else {
-      clusterAutomations = formData.clusterAutomations.map(kustomization => {
-        return {
-          cluster: {
-            name: kustomization.cluster_name,
-            namespace: kustomization.cluster_namespace,
-          },
-          isControlPlane: kustomization.cluster_isControlPlane,
-          kustomization: {
-            metadata: {
-              name: kustomization.name,
-              namespace: kustomization.namespace,
-            },
-            spec: {
-              path: kustomization.path,
-              sourceRef: {
-                name: kustomization.source_name,
-                namespace: kustomization.source_namespace,
-              },
-              targetNamespace: kustomization.target_namespace,
-              createNamespace: kustomization.createNamespace,
-            },
-          },
-        };
-      });
-    }
-    return clusterAutomations;
-  }, [
-    formData.clusterAutomations,
-    formData.source_name,
-    formData.source_namespace,
-    formData.source_type,
-    updatedProfiles,
-  ]);
-
   useEffect(() => {
     if (!formData.repo) {
       setFormData(prevState => ({
@@ -300,9 +332,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
-    return renderKustomization({
-      clusterAutomations: getKustomizations(),
-    })
+    return api
+      .RenderAutomation({
+        clusterAutomations: getAutomations(
+          formData.source_type,
+          formData.source_name,
+          formData.source_namespace,
+          formData.clusterAutomations,
+          updatedProfiles,
+        ),
+      })
       .then(data => {
         setOpenPreview(true);
         setPRPreview(data);
@@ -317,7 +356,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, getKustomizations, setNotifications]);
+  }, [
+    api,
+    setOpenPreview,
+    setNotifications,
+    formData.source_type,
+    formData.source_name,
+    formData.source_namespace,
+    formData.clusterAutomations,
+    updatedProfiles,
+  ]);
 
   const handleAddApplication = useCallback(() => {
     const payload = {
@@ -325,14 +373,20 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
-      clusterAutomations: getKustomizations(),
+      clusterAutomations: getAutomations(
+        formData.source_type,
+        formData.source_name,
+        formData.source_namespace,
+        formData.clusterAutomations,
+        updatedProfiles,
+      ),
       repositoryUrl: getRepositoryUrl(formData.repo!),
     };
     setLoading(true);
-    return AddApplicationRequest(
-      payload,
-      getProviderToken(formData.provider as GitProvider),
-    )
+    return api
+      .CreateAutomationsPullRequest(payload, {
+        headers: getProviderTokenHeader(formData.provider as GitProvider),
+      })
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Applications);
@@ -363,7 +417,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         }
       })
       .finally(() => setLoading(false));
-  }, [formData, history, getKustomizations, setNotifications]);
+  }, [api, formData, history, setNotifications, updatedProfiles]);
 
   const [submitType, setSubmitType] = useState<string>('');
 
@@ -419,12 +473,12 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                         />
                       );
                     })}
-                    {openPreview && PRPreview ? (
+                    {openPreview && prPreview ? (
                       <Preview
                         context="app"
                         openPreview={openPreview}
                         setOpenPreview={setOpenPreview}
-                        PRPreview={PRPreview}
+                        prPreview={prPreview}
                         sourceType={formData.source_type}
                       />
                     ) : null}
@@ -503,7 +557,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
-    PRPreview,
+    prPreview,
     openPreview,
     handlePRPreview,
     previewLoading,

@@ -63,10 +63,7 @@ const AppFields: FC<{
   formError,
 }) => {
   const { data } = useListSources();
-  const automation = formData.clusterAutomations[index];
-  const { cluster, source, name, namespace, target_namespace, path } =
-    formData.clusterAutomations[index];
-  const { createNamespace } = automation;
+  const app = formData.clusterAutomations[index];
   const history = useHistory();
   const location = useLocation();
 
@@ -81,9 +78,9 @@ const AppFields: FC<{
           pathname: location.pathname,
           search: params.toString(),
         });
-        let currentAutomation = [...formData.clusterAutomations];
-        currentAutomation[index] = {
-          ...currentAutomation[index],
+        const newAutomations = [...formData.clusterAutomations];
+        newAutomations[index] = {
+          ...newAutomations[index],
           cluster_name: cluster.name!,
           cluster_namespace: cluster.namespace!,
           cluster_isControlPlane: Boolean(cluster.controlPlane),
@@ -91,7 +88,7 @@ const AppFields: FC<{
         };
         return {
           ...formData,
-          clusterAutomations: currentAutomation,
+          clusterAutomations: newAutomations,
         };
       });
     },
@@ -118,9 +115,9 @@ const AppFields: FC<{
   let helmRepos: HelmRepository[] = [];
 
   if (clusters) {
-    const clusterName = automation.cluster_namespace
-      ? `${automation.cluster_namespace}/${automation.cluster_name}`
-      : `${automation.cluster_name}`;
+    const clusterName = app.cluster_namespace
+      ? `${app.cluster_namespace}/${app.cluster_name}`
+      : `${app.cluster_name}`;
 
     gitRepos = _.orderBy(
       _.filter(
@@ -147,27 +144,25 @@ const AppFields: FC<{
     const { value } = event.target;
     const { obj } = JSON.parse(value);
 
-    let currentAutomation = [...formData.clusterAutomations];
-
-    currentAutomation[index] = {
-      ...automation,
-      source_name: obj?.metadata.name,
-      source_namespace: obj?.metadata?.namespace,
-      source_type: obj?.kind,
-      source: value,
-    };
-
-    console.log({ obj });
-
-    setFormData({
-      ...formData,
+    const selectedSource = {
       source_name: obj?.metadata?.name,
       source_namespace: obj?.metadata?.namespace,
       source_type: obj?.kind,
       source_url: obj?.spec.url,
       source_branch: obj?.kind === 'GitRepository' ? obj?.spec.ref.branch : '',
       source: value,
-      clusterAutomations: currentAutomation,
+    };
+
+    const newAutomations = [...formData.clusterAutomations];
+    newAutomations[index] = {
+      ...newAutomations[index],
+      ...selectedSource,
+    };
+
+    setFormData({
+      ...formData,
+      ...selectedSource,
+      clusterAutomations: newAutomations,
     });
   };
 
@@ -179,37 +174,39 @@ const AppFields: FC<{
   ) => {
     const { value } = event?.target;
 
-    let currentAutomation = [...formData.clusterAutomations];
-    currentAutomation[index] = {
-      ...automation,
+    let newAutomations = [...formData.clusterAutomations];
+    newAutomations[index] = {
+      ...newAutomations[index],
       [fieldName as string]: value,
     };
+
+    // Special case, don't allow the user to try and re-create the flux-system namespace
+    // it will be on every cluster already
     if (fieldName === 'target_namespace' && value === 'flux-system') {
-      currentAutomation[index] = {
-        ...currentAutomation[index],
+      newAutomations[index] = {
+        ...newAutomations[index],
         createNamespace: false,
       };
     }
 
     setFormData({
       ...formData,
-      clusterAutomations: currentAutomation,
+      clusterAutomations: newAutomations,
     });
   };
 
   const handleCreateNamespace = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    let currentAutomation = [...formData.clusterAutomations];
-
-    currentAutomation[index] = {
-      ...automation,
+    const newAutomations = [...formData.clusterAutomations];
+    newAutomations[index] = {
+      ...newAutomations[index],
       createNamespace: event.target.checked,
     };
 
     setFormData({
       ...formData,
-      clusterAutomations: currentAutomation,
+      clusterAutomations: newAutomations,
     });
   };
 
@@ -222,7 +219,7 @@ const AppFields: FC<{
             name="cluster_name"
             required={true}
             label="SELECT CLUSTER"
-            value={cluster || ''}
+            value={app.cluster || ''}
             onChange={handleSelectCluster}
             defaultValue={''}
             description="select target cluster"
@@ -243,7 +240,7 @@ const AppFields: FC<{
             name="source"
             required={true}
             label="SELECT SOURCE"
-            value={source || ''}
+            value={app.source || ''}
             onChange={handleSelectSource}
             defaultValue={''}
             description="The name and type of source"
@@ -279,37 +276,37 @@ const AppFields: FC<{
             required={true}
             name="name"
             label="KUSTOMIZATION NAME"
-            value={name}
+            value={app.name}
             onChange={event => handleFormData(event, 'name')}
-            error={formError === 'name' && !name}
+            error={formError === 'name' && !app.name}
           />
           <Input
             className="form-section"
             name="namespace"
             label="KUSTOMIZATION NAMESPACE"
             placeholder={DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE}
-            value={namespace}
+            value={app.namespace}
             onChange={event => handleFormData(event, 'namespace')}
-            error={formError === 'namespace' && !namespace}
+            error={formError === 'namespace' && !app.namespace}
           />
           <Input
             className="form-section"
             name="target_namespace"
             label="TARGET NAMESPACE"
             description="OPTIONAL If omitted all resources must specify a namespace"
-            value={target_namespace}
+            value={app.target_namespace}
             onChange={event => handleFormData(event, 'target_namespace')}
-            error={formError === 'target_namespace' && !target_namespace}
+            error={formError === 'target_namespace' && !app.target_namespace}
           />
           <Input
             className="form-section"
             required={true}
             name="path"
             label="SELECT PATH"
-            value={path}
+            value={app.path}
             onChange={event => handleFormData(event, 'path')}
             description="Path within the git repository to read yaml files"
-            error={formError === 'path' && !path}
+            error={formError === 'path' && !app.path}
           />
           {!clusters && (
             <Tooltip
@@ -334,7 +331,7 @@ const AppFields: FC<{
         <Tooltip
           title={'flux-system will already exist in the target cluster'}
           placement="top-start"
-          disabled={target_namespace !== 'flux-system'}
+          disabled={app.target_namespace !== 'flux-system'}
         >
           <div>
             <Flex align={true}>
@@ -345,11 +342,11 @@ const AppFields: FC<{
                     // Restore default paddingLeft for checkbox that is removed by the global style
                     // mui.FormControlLabel does some negative margin to align the checkbox with the label
                     style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
-                    checked={createNamespace}
+                    checked={app.createNamespace}
                     onChange={handleCreateNamespace}
                     inputProps={{ 'aria-label': 'controlled' }}
                     color="primary"
-                    disabled={target_namespace === 'flux-system'}
+                    disabled={app.target_namespace === 'flux-system'}
                   />
                 }
                 label="Create target namespace for kustomization"

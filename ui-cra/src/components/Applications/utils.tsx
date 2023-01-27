@@ -2,7 +2,6 @@ import { useListSources } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useMemo } from 'react';
 import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
-import { request } from '../../utils/request';
 
 const toCluster = (clusterName: string): GitopsCluster => {
   const [firstBit, secondBit] = clusterName.split('/');
@@ -30,17 +29,4 @@ export const useClustersWithSources = (
 export const useIsClusterWithSources = (clusterName: string): boolean => {
   const clusters = useClustersWithSources(true);
   return clusters?.some((c: GitopsCluster) => c.name === clusterName) || false;
-};
-
-export const AddApplicationRequest = ({ ...data }, token: string | null) => {
-  return request('POST', `/v1/enterprise/automations`, {
-    body: JSON.stringify(data),
-    headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-  });
-};
-
-export const renderKustomization = (data: any) => {
-  return request('POST', `/v1/enterprise/automations/render`, {
-    body: JSON.stringify(data),
-  });
 };
