@@ -145,23 +145,23 @@ const AppFields: FC<{
     const { obj } = JSON.parse(value);
 
     const selectedSource = {
-      source_name: obj?.metadata?.name,
-      source_namespace: obj?.metadata?.namespace,
-      source_type: obj?.kind,
-      source_url: obj?.spec.url,
-      source_branch: obj?.kind === 'GitRepository' ? obj?.spec.ref.branch : '',
-      source: value,
+      name: obj?.metadata?.name,
+      namespace: obj?.metadata?.namespace,
+      type: obj?.kind,
+      url: obj?.spec.url,
+      branch: obj?.kind === 'GitRepository' ? obj?.spec.ref.branch : '',
+      data: value,
     };
 
     const newAutomations = [...formData.clusterAutomations];
     newAutomations[index] = {
       ...newAutomations[index],
-      ...selectedSource,
+      source: selectedSource,
     };
 
     setFormData({
       ...formData,
-      ...selectedSource,
+      source: selectedSource,
       clusterAutomations: newAutomations,
     });
   };
@@ -240,7 +240,7 @@ const AppFields: FC<{
             name="source"
             required={true}
             label="SELECT SOURCE"
-            value={app.source || ''}
+            value={app.source.data || ''}
             onChange={handleSelectSource}
             defaultValue={''}
             description="The name and type of source"
@@ -269,7 +269,7 @@ const AppFields: FC<{
           </Select>
         </>
       )}
-      {formData.source_type === 'GitRepository' || !clusters ? (
+      {formData.source.type === 'GitRepository' || !clusters ? (
         <>
           <Input
             className="form-section"
@@ -327,7 +327,7 @@ const AppFields: FC<{
           )}
         </>
       ) : null}
-      {formData.source_type === 'GitRepository' || !clusters ? (
+      {formData.source.type === 'GitRepository' || !clusters ? (
         <Tooltip
           title={'flux-system will already exist in the target cluster'}
           placement="top-start"

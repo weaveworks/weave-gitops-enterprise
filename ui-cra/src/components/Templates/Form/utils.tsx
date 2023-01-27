@@ -9,15 +9,14 @@ import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
 
-// Either a HelmRepository or a GitRepository
-interface SourceFormData {
-  source_name: string;
-  source_namespace: string;
-  source: string;
-  source_type: string;
-  source_url: string;
-  source_branch?: string;
-}
+export type SourceFormData = {
+  name: string;
+  namespace: string;
+  type: string;
+  url: string;
+  branch?: string;
+  data: string;
+};
 
 export type GitopsFormData = {
   repo: GitRepository | null;
@@ -26,7 +25,8 @@ export type GitopsFormData = {
   pullRequestTitle: string;
   commitMessage: string;
   pullRequestDescription: string;
-  clusterAutomations: ({
+  source: SourceFormData;
+  clusterAutomations: {
     name: string;
     namespace: string;
     target_namespace: string;
@@ -36,8 +36,9 @@ export type GitopsFormData = {
     cluster_isControlPlane: boolean;
     createNamespace: boolean;
     path: string;
-  } & SourceFormData)[];
-} & SourceFormData;
+    source: SourceFormData;
+  }[];
+};
 
 const yamlConverter = require('js-yaml');
 

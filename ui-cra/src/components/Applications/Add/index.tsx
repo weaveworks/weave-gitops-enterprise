@@ -87,13 +87,21 @@ function getInitialData(
   callbackState: { state: { formData: GitopsFormData } } | null,
   random: string,
 ): GitopsFormData {
-  let defaultFormData = {
+  const defaultFormData = {
     repo: null,
     provider: '',
     branchName: `add-application-branch-${random}`,
     pullRequestTitle: 'Add application',
     commitMessage: 'Add application',
     pullRequestDescription: 'This PR adds a new application',
+    source: {
+      name: '',
+      namespace: '',
+      data: '',
+      type: '',
+      url: '',
+      branch: '',
+    },
     clusterAutomations: [
       {
         name: '',
@@ -105,12 +113,14 @@ function getInitialData(
         cluster_isControlPlane: false,
         createNamespace: false,
         path: '',
-        source_name: '',
-        source_namespace: '',
-        source: '',
-        source_type: '',
-        source_url: '',
-        source_branch: '',
+        source: {
+          name: '',
+          namespace: '',
+          data: '',
+          type: '',
+          url: '',
+          branch: '',
+        },
       },
     ],
   } as GitopsFormData;
@@ -140,8 +150,8 @@ function toKustomization(
       spec: {
         path: kustomization.path,
         sourceRef: {
-          name: kustomization.source_name,
-          namespace: kustomization.source_namespace,
+          name: kustomization.source.name,
+          namespace: kustomization.source.namespace,
         },
         targetNamespace: kustomization.target_namespace,
         createNamespace: kustomization.createNamespace,
@@ -270,8 +280,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const firstAuto = formData.clusterAutomations[0];
   const helmRepo: RepositoryRef = useMemo(() => {
     return {
-      name: firstAuto.source_name,
-      namespace: firstAuto.source_namespace,
+      name: firstAuto.source.name,
+      namespace: firstAuto.source.namespace,
       cluster: {
         name: firstAuto.cluster_name,
         namespace: firstAuto.cluster_namespace,
@@ -281,7 +291,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   console.log({ firstAuto, autos: formData.clusterAutomations });
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
-    firstAuto.source_type === 'HelmRepository',
+    firstAuto.source.type === 'HelmRepository',
     undefined,
     undefined,
     helmRepo,
@@ -335,9 +345,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     return api
       .RenderAutomation({
         clusterAutomations: getAutomations(
-          formData.source_type,
-          formData.source_name,
-          formData.source_namespace,
+          formData.source.type,
+          formData.source.name,
+          formData.source.namespace,
           formData.clusterAutomations,
           updatedProfiles,
         ),
@@ -360,9 +370,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     api,
     setOpenPreview,
     setNotifications,
-    formData.source_type,
-    formData.source_name,
-    formData.source_namespace,
+    formData.source.type,
+    formData.source.name,
+    formData.source.namespace,
     formData.clusterAutomations,
     updatedProfiles,
   ]);
@@ -374,9 +384,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getAutomations(
-        formData.source_type,
-        formData.source_name,
-        formData.source_namespace,
+        formData.source.type,
+        formData.source.name,
+        formData.source.namespace,
         formData.clusterAutomations,
         updatedProfiles,
       ),
@@ -479,16 +489,16 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                         openPreview={openPreview}
                         setOpenPreview={setOpenPreview}
                         prPreview={prPreview}
-                        sourceType={formData.source_type}
+                        sourceType={formData.source.type}
                       />
                     ) : null}
                   </Grid>
                   <Grid item sm={2} md={2} lg={4}>
                     <SourceLinkWrapper>
-                      {optionUrl(formData.source_url, formData.source_branch)}
+                      {optionUrl(formData.source.url, formData.source.branch)}
                     </SourceLinkWrapper>
                   </Grid>
-                  {formData.source_type === 'HelmRepository' ? (
+                  {formData.source.type === 'HelmRepository' ? (
                     <Profiles
                       cluster={{
                         name: formData.clusterAutomations[0].cluster_name,
