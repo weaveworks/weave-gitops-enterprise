@@ -108,10 +108,12 @@ function getInitialData(
         name: '',
         namespace: '',
         target_namespace: '',
-        cluster_name: '',
-        cluster_namespace: '',
-        cluster: '',
-        cluster_isControlPlane: false,
+        cluster: {
+          name: '',
+          namespace: '',
+          data: '',
+          isControlPlane: false,
+        },
         createNamespace: false,
         path: '',
       },
@@ -132,10 +134,10 @@ function toKustomization(
 ): ClusterAutomation {
   return {
     cluster: {
-      name: kustomization.cluster_name,
-      namespace: kustomization.cluster_namespace,
+      name: kustomization.cluster.name,
+      namespace: kustomization.cluster.namespace,
     },
-    isControlPlane: kustomization.cluster_isControlPlane,
+    isControlPlane: kustomization.cluster.isControlPlane,
     kustomization: {
       metadata: {
         name: kustomization.name,
@@ -164,10 +166,10 @@ function toHelmRelease(
 ): ClusterAutomation {
   return {
     cluster: {
-      name: helmRelease.cluster_name,
-      namespace: helmRelease.cluster_namespace,
+      name: helmRelease.cluster.name,
+      namespace: helmRelease.cluster.namespace,
     },
-    isControlPlane: helmRelease.cluster_isControlPlane,
+    isControlPlane: helmRelease.cluster.isControlPlane,
     helmRelease: {
       metadata: {
         name: profile.name,
@@ -276,8 +278,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       name: source.name,
       namespace: source.namespace,
       cluster: {
-        name: app.cluster_name,
-        namespace: app.cluster_namespace,
+        name: app.cluster.name,
+        namespace: app.cluster.namespace,
       },
     };
   }, [app, source]);
@@ -487,9 +489,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   {formData.source.type === 'HelmRepository' ? (
                     <Profiles
                       cluster={{
-                        name: formData.clusterAutomations[0].cluster_name,
+                        name: formData.clusterAutomations[0].cluster.name,
                         namespace:
-                          formData.clusterAutomations[0].cluster_namespace,
+                          formData.clusterAutomations[0].cluster.namespace,
                       }}
                       // Temp fix to hide layers when using profiles in Add App until we update the BE
                       context="app"

@@ -82,10 +82,12 @@ const AppFields: FC<{
         const newAutomations = [...formData.clusterAutomations];
         newAutomations[index] = {
           ...newAutomations[index],
-          cluster_name: cluster.name!,
-          cluster_namespace: cluster.namespace!,
-          cluster_isControlPlane: Boolean(cluster.controlPlane),
-          cluster: JSON.stringify(cluster),
+          cluster: {
+            name: cluster.name!,
+            namespace: cluster.namespace!,
+            isControlPlane: Boolean(cluster.controlPlane),
+            data: JSON.stringify(cluster),
+          },
         };
         return {
           ...formData,
@@ -116,9 +118,9 @@ const AppFields: FC<{
   let helmRepos: HelmRepository[] = [];
 
   if (clusters) {
-    const clusterName = app.cluster_namespace
-      ? `${app.cluster_namespace}/${app.cluster_name}`
-      : `${app.cluster_name}`;
+    const clusterName = app.cluster.namespace
+      ? `${app.cluster.namespace}/${app.cluster.name}`
+      : `${app.cluster.name}`;
 
     gitRepos = _.orderBy(
       _.filter(
@@ -219,7 +221,7 @@ const AppFields: FC<{
             name="cluster_name"
             required={true}
             label="SELECT CLUSTER"
-            value={app.cluster || ''}
+            value={app.cluster.data || ''}
             onChange={handleSelectCluster}
             defaultValue={''}
             description="select target cluster"
