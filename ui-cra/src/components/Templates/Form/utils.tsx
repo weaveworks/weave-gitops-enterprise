@@ -33,11 +33,11 @@ export type GitopsFormData = {
   commitMessage: string;
   pullRequestDescription: string;
   source: SourceFormData;
+  cluster: ClusterFormData;
   clusterAutomations: {
     name: string;
     namespace: string;
     target_namespace: string;
-    cluster: ClusterFormData;
     createNamespace: boolean;
     path: string;
   }[];

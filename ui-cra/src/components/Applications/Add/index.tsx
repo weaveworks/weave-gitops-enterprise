@@ -24,6 +24,7 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
 import {
   ClusterAutomation,
+  CreateAutomationsPullRequestRequest,
   RenderAutomationResponse,
   RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
@@ -43,6 +44,7 @@ import {
   getProviderTokenHeader,
 } from '../../GitAuth/utils';
 import {
+  ClusterFormData,
   getInitialGitRepo,
   getRepositoryUrl,
   GitopsFormData,
@@ -103,17 +105,17 @@ function getInitialData(
       url: '',
       branch: '',
     },
+    cluster: {
+      name: '',
+      namespace: '',
+      data: '',
+      isControlPlane: false,
+    },
     clusterAutomations: [
       {
         name: '',
         namespace: '',
         target_namespace: '',
-        cluster: {
-          name: '',
-          namespace: '',
-          data: '',
-          isControlPlane: false,
-        },
         createNamespace: false,
         path: '',
       },
@@ -129,15 +131,16 @@ function getInitialData(
 }
 
 function toKustomization(
+  cluster: ClusterFormData,
   source: SourceFormData,
   kustomization: GitopsFormData['clusterAutomations'][number],
 ): ClusterAutomation {
   return {
     cluster: {
-      name: kustomization.cluster.name,
-      namespace: kustomization.cluster.namespace,
+      name: cluster.name,
+      namespace: cluster.namespace,
     },
-    isControlPlane: kustomization.cluster.isControlPlane,
+    isControlPlane: cluster.isControlPlane,
     kustomization: {
       metadata: {
         name: kustomization.name,
@@ -157,19 +160,19 @@ function toKustomization(
 }
 
 function toHelmRelease(
+  cluster: ClusterFormData,
+  source: SourceFormData,
   helmRelease: GitopsFormData['clusterAutomations'][number],
   profile: ProfilesIndex[string],
-  sourceName: string,
-  sourceNamespace: string,
   version: string,
   values: string,
 ): ClusterAutomation {
   return {
     cluster: {
-      name: helmRelease.cluster.name,
-      namespace: helmRelease.cluster.namespace,
+      name: cluster.name,
+      namespace: cluster.namespace,
     },
-    isControlPlane: helmRelease.cluster.isControlPlane,
+    isControlPlane: cluster.isControlPlane,
     helmRelease: {
       metadata: {
         name: profile.name,
@@ -180,8 +183,8 @@ function toHelmRelease(
           spec: {
             chart: profile.name,
             sourceRef: {
-              name: sourceName,
-              namespace: sourceNamespace,
+              name: source.name,
+              namespace: source.namespace,
             },
             version,
           },
@@ -193,6 +196,7 @@ function toHelmRelease(
 }
 
 function getAutomations(
+  cluster: ClusterFormData,
   source: SourceFormData,
   automations: GitopsFormData['clusterAutomations'],
   profiles: ProfilesIndex,
@@ -213,10 +217,10 @@ function getAutomations(
             values = value.yaml;
             clusterAutomations.push(
               toHelmRelease(
+                cluster,
+                source,
                 helmRelease,
                 profile,
-                source.name,
-                source.namespace,
                 version,
                 values,
               ),
@@ -226,7 +230,9 @@ function getAutomations(
       }
     }
   } else {
-    clusterAutomations = automations.map(ks => toKustomization(source, ks));
+    clusterAutomations = automations.map(ks =>
+      toKustomization(cluster, source, ks),
+    );
   }
 
   return clusterAutomations;
@@ -271,18 +277,17 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const initialFormData = getInitialData(callbackState, random);
 
   const [formData, setFormData] = useState<GitopsFormData>(initialFormData);
-  const app = formData.clusterAutomations[0];
-  const { source } = formData;
+  const { cluster, source } = formData;
   const helmRepo: RepositoryRef = useMemo(() => {
     return {
       name: source.name,
       namespace: source.namespace,
       cluster: {
-        name: app.cluster.name,
-        namespace: app.cluster.namespace,
+        name: cluster.name,
+        namespace: cluster.namespace,
       },
     };
-  }, [app, source]);
+  }, [cluster, source]);
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
     source.type === 'HelmRepository',
@@ -339,6 +344,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     return api
       .RenderAutomation({
         clusterAutomations: getAutomations(
+          formData.cluster,
           formData.source,
           formData.clusterAutomations,
           updatedProfiles,
@@ -362,18 +368,20 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     api,
     setOpenPreview,
     setNotifications,
+    formData.cluster,
     formData.source,
     formData.clusterAutomations,
     updatedProfiles,
   ]);
 
   const handleAddApplication = useCallback(() => {
-    const payload = {
-      head_branch: formData.branchName,
+    const payload: CreateAutomationsPullRequestRequest = {
+      headBranch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
-      commit_message: formData.commitMessage,
+      commitMessage: formData.commitMessage,
       clusterAutomations: getAutomations(
+        formData.cluster,
         formData.source,
         formData.clusterAutomations,
         updatedProfiles,
@@ -489,9 +497,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   {formData.source.type === 'HelmRepository' ? (
                     <Profiles
                       cluster={{
-                        name: formData.clusterAutomations[0].cluster.name,
-                        namespace:
-                          formData.clusterAutomations[0].cluster.namespace,
+                        name: formData.cluster.name,
+                        namespace: formData.cluster.namespace,
                       }}
                       // Temp fix to hide layers when using profiles in Add App until we update the BE
                       context="app"

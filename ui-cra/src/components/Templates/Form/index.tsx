@@ -58,7 +58,7 @@ import {
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import useNotifications from './../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
-import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { clearCallbackState } from '../../GitAuth/utils';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -456,7 +456,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     );
 
     setLoading(true);
-    return addResource(payload, getProviderToken(formData.provider))
+    return addResource(payload, getGitProviderHeaders(formData.provider))
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Templates);
@@ -734,3 +734,8 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
 };
 
 export default ResourceFormWrapper;
+function getGitProviderHeaders(
+  provider: any,
+): import('../../../cluster-services/fetch.pb').InitReq | undefined {
+  throw new Error('Function not implemented.');
+}

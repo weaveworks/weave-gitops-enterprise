@@ -63,13 +63,14 @@ const AppFields: FC<{
   formError,
 }) => {
   const { data } = useListSources();
-  const { source } = formData;
+  const { source, cluster } = formData;
   const app = formData.clusterAutomations[index];
   const history = useHistory();
   const location = useLocation();
 
-  let clusters: GitopsCluster[] | undefined =
+  const clusters: GitopsCluster[] | undefined =
     useClustersWithSources(allowSelectCluster);
+  const isTemplatesPage = !clusters;
 
   const updateCluster = useCallback(
     (cluster: GitopsCluster) => {
@@ -79,9 +80,8 @@ const AppFields: FC<{
           pathname: location.pathname,
           search: params.toString(),
         });
-        const newAutomations = [...formData.clusterAutomations];
-        newAutomations[index] = {
-          ...newAutomations[index],
+        return {
+          ...formData,
           cluster: {
             name: cluster.name!,
             namespace: cluster.namespace!,
@@ -89,13 +89,9 @@ const AppFields: FC<{
             data: JSON.stringify(cluster),
           },
         };
-        return {
-          ...formData,
-          clusterAutomations: newAutomations,
-        };
       });
     },
-    [index, setFormData, history, location.pathname],
+    [setFormData, history, location.pathname],
   );
 
   useEffect(() => {
@@ -118,9 +114,9 @@ const AppFields: FC<{
   let helmRepos: HelmRepository[] = [];
 
   if (clusters) {
-    const clusterName = app.cluster.namespace
-      ? `${app.cluster.namespace}/${app.cluster.name}`
-      : `${app.cluster.name}`;
+    const clusterName = cluster.namespace
+      ? `${cluster.namespace}/${cluster.name}`
+      : `${cluster.name}`;
 
     gitRepos = _.orderBy(
       _.filter(
@@ -214,14 +210,14 @@ const AppFields: FC<{
 
   return (
     <AppFieldsWrapper>
-      {!!clusters && (
+      {!isTemplatesPage && (
         <>
           <Select
             className="form-section"
             name="cluster_name"
             required={true}
             label="SELECT CLUSTER"
-            value={app.cluster.data || ''}
+            value={cluster.data || ''}
             onChange={handleSelectCluster}
             defaultValue={''}
             description="select target cluster"
@@ -271,7 +267,7 @@ const AppFields: FC<{
           </Select>
         </>
       )}
-      {formData.source.type === 'GitRepository' || !clusters ? (
+      {isTemplatesPage || formData.source.type === 'GitRepository' ? (
         <>
           <Input
             className="form-section"
@@ -310,7 +306,7 @@ const AppFields: FC<{
             description="Path within the git repository to read yaml files"
             error={formError === 'path' && !app.path}
           />
-          {!clusters && (
+          {isTemplatesPage && (
             <Tooltip
               title="Only the bootstrap GitRepository can be referenced by kustomizations when creating a new cluster"
               placement="bottom-start"
@@ -327,35 +323,36 @@ const AppFields: FC<{
               </span>
             </Tooltip>
           )}
+          <Tooltip
+            title={'flux-system will already exist in the target cluster'}
+            placement="top-start"
+            disabled={app.target_namespace !== 'flux-system'}
+          >
+            <div>
+              <Flex align={true}>
+                <FormControlLabel
+                  value="top"
+                  control={
+                    <Checkbox
+                      // Restore default paddingLeft for checkbox that is removed by the global style
+                      // mui.FormControlLabel does some negative margin to align the checkbox with the label
+                      style={{
+                        paddingLeft: 9,
+                        marginRight: theme.spacing.small,
+                      }}
+                      checked={app.createNamespace}
+                      onChange={handleCreateNamespace}
+                      inputProps={{ 'aria-label': 'controlled' }}
+                      color="primary"
+                      disabled={app.target_namespace === 'flux-system'}
+                    />
+                  }
+                  label="Create target namespace for kustomization"
+                />
+              </Flex>
+            </div>
+          </Tooltip>
         </>
-      ) : null}
-      {formData.source.type === 'GitRepository' || !clusters ? (
-        <Tooltip
-          title={'flux-system will already exist in the target cluster'}
-          placement="top-start"
-          disabled={app.target_namespace !== 'flux-system'}
-        >
-          <div>
-            <Flex align={true}>
-              <FormControlLabel
-                value="top"
-                control={
-                  <Checkbox
-                    // Restore default paddingLeft for checkbox that is removed by the global style
-                    // mui.FormControlLabel does some negative margin to align the checkbox with the label
-                    style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
-                    checked={app.createNamespace}
-                    onChange={handleCreateNamespace}
-                    inputProps={{ 'aria-label': 'controlled' }}
-                    color="primary"
-                    disabled={app.target_namespace === 'flux-system'}
-                  />
-                }
-                label="Create target namespace for kustomization"
-              />
-            </Flex>
-          </div>
-        </Tooltip>
       ) : null}
     </AppFieldsWrapper>
   );
