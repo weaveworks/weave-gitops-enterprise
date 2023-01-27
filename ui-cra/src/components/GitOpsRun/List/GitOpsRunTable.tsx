@@ -11,6 +11,7 @@ import {
 import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import CommandCell from './CommandCell';
+import { Routes } from '../../../utils/nav';
 
 const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
   const list = ports.split(',');
@@ -94,7 +95,18 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
       fields={[
         {
           label: 'Name',
-          value: ({ name }: FluxObject) => name,
+          value: ({ name, namespace, clusterName }: FluxObject) => (
+            <Link
+              to={formatURL(Routes.GitOpsRunDetail, {
+                name,
+                namespace,
+                clusterName,
+              })}
+            >
+              {name}
+            </Link>
+          ),
+          sortValue: ({ name }: FluxObject) => name,
           textSearchable: true,
         },
         {

@@ -3,6 +3,7 @@ import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
+import { useGetLogs } from '../../../hooks/gitopsrun';
 import GitOpsRunLogs from './GitOpsRunLogs';
 type Props = {
   name?: string;
@@ -18,11 +19,15 @@ const PageTitle = styled.h4`
 `;
 
 const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
-  //   const { isLoading, data, error } = useGetLogs({
-  //     namespace,
-  //     sessionId: name,
-  //     clusterName,
-  //   });
+  const { isLoading, data, error } = useGetLogs({
+    namespace,
+    sessionId: 'run-master-fdd0a0b7',
+    clusterName: 'default/run-master-fdd0a0b7',
+  });
+
+  console.log('logs:');
+  console.log(data);
+
   const fakes = [
     {
       source: 'bucket-server',
