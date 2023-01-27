@@ -195,7 +195,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
   letter-spacing: 1px;
   height: 32px;
   min-height: 32px;
-  width: 132px;
+  width: -webkit-fit-content;
+  width: -moz-fit-content;
+  width: fit-content;
 }
 
 .c14 .MuiTabs-root {

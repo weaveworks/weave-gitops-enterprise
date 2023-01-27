@@ -247,7 +247,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	var helmRepo *sourcev1.HelmRepository
 	var helmRepoRef types.NamespacedName
-	var chartsCache helm.ChartsCacheReader = helm.NilCache{}
+	var chartsCache helm.ProfilesGeneratorCache = helm.NilProfilesGeneratorCache{}
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {
@@ -266,7 +266,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 	templateResources, err := server.GetFiles(
 		context.Background(),
 		nil, // no need for a kube client as we're providing the helm repo no
-		logr.Discard(),
+		log,
 		estimation.NilEstimator(),
 		chartsCache,
 		types.NamespacedName{Name: DefaultCluster},

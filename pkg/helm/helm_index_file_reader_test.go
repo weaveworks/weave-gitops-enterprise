@@ -4,85 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/google/go-cmp/cmp"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
 	"k8s.io/apimachinery/pkg/types"
 )
-
-func TestListChart(t *testing.T) {
-	index := makeTestIndex()
-	cache := NewHelmIndexFileReader(index)
-	clusterRef := types.NamespacedName{}
-	repoRef := ObjectReference{}
-
-	charts, err := cache.ListChartsByRepositoryAndCluster(context.TODO(), clusterRef, repoRef, "")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	expected := []Chart{
-		{
-			Name:    "chart1",
-			Version: "1.0.0",
-			Layer:   "",
-		},
-		{
-			Name:    "chart1",
-			Version: "1.0.1",
-			Layer:   "",
-		},
-		{
-			Name:    "chart2",
-			Version: "1.0.0",
-			Layer:   "layer-0",
-		},
-		{
-			Name:    "chart2",
-			Version: "1.0.1",
-			Layer:   "",
-		},
-	}
-
-	if diff := cmp.Diff(expected, charts); diff != "" {
-		t.Fatal("unexpected diff", diff)
-	}
-}
-
-func TestIndexIsKnownChart(t *testing.T) {
-	index := makeTestIndex()
-	cache := NewHelmIndexFileReader(index)
-	clusterRef := types.NamespacedName{}
-	repoRef := ObjectReference{}
-
-	chart := Chart{
-		Name:    "chart1",
-		Version: "1.0.0",
-	}
-
-	known, err := cache.IsKnownChart(context.TODO(), clusterRef, repoRef, chart)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if !known {
-		t.Fatal("chart should be known")
-	}
-
-	chart = Chart{
-		Name:    "chart1",
-		Version: "1.0.2",
-	}
-
-	known, err = cache.IsKnownChart(context.TODO(), clusterRef, repoRef, chart)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if known {
-		t.Fatal("chart should not be known")
-	}
-}
 
 func TestIndexGetLatestVersion(t *testing.T) {
 	index := makeTestIndex()

@@ -34,6 +34,7 @@ enableTerraformUI: false
 enableRunUI: false
 
 config:
+  logLevel: info
   cluster:
     name: management
   git:

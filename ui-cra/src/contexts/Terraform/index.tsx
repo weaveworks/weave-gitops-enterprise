@@ -112,3 +112,15 @@ export function useToggleSuspendTerraformObject(params: DetailParams) {
       return invalidate(qc, params).then(() => res);
     });
 }
+
+export function useReplanTerraformObject(params: DetailParams) {
+  const tf = useTerraform();
+  const qc = useQueryClient();
+
+  return () =>
+    tf.ReplanTerraformObject(params).then(res => {
+      invalidate(qc, params);
+
+      return res;
+    });
+}
