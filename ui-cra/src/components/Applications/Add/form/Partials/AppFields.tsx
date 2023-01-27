@@ -152,15 +152,9 @@ const AppFields: FC<{
       data: value,
     };
 
-    const newAutomations = [...formData.clusterAutomations];
-    newAutomations[index] = {
-      ...newAutomations[index],
-    };
-
     setFormData({
       ...formData,
       source: selectedSource,
-      clusterAutomations: newAutomations,
     });
   };
 

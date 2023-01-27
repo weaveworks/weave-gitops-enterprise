@@ -9,39 +9,44 @@ import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
 
-export type SourceFormData = {
+export interface SourceFormData {
   name: string;
   namespace: string;
   type: string;
   url: string;
   branch?: string;
   data: string;
-};
+}
 
-export type ClusterFormData = {
+export interface AutomationFormData {
+  name: string;
+  namespace: string;
+  target_namespace: string;
+  createNamespace: boolean;
+  path: string;
+}
+
+export interface ClusterFormData {
   name: string;
   namespace: string;
   data: string;
   isControlPlane: boolean;
-};
+}
 
-export type GitopsFormData = {
+export interface GitopsFormData {
+  // repo used to create the pull request against
   repo: GitRepository | null;
   provider: string;
   branchName: string;
   pullRequestTitle: string;
   commitMessage: string;
   pullRequestDescription: string;
+  // gitrepo or helmrepo
   source: SourceFormData;
   cluster: ClusterFormData;
-  clusterAutomations: {
-    name: string;
-    namespace: string;
-    target_namespace: string;
-    createNamespace: boolean;
-    path: string;
-  }[];
-};
+  // kustomization or helm release
+  clusterAutomations: AutomationFormData[];
+}
 
 const yamlConverter = require('js-yaml');
 

@@ -90,7 +90,7 @@ function getInitialData(
   callbackState: { state: { formData: GitopsFormData } } | null,
   random: string,
 ): GitopsFormData {
-  const defaultFormData = {
+  const defaultFormData: GitopsFormData = {
     repo: null,
     provider: '',
     branchName: `add-application-branch-${random}`,
@@ -120,7 +120,7 @@ function getInitialData(
         path: '',
       },
     ],
-  } as GitopsFormData;
+  };
 
   const initialFormData = {
     ...defaultFormData,
