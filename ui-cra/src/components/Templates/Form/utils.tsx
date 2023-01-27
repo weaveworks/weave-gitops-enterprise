@@ -9,6 +9,38 @@ import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
 
+export interface GitopsFormData {
+  repo: GitRepository | null;
+  provider: string;
+  branchName: string;
+  pullRequestTitle: string;
+  commitMessage: string;
+  pullRequestDescription: string;
+  source_name: string;
+  source_namespace: string;
+  source: string;
+  source_type: string;
+  source_url: string;
+  source_branch: string;
+  clusterAutomations: {
+    name: string;
+    namespace: string;
+    target_namespace: string;
+    cluster_name: string;
+    cluster_namespace: string;
+    cluster: string;
+    cluster_isControlPlane: boolean;
+    createNamespace: boolean;
+    path: string;
+    source_name: string;
+    source_namespace: string;
+    source: string;
+    source_type: string;
+    source_url: string;
+    source_branch: string;
+  }[];
+}
+
 const yamlConverter = require('js-yaml');
 
 export const maybeParseJSON = (data: string) => {

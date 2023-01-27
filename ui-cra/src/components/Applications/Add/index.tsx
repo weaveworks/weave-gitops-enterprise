@@ -8,7 +8,6 @@ import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   Button,
-  GitRepository,
   Link,
   LoadingPage,
   useListSources,
@@ -41,9 +40,11 @@ import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import {
   getInitialGitRepo,
   getRepositoryUrl,
+  GitopsFormData,
 } from '../../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
+import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -76,42 +77,10 @@ const SourceLinkWrapper = styled.div`
   overflow-x: auto;
 `;
 
-interface FormData {
-  repo: GitRepository | null;
-  provider: string;
-  branchName: string;
-  pullRequestTitle: string;
-  commitMessage: string;
-  pullRequestDescription: string;
-  source_name: string;
-  source_namespace: string;
-  source: string;
-  source_type: string;
-  source_url: string;
-  source_branch: string;
-  clusterAutomations: {
-    name: string;
-    namespace: string;
-    target_namespace: string;
-    cluster_name: string;
-    cluster_namespace: string;
-    cluster: string;
-    cluster_isControlPlane: boolean;
-    createNamespace: boolean;
-    path: string;
-    source_name: string;
-    source_namespace: string;
-    source: string;
-    source_type: string;
-    source_url: string;
-    source_branch: string;
-  }[];
-}
-
 function getInitialData(
-  callbackState: { state: { formData: FormData } } | null,
+  callbackState: { state: { formData: GitopsFormData } } | null,
   random: string,
-) {
+): GitopsFormData {
   let defaultFormData = {
     repo: null,
     provider: '',
@@ -138,14 +107,14 @@ function getInitialData(
         source_branch: '',
       },
     ],
-  };
+  } as GitopsFormData;
 
   const initialFormData = {
     ...defaultFormData,
-    ...callbackState?.state?.formData,
+    ...(callbackState?.state?.formData as GitopsFormData),
   };
 
-  return { initialFormData };
+  return initialFormData;
 }
 
 const AddApplication = ({ clusterName }: { clusterName?: string }) => {
@@ -183,9 +152,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const callbackState = useCallbackState();
 
-  const { initialFormData } = getInitialData(callbackState, random);
+  const initialFormData = getInitialData(callbackState, random);
 
-  const [formData, setFormData] = useState<any>(initialFormData);
+  const [formData, setFormData] = useState<GitopsFormData>(initialFormData);
   const firstAuto = formData.clusterAutomations[0];
   const helmRepo: RepositoryRef = useMemo(() => {
     return {
@@ -198,6 +167,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     };
   }, [firstAuto]);
 
+  console.log({ firstAuto, autos: formData.clusterAutomations });
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
     firstAuto.source_type === 'HelmRepository',
     undefined,
@@ -231,10 +201,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
-    setFormData((prevState: any) => ({
+    setFormData(prevState => ({
       ...prevState,
       pullRequestTitle: `Add application ${(formData.clusterAutomations || [])
-        .map((a: any) => a.name)
+        .map(a => a.name)
         .join(', ')}`,
     }));
   }, [formData.clusterAutomations]);
@@ -285,32 +255,30 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         }
       }
     } else {
-      clusterAutomations = formData.clusterAutomations.map(
-        (kustomization: any) => {
-          return {
-            cluster: {
-              name: kustomization.cluster_name,
-              namespace: kustomization.cluster_namespace,
+      clusterAutomations = formData.clusterAutomations.map(kustomization => {
+        return {
+          cluster: {
+            name: kustomization.cluster_name,
+            namespace: kustomization.cluster_namespace,
+          },
+          isControlPlane: kustomization.cluster_isControlPlane,
+          kustomization: {
+            metadata: {
+              name: kustomization.name,
+              namespace: kustomization.namespace,
             },
-            isControlPlane: kustomization.cluster_isControlPlane,
-            kustomization: {
-              metadata: {
-                name: kustomization.name,
-                namespace: kustomization.namespace,
+            spec: {
+              path: kustomization.path,
+              sourceRef: {
+                name: kustomization.source_name,
+                namespace: kustomization.source_namespace,
               },
-              spec: {
-                path: kustomization.path,
-                sourceRef: {
-                  name: kustomization.source_name,
-                  namespace: kustomization.source_namespace,
-                },
-                targetNamespace: kustomization.target_namespace,
-                createNamespace: kustomization.createNamespace,
-              },
+              targetNamespace: kustomization.target_namespace,
+              createNamespace: kustomization.createNamespace,
             },
-          };
-        },
-      );
+          },
+        };
+      });
     }
     return clusterAutomations;
   }, [
@@ -323,7 +291,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   useEffect(() => {
     if (!formData.repo) {
-      setFormData((prevState: any) => ({
+      setFormData(prevState => ({
         ...prevState,
         repo: initialGitRepo,
       }));
@@ -358,10 +326,13 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       description: formData.pullRequestDescription,
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
-      repositoryUrl: getRepositoryUrl(formData.repo),
+      repositoryUrl: getRepositoryUrl(formData.repo!),
     };
     setLoading(true);
-    return AddApplicationRequest(payload, getProviderToken(formData.provider))
+    return AddApplicationRequest(
+      payload,
+      getProviderToken(formData.provider as GitProvider),
+    )
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Applications);
@@ -434,25 +405,20 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
               >
                 <Grid container>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
-                    {formData.clusterAutomations.map(
-                      (
-                        automation: FormData['clusterAutomations'][0],
-                        index: number,
-                      ) => {
-                        return (
-                          <AppFields
-                            context="app"
-                            key={index}
-                            index={index}
-                            formData={formData}
-                            setFormData={setFormData}
-                            allowSelectCluster
-                            clusterName={clusterName}
-                            formError={formError}
-                          />
-                        );
-                      },
-                    )}
+                    {formData.clusterAutomations.map((_, index: number) => {
+                      return (
+                        <AppFields
+                          context="app"
+                          key={index}
+                          index={index}
+                          formData={formData}
+                          setFormData={setFormData}
+                          allowSelectCluster
+                          clusterName={clusterName}
+                          formError={formError}
+                        />
+                      );
+                    })}
                     {openPreview && PRPreview ? (
                       <Preview
                         context="app"

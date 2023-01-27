@@ -18,6 +18,7 @@ import {
 import { Tooltip } from '../../../../Shared';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 import { useClustersWithSources } from '../../../utils';
+import { GitopsFormData } from '../../../../Templates/Form/utils';
 
 const AppFieldsWrapper = styled.div`
   .form-section {
@@ -44,15 +45,14 @@ const AppFieldsWrapper = styled.div`
 `;
 
 const AppFields: FC<{
-  formData: any;
-  setFormData: Dispatch<React.SetStateAction<any>> | any;
+  formData: GitopsFormData;
+  setFormData: Dispatch<React.SetStateAction<GitopsFormData>>;
   index?: number;
   onPRPreview?: () => void;
   previewLoading?: boolean;
   allowSelectCluster: boolean;
   context?: string;
   clusterName?: string;
-  setHelmRepo?: Dispatch<React.SetStateAction<any>>;
   formError?: string;
 }> = ({
   formData,
@@ -60,7 +60,6 @@ const AppFields: FC<{
   index = 0,
   allowSelectCluster,
   clusterName,
-  setHelmRepo,
   formError,
 }) => {
   const { data } = useListSources();
@@ -76,7 +75,7 @@ const AppFields: FC<{
 
   const updateCluster = useCallback(
     (cluster: GitopsCluster) => {
-      setFormData((formData: any) => {
+      setFormData(formData => {
         const params = new URLSearchParams(`clusterName=${cluster.name}`);
         history.replace({
           pathname: location.pathname,
@@ -85,9 +84,9 @@ const AppFields: FC<{
         let currentAutomation = [...formData.clusterAutomations];
         currentAutomation[index] = {
           ...currentAutomation[index],
-          cluster_name: cluster.name,
-          cluster_namespace: cluster.namespace,
-          cluster_isControlPlane: cluster.controlPlane,
+          cluster_name: cluster.name!,
+          cluster_namespace: cluster.namespace!,
+          cluster_isControlPlane: Boolean(cluster.controlPlane),
           cluster: JSON.stringify(cluster),
         };
         return {
@@ -154,8 +153,11 @@ const AppFields: FC<{
       ...automation,
       source_name: obj?.metadata.name,
       source_namespace: obj?.metadata?.namespace,
+      source_type: obj?.kind,
       source: value,
     };
+
+    console.log({ obj });
 
     setFormData({
       ...formData,

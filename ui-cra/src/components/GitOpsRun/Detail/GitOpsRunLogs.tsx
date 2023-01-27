@@ -42,11 +42,11 @@ const LogRow: React.FC<{ log: Log }> = ({ log }) => {
 };
 
 function GitOpsRunLogs({ className, logs }: Props) {
-  const [logOptions, setLogOptions] = React.useState<string[]>([
+  const [logOptions] = React.useState<string[]>([
     'log one',
     'log two',
   ]);
-  const [levelOptions, setLevelOptions] = React.useState<string[]>([
+  const [levelOptions] = React.useState<string[]>([
     'level one',
     'level two',
   ]);

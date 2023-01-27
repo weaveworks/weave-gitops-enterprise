@@ -2,6 +2,7 @@ import React, { FC, useCallback, Dispatch, ChangeEvent } from 'react';
 import styled from 'styled-components';
 import GitAuth from '../../../GitAuth';
 import { Input } from '../../../../utils/form';
+import { GitopsFormData } from '../utils';
 
 const GitOpsWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
@@ -11,8 +12,8 @@ const GitOpsWrapper = styled.div`
 `;
 
 const GitOps: FC<{
-  formData: any;
-  setFormData: Dispatch<React.SetStateAction<any>>;
+  formData: GitopsFormData;
+  setFormData: Dispatch<React.SetStateAction<GitopsFormData>>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
@@ -36,7 +37,7 @@ const GitOps: FC<{
 
   const handleChangeBranchName = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setFormData((prevState: any) => ({
+      setFormData(prevState => ({
         ...prevState,
         branchName: event.target.value,
       })),
@@ -45,7 +46,7 @@ const GitOps: FC<{
 
   const handleChangePullRequestTitle = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setFormData((prevState: any) => ({
+      setFormData(prevState => ({
         ...prevState,
         pullRequestTitle: event.target.value,
       })),
@@ -54,7 +55,7 @@ const GitOps: FC<{
 
   const handleChangeCommitMessage = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setFormData((prevState: any) => ({
+      setFormData(prevState => ({
         ...prevState,
         commitMessage: event.target.value,
       })),
@@ -63,7 +64,7 @@ const GitOps: FC<{
 
   const handleChangePRDescription = useCallback(
     (event: ChangeEvent<HTMLInputElement>) =>
-      setFormData((prevState: any) => ({
+      setFormData(prevState => ({
         ...prevState,
         pullRequestDescription: event.target.value,
       })),

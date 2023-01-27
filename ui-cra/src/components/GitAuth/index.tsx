@@ -4,6 +4,7 @@ import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
+import { GitopsFormData } from '../Templates/Form/utils';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
@@ -21,7 +22,7 @@ const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
 `;
 
 const GitAuth: FC<{
-  formData: any;
+  formData: GitopsFormData;
   setFormData: Dispatch<React.SetStateAction<any>>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
@@ -42,7 +43,7 @@ const GitAuth: FC<{
     if (!formData.provider) {
       return;
     }
-    check(formData.provider);
+    check(formData.provider as GitProvider);
   }, [formData.provider, authSuccess, check]);
 
   useEffect(() => {
