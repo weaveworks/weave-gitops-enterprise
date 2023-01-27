@@ -16,6 +16,7 @@ message GitOpsSet {
     map<string, string>                annotations = 9;
     SourceRef sourceRef            = 10;
     bool suspended = 11;
+    int64 observed_generation = 12;
 }
 
 message SourceRef {

@@ -7,6 +7,7 @@ import {
   InfoList,
   KubeStatusIndicator,
   LinkResolverProvider,
+  Metadata,
   PageStatus,
   RouterTab,
   SubRouterTabs,
@@ -21,12 +22,14 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import CodeView from '../CodeView';
-import { getLabels, getMetadata } from '../Terraform/TerraformObjectDetail';
 import { TableWrapper } from '../Shared';
-import TerraformInventoryTable from '../Terraform/TerraformInventoryTable';
 import useNotifications from '../../contexts/Notifications';
-import { useListGitOpsSets } from '../../contexts/GitOpsSets';
-import { useToggleSuspendTerraformObject } from '../../contexts/Terraform';
+import {
+  useListGitOpsSets,
+  useToggleSuspendGitOpsSet,
+} from '../../contexts/GitOpsSets';
+import { getLabels, getMetadata } from '../../utils/formatters';
+import GitOpsSetInventoryTable from './GitOpsSetInventoryTable';
 
 export interface routeTab {
   name: string;
@@ -59,7 +62,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   //   namespace,
   //   clusterName,
   // });
-  const toggleSuspend = useToggleSuspendTerraformObject({
+  const toggleSuspend = useToggleSuspendGitOpsSet({
     name,
     namespace,
     clusterName,
@@ -174,23 +177,17 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 data-testid="info-list"
                 items={[
                   ['Source', gitOpsSet?.sourceRef?.name],
-                  // ['Applied Revision', gitOpsSet?.appliedRevision],
+                  ['Observed generation', gitOpsSet?.observedGeneration],
                   ['Cluster', gitOpsSet?.clusterName],
-                  // ['Path', gitOpsSet?.path],
-                  // [
-                  //   'Interval',
-                  //   <Interval interval={gitOpsSet?.interval as any} />,
-                  // ],
-                  // ['Last Update', gitOpsSet?.lastUpdatedAt],
                   ['Suspended', gitOpsSet?.suspended ? 'True' : 'False'],
                 ]}
               />
-              {/* <Metadata
+              <Metadata
                 metadata={getMetadata(gitOpsSet)}
                 labels={getLabels(gitOpsSet)}
-              /> */}
+              />
               <TableWrapper>
-                {/* <TerraformInventoryTable rows={gitOpsSet?.inventory || []} /> */}
+                <GitOpsSetInventoryTable rows={gitOpsSet?.inventory || []} />
               </TableWrapper>
             </Box>
           </RouterTab>
@@ -206,6 +203,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Dependencies" path={`${path}/dependencies`}>
             <LinkResolverProvider resolver={resolver}>
+              {/* this will need depends on */}
               {/* <TerraformDependenciesView object={gitOpsSet || {}} /> */}
             </LinkResolverProvider>
           </RouterTab>

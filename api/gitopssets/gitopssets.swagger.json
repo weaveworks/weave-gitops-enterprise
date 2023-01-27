@@ -228,6 +228,10 @@
         },
         "suspended": {
           "type": "boolean"
+        },
+        "observedGeneration": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },

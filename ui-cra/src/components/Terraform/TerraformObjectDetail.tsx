@@ -21,6 +21,7 @@ import {
   useSyncTerraformObject,
   useToggleSuspendTerraformObject,
 } from '../../contexts/Terraform';
+import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
 import CodeView from '../CodeView';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -38,32 +39,6 @@ type Props = {
   name: string;
   namespace: string;
   clusterName: string;
-};
-
-export const getLabels = (
-  obj: TerraformObject | undefined,
-): [string, string][] => {
-  const labels = obj?.labels;
-  if (!labels) return [];
-  return Object.keys(labels).flatMap(key => {
-    return [[key, labels[key] as string]];
-  });
-};
-
-const metadataPrefix = 'metadata.weave.works/';
-
-export const getMetadata = (
-  obj: TerraformObject | undefined,
-): [string, string][] => {
-  const annotations = obj?.annotations;
-  if (!annotations) return [];
-  return Object.keys(annotations).flatMap(key => {
-    if (!key.startsWith(metadataPrefix)) {
-      return [];
-    } else {
-      return [[key.slice(metadataPrefix.length), annotations[key] as string]];
-    }
-  });
 };
 
 function TerraformObjectDetail({ className, ...params }: Props) {

@@ -3,6 +3,8 @@ import GitUrlParse from 'git-url-parse';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
 import { NotificationData } from '../contexts/Notifications';
 import { Routes } from './nav';
+import { GitOpsSet } from '../api/gitopssets/types.pb';
+import { TerraformObject } from '../api/terraform/types.pb';
 
 export const toPercent = (value: number, precision = 0) =>
   `${(100 * value).toFixed(precision)}%`;
@@ -65,3 +67,29 @@ export const formatError = (error: Error) =>
 export function gitlabOAuthRedirectURI(): string {
   return `${window.location.origin}${Routes.GitlabOauthCallback}`;
 }
+
+export const getLabels = (
+  obj: TerraformObject | GitOpsSet | undefined,
+): [string, string][] => {
+  const labels = obj?.labels;
+  if (!labels) return [];
+  return Object.keys(labels).flatMap(key => {
+    return [[key, labels[key] as string]];
+  });
+};
+
+const metadataPrefix = 'metadata.weave.works/';
+
+export const getMetadata = (
+  obj: TerraformObject | GitOpsSet | undefined,
+): [string, string][] => {
+  const annotations = obj?.annotations;
+  if (!annotations) return [];
+  return Object.keys(annotations).flatMap(key => {
+    if (!key.startsWith(metadataPrefix)) {
+      return [];
+    } else {
+      return [[key.slice(metadataPrefix.length), annotations[key] as string]];
+    }
+  });
+};

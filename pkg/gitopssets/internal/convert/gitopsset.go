@@ -66,5 +66,6 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		Generators: generators,
 		Type:         gs.GetObjectKind().GroupVersionKind().Kind,
 		Suspended: gs.Spec.Suspend,
+		ObservedGeneration:      gs.Status.ObservedGeneration,
 	}
 }

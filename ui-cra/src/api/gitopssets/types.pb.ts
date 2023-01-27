@@ -15,6 +15,7 @@ export type GitOpsSet = {
   annotations?: {[key: string]: string}
   sourceRef?: SourceRef
   suspended?: boolean
+  observedGeneration?: string
 }
 
 export type SourceRef = {
