@@ -243,7 +243,3 @@ func findValidator(provider pb.GitProvider, s *applicationServer) (auth.Provider
 
 	return nil, fmt.Errorf("unknown git provider %s", provider)
 }
-
-func doConfigError() {
-
-}
