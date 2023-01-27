@@ -73,6 +73,15 @@ service GitAuth {
     }
 
     /**
+    */
+    rpc AuthorizeBitbucketServer (AuthorizeBitbucketServerRequest) returns (AuthorizeBitbucketServerResponse) {
+        option (google.api.http) = {
+            post : "/v1/gitauth/auth_providers/bitbucketserver/authorize"
+            body: "*"
+        };
+    }
+
+    /**
     * AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
     * The returned token is useable for authentication with the GitOps server only.
     * See the GitLab OAuth docs for more more information:
@@ -182,4 +191,13 @@ message GetBitbucketServerAuthURLRequest {
 
 message GetBitbucketServerAuthURLResponse {
     string url = 1; // The URL that users must visit to authorize BitBucket Server authentication.
+}
+
+message AuthorizeBitbucketServerRequest {
+    string code        = 1; // The challenge code obtained from the OAuth callback
+    string redirectUri = 2; // The redirect URI that originated the OAuth flow
+}
+
+message AuthorizeBitbucketServerResponse {
+    string token = 1; // A token that can be used to authenticate the GitOps API server. 
 }

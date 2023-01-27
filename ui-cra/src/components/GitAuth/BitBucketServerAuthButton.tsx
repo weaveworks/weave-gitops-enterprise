@@ -1,9 +1,11 @@
 import { Button } from '@weaveworks/weave-gitops';
+import { CallbackStateContextType } from '@weaveworks/weave-gitops/ui/contexts/CallbackStateContext';
 import * as React from 'react';
 import styled from 'styled-components';
 import { GitAuth } from '../../contexts/GitAuth';
-import { Routes } from '../../utils/nav';
-import { navigate } from './utils';
+import { CallbackStateContext } from '../../contexts/GitAuth/CallbackStateContext';
+import { bitbucketServerOAuthRedirectURI } from '../../utils/formatters';
+import { navigate, storeCallbackState } from './utils';
 
 type Props = {
   className?: string;
@@ -11,11 +13,18 @@ type Props = {
 };
 
 function BitBucketAuthButton({ onClick, ...props }: Props) {
+  const { callbackState } = React.useContext<CallbackStateContextType>(
+    CallbackStateContext as any,
+  );
   const { gitAuthClient } = React.useContext(GitAuth);
 
   const handleClick = (e: any) => {
+    storeCallbackState(callbackState);
+
     gitAuthClient
-      .GetBitbucketServerAuthURL({ redirectUri: redirectURI() })
+      .GetBitbucketServerAuthURL({
+        redirectUri: bitbucketServerOAuthRedirectURI(),
+      })
       .then(res => {
         navigate(res?.url || '');
       });
@@ -31,7 +40,3 @@ function BitBucketAuthButton({ onClick, ...props }: Props) {
 export default styled(BitBucketAuthButton).attrs({
   className: BitBucketAuthButton.name,
 })``;
-
-export function redirectURI(): string {
-  return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
-}

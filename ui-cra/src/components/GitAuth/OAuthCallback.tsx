@@ -5,7 +5,6 @@ import {
   useLinkResolver,
   useRequestState,
 } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
 import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -16,7 +15,10 @@ import {
 } from '../../api/gitauth/gitauth.pb';
 import { GitAuth } from '../../contexts/GitAuth';
 import useNotifications from '../../contexts/Notifications';
-import { gitlabOAuthRedirectURI } from '../../utils/formatters';
+import {
+  bitbucketServerOAuthRedirectURI,
+  gitlabOAuthRedirectURI,
+} from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { getCallbackState, storeProviderToken } from './utils';
@@ -24,20 +26,32 @@ import { getCallbackState, storeProviderToken } from './utils';
 type Props = {
   code: string;
   provider: GitProvider;
+  error?: string | null;
+  errorDescription?: string | null;
 };
 
-type BitBucketErrorParams = {
-  error?: string[];
-  error_description?: string[];
+const ErrorMessage = ({ title, message }: any) => {
+  return (
+    <Alert severity="error">
+      <AlertTitle>OAuth Error: {title} </AlertTitle>
+      {message}
+    </Alert>
+  );
 };
 
-function OAuthCallback({ code, provider }: Props) {
+function OAuthCallback({
+  code,
+  provider,
+  error: paramsError,
+  errorDescription,
+}: Props) {
   const history = useHistory();
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
   const { gitAuthClient } = React.useContext(GitAuth);
   const params = qs.parse(history.location.search);
+  const errorState = error || paramsError;
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
@@ -50,6 +64,15 @@ function OAuthCallback({ code, provider }: Props) {
         }),
       );
     }
+
+    if (provider === GitProvider.BitBucketServer) {
+      req(
+        gitAuthClient.AuthorizeBitbucketServer({
+          code,
+          redirectUri: bitbucketServerOAuthRedirectURI(),
+        }),
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, gitAuthClient, provider]);
 
@@ -58,7 +81,7 @@ function OAuthCallback({ code, provider }: Props) {
       return;
     }
 
-    storeProviderToken(GitProvider.GitLab, res.token || '');
+    storeProviderToken(provider, res.token || '');
 
     const state = getCallbackState();
 
@@ -79,16 +102,17 @@ function OAuthCallback({ code, provider }: Props) {
       <ContentWrapper loading={loading}>
         <Flex wide align center>
           {loading && <CircularProgress />}
-          {(params as BitBucketErrorParams)?.error && (
+          {/* Two possible error sources: OAuth misconfiguration, 
+            or a problem with the code exchange. Handling both here.
+          */}
+          {error && (
             <Alert severity="error">
-              <AlertTitle>
-                Oauth Error:{' '}
-                {_.isArray(params?.error)
-                  ? params?.error.join(', ')
-                  : params?.error}
-              </AlertTitle>
-              {(params as BitBucketErrorParams)?.error_description?.join('\n')}
+              <AlertTitle>Request Error {error.name} </AlertTitle>
+              {error.message}
             </Alert>
+          )}
+          {paramsError && (
+            <ErrorMessage title={paramsError} message={errorDescription} />
           )}
         </Flex>
       </ContentWrapper>

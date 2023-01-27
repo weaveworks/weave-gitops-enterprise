@@ -289,10 +289,21 @@ const AppRoutes = () => {
         path={Routes.BitBucketOauthCallback}
         component={({ location }: any) => {
           const params = qs.parse(location.search);
+
+          const error = Array.isArray(params?.error)
+            ? params?.error.join(', ')
+            : params?.error;
+
+          const desc = Array.isArray(params.error_description)
+            ? params.error_description?.join('\n')
+            : params?.error_description;
+
           return (
             <OAuthCallback
               provider={GitProvider.BitBucketServer}
               code={params.code as string}
+              error={error}
+              errorDescription={desc}
             />
           );
         }}

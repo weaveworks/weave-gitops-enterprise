@@ -84,6 +84,15 @@ export type GetBitbucketServerAuthURLResponse = {
   url?: string
 }
 
+export type AuthorizeBitbucketServerRequest = {
+  code?: string
+  redirectUri?: string
+}
+
+export type AuthorizeBitbucketServerResponse = {
+  token?: string
+}
+
 export class GitAuth {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
     return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -99,6 +108,9 @@ export class GitAuth {
   }
   static GetBitbucketServerAuthURL(req: GetBitbucketServerAuthURLRequest, initReq?: fm.InitReq): Promise<GetBitbucketServerAuthURLResponse> {
     return fm.fetchReq<GetBitbucketServerAuthURLRequest, GetBitbucketServerAuthURLResponse>(`/v1/gitauth/auth_providers/bitbucketserver?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static AuthorizeBitbucketServer(req: AuthorizeBitbucketServerRequest, initReq?: fm.InitReq): Promise<AuthorizeBitbucketServerResponse> {
+    return fm.fetchReq<AuthorizeBitbucketServerRequest, AuthorizeBitbucketServerResponse>(`/v1/gitauth/auth_providers/bitbucketserver/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static AuthorizeGitlab(req: AuthorizeGitlabRequest, initReq?: fm.InitReq): Promise<AuthorizeGitlabResponse> {
     return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/gitauth/auth_providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})

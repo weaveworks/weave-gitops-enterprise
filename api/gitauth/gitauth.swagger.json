@@ -91,6 +91,38 @@
         ]
       }
     },
+    "/v1/gitauth/auth_providers/bitbucketserver/authorize": {
+      "post": {
+        "operationId": "GitAuth_AuthorizeBitbucketServer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeBitbucketServerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeBitbucketServerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
     "/v1/gitauth/auth_providers/github": {
       "get": {
         "summary": "GetGithubDeviceCode retrieves a temporary device code for Github authentication.\nThis code is used to start the Github device-flow.",
@@ -305,6 +337,25 @@
       }
     },
     "v1AuthenticateResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AuthorizeBitbucketServerRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "redirectUri": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AuthorizeBitbucketServerResponse": {
       "type": "object",
       "properties": {
         "token": {

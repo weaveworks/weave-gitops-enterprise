@@ -160,15 +160,6 @@ func (s *applicationServer) GetGitlabAuthURL(ctx context.Context, msg *pb.GetGit
 	return &pb.GetGitlabAuthURLResponse{Url: u.String()}, nil
 }
 
-func (s *applicationServer) GetBitbucketServerAuthURL(ctx context.Context, msg *pb.GetBitbucketServerAuthURLRequest) (*pb.GetBitbucketServerAuthURLResponse, error) {
-	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
-	if err != nil {
-		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
-	}
-
-	return &pb.GetBitbucketServerAuthURLResponse{Url: u.String()}, nil
-}
-
 func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.AuthorizeGitlabRequest) (*pb.AuthorizeGitlabResponse, error) {
 	tokenState, err := s.glAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
 	if err != nil {
@@ -181,6 +172,30 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 	}
 
 	return &pb.AuthorizeGitlabResponse{Token: token}, nil
+}
+
+func (s *applicationServer) GetBitbucketServerAuthURL(ctx context.Context, msg *pb.GetBitbucketServerAuthURLRequest) (*pb.GetBitbucketServerAuthURLResponse, error) {
+	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
+	if err != nil {
+		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
+	}
+
+	return &pb.GetBitbucketServerAuthURLResponse{Url: u.String()}, nil
+}
+
+func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *pb.AuthorizeBitbucketServerRequest) (*pb.AuthorizeBitbucketServerResponse, error) {
+	tokenState, err := s.bbAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
+	if err != nil {
+		return nil, fmt.Errorf("could not exchange code: %w", err)
+	}
+
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderBitBucketServer, tokenState.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	return &pb.AuthorizeBitbucketServerResponse{Token: token}, nil
+
 }
 
 func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {

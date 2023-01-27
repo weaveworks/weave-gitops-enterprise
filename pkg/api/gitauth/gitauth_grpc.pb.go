@@ -40,6 +40,8 @@ type GitAuthClient interface {
 	//
 	GetBitbucketServerAuthURL(ctx context.Context, in *GetBitbucketServerAuthURLRequest, opts ...grpc.CallOption) (*GetBitbucketServerAuthURLResponse, error)
 	//
+	AuthorizeBitbucketServer(ctx context.Context, in *AuthorizeBitbucketServerRequest, opts ...grpc.CallOption) (*AuthorizeBitbucketServerResponse, error)
+	//
 	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
 	// The returned token is useable for authentication with the GitOps server only.
 	// See the GitLab OAuth docs for more more information:
@@ -106,6 +108,15 @@ func (c *gitAuthClient) GetBitbucketServerAuthURL(ctx context.Context, in *GetBi
 	return out, nil
 }
 
+func (c *gitAuthClient) AuthorizeBitbucketServer(ctx context.Context, in *AuthorizeBitbucketServerRequest, opts ...grpc.CallOption) (*AuthorizeBitbucketServerResponse, error) {
+	out := new(AuthorizeBitbucketServerResponse)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/AuthorizeBitbucketServer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *gitAuthClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error) {
 	out := new(AuthorizeGitlabResponse)
 	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/AuthorizeGitlab", in, out, opts...)
@@ -159,6 +170,8 @@ type GitAuthServer interface {
 	//
 	GetBitbucketServerAuthURL(context.Context, *GetBitbucketServerAuthURLRequest) (*GetBitbucketServerAuthURLResponse, error)
 	//
+	AuthorizeBitbucketServer(context.Context, *AuthorizeBitbucketServerRequest) (*AuthorizeBitbucketServerResponse, error)
+	//
 	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
 	// The returned token is useable for authentication with the GitOps server only.
 	// See the GitLab OAuth docs for more more information:
@@ -191,6 +204,9 @@ func (UnimplementedGitAuthServer) GetGitlabAuthURL(context.Context, *GetGitlabAu
 }
 func (UnimplementedGitAuthServer) GetBitbucketServerAuthURL(context.Context, *GetBitbucketServerAuthURLRequest) (*GetBitbucketServerAuthURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBitbucketServerAuthURL not implemented")
+}
+func (UnimplementedGitAuthServer) AuthorizeBitbucketServer(context.Context, *AuthorizeBitbucketServerRequest) (*AuthorizeBitbucketServerResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeBitbucketServer not implemented")
 }
 func (UnimplementedGitAuthServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
@@ -304,6 +320,24 @@ func _GitAuth_GetBitbucketServerAuthURL_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitAuth_AuthorizeBitbucketServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeBitbucketServerRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitAuthServer).AuthorizeBitbucketServer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitauth.v1.GitAuth/AuthorizeBitbucketServer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitAuthServer).AuthorizeBitbucketServer(ctx, req.(*AuthorizeBitbucketServerRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GitAuth_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(AuthorizeGitlabRequest)
 	if err := dec(in); err != nil {
@@ -384,6 +418,10 @@ var GitAuth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetBitbucketServerAuthURL",
 			Handler:    _GitAuth_GetBitbucketServerAuthURL_Handler,
+		},
+		{
+			MethodName: "AuthorizeBitbucketServer",
+			Handler:    _GitAuth_AuthorizeBitbucketServer_Handler,
 		},
 		{
 			MethodName: "AuthorizeGitlab",
