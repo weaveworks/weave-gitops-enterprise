@@ -222,6 +222,50 @@ func TestSuspendTerraformObject(t *testing.T) {
 
 }
 
+func TestReplanTerraformObject(t *testing.T) {
+	ctx := context.Background()
+	client, k8s := setup(t)
+
+	obj := &tfctrl.Terraform{}
+	obj.Name = "my-obj"
+	obj.Namespace = "default"
+
+	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
+
+	assert.NoError(t, k8s.Create(context.Background(), obj))
+
+	done := make(chan error)
+	defer close(done)
+
+	go func() {
+		_, err := client.ReplanTerraformObject(ctx, &pb.ReplanTerraformObjectRequest{
+			ClusterName: "Default",
+			Name:        obj.Name,
+			Namespace:   obj.Namespace,
+		})
+		done <- err
+	}()
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	for {
+		select {
+		case <-ticker.C:
+
+			r := adapter.TerraformObjectAdapter{Terraform: obj}
+
+			if err := simulateReconcile(ctx, k8s, key, r.AsClientObject()); err != nil {
+				t.Fatalf("simulating reconcile: %s", err.Error())
+			}
+
+		case err := <-done:
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			return
+		}
+	}
+}
+
 func setup(t *testing.T) (pb.TerraformClient, client.Client) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
 	opts := terraform.ServerOpts{

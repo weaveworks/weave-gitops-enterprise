@@ -1,7 +1,7 @@
 import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import React from 'react';
 import styled from 'styled-components';
-import { IconButton } from '../CodeView';
+import { IconButton } from '../../CodeView';
 interface Props {
   command: string;
 }

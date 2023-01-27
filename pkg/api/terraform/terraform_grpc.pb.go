@@ -23,6 +23,7 @@ type TerraformClient interface {
 	SyncTerraformObject(ctx context.Context, in *SyncTerraformObjectRequest, opts ...grpc.CallOption) (*SyncTerraformObjectResponse, error)
 	ToggleSuspendTerraformObject(ctx context.Context, in *ToggleSuspendTerraformObjectRequest, opts ...grpc.CallOption) (*ToggleSuspendTerraformObjectResponse, error)
 	GetTerraformObjectPlan(ctx context.Context, in *GetTerraformObjectPlanRequest, opts ...grpc.CallOption) (*GetTerraformObjectPlanResponse, error)
+	ReplanTerraformObject(ctx context.Context, in *ReplanTerraformObjectRequest, opts ...grpc.CallOption) (*ReplanTerraformObjectResponse, error)
 }
 
 type terraformClient struct {
@@ -78,6 +79,15 @@ func (c *terraformClient) GetTerraformObjectPlan(ctx context.Context, in *GetTer
 	return out, nil
 }
 
+func (c *terraformClient) ReplanTerraformObject(ctx context.Context, in *ReplanTerraformObjectRequest, opts ...grpc.CallOption) (*ReplanTerraformObjectResponse, error) {
+	out := new(ReplanTerraformObjectResponse)
+	err := c.cc.Invoke(ctx, "/terraform.v1.Terraform/ReplanTerraformObject", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TerraformServer is the server API for Terraform service.
 // All implementations must embed UnimplementedTerraformServer
 // for forward compatibility
@@ -87,6 +97,7 @@ type TerraformServer interface {
 	SyncTerraformObject(context.Context, *SyncTerraformObjectRequest) (*SyncTerraformObjectResponse, error)
 	ToggleSuspendTerraformObject(context.Context, *ToggleSuspendTerraformObjectRequest) (*ToggleSuspendTerraformObjectResponse, error)
 	GetTerraformObjectPlan(context.Context, *GetTerraformObjectPlanRequest) (*GetTerraformObjectPlanResponse, error)
+	ReplanTerraformObject(context.Context, *ReplanTerraformObjectRequest) (*ReplanTerraformObjectResponse, error)
 	mustEmbedUnimplementedTerraformServer()
 }
 
@@ -108,6 +119,9 @@ func (UnimplementedTerraformServer) ToggleSuspendTerraformObject(context.Context
 }
 func (UnimplementedTerraformServer) GetTerraformObjectPlan(context.Context, *GetTerraformObjectPlanRequest) (*GetTerraformObjectPlanResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTerraformObjectPlan not implemented")
+}
+func (UnimplementedTerraformServer) ReplanTerraformObject(context.Context, *ReplanTerraformObjectRequest) (*ReplanTerraformObjectResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReplanTerraformObject not implemented")
 }
 func (UnimplementedTerraformServer) mustEmbedUnimplementedTerraformServer() {}
 
@@ -212,6 +226,24 @@ func _Terraform_GetTerraformObjectPlan_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Terraform_ReplanTerraformObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReplanTerraformObjectRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TerraformServer).ReplanTerraformObject(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/terraform.v1.Terraform/ReplanTerraformObject",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TerraformServer).ReplanTerraformObject(ctx, req.(*ReplanTerraformObjectRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Terraform_ServiceDesc is the grpc.ServiceDesc for Terraform service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -238,6 +270,10 @@ var Terraform_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetTerraformObjectPlan",
 			Handler:    _Terraform_GetTerraformObjectPlan_Handler,
+		},
+		{
+			MethodName: "ReplanTerraformObject",
+			Handler:    _Terraform_ReplanTerraformObject_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

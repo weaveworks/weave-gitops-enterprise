@@ -17,7 +17,7 @@ import (
 // ClusterHelmIndexerTracker tracks the helm indexers for each cluster.
 // We subscribe to cluster updates and start/stop indexers as needed.
 type ClusterHelmIndexerTracker struct {
-	Cache                 helm.ChartsCacherWriter
+	Cache                 helm.ChartsCacheWriter
 	ManagementClusterName string
 	ClusterWatchers       map[string]Watcher
 	newWatcherFunc        NewWatcherFunc
@@ -28,11 +28,11 @@ type Watcher interface {
 	Stop()
 }
 
-type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacheWriter) (Watcher, error)
 
 // NewClusterHelmIndexerTracker creates a new ClusterHelmIndexerTracker.
 // Pass in the management cluster name so we can determine if we need to use the proxy.
-func NewClusterHelmIndexerTracker(c helm.ChartsCacherWriter, managementClusterName string, newWatcherFunc NewWatcherFunc) *ClusterHelmIndexerTracker {
+func NewClusterHelmIndexerTracker(c helm.ChartsCacheWriter, managementClusterName string, newWatcherFunc NewWatcherFunc) *ClusterHelmIndexerTracker {
 	return &ClusterHelmIndexerTracker{
 		Cache:                 c,
 		ManagementClusterName: managementClusterName,
@@ -111,7 +111,7 @@ func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []
 	return nil
 }
 
-func NewIndexer(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacherWriter) (Watcher, error) {
+func NewIndexer(config *rest.Config, cluster types.NamespacedName, isManagementCluster bool, cache helm.ChartsCacheWriter) (Watcher, error) {
 	w, err := multiwatcher.NewWatcher(multiwatcher.Options{
 		ClusterRef:    cluster,
 		ClientConfig:  config,
