@@ -15,34 +15,6 @@ import (
 )
 
 func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsRequest) (*pb.ListGitOpsSetsResponse, error) {
-	// namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
-	// 	return &ctrl.GitOpsSetList{}
-	// })
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to query gitops sets: %w", err)
-	// }
-
-	// gitopssets := []*pb.GitOpsSet{}
-	// errors := []*pb.ListError{}
-
-	// for _, namespacedList := range namespacedLists {
-	// 	if namespacedList.Error != nil {
-	// 		errors = append(errors, &pb.ListError{
-	// 			Namespace: namespacedList.Namespace,
-	// 			Message:   err.Error(),
-	// 		})
-	// 	}
-	// 	gitOpsList := namespacedList.List.(*ctrl.GitOpsSetList)
-	// 	for _, gs := range gitOpsList.Items {
-	// 		gitopssets = append(gitopssets, convert.GitOpsToProto(gs))
-	// 	}
-	// }
-
-	// return &pb.ListGitOpsSetsResponse{
-	// 	Gitopssets: gitopssets,
-	// 	Errors:     errors,
-	// }, nil
-
 	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
 
 	if err != nil {

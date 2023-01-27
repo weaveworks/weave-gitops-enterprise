@@ -14,7 +14,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core';
-import useGitOpsSets from '../../hooks/gitopssets';
+import { useListGitOpsSets } from '../../contexts/GitOpsSets';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
@@ -30,7 +30,8 @@ const useStyles = makeStyles(() =>
 );
 
 const GitopsSets: FC = () => {
-  const { data, isLoading } = useGitOpsSets();
+  const { isLoading, data } = useListGitOpsSets();
+
   const gitopssets = data?.gitopssets;
 
   let initialFilterState = {
@@ -44,11 +45,12 @@ const GitopsSets: FC = () => {
   let fields: Field[] = [
     {
       label: 'Name',
-      value: ({ name, namespace }: GitOpsSet) => (
+      value: ({ name, namespace, clusterName }: GitOpsSet) => (
         <Link
           to={formatURL(Routes.GitOpsSetDetail, {
             name,
             namespace,
+            clusterName,
           })}
         >
           {name}

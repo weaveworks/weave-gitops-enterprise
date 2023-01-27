@@ -1,41 +1,32 @@
-import { Dialog } from '@material-ui/core';
+import { Box, Dialog } from '@material-ui/core';
 import {
   AppContext,
   Button,
-  CustomActions,
-  DependenciesView,
-  DialogYamlView,
-  EventsTable,
   Flex,
-  InfoField,
+  formatURL,
   InfoList,
-  Kind,
-  Metadata,
+  KubeStatusIndicator,
+  LinkResolverProvider,
   PageStatus,
-  ReconciledObjectsTable,
-  ReconciliationGraph,
   RouterTab,
-  Spacer,
   SubRouterTabs,
-  SyncButton,
-  useSyncFluxObject,
-  useToggleSuspend,
-  YamlView,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
 import { useRouteMatch } from 'react-router-dom';
 import { GitOpsSet } from '../../api/gitopssets/types.pb';
-import Text from './../../components/Text';
-import {
-  FluxObject,
-  FluxObjectNode,
-} from '@weaveworks/weave-gitops/ui/lib/objects';
 import { ObjectRef } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Routes } from '../../utils/nav';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
+import CodeView from '../CodeView';
+import { getLabels, getMetadata } from '../Terraform/TerraformObjectDetail';
+import { TableWrapper } from '../Shared';
+import TerraformInventoryTable from '../Terraform/TerraformInventoryTable';
+import useNotifications from '../../contexts/Notifications';
+import { useListGitOpsSets } from '../../contexts/GitOpsSets';
+import { useToggleSuspendTerraformObject } from '../../contexts/Terraform';
 
 export interface routeTab {
   name: string;
@@ -45,153 +36,94 @@ export interface routeTab {
 }
 
 type Props = {
-  gitOpsSet: GitOpsSet;
   className?: string;
-  info: InfoField[];
-  customTabs?: Array<routeTab>;
-  customActions?: JSX.Element[];
+  name: string;
+  namespace: string;
+  clusterName: string;
 };
 
-function GitOpsDetail({
-  gitOpsSet,
-  className,
-  info,
-  customTabs,
-  customActions,
-}: Props) {
-  // remove hardcoded object only clusterName is sorted out
-  var gitOpsSet = {
-    name: 'gitopsset-configmaps',
-    namespace: 'default',
-    inventory: [
-      { id: 'default_dev-info-configmap__ConfigMap', version: 'v1' },
-      { id: 'default_production-info-configmap__ConfigMap', version: 'v1' },
-      { id: 'default_staging-info-configmap__ConfigMap', version: 'v1' },
-    ],
-    conditions: [
-      {
-        type: 'Ready',
-        status: 'True',
-        reason: 'ReconciliationSucceeded',
-        message: '3 resources created',
-        timestamp: '2023-01-24 13:27:17 +0000 UTC',
-      },
-    ],
-    generators: [
-      '{"elements":[{"env":"dev","team":"dev-team"},{"env":"production","team":"ops-team"},{"env":"staging","team":"ops-team"}]}',
-    ],
-    clusterName: 'management',
-    type: 'GitOpsSet',
-    labels: {},
-    annotations: {
-      'kubectl.kubernetes.io/last-applied-configuration':
-        '{"apiVersion":"templates.weave.works/v1alpha1","kind":"GitOpsSet","metadata":{"annotations":{},"name":"gitopsset-configmaps","namespace":"default"},"spec":{"generators":[{"list":{"elements":[{"env":"dev","team":"dev-team"},{"env":"production","team":"ops-team"},{"env":"staging","team":"ops-team"}]}}],"templates":[{"apiVersion":"v1","kind":"ConfigMap","metadata":{"name":"{{ .env }}-info-configmap","namespace":"default"},"spec":{"data":{"description":"This is a configmap for the {{ .env }} environment","env":"{{ .env }}","team":"{{ .team }}"}}}]}}\n',
-    },
-    sourceRef: {
-      apiVersion: 'templates.weave.works/v1alpha1',
-      kind: 'GitOpsSet',
-      name: 'gitopsset-configmaps',
-      namespace: 'default',
-    },
-    suspend: false,
-  } as GitOpsSet;
-  console.log(gitOpsSet);
+function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   const { path } = useRouteMatch();
-  const { setNodeYaml, appState } = React.useContext(AppContext);
-  const nodeYaml = appState.nodeYaml;
-  // const sync = useSyncFluxObject([
-  //   {
-  //     name: gitOpsSet.name,
-  //     namespace: gitOpsSet.namespace,
-  //     clusterName: gitOpsSet.clusterName,
-  //     kind: 'GitOpsSet' as Kind,
-  //   },
-  // ]);
+  const [syncing, setSyncing] = React.useState(false);
+  const [suspending, setSuspending] = React.useState(false);
+  const { data } = useListGitOpsSets();
 
-  // const suspend = useToggleSuspend(
-  //   {
-  //     objects: [
-  //       {
-  //         name: gitOpsSet.name,
-  //         namespace: gitOpsSet.namespace,
-  //         clusterName: gitOpsSet.clusterName,
-  //         kind: gitOpsSet.type,
-  //       },
-  //     ],
-  //     suspend: !gitOpsSet.suspended,
-  //   },
-  //   'gitOpsSet',
-  // );
+  const gitOpsSet = data?.gitopssets?.find(
+    gs =>
+      gs.name === name &&
+      gs.namespace === namespace &&
+      gs.clusterName === clusterName,
+  );
+  // const sync = useSyncGitOpsSet({
+  //   name,
+  //   namespace,
+  //   clusterName,
+  // });
+  const toggleSuspend = useToggleSuspendTerraformObject({
+    name,
+    namespace,
+    clusterName,
+  });
+  const { setNotifications } = useNotifications();
 
-  // default routes
-  const defaultTabs: Array<routeTab> = [
-    {
-      name: 'Details',
-      path: `${path}/details`,
-      component: () => {
-        return (
-          <>
-            <InfoList items={info} />
-            {/* <Metadata metadata={gitOpsSet.metadata} labels={gitOpsSet.labels} /> */}
-            {/* <ReconciledObjectsTable automation={gitOpsSet} /> */}
-          </>
-        );
-      },
-      visible: true,
-    },
-    {
-      name: 'Events',
-      path: `${path}/events`,
-      component: () => {
-        return (
-          <ListEvents
-            involvedObject={{
-              kind: 'GitOpsSet',
-              name: gitOpsSet.name,
-              namespace: gitOpsSet.namespace,
-            }}
-          />
-        );
-      },
-      visible: true,
-    },
-    {
-      name: 'Graph',
-      path: `${path}/graph`,
-      component: () => {
-        return (
-          <ReconciliationGraph
-            parentObject={gitOpsSet}
-            source={gitOpsSet.sourceRef || ({} as ObjectRef)}
-          />
-        );
-      },
-      visible: true,
-    },
-    {
-      name: 'Dependencies',
-      path: `${path}/dependencies`,
-      component: () => <DependenciesView automation={gitOpsSet} />,
-      visible: true,
-    },
-    {
-      name: 'Yaml',
-      path: `${path}/yaml`,
-      component: () => {
-        return (
-          <YamlView
-            yaml={gitOpsSet?.generators?.[0] || ''}
-            object={{
-              kind: 'GitOpsSet' as Kind,
-              name: gitOpsSet.name,
-              namespace: gitOpsSet.namespace,
-            }}
-          />
-        );
-      },
-      visible: true,
-    },
-  ];
+  // const handleSyncClick = () => {
+  //   setSyncing(true);
+
+  //   return sync()
+  //     .then(() => {
+  //       setNotifications([
+  //         {
+  //           message: { text: 'Sync successful' },
+  //           severity: 'success',
+  //         },
+  //       ]);
+  //     })
+  //     .catch(err => {
+  //       setNotifications([
+  //         {
+  //           message: { text: err?.message },
+  //           severity: 'error',
+  //         },
+  //       ]);
+  //     })
+  //     .finally(() => setSyncing(false));
+  // };
+
+  const handleSuspendClick = () => {
+    setSuspending(true);
+
+    const suspend = !gitOpsSet?.suspended;
+
+    return toggleSuspend(suspend)
+      .then(() => {
+        setNotifications([
+          {
+            message: {
+              text: `Successfully ${suspend ? 'suspended' : 'resumed'} ${
+                gitOpsSet?.name
+              }`,
+            },
+            severity: 'success',
+          },
+        ]);
+      })
+      .catch(err => {
+        setNotifications([
+          { message: { text: err.message }, severity: 'error' },
+        ]);
+      })
+      .finally(() => setSuspending(false));
+  };
+
+  const resolver = (type: string, params: any) => {
+    return (
+      formatURL(Routes.TerraformDetail, {
+        name: params.name,
+        namespace: params.namespace,
+        clusterName: params.clusterName,
+      }) || ''
+    );
+  };
 
   return (
     <PageTemplate
@@ -207,81 +139,95 @@ function GitOpsDetail({
       ]}
     >
       <ContentWrapper>
-        <Flex wide tall column className={className}>
-          <Text size="large" semiBold titleHeight>
-            {gitOpsSet.name}
-          </Text>
-          <PageStatus
-            conditions={gitOpsSet.conditions || []}
-            suspended={gitOpsSet.suspended || false}
+        <Box paddingBottom={3}>
+          <KubeStatusIndicator
+            conditions={gitOpsSet?.conditions || []}
+            suspended={gitOpsSet?.suspended}
           />
-          <Flex wide start>
-            {/* <SyncButton
-              onClick={opts => sync.mutateAsync(opts)}
-              loading={sync.isLoading}
-              disabled={gitOpsSet.suspended}
-            />
-            <Spacer padding="xs" />
+        </Box>
+        <Box paddingBottom={3}>
+          <Flex>
             <Button
-              onClick={() => suspend.mutateAsync()}
-              loading={suspend.isLoading}
+              loading={syncing}
+              variant="outlined"
+              // onClick={handleSyncClick}
+              style={{ marginRight: 0, textTransform: 'uppercase' }}
             >
-              {gitOpsSet.suspended ? 'Resume' : 'Suspend'}
-            </Button> */}
-            {customActions && <CustomActions actions={customActions} />}
+              Sync
+            </Button>
+            <Box paddingLeft={1}>
+              <Button
+                loading={suspending}
+                variant="outlined"
+                onClick={handleSuspendClick}
+                style={{ marginRight: 0, textTransform: 'uppercase' }}
+              >
+                {gitOpsSet?.suspended ? 'Resume' : 'Suspend'}
+              </Button>
+            </Box>
           </Flex>
-
-          <SubRouterTabs rootPath={`${path}/details`}>
-            {defaultTabs.map(
-              (subRoute, index) =>
-                subRoute.visible && (
-                  <RouterTab
-                    name={subRoute.name}
-                    path={subRoute.path}
-                    key={index}
-                  >
-                    {subRoute.component()}
-                  </RouterTab>
-                ),
-            )}
-            {customTabs?.map(
-              (customTab, index) =>
-                customTab.visible && (
-                  <RouterTab
-                    name={customTab.name}
-                    path={customTab.path}
-                    key={index}
-                  >
-                    {customTab.component()}
-                  </RouterTab>
-                ),
-            )}
-          </SubRouterTabs>
-          {nodeYaml && (
-            <Dialog
-              open={!!nodeYaml}
-              onClose={() => setNodeYaml({} as FluxObjectNode | FluxObject)}
-              maxWidth="md"
-              fullWidth
-            >
-              <DialogYamlView
-                object={{
-                  name: nodeYaml.name,
-                  namespace: nodeYaml.namespace,
-                  kind: nodeYaml.type,
-                }}
-                yaml={nodeYaml.yaml}
+        </Box>
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
+            <Box style={{ width: '100%' }}>
+              <InfoList
+                data-testid="info-list"
+                items={[
+                  ['Source', gitOpsSet?.sourceRef?.name],
+                  // ['Applied Revision', gitOpsSet?.appliedRevision],
+                  ['Cluster', gitOpsSet?.clusterName],
+                  // ['Path', gitOpsSet?.path],
+                  // [
+                  //   'Interval',
+                  //   <Interval interval={gitOpsSet?.interval as any} />,
+                  // ],
+                  // ['Last Update', gitOpsSet?.lastUpdatedAt],
+                  ['Suspended', gitOpsSet?.suspended ? 'True' : 'False'],
+                ]}
               />
-            </Dialog>
-          )}
-        </Flex>
+              {/* <Metadata
+                metadata={getMetadata(gitOpsSet)}
+                labels={getLabels(gitOpsSet)}
+              /> */}
+              <TableWrapper>
+                {/* <TerraformInventoryTable rows={gitOpsSet?.inventory || []} /> */}
+              </TableWrapper>
+            </Box>
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
+            <ListEvents
+              clusterName={gitOpsSet?.clusterName}
+              involvedObject={{
+                kind: 'GitOpsSet',
+                name: gitOpsSet?.name,
+                namespace: gitOpsSet?.namespace,
+              }}
+            />
+          </RouterTab>
+          <RouterTab name="Dependencies" path={`${path}/dependencies`}>
+            <LinkResolverProvider resolver={resolver}>
+              {/* <TerraformDependenciesView object={gitOpsSet || {}} /> */}
+            </LinkResolverProvider>
+          </RouterTab>
+          <RouterTab name="Yaml" path={`${path}/yaml`}>
+            <CodeView
+              kind="GitOpsSet"
+              object={{
+                name: gitOpsSet?.name,
+                namespace: gitOpsSet?.namespace,
+              }}
+              //we should be able to handle an array
+              code={gitOpsSet?.generators?.[0] || ''}
+            />
+          </RouterTab>
+        </SubRouterTabs>
       </ContentWrapper>
     </PageTemplate>
   );
 }
 
 export default styled(GitOpsDetail).attrs({
-  className: GitOpsDetail.name,
+  className: GitOpsDetail?.name,
 })`
   ${PageStatus} {
     padding: ${props => props.theme.spacing.small} 0px;

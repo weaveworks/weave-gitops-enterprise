@@ -32,6 +32,13 @@ service GitOpsSets {
         };
     }
 
+    rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest) returns (ToggleSuspendGitOpsSetResponse) {
+        option (google.api.http) = {
+            post : "/v1/gitopssets/suspend"
+            body: "*"
+        }; 
+    }
+
 }
 
 message ListGitOpsSetsRequest {
@@ -51,4 +58,14 @@ message GetGitOpsSetRequest {
 
 message GetGitOpsSetResponse {
     GitOpsSet gitops_set = 1;
+}
+
+message ToggleSuspendGitOpsSetRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+    bool   suspend     = 4;
+}
+
+message ToggleSuspendGitOpsSetResponse {
 }

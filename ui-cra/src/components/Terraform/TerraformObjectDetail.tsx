@@ -40,7 +40,9 @@ type Props = {
   clusterName: string;
 };
 
-const getLabels = (obj: TerraformObject | undefined): [string, string][] => {
+export const getLabels = (
+  obj: TerraformObject | undefined,
+): [string, string][] => {
   const labels = obj?.labels;
   if (!labels) return [];
   return Object.keys(labels).flatMap(key => {
@@ -50,7 +52,9 @@ const getLabels = (obj: TerraformObject | undefined): [string, string][] => {
 
 const metadataPrefix = 'metadata.weave.works/';
 
-const getMetadata = (obj: TerraformObject | undefined): [string, string][] => {
+export const getMetadata = (
+  obj: TerraformObject | undefined,
+): [string, string][] => {
   const annotations = obj?.annotations;
   if (!annotations) return [];
   return Object.keys(annotations).flatMap(key => {

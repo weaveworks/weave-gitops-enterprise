@@ -60,6 +60,7 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		},
 		Labels: gs.Labels,
 		Annotations:         gs.Annotations,
+		ClusterName: clusterName,
 		Inventory:  inv,
 		Conditions: conditions,
 		Generators: generators,

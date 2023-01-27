@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 type GitOpsSetsClient interface {
 	ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error)
 	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
+	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
 }
 
 type gitOpsSetsClient struct {
@@ -48,12 +49,22 @@ func (c *gitOpsSetsClient) GetGitOpsSet(ctx context.Context, in *GetGitOpsSetReq
 	return out, nil
 }
 
+func (c *gitOpsSetsClient) ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error) {
+	out := new(ToggleSuspendGitOpsSetResponse)
+	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GitOpsSetsServer is the server API for GitOpsSets service.
 // All implementations must embed UnimplementedGitOpsSetsServer
 // for forward compatibility
 type GitOpsSetsServer interface {
 	ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error)
 	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
+	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }
 
@@ -66,6 +77,9 @@ func (UnimplementedGitOpsSetsServer) ListGitOpsSets(context.Context, *ListGitOps
 }
 func (UnimplementedGitOpsSetsServer) GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGitOpsSet not implemented")
+}
+func (UnimplementedGitOpsSetsServer) ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendGitOpsSet not implemented")
 }
 func (UnimplementedGitOpsSetsServer) mustEmbedUnimplementedGitOpsSetsServer() {}
 
@@ -116,6 +130,24 @@ func _GitOpsSets_GetGitOpsSet_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitOpsSets_ToggleSuspendGitOpsSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ToggleSuspendGitOpsSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitOpsSetsServer).ToggleSuspendGitOpsSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitOpsSetsServer).ToggleSuspendGitOpsSet(ctx, req.(*ToggleSuspendGitOpsSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GitOpsSets_ServiceDesc is the grpc.ServiceDesc for GitOpsSets service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -130,6 +162,10 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetGitOpsSet",
 			Handler:    _GitOpsSets_GetGitOpsSet_Handler,
+		},
+		{
+			MethodName: "ToggleSuspendGitOpsSet",
+			Handler:    _GitOpsSets_ToggleSuspendGitOpsSet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

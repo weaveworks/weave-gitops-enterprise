@@ -10,11 +10,12 @@ message GitOpsSet {
     repeated ResourceRef  inventory                = 3;
     repeated Condition    conditions               = 4;
     repeated string       generators               = 5;
-    string                type                     = 6;
-    map<string, string>                labels      = 7;
-    map<string, string>                annotations = 8;
-    SourceRef sourceRef            = 9;
-    bool suspended = 10;
+    string                cluster_name             = 6;
+    string                type                     = 7;
+    map<string, string>                labels      = 8;
+    map<string, string>                annotations = 9;
+    SourceRef sourceRef            = 10;
+    bool suspended = 11;
 }
 
 message SourceRef {

@@ -88,6 +88,38 @@
           "GitOpsSets"
         ]
       }
+    },
+    "/v1/gitopssets/suspend": {
+      "post": {
+        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
     }
   },
   "definitions": {
@@ -173,6 +205,9 @@
             "type": "string"
           }
         },
+        "clusterName": {
+          "type": "string"
+        },
         "type": {
           "type": "string"
         },
@@ -254,6 +289,26 @@
           "type": "string"
         }
       }
+    },
+    "v1ToggleSuspendGitOpsSetRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "suspend": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1ToggleSuspendGitOpsSetResponse": {
+      "type": "object"
     }
   }
 }

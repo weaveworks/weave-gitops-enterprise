@@ -9,6 +9,7 @@ export type GitOpsSet = {
   inventory?: ResourceRef[]
   conditions?: Condition[]
   generators?: string[]
+  clusterName?: string
   type?: string
   labels?: {[key: string]: string}
   annotations?: {[key: string]: string}
