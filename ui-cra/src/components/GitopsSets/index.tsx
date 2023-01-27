@@ -44,12 +44,11 @@ const GitopsSets: FC = () => {
   let fields: Field[] = [
     {
       label: 'Name',
-      value: ({ name, namespace, clusterName }: GitOpsSet) => (
+      value: ({ name, namespace }: GitOpsSet) => (
         <Link
           to={formatURL(Routes.GitOpsSetDetail, {
             name,
             namespace,
-            clusterName,
           })}
         >
           {name}

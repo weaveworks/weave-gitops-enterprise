@@ -54,16 +54,16 @@ spec:
                       description: GitRepositoryGenerator generates from files in
                         a Flux GitRepository resource.
                       properties:
-                        directories:
-                          description: Directories is a set of rules for identifying
-                            directories to be parsed.
+                        files:
+                          description: Files is a set of rules for identifying files
+                            to be parsed.
                           items:
-                            description: GitRepositoryGeneratorDirectoryItem defines
-                              a path to be parsed (or excluded from) for files.
+                            description: GitRepositoryGeneratorFileItemm defines a
+                              path to a file to be parsed when generating.
                             properties:
-                              exclude:
-                                type: boolean
                               path:
+                                description: Path is the name of a file to read and
+                                  generate from can be JSON or YAML.
                                 type: string
                             required:
                             - path
@@ -73,8 +73,6 @@ spec:
                           description: RepositoryRef is the name of a GitRepository
                             resource to be generated from.
                           type: string
-                      required:
-                      - repositoryRef
                       type: object
                     list:
                       description: ListGenerator generates from a hard-coded list.
@@ -83,18 +81,31 @@ spec:
                           items:
                             x-kubernetes-preserve-unknown-fields: true
                           type: array
-                      required:
-                      - elements
                       type: object
                   type: object
                 type: array
+              suspend:
+                description: Suspend tells the controller to suspend the reconciliation
+                  of this GitOpsSet.
+                type: boolean
               templates:
                 description: Templates are a set of YAML templates that are rendered
                   into resources from the data supplied by the generators.
                 items:
                   description: // ©itOpsSetTemplate describes a resource to create
+                  properties:
+                    content:
+                      description: Content is the YAML to be templated and generated.
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    repeat:
+                      description: Repeat is a JSONPath string defining that the template
+                        content should be repeated for each of the matching elements
+                        in the JSONPath expression. https://kubernetes.io/docs/reference/kubectl/jsonpath/
+                      type: string
+                  required:
+                  - content
                   type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: array
             type: object
           status:
@@ -192,8 +203,6 @@ spec:
                       - v
                       type: object
                     type: array
-                required:
-                - entries
                 type: object
               observedGeneration:
                 description: ObservedGeneration is the last observed generation of

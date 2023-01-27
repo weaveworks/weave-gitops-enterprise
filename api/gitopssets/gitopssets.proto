@@ -36,19 +36,17 @@ service GitOpsSets {
 
 message ListGitOpsSetsRequest {
     string namespace   = 1;
-    string clusterName = 2;
 }
 
 message ListGitOpsSetsResponse {
     repeated GitOpsSet gitopssets = 1;
-    repeated ListError errors = 2;
+    repeated GitOpsSetListError errors = 2;
 }
 
 message GetGitOpsSetRequest {
     string name        = 1;
     string namespace   = 2;
     string kind        = 3;
-    string clusterName = 4;
 }
 
 message GetGitOpsSetResponse {

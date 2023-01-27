@@ -8,19 +8,17 @@ import * as fm from "../../fetch.pb"
 import * as GitopssetsV1Types from "./types.pb"
 export type ListGitOpsSetsRequest = {
   namespace?: string
-  clusterName?: string
 }
 
 export type ListGitOpsSetsResponse = {
   gitopssets?: GitopssetsV1Types.GitOpsSet[]
-  errors?: GitopssetsV1Types.ListError[]
+  errors?: GitopssetsV1Types.GitOpsSetListError[]
 }
 
 export type GetGitOpsSetRequest = {
   name?: string
   namespace?: string
   kind?: string
-  clusterName?: string
 }
 
 export type GetGitOpsSetResponse = {

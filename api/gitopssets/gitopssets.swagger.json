@@ -52,12 +52,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -85,12 +79,6 @@
         "parameters": [
           {
             "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -185,9 +173,6 @@
             "type": "string"
           }
         },
-        "clusterName": {
-          "type": "string"
-        },
         "type": {
           "type": "string"
         },
@@ -211,13 +196,16 @@
         }
       }
     },
-    "v1ListError": {
+    "v1GitOpsSetListError": {
       "type": "object",
       "properties": {
         "namespace": {
           "type": "string"
         },
         "message": {
+          "type": "string"
+        },
+        "clusterName": {
           "type": "string"
         }
       }
@@ -234,7 +222,7 @@
         "errors": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1ListError"
+            "$ref": "#/definitions/v1GitOpsSetListError"
           }
         }
       }

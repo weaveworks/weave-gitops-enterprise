@@ -35,6 +35,7 @@ import { ObjectRef } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Routes } from '../../utils/nav';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
+import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 
 export interface routeTab {
   name: string;
@@ -58,7 +59,7 @@ function GitOpsDetail({
   customTabs,
   customActions,
 }: Props) {
-  // remove hardcoded object only detail link is fixed
+  // remove hardcoded object only clusterName is sorted out
   var gitOpsSet = {
     name: 'gitopsset-configmaps',
     namespace: 'default',
@@ -79,7 +80,7 @@ function GitOpsDetail({
     generators: [
       '{"elements":[{"env":"dev","team":"dev-team"},{"env":"production","team":"ops-team"},{"env":"staging","team":"ops-team"}]}',
     ],
-    clusterName: '',
+    clusterName: 'management',
     type: 'GitOpsSet',
     labels: {},
     annotations: {
@@ -98,29 +99,29 @@ function GitOpsDetail({
   const { path } = useRouteMatch();
   const { setNodeYaml, appState } = React.useContext(AppContext);
   const nodeYaml = appState.nodeYaml;
-  const sync = useSyncFluxObject([
-    {
-      name: gitOpsSet.name,
-      namespace: gitOpsSet.namespace,
-      clusterName: gitOpsSet.clusterName,
-      kind: 'GitOpsSet' as Kind,
-    },
-  ]);
+  // const sync = useSyncFluxObject([
+  //   {
+  //     name: gitOpsSet.name,
+  //     namespace: gitOpsSet.namespace,
+  //     clusterName: gitOpsSet.clusterName,
+  //     kind: 'GitOpsSet' as Kind,
+  //   },
+  // ]);
 
-  const suspend = useToggleSuspend(
-    {
-      objects: [
-        {
-          name: gitOpsSet.name,
-          namespace: gitOpsSet.namespace,
-          clusterName: gitOpsSet.clusterName,
-          kind: gitOpsSet.type,
-        },
-      ],
-      suspend: !gitOpsSet.suspended,
-    },
-    'gitOpsSet',
-  );
+  // const suspend = useToggleSuspend(
+  //   {
+  //     objects: [
+  //       {
+  //         name: gitOpsSet.name,
+  //         namespace: gitOpsSet.namespace,
+  //         clusterName: gitOpsSet.clusterName,
+  //         kind: gitOpsSet.type,
+  //       },
+  //     ],
+  //     suspend: !gitOpsSet.suspended,
+  //   },
+  //   'gitOpsSet',
+  // );
 
   // default routes
   const defaultTabs: Array<routeTab> = [
@@ -132,7 +133,7 @@ function GitOpsDetail({
           <>
             <InfoList items={info} />
             {/* <Metadata metadata={gitOpsSet.metadata} labels={gitOpsSet.labels} /> */}
-            <ReconciledObjectsTable automation={gitOpsSet} />
+            {/* <ReconciledObjectsTable automation={gitOpsSet} /> */}
           </>
         );
       },
@@ -143,13 +144,11 @@ function GitOpsDetail({
       path: `${path}/events`,
       component: () => {
         return (
-          <EventsTable
-            namespace={gitOpsSet.namespace}
+          <ListEvents
             involvedObject={{
-              kind: gitOpsSet.type,
+              kind: 'GitOpsSet',
               name: gitOpsSet.name,
               namespace: gitOpsSet.namespace,
-              clusterName: gitOpsSet.clusterName,
             }}
           />
         );
@@ -217,7 +216,7 @@ function GitOpsDetail({
             suspended={gitOpsSet.suspended || false}
           />
           <Flex wide start>
-            <SyncButton
+            {/* <SyncButton
               onClick={opts => sync.mutateAsync(opts)}
               loading={sync.isLoading}
               disabled={gitOpsSet.suspended}
@@ -228,7 +227,7 @@ function GitOpsDetail({
               loading={suspend.isLoading}
             >
               {gitOpsSet.suspended ? 'Resume' : 'Suspend'}
-            </Button>
+            </Button> */}
             {customActions && <CustomActions actions={customActions} />}
           </Flex>
 

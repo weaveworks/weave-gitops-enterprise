@@ -42,7 +42,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.18.0
 	github.com/fluxcd/pkg/runtime v0.25.0
 	github.com/fluxcd/pkg/untar v0.2.0
-	github.com/fluxcd/source-controller/api v0.32.1
+	github.com/fluxcd/source-controller/api v0.33.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -59,7 +59,7 @@ require (
 	github.com/spf13/viper v1.13.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
-	github.com/weaveworks/gitopssets-controller v0.1.0
+	github.com/weaveworks/gitopssets-controller v0.1.1-0.20230127135242-6d83a5c500b3
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
@@ -106,7 +106,10 @@ require (
 	github.com/fluxcd/image-automation-controller/api v0.27.0 // indirect
 	github.com/fluxcd/image-reflector-controller/api v0.23.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.29.1 // indirect
+	github.com/fluxcd/pkg/http/fetch v0.3.0 // indirect
+	github.com/fluxcd/pkg/tar v0.2.0 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
+	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
 	github.com/google/go-github/v47 v47.1.0 // indirect

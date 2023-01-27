@@ -9,7 +9,6 @@ export type GitOpsSet = {
   inventory?: ResourceRef[]
   conditions?: Condition[]
   generators?: string[]
-  clusterName?: string
   type?: string
   labels?: {[key: string]: string}
   annotations?: {[key: string]: string}
@@ -24,9 +23,10 @@ export type SourceRef = {
   namespace?: string
 }
 
-export type ListError = {
+export type GitOpsSetListError = {
   namespace?: string
   message?: string
+  clusterName?: string
 }
 
 export type ResourceRef = {
