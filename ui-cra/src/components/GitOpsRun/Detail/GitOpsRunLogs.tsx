@@ -19,7 +19,7 @@ type Props = {
 
 const Header = styled(Flex)`
   background: ${props => props.theme.colors.neutral10};
-  padding: ${props => props.theme.spacing.small};
+  padding: ${props => props.theme.spacing.xs};
   width: 100%;
   border-bottom: 1px solid ${props => props.theme.colors.neutral20};
 `;
@@ -28,13 +28,15 @@ const LogRow: React.FC<{ log: Log }> = ({ log }) => {
   return (
     <TableRow>
       <TableCell>
-        {log.severity === 'info' ? (
-          <Info color="primary" />
-        ) : (
-          <Error color="secondary" />
-        )}
+        <Flex /*this flex centers the icon*/>
+          {log.severity === 'info' ? (
+            <Info color="primary" fontSize="inherit" />
+          ) : (
+            <Error color="secondary" fontSize="inherit" />
+          )}
+        </Flex>
       </TableCell>
-      <TableCell>{log.timestamp || '-'}</TableCell>
+      <TableCell className="gray">{log.timestamp || '-'}</TableCell>
       <TableCell>{log.source || '-'}</TableCell>
       <TableCell>{log.message || '-'}</TableCell>
     </TableRow>
@@ -89,5 +91,16 @@ function GitOpsRunLogs({ className, logs }: Props) {
 export default styled(GitOpsRunLogs).attrs({ className: GitOpsRunLogs.name })`
   .pad-right {
     margin-right: ${props => props.theme.spacing.xs};
+  }
+  .MuiTableCell-root {
+    line-height: 1;
+    padding: 4px;
+    border-bottom: none;
+    &.gray {
+      color: ${props => props.theme.colors.neutral30};
+    }
+  }
+  .MuiTableRow-root {
+    border-bottom: none;
   }
 `;
