@@ -25,6 +25,14 @@ const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
     clusterName: 'default/run-master-fdd0a0b7',
   });
 
+  // Previous args (which displayed the same error)
+
+  // const { isLoading, data, error } = useGetLogs({
+  //   namespace,
+  //   sessionId: name,
+  //   clusterName,
+  // });
+
   console.log('logs:');
   console.log(data);
 
