@@ -22,6 +22,7 @@ const Header = styled(Flex)`
   padding: ${props => props.theme.spacing.xs};
   width: 100%;
   border-bottom: 1px solid ${props => props.theme.colors.neutral20};
+  margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
 const LogRow: React.FC<{ log: Log }> = ({ log }) => {
@@ -38,7 +39,7 @@ const LogRow: React.FC<{ log: Log }> = ({ log }) => {
       </TableCell>
       <TableCell className="gray">{log.timestamp || '-'}</TableCell>
       <TableCell>{log.source || '-'}</TableCell>
-      <TableCell>{log.message || '-'}</TableCell>
+      <TableCell className="break-word">{log.message || '-'}</TableCell>
     </TableRow>
   );
 };
@@ -96,6 +97,11 @@ export default styled(GitOpsRunLogs).attrs({ className: GitOpsRunLogs.name })`
     line-height: 1;
     padding: 4px;
     border-bottom: none;
+    white-space: nowrap;
+    &.break-word {
+      white-space: normal;
+      word-break: break-word;
+    }
     &.gray {
       color: ${props => props.theme.colors.neutral30};
     }
