@@ -207,6 +207,10 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 
 	ref.Domain = addSchemeToDomain(ref.Domain)
 
+	// Add the subgroups
+	ref.Organization = strings.Join(append([]string{ref.Organization}, ref.SubOrganizations...), "/")
+	ref.SubOrganizations = nil
+
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
 		func(err error) bool { return errors.Is(err, gitprovider.ErrNotFound) },
