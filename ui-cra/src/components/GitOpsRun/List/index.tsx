@@ -1,6 +1,6 @@
 import { useListObjects } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { PageTemplate } from '../../Layout/PageTemplate';
 
 import GitOpsRunTable from './GitOpsRunTable';
 import NoRunsMessage from './NoRunsMessage';

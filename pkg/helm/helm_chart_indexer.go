@@ -16,42 +16,6 @@ import (
 // dbFile is the name of the sqlite3 database file
 const dbFile = "charts.db"
 
-type ChartsCacherWriter interface {
-	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
-	Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error
-	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
-}
-
-type ChartsCacheReader interface {
-	ListChartsByRepositoryAndCluster(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, kind string) ([]Chart, error)
-	IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error)
-	GetChartValues(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) ([]byte, error)
-	UpdateValuesYaml(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart, valuesYaml []byte) error
-	GetLatestVersion(ctx context.Context, clusterRef, repoRef types.NamespacedName, name string) (string, error)
-	GetLayer(ctx context.Context, clusterRef, repoRef types.NamespacedName, name, version string) (string, error)
-}
-
-type ChartsCache interface {
-	ChartsCacheReader
-	ChartsCacherWriter
-}
-
-// ObjectReference points to a resource.
-type ObjectReference struct {
-	Kind       string
-	APIVersion string
-	Name       string
-	Namespace  string
-}
-
-// Chart holds the name and version of a chart.
-type Chart struct {
-	Name    string
-	Version string
-	Kind    string
-	Layer   string
-}
-
 // HelmChartIndexer indexs details of Helm charts that have been seen in Helm
 // repositories.
 type HelmChartIndexer struct {

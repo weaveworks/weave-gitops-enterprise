@@ -33,6 +33,7 @@ import {
   GetTerraformObjectResponse,
   GetTerraformObjectPlanResponse,
   ListTerraformObjectsResponse,
+  ReplanTerraformObjectResponse,
   SyncTerraformObjectResponse,
   Terraform,
   ToggleSuspendTerraformObjectResponse,
@@ -328,7 +329,9 @@ export class TerraformClientMock implements Terraform {
     return promisify(this.GetTerraformObjectReturns);
   }
 
-  GetTerraformObjectPlanReturns: GetTerraformObjectPlanResponse = {};
+  GetTerraformObjectPlanReturns: GetTerraformObjectPlanResponse = {
+    enablePlanViewing: true,
+  };
   GetTerraformObjectPlan() {
     return promisify(this.GetTerraformObjectPlanReturns);
   }
@@ -342,6 +345,11 @@ export class TerraformClientMock implements Terraform {
     {};
   ToggleSuspendTerraformObject() {
     return promisify(this.ToggleSuspendTerraformObjectReturns);
+  }
+
+  ReplanTerraformObjectReturns: ReplanTerraformObjectResponse = {};
+  ReplanTerraformObject() {
+    return promisify(this.ReplanTerraformObjectReturns);
   }
 }
 
