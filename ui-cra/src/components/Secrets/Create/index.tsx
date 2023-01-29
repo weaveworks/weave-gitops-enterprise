@@ -1,5 +1,5 @@
 import { MenuItem } from '@material-ui/core';
-import { Dispatch, useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
@@ -15,7 +15,6 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
-import { useGetSecretStoreDetails } from '../../../contexts/Secrets';
 import { useHistory } from 'react-router-dom';
 import {
   Button,
@@ -40,6 +39,7 @@ import { getGitRepos } from '../../Clusters';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { clearCallbackState } from '../../GitAuth/utils';
+import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -83,95 +83,6 @@ interface FormData {
     dataRemoteRef_property: string;
   }[];
 }
-
-interface SelectSecretStoreProps {
-  cluster: string;
-  handleSelectSecretStore: (event: React.ChangeEvent<any>) => void;
-  handleFormData: (
-    event: React.ChangeEvent<{ name?: string; value: unknown }>,
-    fieldName: string,
-  ) => void;
-  formError: string;
-  secretStoreRef: string;
-  secretStoreType: string;
-  secretNamespace: string;
-  selectedSecretStore: ExternalSecretStore;
-  setSelectedSecretStore: Dispatch<React.SetStateAction<any>>;
-}
-
-export const SelectSecretStore = (props: SelectSecretStoreProps) => {
-  const {
-    cluster,
-    handleSelectSecretStore,
-    handleFormData,
-    formError,
-    secretStoreRef,
-    secretStoreType,
-    secretNamespace,
-    selectedSecretStore,
-    setSelectedSecretStore,
-  } = props;
-  const { data, isLoading } = useGetSecretStoreDetails({
-    clusterName: cluster,
-  });
-  const secretStores = data?.stores;
-  useEffect(() => {
-    if (secretStoreRef) {
-      const selectedStore =
-        secretStores?.filter(item => item.name === secretStoreRef) || [];
-      setSelectedSecretStore(selectedStore[0]);
-    }
-  });
-  return (
-    <div className="form-group">
-      <Select
-        className="form-section"
-        name="secretStoreRef"
-        required
-        label="SECRET STORE"
-        value={
-          selectedSecretStore.name ? JSON.stringify(selectedSecretStore) : ''
-        }
-        onChange={handleSelectSecretStore}
-        error={formError === 'secretStoreRef' && !secretStoreRef}
-      >
-        {isLoading ? (
-          <MenuItem disabled={true}>Loading...</MenuItem>
-        ) : secretStores?.length ? (
-          secretStores.map((option, index: number) => {
-            return (
-              <MenuItem key={index} value={JSON.stringify(option)}>
-                {option.name}
-              </MenuItem>
-            );
-          })
-        ) : (
-          <MenuItem disabled={true}>
-            No SecretStore found on that cluster
-          </MenuItem>
-        )}
-      </Select>
-      <Input
-        className="form-section"
-        name="secret_store_kind"
-        label="SECRET STORE TYPE"
-        value={secretStoreType}
-        disabled={true}
-        error={false}
-      />
-      <Input
-        className="form-section"
-        required
-        name="secretNamespace"
-        label="TARGET NAMESPACE"
-        value={secretNamespace}
-        disabled={selectedSecretStore.namespace?.length ? true : false}
-        onChange={event => handleFormData(event, 'secretNamespace')}
-        error={formError === 'secretNamespace' && !secretNamespace}
-      />
-    </div>
-  );
-};
 
 function getInitialData(
   callbackState: { state: { formData: FormData } } | null,
