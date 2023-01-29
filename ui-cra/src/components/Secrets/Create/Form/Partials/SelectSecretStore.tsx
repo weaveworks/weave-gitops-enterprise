@@ -6,34 +6,33 @@ import { useGetSecretStoreDetails } from '../../../../../contexts/Secrets';
 
 interface SelectSecretStoreProps {
   cluster: string;
-  handleSelectSecretStore: (event: React.ChangeEvent<any>) => void;
   handleFormData: (
     event: React.ChangeEvent<{ name?: string; value: unknown }>,
     fieldName: string,
   ) => void;
   formError: string;
-  secretStoreRef: string;
-  secretStoreType: string;
-  secretNamespace: string;
   selectedSecretStore: ExternalSecretStore;
   setSelectedSecretStore: Dispatch<React.SetStateAction<any>>;
+  formData: any;
+  setFormData: Dispatch<React.SetStateAction<any>>;
+  automation: any;
 }
 
 export const SelectSecretStore = (props: SelectSecretStoreProps) => {
   const {
     cluster,
-    handleSelectSecretStore,
     handleFormData,
     formError,
-    secretStoreRef,
-    secretStoreType,
-    secretNamespace,
     selectedSecretStore,
     setSelectedSecretStore,
+    formData,
+    setFormData,
+    automation,
   } = props;
   const { data, isLoading } = useGetSecretStoreDetails({
     clusterName: cluster,
   });
+  const { secretStoreRef, secretNamespace, secretStoreType } = automation;
   const secretStores = data?.stores;
   useEffect(() => {
     if (secretStoreRef) {
@@ -42,6 +41,25 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
       setSelectedSecretStore(selectedStore[0]);
     }
   });
+  const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
+    const sercetStore = event.target.value;
+    const value = JSON.parse(sercetStore);
+    setSelectedSecretStore(value);
+
+    let currentAutomation = [...formData.clusterAutomations];
+    currentAutomation[0] = {
+      ...automation,
+      secretStoreRef: value.name,
+      secretNamespace: value.namespace,
+      secretStoreType: value.type,
+      secretStoreKind: value.kind,
+    };
+
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
+  };
   return (
     <div className="form-group">
       <Select
@@ -50,7 +68,9 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
         required
         label="SECRET STORE"
         value={
-          selectedSecretStore.name ? JSON.stringify(selectedSecretStore) : ''
+          !!Object.keys(selectedSecretStore).length
+            ? JSON.stringify(selectedSecretStore)
+            : ''
         }
         onChange={handleSelectSecretStore}
         error={formError === 'secretStoreRef' && !secretStoreRef}

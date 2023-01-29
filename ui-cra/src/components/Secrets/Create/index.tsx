@@ -179,26 +179,6 @@ const CreateSecret = () => {
     }
   }, [initialGitRepo, formData.repo, targetCluster]);
 
-  const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
-    const sercetStore = event.target.value;
-    const value = JSON.parse(sercetStore);
-    setSelectedSecretStore(value);
-
-    let currentAutomation = [...formData.clusterAutomations];
-    currentAutomation[0] = {
-      ...automation,
-      secretStoreRef: value.name,
-      secretNamespace: value.namespace,
-      secretStoreType: value.type,
-      secretStoreKind: value.kind,
-    };
-
-    setFormData({
-      ...formData,
-      clusterAutomations: currentAutomation,
-    });
-  };
-
   const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
@@ -411,14 +391,13 @@ const CreateSecret = () => {
                         ? `${clusterNamespace}/${clusterName}`
                         : clusterName
                     }
-                    handleSelectSecretStore={handleSelectSecretStore}
                     formError={formError}
                     handleFormData={handleFormData}
-                    secretStoreRef={secretStoreRef}
-                    secretStoreType={secretStoreType}
-                    secretNamespace={secretNamespace}
                     selectedSecretStore={selectedSecretStore || {}}
                     setSelectedSecretStore={setSelectedSecretStore}
+                    formData={formData}
+                    setFormData={setFormData}
+                    automation={automation}
                   />
                 )}
                 <Input
