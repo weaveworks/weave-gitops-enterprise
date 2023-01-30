@@ -108,7 +108,7 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
         name="secretNamespace"
         label="TARGET NAMESPACE"
         value={secretNamespace}
-        disabled={selectedSecretStore.namespace?.length ? true : false}
+        disabled={!!selectedSecretStore?.namespace ? true : false}
         onChange={event => handleFormData(event, 'secretNamespace')}
         error={formError === 'secretNamespace' && !secretNamespace}
       />
