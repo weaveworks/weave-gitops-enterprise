@@ -34,6 +34,7 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
   });
   const { secretStoreRef, secretNamespace, secretStoreType } = automation;
   const secretStores = data?.stores;
+
   useEffect(() => {
     if (secretStoreRef) {
       const selectedStore =
@@ -41,6 +42,7 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
       setSelectedSecretStore(selectedStore[0]);
     }
   });
+
   const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
     const sercetStore = event.target.value;
     const value = JSON.parse(sercetStore);
@@ -60,6 +62,7 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
       clusterAutomations: currentAutomation,
     });
   };
+  
   return (
     <div className="form-group">
       <Select

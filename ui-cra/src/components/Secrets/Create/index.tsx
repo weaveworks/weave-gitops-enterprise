@@ -157,7 +157,6 @@ const CreateSecret = () => {
     dataSecretKey,
     clusterName,
     secretStoreRef,
-    secretStoreType,
     dataRemoteRefKey,
     dataRemoteRef_property,
     clusterNamespace,
@@ -191,7 +190,9 @@ const CreateSecret = () => {
       clusterNamespace: value.namespace,
       targetCluster: cluster,
       secretStoreType: '',
+      secretStoreRef: '',
       secretNamespace: '',
+      secretStoreKind: '',
     };
     setFormData({
       ...formData,
