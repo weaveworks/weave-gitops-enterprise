@@ -1,6 +1,7 @@
 import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
+import { useGetLogs } from '../../../hooks/gitopsrun';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOpsRunLogs from './GitOpsRunLogs';
@@ -18,11 +19,13 @@ const PageTitle = styled.h4`
 `;
 
 const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
-  //   const { isLoading, data, error } = useGetLogs({
-  //     namespace,
-  //     sessionId: name,
-  //     clusterName,
-  //   });
+  const { isLoading, data, error } = useGetLogs({
+    namespace: 'flux-system',
+    sessionId: name,
+    clusterName,
+  });
+
+  console.log(data);
   const fakes = [
     {
       source: 'bucket-server',
@@ -51,7 +54,7 @@ const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
         <PageTitle>{name}</PageTitle>
         <SubRouterTabs rootPath={`${path}/logs`}>
           <RouterTab name="Logs" path={`${path}/logs`}>
-            <GitOpsRunLogs logs={fakes || []} />
+            <GitOpsRunLogs logs={[]} />
           </RouterTab>
         </SubRouterTabs>
       </ContentWrapper>

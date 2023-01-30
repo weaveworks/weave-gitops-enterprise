@@ -10,6 +10,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
+import { Routes } from '../../../utils/nav';
 import CommandCell from './CommandCell';
 
 const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
@@ -69,22 +70,8 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
   };
 
   // Name field for when Detail page is ready to be hooked up
-  // {
-  //   label: 'Name',
-  //   value: ({ name, namespace, clusterName }: FluxObject) => (
-  //     <Link
-  //       to={formatURL(Routes.GitOpsRunDetail, {
-  //         name,
-  //         namespace,
-  //         clusterName,
-  //       })}
-  //     >
-  //       {name}
-  //     </Link>
-  //   ),
-  //   sortValue: ({ name }: FluxObject) => name,
-  //   textSearchable: true,
-  // },
+
+  console.log(sessions);
 
   return (
     <DataTable
@@ -94,9 +81,24 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
       fields={[
         {
           label: 'Name',
-          value: ({ name }: FluxObject) => name,
+          value: (s: FluxObject) => {
+            const metadata = s.obj.metadata;
+            return (
+              <Link
+                to={formatURL(Routes.GitOpsRunDetail, {
+                  name: s.name,
+                  namespace: 'flux-system',
+                  clusterName: `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`,
+                })}
+              >
+                {s.name}
+              </Link>
+            );
+          },
+          sortValue: ({ name }: FluxObject) => name,
           textSearchable: true,
         },
+
         {
           label: 'Automation',
           value: s => <AutomationLink s={s} />,

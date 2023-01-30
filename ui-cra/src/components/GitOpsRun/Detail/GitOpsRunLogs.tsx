@@ -6,10 +6,12 @@ import styled from 'styled-components';
 import { Select } from '../../../utils/form';
 
 type Log = {
-  source: string;
-  message: string;
-  timestamp: string;
-  severity: string;
+  level: string;
+  msg: string;
+  ts: string;
+  logger: string;
+  caller: string;
+  clusters: string[];
 };
 
 type Props = {
@@ -30,16 +32,16 @@ const LogRow: React.FC<{ log: Log }> = ({ log }) => {
     <TableRow>
       <TableCell>
         <Flex /*this flex centers the icon*/>
-          {log.severity === 'info' ? (
+          {log.level === 'info' ? (
             <Info color="primary" fontSize="inherit" />
           ) : (
             <Error color="secondary" fontSize="inherit" />
           )}
         </Flex>
       </TableCell>
-      <TableCell className="gray">{log.timestamp || '-'}</TableCell>
-      <TableCell>{log.source || '-'}</TableCell>
-      <TableCell className="break-word">{log.message || '-'}</TableCell>
+      <TableCell className="gray">{log.ts || '-'}</TableCell>
+      <TableCell>{log.caller || '-'}</TableCell>
+      <TableCell className="break-word">{log.msg || '-'}</TableCell>
     </TableRow>
   );
 };
