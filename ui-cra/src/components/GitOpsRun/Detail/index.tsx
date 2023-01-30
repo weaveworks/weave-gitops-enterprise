@@ -26,7 +26,8 @@ const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
   const fakes = [
     {
       source: 'bucket-server',
-      message: 'Cleanup Bucket Source and Kustomization successfully',
+      message:
+        'Cleanup Bucket Source and Kustomization successfully ahsjdklghjdfislhajvilsbnfjklbdsjklbvhjlkadfsbjhkvbzdfjkhvbhjkzdbhjkvsdbfhdksvbhjvfkbdshjfbhjvdsbfhjvkbsdhjbbvshjdkbvasdjkncjklabfnvadjklj',
       severity: 'info',
       timestamp: '2022-08-14 12:20:00 UTC',
     },
