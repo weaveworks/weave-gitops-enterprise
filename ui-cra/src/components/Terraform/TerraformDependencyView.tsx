@@ -1,10 +1,9 @@
-import { DagGraph } from '@weaveworks/weave-gitops';
+import { DagGraph, Flex } from '@weaveworks/weave-gitops';
 import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
 import React from 'react';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { Body, Message, Title } from '../Shared';
 import {
   getGraphNodes,
@@ -63,7 +62,7 @@ function TerraformDependenciesView({ className, object }: Props) {
   const shouldShowGraph = graphNodes && graphNodes.length;
 
   return (
-    <ContentWrapper loading={isLoading}>
+    <Flex wide tall column>
       {shouldShowGraph ? (
         <DagGraph
           className={className}
@@ -85,10 +84,12 @@ function TerraformDependenciesView({ className, object }: Props) {
           </Body>
         </Message>
       )}
-    </ContentWrapper>
+    </Flex>
   );
 }
 
 export default styled(TerraformDependenciesView).attrs({
   className: TerraformDependenciesView.name,
-})``;
+})`
+  width: 100%;
+`;
