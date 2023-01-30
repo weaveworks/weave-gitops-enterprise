@@ -38,10 +38,10 @@ export const SelectSecretStore = (props: SelectSecretStoreProps) => {
   useEffect(() => {
     if (secretStoreRef) {
       const selectedStore =
-        secretStores?.filter(item => item.name === secretStoreRef) || [];
-      setSelectedSecretStore(selectedStore[0]);
+        secretStores?.find(item => item.name === secretStoreRef) || {};
+      setSelectedSecretStore(selectedStore);
     }
-  });
+  },[secretStores, secretStoreRef, setSelectedSecretStore]);
 
   const handleSelectSecretStore = (event: React.ChangeEvent<any>) => {
     const sercetStore = event.target.value;

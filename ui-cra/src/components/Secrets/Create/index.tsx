@@ -137,7 +137,7 @@ const CreateSecret = () => {
   const [formData, setFormData] = useState<any>(initialFormData);
   const [submitType, setSubmitType] = useState<string>('');
   const [selectedSecretStore, setSelectedSecretStore] =
-    useState<ExternalSecretStore>();
+    useState<ExternalSecretStore>({});
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const { data } = useListSources();
