@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 	"strings"
 	"time"
@@ -15,7 +14,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
 	go_git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -33,7 +31,6 @@ var DefaultBackoff = wait.Backoff{
 
 type Provider interface {
 	WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error)
-	CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error)
 	GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error)
 	GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error)
 }
@@ -71,17 +68,6 @@ type WriteFilesToBranchAndCreatePullRequestResponse struct {
 	WebURL string
 }
 
-type CloneRepoToTempDirRequest struct {
-	GitProvider   GitProvider
-	RepositoryURL string
-	BaseBranch    string
-	ParentDir     string
-}
-
-type CloneRepoToTempDirResponse struct {
-	Repo *GitRepo
-}
-
 // WriteFilesToBranchAndCreatePullRequest writes a set of provided files
 // to a new branch and creates a new pull request for that branch.
 // It returns the URL of the pull request.
@@ -91,7 +77,7 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 
 	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
+		return nil, fmt.Errorf("unable to get git provider url: %w", err)
 	}
 
 	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
@@ -144,47 +130,6 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 
 	return &WriteFilesToBranchAndCreatePullRequestResponse{
 		WebURL: res.WebURL,
-	}, nil
-}
-
-func (s *GitProviderService) CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error) {
-	s.log.Info("Creating a temp directory...")
-	gitDir, err := os.MkdirTemp(req.ParentDir, "git-")
-	if err != nil {
-		return nil, err
-	}
-	s.log.Info("Temp directory created.", "dir", gitDir)
-
-	s.log.Info("Cloning the Git repository...", "repository", req.RepositoryURL, "dir", gitDir)
-
-	repo, err := go_git.PlainClone(gitDir, false, &go_git.CloneOptions{
-		URL: req.RepositoryURL,
-		Auth: &http.BasicAuth{
-			Username: "abc123",
-			Password: req.GitProvider.Token,
-		},
-		ReferenceName: plumbing.NewBranchReferenceName(req.BaseBranch),
-
-		SingleBranch: true,
-		Tags:         go_git.NoTags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	s.log.Info("Cloned repository", "repository", req.RepositoryURL)
-
-	gitRepo := &GitRepo{
-		WorktreeDir: gitDir,
-		Repo:        repo,
-		Auth: &http.BasicAuth{
-			Username: "abc123",
-			Password: req.GitProvider.Token,
-		},
-	}
-
-	return &CloneRepoToTempDirResponse{
-		Repo: gitRepo,
 	}, nil
 }
 

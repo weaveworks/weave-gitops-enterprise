@@ -1757,13 +1757,6 @@ func (p *FakeGitProvider) WriteFilesToBranchAndCreatePullRequest(ctx context.Con
 	return &git.WriteFilesToBranchAndCreatePullRequestResponse{WebURL: p.url}, nil
 }
 
-func (p *FakeGitProvider) CloneRepoToTempDir(req git.CloneRepoToTempDirRequest) (*git.CloneRepoToTempDirResponse, error) {
-	if p.err != nil {
-		return nil, p.err
-	}
-	return &git.CloneRepoToTempDirResponse{Repo: p.repo}, nil
-}
-
 func (p *FakeGitProvider) GetRepository(ctx context.Context, gp git.GitProvider, url string) (gitprovider.OrgRepository, error) {
 	if p.err != nil {
 		return nil, p.err
