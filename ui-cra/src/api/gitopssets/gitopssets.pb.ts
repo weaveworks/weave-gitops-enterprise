@@ -36,7 +36,7 @@ export type ToggleSuspendGitOpsSetResponse = {
 }
 
 export type GetReconciledObjectsRequest = {
-  automationName?: string
+  name?: string
   namespace?: string
   automationKind?: string
   kinds?: GitopssetsV1Types.GroupVersionKind[]

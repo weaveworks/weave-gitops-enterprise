@@ -92,7 +92,7 @@ message ToggleSuspendGitOpsSetResponse {
 }
 
 message GetReconciledObjectsRequest {
-    string         automationName         = 1;
+    string         name                   = 1;
     string         namespace              = 2;
     string         automationKind         = 3;
     repeated       GroupVersionKind kinds = 4;

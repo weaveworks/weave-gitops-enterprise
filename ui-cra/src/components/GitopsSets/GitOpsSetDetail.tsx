@@ -202,12 +202,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               }}
             />
           </RouterTab>
-          <RouterTab name="Dependencies" path={`${path}/dependencies`}>
-            <LinkResolverProvider resolver={resolver}>
-              {/* this will need depends on */}
-              {/* <TerraformDependenciesView object={gitOpsSet || {}} /> */}
-            </LinkResolverProvider>
-          </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
               parentObject={gitOpsSet || ({} as GitOpsSet)}

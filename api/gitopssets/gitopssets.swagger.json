@@ -275,7 +275,7 @@
     "v1GetReconciledObjectsRequest": {
       "type": "object",
       "properties": {
-        "automationName": {
+        "name": {
           "type": "string"
         },
         "namespace": {

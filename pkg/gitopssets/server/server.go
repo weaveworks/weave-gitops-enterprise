@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -16,13 +17,16 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	coretypes "github.com/weaveworks/weave-gitops/core/server/types"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+
+	k8s_json "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -137,9 +141,7 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 
 	clusterUserNamespaces := s.clients.GetUserNamespaces(auth.Principal(ctx))
 
-	for _, namespaces := range clusterUserNamespaces {
-		for _, ns := range namespaces {
-			nsOpts := client.InNamespace(ns.Name)
+			nsOpts := client.InNamespace(msg.Namespace)
 
 			for _, gvk := range msg.Kinds {
 				wg.Add(1)
@@ -157,13 +159,13 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 
 					if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, nsOpts); err != nil {
 						if k8serrors.IsForbidden(err) {
-							// s.logger.V(logger.LogLevelDebug).Info(
-							// 	"forbidden list request",
-							// 	"cluster", msg.ClusterName,
-							// 	"automation", msg.AutomationName,
-							// 	"namespace", msg.Namespace,
-							// 	"gvk", gvk.String(),
-							// )
+							s.log.V(logger.LogLevelDebug).Info(
+								"forbidden list request",
+								"cluster", msg.ClusterName,
+								"automation", msg.AutomationName,
+								"namespace", msg.Namespace,
+								"gvk", gvk.String(),
+							)
 							// Our service account (or impersonated user) may not have the ability to see the resource in question,
 							// in the given namespace. We pretend it doesn't exist and keep looping.
 							// We need logging to make this error more visible.
@@ -193,8 +195,6 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 					resultMu.Unlock()
 				}(msg.ClusterName, gvk)
 			}
-		}
-	}
 
 	wg.Wait()
 
@@ -202,9 +202,7 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 	respErrors := multierror.Error{}
 
 	for _, unstructuredObj := range result {
-		tenant := GetTenant(unstructuredObj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
-
-		var o *pb.Object
+		tenant := core.GetTenant(unstructuredObj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
 		var obj client.Object = &unstructuredObj
 
@@ -216,7 +214,7 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 			}
 		}
 
-		o, err = coretypes.K8sObjectToProto(obj, msg.ClusterName, tenant, nil)
+		o, err := K8sObjectToProto(obj, msg.ClusterName, tenant, nil)
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
 			continue
@@ -271,9 +269,9 @@ ItemsLoop:
 			}
 		}
 
-		tenant := GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
+		tenant := core.GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
 
-		obj, err := coretypes.K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
+		obj, err := K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
 
 		if err != nil {
 			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
@@ -300,4 +298,23 @@ func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
 	s.Data = map[string][]byte{"redacted": []byte(nil)}
 
 	return s, nil
+}
+
+func K8sObjectToProto(object client.Object, clusterName string, tenant string, inventory []*pb.GroupVersionKind) (*pb.Object, error) {
+	var buf bytes.Buffer
+
+	serializer := k8s_json.NewSerializer(k8s_json.DefaultMetaFactory, nil, nil, false)
+	if err := serializer.Encode(object, &buf); err != nil {
+		return nil, err
+	}
+
+	obj := &pb.Object{
+		Payload:     buf.String(),
+		ClusterName: clusterName,
+		Tenant:      tenant,
+		Uid:         string(object.GetUID()),
+		Inventory:   inventory,
+	}
+
+	return obj, nil
 }

@@ -76,7 +76,4 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 		Gitopssets: gitopssets,
 		Errors:  listErrors,
 	}, nil
-
-
-
 }

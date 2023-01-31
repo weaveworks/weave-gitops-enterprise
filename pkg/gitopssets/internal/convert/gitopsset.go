@@ -32,17 +32,6 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		}
 	}
 
-	// dependsOn := []*pb.NamespacedObjectReference{}
-
-	// if gs.Spec.DependsOn != nil {
-	// 	for _, r := range gs.Spec.DependsOn {
-	// 		dependsOn = append(dependsOn, &pb.NamespacedObjectReference{
-	// 			Name:      r.Name,
-	// 			Namespace: r.Namespace,
-	// 		})
-	// 	}
-	// }
-
 	generators := []string{}
 	for _, gsg := range gs.Spec.Generators  {	
 		listJSON, _ := json.Marshal(gsg.List)
