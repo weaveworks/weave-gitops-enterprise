@@ -8,6 +8,23 @@ import {
   GitOpsSets,
   ListGitOpsSetsResponse,
 } from '../../api/gitopssets/gitopssets.pb';
+import {
+  Bucket,
+  FluxObject,
+  GitRepository,
+  HelmChart,
+  HelmRepository,
+  Kind,
+  OCIRepository,
+  PARENT_CHILD_LOOKUP,
+} from '@weaveworks/weave-gitops';
+import { GroupVersionKind } from '../../types/custom';
+import {
+  Alert,
+  HelmRelease,
+  Kustomization,
+  Provider,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
 
 const GitOpsSetsContext = React.createContext<typeof GitOpsSets>(
   {} as typeof GitOpsSets,
@@ -81,4 +98,133 @@ export function useToggleSuspendGitOpsSet(params: DetailParams) {
     gs.ToggleSuspendGitOpsSet({ ...params, suspend }).then(res => {
       return invalidate(qc, params).then(() => res);
     });
+}
+
+export function useGetReconciledTree(
+  name?: string,
+  namespace?: string,
+  type?: Kind,
+  kinds?: GroupVersionKind[],
+  clusterName = 'Default',
+) {
+  const { api } = useContext(CoreClientContext);
+
+  return useQuery<any[], RequestError>(
+    ['reconciled_objects', { name, namespace, type, kinds }],
+    () => getChildren(api, name, namespace, type, kinds, clusterName),
+    { retry: false, refetchInterval: 5000 },
+  );
+}
+
+// Gets the "child" objects that result from an Application
+export const getChildren = async (
+  client: typeof GitOpsSets,
+  gitOpsSetName,
+  namespace,
+  automationKind: Kind,
+  kinds: GroupVersionKind[],
+  clusterName,
+): Promise<FluxObject[]> => {
+  const { objects } = await client.GetReconciledObjects({
+    gitOpsSetName,
+    namespace,
+    automationKind,
+    kinds,
+    clusterName,
+  });
+
+  const result = [];
+  for (let o = 0; o < objects.length; o++) {
+    const obj = convertResponse(null, objects[o]);
+    await getChildrenRecursive(
+      client,
+      namespace,
+
+      obj,
+      clusterName,
+      PARENT_CHILD_LOOKUP,
+    );
+    result.push(obj);
+  }
+  return _.flatten(result);
+};
+
+export const getChildrenRecursive = async (
+  client: typeof GitOpsSets,
+  namespace: string,
+
+  object: FluxObject,
+  clusterName: string,
+  lookup: any,
+) => {
+  const children = [];
+
+  const k = lookup[object.type || 'GitOpsSet'];
+
+  if (k && k.children) {
+    for (let i = 0; i < k.children.length; i++) {
+      const child: GroupVersionKind = k.children[i];
+
+      const res = await client.GetChildObjects({
+        parentUid: object.uid,
+        namespace,
+        groupVersionKind: child,
+        clusterName: clusterName,
+      });
+
+      for (let q = 0; q < res.objects.length; q++) {
+        const c = convertResponse(null, res.objects[q]);
+        // Dive down one level and update the lookup accordingly.
+        await getChildrenRecursive(client, namespace, c, clusterName, {
+          [child.kind]: child,
+        });
+        children.push(c);
+      }
+    }
+  }
+  object.children = children;
+};
+
+export function convertResponse(
+  kind: Kind | string,
+  response?: ResponseObject,
+
+  // ResponseObject is of the below type
+  // export type Object = {
+  //     payload?: string
+  //     clusterName?: string
+  //     tenant?: string
+  //     uid?: string
+  //     inventory?: GroupVersionKind[]
+  //   }
+) {
+  if (kind === Kind.HelmRepository) {
+    return new HelmRepository(response);
+  }
+  if (kind === Kind.HelmChart) {
+    return new HelmChart(response);
+  }
+  if (kind === Kind.Bucket) {
+    return new Bucket(response);
+  }
+  if (kind === Kind.GitRepository) {
+    return new GitRepository(response);
+  }
+  if (kind === Kind.OCIRepository) {
+    return new OCIRepository(response);
+  }
+  if (kind === Kind.Kustomization) {
+    return new Kustomization(response);
+  }
+  if (kind === Kind.HelmRelease) {
+    return new HelmRelease(response);
+  }
+  if (kind === Kind.Provider) {
+    return new Provider(response);
+  }
+  if (kind === Kind.Alert) {
+    return new Alert(response);
+  }
+
+  return new FluxObject(response);
 }

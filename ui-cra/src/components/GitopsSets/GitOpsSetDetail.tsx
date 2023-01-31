@@ -30,6 +30,7 @@ import {
 } from '../../contexts/GitOpsSets';
 import { getLabels, getMetadata } from '../../utils/formatters';
 import GitOpsSetInventoryTable from './GitOpsSetInventoryTable';
+import ReconciliationGraph from './ReconciliationGraph';
 
 export interface routeTab {
   name: string;
@@ -206,6 +207,12 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               {/* this will need depends on */}
               {/* <TerraformDependenciesView object={gitOpsSet || {}} /> */}
             </LinkResolverProvider>
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
+            <ReconciliationGraph
+              parentObject={gitOpsSet || ({} as GitOpsSet)}
+              source={gitOpsSet?.sourceRef}
+            />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <CodeView

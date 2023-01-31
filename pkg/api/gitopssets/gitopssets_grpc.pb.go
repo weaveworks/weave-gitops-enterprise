@@ -21,6 +21,14 @@ type GitOpsSetsClient interface {
 	ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error)
 	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
+	//
+	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
 }
 
 type gitOpsSetsClient struct {
@@ -58,6 +66,24 @@ func (c *gitOpsSetsClient) ToggleSuspendGitOpsSet(ctx context.Context, in *Toggl
 	return out, nil
 }
 
+func (c *gitOpsSetsClient) GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error) {
+	out := new(GetReconciledObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gitOpsSetsClient) GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error) {
+	out := new(GetChildObjectsResponse)
+	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/GetChildObjects", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GitOpsSetsServer is the server API for GitOpsSets service.
 // All implementations must embed UnimplementedGitOpsSetsServer
 // for forward compatibility
@@ -65,6 +91,14 @@ type GitOpsSetsServer interface {
 	ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error)
 	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
+	//
+	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
+	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
+	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }
 
@@ -80,6 +114,12 @@ func (UnimplementedGitOpsSetsServer) GetGitOpsSet(context.Context, *GetGitOpsSet
 }
 func (UnimplementedGitOpsSetsServer) ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendGitOpsSet not implemented")
+}
+func (UnimplementedGitOpsSetsServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
+}
+func (UnimplementedGitOpsSetsServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
 }
 func (UnimplementedGitOpsSetsServer) mustEmbedUnimplementedGitOpsSetsServer() {}
 
@@ -148,6 +188,42 @@ func _GitOpsSets_ToggleSuspendGitOpsSet_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitOpsSets_GetReconciledObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetReconciledObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitOpsSetsServer).GetReconciledObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitopssets.v1.GitOpsSets/GetReconciledObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitOpsSetsServer).GetReconciledObjects(ctx, req.(*GetReconciledObjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GitOpsSets_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetChildObjectsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitOpsSetsServer).GetChildObjects(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitopssets.v1.GitOpsSets/GetChildObjects",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitOpsSetsServer).GetChildObjects(ctx, req.(*GetChildObjectsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GitOpsSets_ServiceDesc is the grpc.ServiceDesc for GitOpsSets service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +242,14 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ToggleSuspendGitOpsSet",
 			Handler:    _GitOpsSets_ToggleSuspendGitOpsSet_Handler,
+		},
+		{
+			MethodName: "GetReconciledObjects",
+			Handler:    _GitOpsSets_GetReconciledObjects_Handler,
+		},
+		{
+			MethodName: "GetChildObjects",
+			Handler:    _GitOpsSets_GetChildObjects_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

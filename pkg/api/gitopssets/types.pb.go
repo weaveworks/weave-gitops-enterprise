@@ -479,6 +479,275 @@ func (x *GitOpsSetGenerator) GetGitRepository() string {
 	return ""
 }
 
+type ObjectRef struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Kind        string `protobuf:"bytes,1,opt,name=kind,proto3" json:"kind,omitempty"`
+	Name        string `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace   string `protobuf:"bytes,3,opt,name=namespace,proto3" json:"namespace,omitempty"`
+	ClusterName string `protobuf:"bytes,4,opt,name=clusterName,proto3" json:"clusterName,omitempty"`
+}
+
+func (x *ObjectRef) Reset() {
+	*x = ObjectRef{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_gitopssets_types_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *ObjectRef) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ObjectRef) ProtoMessage() {}
+
+func (x *ObjectRef) ProtoReflect() protoreflect.Message {
+	mi := &file_api_gitopssets_types_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ObjectRef.ProtoReflect.Descriptor instead.
+func (*ObjectRef) Descriptor() ([]byte, []int) {
+	return file_api_gitopssets_types_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *ObjectRef) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+func (x *ObjectRef) GetClusterName() string {
+	if x != nil {
+		return x.ClusterName
+	}
+	return ""
+}
+
+// GroupVersionKind represents an objects Kubernetes API type data
+type GroupVersionKind struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Group   string `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
+	Kind    string `protobuf:"bytes,2,opt,name=kind,proto3" json:"kind,omitempty"`
+	Version string `protobuf:"bytes,3,opt,name=version,proto3" json:"version,omitempty"`
+}
+
+func (x *GroupVersionKind) Reset() {
+	*x = GroupVersionKind{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_gitopssets_types_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GroupVersionKind) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GroupVersionKind) ProtoMessage() {}
+
+func (x *GroupVersionKind) ProtoReflect() protoreflect.Message {
+	mi := &file_api_gitopssets_types_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GroupVersionKind.ProtoReflect.Descriptor instead.
+func (*GroupVersionKind) Descriptor() ([]byte, []int) {
+	return file_api_gitopssets_types_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *GroupVersionKind) GetGroup() string {
+	if x != nil {
+		return x.Group
+	}
+	return ""
+}
+
+func (x *GroupVersionKind) GetKind() string {
+	if x != nil {
+		return x.Kind
+	}
+	return ""
+}
+
+func (x *GroupVersionKind) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
+type NamespacedObjectReference struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
+}
+
+func (x *NamespacedObjectReference) Reset() {
+	*x = NamespacedObjectReference{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_gitopssets_types_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *NamespacedObjectReference) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NamespacedObjectReference) ProtoMessage() {}
+
+func (x *NamespacedObjectReference) ProtoReflect() protoreflect.Message {
+	mi := &file_api_gitopssets_types_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NamespacedObjectReference.ProtoReflect.Descriptor instead.
+func (*NamespacedObjectReference) Descriptor() ([]byte, []int) {
+	return file_api_gitopssets_types_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *NamespacedObjectReference) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+func (x *NamespacedObjectReference) GetNamespace() string {
+	if x != nil {
+		return x.Namespace
+	}
+	return ""
+}
+
+type Object struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Payload     string              `protobuf:"bytes,1,opt,name=payload,proto3" json:"payload,omitempty"`
+	ClusterName string              `protobuf:"bytes,2,opt,name=clusterName,proto3" json:"clusterName,omitempty"`
+	Tenant      string              `protobuf:"bytes,3,opt,name=tenant,proto3" json:"tenant,omitempty"`
+	Uid         string              `protobuf:"bytes,4,opt,name=uid,proto3" json:"uid,omitempty"`
+	Inventory   []*GroupVersionKind `protobuf:"bytes,5,rep,name=inventory,proto3" json:"inventory,omitempty"`
+}
+
+func (x *Object) Reset() {
+	*x = Object{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_gitopssets_types_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Object) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Object) ProtoMessage() {}
+
+func (x *Object) ProtoReflect() protoreflect.Message {
+	mi := &file_api_gitopssets_types_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Object.ProtoReflect.Descriptor instead.
+func (*Object) Descriptor() ([]byte, []int) {
+	return file_api_gitopssets_types_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Object) GetPayload() string {
+	if x != nil {
+		return x.Payload
+	}
+	return ""
+}
+
+func (x *Object) GetClusterName() string {
+	if x != nil {
+		return x.ClusterName
+	}
+	return ""
+}
+
+func (x *Object) GetTenant() string {
+	if x != nil {
+		return x.Tenant
+	}
+	return ""
+}
+
+func (x *Object) GetUid() string {
+	if x != nil {
+		return x.Uid
+	}
+	return ""
+}
+
+func (x *Object) GetInventory() []*GroupVersionKind {
+	if x != nil {
+		return x.Inventory
+	}
+	return nil
+}
+
 var File_api_gitopssets_types_proto protoreflect.FileDescriptor
 
 var file_api_gitopssets_types_proto_rawDesc = []byte{
@@ -557,12 +826,40 @@ var file_api_gitopssets_types_proto_rawDesc = []byte{
 	0x12, 0x0a, 0x04, 0x6c, 0x69, 0x73, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6c,
 	0x69, 0x73, 0x74, 0x12, 0x25, 0x0a, 0x0e, 0x67, 0x69, 0x74, 0x5f, 0x72, 0x65, 0x70, 0x6f, 0x73,
 	0x69, 0x74, 0x6f, 0x72, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x67, 0x69, 0x74,
-	0x52, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x42, 0x3e, 0x5a, 0x3c, 0x67, 0x69,
-	0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f,
-	0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73,
-	0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x67, 0x69, 0x74, 0x6f,
-	0x70, 0x73, 0x73, 0x65, 0x74, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74,
-	0x6f, 0x33,
+	0x52, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x22, 0x73, 0x0a, 0x09, 0x4f, 0x62,
+	0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x12, 0x12, 0x0a, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e,
+	0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12,
+	0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x03, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d, 0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x12, 0x20, 0x0a,
+	0x0b, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x0b, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x22,
+	0x56, 0x0a, 0x10, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4b,
+	0x69, 0x6e, 0x64, 0x12, 0x14, 0x0a, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x05, 0x67, 0x72, 0x6f, 0x75, 0x70, 0x12, 0x12, 0x0a, 0x04, 0x6b, 0x69, 0x6e,
+	0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6b, 0x69, 0x6e, 0x64, 0x12, 0x18, 0x0a,
+	0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07,
+	0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x22, 0x4d, 0x0a, 0x19, 0x4e, 0x61, 0x6d, 0x65, 0x73,
+	0x70, 0x61, 0x63, 0x65, 0x64, 0x4f, 0x62, 0x6a, 0x65, 0x63, 0x74, 0x52, 0x65, 0x66, 0x65, 0x72,
+	0x65, 0x6e, 0x63, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x1c, 0x0a, 0x09, 0x6e, 0x61, 0x6d, 0x65,
+	0x73, 0x70, 0x61, 0x63, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x09, 0x6e, 0x61, 0x6d,
+	0x65, 0x73, 0x70, 0x61, 0x63, 0x65, 0x22, 0xad, 0x01, 0x0a, 0x06, 0x4f, 0x62, 0x6a, 0x65, 0x63,
+	0x74, 0x12, 0x18, 0x0a, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x18, 0x01, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x07, 0x70, 0x61, 0x79, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x20, 0x0a, 0x0b, 0x63,
+	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09,
+	0x52, 0x0b, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x4e, 0x61, 0x6d, 0x65, 0x12, 0x16, 0x0a,
+	0x06, 0x74, 0x65, 0x6e, 0x61, 0x6e, 0x74, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x06, 0x74,
+	0x65, 0x6e, 0x61, 0x6e, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x69, 0x64, 0x18, 0x04, 0x20, 0x01,
+	0x28, 0x09, 0x52, 0x03, 0x75, 0x69, 0x64, 0x12, 0x3d, 0x0a, 0x09, 0x69, 0x6e, 0x76, 0x65, 0x6e,
+	0x74, 0x6f, 0x72, 0x79, 0x18, 0x05, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x1f, 0x2e, 0x67, 0x69, 0x74,
+	0x6f, 0x70, 0x73, 0x73, 0x65, 0x74, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70,
+	0x56, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x4b, 0x69, 0x6e, 0x64, 0x52, 0x09, 0x69, 0x6e, 0x76,
+	0x65, 0x6e, 0x74, 0x6f, 0x72, 0x79, 0x42, 0x3e, 0x5a, 0x3c, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62,
+	0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f,
+	0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74,
+	0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x73, 0x65,
+	0x74, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -577,28 +874,33 @@ func file_api_gitopssets_types_proto_rawDescGZIP() []byte {
 	return file_api_gitopssets_types_proto_rawDescData
 }
 
-var file_api_gitopssets_types_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_api_gitopssets_types_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_api_gitopssets_types_proto_goTypes = []interface{}{
-	(*GitOpsSet)(nil),          // 0: gitopssets.v1.GitOpsSet
-	(*SourceRef)(nil),          // 1: gitopssets.v1.SourceRef
-	(*GitOpsSetListError)(nil), // 2: gitopssets.v1.GitOpsSetListError
-	(*ResourceRef)(nil),        // 3: gitopssets.v1.ResourceRef
-	(*Condition)(nil),          // 4: gitopssets.v1.Condition
-	(*GitOpsSetGenerator)(nil), // 5: gitopssets.v1.GitOpsSetGenerator
-	nil,                        // 6: gitopssets.v1.GitOpsSet.LabelsEntry
-	nil,                        // 7: gitopssets.v1.GitOpsSet.AnnotationsEntry
+	(*GitOpsSet)(nil),                 // 0: gitopssets.v1.GitOpsSet
+	(*SourceRef)(nil),                 // 1: gitopssets.v1.SourceRef
+	(*GitOpsSetListError)(nil),        // 2: gitopssets.v1.GitOpsSetListError
+	(*ResourceRef)(nil),               // 3: gitopssets.v1.ResourceRef
+	(*Condition)(nil),                 // 4: gitopssets.v1.Condition
+	(*GitOpsSetGenerator)(nil),        // 5: gitopssets.v1.GitOpsSetGenerator
+	(*ObjectRef)(nil),                 // 6: gitopssets.v1.ObjectRef
+	(*GroupVersionKind)(nil),          // 7: gitopssets.v1.GroupVersionKind
+	(*NamespacedObjectReference)(nil), // 8: gitopssets.v1.NamespacedObjectReference
+	(*Object)(nil),                    // 9: gitopssets.v1.Object
+	nil,                               // 10: gitopssets.v1.GitOpsSet.LabelsEntry
+	nil,                               // 11: gitopssets.v1.GitOpsSet.AnnotationsEntry
 }
 var file_api_gitopssets_types_proto_depIdxs = []int32{
-	3, // 0: gitopssets.v1.GitOpsSet.inventory:type_name -> gitopssets.v1.ResourceRef
-	4, // 1: gitopssets.v1.GitOpsSet.conditions:type_name -> gitopssets.v1.Condition
-	6, // 2: gitopssets.v1.GitOpsSet.labels:type_name -> gitopssets.v1.GitOpsSet.LabelsEntry
-	7, // 3: gitopssets.v1.GitOpsSet.annotations:type_name -> gitopssets.v1.GitOpsSet.AnnotationsEntry
-	1, // 4: gitopssets.v1.GitOpsSet.sourceRef:type_name -> gitopssets.v1.SourceRef
-	5, // [5:5] is the sub-list for method output_type
-	5, // [5:5] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	3,  // 0: gitopssets.v1.GitOpsSet.inventory:type_name -> gitopssets.v1.ResourceRef
+	4,  // 1: gitopssets.v1.GitOpsSet.conditions:type_name -> gitopssets.v1.Condition
+	10, // 2: gitopssets.v1.GitOpsSet.labels:type_name -> gitopssets.v1.GitOpsSet.LabelsEntry
+	11, // 3: gitopssets.v1.GitOpsSet.annotations:type_name -> gitopssets.v1.GitOpsSet.AnnotationsEntry
+	1,  // 4: gitopssets.v1.GitOpsSet.sourceRef:type_name -> gitopssets.v1.SourceRef
+	7,  // 5: gitopssets.v1.Object.inventory:type_name -> gitopssets.v1.GroupVersionKind
+	6,  // [6:6] is the sub-list for method output_type
+	6,  // [6:6] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_api_gitopssets_types_proto_init() }
@@ -679,6 +981,54 @@ func file_api_gitopssets_types_proto_init() {
 				return nil
 			}
 		}
+		file_api_gitopssets_types_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*ObjectRef); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_gitopssets_types_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GroupVersionKind); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_gitopssets_types_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*NamespacedObjectReference); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_gitopssets_types_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Object); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -686,7 +1036,7 @@ func file_api_gitopssets_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_gitopssets_types_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

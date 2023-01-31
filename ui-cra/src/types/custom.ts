@@ -162,3 +162,7 @@ export interface AppPRPreview {
   kustomizationFiles: { path: string; content: string }[];
   helmReleaseFiles: { path: string; content: string }[];
 }
+
+export type RequestError = Error & {
+  code?: number;
+};

@@ -48,3 +48,29 @@ export type GitOpsSetGenerator = {
   list?: string
   gitRepository?: string
 }
+
+export type ObjectRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+  clusterName?: string
+}
+
+export type GroupVersionKind = {
+  group?: string
+  kind?: string
+  version?: string
+}
+
+export type NamespacedObjectReference = {
+  name?: string
+  namespace?: string
+}
+
+export type Object = {
+  payload?: string
+  clusterName?: string
+  tenant?: string
+  uid?: string
+  inventory?: GroupVersionKind[]
+}

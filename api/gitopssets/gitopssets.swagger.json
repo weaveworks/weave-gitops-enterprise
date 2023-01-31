@@ -17,6 +17,39 @@
     "application/json"
   ],
   "paths": {
+    "/v1/child_objects": {
+      "post": {
+        "summary": "GetChildObjects returns the children of a given object, specified by a GroupVersionKind.\nNot all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.",
+        "operationId": "GitOpsSets_GetChildObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetChildObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetChildObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
     "/v1/gitopsset/{name}": {
       "get": {
         "operationId": "GitOpsSets_GetGitOpsSet",
@@ -120,6 +153,39 @@
           "GitOpsSets"
         ]
       }
+    },
+    "/v1/reconciled_objects": {
+      "post": {
+        "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
+        "operationId": "GitOpsSets_GetReconciledObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
     }
   },
   "definitions": {
@@ -170,11 +236,73 @@
         }
       }
     },
+    "v1GetChildObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "groupVersionKind": {
+          "$ref": "#/definitions/v1GroupVersionKind"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "parentUid": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetChildObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Object"
+          }
+        }
+      }
+    },
     "v1GetGitOpsSetResponse": {
       "type": "object",
       "properties": {
         "gitopsSet": {
           "$ref": "#/definitions/v1GitOpsSet"
+        }
+      }
+    },
+    "v1GetReconciledObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "automationName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "automationKind": {
+          "type": "string"
+        },
+        "kinds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
+          }
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetReconciledObjectsResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Object"
+          }
         }
       }
     },
@@ -249,6 +377,21 @@
         }
       }
     },
+    "v1GroupVersionKind": {
+      "type": "object",
+      "properties": {
+        "group": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "title": "GroupVersionKind represents an objects Kubernetes API type data"
+    },
     "v1ListGitOpsSetsResponse": {
       "type": "object",
       "properties": {
@@ -262,6 +405,29 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1GitOpsSetListError"
+          }
+        }
+      }
+    },
+    "v1Object": {
+      "type": "object",
+      "properties": {
+        "payload": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
+        "inventory": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1GroupVersionKind"
           }
         }
       }

@@ -35,6 +35,29 @@ export type ToggleSuspendGitOpsSetRequest = {
 export type ToggleSuspendGitOpsSetResponse = {
 }
 
+export type GetReconciledObjectsRequest = {
+  automationName?: string
+  namespace?: string
+  automationKind?: string
+  kinds?: GitopssetsV1Types.GroupVersionKind[]
+  clusterName?: string
+}
+
+export type GetReconciledObjectsResponse = {
+  objects?: GitopssetsV1Types.Object[]
+}
+
+export type GetChildObjectsRequest = {
+  groupVersionKind?: GitopssetsV1Types.GroupVersionKind
+  namespace?: string
+  parentUid?: string
+  clusterName?: string
+}
+
+export type GetChildObjectsResponse = {
+  objects?: GitopssetsV1Types.Object[]
+}
+
 export class GitOpsSets {
   static ListGitOpsSets(req: ListGitOpsSetsRequest, initReq?: fm.InitReq): Promise<ListGitOpsSetsResponse> {
     return fm.fetchReq<ListGitOpsSetsRequest, ListGitOpsSetsResponse>(`/v1/gitopssets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -44,5 +67,11 @@ export class GitOpsSets {
   }
   static ToggleSuspendGitOpsSet(req: ToggleSuspendGitOpsSetRequest, initReq?: fm.InitReq): Promise<ToggleSuspendGitOpsSetResponse> {
     return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/gitopssets/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
+    return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
