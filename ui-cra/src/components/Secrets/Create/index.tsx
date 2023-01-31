@@ -18,7 +18,6 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { useHistory } from 'react-router-dom';
 import {
   Button,
-  getProviderToken,
   Link,
   LoadingPage,
   theme,
@@ -38,7 +37,7 @@ import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { clearCallbackState } from '../../GitAuth/utils';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 
 const { medium, large } = theme.spacing;
