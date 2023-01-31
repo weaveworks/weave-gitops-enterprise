@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.21.0
-	github.com/fluxcd/go-git-providers v0.11.0
+	github.com/fluxcd/go-git-providers v0.13.0
 	github.com/fluxcd/helm-controller/api v0.27.0
 	github.com/fluxcd/kustomize-controller/api v0.31.0
 	github.com/fluxcd/pkg/apis/meta v0.18.0
@@ -63,7 +63,7 @@ require (
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/weaveworks/templates-controller v0.1.2
-	github.com/xanzy/go-gitlab v0.76.0
+	github.com/xanzy/go-gitlab v0.77.0
 	golang.org/x/crypto v0.3.0
 	golang.org/x/oauth2 v0.2.0
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
@@ -108,7 +108,7 @@ require (
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
-	github.com/google/go-github/v47 v47.1.0 // indirect
+	github.com/google/go-github/v48 v48.2.0 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213 // indirect

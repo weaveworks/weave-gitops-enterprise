@@ -13,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
 
@@ -62,7 +63,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("", nil, errors.New("oops"), nil),
+			provider: gitfakes.NewFakeGitProvider("", nil, errors.New("oops"), nil, nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -85,7 +86,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeClusterTemplates(t),
 			},
-			provider: NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil),
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
 			req: &capiv1_protos.CreateTfControllerPullRequestRequest{
 				TemplateName: "cluster-template-1",
 				ParameterValues: map[string]string{
@@ -136,7 +137,7 @@ func TestCreateTerraformPullRequest(t *testing.T) {
 				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
-				fakeGitProvider := (tt.provider).(*FakeGitProvider)
+				fakeGitProvider := (tt.provider).(*gitfakes.FakeGitProvider)
 				if diff := cmp.Diff(prepCommitedFiles(t, ts.URL, tt.committedFiles), fakeGitProvider.GetCommittedFiles()); len(tt.committedFiles) > 0 && diff != "" {
 					t.Fatalf("committed files do not match expected committed files:\n%s", diff)
 				}
