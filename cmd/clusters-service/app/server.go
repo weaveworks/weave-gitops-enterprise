@@ -634,6 +634,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ManagementFetcher:         args.ManagementFetcher,
 			Cluster:                   args.Cluster,
 			PipelineControllerAddress: args.PipelineControllerAddress,
+			GitProvider:               args.GitProvider,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
