@@ -384,6 +384,29 @@ func TestGetGitProviderUrl(t *testing.T) {
 	assert.Equal(t, expected, repoURL)
 }
 
+func TestCombineSubGroups(t *testing.T) {
+	ref, err := gitprovider.ParseOrgRepositoryURL("https://gitlab.com/org/sub1/sub2/sub3/repo")
+	assert.NoError(t, err)
+	newRef := git.CombineSubgroups(*ref)
+
+	// Where are the still the same
+	assert.Equal(t, "repo", ref.RepositoryName)
+	assert.Equal(t, "repo", newRef.RepositoryName)
+
+	assert.Equal(t, "https://gitlab.com/org/sub1/sub2/sub3/repo.git", ref.GetCloneURL("https"))
+	assert.Equal(t, "https://gitlab.com/org/sub1/sub2/sub3/repo.git", newRef.GetCloneURL("https"))
+
+	assert.Equal(t, "https://gitlab.com/org/sub1/sub2/sub3/repo", ref.String())
+	assert.Equal(t, "https://gitlab.com/org/sub1/sub2/sub3/repo", newRef.String())
+
+	// Where they now differ
+	assert.Equal(t, "org", ref.Organization)
+	assert.Equal(t, "org/sub1/sub2/sub3", newRef.Organization)
+
+	assert.Equal(t, []string{"sub1", "sub2", "sub3"}, ref.SubOrganizations)
+	assert.Equal(t, []string(nil), newRef.SubOrganizations)
+}
+
 func findGitHubRepo(repos []*github.Repository, name string) *github.Repository {
 	if name == "" {
 		return nil

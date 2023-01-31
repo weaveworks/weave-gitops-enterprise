@@ -151,11 +151,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	}
 
 	ref.Domain = addSchemeToDomain(ref.Domain)
-
-	// Add the subgroups
-	// https://github.com/fluxcd/go-git-providers/issues/183
-	ref.Organization = strings.Join(append([]string{ref.Organization}, ref.SubOrganizations...), "/")
-	ref.SubOrganizations = nil
+	ref = CombineSubgroups(*ref)
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
@@ -174,6 +170,14 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	}
 
 	return repo, nil
+}
+
+func CombineSubgroups(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepositoryRef {
+	// Add the subgroups
+	// https://github.com/fluxcd/go-git-providers/issues/183
+	ref.Organization = strings.Join(append([]string{ref.Organization}, ref.SubOrganizations...), "/")
+	ref.SubOrganizations = nil
+	return &ref
 }
 
 // GetTreeList retrieves list of tree files from gitprovider given the sha/branch
