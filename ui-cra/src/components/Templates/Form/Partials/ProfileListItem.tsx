@@ -4,7 +4,7 @@ import {
   MenuItem,
   TextField,
   createStyles,
-  makeStyles
+  makeStyles,
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
@@ -26,12 +26,10 @@ import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
 import Profiles from './Profiles';
-const semverValid = require('semver/functions/valid')
-const semverValidRange = require('semver/ranges/valid')
-const semverMaxSatisfying = require('semver/ranges/max-satisfying')
-const semverCoerce = require('semver/functions/coerce')
-
-
+const semverValid = require('semver/functions/valid');
+const semverValidRange = require('semver/ranges/valid');
+const semverMaxSatisfying = require('semver/ranges/max-satisfying');
+const semverCoerce = require('semver/functions/coerce');
 
 const ProfileWrapper = styled.div`
   display: flex;
@@ -50,25 +48,25 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
-  const [inValidVersionErrorMessage, setInValidVersionErrorMessage] = useState<string>('');
+  const [inValidVersionErrorMessage, setInValidVersionErrorMessage] =
+    useState<string>('');
   const [isValidVersion, setIsValidVersion] = useState<boolean>(true);
 
-
   const useStyles = makeStyles(() =>
-  createStyles({
-    autoComplete: {
-      cursor: 'pointer',
-      minWidth: '155px',
-      overflow: 'hidden',
-      minHeight: '1.1876em',
-      marginRight: '24px',
-      'input':{
-        padding:'10px'
-      }
-    }
-  }),
-);
-const classes = useStyles();
+    createStyles({
+      autoComplete: {
+        cursor: 'pointer',
+        minWidth: '155px',
+        overflow: 'hidden',
+        minHeight: '1.1876em',
+        marginRight: '24px',
+        input: {
+          padding: '10px',
+        },
+      },
+    }),
+  );
+  const classes = useStyles();
 
   const handleUpdateProfile = useCallback(
     profile => {
@@ -80,32 +78,42 @@ const classes = useStyles();
     [setUpdatedProfiles],
   );
 
-  const validateVersion =(version:string)=>{
-    if (semverValid(version) || semverValidRange(version)){
-        setVersion(version)
-    }else{
-      setInValidVersionErrorMessage('The provided semver is invalid')
-      setIsValidVersion(false)
+  const validateVersion = (version: string) => {
+    if (semverValid(version) || semverValidRange(version)) {
+      setVersion(version);
+    } else {
+      setInValidVersionErrorMessage('The provided semver is invalid');
+      setIsValidVersion(false);
     }
-
-  }
+  };
 
   const handleSelectVersion = useCallback(
     (value: string, reason: string) => {
-      setInValidVersionErrorMessage('')
-      setIsValidVersion(true)
+      setInValidVersionErrorMessage('');
+      setIsValidVersion(true);
       validateVersion(value);
+
       profile.values.forEach(item =>
         item.selected === true ? (item.selected = false) : null,
       );
-      const filteredVersions = profile.values.filter(item => item.version !== value);
-      const selectedVersion = profile.values.find(item => item.version === value);
+      const filteredVersions = profile.values.filter(
+        item => item.version !== value,
+      );
+      const selectedVersion = profile.values.find(
+        item => item.version === value,
+      );
 
       if (selectedVersion) {
-        profile.values = [...filteredVersions, { ...selectedVersion, selected: true}]
+        profile.values = [
+          ...filteredVersions,
+          { ...selectedVersion, selected: true },
+        ];
         setYaml(selectedVersion.yaml as string);
       } else {
-        profile.values.push({ version: value, selected: true, yaml: '' });
+        if (isValidVersion) {
+          // check for validation  and setting the version
+          profile.values.push({ version: value, selected: true, yaml: '' });
+        }
       }
       handleUpdateProfile(profile);
     },
@@ -161,7 +169,7 @@ const classes = useStyles();
   }, [profile]);
 
   // TODO: debounce function to reduce the number of created objects from profile version
-  
+
   return (
     <>
       <ProfileWrapper data-profile-name={profile.name}>
@@ -173,7 +181,7 @@ const classes = useStyles();
               freeSolo
               className={classes.autoComplete}
               options={profile.values.map(option => option.version)}
-              onChange={(event, newValue,reason) => {
+              onChange={(event, newValue, reason) => {
                 handleSelectVersion(newValue, reason);
               }}
               value={version}
@@ -183,7 +191,9 @@ const classes = useStyles();
                   {...params}
                   variant="standard"
                   error={!isValidVersion}
-                  helperText={!!inValidVersionErrorMessage && inValidVersionErrorMessage}
+                  helperText={
+                    !!inValidVersionErrorMessage && inValidVersionErrorMessage
+                  }
                 />
               )}
             />
