@@ -183,26 +183,52 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 	gitlabHost := fmt.Sprintf("https://%s", os.Getenv("GIT_PROVIDER_HOSTNAME"))
 	client, err := gitlab.NewClient(os.Getenv("GITLAB_TOKEN"), gitlab.WithBaseURL(gitlabHost))
 	require.NoError(t, err)
-	// Create a repository using a name that doesn't exist already
-	repoName := fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
-	repos, _, err := client.Projects.ListProjects(&gitlab.ListProjectsOptions{
-		Owned: gitlab.Bool(true),
-	})
+
+	repoName := TestRepositoryNamePrefix + "-group-test"
+
+	// Create a group using a name that doesn't exist already
+	groupName := fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
+	groups, _, err := client.Groups.ListGroups(&gitlab.ListGroupsOptions{})
 	assert.NoError(t, err)
-	for findGitLabRepo(repos, repoName) != nil {
-		repoName = fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
+	for findGitLabGroup(groups, groupName) != nil {
+		groupName = fmt.Sprintf("%s-%03d", TestRepositoryNamePrefix, rand.Intn(1000))
 	}
+
+	parentGroup, _, err := client.Groups.CreateGroup(&gitlab.CreateGroupOptions{
+		Path:       gitlab.String(groupName),
+		Name:       gitlab.String(groupName),
+		Visibility: gitlab.Visibility(gitlab.PrivateVisibility),
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err = client.Groups.DeleteGroup(parentGroup.ID)
+		require.NoError(t, err)
+	})
+
+	fooGroup, _, err := client.Groups.CreateGroup(&gitlab.CreateGroupOptions{
+		Path:       gitlab.String("foo"),
+		Name:       gitlab.String("foo group"),
+		ParentID:   gitlab.Int(parentGroup.ID),
+		Visibility: gitlab.Visibility(gitlab.PrivateVisibility),
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err = client.Groups.DeleteGroup(fooGroup.ID)
+		require.NoError(t, err)
+	})
+
 	repo, _, err := client.Projects.CreateProject(&gitlab.CreateProjectOptions{
 		Name:                 gitlab.String(repoName),
 		MergeRequestsEnabled: gitlab.Bool(true),
 		Visibility:           gitlab.Visibility(gitlab.PrivateVisibility),
 		InitializeWithReadme: gitlab.Bool(true),
+		NamespaceID:          gitlab.Int(fooGroup.ID),
 	})
 	require.NoError(t, err)
-	defer func() {
+	t.Cleanup(func() {
 		_, err = client.Projects.DeleteProject(repo.ID)
 		require.NoError(t, err)
-	}()
+	})
 
 	s := git.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
@@ -420,6 +446,18 @@ func findGitHubRepo(repos []*github.Repository, name string) *github.Repository 
 }
 
 func findGitLabRepo(repos []*gitlab.Project, name string) *gitlab.Project {
+	if name == "" {
+		return nil
+	}
+	for _, repo := range repos {
+		if repo.Name == name {
+			return repo
+		}
+	}
+	return nil
+}
+
+func findGitLabGroup(repos []*gitlab.Group, name string) *gitlab.Group {
 	if name == "" {
 		return nil
 	}
