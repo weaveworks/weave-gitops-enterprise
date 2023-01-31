@@ -34,7 +34,6 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
-	github.com/drone/go-scm v1.28.1
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.11.0
@@ -64,9 +63,9 @@ require (
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/weaveworks/templates-controller v0.1.2
-	github.com/xanzy/go-gitlab v0.78.0
+	github.com/xanzy/go-gitlab v0.76.0
 	golang.org/x/crypto v0.3.0
-	golang.org/x/oauth2 v0.3.0
+	golang.org/x/oauth2 v0.2.0
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
 	google.golang.org/grpc v1.51.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
@@ -245,7 +244,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
@@ -316,7 +315,7 @@ require (
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/text v0.5.0
-	golang.org/x/time v0.3.0 // indirect
+	golang.org/x/time v0.2.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
@@ -346,7 +345,6 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
-	github.com/weaveworks/weave-gitops => ../weave-gitops
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 	// Fix for CVE-2022-1996
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8

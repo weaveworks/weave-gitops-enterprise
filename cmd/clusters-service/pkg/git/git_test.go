@@ -362,18 +362,6 @@ func TestCreatePullRequestInGitLab_DeleteFiles(t *testing.T) {
 	assert.Equal(t, pr.Description, "Deletes a cluster")
 }
 
-func TestGetRepositoryUrl(t *testing.T) {
-	s := git.NewGitProviderService(logr.Discard())
-	gp := git.GitProvider{
-		Token:    os.Getenv("GITLAB_TOKEN"),
-		Type:     "gitlab",
-		Hostname: "https://gitlab.git.dev.weave.works",
-	}
-	repoURL, err := s.GetRepository(context.Background(), gp, "https://gitlab.git.dev.weave.works/wge/foot/wge-dev")
-	fmt.Println(repoURL, err)
-	assert.Equal(t, "https://gitlab.git.dev.weave.works/test", repoURL)
-}
-
 func TestGetGitProviderUrl(t *testing.T) {
 	expected := "https://github.com/user/repo.git"
 
