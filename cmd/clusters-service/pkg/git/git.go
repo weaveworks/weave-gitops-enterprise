@@ -151,7 +151,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	}
 
 	ref.Domain = addSchemeToDomain(ref.Domain)
-	ref = RefWithCombinedSubgroups(*ref)
+	ref = WithCombinedSubGroups(*ref)
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
@@ -172,9 +172,10 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	return repo, nil
 }
 
-func RefWithCombinedSubgroups(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepositoryRef {
-	// Add the subgroups
-	// https://github.com/fluxcd/go-git-providers/issues/183
+// WithCombinedSubGroups combines the subgroups into the organization field of the reference
+// This is to work around a bug in the go-git-providers library where it doesn't handle subgroups correctly.
+// https://github.com/fluxcd/go-git-providers/issues/183
+func WithCombinedSubGroups(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepositoryRef {
 	ref.Organization = strings.Join(append([]string{ref.Organization}, ref.SubOrganizations...), "/")
 	ref.SubOrganizations = nil
 	return &ref
