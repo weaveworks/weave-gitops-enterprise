@@ -59,7 +59,7 @@ func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code 
 	u, err := buildBitbucketURL()
 
 	if err != nil {
-		return nil, fmt.Errorf("buliding bitbucket server url: %w", err)
+		return nil, fmt.Errorf("building bitbucket server url: %w", err)
 	}
 
 	cid := getClientID()
