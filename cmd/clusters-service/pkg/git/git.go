@@ -153,6 +153,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	ref.Domain = addSchemeToDomain(ref.Domain)
 
 	// Add the subgroups
+	// https://github.com/fluxcd/go-git-providers/issues/183
 	ref.Organization = strings.Join(append([]string{ref.Organization}, ref.SubOrganizations...), "/")
 	ref.SubOrganizations = nil
 
