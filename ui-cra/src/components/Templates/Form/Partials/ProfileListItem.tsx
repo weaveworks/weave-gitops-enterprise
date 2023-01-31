@@ -8,6 +8,7 @@ import {
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
+import { debounce } from 'lodash';
 import React, {
   ChangeEvent,
   Dispatch,
@@ -25,6 +26,7 @@ import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
 const semverValid = require('semver/functions/valid')
+const semverValidRange = require('semver/ranges/valid')
 const semverMaxSatisfying = require('semver/ranges/max-satisfying')
 const semverCoerce = require('semver/functions/coerce')
 
@@ -78,11 +80,11 @@ const classes = useStyles();
   );
 
   const validateVersion =(version:string)=>{
-    if (semverValid(version)){
-        setVersion(semverMaxSatisfying(profile.values.map(item=>item.version),version)||version)
+    if (semverValid(version) || semverValidRange(version)){
+        setVersion(version)
     }else{
-      setInValidVersionErrorMessage('The provided semver is invalid or not matching please select one of the available versions')
-      setIsValidVersion(true)
+      setInValidVersionErrorMessage('The provided semver is invalid')
+      setIsValidVersion(false)
     }
 
   }
@@ -90,7 +92,7 @@ const classes = useStyles();
   const handleSelectVersion = useCallback(
     (value: string) => {
       setInValidVersionErrorMessage('')
-      setIsValidVersion(false)
+      setIsValidVersion(true)
       validateVersion(value);
       profile.values.forEach(item =>
         item.selected === true ? (item.selected = false) : null,
@@ -101,6 +103,13 @@ const classes = useStyles();
           item.selected = true;
           setYaml(item.yaml as string);
           return;
+        }
+        else{
+          profile.values.push({
+            version: value,
+            selected: true,
+            yaml: ''
+          })
         }
       });
 
@@ -157,11 +166,13 @@ const classes = useStyles();
     }
   }, [profile]);
 
+  // TODO: debounce function to reduce the number of created objects from profile version
+  
   return (
     <>
       <ProfileWrapper data-profile-name={profile.name}>
         <div className="profile-version">
-          <FormControl >
+          <FormControl>
             <Autocomplete
               disabled={profile.required && profile.values.length === 1}
               disableClearable
@@ -177,7 +188,7 @@ const classes = useStyles();
                 <TextField
                   {...params}
                   variant="standard"
-                  error={isValidVersion}
+                  error={!isValidVersion}
                   helperText={!!inValidVersionErrorMessage && inValidVersionErrorMessage}
                 />
               )}
