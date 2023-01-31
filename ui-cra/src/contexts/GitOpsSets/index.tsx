@@ -25,7 +25,9 @@ import {
 import {
   GroupVersionKind,
   Object as ResponseObject,
+  ResourceRef,
 } from '../../api/gitopssets/types.pb';
+import _ from 'lodash';
 
 const GitOpsSetsContext = React.createContext<typeof GitOpsSets>(
   {} as typeof GitOpsSets,
@@ -105,7 +107,7 @@ export function useGetReconciledTree(
   name: string,
   namespace: string,
   type: 'GitOpsSet',
-  kinds: GroupVersionKind[],
+  kinds: ResourceRef[],
   clusterName = 'Default',
 ) {
   return useQuery<any[], RequestError>(
@@ -130,10 +132,10 @@ export const getChildren = async (
     kinds,
     clusterName,
   });
-
+  const length = objects?.length || 0;
   const result = [];
-  for (let o = 0; o < objects?.length; o++) {
-    const obj = convertResponse(null, objects?.[o]);
+  for (let o = 0; o < length; o++) {
+    const obj = convertResponse('', objects?.[o] || ({} as ResponseObject));
     await getChildrenRecursive(
       client,
       namespace,
@@ -170,11 +172,16 @@ export const getChildrenRecursive = async (
         clusterName: clusterName,
       });
 
-      for (let q = 0; q < res?.objects?.length; q++) {
-        const c = convertResponse(null, res?.objects?.[q]);
+      const length = res?.objects?.length || 0;
+
+      for (let q = 0; q < length; q++) {
+        const c = convertResponse(
+          '',
+          res?.objects?.[q] || ({} as ResponseObject),
+        );
         // Dive down one level and update the lookup accordingly.
         await getChildrenRecursive(client, namespace, c, clusterName, {
-          [child.kind]: child,
+          [child.kind as string]: child,
         });
         children.push(c);
       }

@@ -9,7 +9,11 @@ import {
 import * as d3 from 'd3';
 import * as React from 'react';
 import styled from 'styled-components';
-import { GitOpsSet, ObjectRef } from '../../api/gitopssets/types.pb';
+import {
+  GitOpsSet,
+  GroupVersionKind,
+  ObjectRef,
+} from '../../api/gitopssets/types.pb';
 import { useGetReconciledTree } from '../../contexts/GitOpsSets';
 import { RequestError } from '../../types/custom';
 
@@ -49,7 +53,7 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
         parentObject.name || '',
         parentObject.namespace || '',
         'GitOpsSet',
-        parentObject.inventory,
+        parentObject.inventory || [],
         parentObject.clusterName,
       )
     : { data: [], error: null, isLoading: false };
