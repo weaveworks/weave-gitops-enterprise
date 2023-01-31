@@ -69,10 +69,6 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
     ),
   };
 
-  // Name field for when Detail page is ready to be hooked up
-
-  console.log(sessions);
-
   return (
     <DataTable
       key={sessions?.length}

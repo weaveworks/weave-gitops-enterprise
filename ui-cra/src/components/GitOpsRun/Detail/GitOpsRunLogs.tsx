@@ -4,11 +4,12 @@ import { Flex } from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React from 'react';
 import styled from 'styled-components';
-import { Select } from '../../../utils/form';
+import { useGetLogs } from '../../../hooks/gitopsrun';
 
 type Props = {
   className?: string;
-  logs: LogEntry[];
+  name: string;
+  namespace: string;
 };
 
 const Header = styled(Flex)`
@@ -38,25 +39,35 @@ const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   );
 };
 
-function GitOpsRunLogs({ className, logs }: Props) {
-  const [logOptions, setLogOptions] = React.useState<string[]>([
-    'log one',
-    'log two',
-  ]);
-  const [levelOptions, setLevelOptions] = React.useState<string[]>([
-    'level one',
-    'level two',
-  ]);
-  const [logValue, setLogValue] = React.useState('-');
-  const [levelValue, setLevelValue] = React.useState('-');
+function GitOpsRunLogs({ className, name, namespace }: Props) {
+  // const [logOptions, setLogOptions] = React.useState<string[]>([
+  //   'log one',
+  //   'log two',
+  // ]);
+  // const [levelOptions, setLevelOptions] = React.useState<string[]>([
+  //   'level one',
+  //   'level two',
+  // ]);
+  // const [logValue, setLogValue] = React.useState('-');
+  // const [levelValue, setLevelValue] = React.useState('-');
+
+  const [token, setToken] = React.useState('');
+  const { isLoading, data, error } = useGetLogs({
+    sessionNamespace: namespace,
+    sessionId: name,
+    token,
+  });
 
   React.useEffect(() => {
-    //find logs and levels for selects, plus earliest timestamp?!
-  }, [logs]);
+    if (isLoading) return;
+    setToken(data?.nextToken || '');
+  }, [data]);
+
+  const logs = data?.logs || [];
 
   return (
     <Flex className={className} wide tall column>
-      <Flex>
+      {/* <Flex>
         <Select
           label="LOG"
           value={logValue}
@@ -70,8 +81,12 @@ function GitOpsRunLogs({ className, logs }: Props) {
           items={levelOptions}
           onChange={e => setLevelValue(e.target.value as string)}
         />
-      </Flex>
-      <Header wide>showing logs from ....</Header>
+      </Flex> */}
+      <Header wide>
+        {logs.length
+          ? 'showing logs from ' + logs[0].timestamp
+          : 'No logs found'}
+      </Header>
       <TableContainer>
         <Table>
           {logs.map(log => (
