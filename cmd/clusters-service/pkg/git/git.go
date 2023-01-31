@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -11,11 +12,11 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	go_git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
-	go_git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
 )
@@ -152,7 +153,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	}
 
 	ref.Domain = addSchemeToDomain(ref.Domain)
-	ref = WithCombinedSubGroups(*ref)
+	ref = WithCombinedSubOrgs(*ref)
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
@@ -173,11 +174,12 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	return repo, nil
 }
 
-// WithCombinedSubGroups combines the subgroups into the organization field of the reference
+// WithCombinedSubOrgs combines the subgroups into the organization field of the reference
 // This is to work around a bug in the go-git-providers library where it doesn't handle subgroups correctly.
 // https://github.com/fluxcd/go-git-providers/issues/183
-func WithCombinedSubGroups(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepositoryRef {
-	ref.Organization = strings.Join(append([]string{ref.Organization}, ref.SubOrganizations...), "/")
+func WithCombinedSubOrgs(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepositoryRef {
+	orgsWithSubGroups := append([]string{ref.Organization}, ref.SubOrganizations...)
+	ref.Organization = path.Join(orgsWithSubGroups...)
 	ref.SubOrganizations = nil
 	return &ref
 }
