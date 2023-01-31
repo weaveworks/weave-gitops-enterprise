@@ -1,22 +1,14 @@
 import { Table, TableCell, TableContainer, TableRow } from '@material-ui/core';
 import { Error, Info } from '@material-ui/icons';
 import { Flex } from '@weaveworks/weave-gitops';
+import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React from 'react';
 import styled from 'styled-components';
 import { Select } from '../../../utils/form';
 
-type Log = {
-  level: string;
-  msg: string;
-  ts: string;
-  logger: string;
-  caller: string;
-  clusters: string[];
-};
-
 type Props = {
   className?: string;
-  logs: Log[];
+  logs: LogEntry[];
 };
 
 const Header = styled(Flex)`
@@ -27,7 +19,7 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
-const LogRow: React.FC<{ log: Log }> = ({ log }) => {
+const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   return (
     <TableRow>
       <TableCell>
@@ -39,9 +31,9 @@ const LogRow: React.FC<{ log: Log }> = ({ log }) => {
           )}
         </Flex>
       </TableCell>
-      <TableCell className="gray">{log.ts || '-'}</TableCell>
-      <TableCell>{log.caller || '-'}</TableCell>
-      <TableCell className="break-word">{log.msg || '-'}</TableCell>
+      <TableCell className="gray">{log.timestamp || '-'}</TableCell>
+      <TableCell>{log.source || '-'}</TableCell>
+      <TableCell className="break-word">{log.message || '-'}</TableCell>
     </TableRow>
   );
 };
@@ -60,7 +52,7 @@ function GitOpsRunLogs({ className, logs }: Props) {
 
   React.useEffect(() => {
     //find logs and levels for selects, plus earliest timestamp?!
-  });
+  }, [logs]);
 
   return (
     <Flex className={className} wide tall column>

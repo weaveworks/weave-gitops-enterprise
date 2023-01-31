@@ -82,13 +82,13 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
         {
           label: 'Name',
           value: (s: FluxObject) => {
-            const metadata = s.obj.metadata;
+            const namespace =
+              s.obj.metadata.annotations['run.weave.works/namespace'];
             return (
               <Link
                 to={formatURL(Routes.GitOpsRunDetail, {
                   name: s.name,
-                  namespace: 'flux-system',
-                  clusterName: `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`,
+                  namespace,
                 })}
               >
                 {s.name}

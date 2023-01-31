@@ -1,4 +1,5 @@
 import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { useEffect, useState } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { useGetLogs } from '../../../hooks/gitopsrun';
@@ -8,7 +9,6 @@ import GitOpsRunLogs from './GitOpsRunLogs';
 type Props = {
   name?: string;
   namespace?: string;
-  clusterName?: string;
 };
 
 const PageTitle = styled.h4`
@@ -18,29 +18,21 @@ const PageTitle = styled.h4`
   margin-bottom: ${({ theme }) => theme.spacing.small};
 `;
 
-const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
+const GitOpsRunDetail = ({ name, namespace }: Props) => {
+  const [token, setToken] = useState('');
   const { isLoading, data, error } = useGetLogs({
-    namespace: 'flux-system',
+    sessionNamespace: namespace,
     sessionId: name,
-    clusterName,
+    token,
   });
 
   console.log(data);
-  const fakes = [
-    {
-      source: 'bucket-server',
-      message:
-        'Cleanup Bucket Source and Kustomization successfully ahsjdklghjdfislhajvilsbnfjklbdsjklbvhjlkadfsbjhkvbzdfjkhvbhjkzdbhjkvsdbfhdksvbhjvfkbdshjfbhjvdsbfhjvkbsdhjbbvshjdkbvasdjkncjklabfnvadjklj',
-      severity: 'info',
-      timestamp: '2022-08-14 12:20:00 UTC',
-    },
-    {
-      source: 'bucket-server',
-      message: 'Cleanup Bucket Source and Kustomization successfully',
-      severity: 'error',
-      timestamp: '2022-08-14 12:20:00 UTC',
-    },
-  ];
+
+  useEffect(() => {
+    if (isLoading) return;
+    setToken(data?.nextToken || '');
+  }, [data]);
+
   const { path } = useRouteMatch();
   return (
     <PageTemplate
@@ -48,13 +40,13 @@ const GitOpsRunDetail = ({ name, namespace, clusterName }: Props) => {
       path={[{ label: 'GitOps Run Detail' }]}
     >
       <ContentWrapper
-      // loading={isLoading}
-      // errors={[{ message: error?.message }]}
+        loading={isLoading}
+        errors={[{ message: error?.message }]}
       >
         <PageTitle>{name}</PageTitle>
         <SubRouterTabs rootPath={`${path}/logs`}>
           <RouterTab name="Logs" path={`${path}/logs`}>
-            <GitOpsRunLogs logs={[]} />
+            <GitOpsRunLogs logs={data?.logs || []} />
           </RouterTab>
         </SubRouterTabs>
       </ContentWrapper>
