@@ -387,7 +387,7 @@ func TestGetGitProviderUrl(t *testing.T) {
 func TestCombineSubGroups(t *testing.T) {
 	ref, err := gitprovider.ParseOrgRepositoryURL("https://gitlab.com/org/sub1/sub2/sub3/repo")
 	assert.NoError(t, err)
-	newRef := git.CombineSubgroups(*ref)
+	newRef := git.RefWithCombinedSubgroups(*ref)
 
 	// Where are the still the same
 	assert.Equal(t, "repo", ref.RepositoryName)
