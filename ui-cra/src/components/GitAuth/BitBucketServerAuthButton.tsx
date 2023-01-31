@@ -1,4 +1,5 @@
 import { Button } from '@weaveworks/weave-gitops';
+// @ts-ignore
 import { CallbackStateContextType } from '@weaveworks/weave-gitops/ui/contexts/CallbackStateContext';
 import * as React from 'react';
 import styled from 'styled-components';
