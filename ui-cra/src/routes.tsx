@@ -43,6 +43,8 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
+import CreateSecret from './components/Secrets/Create';
+
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -263,6 +265,8 @@ const AppRoutes = () => {
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
+      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
