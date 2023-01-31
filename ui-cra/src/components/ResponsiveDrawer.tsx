@@ -26,14 +26,14 @@ import { Terraform } from '../api/terraform/terraform.pb';
 import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
-import { TerraformProvider } from '../contexts/Terraform';
+import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
 import NotificationsProvider from '../contexts/Notifications/Provider';
+import { TerraformProvider } from '../contexts/Terraform';
 import AppRoutes from '../routes';
+import { resolver } from '../utils/link-resolver';
+import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
-import { resolver } from '../utils/link-resolver';
-import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
-import ErrorBoundary from './ErrorBoundary';
 
 const drawerWidth = 220;
 
@@ -77,6 +77,7 @@ const useStyles = makeStyles((theme: Theme) =>
       width: drawerWidth,
       border: 'none',
       background: 'none',
+      boxShadow: 'none',
     },
     content: {
       flexGrow: 1,

@@ -1,11 +1,6 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
-import {
-  Link,
-  theme,
-  useFeatureFlags,
-  V2Routes,
-} from '@weaveworks/weave-gitops';
+import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -14,11 +9,10 @@ import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as GitOpsRun } from '../assets/img/gitops-run-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
-import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
 
@@ -107,15 +101,11 @@ export const NavItem = styled(NavLink).attrs({
 
 const useStyles = makeStyles({
   root: {
+    marginTop: '80px',
     paddingTop: medium,
     alignItems: 'center',
-    height: 'calc(100vh - 84px)',
+    height: 'calc(100vh - 80px)',
     borderTopRightRadius: '10px',
-  },
-  logo: {
-    padding: `calc(${medium} - ${xxs})`,
-    paddingTop: `${medium}`,
-    paddingBottom: `17px`,
   },
 });
 
@@ -262,15 +252,8 @@ export const Navigation: FC = () => {
   const uiConfig = listConfigContext?.uiConfig || '';
 
   return (
-    <>
-      <div title="Home" className={classes.logo}>
-        <Link to={Routes.Clusters}>
-          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
-        </Link>
-      </div>
-      <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
-        <MemoizedNavItems />
-      </Box>
-    </>
+    <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
+      <MemoizedNavItems />
+    </Box>
   );
 };
