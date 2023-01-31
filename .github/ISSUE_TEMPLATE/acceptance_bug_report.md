@@ -7,8 +7,9 @@ assignees: ''
 
 ---
 
+<!-- which wge story/feature was being verified and which branch contains the changes. -->
 **WGE Story/Feature:**
- - which wge story/feature was being verified and which branch contains the changes
+
 
 **Priority**
  - low
@@ -19,21 +20,27 @@ assignees: ''
  - low
  - medium
  - high
+ - critical
 
+<!-- A clear and concise description of what the bug is. -->
 **Describe the bug**
-A clear and concise description of what the bug is.
 
+
+<!-- Steps to reproduce the behaviour. -->
 **To Reproduce**
-Steps to reproduce the behaviour:
 
+
+<!-- A clear and concise description of the resulting behaviour. -->
 **Actual behaviour**
-A clear and concise description of the resulting behaviour.
 
+
+<!-- A clear and concise description of what you expected to happen. -->
 **Expected behaviour**
-A clear and concise description of what you expected to happen.
 
+
+<!-- The url of the environment the feature was tested on. -->
 **Test Environment**
-The url of the environment the feature was tested on
 
+
+<!-- Add any other context about the problem here. -->
 **Additional context**
-Add any other context about the problem here.
