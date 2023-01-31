@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -141,10 +142,22 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			response.Version = externalSecret.Spec.Data[0].RemoteRef.Version
 		}
 
-		//Get SecretStore
-		var externalSecretStore esv1beta1.SecretStore
-		if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &externalSecretStore); err == nil {
-			response.SecretStoreType = getSecretStoreType(&externalSecretStore)
+		var secretStoreProvider *esv1beta1.SecretStoreProvider
+		if externalSecret.Spec.SecretStoreRef.Kind == esv1beta1.ClusterSecretStoreKind {
+			var clusterSecretStore esv1beta1.ClusterSecretStore
+			if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name}, &clusterSecretStore); err == nil {
+				secretStoreProvider = clusterSecretStore.Spec.Provider
+			}
+
+		} else {
+			var secretStore esv1beta1.SecretStore
+			if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: externalSecret.Spec.SecretStoreRef.Name, Namespace: req.Namespace}, &secretStore); err == nil {
+				secretStoreProvider = secretStore.Spec.Provider
+			}
+		}
+
+		if secretStoreProvider != nil {
+			response.SecretStoreType = getSecretStoreType(secretStoreProvider)
 		}
 
 		return &response, nil
@@ -190,40 +203,61 @@ func (s *server) ListExternalSecretStores(ctx context.Context, req *capiv1_proto
 	}
 
 	var secretStores esv1beta1.SecretStoreList
+	var clusterSecretStores esv1beta1.ClusterSecretStoreList
 
 	g, gctx := errgroup.WithContext(ctx)
 	g.Go(func() error {
 		return clustersClient.List(gctx, req.ClusterName, &secretStores)
 	})
 
+	g.Go(func() error {
+		return clustersClient.List(gctx, req.ClusterName, &clusterSecretStores)
+	})
+
 	if err := g.Wait(); err != nil {
+		if strings.Contains(err.Error(), "no matches for kind") {
+			return &capiv1_proto.ListExternalSecretStoresResponse{}, nil
+		}
 		return nil, fmt.Errorf("failed to list secret stores, error %w", err)
 	}
 
 	response := capiv1_proto.ListExternalSecretStoresResponse{}
+
 	for _, item := range secretStores.Items {
 		response.Stores = append(response.Stores, &capiv1_proto.ExternalSecretStore{
 			Kind:      item.GetKind(),
 			Name:      item.GetName(),
 			Namespace: item.GetNamespace(),
-			Type:      getSecretStoreType(&item),
+			Type:      getSecretStoreType(item.Spec.Provider),
 		})
 	}
+
+	for _, item := range clusterSecretStores.Items {
+		response.Stores = append(response.Stores, &capiv1_proto.ExternalSecretStore{
+			Kind:      item.GetKind(),
+			Name:      item.GetName(),
+			Namespace: item.GetNamespace(),
+			Type:      getSecretStoreType(item.Spec.Provider),
+		})
+	}
+
+	sort.Slice(response.Stores, func(i, j int) bool {
+		return response.Stores[i].Name < response.Stores[j].Name
+	})
 
 	response.Total = int32(len(response.Stores))
 	return &response, nil
 }
 
 // getSecretStoreType gets SecretStoreType from SecretStore object
-func getSecretStoreType(secretStore *esv1beta1.SecretStore) string {
-
-	if secretStore.Spec.Provider.AWS != nil {
+func getSecretStoreType(provider *esv1beta1.SecretStoreProvider) string {
+	if provider.AWS != nil {
 		return "AWS Secrets Manager"
-	} else if secretStore.Spec.Provider.AzureKV != nil {
+	} else if provider.AzureKV != nil {
 		return "Azure Key Vault"
-	} else if secretStore.Spec.Provider.GCPSM != nil {
+	} else if provider.GCPSM != nil {
 		return "Google Cloud Platform Secret Manager"
-	} else if secretStore.Spec.Provider.Vault != nil {
+	} else if provider.Vault != nil {
 		return "HashiCorp Vault"
 	} else {
 		return "Unknown"
