@@ -25,6 +25,7 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
+import Profiles from './Profiles';
 const semverValid = require('semver/functions/valid')
 const semverValidRange = require('semver/ranges/valid')
 const semverMaxSatisfying = require('semver/ranges/max-satisfying')
@@ -50,7 +51,7 @@ const ProfilesListItem: FC<{
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
   const [inValidVersionErrorMessage, setInValidVersionErrorMessage] = useState<string>('');
-  const [isValidVersion, setIsValidVersion] = useState<boolean>(false);
+  const [isValidVersion, setIsValidVersion] = useState<boolean>(true);
 
 
   const useStyles = makeStyles(() =>
@@ -90,29 +91,22 @@ const classes = useStyles();
   }
 
   const handleSelectVersion = useCallback(
-    (value: string) => {
+    (value: string, reason: string) => {
       setInValidVersionErrorMessage('')
       setIsValidVersion(true)
       validateVersion(value);
       profile.values.forEach(item =>
         item.selected === true ? (item.selected = false) : null,
       );
+      const filteredVersions = profile.values.filter(item => item.version !== value);
+      const selectedVersion = profile.values.find(item => item.version === value);
 
-      profile.values.forEach(item => {
-        if (item.version === value) {
-          item.selected = true;
-          setYaml(item.yaml as string);
-          return;
-        }
-        else{
-          profile.values.push({
-            version: value,
-            selected: true,
-            yaml: ''
-          })
-        }
-      });
-
+      if (selectedVersion) {
+        profile.values = [...filteredVersions, { ...selectedVersion, selected: true}]
+        setYaml(selectedVersion.yaml as string);
+      } else {
+        profile.values.push({ version: value, selected: true, yaml: '' });
+      }
       handleUpdateProfile(profile);
     },
     [profile, handleUpdateProfile],
@@ -179,8 +173,8 @@ const classes = useStyles();
               freeSolo
               className={classes.autoComplete}
               options={profile.values.map(option => option.version)}
-              onChange={(event, newValue) => {
-                handleSelectVersion(newValue);
+              onChange={(event, newValue,reason) => {
+                handleSelectVersion(newValue, reason);
               }}
               value={version}
               autoSelect
