@@ -147,13 +147,18 @@ func TestGetExternalSecret(t *testing.T) {
 			state: []runtime.Object{
 				&v1.Namespace{
 					ObjectMeta: metav1.ObjectMeta{
-						Name: "namespace-a-1",
+						Name: "namespace-a",
+					},
+				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-b",
 					},
 				},
 				&esv1beta1.SecretStore{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "aws-secret-store",
-						Namespace: "namespace-a-1",
+						Namespace: "namespace-a",
 					},
 					Spec: esv1beta1.SecretStoreSpec{
 						Provider: &esv1beta1.SecretStoreProvider{
@@ -163,24 +168,57 @@ func TestGetExternalSecret(t *testing.T) {
 						},
 					},
 				},
-
+				&esv1beta1.ClusterSecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "valt-secret-store",
+					},
+					Spec: esv1beta1.SecretStoreSpec{
+						Provider: &esv1beta1.SecretStoreProvider{
+							Vault: &esv1beta1.VaultProvider{},
+						},
+					},
+				},
 				&esv1beta1.ExternalSecret{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "external-secret-a-1",
-						Namespace: "namespace-a-1",
+						Name:      "external-secret-a",
+						Namespace: "namespace-a",
 					},
 					Spec: esv1beta1.ExternalSecretSpec{
 						SecretStoreRef: esv1beta1.SecretStoreRef{
 							Name: "aws-secret-store",
 						},
 						Target: esv1beta1.ExternalSecretTarget{
-							Name: "secret-a-1",
+							Name: "secret-a",
 						},
 						Data: []esv1beta1.ExternalSecretData{
 							{
 								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
-									Key:      "Data/key-a-1",
-									Property: "property-a-1",
+									Key:      "Data/key-a",
+									Property: "property-a",
+									Version:  "1.0.0",
+								},
+							},
+						},
+					},
+				},
+				&esv1beta1.ExternalSecret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "external-secret-b",
+						Namespace: "namespace-b",
+					},
+					Spec: esv1beta1.ExternalSecretSpec{
+						SecretStoreRef: esv1beta1.SecretStoreRef{
+							Name: "valt-secret-store",
+							Kind: esv1beta1.ClusterSecretStoreKind,
+						},
+						Target: esv1beta1.ExternalSecretTarget{
+							Name: "secret-b",
+						},
+						Data: []esv1beta1.ExternalSecretData{
+							{
+								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+									Key:      "Data/key-b",
+									Property: "property-b",
 									Version:  "1.0.0",
 								},
 							},
@@ -198,19 +236,37 @@ func TestGetExternalSecret(t *testing.T) {
 	}{
 		{
 			request: &capiv1_proto.GetExternalSecretRequest{
-				ExternalSecretName: "external-secret-a-1",
-				Namespace:          "namespace-a-1",
+				ExternalSecretName: "external-secret-a",
+				Namespace:          "namespace-a",
 				ClusterName:        "management",
 			},
 			response: &capiv1_proto.GetExternalSecretResponse{
-				SecretName:         "secret-a-1",
-				ExternalSecretName: "external-secret-a-1",
-				Namespace:          "namespace-a-1",
+				SecretName:         "secret-a",
+				ExternalSecretName: "external-secret-a",
+				Namespace:          "namespace-a",
 				ClusterName:        "management",
 				SecretStore:        "aws-secret-store",
 				SecretStoreType:    "AWS Secrets Manager",
-				SecretPath:         "Data/key-a-1",
-				Property:           "property-a-1",
+				SecretPath:         "Data/key-a",
+				Property:           "property-a",
+				Version:            "1.0.0",
+			},
+		},
+		{
+			request: &capiv1_proto.GetExternalSecretRequest{
+				ExternalSecretName: "external-secret-b",
+				Namespace:          "namespace-b",
+				ClusterName:        "management",
+			},
+			response: &capiv1_proto.GetExternalSecretResponse{
+				SecretName:         "secret-b",
+				ExternalSecretName: "external-secret-b",
+				Namespace:          "namespace-b",
+				ClusterName:        "management",
+				SecretStore:        "valt-secret-store",
+				SecretStoreType:    "HashiCorp Vault",
+				SecretPath:         "Data/key-b",
+				Property:           "property-b",
 				Version:            "1.0.0",
 			},
 		},
@@ -263,6 +319,11 @@ func TestListSecretStores(t *testing.T) {
 						Name: "namespace-a",
 					},
 				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-b",
+					},
+				},
 				&esv1beta1.SecretStoreList{
 					Items: []esv1beta1.SecretStore{
 						{
@@ -281,7 +342,7 @@ func TestListSecretStores(t *testing.T) {
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "secret-store-2",
-								Namespace: "namespace-a",
+								Namespace: "namespace-b",
 							},
 							Spec: esv1beta1.SecretStoreSpec{
 								Provider: &esv1beta1.SecretStoreProvider{
@@ -289,10 +350,14 @@ func TestListSecretStores(t *testing.T) {
 								},
 							},
 						},
+					},
+				},
+				&esv1beta1.ClusterSecretStoreList{
+					Items: []esv1beta1.ClusterSecretStore{
 						{
 							ObjectMeta: metav1.ObjectMeta{
-								Name:      "secret-store-3",
-								Namespace: "namespace-a",
+								Name:      "cluster-secret-store-3",
+								Namespace: "",
 							},
 							Spec: esv1beta1.SecretStoreSpec{
 								Provider: &esv1beta1.SecretStoreProvider{
@@ -302,8 +367,8 @@ func TestListSecretStores(t *testing.T) {
 						},
 						{
 							ObjectMeta: metav1.ObjectMeta{
-								Name:      "secret-store-4",
-								Namespace: "namespace-a",
+								Name:      "cluster-secret-store-4",
+								Namespace: "",
 							},
 							Spec: esv1beta1.SecretStoreSpec{
 								Provider: &esv1beta1.SecretStoreProvider{
@@ -320,18 +385,39 @@ func TestListSecretStores(t *testing.T) {
 			state: []runtime.Object{
 				&v1.Namespace{
 					ObjectMeta: metav1.ObjectMeta{
-						Name: "namespace-b",
+						Name: "namespace-a",
 					},
 				},
-				&esv1beta1.SecretStore{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "secret-store-5",
-						Namespace: "namespace-b",
+				&esv1beta1.SecretStoreList{
+					Items: []esv1beta1.SecretStore{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "secret-store-5",
+								Namespace: "namespace-a",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									AWS: &esv1beta1.AWSProvider{
+										Region: "eu-north-1",
+									},
+								},
+							},
+						},
 					},
-					Spec: esv1beta1.SecretStoreSpec{
-						Provider: &esv1beta1.SecretStoreProvider{
-							AWS: &esv1beta1.AWSProvider{
-								Region: "eu-north-1",
+				},
+				&esv1beta1.ClusterSecretStoreList{
+					Items: []esv1beta1.ClusterSecretStore{
+						{
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "cluster-secret-store-6",
+								Namespace: "",
+							},
+							Spec: esv1beta1.SecretStoreSpec{
+								Provider: &esv1beta1.SecretStoreProvider{
+									AWS: &esv1beta1.AWSProvider{
+										Region: "eu-north-1",
+									},
+								},
 							},
 						},
 					},
@@ -360,19 +446,19 @@ func TestListSecretStores(t *testing.T) {
 					{
 						Kind:      esv1beta1.SecretStoreKind,
 						Name:      "secret-store-2",
-						Namespace: "namespace-a",
+						Namespace: "namespace-b",
 						Type:      "Azure Key Vault",
 					},
 					{
-						Kind:      esv1beta1.SecretStoreKind,
-						Name:      "secret-store-3",
-						Namespace: "namespace-a",
+						Kind:      esv1beta1.ClusterSecretStoreKind,
+						Name:      "cluster-secret-store-3",
+						Namespace: "",
 						Type:      "Google Cloud Platform Secret Manager",
 					},
 					{
-						Kind:      esv1beta1.SecretStoreKind,
-						Name:      "secret-store-4",
-						Namespace: "namespace-a",
+						Kind:      esv1beta1.ClusterSecretStoreKind,
+						Name:      "cluster-secret-store-4",
+						Namespace: "",
 						Type:      "HashiCorp Vault",
 					},
 				},
@@ -388,11 +474,17 @@ func TestListSecretStores(t *testing.T) {
 					{
 						Kind:      esv1beta1.SecretStoreKind,
 						Name:      "secret-store-5",
-						Namespace: "namespace-b",
+						Namespace: "namespace-a",
+						Type:      "AWS Secrets Manager",
+					},
+					{
+						Kind:      esv1beta1.ClusterSecretStoreKind,
+						Name:      "cluster-secret-store-6",
+						Namespace: "",
 						Type:      "AWS Secrets Manager",
 					},
 				},
-				Total: 1,
+				Total: 2,
 			},
 		},
 		{
