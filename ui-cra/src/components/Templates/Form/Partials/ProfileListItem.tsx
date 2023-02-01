@@ -7,6 +7,7 @@ import {
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
+import { debounce } from 'lodash';
 import React, {
   ChangeEvent,
   Dispatch,
@@ -72,6 +73,27 @@ const ProfilesListItem: FC<{
 
   const handleSelectVersion = useCallback(
     (value: string) => {
+      setVersion(value);
+      const filteredVersions = profile.values.filter(
+        item => item.version !== value,
+      );
+      const selectedVersion = profile.values.find(
+        item => item.version === value,
+      );
+
+      if (selectedVersion) {
+        profile.values = [
+          ...filteredVersions,
+          { ...selectedVersion, selected: true },
+        ];
+        setYaml(selectedVersion.yaml as string);
+      }
+      handleUpdateProfile(profile);
+    },
+    [profile, handleUpdateProfile],
+  );
+  const handleInputChange = useCallback(
+    (value: string) => {
       setInValidVersionErrorMessage('');
       setIsValidVersion(true);
       if (semverValid(value) || semverValidRange(value)) {
@@ -79,20 +101,11 @@ const ProfilesListItem: FC<{
         profile.values.forEach(item =>
           item.selected === true ? (item.selected = false) : null,
         );
-        const filteredVersions = profile.values.filter(
-          item => item.version !== value,
-        );
         const selectedVersion = profile.values.find(
           item => item.version === value,
         );
 
-        if (selectedVersion) {
-          profile.values = [
-            ...filteredVersions,
-            { ...selectedVersion, selected: true },
-          ];
-          setYaml(selectedVersion.yaml as string);
-        } else {
+        if (!selectedVersion && value !== '') {
           profile.values.push({ version: value, selected: true, yaml: '' });
         }
         handleUpdateProfile(profile);
@@ -168,8 +181,11 @@ const ProfilesListItem: FC<{
               onChange={(event, newValue) => {
                 handleSelectVersion(newValue);
               }}
+              onInputChange={debounce(
+                (event, newInputValue) => handleInputChange(newInputValue),
+                500,
+              )}
               value={version}
-              autoSelect
               renderInput={params => (
                 <TextField
                   {...params}
