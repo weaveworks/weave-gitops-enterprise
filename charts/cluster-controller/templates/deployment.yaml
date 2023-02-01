@@ -50,7 +50,7 @@ spec:
         - --metrics-bind-address=127.0.0.1:8080
         - --leader-elect
         - --capi-enabled={{ .Values.global.capiEnabled }}
-        - --pipeline-controller-address={{ .Values.controllerManager.manager.pipeline_controller_address | default (printf "%s-pipeline-controller-promotion" .Release.Name) }}
+        - --pipeline-controller-address={{ .Values.controllerManager.manager.pipeline_controller_address | default (printf "%s-pipeline-controller-promotion" .Release.Name) }}:8082
         {{- range .Values.controllerManager.manager.args }}
         - {{ . }}
         {{- end }}
