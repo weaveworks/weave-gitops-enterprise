@@ -78,44 +78,38 @@ const ProfilesListItem: FC<{
     [setUpdatedProfiles],
   );
 
-  const validateVersion = (version: string) => {
-    if (semverValid(version) || semverValidRange(version)) {
-      setVersion(version);
-    } else {
-      setInValidVersionErrorMessage('The provided semver is invalid');
-      setIsValidVersion(false);
-    }
-  };
+  // const validateVersion = (version: string) => {};
 
   const handleSelectVersion = useCallback(
-    (value: string, reason: string) => {
+    (value: string) => {
       setInValidVersionErrorMessage('');
       setIsValidVersion(true);
-      validateVersion(value);
+      if (semverValid(value) || semverValidRange(value)) {
+        setVersion(value);
+        profile.values.forEach(item =>
+          item.selected === true ? (item.selected = false) : null,
+        );
+        const filteredVersions = profile.values.filter(
+          item => item.version !== value,
+        );
+        const selectedVersion = profile.values.find(
+          item => item.version === value,
+        );
 
-      profile.values.forEach(item =>
-        item.selected === true ? (item.selected = false) : null,
-      );
-      const filteredVersions = profile.values.filter(
-        item => item.version !== value,
-      );
-      const selectedVersion = profile.values.find(
-        item => item.version === value,
-      );
-
-      if (selectedVersion) {
-        profile.values = [
-          ...filteredVersions,
-          { ...selectedVersion, selected: true },
-        ];
-        setYaml(selectedVersion.yaml as string);
-      } else {
-        if (isValidVersion) {
-          // check for validation  and setting the version
+        if (selectedVersion) {
+          profile.values = [
+            ...filteredVersions,
+            { ...selectedVersion, selected: true },
+          ];
+          setYaml(selectedVersion.yaml as string);
+        } else {
           profile.values.push({ version: value, selected: true, yaml: '' });
         }
+        handleUpdateProfile(profile);
+      } else {
+        setInValidVersionErrorMessage('The provided semver is invalid');
+        setIsValidVersion(false);
       }
-      handleUpdateProfile(profile);
     },
     [profile, handleUpdateProfile],
   );
@@ -181,8 +175,8 @@ const ProfilesListItem: FC<{
               freeSolo
               className={classes.autoComplete}
               options={profile.values.map(option => option.version)}
-              onChange={(event, newValue, reason) => {
-                handleSelectVersion(newValue, reason);
+              onChange={(event, newValue) => {
+                handleSelectVersion(newValue);
               }}
               value={version}
               autoSelect
