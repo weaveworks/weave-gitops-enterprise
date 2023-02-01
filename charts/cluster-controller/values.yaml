@@ -21,6 +21,7 @@ controllerManager:
       requests:
         cpu: 10m
         memory: 64Mi
+    args: []
   replicas: 1
 kubernetesClusterDomain: cluster.local
 managerConfig:
