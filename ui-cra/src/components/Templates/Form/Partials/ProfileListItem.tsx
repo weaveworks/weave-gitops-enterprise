@@ -1,7 +1,6 @@
 import {
   FormControl,
   Input,
-  MenuItem,
   TextField,
   createStyles,
   makeStyles,
@@ -55,16 +54,8 @@ const ProfilesListItem: FC<{
   }, []);
   const useStyles = makeStyles(() =>
     createStyles({
-      autoComplete: {
-        cursor: 'pointer',
-        minWidth: '155px',
-        overflow: 'hidden',
-        minHeight: '1.1876em',
-        marginRight: '24px',
-        input: {
-          padding: '10px',
-        },
-      },
+      autoComplete: { minWidth: '155px', overflow: 'hidden' },
+      input: {},
     }),
   );
   const classes = useStyles();
@@ -105,7 +96,6 @@ const ProfilesListItem: FC<{
           profile.values.push({ version: value, selected: true, yaml: '' });
         }
         handleUpdateProfile(profile);
-        console.log(semverMaxSatisfying(value, availableVersions));
       } else {
         setInValidVersionErrorMessage(
           'The provided version | range  is invalid',
@@ -183,6 +173,10 @@ const ProfilesListItem: FC<{
               renderInput={params => (
                 <TextField
                   {...params}
+                  InputProps={{
+                    ...params.InputProps,
+                    className: classes.input,
+                  }}
                   variant="standard"
                   error={!isValidVersion}
                   helperText={
