@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"sync"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/hashicorp/go-multierror"
@@ -33,10 +31,8 @@ import (
 
 
 var (
-	KustomizeNameKey      = fmt.Sprintf("%s/name", kustomizev1.GroupVersion.Group)
-	KustomizeNamespaceKey = fmt.Sprintf("%s/namespace", kustomizev1.GroupVersion.Group)
-	HelmNameKey           = fmt.Sprintf("%s/name", helmv2.GroupVersion.Group)
-	HelmNamespaceKey      = fmt.Sprintf("%s/namespace", helmv2.GroupVersion.Group)
+	GitOpsSetNameKey           = fmt.Sprintf("%s/name", ctrl.GroupVersion.Group)
+	GitOpsSetNamespaceKey      = fmt.Sprintf("%s/namespace", ctrl.GroupVersion.Group)
 )
 
 type ServerOpts struct {
@@ -113,19 +109,9 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 
 	var opts client.MatchingLabels
 
-	switch msg.AutomationKind {
-	case kustomizev1.KustomizationKind:
-		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.Name,
-			KustomizeNamespaceKey: msg.Namespace,
-		}
-	case helmv2.HelmReleaseKind:
-		opts = client.MatchingLabels{
-			HelmNameKey:      msg.Name,
-			HelmNamespaceKey: msg.Namespace,
-		}
-	default:
-		return nil, fmt.Errorf("unsupported application kind: %s", msg.AutomationKind)
+	opts = client.MatchingLabels{
+		GitOpsSetNameKey:      msg.Name,
+		GitOpsSetNamespaceKey: msg.Namespace,
 	}
 
 	var (
