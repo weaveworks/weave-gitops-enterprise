@@ -1,6 +1,12 @@
-import { Table, TableCell, TableContainer, TableRow } from '@material-ui/core';
+import {
+  IconButton,
+  Table,
+  TableCell,
+  TableContainer,
+  TableRow,
+} from '@material-ui/core';
 import { Error, Info } from '@material-ui/icons';
-import { Flex } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React from 'react';
 import styled from 'styled-components';
@@ -19,6 +25,15 @@ const Header = styled(Flex)`
   border-bottom: 1px solid ${props => props.theme.colors.neutral20};
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
+
+const makeHeader = (logs: LogEntry[], reverseSort: boolean) => {
+  if (!logs.length) return 'No logs found';
+  return `showing logs from ${
+    reverseSort
+      ? `now to ${logs[logs.length - 1].timestamp}`
+      : `${logs[0].timestamp} to now`
+  }`;
+};
 
 const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   return (
@@ -51,6 +66,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   // const [logValue, setLogValue] = React.useState('-');
   // const [levelValue, setLevelValue] = React.useState('-');
 
+  const [reverseSort, setReverseSort] = React.useState(false);
   const [token, setToken] = React.useState('');
   const { isLoading, data, error } = useGetLogs({
     sessionNamespace: namespace,
@@ -82,10 +98,20 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
           onChange={e => setLevelValue(e.target.value as string)}
         />
       </Flex> */}
-      <Header wide>
-        {logs.length
-          ? 'showing logs from ' + logs[0].timestamp
-          : 'No logs found'}
+      <Header wide align>
+        {makeHeader(logs, reverseSort)}
+        <IconButton
+          onClick={() => {
+            logs.reverse();
+            setReverseSort(!reverseSort);
+          }}
+        >
+          <Icon
+            type={IconType.ArrowUpwardIcon}
+            size="small"
+            className={reverseSort ? 'upward' : 'downward'}
+          />
+        </IconButton>
       </Header>
       <TableContainer>
         <Table>
