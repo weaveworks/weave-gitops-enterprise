@@ -116,12 +116,12 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 	switch msg.AutomationKind {
 	case kustomizev1.KustomizationKind:
 		opts = client.MatchingLabels{
-			KustomizeNameKey:      msg.AutomationName,
+			KustomizeNameKey:      msg.Name,
 			KustomizeNamespaceKey: msg.Namespace,
 		}
 	case helmv2.HelmReleaseKind:
 		opts = client.MatchingLabels{
-			HelmNameKey:      msg.AutomationName,
+			HelmNameKey:      msg.Name,
 			HelmNamespaceKey: msg.Namespace,
 		}
 	default:
@@ -162,7 +162,7 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 							s.log.V(logger.LogLevelDebug).Info(
 								"forbidden list request",
 								"cluster", msg.ClusterName,
-								"automation", msg.AutomationName,
+								"automation", msg.Name,
 								"namespace", msg.Namespace,
 								"gvk", gvk.String(),
 							)

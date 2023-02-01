@@ -2,18 +2,13 @@ import { Slider } from '@material-ui/core';
 import {
   DirectedGraph,
   Flex,
-  Kind,
   RequestStateHandler,
   Spacer,
 } from '@weaveworks/weave-gitops';
 import * as d3 from 'd3';
 import * as React from 'react';
 import styled from 'styled-components';
-import {
-  GitOpsSet,
-  GroupVersionKind,
-  ObjectRef,
-} from '../../api/gitopssets/types.pb';
+import { GitOpsSet, ObjectRef } from '../../api/gitopssets/types.pb';
 import { useGetReconciledTree } from '../../contexts/GitOpsSets';
 import { RequestError } from '../../types/custom';
 
@@ -48,15 +43,14 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
     data: objects,
     error,
     isLoading,
-  } = parentObject
-    ? useGetReconciledTree(
-        parentObject.name || '',
-        parentObject.namespace || '',
-        'GitOpsSet',
-        parentObject.inventory || [],
-        parentObject.clusterName,
-      )
-    : { data: [], error: null, isLoading: false };
+  } = useGetReconciledTree(
+    parentObject.name || '',
+    parentObject.namespace || '',
+    'GitOpsSet',
+    parentObject.inventory || [],
+    parentObject.clusterName,
+  );
+
   //add extra nodes
   const secondNode = {
     name: parentObject.name,
@@ -65,7 +59,7 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
     conditions: parentObject.conditions,
     type: parentObject.type,
     clusterName: parentObject.clusterName,
-    children: objects,
+    children: objects || [],
     isCurrentNode: true,
   };
 
@@ -82,6 +76,7 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
     verticalSeparation: 150,
     horizontalSeparation: 100,
   };
+
   //use d3 to create tree structure
   const root = d3.hierarchy(rootNode, d => d.children);
   const makeTree = d3
@@ -91,6 +86,8 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
       nodeSize.height + nodeSize.verticalSeparation,
     ])
     .separation(() => 1);
+
+  //@ts-ignore
   const tree = makeTree(root);
   const descendants = tree.descendants();
   const links = tree.links();
@@ -105,7 +102,7 @@ function ReconciliationGraph({ className, parentObject, source }: Props) {
   const handleMouseDown = () => {
     setIsPanning(true);
   };
-  const handleMouseMove = e => {
+  const handleMouseMove = (e: any) => {
     //viewBox change. e.movement is change since previous mouse event
     if (isPanning) setPan({ x: pan.x + e.movementX, y: pan.y + e.movementY });
   };

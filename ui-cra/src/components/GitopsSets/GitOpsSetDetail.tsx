@@ -52,12 +52,13 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   const [suspending, setSuspending] = React.useState(false);
   const { data } = useListGitOpsSets();
 
-  const gitOpsSet = data?.gitopssets?.find(
-    gs =>
-      gs.name === name &&
-      gs.namespace === namespace &&
-      gs.clusterName === clusterName,
-  );
+  const [gitOpsSet] =
+    data?.gitopssets?.filter(
+      gs =>
+        gs.name === name &&
+        gs.namespace === namespace &&
+        gs.clusterName === clusterName,
+    ) || [];
   // const sync = useSyncGitOpsSet({
   //   name,
   //   namespace,
@@ -204,8 +205,9 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
-              parentObject={gitOpsSet || ({} as GitOpsSet)}
-              source={gitOpsSet?.sourceRef}
+              parentObject={gitOpsSet}
+              // sourceRef vs ObjectRef
+              source={gitOpsSet?.sourceRef || ({} as ObjectRef)}
             />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>

@@ -15,13 +15,11 @@ import {
   Kind,
   OCIRepository,
   PARENT_CHILD_LOOKUP,
-} from '@weaveworks/weave-gitops';
-import {
   Alert,
   HelmRelease,
   Kustomization,
   Provider,
-} from '@weaveworks/weave-gitops/ui/lib/objects';
+} from '@weaveworks/weave-gitops';
 import {
   GroupVersionKind,
   Object as ResponseObject,
