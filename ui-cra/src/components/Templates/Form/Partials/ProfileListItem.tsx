@@ -8,7 +8,6 @@ import {
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
-import { debounce } from 'lodash';
 import React, {
   ChangeEvent,
   Dispatch,
@@ -25,11 +24,9 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
-import Profiles from './Profiles';
 const semverValid = require('semver/functions/valid');
 const semverValidRange = require('semver/ranges/valid');
 const semverMaxSatisfying = require('semver/ranges/max-satisfying');
-const semverCoerce = require('semver/functions/coerce');
 
 const ProfileWrapper = styled.div`
   display: flex;
@@ -78,8 +75,6 @@ const ProfilesListItem: FC<{
     [setUpdatedProfiles],
   );
 
-  // const validateVersion = (version: string) => {};
-
   const handleSelectVersion = useCallback(
     (value: string) => {
       setInValidVersionErrorMessage('');
@@ -107,7 +102,9 @@ const ProfilesListItem: FC<{
         }
         handleUpdateProfile(profile);
       } else {
-        setInValidVersionErrorMessage('The provided semver is invalid');
+        setInValidVersionErrorMessage(
+          'The provided version | range  is invalid',
+        );
         setIsValidVersion(false);
       }
     },
@@ -161,8 +158,6 @@ const ProfilesListItem: FC<{
       }
     }
   }, [profile]);
-
-  // TODO: debounce function to reduce the number of created objects from profile version
 
   return (
     <>
