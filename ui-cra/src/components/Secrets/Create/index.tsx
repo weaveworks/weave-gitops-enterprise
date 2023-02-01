@@ -18,6 +18,7 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { useHistory } from 'react-router-dom';
 import {
   Button,
+  getProviderToken,
   Link,
   LoadingPage,
   theme,
@@ -28,6 +29,7 @@ import { isUnauthenticated, removeToken } from '../../../utils/request';
 import {
   CreateDeploymentObjects,
   useClustersWithSources,
+  renderKustomization,
 } from '../../Applications/utils';
 import {
   getInitialGitRepo,
@@ -37,8 +39,14 @@ import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { clearCallbackState } from '../../GitAuth/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
+import {
+  AppPRPreview,
+  ClusterPRPreview,
+  SecretPRPreview,
+} from '../../../types/custom';
+import Preview from '../../Templates/Form/Partials/Preview';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -138,6 +146,10 @@ const CreateSecret = () => {
   const [selectedSecretStore, setSelectedSecretStore] =
     useState<ExternalSecretStore>({});
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+
+  const [openPreview, setOpenPreview] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
 
   const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
@@ -313,6 +325,44 @@ const CreateSecret = () => {
       .finally(() => setLoading(false));
   }, [formData, getClusterAutomations, history, setNotifications]);
 
+  const handlePRPreview = useCallback(() => {
+    setPreviewLoading(true);
+    console.log('clusterAutomations', getClusterAutomations());
+
+    return renderKustomization({ clusterAutomations: getClusterAutomations() })
+      .then(data => {
+        console.log('succes', data);
+        setOpenPreview(true);
+        setPRPreview(data);
+      })
+      .catch(err => {
+        console.log('err', err);
+        setNotifications([
+          {
+            message: { text: err.message },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]);
+      })
+      .finally(() => setPreviewLoading(false));
+  }, [setOpenPreview, setNotifications]);
+
+  const handleSecrets = useCallback(
+    (submitType: string) => {
+      switch (submitType) {
+        case 'PR Preview':
+          return handlePRPreview;
+        case 'Create PR':
+          return handleCreateSecret;
+
+        default:
+          return;
+      }
+    },
+    [handlePRPreview, handleCreateSecret],
+  );
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate
@@ -336,7 +386,7 @@ const CreateSecret = () => {
               onSubmit={event =>
                 validateFormData(
                   event,
-                  handleCreateSecret,
+                  handleSecrets(submitType),
                   setFormError,
                   setSubmitType,
                 )
@@ -424,6 +474,29 @@ const CreateSecret = () => {
                   }
                 />
               </div>
+              <div>
+                {previewLoading ? (
+                  <LoadingPage className="preview-loading" />
+                ) : (
+                  <div className="preview-cta">
+                    <Button
+                      type="submit"
+                      onClick={() => setSubmitType('PR Preview')}
+                    >
+                      PREVIEW PR
+                    </Button>
+                  </div>
+                )}
+                {openPreview && PRPreview ? (
+                  <Preview
+                    context="app"
+                    openPreview={openPreview}
+                    setOpenPreview={setOpenPreview}
+                    PRPreview={PRPreview}
+                    sourceType={formData.source_type}
+                  />
+                ) : null}
+              </div>
               <GitOps
                 formData={formData}
                 setFormData={setFormData}
@@ -438,7 +511,11 @@ const CreateSecret = () => {
                 <LoadingPage className="create-loading" />
               ) : (
                 <div className="create-cta">
-                  <Button type="submit" disabled={!enableCreatePR}>
+                  <Button
+                    type="submit"
+                    onClick={() => setSubmitType('Create PR')}
+                    disabled={!enableCreatePR}
+                  >
                     CREATE PULL REQUEST
                   </Button>
                 </div>

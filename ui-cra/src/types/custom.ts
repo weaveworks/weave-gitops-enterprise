@@ -156,9 +156,13 @@ export interface ClusterPRPreview {
   renderedTemplate: { path: string; content: string }[];
   kustomizationFiles: { path: string; content: string }[];
   profileFiles: { path: string; content: string }[];
+  secrets: { path: string; content: string }[];
 }
 
 export interface AppPRPreview {
   kustomizationFiles: { path: string; content: string }[];
   helmReleaseFiles: { path: string; content: string }[];
+}
+export interface SecretPRPreview {
+  secrets: { path: string; content: string }[];
 }
