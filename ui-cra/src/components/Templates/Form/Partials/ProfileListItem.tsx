@@ -14,6 +14,7 @@ import React, {
   FC,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import styled from 'styled-components';
@@ -23,6 +24,7 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
+import { Tooltip } from '../../../Shared';
 import ChartValuesDialog from './ChartValuesDialog';
 const semverValid = require('semver/functions/valid');
 const semverValidRange = require('semver/ranges/valid');
@@ -48,7 +50,9 @@ const ProfilesListItem: FC<{
   const [inValidVersionErrorMessage, setInValidVersionErrorMessage] =
     useState<string>('');
   const [isValidVersion, setIsValidVersion] = useState<boolean>(true);
-
+  const availableVersions = useMemo(() => {
+    return profile.values.map(item => item.version);
+  }, []);
   const useStyles = makeStyles(() =>
     createStyles({
       autoComplete: {
@@ -101,6 +105,7 @@ const ProfilesListItem: FC<{
           profile.values.push({ version: value, selected: true, yaml: '' });
         }
         handleUpdateProfile(profile);
+        console.log(semverMaxSatisfying(value, availableVersions));
       } else {
         setInValidVersionErrorMessage(
           'The provided version | range  is invalid',
@@ -199,9 +204,23 @@ const ProfilesListItem: FC<{
             />
           </FormControl>
         </div>
-        <Button variant="text" onClick={handleYamlPreview}>
-          Values.yaml
-        </Button>
+        <Tooltip
+          title="There is no Yaml file for this version | range"
+          placement="top"
+          disabled={Boolean(semverMaxSatisfying(availableVersions, version))}
+        >
+          <div>
+            <Button
+              disabled={
+                !Boolean(semverMaxSatisfying(availableVersions, version))
+              }
+              variant="text"
+              onClick={handleYamlPreview}
+            >
+              Values.yaml
+            </Button>
+          </div>
+        </Tooltip>
       </ProfileWrapper>
 
       {openYamlPreview && (
