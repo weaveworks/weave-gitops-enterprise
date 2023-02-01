@@ -228,7 +228,7 @@ const ProfilesListItem: FC<{
           yaml={yaml}
           cluster={cluster}
           profile={profile}
-          version={version}
+          version={semverMaxSatisfying(availableVersions, version)}
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}
