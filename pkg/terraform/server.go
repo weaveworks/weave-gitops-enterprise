@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
@@ -17,9 +18,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -158,30 +161,34 @@ func (s *server) GetTerraformObjectPlan(ctx context.Context, msg *pb.GetTerrafor
 
 	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
 
-	result := &tfctrl.Terraform{}
-	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+	obj := &tfctrl.Terraform{}
+	if err := c.Get(ctx, msg.ClusterName, n, obj); err != nil {
 		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
 	}
 
-	if result.Spec.StoreReadablePlan != "human" {
-		return nil, fmt.Errorf("no human-readable plan found: %w", err)
+	result := &pb.GetTerraformObjectPlanResponse{
+		EnablePlanViewing: obj.Spec.StoreReadablePlan == "human",
+	}
+
+	if obj.Spec.StoreReadablePlan != "human" {
+		result.Error = "no human-readable plan found"
+		return result, nil
 	}
 
 	planKey := types.NamespacedName{
-		Name:      fmt.Sprintf("tfplan-%s-%s", result.WorkspaceName(), msg.Name),
+		Name:      fmt.Sprintf("tfplan-%s-%s", obj.WorkspaceName(), msg.Name),
 		Namespace: msg.Namespace,
 	}
 
 	var tfplanCM corev1.ConfigMap
 	if err := c.Get(ctx, msg.ClusterName, planKey, &tfplanCM); err != nil {
-		return nil, fmt.Errorf("error getting terraform plan: %w", err)
+		result.Error = fmt.Sprintf("getting terraform plan: %s", err.Error())
+		return result, nil
 	}
 
-	plan := tfplanCM.Data["tfplan"]
+	result.Plan = tfplanCM.Data["tfplan"]
 
-	return &pb.GetTerraformObjectPlanResponse{
-		Plan: plan,
-	}, nil
+	return result, nil
 }
 
 func (s *server) SyncTerraformObject(ctx context.Context, msg *pb.SyncTerraformObjectRequest) (*pb.SyncTerraformObjectResponse, error) {
@@ -250,8 +257,44 @@ func (s *server) ToggleSuspendTerraformObject(ctx context.Context, msg *pb.Toggl
 	return &pb.ToggleSuspendTerraformObjectResponse{}, nil
 }
 
-func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) {
+func (s *server) ReplanTerraformObject(ctx context.Context, msg *pb.ReplanTerraformObjectRequest) (*pb.ReplanTerraformObjectResponse, error) {
+	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
 
+	if msg.Name == "" || msg.Namespace == "" {
+		return nil, fmt.Errorf("object name or namespace is empty")
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("getting scoped client for cluster %s: %w", msg.ClusterName, err)
+	}
+
+	key := client.ObjectKey{
+		Name:      msg.Name,
+		Namespace: msg.Namespace,
+	}
+
+	if err := replan(ctx, c, key); err != nil {
+		return nil, err
+	}
+
+	obj := adapter.TerraformObjectAdapter{Terraform: &tfctrl.Terraform{}}
+
+	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
+		return nil, fmt.Errorf("getting object %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	if err := fluxsync.RequestReconciliation(ctx, c, key, obj.GroupVersionKind()); err != nil {
+		return nil, fmt.Errorf("requesting reconciliation: %w", err)
+	}
+
+	return &pb.ReplanTerraformObjectResponse{ReplanRequested: true}, nil
+}
+
+func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) {
 	obj.GetObjectKind().SetGroupVersionKind(tfctrl.GroupVersion.WithKind(tfctrl.TerraformKind))
 
 	serializer := json.NewSerializerWithOptions(json.DefaultMetaFactory, scheme, scheme, json.SerializerOptions{
@@ -267,4 +310,26 @@ func serializeObj(scheme *k8sruntime.Scheme, obj client.Object) ([]byte, error) 
 	}
 
 	return buf.Bytes(), nil
+}
+
+func replan(ctx context.Context, kubeClient client.Client, namespacedName types.NamespacedName) error {
+	return retry.RetryOnConflict(retry.DefaultBackoff, func() (err error) {
+		terraform := &tfctrl.Terraform{}
+		if err := kubeClient.Get(ctx, namespacedName, terraform); err != nil {
+			return err
+		}
+
+		patch := client.MergeFrom(terraform.DeepCopy())
+		// clear the pending plan
+		apimeta.SetStatusCondition(&terraform.Status.Conditions, metav1.Condition{
+			Type:    meta.ReadyCondition,
+			Status:  metav1.ConditionFalse,
+			Reason:  "ReplanRequested",
+			Message: "Replan requested",
+		})
+		terraform.Status.Plan.Pending = ""
+		terraform.Status.LastPlannedRevision = ""
+		terraform.Status.LastAttemptedRevision = ""
+		return kubeClient.Status().Patch(ctx, terraform, patch, client.FieldOwner("tf-controller"))
+	})
 }

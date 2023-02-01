@@ -49,6 +49,13 @@ if 'templates-controller' in to_edit:
    docker_build('ghcr.io/weaveworks/templates-controller', '../templates-controller/')
    templates_controller_labels = ["local"]
 
+gitopssets_controller_labels = ["remote-images"]
+if 'gitopssets-controller' in to_edit:
+   if not os.path.exists("../gitopssets-controller"):
+      fail("You need to git clone https://github.com/weaveworks/gitopssets-controller to a directory next to this")
+   docker_build('ghcr.io/weaveworks/gitopssets-controller', '../gitopssets-controller/')
+   gitopssets_controller_labels = ["local"]
+
 # --- rename chart resources to human readable 
 
 k8s_resource('chart-mccp-cluster-service', new_name='cluster-service', labels=["local"], port_forwards='8000')
@@ -56,6 +63,7 @@ k8s_resource('chart-pipeline-controller', new_name='pipeline-controller', labels
 k8s_resource('chart-mccp-cluster-bootstrap-controller', new_name='cluster-bootstrap-controller', labels=cluster_bootstrap_controller_labels)
 k8s_resource('chart-cluster-controller', new_name='cluster-controller', labels=cluster_controller_labels)
 k8s_resource('templates-controller-controller-manager', new_name='templates-controller', labels=templates_controller_labels)
+k8s_resource('gitopssets-controller-manager', new_name='gitopssets-controller', labels=gitopssets_controller_labels)
 k8s_resource('policy-agent', labels=["remote-images"])
 
 # Install resources I couldn't find elsewhere

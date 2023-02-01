@@ -16,6 +16,7 @@ const (
 	CostEstimationAnnotation        = "templates.weave.works/cost-estimation-enabled"
 	AddCommonBasesAnnotation        = "templates.weave.works/add-common-bases"
 	InjectPruneAnnotationAnnotation = "templates.weave.works/inject-prune-annotation"
+	ProfilesAnnotation              = "capi.weave.works/profile-"
 )
 
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which

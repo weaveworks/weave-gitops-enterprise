@@ -31,7 +31,6 @@ export function getKindRoute(k: Kind | string): string {
   }
 }
 
-
 export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
@@ -41,6 +40,7 @@ export enum Routes {
   PipelineDetails = '/applications/pipelines/details',
 
   GitOpsRun = '/gitopsrun',
+  GitOpsRunDetail = '/gitopsrun/detail',
 
   TerraformObjects = '/terraform',
   TerraformDetail = '/terraform/object',
@@ -64,5 +64,6 @@ export enum Routes {
   WorkspaceDetails = '/workspaces/details',
 
   Secrets = '/secrets',
-  SecretDetails = '/secrets/details'
+  SecretDetails = '/secrets/details',
+  CreateSecret = '/secrets/create'
 }

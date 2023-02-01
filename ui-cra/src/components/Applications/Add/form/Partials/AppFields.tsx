@@ -154,6 +154,7 @@ const AppFields: FC<{
       ...automation,
       source_name: obj?.metadata.name,
       source_namespace: obj?.metadata?.namespace,
+      source_type: obj?.kind,
       source: value,
     };
 

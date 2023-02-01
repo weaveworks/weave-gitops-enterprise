@@ -3,6 +3,8 @@ package server_test
 import (
 	"context"
 	"fmt"
+	"math/rand"
+	"path"
 	"testing"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -31,14 +33,14 @@ func TestGetPipeline(t *testing.T) {
 	targetNamespace := pipetesting.NewNamespace(ctx, t, kclient)
 
 	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
-	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "")
+	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "", nil)
 
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 
 	envName := "env-1"
 
 	t.Run("cluster ref is not set", func(t *testing.T) {
-		p := newPipeline("pipe-1", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		require.NoError(t, kclient.Create(ctx, p))
 
 		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
@@ -54,7 +56,7 @@ func TestGetPipeline(t *testing.T) {
 	})
 
 	t.Run("cluster ref is set", func(t *testing.T) {
-		p := newPipeline("pipe-2", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
 			APIVersion: ctrl.GroupVersion.String(),
 			Kind:       "GitopsCluster",
@@ -76,8 +78,30 @@ func TestGetPipeline(t *testing.T) {
 		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
 	})
 
+	t.Run("cluster ref is set to an invalud cluster", func(t *testing.T) {
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
+			APIVersion: ctrl.GroupVersion.String(),
+			Kind:       "GitopsCluster",
+			Name:       "let-you-down",
+			Namespace:  pipelineNamespace.Name,
+		}
+		require.NoError(t, kclient.Create(ctx, p))
+
+		res, err := serverClient.GetPipeline(context.Background(), &pb.GetPipelineRequest{
+			Name:      p.Name,
+			Namespace: pipelineNamespace.Name,
+		})
+		require.NoError(t, err)
+
+		assert.Greater(t, len(res.GetErrors()), 0, "errors should contain at least one error about a non-existing cluster")
+		assert.Equal(t, p.Name, res.Pipeline.Name)
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("kind: %s", pipelineKind))
+		assert.Contains(t, res.Pipeline.Yaml, fmt.Sprintf("apiVersion: %s", pipelineAPIVersion))
+	})
+
 	t.Run("cluster ref without Namespace", func(t *testing.T) {
-		p := newPipeline("pipe-3", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
 			APIVersion: ctrl.GroupVersion.String(),
 			Kind:       "GitopsCluster",
@@ -102,7 +126,7 @@ func TestGetPipeline(t *testing.T) {
 	})
 
 	t.Run("invalid app ref", func(t *testing.T) {
-		p := newPipeline("pipe-4", pipelineNamespace.Name, targetNamespace.Name, envName, hr)
+		p := newPipeline(randomName(t, "pipe"), pipelineNamespace.Name, targetNamespace.Name, envName, hr)
 		p.Spec.Environments[0].Targets[0].ClusterRef = &ctrl.CrossNamespaceClusterReference{
 			APIVersion: ctrl.GroupVersion.String(),
 			Kind:       "GitopsCluster",
@@ -177,4 +201,9 @@ func createHelmRelease(ctx context.Context, t *testing.T, k client.Client, name 
 	require.NoError(t, k.Create(ctx, hr))
 
 	return hr
+}
+
+func randomName(t *testing.T, prefix string) string {
+	testName := path.Base(t.Name())
+	return fmt.Sprintf("%s-%s-%d", prefix, testName, rand.Intn(1000))
 }

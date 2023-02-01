@@ -3,13 +3,13 @@ package server
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"sort"
 	"strings"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
@@ -20,20 +20,20 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/yaml"
 )
 
 type GetFilesRequest struct {
 	ClusterNamespace string
 	TemplateName     string
-	TemplateKind     string
 	ParameterValues  map[string]string
 	Credentials      *capiv1_proto.Credential
 	Profiles         []*capiv1_proto.ProfileValues
 	Kustomizations   []*capiv1_proto.Kustomization
 	ExternalSecrets  []*capiv1_proto.ExternalSecret
+	HelmRepository   *sourcev1.HelmRepository
 }
 
 type GetFilesReturn struct {
@@ -197,7 +197,7 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
 	}
 
-	profiles, err := getProfilesFromTemplate(tm)
+	profiles, err := templates.GetProfilesFromTemplate(tm)
 	if err != nil {
 		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.TemplateName, err)
 	}
@@ -243,7 +243,15 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tm,
-		GetFilesRequest{msg.ClusterNamespace, msg.TemplateName, msg.TemplateKind, msg.Values, msg.Credentials, msg.Profiles, msg.Kustomizations, msg.ExternalSecrets},
+		GetFilesRequest{
+			ClusterNamespace: msg.ClusterNamespace,
+			TemplateName:     msg.TemplateName,
+			ParameterValues:  msg.Values,
+			Credentials:      msg.Credentials,
+			Profiles:         msg.Profiles,
+			Kustomizations:   msg.Kustomizations,
+			ExternalSecrets:  msg.ExternalSecrets,
+		},
 		nil,
 	)
 	if err != nil {
@@ -262,7 +270,7 @@ func GetFiles(
 	client client.Client,
 	log logr.Logger,
 	estimator estimation.Estimator,
-	chartsCache helm.ChartsCacheReader,
+	chartsCache helm.ProfilesGeneratorCache,
 	profileHelmRepositoryCluster types.NamespacedName,
 	profileHelmRepository types.NamespacedName,
 	tmpl templatesv1.Template,
@@ -334,21 +342,33 @@ func GetFiles(
 		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
 	}
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl)
+	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
-		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
+		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}
 
-	if len(msg.Profiles) > 0 || len(requiredProfiles) > 0 {
+	if len(msg.Profiles) > 0 || templateHasRequiredProfiles {
 		cluster, err := getCluster(resourcesNamespace, msg)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
 		}
-		profilesFile, err := generateProfileFiles(
+
+		helmRepo := msg.HelmRepository
+		if helmRepo == nil {
+			if client == nil {
+				return nil, errors.New("client is nil, cannot get Helm repository")
+			}
+			helmRepo, err = copyHelmRepository(ctx, client, profileHelmRepository)
+			if err != nil {
+				return nil, fmt.Errorf("failed to copy Helm repository: %w", err)
+			}
+		}
+
+		profilesFiles, err := generateProfileFiles(
 			ctx,
 			tmpl,
 			cluster,
-			client,
+			helmRepo,
 			generateProfileFilesParams{
 				helmRepositoryCluster: profileHelmRepositoryCluster,
 				helmRepository:        profileHelmRepository,
@@ -360,7 +380,7 @@ func GetFiles(
 		if err != nil {
 			return nil, err
 		}
-		profileFiles = append(profileFiles, *profilesFile)
+		profileFiles = append(profileFiles, profilesFiles...)
 	}
 
 	if len(msg.Kustomizations) > 0 {
@@ -381,7 +401,7 @@ func GetFiles(
 				})
 			}
 
-			kustomization, err := generateKustomizationFile(ctx, false, cluster, client, k, "")
+			kustomization, err := generateKustomizationFile(ctx, false, cluster, k, "")
 			if err != nil {
 				return nil, err
 			}
@@ -391,6 +411,28 @@ func GetFiles(
 	}
 
 	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles}, err
+}
+
+// Make a copy of the Helm repository that we can save to git.
+// Copy is just the name/namespace/spec.
+// We don't need the status, annotations or labels etc.
+func copyHelmRepository(ctx context.Context, client client.Client, profileHelmRepository types.NamespacedName) (*sourcev1.HelmRepository, error) {
+	existingHelmRepo := &sourcev1.HelmRepository{}
+	err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", profileHelmRepository.Name, profileHelmRepository.Namespace, err)
+	}
+	return &sourcev1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      profileHelmRepository.Name,
+			Namespace: profileHelmRepository.Namespace,
+		},
+		Spec: existingHelmRepo.Spec,
+	}, nil
 }
 
 func getCluster(namespace string, msg GetFilesRequest) (types.NamespacedName, error) {
@@ -471,60 +513,4 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	}
 
 	return templates
-}
-
-func getProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
-	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
-	for k, v := range tl.GetAnnotations() {
-		if strings.Contains(k, "capi.weave.works/profile-") {
-			profile := capiv1_proto.TemplateProfile{}
-			err := json.Unmarshal([]byte(v), &profile)
-			if err != nil {
-				return nil, fmt.Errorf("failed to unmarshal profiles: %w", err)
-			}
-			if profile.Name == "" {
-				return nil, fmt.Errorf("profile name is required")
-			}
-
-			profilesIndex[profile.Name] = &profile
-		}
-	}
-
-	// Override anything that was still in the index with the profiles from the spec
-	for _, v := range tl.GetSpec().Charts.Items {
-		profile := capiv1_proto.TemplateProfile{
-			Name:      v.Chart,
-			Version:   v.Version,
-			Namespace: v.TargetNamespace,
-			Layer:     v.Layer,
-			Required:  v.Required,
-			Editable:  v.Editable,
-		}
-
-		if v.Values != nil {
-			valuesBytes, err := yaml.Marshal(v.Values)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal profile.values for %s: %w", v.Chart, err)
-			}
-			profile.Values = string(valuesBytes)
-		}
-
-		if v.HelmReleaseTemplate.Content != nil {
-			profileTemplateBytes, err := yaml.Marshal(v.HelmReleaseTemplate.Content)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal spec for %s: %w", v.Chart, err)
-			}
-			profile.ProfileTemplate = string(profileTemplateBytes)
-		}
-
-		profilesIndex[profile.Name] = &profile
-	}
-
-	profiles := []*capiv1_proto.TemplateProfile{}
-	for _, v := range profilesIndex {
-		profiles = append(profiles, v)
-	}
-	sort.Slice(profiles, func(i, j int) bool { return profiles[i].Name < profiles[j].Name })
-
-	return profiles, nil
 }

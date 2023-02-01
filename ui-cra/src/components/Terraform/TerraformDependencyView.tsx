@@ -1,24 +1,23 @@
-import { DagGraph } from '@weaveworks/weave-gitops';
+import { DagGraph, Flex } from '@weaveworks/weave-gitops';
 import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
 import React from 'react';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { Body, Message, Title } from '../Shared';
 import {
   getGraphNodes,
   makeObjectId,
   TerraformNodesMap,
   TerraformObjectNode,
-} from './utils';
+} from './dependencies';
 
 type Props = {
   className?: string;
   object: TerraformObject;
 };
 
-function TerraformDependencyView({ className, object }: Props) {
+function TerraformDependenciesView({ className, object }: Props) {
   const { isLoading, data, error } = useListTerraformObjects();
   const [graphNodes, setGraphNodes] = React.useState<TerraformObjectNode[]>([]);
 
@@ -58,12 +57,12 @@ function TerraformDependencyView({ className, object }: Props) {
     } else {
       setGraphNodes(nodes);
     }
-  }, [isLoading, data, error]);
+  }, [isLoading, data, error, object]);
 
   const shouldShowGraph = graphNodes && graphNodes.length;
 
   return (
-    <ContentWrapper loading={isLoading}>
+    <Flex wide tall column>
       {shouldShowGraph ? (
         <DagGraph
           className={className}
@@ -85,10 +84,12 @@ function TerraformDependencyView({ className, object }: Props) {
           </Body>
         </Message>
       )}
-    </ContentWrapper>
+    </Flex>
   );
 }
 
-export default styled(TerraformDependencyView).attrs({
-  className: TerraformDependencyView.name,
-})``;
+export default styled(TerraformDependenciesView).attrs({
+  className: TerraformDependenciesView.name,
+})`
+  width: 100%;
+`;

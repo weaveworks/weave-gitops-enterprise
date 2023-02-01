@@ -38,6 +38,13 @@ service Pipelines {
             body: "*"
         };
     }
+
+    rpc ListPullRequests(ListPullRequestsRequest) returns (ListPullRequestsResponse) {
+        option (google.api.http) = {
+            post : "/v1/pipelines/list_prs/{pipelineName}"
+            body: "*"
+        };
+    }
 }
 
 message ListPipelinesRequest {
@@ -73,4 +80,13 @@ message ApprovePromotionResponse {
 message ListError {
     string namespace = 1;
     string message = 2;
+}
+
+message ListPullRequestsRequest {
+    string pipelineName = 1;
+    string pipelineNamespace = 2;
+}
+
+message ListPullRequestsResponse {
+    map<string, string> pullRequests = 1;
 }

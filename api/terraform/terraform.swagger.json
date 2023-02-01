@@ -108,6 +108,38 @@
         ]
       }
     },
+    "/v1/terraform_objects/replan": {
+      "post": {
+        "operationId": "Terraform_ReplanTerraformObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReplanTerraformObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1ReplanTerraformObjectRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
     "/v1/terraform_objects/suspend": {
       "post": {
         "operationId": "Terraform_ToggleSuspendTerraformObject",
@@ -268,6 +300,12 @@
       "properties": {
         "plan": {
           "type": "string"
+        },
+        "enablePlanViewing": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "string"
         }
       }
     },
@@ -339,6 +377,28 @@
         },
         "pageToken": {
           "type": "string"
+        }
+      }
+    },
+    "v1ReplanTerraformObjectRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ReplanTerraformObjectResponse": {
+      "type": "object",
+      "properties": {
+        "replanRequested": {
+          "type": "boolean"
         }
       }
     },

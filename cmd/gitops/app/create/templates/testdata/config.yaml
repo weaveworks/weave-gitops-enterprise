@@ -1,0 +1,8 @@
+template-file: template.yaml
+values:
+  - CLUSTER_NAME=test-cluster
+  - RESOURCE_NAME=test-resource
+  - NAMESPACE=test-namespace
+  - GIT_REPO_NAMESPACE=test-git-repo-namespace
+  - GIT_REPO_NAME=test-git-repo-name
+  - PATH=clusters/out.yaml

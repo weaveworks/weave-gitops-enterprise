@@ -177,7 +177,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 					})
 				}
 
-				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, client, c.Kustomization, c.FilePath)
+				kustomization, err := generateKustomizationFile(ctx, c.IsControlPlane, cluster, c.Kustomization, c.FilePath)
 
 				if err != nil {
 					return nil, err
@@ -482,7 +482,7 @@ func createExternalSecretObject(es *capiv1_proto.ExternalSecret) (*esv1beta1.Ext
 		Spec: esv1beta1.ExternalSecretSpec{
 			SecretStoreRef: esv1beta1.SecretStoreRef{
 				Name: es.Spec.SecretStoreRef.Name,
-				Kind: "SecretStore",
+				Kind: es.Spec.SecretStoreRef.Kind,
 			},
 			RefreshInterval: &metav1.Duration{
 				Duration: refreshInterval,
@@ -532,6 +532,9 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 	} else {
 		if externalSecret.Spec.SecretStoreRef.Name == "" {
 			err = multierror.Append(err, fmt.Errorf("secretStoreRef name must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+		}
+		if externalSecret.Spec.SecretStoreRef.Kind == "" {
+			err = multierror.Append(err, fmt.Errorf("secretStoreRef kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 		}
 	}
 

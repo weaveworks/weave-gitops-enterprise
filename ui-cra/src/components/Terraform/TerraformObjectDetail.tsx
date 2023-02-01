@@ -12,25 +12,31 @@ import {
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
-import { useRouteMatch } from 'react-router-dom';
+import { useLocation, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import { GetTerraformObjectResponse } from '../../api/terraform/terraform.pb';
+import {
+  GetTerraformObjectResponse,
+  GetTerraformObjectPlanResponse,
+} from '../../api/terraform/terraform.pb';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import {
   useGetTerraformObjectDetail,
+  useGetTerraformObjectPlan,
   useSyncTerraformObject,
   useToggleSuspendTerraformObject,
+  useReplanTerraformObject,
 } from '../../contexts/Terraform';
 import { Routes } from '../../utils/nav';
+import CodeView from '../CodeView';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
-import YamlView from '../YamlView';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
-import TerraformDependencyView from './TerraformDependencyView';
+import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
+import TerraformPlanView from './TerraformPlanView';
 
 type Props = {
   className?: string;
@@ -63,11 +69,18 @@ const getMetadata = (obj: TerraformObject | undefined): [string, string][] => {
 
 function TerraformObjectDetail({ className, ...params }: Props) {
   const { path } = useRouteMatch();
+  const { pathname } = useLocation();
   const [syncing, setSyncing] = useState(false);
   const [suspending, setSuspending] = useState(false);
+  const [replanning, setReplanning] = useState(false);
   const { data, isLoading } = useGetTerraformObjectDetail(params);
+  const { data: planData, isLoading: isLoadingPlan } =
+    useGetTerraformObjectPlan(params);
+  const { plan, enablePlanViewing, error } = (planData ||
+    {}) as GetTerraformObjectPlanResponse;
   const sync = useSyncTerraformObject(params);
   const toggleSuspend = useToggleSuspendTerraformObject(params);
+  const replan = useReplanTerraformObject(params);
   const { setNotifications } = useNotifications();
 
   const { object, yaml } = (data || {}) as GetTerraformObjectResponse;
@@ -121,6 +134,29 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       .finally(() => setSuspending(false));
   };
 
+  const handleReplanClick = () => {
+    setReplanning(true);
+
+    return replan()
+      .then(() => {
+        setNotifications([
+          {
+            message: { text: 'Replan requested' },
+            severity: 'success',
+          },
+        ]);
+      })
+      .catch(err => {
+        setNotifications([
+          {
+            message: { text: err?.message },
+            severity: 'error',
+          },
+        ]);
+      })
+      .finally(() => setReplanning(false));
+  };
+
   const resolver = (type: string, params: any) => {
     return (
       formatURL(Routes.TerraformDetail, {
@@ -130,6 +166,9 @@ function TerraformObjectDetail({ className, ...params }: Props) {
       }) || ''
     );
   };
+
+  const shouldShowReplanButton =
+    pathname.endsWith('/plan') && !isLoadingPlan && enablePlanViewing && !error;
 
   return (
     <PageTemplate
@@ -172,6 +211,19 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   {object?.suspended ? 'Resume' : 'Suspend'}
                 </Button>
               </Box>
+              {shouldShowReplanButton && (
+                <Box paddingLeft={1} paddingRight={1}>
+                  <Button
+                    data-testid="replan-btn"
+                    loading={replanning}
+                    variant="outlined"
+                    onClick={handleReplanClick}
+                    style={{ marginRight: 0, textTransform: 'uppercase' }}
+                  >
+                    Plan
+                  </Button>
+                </Box>
+              )}
               <Box paddingLeft={1}>
                 <EditButton
                   resource={data || ({} as GetTerraformObjectResponse)}
@@ -222,19 +274,24 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             </RouterTab>
             <RouterTab name="Dependencies" path={`${path}/dependencies`}>
               <LinkResolverProvider resolver={resolver}>
-                <TerraformDependencyView object={object || {}} />
+                <TerraformDependenciesView object={object || {}} />
               </LinkResolverProvider>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
+              <CodeView
+                kind="Terraform"
+                object={{
+                  name: object?.name,
+                  namespace: object?.namespace,
+                }}
+                code={yaml || ''}
+              />
+            </RouterTab>
+            <RouterTab name="Plan" path={`${path}/plan`}>
               <>
-                <YamlView
-                  kind="Terraform"
-                  object={{
-                    name: object?.name,
-                    namespace: object?.namespace,
-                  }}
-                  yaml={yaml as string}
-                />
+                {!isLoadingPlan && (
+                  <TerraformPlanView plan={plan} error={error} />
+                )}
               </>
             </RouterTab>
           </SubRouterTabs>

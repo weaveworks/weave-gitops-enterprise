@@ -1,0 +1,26 @@
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Provider
+metadata:
+  name: podinfo-dev-gitlab
+  namespace: flux-system
+spec:
+  type: generic
+  address: http://pipeline-promotion.pipeline-system.svc.cluster.local/promotion/flux-system/podinfo-gitlab/dev
+---
+apiVersion: notification.toolkit.fluxcd.io/v1beta1
+kind: Alert
+metadata:
+  name: podinfo-dev-gitlab
+  namespace: flux-system
+spec:
+  eventSeverity: info
+  eventSources:
+  - kind: HelmRelease
+    name: podinfo
+    namespace: dev-gitlab
+  exclusionList:
+  - .*upgrade.*has.*started
+  - .*is.*not.*ready
+  - ^Dependencies.*
+  providerRef:
+    name: podinfo-dev-gitlab
