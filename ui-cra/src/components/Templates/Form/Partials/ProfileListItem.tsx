@@ -96,7 +96,7 @@ const ProfilesListItem: FC<{
     (value: string) => {
       setInValidVersionErrorMessage('');
       setIsValidVersion(true);
-      if (semverValid(value) || semverValidRange(value)) {
+      if ((semverValid(value) || semverValidRange(value)) && value !== '') {
         setVersion(value);
         profile.values.forEach(item =>
           item.selected === true ? (item.selected = false) : null,
@@ -105,7 +105,7 @@ const ProfilesListItem: FC<{
           item => item.version === value,
         );
 
-        if (!selectedVersion && value !== '') {
+        if (!selectedVersion) {
           profile.values.push({ version: value, selected: true, yaml: '' });
         }
         handleUpdateProfile(profile);
@@ -217,12 +217,17 @@ const ProfilesListItem: FC<{
         <Tooltip
           title="There is no Yaml file for this version | range"
           placement="top"
-          disabled={Boolean(semverMaxSatisfying(availableVersions, version))}
+          disabled={Boolean(
+            semverMaxSatisfying(availableVersions, version) && isValidVersion,
+          )}
         >
           <div>
             <Button
               disabled={
-                !Boolean(semverMaxSatisfying(availableVersions, version))
+                !Boolean(
+                  semverMaxSatisfying(availableVersions, version) &&
+                    isValidVersion,
+                )
               }
               variant="text"
               onClick={handleYamlPreview}
