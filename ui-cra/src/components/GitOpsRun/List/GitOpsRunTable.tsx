@@ -77,23 +77,29 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
       fields={[
         {
           label: 'Name',
-          value: (s: FluxObject) => {
-            const namespace =
-              s.obj.metadata.annotations['run.weave.works/namespace'];
-            return (
-              <Link
-                to={formatURL(Routes.GitOpsRunDetail, {
-                  name: s.name,
-                  namespace,
-                })}
-              >
-                {s.name}
-              </Link>
-            );
-          },
+          value: s => s.name,
           sortValue: ({ name }: FluxObject) => name,
           textSearchable: true,
         },
+        // {
+        //   label: 'Name',
+        //   value: (s: FluxObject) => {
+        //     const namespace =
+        //       s.obj.metadata.annotations['run.weave.works/namespace'];
+        //     return (
+        //       <Link
+        //         to={formatURL(Routes.GitOpsRunDetail, {
+        //           name: s.name,
+        //           namespace,
+        //         })}
+        //       >
+        //         {s.name}
+        //       </Link>
+        //     );
+        //   },
+        //   sortValue: ({ name }: FluxObject) => name,
+        //   textSearchable: true,
+        // },
 
         {
           label: 'Automation',

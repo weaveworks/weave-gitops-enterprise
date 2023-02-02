@@ -52,7 +52,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   // const [levelValue, setLevelValue] = React.useState('-');
 
   const [token, setToken] = React.useState('');
-  const { isLoading, data, error } = useGetLogs({
+  const { isLoading, data } = useGetLogs({
     sessionNamespace: namespace,
     sessionId: name,
     token,
