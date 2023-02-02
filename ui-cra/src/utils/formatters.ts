@@ -68,7 +68,10 @@ export function gitlabOAuthRedirectURI(): string {
   return `${window.location.origin}${Routes.GitlabOauthCallback}`;
 }
 
-<<<<<<< HEAD
+export function bitbucketServerOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
+}
+
 export const getLabels = (
   obj: TerraformObject | GitOpsSet | undefined,
 ): [string, string][] => {
@@ -94,8 +97,3 @@ export const getMetadata = (
     }
   });
 };
-=======
-export function bitbucketServerOAuthRedirectURI(): string {
-  return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
-}
->>>>>>> 062b675f4eae79a0ef2fa1d2c74657f4ff096a37

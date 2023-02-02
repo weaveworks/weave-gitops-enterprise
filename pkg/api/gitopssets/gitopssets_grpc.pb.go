@@ -19,7 +19,6 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type GitOpsSetsClient interface {
 	ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error)
-	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
 	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
@@ -43,15 +42,6 @@ func NewGitOpsSetsClient(cc grpc.ClientConnInterface) GitOpsSetsClient {
 func (c *gitOpsSetsClient) ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error) {
 	out := new(ListGitOpsSetsResponse)
 	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/ListGitOpsSets", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *gitOpsSetsClient) GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error) {
-	out := new(GetGitOpsSetResponse)
-	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/GetGitOpsSet", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -99,7 +89,6 @@ func (c *gitOpsSetsClient) SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetR
 // for forward compatibility
 type GitOpsSetsServer interface {
 	ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error)
-	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
 	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
@@ -119,9 +108,6 @@ type UnimplementedGitOpsSetsServer struct {
 
 func (UnimplementedGitOpsSetsServer) ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitOpsSets not implemented")
-}
-func (UnimplementedGitOpsSetsServer) GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetGitOpsSet not implemented")
 }
 func (UnimplementedGitOpsSetsServer) ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendGitOpsSet not implemented")
@@ -162,24 +148,6 @@ func _GitOpsSets_ListGitOpsSets_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(GitOpsSetsServer).ListGitOpsSets(ctx, req.(*ListGitOpsSetsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _GitOpsSets_GetGitOpsSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetGitOpsSetRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GitOpsSetsServer).GetGitOpsSet(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitopssets.v1.GitOpsSets/GetGitOpsSet",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GitOpsSetsServer).GetGitOpsSet(ctx, req.(*GetGitOpsSetRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -266,10 +234,6 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListGitOpsSets",
 			Handler:    _GitOpsSets_ListGitOpsSets_Handler,
-		},
-		{
-			MethodName: "GetGitOpsSet",
-			Handler:    _GitOpsSets_GetGitOpsSet_Handler,
 		},
 		{
 			MethodName: "ToggleSuspendGitOpsSet",

@@ -26,12 +26,6 @@ service GitOpsSets {
         };
     }
 
-   rpc GetGitOpsSet(GetGitOpsSetRequest) returns (GetGitOpsSetResponse) {
-        option (google.api.http) = {
-            get: "/v1/gitopsset/{name}"
-        };
-    }
-
     rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest) returns (ToggleSuspendGitOpsSetResponse) {
         option (google.api.http) = {
             post : "/v1/gitopssets/suspend"
