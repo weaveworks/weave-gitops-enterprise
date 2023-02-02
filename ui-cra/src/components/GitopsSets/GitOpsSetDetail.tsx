@@ -206,7 +206,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 name: gitOpsSet?.name,
                 namespace: gitOpsSet?.namespace,
               }}
-              code={YAML.stringify(gitOpsSet.yaml)}
+              code={YAML.stringify(gitOpsSet?.yaml)}
             />
           </RouterTab>
         </SubRouterTabs>
