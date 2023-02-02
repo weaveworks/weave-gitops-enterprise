@@ -6,17 +6,20 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/fluxcd/go-git-providers/stash"
 	go_git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
 )
@@ -147,13 +150,42 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		return nil, fmt.Errorf("unable to get a git provider client for %q: %w", gp.Type, err)
 	}
 
-	ref, err := gitprovider.ParseOrgRepositoryURL(url)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
-	}
+	var ref *gitprovider.OrgRepositoryRef
+	if gp.Type == string(gitproviders.GitProviderGitHub) || gp.Type == string(gitproviders.GitProviderGitLab) {
+		ref, err = gitprovider.ParseOrgRepositoryURL(url)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
+		}
+		ref.Domain = addSchemeToDomain(ref.Domain)
+		ref = WithCombinedSubOrgs(*ref)
+	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) {
+		// The ParseOrgRepositoryURL function used for other providers
+		// fails to parse BitBucket Server URLs correctly
+		re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)
+		match := re.FindStringSubmatch(url)
+		result := make(map[string]string)
+		for i, name := range re.SubexpNames() {
+			if i != 0 && name != "" {
+				result[name] = match[i]
+			}
+		}
+		if len(result) != 3 {
+			return nil, fmt.Errorf("unable to parse repository URL %q using regex %q", url, re.String())
+		}
 
-	ref.Domain = addSchemeToDomain(ref.Domain)
-	ref = WithCombinedSubOrgs(*ref)
+		orgRef := &gitprovider.OrganizationRef{
+			Domain:       result["host"],
+			Organization: result["key"],
+		}
+		ref = &gitprovider.OrgRepositoryRef{
+			OrganizationRef: *orgRef,
+			RepositoryName:  result["repo"],
+		}
+		ref.SetKey(result["key"])
+		ref.Domain = addSchemeToDomain(ref.Domain)
+	} else {
+		return nil, fmt.Errorf("unsupported git provider")
+	}
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
@@ -317,6 +349,11 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		} else {
 			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
 		}
+		if err != nil {
+			return nil, err
+		}
+	case "bitbucket-server":
+		client, err = stash.NewStashClient("git", gpi.Token, gitprovider.WithDomain(hostname), gitprovider.WithConditionalRequests(true))
 		if err != nil {
 			return nil, err
 		}
