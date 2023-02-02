@@ -161,8 +161,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) {
 		// The ParseOrgRepositoryURL function used for other providers
 		// fails to parse BitBucket Server URLs correctly
-		// nolint:gosimple
-		re := regexp.MustCompile("://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\\.git")
+		re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)
 		match := re.FindStringSubmatch(url)
 		result := make(map[string]string)
 		for i, name := range re.SubexpNames() {
