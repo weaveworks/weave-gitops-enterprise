@@ -48,22 +48,23 @@ spec:
                 description: Generators generate the data to be inserted into the
                   provided templates.
                 items:
-                  description: GitOpsSet describes the configured generators.
+                  description: GitOpsSetGenerator is the top-level set of generators
+                    for this GitOpsSet.
                   properties:
                     gitRepository:
                       description: GitRepositoryGenerator generates from files in
                         a Flux GitRepository resource.
                       properties:
-                        directories:
-                          description: Directories is a set of rules for identifying
-                            directories to be parsed.
+                        files:
+                          description: Files is a set of rules for identifying files
+                            to be parsed.
                           items:
-                            description: GitRepositoryGeneratorDirectoryItem defines
-                              a path to be parsed (or excluded from) for files.
+                            description: GitRepositoryGeneratorFileItemm defines a
+                              path to a file to be parsed when generating.
                             properties:
-                              exclude:
-                                type: boolean
                               path:
+                                description: Path is the name of a file to read and
+                                  generate from can be JSON or YAML.
                                 type: string
                             required:
                             - path
@@ -73,8 +74,6 @@ spec:
                           description: RepositoryRef is the name of a GitRepository
                             resource to be generated from.
                           type: string
-                      required:
-                      - repositoryRef
                       type: object
                     list:
                       description: ListGenerator generates from a hard-coded list.
@@ -83,18 +82,176 @@ spec:
                           items:
                             x-kubernetes-preserve-unknown-fields: true
                           type: array
+                      type: object
+                    matrix:
+                      description: MatrixGenerator defines a matrix that combines
+                        generators. The matrix is a cartesian product of the generators.
+                      properties:
+                        generators:
+                          description: Generators is a list of generators to be combined.
+                          items:
+                            description: GitOpsSetNestedGenerator describes the generators
+                              usable by the MatrixGenerator. This is a subset of the
+                              generators allowed by the GitOpsSetGenerator because
+                              the CRD format doesn't support recursive declarations.
+                            properties:
+                              gitRepository:
+                                description: GitRepositoryGenerator generates from
+                                  files in a Flux GitRepository resource.
+                                properties:
+                                  files:
+                                    description: Files is a set of rules for identifying
+                                      files to be parsed.
+                                    items:
+                                      description: GitRepositoryGeneratorFileItemm
+                                        defines a path to a file to be parsed when
+                                        generating.
+                                      properties:
+                                        path:
+                                          description: Path is the name of a file
+                                            to read and generate from can be JSON
+                                            or YAML.
+                                          type: string
+                                      required:
+                                      - path
+                                      type: object
+                                    type: array
+                                  repositoryRef:
+                                    description: RepositoryRef is the name of a GitRepository
+                                      resource to be generated from.
+                                    type: string
+                                type: object
+                              list:
+                                description: ListGenerator generates from a hard-coded
+                                  list.
+                                properties:
+                                  elements:
+                                    items:
+                                      x-kubernetes-preserve-unknown-fields: true
+                                    type: array
+                                type: object
+                              pullRequests:
+                                description: PullRequestGenerator defines a generator
+                                  that queries a Git hosting service for relevant
+                                  PRs.
+                                properties:
+                                  driver:
+                                    description: Determines which git-api protocol
+                                      to use.
+                                    enum:
+                                    - github
+                                    - gitlab
+                                    - bitbucketserver
+                                    type: string
+                                  interval:
+                                    description: The interval at which to check for
+                                      repository updates.
+                                    type: string
+                                  labels:
+                                    description: Labels is used to filter the PRs
+                                      that you want to target. This may be applied
+                                      on the server.
+                                    items:
+                                      type: string
+                                    type: array
+                                  repo:
+                                    description: This should be the Repo you want
+                                      to query. e.g. my-org/my-repo
+                                    type: string
+                                  secretRef:
+                                    description: Reference to Secret in same namespace
+                                      with a field "password" which is an auth token
+                                      that can query the Git Provider API.
+                                    properties:
+                                      name:
+                                        description: 'Name of the referent. More info:
+                                          https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                          TODO: Add other useful fields. apiVersion,
+                                          kind, uid?'
+                                        type: string
+                                    type: object
+                                    x-kubernetes-map-type: atomic
+                                  serverURL:
+                                    description: This is the API endpoint to use.
+                                    pattern: ^https://
+                                    type: string
+                                required:
+                                - driver
+                                - interval
+                                - repo
+                                type: object
+                            type: object
+                          type: array
+                      type: object
+                    pullRequests:
+                      description: PullRequestGenerator defines a generator that queries
+                        a Git hosting service for relevant PRs.
+                      properties:
+                        driver:
+                          description: Determines which git-api protocol to use.
+                          enum:
+                          - github
+                          - gitlab
+                          - bitbucketserver
+                          type: string
+                        interval:
+                          description: The interval at which to check for repository
+                            updates.
+                          type: string
+                        labels:
+                          description: Labels is used to filter the PRs that you want
+                            to target. This may be applied on the server.
+                          items:
+                            type: string
+                          type: array
+                        repo:
+                          description: This should be the Repo you want to query.
+                            e.g. my-org/my-repo
+                          type: string
+                        secretRef:
+                          description: Reference to Secret in same namespace with
+                            a field "password" which is an auth token that can query
+                            the Git Provider API.
+                          properties:
+                            name:
+                              description: 'Name of the referent. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+                                TODO: Add other useful fields. apiVersion, kind, uid?'
+                              type: string
+                          type: object
+                          x-kubernetes-map-type: atomic
+                        serverURL:
+                          description: This is the API endpoint to use.
+                          pattern: ^https://
+                          type: string
                       required:
-                      - elements
+                      - driver
+                      - interval
+                      - repo
                       type: object
                   type: object
                 type: array
+              suspend:
+                description: Suspend tells the controller to suspend the reconciliation
+                  of this GitOpsSet.
+                type: boolean
               templates:
                 description: Templates are a set of YAML templates that are rendered
                   into resources from the data supplied by the generators.
                 items:
-                  description: // ©itOpsSetTemplate describes a resource to create
+                  description: GitOpsSetTemplate describes a resource to create
+                  properties:
+                    content:
+                      description: Content is the YAML to be templated and generated.
+                      type: object
+                      x-kubernetes-preserve-unknown-fields: true
+                    repeat:
+                      description: Repeat is a JSONPath string defining that the template
+                        content should be repeated for each of the matching elements
+                        in the JSONPath expression. https://kubernetes.io/docs/reference/kubectl/jsonpath/
+                      type: string
+                  required:
+                  - content
                   type: object
-                  x-kubernetes-preserve-unknown-fields: true
                 type: array
             type: object
           status:
@@ -192,8 +349,6 @@ spec:
                       - v
                       type: object
                     type: array
-                required:
-                - entries
                 type: object
               observedGeneration:
                 description: ObservedGeneration is the last observed generation of
