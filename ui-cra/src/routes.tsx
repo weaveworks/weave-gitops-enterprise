@@ -44,6 +44,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import CreateSecret from './components/Secrets/Create';
+import ImageAutomation from './components/ImageAutomation';
 
 
 function withSearchParams(Cmp: any) {
@@ -242,6 +243,7 @@ const AppRoutes = () => {
         path={Routes.PipelineDetails}
         component={withSearchParams(PipelineDetails)}
       />
+      <Route exact path={Routes.ImageAutomation} component={ImageAutomation} />
 
       <Route exact path={Routes.Policies} component={Policies} />
       <Route

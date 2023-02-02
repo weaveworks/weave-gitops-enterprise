@@ -152,6 +152,11 @@ const NavItems = () => {
           ],
         },
         {
+          name: 'IMAGE AUTOMATION',
+          link: Routes.ImageAutomation,
+          isVisible: true,
+        },
+        {
           name: 'PIPELINES',
           link: Routes.Pipelines,
           isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_PIPELINES,
@@ -163,6 +168,7 @@ const NavItems = () => {
             process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
           relatedRoutes: [Routes.CanaryDetails],
         },
+        
       ],
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
     },
