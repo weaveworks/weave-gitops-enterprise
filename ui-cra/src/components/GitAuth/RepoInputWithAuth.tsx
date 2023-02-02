@@ -1,24 +1,23 @@
+import { MenuItem } from '@material-ui/core';
 import {
   Button,
   Flex,
+  GitRepository,
   Icon,
   IconType,
-  useRequestState,
   useListSources,
-  GitRepository,
+  useRequestState,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import GithubAuthButton from './GithubAuthButton';
-import GitlabAuthButton from './GitlabAuthButton';
-import { GitAuth } from '../../contexts/GitAuth';
 import {
   GitProvider,
   ParseRepoURLResponse,
 } from '../../api/gitauth/gitauth.pb';
+import { GitAuth } from '../../contexts/GitAuth';
 import { Select, SelectProps } from '../../utils/form';
-import { MenuItem } from '@material-ui/core';
 import { getGitRepos } from '../Clusters';
+import AuthButton from './AuthButton';
 
 const getUrlFromRepo = (repo: GitRepository | null) => repo?.obj?.spec?.url;
 
@@ -86,17 +85,6 @@ export function RepoInputWithAuth({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [res]);
 
-  const AuthButton =
-    res?.provider === GitProvider.GitHub ? (
-      <GithubAuthButton
-        onClick={() => {
-          onAuthClick(GitProvider.GitHub);
-        }}
-      />
-    ) : (
-      <GitlabAuthButton onClick={() => onAuthClick(GitProvider.GitLab)} />
-    );
-
   const renderProviderAuthButton =
     valueForSelect && !!res?.provider && !isAuthenticated;
 
@@ -147,7 +135,9 @@ export function RepoInputWithAuth({
         {!isAuthenticated && !res && (
           <Button disabled>Authenticate with your Git Provider</Button>
         )}
-        {renderProviderAuthButton ? AuthButton : null}
+        {renderProviderAuthButton && (
+          <AuthButton provider={res?.provider} onClick={onAuthClick} />
+        )}
       </div>
     </GitAuthForm>
   );

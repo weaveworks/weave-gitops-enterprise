@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/bitbucket"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -37,15 +38,17 @@ type applicationServer struct {
 	log          logr.Logger
 	ghAuthClient auth.GithubAuthClient
 	glAuthClient auth.GitlabAuthClient
+	bbAuthClient bitbucket.AuthClient
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
 // Use the DefaultConfig() to use the default dependencies.
 type ApplicationsConfig struct {
-	Logger           logr.Logger
-	JwtClient        auth.JWTClient
-	GithubAuthClient auth.GithubAuthClient
-	GitlabAuthClient auth.GitlabAuthClient
+	Logger                logr.Logger
+	JwtClient             auth.JWTClient
+	GithubAuthClient      auth.GithubAuthClient
+	GitlabAuthClient      auth.GitlabAuthClient
+	BitBucketServerClient bitbucket.AuthClient
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -61,6 +64,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 		log:          cfg.Logger,
 		ghAuthClient: cfg.GithubAuthClient,
 		glAuthClient: cfg.GitlabAuthClient,
+		bbAuthClient: cfg.BitBucketServerClient,
 	}
 }
 
@@ -77,10 +81,11 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 	jwtClient := auth.NewJwtClient(secretKey)
 
 	return &ApplicationsConfig{
-		Logger:           log.WithName("app-server"),
-		JwtClient:        jwtClient,
-		GithubAuthClient: auth.NewGithubAuthClient(http.DefaultClient),
-		GitlabAuthClient: auth.NewGitlabAuthClient(http.DefaultClient),
+		Logger:                log.WithName("app-server"),
+		JwtClient:             jwtClient,
+		GithubAuthClient:      auth.NewGithubAuthClient(http.DefaultClient),
+		GitlabAuthClient:      auth.NewGitlabAuthClient(http.DefaultClient),
+		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
 	}, nil
 }
 
@@ -169,6 +174,30 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 	return &pb.AuthorizeGitlabResponse{Token: token}, nil
 }
 
+func (s *applicationServer) GetBitbucketServerAuthURL(ctx context.Context, msg *pb.GetBitbucketServerAuthURLRequest) (*pb.GetBitbucketServerAuthURLResponse, error) {
+	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
+	if err != nil {
+		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
+	}
+
+	return &pb.GetBitbucketServerAuthURLResponse{Url: u.String()}, nil
+}
+
+func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *pb.AuthorizeBitbucketServerRequest) (*pb.AuthorizeBitbucketServerResponse, error) {
+	tokenState, err := s.bbAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
+	if err != nil {
+		return nil, fmt.Errorf("could not exchange code: %w", err)
+	}
+
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderBitBucketServer, tokenState.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	return &pb.AuthorizeBitbucketServerResponse{Token: token}, nil
+
+}
+
 func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
 	token, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {
@@ -195,6 +224,8 @@ func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
 		return pb.GitProvider_GitHub
 	case gitproviders.GitProviderGitLab:
 		return pb.GitProvider_GitLab
+	case gitproviders.GitProviderBitBucketServer:
+		return pb.GitProvider_BitBucketServer
 	}
 
 	return pb.GitProvider_Unknown
@@ -206,6 +237,8 @@ func findValidator(provider pb.GitProvider, s *applicationServer) (auth.Provider
 		return s.ghAuthClient, nil
 	case pb.GitProvider_GitLab:
 		return s.glAuthClient, nil
+	case pb.GitProvider_BitBucketServer:
+		return s.bbAuthClient, nil
 	}
 
 	return nil, fmt.Errorf("unknown git provider %s", provider)
