@@ -57,7 +57,6 @@ In particular:
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
 - gitopssets-controller ([releases](https://github.com/weaveworks/gitopssets-controller/releases))
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/gitopssets-controller/values.yaml
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
 - templates-controller ([releases](https://github.com/weaveworks/templates-controller/releases))
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/templates-controller/values.yaml
