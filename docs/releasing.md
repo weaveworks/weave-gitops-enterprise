@@ -61,7 +61,6 @@ In particular:
 - templates-controller ([releases](https://github.com/weaveworks/templates-controller/releases))
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/templates-controller/values.yaml
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
 - pipeline-controller ([Helm chart releases](https://github.com/weaveworks/pipeline-controller/pkgs/container/charts%2Fpipeline-controller))
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
