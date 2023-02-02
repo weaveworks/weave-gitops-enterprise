@@ -1,6 +1,11 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
-import { theme, useFeatureFlags, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  Link,
+  theme,
+  useFeatureFlags,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
@@ -12,6 +17,7 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
@@ -101,11 +107,15 @@ export const NavItem = styled(NavLink).attrs({
 
 const useStyles = makeStyles({
   root: {
-    marginTop: '80px',
     paddingTop: medium,
     alignItems: 'center',
-    height: 'calc(100vh - 80px)',
+    height: 'calc(100vh - 84px)',
     borderTopRightRadius: '10px',
+  },
+  logo: {
+    padding: `calc(${medium} - ${xxs})`,
+    paddingTop: `${medium}`,
+    paddingBottom: `17px`,
   },
 });
 
@@ -250,10 +260,16 @@ export const Navigation: FC = () => {
   const classes = useStyles();
   const listConfigContext = useListConfigContext();
   const uiConfig = listConfigContext?.uiConfig || '';
-
   return (
-    <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
-      <MemoizedNavItems />
-    </Box>
+    <>
+      <div title="Home" className={classes.logo}>
+        <Link to={Routes.Clusters}>
+          <img src={uiConfig?.logoURL || WeaveGitOps} alt="Home" />
+        </Link>
+      </div>
+      <Box className={`${classes.root} nav-items`} bgcolor={theme.colors.white}>
+        <MemoizedNavItems />
+      </Box>
+    </>
   );
 };
