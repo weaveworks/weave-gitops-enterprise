@@ -24,11 +24,6 @@ const ProfileAnnotation = "weave.works/profile"
 // have to indicate that all charts are to be considered as Profiles.
 const RepositoryProfilesAnnotation = "weave.works/profiles"
 
-// LayerAnnotation specifies profile application order.
-// Profiles are sorted by layer and those at a higher "layer" are only installed after
-// lower layers have successfully installed and started.
-const LayerAnnotation = "weave.works/layer"
-
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
 var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
@@ -43,7 +38,7 @@ type HelmWatcherReconciler struct {
 	UseProxy      bool
 	ClusterRef    types.NamespacedName
 	Cluster       cluster.Cluster
-	Cache         helm.ChartsCacherWriter
+	Cache         helm.ChartsCacheWriter
 	ValuesFetcher helm.ValuesFetcher
 }
 
@@ -86,24 +81,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{}, err
 	}
 
-	for name, versions := range indexFile.Entries {
-		for _, version := range versions {
-			isProfile := Profiles(&repository, version)
-			chartKind := "chart"
-			if isProfile {
-				chartKind = "profile"
-			}
-			err := r.Cache.AddChart(
-				ctx, name, version.Version, chartKind,
-				version.Annotations[LayerAnnotation],
-				r.ClusterRef,
-				helm.ObjectReference{Name: repository.Name, Namespace: repository.Namespace},
-			)
-			if err != nil {
-				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version)
-			}
-		}
-	}
+	LoadIndex(indexFile, r.Cache, r.ClusterRef, &repository, log)
 
 	log.Info("cached data from repository", "url", repository.Status.URL, "number of profiles", len(indexFile.Entries))
 
@@ -133,6 +111,31 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 
 	// Stop reconciliation as the object is being deleted
 	return ctrl.Result{}, nil
+}
+
+// LoadIndex loads the index file for a HelmRepository into the charts cache
+func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacheWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
+	for name, versions := range index.Entries {
+		for _, version := range versions {
+			isProfile := Profiles(helmRepo, version)
+			chartKind := "chart"
+			if isProfile {
+				chartKind = "profile"
+			}
+			err := cache.AddChart(
+				context.Background(),
+				name,
+				version.Version,
+				chartKind,
+				version.Annotations[helm.LayerAnnotation],
+				clusterRef,
+				helm.ObjectReference{Name: helmRepo.Name, Namespace: helmRepo.Namespace},
+			)
+			if err != nil {
+				log.Error(err, "failed to add chart to cache", "name", name, "version", version.Version)
+			}
+		}
+	}
 }
 
 func hasAnnotation(cm map[string]string, name string) bool {

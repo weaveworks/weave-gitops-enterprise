@@ -60,7 +60,7 @@ var (
 type generateProfileFilesParams struct {
 	helmRepositoryCluster types.NamespacedName
 	helmRepository        types.NamespacedName
-	chartsCache           helm.ChartsCacheReader
+	chartsCache           helm.ProfilesGeneratorCache
 	profileValues         []*capiv1_proto.ProfileValues
 	parameterValues       map[string]string
 }
@@ -173,7 +173,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			types.NamespacedName{Name: s.cluster},
 			s.profileHelmRepository,
 			tmpl,
-			GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.PreviousValues.ParameterValues, msg.PreviousValues.Credentials, msg.PreviousValues.Values, msg.PreviousValues.Kustomizations, msg.PreviousValues.ExternalSecrets},
+			GetFilesRequest{
+				ClusterNamespace: clusterNamespace,
+				TemplateName:     msg.TemplateName,
+				ParameterValues:  msg.PreviousValues.ParameterValues,
+				Credentials:      msg.PreviousValues.Credentials,
+				Profiles:         msg.PreviousValues.Values,
+				Kustomizations:   msg.PreviousValues.Kustomizations,
+				ExternalSecrets:  msg.PreviousValues.ExternalSecrets,
+			},
 			msg,
 		)
 		if err != nil {
@@ -191,7 +199,15 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		types.NamespacedName{Name: s.cluster},
 		s.profileHelmRepository,
 		tmpl,
-		GetFilesRequest{clusterNamespace, msg.TemplateName, "CAPITemplate", msg.ParameterValues, msg.Credentials, msg.Values, msg.Kustomizations, msg.ExternalSecrets},
+		GetFilesRequest{
+			ClusterNamespace: clusterNamespace,
+			TemplateName:     msg.TemplateName,
+			ParameterValues:  msg.ParameterValues,
+			Credentials:      msg.Credentials,
+			Profiles:         msg.Values,
+			Kustomizations:   msg.Kustomizations,
+			ExternalSecrets:  msg.ExternalSecrets,
+		},
 		msg,
 	)
 	if err != nil {
@@ -304,7 +320,6 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 					Content: nil,
 				})
 			}
-
 		}
 	} else {
 		for _, clusterName := range msg.ClusterNames {
@@ -605,24 +620,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, kubeClient client.Client, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
-	helmRepo := &sourcev1.HelmRepository{}
-	err := kubeClient.Get(ctx, args.helmRepository, helmRepo)
-	if err != nil {
-		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", args.helmRepository.Namespace, args.helmRepository.Name, err)
-	}
-	helmRepoTemplate := &sourcev1.HelmRepository{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      args.helmRepository.Name,
-			Namespace: args.helmRepository.Namespace,
-		},
-		Spec: helmRepo.Spec,
-	}
-
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -630,7 +628,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := getProfilesFromTemplate(tmpl)
+	requiredProfiles, err := templates.GetProfilesFromTemplate(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
@@ -727,7 +725,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	}
 
 	// profilesBytes is a map of {path: []byte} where []byte is the content of the profile.
-	profilesByPath, err := createProfileYAML(helmRepoTemplate, helmReleases, tmpl, getClusterProfilesPath(cluster))
+	profilesByPath, err := createProfileYAML(helmRepo, helmReleases, tmpl, getClusterProfilesPath(cluster))
 	if err != nil {
 		return nil, err
 	}
@@ -972,7 +970,6 @@ func generateKustomizationFile(
 	ctx context.Context,
 	isControlPlane bool,
 	cluster types.NamespacedName,
-	kubeClient client.Client,
 	kustomization *capiv1_proto.Kustomization,
 	filePath string) (gitprovider.CommitFile, error) {
 	kustomizationYAML := createKustomizationObject(kustomization)

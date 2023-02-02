@@ -154,9 +154,10 @@ func TestToTemplate(t *testing.T) {
 				},
 				Profiles: []*capiv1_protos.TemplateProfile{
 					{
-						Name:    "cert-manager",
-						Version: "0.0.7",
-						Values:  "installCRDs: ${INSTALL_CRDS}",
+						Name:     "cert-manager",
+						Version:  "0.0.7",
+						Values:   "installCRDs: ${INSTALL_CRDS}",
+						Required: true,
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
@@ -192,9 +193,10 @@ func TestToTemplate(t *testing.T) {
 				},
 				Profiles: []*capiv1_protos.TemplateProfile{
 					{
-						Name:    "cert-manager",
-						Version: "0.0.7",
-						Values:  "installCRDs: {{ .params.INSTALL_CRDS }}",
+						Name:     "cert-manager",
+						Version:  "0.0.7",
+						Values:   "installCRDs: {{ .params.INSTALL_CRDS }}",
+						Required: true,
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{

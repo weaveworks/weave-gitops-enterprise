@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Kubernetes release:**
- - which kubernetes release
+
 
 **Priority**
  - low
@@ -19,18 +19,23 @@ assignees: ''
  - low
  - medium
  - high
+ - critical
 
+<!-- A clear and concise description of what the bug is. -->
 **Describe the bug**
-A clear and concise description of what the bug is.
 
+
+<!-- Steps to reproduce the behaviour. -->
 **To Reproduce**
-Steps to reproduce the behaviour:
 
+
+<!-- A clear and concise description of the resulting behaviour. -->
 **Actual behaviour**
-A clear and concise description of the resulting behaviour.
 
+
+<!-- A clear and concise description of what you expected to happen. -->
 **Expected behaviour**
-A clear and concise description of what you expected to happen.
+
 
 **Cloud provider:**
  - AWS
@@ -40,5 +45,5 @@ A clear and concise description of what you expected to happen.
  - VMware
  - LiquidMetal
 
+<!-- Add any other context about the problem here. -->
 **Additional context**
-Add any other context about the problem here.

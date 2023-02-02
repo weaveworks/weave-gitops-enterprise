@@ -40,6 +40,7 @@ export enum Routes {
   PipelineDetails = '/applications/pipelines/details',
 
   GitOpsRun = '/gitopsrun',
+  GitOpsRunDetail = '/gitopsrun/detail',
 
   TerraformObjects = '/terraform',
   TerraformDetail = '/terraform/object',
@@ -52,6 +53,7 @@ export enum Routes {
   PolicyViolationDetails = '/clusters/violations/details',
 
   GitlabOauthCallback = '/oauth/gitlab',
+  BitBucketOauthCallback = '/oauth/bitbucketserver',
   Policies = '/policies',
   PolicyDetails = '/policies/details',
 
@@ -64,7 +66,11 @@ export enum Routes {
 
   Secrets = '/secrets',
   SecretDetails = '/secrets/details',
+<<<<<<< HEAD
 
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
+=======
+  CreateSecret = '/secrets/create'
+>>>>>>> 062b675f4eae79a0ef2fa1d2c74657f4ff096a37
 }

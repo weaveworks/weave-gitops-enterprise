@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/app"
-	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 func main() {
@@ -21,12 +20,7 @@ func main() {
 		_ = os.RemoveAll(tempDir)
 	}()
 
-	log, err := logger.New(logger.DefaultLogLevel, os.Getenv("HUMAN_LOGS") != "")
-	if err != nil {
-		stdlog.Fatalf("Couldn't set up logger: %v", err)
-	}
-
-	command := app.NewAPIServerCommand(log, tempDir)
+	command := app.NewAPIServerCommand()
 
 	if err := command.Execute(); err != nil {
 		os.Exit(1)

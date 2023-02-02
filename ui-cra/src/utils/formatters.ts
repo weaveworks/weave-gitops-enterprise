@@ -1,7 +1,7 @@
-import { URL } from '../types/global';
 import GitUrlParse from 'git-url-parse';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
 import { NotificationData } from '../contexts/Notifications';
+import { URL } from '../types/global';
 import { Routes } from './nav';
 import { GitOpsSet } from '../api/gitopssets/types.pb';
 import { TerraformObject } from '../api/terraform/types.pb';
@@ -68,6 +68,7 @@ export function gitlabOAuthRedirectURI(): string {
   return `${window.location.origin}${Routes.GitlabOauthCallback}`;
 }
 
+<<<<<<< HEAD
 export const getLabels = (
   obj: TerraformObject | GitOpsSet | undefined,
 ): [string, string][] => {
@@ -93,3 +94,8 @@ export const getMetadata = (
     }
   });
 };
+=======
+export function bitbucketServerOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
+}
+>>>>>>> 062b675f4eae79a0ef2fa1d2c74657f4ff096a37

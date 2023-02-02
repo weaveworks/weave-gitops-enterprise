@@ -72,3 +72,12 @@ export type Pipeline = {
   yaml?: string
   type?: string
 }
+
+export type PullRequestList = {
+  pullRequests?: PullRequest[]
+}
+
+export type PullRequest = {
+  title?: string
+  url?: string
+}

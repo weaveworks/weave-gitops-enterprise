@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { AddApplicationRequest, renderKustomization } from '../utils';
+import { CreateDeploymentObjects, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
@@ -361,7 +361,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
-    return AddApplicationRequest(payload, getProviderToken(formData.provider))
+    return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
       .then(response => {
         setPRPreview(null);
         history.push(Routes.Applications);

@@ -1,33 +1,57 @@
 import { CircularProgress } from '@material-ui/core';
+import { Alert, AlertTitle } from '@material-ui/lab';
 import {
   Flex,
-  useRequestState,
   useLinkResolver,
+  useRequestState,
 } from '@weaveworks/weave-gitops';
+import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { getCallbackState, storeProviderToken } from './utils';
-import { gitlabOAuthRedirectURI } from '../../utils/formatters';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import useNotifications from '../../contexts/Notifications';
-import { GitAuth } from '../../contexts/GitAuth';
 import {
   AuthorizeGitlabResponse,
   GitProvider,
 } from '../../api/gitauth/gitauth.pb';
+import { GitAuth } from '../../contexts/GitAuth';
+import useNotifications from '../../contexts/Notifications';
+import {
+  bitbucketServerOAuthRedirectURI,
+  gitlabOAuthRedirectURI,
+} from '../../utils/formatters';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
+import { getCallbackState, storeProviderToken } from './utils';
 
 type Props = {
   code: string;
   provider: GitProvider;
+  error?: string | null;
+  errorDescription?: string | null;
 };
 
-function OAuthCallback({ code, provider }: Props) {
+const ErrorMessage = ({ title, message }: any) => {
+  return (
+    <Alert severity="error">
+      <AlertTitle>OAuth Error: {title} </AlertTitle>
+      {message}
+    </Alert>
+  );
+};
+
+function OAuthCallback({
+  code,
+  provider,
+  error: paramsError,
+  errorDescription,
+}: Props) {
   const history = useHistory();
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
   const { gitAuthClient } = React.useContext(GitAuth);
+  const params = qs.parse(history.location.search);
+  const errorState = error || paramsError;
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
@@ -40,6 +64,15 @@ function OAuthCallback({ code, provider }: Props) {
         }),
       );
     }
+
+    if (provider === GitProvider.BitBucketServer) {
+      req(
+        gitAuthClient.AuthorizeBitbucketServer({
+          code,
+          redirectUri: bitbucketServerOAuthRedirectURI(),
+        }),
+      );
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [code, gitAuthClient, provider]);
 
@@ -48,12 +81,12 @@ function OAuthCallback({ code, provider }: Props) {
       return;
     }
 
-    storeProviderToken(GitProvider.GitLab, res.token || '');
+    storeProviderToken(provider, res.token || '');
 
     const state = getCallbackState();
 
-    if (state?.page) {
-      history.push(linkResolver(state.page));
+    if (state?.page || !params.error) {
+      history.push(linkResolver(state?.page || ''));
       return;
     }
   }, [res, history, linkResolver]);
@@ -65,11 +98,25 @@ function OAuthCallback({ code, provider }: Props) {
   }, [error, setNotifications]);
 
   return (
-    <ContentWrapper loading={loading}>
-      <Flex wide align center>
-        {loading && <CircularProgress />}
-      </Flex>
-    </ContentWrapper>
+    <PageTemplate path={[{ label: 'OAuth Callback', url: '' }]}>
+      <ContentWrapper loading={loading}>
+        <Flex wide align center>
+          {loading && <CircularProgress />}
+          {/* Two possible error sources: OAuth misconfiguration, 
+            or a problem with the code exchange. Handling both here.
+          */}
+          {error && (
+            <Alert severity="error">
+              <AlertTitle>Request Error {error.name} </AlertTitle>
+              {error.message}
+            </Alert>
+          )}
+          {paramsError && (
+            <ErrorMessage title={paramsError} message={errorDescription} />
+          )}
+        </Flex>
+      </ContentWrapper>
+    </PageTemplate>
   );
 }
 

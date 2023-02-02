@@ -6,6 +6,9 @@ policy-agent:
     accountId: "weaveworks"
     clusterId: "tilt-cluster"
 
+config:
+  logLevel: debug
+
 tls:
   enabled: false
 
@@ -20,6 +23,8 @@ extraEnvVars:
     value: ""
   - name: WEAVE_GITOPS_FEATURE_TELEMETRY
     value: "false"
+  - name: BITBUCKET_SERVER_HOSTNAME
+    value: "bitbucket.yiannis.net"
 
 extraEnvVarsSecret: ""
 

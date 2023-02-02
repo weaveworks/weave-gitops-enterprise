@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	stdlog "log"
 	"math/big"
 	"net"
 	"net/http"
@@ -65,6 +66,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	core_fetcher "github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -145,6 +147,7 @@ type Params struct {
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
+	LogLevel                          string                    `mapstructure:"log-level"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -158,7 +161,7 @@ type OIDCAuthenticationOptions struct {
 	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
 }
 
-func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
+func NewAPIServerCommand() *cobra.Command {
 	p := &Params{}
 
 	cmd := &cobra.Command{
@@ -181,7 +184,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 			return checkParams(*p)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return StartServer(context.Background(), log, tempDir, *p)
+			return StartServer(context.Background(), *p)
 		},
 	}
 
@@ -229,6 +232,7 @@ func NewAPIServerCommand(log logr.Logger, tempDir string) *cobra.Command {
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmdFlags.String("ui-config", "", "UI configuration, JSON encoded")
 	cmdFlags.String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
+	cmdFlags.String("log-level", logger.DefaultLogLevel, "log level")
 
 	cmdFlags.String("cost-estimation-filters", "", "Cost estimation filters")
 	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
@@ -308,7 +312,11 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params) error {
+func StartServer(ctx context.Context, p Params) error {
+	log, err := logger.New(p.LogLevel, os.Getenv("HUMAN_LOGS") != "")
+	if err != nil {
+		stdlog.Fatalf("Couldn't set up logger: %v", err)
+	}
 
 	featureflags.SetFromEnv(os.Environ())
 
@@ -329,7 +337,7 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
-	err := schemeBuilder.AddToScheme(scheme)
+	err = schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		return err
 	}
@@ -506,7 +514,6 @@ func StartServer(ctx context.Context, log logr.Logger, tempDir string, p Params)
 			},
 		),
 		WithCAPIClustersNamespace(p.CAPIClustersNamespace),
-		WithHelmRepositoryCacheDirectory(tempDir),
 		WithHtmlRootPath(p.HtmlRootPath),
 		WithClientGetter(clientGetter),
 		WithAuthConfig(authMethods, p.OIDC),
@@ -576,23 +583,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Add weave-gitops enterprise handlers
 	clusterServer := server.NewClusterServer(
 		server.ServerOpts{
-			Logger:                 args.Log,
-			ClustersManager:        args.CoreServerConfig.ClustersManager,
-			GitProvider:            args.GitProvider,
-			ClientGetter:           args.ClientGetter,
-			DiscoveryClient:        args.DiscoveryClient,
-			ClustersNamespace:      args.CAPIClustersNamespace,
-			ProfileHelmRepository:  args.ProfileHelmRepository,
-			HelmRepositoryCacheDir: args.HelmRepositoryCacheDirectory,
-			CAPIEnabled:            args.CAPIEnabled,
-			ChartJobs:              helm.NewJobs(),
-			ChartsCache:            args.ChartsCache,
-			ValuesFetcher:          helm.NewValuesFetcher(),
-			RestConfig:             args.CoreServerConfig.RestCfg,
-			ManagementFetcher:      args.ManagementFetcher,
-			Cluster:                args.Cluster,
-			Estimator:              estimator,
-			UIConfig:               args.UIConfig,
+			Logger:                args.Log,
+			ClustersManager:       args.CoreServerConfig.ClustersManager,
+			GitProvider:           args.GitProvider,
+			ClientGetter:          args.ClientGetter,
+			DiscoveryClient:       args.DiscoveryClient,
+			ClustersNamespace:     args.CAPIClustersNamespace,
+			ProfileHelmRepository: args.ProfileHelmRepository,
+			CAPIEnabled:           args.CAPIEnabled,
+			ChartJobs:             helm.NewJobs(),
+			ChartsCache:           args.ChartsCache,
+			ValuesFetcher:         helm.NewValuesFetcher(),
+			RestConfig:            args.CoreServerConfig.RestCfg,
+			ManagementFetcher:     args.ManagementFetcher,
+			Cluster:               args.Cluster,
+			Estimator:             estimator,
+			UIConfig:              args.UIConfig,
 		},
 	)
 	if err := capi_proto.RegisterClustersServiceHandlerServer(ctx, grpcMux, clusterServer); err != nil {
@@ -632,6 +638,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ManagementFetcher:         args.ManagementFetcher,
 			Cluster:                   args.Cluster,
 			PipelineControllerAddress: args.PipelineControllerAddress,
+			GitProvider:               args.GitProvider,
 		}); err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
 		}
