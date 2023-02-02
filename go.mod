@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.15.1-0.20230131120936-86b311c2856e
+	github.com/weaveworks/weave-gitops v0.16.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -345,4 +345,6 @@ replace (
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 	// Fix for CVE-2022-1996
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
+// un-comment for local dev
+// github.com/weaveworks/weave-gitops => ../weave-gitops
 )

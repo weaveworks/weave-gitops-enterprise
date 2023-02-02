@@ -8,6 +8,7 @@ export const useGetLogs = (req: GetSessionLogsRequest) => {
   const { isLoading, data, error } = useQuery<GetSessionLogsResponse, Error>(
     'logs',
     () => coreClient.GetSessionLogs(req),
+    { refetchInterval: 5000 },
   );
   return { isLoading, data, error };
 };

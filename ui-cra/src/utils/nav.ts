@@ -54,6 +54,7 @@ export enum Routes {
   PolicyViolationDetails = '/clusters/violations/details',
 
   GitlabOauthCallback = '/oauth/gitlab',
+  BitBucketOauthCallback = '/oauth/bitbucketserver',
   Policies = '/policies',
   PolicyDetails = '/policies/details',
 

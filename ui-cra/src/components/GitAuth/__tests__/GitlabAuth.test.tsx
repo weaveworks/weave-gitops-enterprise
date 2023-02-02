@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import {
   ApplicationsClientMock,
@@ -10,7 +11,6 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import { RepoInputWithAuth } from '../RepoInputWithAuth';
-import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 
 Object.assign(navigator, {
   clipboard: {
