@@ -154,6 +154,38 @@
         ]
       }
     },
+    "/v1/gitopssets/sync": {
+      "post": {
+        "operationId": "GitOpsSets_SyncGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncGitOpsSetRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
     "/v1/reconciled_objects": {
       "post": {
         "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
@@ -327,12 +359,6 @@
             "$ref": "#/definitions/v1Condition"
           }
         },
-        "generators": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
         "clusterName": {
           "type": "string"
         },
@@ -360,6 +386,9 @@
         "observedGeneration": {
           "type": "string",
           "format": "int64"
+        },
+        "yaml": {
+          "type": "string"
         }
       }
     },
@@ -457,6 +486,28 @@
         },
         "namespace": {
           "type": "string"
+        }
+      }
+    },
+    "v1SyncGitOpsSetRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SyncGitOpsSetResponse": {
+      "type": "object",
+      "properties": {
+        "success": {
+          "type": "boolean"
         }
       }
     },

@@ -9,14 +9,14 @@ message GitOpsSet {
     string                namespace                = 2;
     repeated ResourceRef  inventory                = 3;
     repeated Condition    conditions               = 4;
-    repeated string       generators               = 5;
-    string                cluster_name             = 6;
-    string                type                     = 7;
-    map<string, string>                labels      = 8;
-    map<string, string>                annotations = 9;
-    SourceRef sourceRef            = 10;
-    bool suspended = 11;
-    int64 observed_generation = 12;
+    string                cluster_name             = 5;
+    string                type                     = 6;
+    map<string, string>                labels      = 7;
+    map<string, string>                annotations = 8;
+    SourceRef sourceRef            = 9;
+    bool suspended = 10;
+    int64 observed_generation = 11;
+    string yaml = 12;
 }
 
 message SourceRef {
@@ -45,7 +45,6 @@ message Condition {
     string timestamp = 5;
 }
 
-// GitOpsSet describes the configured generators.
 message GitOpsSetGenerator { 
    string list = 1;
    string git_repository = 2;
@@ -63,11 +62,6 @@ message GroupVersionKind {
     string group   = 1;
     string kind    = 2;
     string version = 3;
-}
-
-message NamespacedObjectReference {
-    string name      = 1;
-    string namespace = 2;
 }
 
 message Object {

@@ -29,6 +29,7 @@ type GitOpsSetsClient interface {
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
+	SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error)
 }
 
 type gitOpsSetsClient struct {
@@ -84,6 +85,15 @@ func (c *gitOpsSetsClient) GetChildObjects(ctx context.Context, in *GetChildObje
 	return out, nil
 }
 
+func (c *gitOpsSetsClient) SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error) {
+	out := new(SyncGitOpsSetResponse)
+	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GitOpsSetsServer is the server API for GitOpsSets service.
 // All implementations must embed UnimplementedGitOpsSetsServer
 // for forward compatibility
@@ -99,6 +109,7 @@ type GitOpsSetsServer interface {
 	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
 	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
 	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
+	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }
 
@@ -120,6 +131,9 @@ func (UnimplementedGitOpsSetsServer) GetReconciledObjects(context.Context, *GetR
 }
 func (UnimplementedGitOpsSetsServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
+}
+func (UnimplementedGitOpsSetsServer) SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncGitOpsSet not implemented")
 }
 func (UnimplementedGitOpsSetsServer) mustEmbedUnimplementedGitOpsSetsServer() {}
 
@@ -224,6 +238,24 @@ func _GitOpsSets_GetChildObjects_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitOpsSets_SyncGitOpsSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncGitOpsSetRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitOpsSetsServer).SyncGitOpsSet(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitopssets.v1.GitOpsSets/SyncGitOpsSet",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitOpsSetsServer).SyncGitOpsSet(ctx, req.(*SyncGitOpsSetRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GitOpsSets_ServiceDesc is the grpc.ServiceDesc for GitOpsSets service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -250,6 +282,10 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetChildObjects",
 			Handler:    _GitOpsSets_GetChildObjects_Handler,
+		},
+		{
+			MethodName: "SyncGitOpsSet",
+			Handler:    _GitOpsSets_SyncGitOpsSet_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

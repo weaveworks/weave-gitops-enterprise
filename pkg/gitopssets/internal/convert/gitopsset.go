@@ -32,11 +32,7 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		}
 	}
 
-	generators := []string{}
-	for _, gsg := range gs.Spec.Generators  {	
-		listJSON, _ := json.Marshal(gsg.List)
-		generators = append(generators, string(listJSON))
-	}	    
+	gsYaml, _ := json.Marshal(gs)
 
 	return &pb.GitOpsSet{
 		Name:       gs.Name,
@@ -52,9 +48,9 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		ClusterName: clusterName,
 		Inventory:  inv,
 		Conditions: conditions,
-		Generators: generators,
 		Type:         gs.GetObjectKind().GroupVersionKind().Kind,
 		Suspended: gs.Spec.Suspend,
 		ObservedGeneration:      gs.Status.ObservedGeneration,
+		Yaml:  string(gsYaml),
 	}
 }

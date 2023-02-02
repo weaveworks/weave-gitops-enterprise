@@ -1,11 +1,10 @@
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import useNotifications from '../../contexts/Notifications';
-import * as React from 'react';
+import useNotifications from '../contexts/Notifications';
 import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GitOpsSets,
   ListGitOpsSetsResponse,
-} from '../../api/gitopssets/gitopssets.pb';
+} from '../api/gitopssets/gitopssets.pb';
 import {
   Bucket,
   FluxObject,
@@ -24,29 +23,8 @@ import {
   GroupVersionKind,
   Object as ResponseObject,
   ResourceRef,
-} from '../../api/gitopssets/types.pb';
+} from '../api/gitopssets/types.pb';
 import _ from 'lodash';
-
-const GitOpsSetsContext = React.createContext<typeof GitOpsSets>(
-  {} as typeof GitOpsSets,
-);
-
-interface Props {
-  api: typeof GitOpsSets;
-  children?: any;
-}
-
-export function GitOpsSetsProvider({ api, children }: Props) {
-  return (
-    <GitOpsSetsContext.Provider value={api}>
-      {children}
-    </GitOpsSetsContext.Provider>
-  );
-}
-
-function useGitOpsSets() {
-  return React.useContext(GitOpsSetsContext);
-}
 
 const GITOPSSETS_KEY = 'gitopssets';
 
@@ -79,24 +57,21 @@ function invalidate(
   return qc.invalidateQueries([GITOPSSETS_KEY, clusterName, namespace, name]);
 }
 
-// export function useSyncGitOpsSet(params: DetailParams) {
-//   const gs = useGitOpsSets();
-//   const qc = useQueryClient();
+export function useSyncGitOpsSet(params: DetailParams) {
+  const qc = useQueryClient();
 
-//   return () =>
-//     gs.SyncGitOpsSet(params).then(res => {
-//       invalidate(qc, params);
-
-//       return res;
-//     });
-// }
+  return () =>
+    GitOpsSets.SyncGitOpsSet(params).then(res => {
+      invalidate(qc, params);
+      return res;
+    });
+}
 
 export function useToggleSuspendGitOpsSet(params: DetailParams) {
-  const gs = useGitOpsSets();
   const qc = useQueryClient();
 
   return (suspend: boolean) =>
-    gs.ToggleSuspendGitOpsSet({ ...params, suspend }).then(res => {
+    GitOpsSets.ToggleSuspendGitOpsSet({ ...params, suspend }).then(res => {
       return invalidate(qc, params).then(() => res);
     });
 }
@@ -137,7 +112,6 @@ export const getChildren = async (
     await getChildrenRecursive(
       client,
       namespace,
-
       obj,
       clusterName,
       PARENT_CHILD_LOOKUP,

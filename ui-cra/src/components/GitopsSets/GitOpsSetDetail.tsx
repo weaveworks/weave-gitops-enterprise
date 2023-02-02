@@ -1,12 +1,9 @@
-import { Box, Dialog } from '@material-ui/core';
+import { Box } from '@material-ui/core';
 import {
-  AppContext,
   Button,
   Flex,
-  formatURL,
   InfoList,
   KubeStatusIndicator,
-  LinkResolverProvider,
   Metadata,
   PageStatus,
   RouterTab,
@@ -15,7 +12,6 @@ import {
 import * as React from 'react';
 import styled from 'styled-components';
 import { useRouteMatch } from 'react-router-dom';
-import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { ObjectRef } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Routes } from '../../utils/nav';
 import { PageTemplate } from '../Layout/PageTemplate';
@@ -26,11 +22,13 @@ import { TableWrapper } from '../Shared';
 import useNotifications from '../../contexts/Notifications';
 import {
   useListGitOpsSets,
+  useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
-} from '../../contexts/GitOpsSets';
+} from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
 import GitOpsSetInventoryTable from './GitOpsSetInventoryTable';
 import ReconciliationGraph from './ReconciliationGraph';
+const YAML = require('yaml');
 
 export interface routeTab {
   name: string;
@@ -59,11 +57,13 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
         gs.namespace === namespace &&
         gs.clusterName === clusterName,
     ) || [];
-  // const sync = useSyncGitOpsSet({
-  //   name,
-  //   namespace,
-  //   clusterName,
-  // });
+
+  const sync = useSyncGitOpsSet({
+    name,
+    namespace,
+    clusterName,
+  });
+
   const toggleSuspend = useToggleSuspendGitOpsSet({
     name,
     namespace,
@@ -71,28 +71,28 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   });
   const { setNotifications } = useNotifications();
 
-  // const handleSyncClick = () => {
-  //   setSyncing(true);
+  const handleSyncClick = () => {
+    setSyncing(true);
 
-  //   return sync()
-  //     .then(() => {
-  //       setNotifications([
-  //         {
-  //           message: { text: 'Sync successful' },
-  //           severity: 'success',
-  //         },
-  //       ]);
-  //     })
-  //     .catch(err => {
-  //       setNotifications([
-  //         {
-  //           message: { text: err?.message },
-  //           severity: 'error',
-  //         },
-  //       ]);
-  //     })
-  //     .finally(() => setSyncing(false));
-  // };
+    return sync()
+      .then(() => {
+        setNotifications([
+          {
+            message: { text: 'Sync successful' },
+            severity: 'success',
+          },
+        ]);
+      })
+      .catch(err => {
+        setNotifications([
+          {
+            message: { text: err?.message },
+            severity: 'error',
+          },
+        ]);
+      })
+      .finally(() => setSyncing(false));
+  };
 
   const handleSuspendClick = () => {
     setSuspending(true);
@@ -120,16 +120,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
       .finally(() => setSuspending(false));
   };
 
-  const resolver = (type: string, params: any) => {
-    return (
-      formatURL(Routes.TerraformDetail, {
-        name: params.name,
-        namespace: params.namespace,
-        clusterName: params.clusterName,
-      }) || ''
-    );
-  };
-
   return (
     <PageTemplate
       documentTitle="GitOpsSets"
@@ -155,7 +145,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             <Button
               loading={syncing}
               variant="outlined"
-              // onClick={handleSyncClick}
+              onClick={handleSyncClick}
               style={{ marginRight: 0, textTransform: 'uppercase' }}
             >
               Sync
@@ -206,7 +196,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
               parentObject={gitOpsSet}
-              // sourceRef vs ObjectRef
               source={gitOpsSet?.sourceRef || ({} as ObjectRef)}
             />
           </RouterTab>
@@ -217,8 +206,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 name: gitOpsSet?.name,
                 namespace: gitOpsSet?.namespace,
               }}
-              //we should be able to handle an array
-              code={gitOpsSet?.generators?.[0] || ''}
+              code={YAML.stringify(gitOpsSet.yaml)}
             />
           </RouterTab>
         </SubRouterTabs>

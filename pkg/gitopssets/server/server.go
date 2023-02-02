@@ -14,7 +14,9 @@ import (
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -29,10 +31,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-
 var (
-	GitOpsSetNameKey           = fmt.Sprintf("%s/name", ctrl.GroupVersion.Group)
-	GitOpsSetNamespaceKey      = fmt.Sprintf("%s/namespace", ctrl.GroupVersion.Group)
+	GitOpsSetNameKey      = fmt.Sprintf("%s/name", ctrl.GroupVersion.Group)
+	GitOpsSetNamespaceKey = fmt.Sprintf("%s/namespace", ctrl.GroupVersion.Group)
 )
 
 type ServerOpts struct {
@@ -126,61 +127,59 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 	)
 
 	clusterUserNamespaces := s.clients.GetUserNamespaces(auth.Principal(ctx))
+	nsOpts := client.InNamespace(msg.Namespace)
+	for _, gvk := range msg.Kinds {
 
-			nsOpts := client.InNamespace(msg.Namespace)
+		wg.Add(1)
 
-			for _, gvk := range msg.Kinds {
-				wg.Add(1)
+		go func(clusterName string, gvk *pb.GroupVersionKind) {
+			defer wg.Done()
 
-				go func(clusterName string, gvk *pb.GroupVersionKind) {
-					defer wg.Done()
+			listResult := unstructured.UnstructuredList{}
 
-					listResult := unstructured.UnstructuredList{}
+			listResult.SetGroupVersionKind(schema.GroupVersionKind{
+				Group:   gvk.Group,
+				Kind:    gvk.Kind,
+				Version: gvk.Version,
+			})
 
-					listResult.SetGroupVersionKind(schema.GroupVersionKind{
-						Group:   gvk.Group,
-						Kind:    gvk.Kind,
-						Version: gvk.Version,
-					})
+			if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, nsOpts); err != nil {
+				if k8serrors.IsForbidden(err) {
+					s.log.V(logger.LogLevelDebug).Info(
+						"forbidden list request",
+						"cluster", msg.ClusterName,
+						"automation", msg.Name,
+						"namespace", msg.Namespace,
+						"gvk", gvk.String(),
+					)
+					// Our service account (or impersonated user) may not have the ability to see the resource in question,
+					// in the given namespace. We pretend it doesn't exist and keep looping.
+					// We need logging to make this error more visible.
+					return
+				}
 
-					if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts, nsOpts); err != nil {
-						if k8serrors.IsForbidden(err) {
-							s.log.V(logger.LogLevelDebug).Info(
-								"forbidden list request",
-								"cluster", msg.ClusterName,
-								"automation", msg.Name,
-								"namespace", msg.Namespace,
-								"gvk", gvk.String(),
-							)
-							// Our service account (or impersonated user) may not have the ability to see the resource in question,
-							// in the given namespace. We pretend it doesn't exist and keep looping.
-							// We need logging to make this error more visible.
-							return
-						}
+				if k8serrors.IsTimeout(err) {
+					s.log.Error(err, "List timedout", "gvk", gvk.String())
+					return
+				}
 
-						if k8serrors.IsTimeout(err) {
-							// s.logger.Error(err, "List timedout", "gvk", gvk.String())
-
-							return
-						}
-
-						errsMu.Lock()
-						errs = multierror.Append(errs, fmt.Errorf("listing unstructured object: %w", err))
-						errsMu.Unlock()
-					}
-
-					resultMu.Lock()
-					for _, u := range listResult.Items {
-						uid := u.GetUID()
-
-						if !checkDup[uid] {
-							result = append(result, u)
-							checkDup[uid] = true
-						}
-					}
-					resultMu.Unlock()
-				}(msg.ClusterName, gvk)
+				errsMu.Lock()
+				errs = multierror.Append(errs, fmt.Errorf("listing unstructured object: %w", err))
+				errsMu.Unlock()
 			}
+
+			resultMu.Lock()
+			for _, u := range listResult.Items {
+				uid := u.GetUID()
+
+				if !checkDup[uid] {
+					result = append(result, u)
+					checkDup[uid] = true
+				}
+			}
+			resultMu.Unlock()
+		}(msg.ClusterName, gvk)
+	}
 
 	wg.Wait()
 
@@ -209,9 +208,10 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 		objects = append(objects, o)
 	}
 
+	fmt.Print("GetReconciledObjectsResponse: ", objects)
+
 	return &pb.GetReconciledObjectsResponse{Objects: objects}, respErrors.ErrorOrNil()
 }
-
 
 func (cs *server) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
 	clustersClient, err := cs.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
@@ -303,4 +303,37 @@ func K8sObjectToProto(object client.Object, clusterName string, tenant string, i
 	}
 
 	return obj, nil
+}
+
+func (s *server) SyncGitOpsSet(ctx context.Context, msg *pb.SyncGitOpsSetRequest) (*pb.SyncGitOpsSetResponse, error) {
+	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	c, err := clustersClient.Scoped(msg.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("getting scoped client: %w", err)
+	}
+
+	key := client.ObjectKey{
+		Name:      msg.Name,
+		Namespace: msg.Namespace,
+	}
+
+	obj := adapter.GitOpsSetAdapter{GitOpsSet: &ctrl.GitOpsSet{}}
+
+	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
+		return nil, fmt.Errorf("getting object %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	if err := fluxsync.RequestReconciliation(ctx, c, key, obj.GroupVersionKind()); err != nil {
+		return nil, fmt.Errorf("requesting reconciliation: %w", err)
+	}
+
+	if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
+		return nil, fmt.Errorf("waiting for sync: %w", err)
+	}
+
+	return &pb.SyncGitOpsSetResponse{Success: true}, nil
 }

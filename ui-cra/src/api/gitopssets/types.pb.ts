@@ -8,7 +8,6 @@ export type GitOpsSet = {
   namespace?: string
   inventory?: ResourceRef[]
   conditions?: Condition[]
-  generators?: string[]
   clusterName?: string
   type?: string
   labels?: {[key: string]: string}
@@ -16,6 +15,7 @@ export type GitOpsSet = {
   sourceRef?: SourceRef
   suspended?: boolean
   observedGeneration?: string
+  yaml?: string
 }
 
 export type SourceRef = {
@@ -60,11 +60,6 @@ export type GroupVersionKind = {
   group?: string
   kind?: string
   version?: string
-}
-
-export type NamespacedObjectReference = {
-  name?: string
-  namespace?: string
 }
 
 export type Object = {

@@ -60,6 +60,13 @@ service GitOpsSets {
             body: "*"
         };
     };
+
+    rpc SyncGitOpsSet(SyncGitOpsSetRequest) returns (SyncGitOpsSetResponse) {
+        option (google.api.http) = {
+            post : "/v1/gitopssets/sync"
+            body: "*"
+        };  
+    }    
 }
 
 message ListGitOpsSetsRequest {
@@ -113,4 +120,15 @@ message GetChildObjectsRequest {
 
 message GetChildObjectsResponse {
     repeated Object objects = 1;
+}
+
+
+message SyncGitOpsSetRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+}
+
+message  SyncGitOpsSetResponse {
+    bool success = 1;
 }

@@ -58,6 +58,16 @@ export type GetChildObjectsResponse = {
   objects?: GitopssetsV1Types.Object[]
 }
 
+export type SyncGitOpsSetRequest = {
+  clusterName?: string
+  name?: string
+  namespace?: string
+}
+
+export type SyncGitOpsSetResponse = {
+  success?: boolean
+}
+
 export class GitOpsSets {
   static ListGitOpsSets(req: ListGitOpsSetsRequest, initReq?: fm.InitReq): Promise<ListGitOpsSetsResponse> {
     return fm.fetchReq<ListGitOpsSetsRequest, ListGitOpsSetsResponse>(`/v1/gitopssets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -73,5 +83,8 @@ export class GitOpsSets {
   }
   static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
     return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static SyncGitOpsSet(req: SyncGitOpsSetRequest, initReq?: fm.InitReq): Promise<SyncGitOpsSetResponse> {
+    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/gitopssets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

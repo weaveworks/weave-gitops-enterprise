@@ -14,7 +14,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import { makeStyles, createStyles } from '@material-ui/core';
-import { useListGitOpsSets } from '../../contexts/GitOpsSets';
+import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';

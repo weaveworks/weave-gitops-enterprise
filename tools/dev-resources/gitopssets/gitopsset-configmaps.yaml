@@ -3,6 +3,9 @@ kind: GitOpsSet
 metadata:
   name: gitopsset-configmaps
   namespace: default
+  labels:
+    templates.weave.works/gitopsset-name: gitopsset-configmaps
+    templates.weave.works/gitopsset-namespace: default
 spec:
   generators:
     - list:

@@ -9,7 +9,7 @@ import * as d3 from 'd3';
 import * as React from 'react';
 import styled from 'styled-components';
 import { GitOpsSet, ObjectRef } from '../../api/gitopssets/types.pb';
-import { useGetReconciledTree } from '../../contexts/GitOpsSets';
+import { useGetReconciledTree } from '../../hooks/gitopssets';
 import { RequestError } from '../../types/custom';
 
 export type Props = {
