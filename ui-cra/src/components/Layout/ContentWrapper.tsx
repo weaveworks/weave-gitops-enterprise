@@ -61,6 +61,7 @@ export const ContentWrapper: FC<Props> = ({
   const { notifications, setNotifications } = useNotifications();
 
   useEffect(() => {
+    console.log({ versionResponse });
     if (versionResponse?.entitlement === ENTITLEMENT_WARN) {
       setNotifications([
         {
