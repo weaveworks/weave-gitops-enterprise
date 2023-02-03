@@ -41,6 +41,7 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
+      minWidth: '900px',
     },
     drawer: {
       [theme.breakpoints.up('sm')]: {
@@ -49,17 +50,17 @@ const useStyles = makeStyles((theme: Theme) =>
       },
     },
     appBar: {
-      [theme.breakpoints.up('sm')]: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-      },
+      // [theme.breakpoints.up('sm')]: {
+      width: `calc(100% - ${drawerWidth}px)`,
+      marginLeft: drawerWidth,
+      // },
       backgroundColor: weaveTheme.colors.primary,
       boxShadow: 'none',
     },
     menuButton: {
-      [theme.breakpoints.up('sm')]: {
-        display: 'none',
-      },
+      // [theme.breakpoints.up('sm')]: {
+      display: 'none',
+      // },
       marginLeft: 0,
     },
     menuButtonBox: {
