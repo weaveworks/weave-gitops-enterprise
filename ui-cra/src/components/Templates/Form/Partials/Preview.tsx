@@ -10,7 +10,11 @@ import {
   Dialog,
   Box,
 } from '@material-ui/core';
-import { AppPRPreview, ClusterPRPreview } from '../../../../types/custom';
+import {
+  AppPRPreview,
+  ClusterPRPreview,
+  SecretPRPreview,
+} from '../../../../types/custom';
 import {
   CommitFile,
   RenderTemplateResponse,
@@ -99,6 +103,13 @@ const Preview: FC<{
           {
             tabName: 'Helm Releases',
             files: (PRPreview as AppPRPreview).helmReleaseFiles,
+          },
+        ]
+      : context === 'secret'
+      ? [
+          {
+            tabName: 'External Secret',
+            files: (PRPreview as SecretPRPreview).externalSecretsFiles,
           },
         ]
       : [

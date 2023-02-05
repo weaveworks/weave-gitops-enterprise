@@ -40,11 +40,7 @@ import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStat
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
-import {
-  AppPRPreview,
-  ClusterPRPreview,
-  SecretPRPreview,
-} from '../../../types/custom';
+import { SecretPRPreview } from '../../../types/custom';
 import Preview from '../../Templates/Form/Partials/Preview';
 
 const { medium, large } = theme.spacing;
@@ -148,7 +144,7 @@ const CreateSecret = () => {
 
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<ClusterPRPreview | null>(null);
+  const [PRPreview, setPRPreview] = useState<SecretPRPreview | null>(null);
 
   const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
@@ -326,16 +322,12 @@ const CreateSecret = () => {
 
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
-    console.log('clusterAutomations', getClusterAutomations());
-
     return renderKustomization({ clusterAutomations: getClusterAutomations() })
       .then(data => {
-        console.log('succes', data);
         setOpenPreview(true);
         setPRPreview(data);
       })
       .catch(err => {
-        console.log('err', err);
         setNotifications([
           {
             message: { text: err.message },
@@ -345,7 +337,14 @@ const CreateSecret = () => {
         ]);
       })
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, setNotifications]);
+  }, [
+    formData,
+    getClusterAutomations,
+    setOpenPreview,
+    setPRPreview,
+    setPreviewLoading,
+    setNotifications,
+  ]);
 
   const handleSecrets = useCallback(
     (submitType: string) => {
@@ -488,7 +487,7 @@ const CreateSecret = () => {
                 )}
                 {openPreview && PRPreview ? (
                   <Preview
-                    context="app"
+                    context="secret"
                     openPreview={openPreview}
                     setOpenPreview={setOpenPreview}
                     PRPreview={PRPreview}
