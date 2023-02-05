@@ -5,7 +5,7 @@ import FilterListIcon from '@material-ui/icons/FilterList';
 import { useHistory } from 'react-router-dom';
 import { useWorkspaceStyle } from '../WorkspaceStyles';
 
-function WorkspaceHeaderSection({ name, namespaces }: Workspace) {
+function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   const classes = useWorkspaceStyle();
   const history = useHistory();
 
@@ -24,7 +24,7 @@ function WorkspaceHeaderSection({ name, namespaces }: Workspace) {
     <>
       <Button
         onClick={() => {
-          history.push(`/applications?filters=tenant%3A%20${name}_`);
+          history.push(`/applications?filters=tenant%3A%20${name}_clusterName%3A%20${clusterName}_`);
         }}
         className={classes.navigateBtn}
       >

@@ -4,20 +4,22 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
+	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
+	"github.com/fluxcd/go-git-providers/stash"
+	go_git "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
-	go_git "gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport"
-	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/util/retry"
 )
@@ -33,7 +35,6 @@ var DefaultBackoff = wait.Backoff{
 
 type Provider interface {
 	WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error)
-	CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error)
 	GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error)
 	GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error)
 	ListPullRequests(ctx context.Context, gp GitProvider, url string) ([]gitprovider.PullRequest, error)
@@ -72,17 +73,6 @@ type WriteFilesToBranchAndCreatePullRequestResponse struct {
 	WebURL string
 }
 
-type CloneRepoToTempDirRequest struct {
-	GitProvider   GitProvider
-	RepositoryURL string
-	BaseBranch    string
-	ParentDir     string
-}
-
-type CloneRepoToTempDirResponse struct {
-	Repo *GitRepo
-}
-
 // WriteFilesToBranchAndCreatePullRequest writes a set of provided files
 // to a new branch and creates a new pull request for that branch.
 // It returns the URL of the pull request.
@@ -92,7 +82,7 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 
 	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get git porivder url: %w", err)
+		return nil, fmt.Errorf("unable to get git provider url: %w", err)
 	}
 
 	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
@@ -148,47 +138,6 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	}, nil
 }
 
-func (s *GitProviderService) CloneRepoToTempDir(req CloneRepoToTempDirRequest) (*CloneRepoToTempDirResponse, error) {
-	s.log.Info("Creating a temp directory...")
-	gitDir, err := os.MkdirTemp(req.ParentDir, "git-")
-	if err != nil {
-		return nil, err
-	}
-	s.log.Info("Temp directory created.", "dir", gitDir)
-
-	s.log.Info("Cloning the Git repository...", "repository", req.RepositoryURL, "dir", gitDir)
-
-	repo, err := go_git.PlainClone(gitDir, false, &go_git.CloneOptions{
-		URL: req.RepositoryURL,
-		Auth: &http.BasicAuth{
-			Username: "abc123",
-			Password: req.GitProvider.Token,
-		},
-		ReferenceName: plumbing.NewBranchReferenceName(req.BaseBranch),
-
-		SingleBranch: true,
-		Tags:         go_git.NoTags,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	s.log.Info("Cloned repository", "repository", req.RepositoryURL)
-
-	gitRepo := &GitRepo{
-		WorktreeDir: gitDir,
-		Repo:        repo,
-		Auth: &http.BasicAuth{
-			Username: "abc123",
-			Password: req.GitProvider.Token,
-		},
-	}
-
-	return &CloneRepoToTempDirResponse{
-		Repo: gitRepo,
-	}, nil
-}
-
 type GitRepo struct {
 	WorktreeDir string
 	Repo        *go_git.Repository
@@ -201,12 +150,42 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		return nil, fmt.Errorf("unable to get a git provider client for %q: %w", gp.Type, err)
 	}
 
-	ref, err := gitprovider.ParseOrgRepositoryURL(url)
-	if err != nil {
-		return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
-	}
+	var ref *gitprovider.OrgRepositoryRef
+	if gp.Type == string(gitproviders.GitProviderGitHub) || gp.Type == string(gitproviders.GitProviderGitLab) {
+		ref, err = gitprovider.ParseOrgRepositoryURL(url)
+		if err != nil {
+			return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
+		}
+		ref.Domain = addSchemeToDomain(ref.Domain)
+		ref = WithCombinedSubOrgs(*ref)
+	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) {
+		// The ParseOrgRepositoryURL function used for other providers
+		// fails to parse BitBucket Server URLs correctly
+		re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)
+		match := re.FindStringSubmatch(url)
+		result := make(map[string]string)
+		for i, name := range re.SubexpNames() {
+			if i != 0 && name != "" {
+				result[name] = match[i]
+			}
+		}
+		if len(result) != 3 {
+			return nil, fmt.Errorf("unable to parse repository URL %q using regex %q", url, re.String())
+		}
 
-	ref.Domain = addSchemeToDomain(ref.Domain)
+		orgRef := &gitprovider.OrganizationRef{
+			Domain:       result["host"],
+			Organization: result["key"],
+		}
+		ref = &gitprovider.OrgRepositoryRef{
+			OrganizationRef: *orgRef,
+			RepositoryName:  result["repo"],
+		}
+		ref.SetKey(result["key"])
+		ref.Domain = addSchemeToDomain(ref.Domain)
+	} else {
+		return nil, fmt.Errorf("unsupported git provider")
+	}
 
 	var repo gitprovider.OrgRepository
 	err = retry.OnError(DefaultBackoff,
@@ -225,6 +204,16 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 	}
 
 	return repo, nil
+}
+
+// WithCombinedSubOrgs combines the subgroups into the organization field of the reference
+// This is to work around a bug in the go-git-providers library where it doesn't handle subgroups correctly.
+// https://github.com/fluxcd/go-git-providers/issues/183
+func WithCombinedSubOrgs(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepositoryRef {
+	orgsWithSubGroups := append([]string{ref.Organization}, ref.SubOrganizations...)
+	ref.Organization = path.Join(orgsWithSubGroups...)
+	ref.SubOrganizations = nil
+	return &ref
 }
 
 // GetTreeList retrieves list of tree files from gitprovider given the sha/branch
@@ -360,6 +349,11 @@ func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
 		} else {
 			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
 		}
+		if err != nil {
+			return nil, err
+		}
+	case "bitbucket-server":
+		client, err = stash.NewStashClient("git", gpi.Token, gitprovider.WithDomain(hostname), gitprovider.WithConditionalRequests(true))
 		if err != nil {
 			return nil, err
 		}
