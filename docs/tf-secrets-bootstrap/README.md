@@ -4,10 +4,10 @@
 
 - Working management cluster and a leaf cluster.
 - TF-Controller installed on management cluster [see here](./tf-controller/release.yaml).
-- Service account on AWS to authenticate the TF-Controller.
+- Service account to authenticate the TF-Controller.
 - AdminRoleBinding for TF-Controller. [see here](./tf-controller/rolebinding.yaml)
 - Cluster template with Terraform object points to tf-modules [see here](./aws-eks.yaml). This can be changed according to your setup
-- Leaf cluster [terraform modules](./tf-modules/main.tf) (sync-secrets, flux, external-secrets) managed by this module [here](main.tf)
+- Leaf cluster [terraform modules](./tf-modules/main.tf) (sync-secrets, flux, external-secrets) managed by this module [here](./tf-modules/main.tf)
 - Github token for flux to be able to push files
 
 ## Steps
@@ -21,7 +21,7 @@ default     aws-eks   6h40m
 
 ```
 
-2- Create a service account with a proper access [see here](https://docs.gitops.weave.works/docs/terraform/aws-eks/) to authenticate tf-controller
+2- Create a service account with a proper access [see here](https://docs.gitops.weave.works/docs/terraform/aws-eks/) to authenticate tf-controller on AWS. for other providers [see here](https://developer.hashicorp.com/terraform/tutorials/kubernetes)
 
 3- Install TF-Controller on the management cluster by making a kustomization to point to its location
 
