@@ -43,7 +43,7 @@ import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { SecretPRPreview } from '../../../types/custom';
 import Preview from '../../Templates/Form/Partials/Preview';
 
-const {small, medium, large } = theme.spacing;
+const { small, medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
 
 const FormWrapper = styled.form`
@@ -61,11 +61,11 @@ const FormWrapper = styled.form`
         margin-right: ${medium};
       }
     }
-  .previewPRSection{
+  }
+  .previewPRSection {
     display: flex;
     justify-content: flex-end;
     padding: ${small};
-  }
   }
 `;
 
@@ -476,7 +476,7 @@ const CreateSecret = () => {
                     !dataRemoteRef_property
                   }
                 />
-                <div className='previewPRSection'>
+                <div className="previewPRSection">
                   {previewLoading ? (
                     <LoadingPage className="preview-loading" />
                   ) : (
