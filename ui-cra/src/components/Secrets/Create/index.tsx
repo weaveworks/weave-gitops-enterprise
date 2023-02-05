@@ -43,7 +43,7 @@ import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { SecretPRPreview } from '../../../types/custom';
 import Preview from '../../Templates/Form/Partials/Preview';
 
-const { medium, large } = theme.spacing;
+const {small, medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
 
 const FormWrapper = styled.form`
@@ -61,6 +61,11 @@ const FormWrapper = styled.form`
         margin-right: ${medium};
       }
     }
+  .previewPRSection{
+    display: flex;
+    justify-content: flex-end;
+    padding: ${small};
+  }
   }
 `;
 
@@ -471,30 +476,31 @@ const CreateSecret = () => {
                     !dataRemoteRef_property
                   }
                 />
+                <div className='previewPRSection'>
+                  {previewLoading ? (
+                    <LoadingPage className="preview-loading" />
+                  ) : (
+                    <div className="preview-cta">
+                      <Button
+                        type="submit"
+                        onClick={() => setSubmitType('PR Preview')}
+                      >
+                        PREVIEW PR
+                      </Button>
+                    </div>
+                  )}
+                  {openPreview && PRPreview ? (
+                    <Preview
+                      context="secret"
+                      openPreview={openPreview}
+                      setOpenPreview={setOpenPreview}
+                      PRPreview={PRPreview}
+                      sourceType={formData.source_type}
+                    />
+                  ) : null}
+                </div>
               </div>
-              <div>
-                {previewLoading ? (
-                  <LoadingPage className="preview-loading" />
-                ) : (
-                  <div className="preview-cta">
-                    <Button
-                      type="submit"
-                      onClick={() => setSubmitType('PR Preview')}
-                    >
-                      PREVIEW PR
-                    </Button>
-                  </div>
-                )}
-                {openPreview && PRPreview ? (
-                  <Preview
-                    context="secret"
-                    openPreview={openPreview}
-                    setOpenPreview={setOpenPreview}
-                    PRPreview={PRPreview}
-                    sourceType={formData.source_type}
-                  />
-                ) : null}
-              </div>
+
               <GitOps
                 formData={formData}
                 setFormData={setFormData}
