@@ -350,6 +350,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			verifyFilterWorkspacesByClusterName(leafCluster.Name, workspaceName)
 			verifySearchWorkspaceByName(workspaceName)
+
+			ginkgo.By(fmt.Sprintf("And navigate to '%s' workspace details page", workspaceName), func() {
+				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
+			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, workspacesDetailPage)
 			verifyWorkspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
 			verifyWorkspaceRoleBindings(workspaceName, workspaceNamespaces, workspacesDetailPage)
