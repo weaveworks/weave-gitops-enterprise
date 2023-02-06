@@ -3,7 +3,6 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   LoadingPage,
-  theme,
   DataTable,
   filterConfig,
   KubeStatusIndicator,
