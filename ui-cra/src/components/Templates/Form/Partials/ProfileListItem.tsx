@@ -86,6 +86,7 @@ const ProfilesListItem: FC<{
           ...filteredVersions,
           { ...selectedVersion, selected: true },
         ];
+        profile.selected = true;
         setYaml(selectedVersion.yaml as string);
       }
       handleUpdateProfile(profile);
@@ -107,6 +108,7 @@ const ProfilesListItem: FC<{
 
         if (!selectedVersion) {
           profile.values.push({ version: value, selected: true, yaml: '' });
+          profile.selected = true;
         }
         handleUpdateProfile(profile);
       } else {
