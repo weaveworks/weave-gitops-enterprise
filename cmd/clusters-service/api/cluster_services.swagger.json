@@ -2296,7 +2296,11 @@
         "policyConfigs": {
           "type": "array",
           "items": {
+<<<<<<< HEAD
             "$ref": "#/definitions/v1PolicyConfigListItem"
+=======
+            "$ref": "#/definitions/v1PolicyConfig"
+>>>>>>> d73bb70e (add list policy configs endpoint)
           }
         },
         "errors": {
@@ -2559,7 +2563,11 @@
         }
       }
     },
+<<<<<<< HEAD
     "v1PolicyConfigListItem": {
+=======
+    "v1PolicyConfig": {
+>>>>>>> d73bb70e (add list policy configs endpoint)
       "type": "object",
       "properties": {
         "name": {
@@ -2568,11 +2576,19 @@
         "clusterName": {
           "type": "string"
         },
+<<<<<<< HEAD
         "totalPolicies": {
           "type": "integer",
           "format": "int32"
         },
         "match": {
+=======
+        "policiesCount": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "targetType": {
+>>>>>>> d73bb70e (add list policy configs endpoint)
           "type": "string"
         },
         "status": {

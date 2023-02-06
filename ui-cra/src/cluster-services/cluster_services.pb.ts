@@ -800,11 +800,19 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
+<<<<<<< HEAD
 export type PolicyConfigListItem = {
   name?: string
   clusterName?: string
   totalPolicies?: number
   match?: string
+=======
+export type PolicyConfig = {
+  name?: string
+  clusterName?: string
+  policiesCount?: number
+  targetType?: string
+>>>>>>> d73bb70e (add list policy configs endpoint)
   status?: string
   age?: string
 }
@@ -813,7 +821,11 @@ export type ListPolicyConfigsRequest = {
 }
 
 export type ListPolicyConfigsResponse = {
+<<<<<<< HEAD
   policyConfigs?: PolicyConfigListItem[]
+=======
+  policyConfigs?: PolicyConfig[]
+>>>>>>> d73bb70e (add list policy configs endpoint)
   errors?: ListError[]
   total?: number
 }
