@@ -76,8 +76,9 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   // const [logValue, setLogValue] = React.useState('-');
   // const [levelValue, setLevelValue] = React.useState('-');
 
-  const [reverseSort, setReverseSort] = React.useState(false);
-  const [token, setToken] = React.useState('');
+  const [reverseSort, setReverseSort] = React.useState<boolean>(false);
+  const [token, setToken] = React.useState<string>('');
+  const [logs, setLogs] = React.useState<LogEntry[]>([]);
   const { isLoading, data } = useGetLogs({
     sessionNamespace: namespace,
     sessionId: name,
@@ -86,10 +87,12 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
 
   React.useEffect(() => {
     if (isLoading) return;
-    setToken(data?.nextToken || '');
+    if (data?.logs?.length && data?.nextToken) {
+      setLogs(reverseSort ? [...data.logs, ...logs] : [...logs, ...data.logs]);
+      setToken(data.nextToken);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, data]);
-
-  const logs = data?.logs || [];
 
   return (
     <Flex className={className} wide tall column>
