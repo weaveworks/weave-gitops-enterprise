@@ -22,7 +22,6 @@ import {
 import {
   GroupVersionKind,
   Object as ResponseObject,
-  ResourceRef,
 } from '../api/gitopssets/types.pb';
 import _ from 'lodash';
 
@@ -80,7 +79,7 @@ export function useGetReconciledTree(
   name: string,
   namespace: string,
   type: 'GitOpsSet',
-  kinds: ResourceRef[],
+  kinds: GroupVersionKind[],
   clusterName = 'Default',
 ) {
   return useQuery<any[], RequestError>(
@@ -124,14 +123,13 @@ export const getChildren = async (
 export const getChildrenRecursive = async (
   client: typeof GitOpsSets,
   namespace: string,
-
   object: FluxObject,
   clusterName: string,
   lookup: any,
 ) => {
   const children = [];
 
-  const k = lookup[object.type || 'GitOpsSet'];
+  const k = lookup[object?.type!];
 
   if (k && k.children) {
     for (let i = 0; i < k.children.length; i++) {

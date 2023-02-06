@@ -8,6 +8,7 @@ import {
   PageStatus,
   RouterTab,
   SubRouterTabs,
+  YamlView,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
@@ -17,7 +18,6 @@ import { Routes } from '../../utils/nav';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
-import CodeView from '../CodeView';
 import { TableWrapper } from '../Shared';
 import useNotifications from '../../contexts/Notifications';
 import {
@@ -26,8 +26,9 @@ import {
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import GitOpsSetInventoryTable from './GitOpsSetInventoryTable';
 import ReconciliationGraph from './ReconciliationGraph';
+import ReconciledObjectsTable from './ReconciledObjectsTable';
+
 const YAML = require('yaml');
 
 export interface routeTab {
@@ -49,6 +50,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   const [syncing, setSyncing] = React.useState(false);
   const [suspending, setSuspending] = React.useState(false);
   const { data } = useListGitOpsSets();
+  const { setNotifications } = useNotifications();
 
   const [gitOpsSet] =
     data?.gitopssets?.filter(
@@ -69,7 +71,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     namespace,
     clusterName,
   });
-  const { setNotifications } = useNotifications();
 
   const handleSyncClick = () => {
     setSyncing(true);
@@ -119,6 +120,10 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
       })
       .finally(() => setSuspending(false));
   };
+
+  if (!gitOpsSet) {
+    return null;
+  }
 
   return (
     <PageTemplate
@@ -179,7 +184,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 labels={getLabels(gitOpsSet)}
               />
               <TableWrapper>
-                <GitOpsSetInventoryTable rows={gitOpsSet?.inventory || []} />
+                <ReconciledObjectsTable gitOpsSet={gitOpsSet} />
               </TableWrapper>
             </Box>
           </RouterTab>
@@ -200,13 +205,13 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
-            <CodeView
-              kind="GitOpsSet"
+            <YamlView
+              yaml={YAML.stringify(JSON.parse(gitOpsSet?.yaml as string))}
               object={{
+                kind: gitOpsSet?.type,
                 name: gitOpsSet?.name,
                 namespace: gitOpsSet?.namespace,
               }}
-              code={YAML.stringify(gitOpsSet?.yaml)}
             />
           </RouterTab>
         </SubRouterTabs>

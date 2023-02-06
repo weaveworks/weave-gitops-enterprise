@@ -35,22 +35,22 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 	gsYaml, _ := json.Marshal(gs)
 
 	return &pb.GitOpsSet{
-		Name:       gs.Name,
-		Namespace:  gs.Namespace,
+		Name:      gs.Name,
+		Namespace: gs.Namespace,
 		SourceRef: &pb.SourceRef{
-		    ApiVersion: gs.APIVersion,
+			ApiVersion: gs.APIVersion,
 			Kind:       gs.GetObjectKind().GroupVersionKind().Kind,
 			Name:       gs.Name,
 			Namespace:  gs.Namespace,
 		},
-		Labels: gs.Labels,
-		Annotations:         gs.Annotations,
-		ClusterName: clusterName,
-		Inventory:  inv,
-		Conditions: conditions,
-		Type:         gs.GetObjectKind().GroupVersionKind().Kind,
-		Suspended: gs.Spec.Suspend,
-		ObservedGeneration:      gs.Status.ObservedGeneration,
-		Yaml:  string(gsYaml),
+		Labels:             gs.Labels,
+		Annotations:        gs.Annotations,
+		ClusterName:        clusterName,
+		Inventory:          inv,
+		Conditions:         conditions,
+		Type:               gs.GetObjectKind().GroupVersionKind().Kind,
+		Suspended:          gs.Spec.Suspend,
+		ObservedGeneration: gs.Status.ObservedGeneration,
+		Yaml:               string(gsYaml),
 	}
 }
