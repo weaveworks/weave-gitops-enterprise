@@ -171,74 +171,84 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <ProfileWrapper data-profile-name={profile.name}>
-        <div className="profile-version">
-          <FormControl>
-            <Autocomplete
-              disabled={profile.required && profile.values.length === 1}
-              disableClearable
-              freeSolo
-              className={classes.autoComplete}
-              options={profile.values.map(option => option.version)}
-              onChange={(event, newValue) => {
-                handleSelectVersion(newValue);
-              }}
-              onInputChange={debounce(
-                (event, newInputValue) => handleInputChange(newInputValue),
-                500,
-              )}
-              value={version}
-              renderInput={params => (
-                <TextField
-                  {...params}
-                  InputProps={{
-                    ...params.InputProps,
-                    className: classes.input,
-                  }}
-                  variant="standard"
-                  error={!isValidVersion}
-                  helperText={
-                    !!inValidVersionErrorMessage && inValidVersionErrorMessage
-                  }
-                />
-              )}
-            />
-          </FormControl>
-        </div>
-        <div className="profile-namespace">
-          <FormControl>
-            <Input
-              id="profile-namespace"
-              value={namespace}
-              placeholder={DEFAULT_PROFILE_NAMESPACE}
-              onChange={handleChangeNamespace}
-              error={!isNamespaceValid}
-            />
-          </FormControl>
-        </div>
-        <Tooltip
-          title="There is no Yaml file for this version | range"
-          placement="top"
-          disabled={Boolean(
-            semverMaxSatisfying(availableVersions, version) && isValidVersion,
-          )}
-        >
-          <div>
-            <Button
-              disabled={
-                !Boolean(
-                  semverMaxSatisfying(availableVersions, version) &&
-                    isValidVersion,
-                )
-              }
-              variant="text"
-              onClick={handleYamlPreview}
-            >
-              Values.yaml
-            </Button>
+      <Tooltip
+        title="This fields are disabled as the profile is not checked"
+        placement="top"
+        disabled={Boolean(profile.selected)}
+      >
+        <ProfileWrapper data-profile-name={profile.name}>
+          <div className="profile-version">
+            <FormControl>
+              <Autocomplete
+                disabled={
+                  (profile.required && profile.values.length === 1) ||
+                  !Boolean(profile.selected)
+                }
+                disableClearable
+                freeSolo
+                className={classes.autoComplete}
+                options={profile.values.map(option => option.version)}
+                onChange={(event, newValue) => {
+                  handleSelectVersion(newValue);
+                }}
+                onInputChange={debounce(
+                  (event, newInputValue) => handleInputChange(newInputValue),
+                  500,
+                )}
+                value={version}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    InputProps={{
+                      ...params.InputProps,
+                      className: classes.input,
+                    }}
+                    variant="standard"
+                    error={!isValidVersion}
+                    helperText={
+                      !!inValidVersionErrorMessage && inValidVersionErrorMessage
+                    }
+                  />
+                )}
+              />
+            </FormControl>
           </div>
-        </Tooltip>
-      </ProfileWrapper>
+          <div className="profile-namespace">
+            <FormControl>
+              <Input
+                id="profile-namespace"
+                value={namespace}
+                placeholder={DEFAULT_PROFILE_NAMESPACE}
+                onChange={handleChangeNamespace}
+                error={!isNamespaceValid}
+                disabled={!Boolean(profile.selected)}
+              />
+            </FormControl>
+          </div>
+          <Tooltip
+            title="There is no Yaml file for this version | range"
+            placement="top"
+            disabled={Boolean(
+              semverMaxSatisfying(availableVersions, version) && isValidVersion,
+            )}
+          >
+            <div>
+              <Button
+                disabled={
+                  !Boolean(
+                    semverMaxSatisfying(availableVersions, version) &&
+                      isValidVersion,
+                  ) || !Boolean(profile.selected)
+                }
+                variant="text"
+                onClick={handleYamlPreview}
+              >
+                Values.yaml
+              </Button>
+            </div>
+          </Tooltip>
+        </ProfileWrapper>
+      </Tooltip>
 
       {openYamlPreview && (
         <ChartValuesDialog
