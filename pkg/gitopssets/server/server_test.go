@@ -10,13 +10,11 @@ import (
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	// "golang.org/x/vuln/client"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"google.golang.org/grpc"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestListGitOpsSets(t *testing.T) {
@@ -33,9 +31,9 @@ func TestListGitOpsSets(t *testing.T) {
 	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
 	assert.NoError(t, err)
 
-	assert.Len(t, res, 1)
+	assert.Len(t, res.Gitopssets, 1)
 
-	o := res[0]
+	o := res.Gitopssets[0]
 
 	assert.Equal(t, o.ClusterName, "Default")
 	assert.Equal(t, o.Name, obj.Name)
@@ -118,10 +116,10 @@ func TestSuspendGitOpsSet(t *testing.T) {
 
 func setup(t *testing.T) (pb.GitOpsSetsClient, client.Client) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
-	opts := gitopssets.ServerOpts{
+	opts := server.ServerOpts{
 		ClientsFactory: factory,
 	}
-	srv := gitopssets.NewGitOpsSetsServer(opts)
+	srv := server.NewGitOpsSetsServer(opts)
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
 		pb.RegisterGitOpsSetsServer(s, srv)
