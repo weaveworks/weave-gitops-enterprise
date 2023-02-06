@@ -1381,8 +1381,8 @@ github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2 h1:EWUmjQ
 github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2/go.mod h1:HfUHaw/CuYj2phXCM9etFQwvOQ3W0786feIEs9OMFHk=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230112113438-e3f798eb925b h1:fK6M9imnKSwe9pKeQHoA1tP7tWOZkpdbKTHPKl8Olfc=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230112113438-e3f798eb925b/go.mod h1:EMw4dkvNuR0GBKVbDFjZMUIma1sZhyS6heAZXM59s0Y=
-github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34 h1:/kqWn0aeSaWTtTqIe14QuY1fJMiypUhz1Bf9wn2U02w=
-github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34/go.mod h1:Bzy4vzn0cAfnzllxsPI7pnUgMwAL97QqBdV/3cDTW50=
+github.com/weaveworks/policy-agent/api v1.0.5 h1:xMy9N6ks+frgbusoLj+4kuq1sySKZ9jpV/6RUVB7NtA=
+github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:Ra1kn2p9WP7EqK6ypzWI3hKVDJyaLO7qzxHUHuEX6HE=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521 h1:EG/SrRMfrUAUCclChn8JwPBlZ5mFtstsnQ1hc241GLg=
 github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521/go.mod h1:ib0H6jkIMkHnz/2BpE2Lvj/D6xwhiieiWjUwAcoZ+Oo=
 github.com/weaveworks/templates-controller v0.1.2 h1:PVPePP8NUnB2OqCsNvHvp8zm2vkxttWwS8pMZo+1U/I=
