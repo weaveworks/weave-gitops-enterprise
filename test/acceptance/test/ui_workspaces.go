@@ -257,7 +257,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		workspaceClusterName := leafCluster.Name
 
 		ginkgo.JustBeforeEach(func() {
-			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml")
+			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml.tpl")
 			mgmtClusterContext, errStd = runCommandAndReturnStringOutput("kubectl config current-context")
 			gomega.Expect(errStd).Should(gomega.BeEmpty(), "Failed to get the management cluster context")
 
