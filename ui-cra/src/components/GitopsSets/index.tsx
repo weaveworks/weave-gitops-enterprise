@@ -13,21 +13,12 @@ import {
   formatURL,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
-import { makeStyles, createStyles } from '@material-ui/core';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import { GitOpsSet } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
 import _ from 'lodash';
 import { Routes } from '../../utils/nav';
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    externalIcon: {
-      marginRight: theme.spacing.small,
-    },
-  }),
-);
 
 const GitopsSets: FC = () => {
   const { isLoading, data } = useListGitOpsSets();
@@ -127,7 +118,6 @@ const GitopsSets: FC = () => {
             fields={fields}
             rows={data?.gitopssets}
             filters={initialFilterState}
-            hasCheckboxes
           />
         )}
       </ContentWrapper>
