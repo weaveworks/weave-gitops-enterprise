@@ -329,6 +329,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspaceInList(workspaceName)
+			workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
 			ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' workspaces", leafCluster.Name), func() {
 				filterID := "clusterName: " + leafCluster.Namespace + `/` + leafCluster.Name
@@ -349,7 +350,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 			verifyFilterWorkspacesByClusterName(leafCluster.Name, workspaceName)
 			verifySearchWorkspaceByName(workspaceName)
-
+			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceRoleBindings(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspacePolicies(workspaceName, workspaceNamespaces, workspacesDetailPage)
 		})
 	})
 
