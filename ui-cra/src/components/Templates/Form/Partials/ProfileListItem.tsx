@@ -82,11 +82,13 @@ const ProfilesListItem: FC<{
       );
 
       if (selectedVersion) {
+        profile.values.forEach(item =>
+          item.selected === true ? (item.selected = false) : null,
+        );
         profile.values = [
           ...filteredVersions,
           { ...selectedVersion, selected: true },
         ];
-        profile.selected = true;
         setYaml(selectedVersion.yaml as string);
       }
       handleUpdateProfile(profile);
@@ -99,16 +101,16 @@ const ProfilesListItem: FC<{
       setIsValidVersion(true);
       if ((semverValid(value) || semverValidRange(value)) && value !== '') {
         setVersion(value);
-        profile.values.forEach(item =>
-          item.selected === true ? (item.selected = false) : null,
-        );
+
         const selectedVersion = profile.values.find(
           item => item.version === value,
         );
 
         if (!selectedVersion) {
+          profile.values.forEach(item =>
+            item.selected === true ? (item.selected = false) : null,
+          );
           profile.values.push({ version: value, selected: true, yaml: '' });
-          profile.selected = true;
         }
         handleUpdateProfile(profile);
       } else {
