@@ -17,6 +17,16 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
     {
       rowkey: 'Namespaces',
       value: namespaces?.join(', '),
+      children: (
+        <div id="workspace-details-header-namespaces">
+          {namespaces?.map((namespace, i) => (
+            <span key={namespace}>
+              {namespace}
+              {namespaces.length !== 1 && i < namespaces.length - 1 && ', '}
+            </span>
+          ))}
+        </div>
+      ),
     },
   ];
 
@@ -24,7 +34,9 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
     <>
       <Button
         onClick={() => {
-          history.push(`/applications?filters=tenant%3A%20${name}_clusterName%3A%20${clusterName}_`);
+          history.push(
+            `/applications?filters=tenant%3A%20${name}_clusterName%3A%20${clusterName}_`,
+          );
         }}
         className={classes.navigateBtn}
       >

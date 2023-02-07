@@ -24,7 +24,7 @@ export const ServiceAccountsTab = ({
 
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
-      <TableWrapper id="service-accounts-list">
+      <TableWrapper data-testid="service-accounts-list">
         <DataTable
           key={serviceAccounts?.objects?.length}
           rows={serviceAccounts?.objects}

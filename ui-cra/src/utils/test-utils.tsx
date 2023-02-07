@@ -44,6 +44,7 @@ import {
   GetPolicyResponse,
   GetPolicyValidationResponse,
   GetWorkspaceResponse,
+  GetWorkspaceServiceAccountsResponse,
   ListExternalSecretsResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
@@ -357,14 +358,18 @@ export class WorkspaceClientMock {
   constructor() {
     this.ListWorkspaces = this.ListWorkspaces.bind(this);
     this.GetWorkspace = this.GetWorkspace.bind(this);
+    this.ListWSServiceAccounts = this.ListWSServiceAccounts.bind(this);
   }
   ListWorkspacesReturns: ListWorkspacesResponse = {};
   GetWorkspaceReturns: GetWorkspaceResponse = {};
-
+  ListWSServiceAccountsReturns: GetWorkspaceServiceAccountsResponse = {};
   ListWorkspaces() {
     return promisify(this.ListWorkspacesReturns);
   }
   GetWorkspace() {
+    return promisify(this.GetWorkspaceReturns);
+  }
+  ListWSServiceAccounts() {
     return promisify(this.GetWorkspaceReturns);
   }
 }
