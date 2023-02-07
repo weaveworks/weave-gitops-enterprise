@@ -14,7 +14,6 @@ import React, {
   FC,
   useCallback,
   useEffect,
-  useMemo,
   useState,
 } from 'react';
 import styled from 'styled-components';
@@ -50,9 +49,10 @@ const ProfilesListItem: FC<{
   const [inValidVersionErrorMessage, setInValidVersionErrorMessage] =
     useState<string>('');
   const [isValidVersion, setIsValidVersion] = useState<boolean>(true);
-  const availableVersions = useMemo(() => {
-    return profile.values.map(item => item.version);
-  }, []);
+  const [availableVersions] = useState(
+    profile.values.map(item => item.version),
+  );
+  const versionsss = profile.values.map(item => item.version);
   const useStyles = makeStyles(() =>
     createStyles({
       autoComplete: { minWidth: '155px', overflow: 'hidden' },
