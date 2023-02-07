@@ -181,7 +181,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		ginkgo.JustAfterEach(func() {
 			deleteWorkspaces("management")
 		})
-		ginkgo.FIt("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
+		ginkgo.It("Verify Workspaces can be configured on management cluster and dashboard is updated accordingly", func() {
 			existingWorkspacesCount := getWorkspacesCount()
 			// Install workspaces on management cluster
 			installWorkspaces("management", workspacesYaml)
@@ -283,7 +283,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		})
 
-		ginkgo.FIt("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", func() {
+		ginkgo.It("Verify Workspaces can be configured on leaf cluster and dashboard is updated accordingly", func() {
 			// Add/Install Policy Agent on the leaf cluster
 			installPolicyAgent(leafCluster.Name)
 			// Create leaf cluster kubeconfig
