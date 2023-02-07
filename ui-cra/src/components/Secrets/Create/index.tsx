@@ -6,7 +6,7 @@ import {
   Link,
   LoadingPage,
   theme,
-  useListSources,
+  useListSources
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -15,7 +15,7 @@ import styled from 'styled-components';
 import {
   ClusterAutomation,
   ExternalSecretStore,
-  GitopsCluster,
+  GitopsCluster
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
@@ -26,7 +26,7 @@ import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import {
   CreateDeploymentObjects,
-  useClustersWithSources,
+  useClustersWithSources
 } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
@@ -36,7 +36,7 @@ import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getInitialGitRepo,
-  getRepositoryUrl,
+  getRepositoryUrl
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PrviewPRModal } from './PrviewPRModal';

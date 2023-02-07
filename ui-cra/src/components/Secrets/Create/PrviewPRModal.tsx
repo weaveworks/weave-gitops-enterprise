@@ -1,8 +1,8 @@
-import { LoadingPage, Button } from '@weaveworks/weave-gitops';
-import React, { useCallback, useState } from 'react';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
+import { useCallback, useState } from 'react';
+import useNotifications from '../../../contexts/Notifications';
 import { SecretPRPreview } from '../../../types/custom';
 import Preview from '../../Templates/Form/Partials/Preview';
-import useNotifications from '../../../contexts/Notifications';
 
 import { renderKustomization } from '../../Applications/utils';
 
