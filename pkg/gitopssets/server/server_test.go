@@ -38,6 +38,37 @@ func TestListGitOpsSets(t *testing.T) {
 	assert.Equal(t, o.ClusterName, "Default")
 	assert.Equal(t, o.Name, obj.Name)
 	assert.Equal(t, o.Namespace, obj.Namespace)
+
+}
+
+func TestSuspendGitOpsSet(t *testing.T) {
+	ctx := context.Background()
+	client, k8s := setup(t)
+
+	obj := &ctrl.GitOpsSet{}
+	obj.Name = "my-obj"
+	obj.Namespace = "default"
+	obj.Spec = ctrl.GitOpsSetSpec{
+		Suspend: false,
+	}
+
+	assert.NoError(t, k8s.Create(ctx, obj))
+
+	// no kind is registered for the type v1alpha1.GitOpsSet in scheme "pkg/runtime/scheme.go:100" - how do we create objects in the absence of k8s?
+	_, err := client.ToggleSuspendGitOpsSet(ctx, &pb.ToggleSuspendGitOpsSetRequest{
+		Name:        obj.Name,
+		Namespace:   obj.Namespace,
+		ClusterName: "Default",
+		Suspend:     true,
+	})
+	assert.NoError(t, err)
+
+	s := &ctrl.GitOpsSet{}
+	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
+
+	assert.NoError(t, k8s.Get(ctx, key, s))
+
+	assert.True(t, s.Spec.Suspend, "expected Spec.Suspend to be true")
 }
 
 func TestSyncGitOpsSet(t *testing.T) {
@@ -84,36 +115,6 @@ func TestSyncGitOpsSet(t *testing.T) {
 	}
 }
 
-func TestSuspendGitOpsSet(t *testing.T) {
-	ctx := context.Background()
-	client, k8s := setup(t)
-
-	obj := &ctrl.GitOpsSet{}
-	obj.Name = "my-obj"
-	obj.Namespace = "default"
-	obj.Spec = ctrl.GitOpsSetSpec{
-		Suspend: false,
-	}
-
-	assert.NoError(t, k8s.Create(ctx, obj))
-
-	_, err := client.ToggleSuspendGitOpsSet(ctx, &pb.ToggleSuspendGitOpsSetRequest{
-		Name:        obj.Name,
-		Namespace:   obj.Namespace,
-		ClusterName: "Default",
-		Suspend:     true,
-	})
-	assert.NoError(t, err)
-
-	s := &ctrl.GitOpsSet{}
-	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
-
-	assert.NoError(t, k8s.Get(ctx, key, s))
-
-	assert.True(t, s.Spec.Suspend, "expected Spec.Suspend to be true")
-
-}
-
 func setup(t *testing.T) (pb.GitOpsSetsClient, client.Client) {
 	k8s, factory := grpctesting.MakeFactoryWithObjects()
 	opts := server.ServerOpts{
@@ -135,8 +136,8 @@ func simulateReconcile(ctx context.Context, k client.Client, name types.Namespac
 			return err
 		}
 
-		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
-		return k.Status().Update(ctx, obj)
+		// obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+		// return k.Status().Update(ctx, obj)
 	}
 
 	return errors.New("simulating reconcile: unsupported type")

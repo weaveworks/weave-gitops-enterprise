@@ -40,6 +40,7 @@ var (
 
 type ServerOpts struct {
 	logr.Logger
+	ClustersManager   clustersmngr.ClustersManager
 	ClientsFactory    clustersmngr.ClustersManager
 	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Scheme            *k8sruntime.Scheme
