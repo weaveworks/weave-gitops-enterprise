@@ -41,7 +41,7 @@ import {
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PrviewPRModal } from './PrviewPRModal';
 
-const { small, medium, large } = theme.spacing;
+const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
 
 const FormWrapper = styled.form`
@@ -59,11 +59,6 @@ const FormWrapper = styled.form`
         margin-right: ${medium};
       }
     }
-  }
-  .previewPRSection {
-    display: flex;
-    justify-content: flex-end;
-    padding: ${small};
   }
 `;
 
