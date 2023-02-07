@@ -52,7 +52,6 @@ const ProfilesListItem: FC<{
   const [availableVersions] = useState(
     profile.values.map(item => item.version),
   );
-  const versionsss = profile.values.map(item => item.version);
   const useStyles = makeStyles(() =>
     createStyles({
       autoComplete: { minWidth: '155px', overflow: 'hidden' },
