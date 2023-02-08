@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import moment from 'moment';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
@@ -15,12 +16,32 @@ const MockWorkspaceResponse = {
   },
 };
 const MockServiceAccounts = {
-    serviceAccount: {
-    name: 'service One',
-    clusterName: 'Managemnet',
-    objects: [],
-}
-}
+  name: 'service One',
+  clusterName: 'Managemnet',
+  objects: [
+    {
+      name: 'test 1',
+      namespace: 'namespace 1',
+      timestamp: '2022-08-30T11:23:57Z',
+      manifest: '',
+    },
+    {
+      name: 'test 2',
+      namespace: 'namespace 2',
+      timestamp: '2022-07-30T11:23:55Z',
+      manifest: '',
+    },
+  ],
+  total: 2,
+  errors: [],
+};
+const mappedServiceAccounts = (serviceAccounts: Array<any>) => {
+  return serviceAccounts.map(e => [
+    e.name,
+    e.namespace || '-',
+    moment(e.timestamp).fromNow(),
+  ]);
+};
 describe('WorkspaceDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: WorkspaceClientMock;
@@ -32,6 +53,7 @@ describe('WorkspaceDetails', () => {
       [EnterpriseClientProvider, { api }],
     ]);
   });
+
   it('renders get Workspace details', async () => {
     const workspace = MockWorkspaceResponse.workspace;
     api.GetWorkspaceReturns = MockWorkspaceResponse.workspace;
@@ -55,10 +77,15 @@ describe('WorkspaceDetails', () => {
     );
     expect(namespaces).toHaveLength(workspace.namespaces.length);
   });
+
   it('renders service accounts tab', async () => {
-    const filterTable = new TestFilterableTable('service-accounts-list', fireEvent);
+    const filterTable = new TestFilterableTable(
+      'service-accounts-list',
+      fireEvent,
+    );
     const workspace = MockWorkspaceResponse.workspace;
-    api.ListWSServiceAccountsReturns = MockServiceAccounts.serviceAccount;
+    const ListServiceAccounts = MockServiceAccounts.objects;
+    api.ListWSServiceAccountsReturns = MockServiceAccounts;
     await act(async () => {
       const c = wrap(
         <WorkspaceDetails clusterName="" workspaceName={workspace.name} />,
@@ -69,11 +96,21 @@ describe('WorkspaceDetails', () => {
     const serviceAccountTab = screen
       .getAllByRole('tab')
       .filter(tabEle => tabEle.textContent === 'Service Accounts')[0];
-    console.log(serviceAccountTab);
     serviceAccountTab.click();
-    // filterTable.testRenderTable(
-    //     ['Name', 'Namespaces', 'Cluster'],
-    //     MockServiceAccounts.serviceAccount.length,
-    //   );
+
+    filterTable.testRenderTable(
+      ['Name', 'Namespace', 'Age'],
+      ListServiceAccounts.length,
+    );
+
+    const sortRowsByAge = mappedServiceAccounts(
+      ListServiceAccounts.sort((a, b) => {
+        const t1 = new Date(a.timestamp).getTime();
+        const t2 = new Date(b.timestamp).getTime();
+        return t2 - t1;
+      }),
+    );
+
+    filterTable.testSorthTableByColumn('Age', sortRowsByAge);
   });
 });
