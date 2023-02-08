@@ -17,7 +17,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -26,8 +25,29 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/rest"
+	"k8s.io/client-go/restmapper"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
+)
+
+
+var k8sEnv *K8sTestEnv
+
+type K8sTestEnv struct {
+	Env        *envtest.Environment
+	Client     client.Client
+	DynClient  dynamic.Interface
+	RestMapper *restmapper.DeferredDiscoveryRESTMapper
+	Rest       *rest.Config
+	Stop       func()
+}
+
+const (
+	MetadataUserKey   string = "test_principal_user"
+	MetadataGroupsKey string = "test_principal_groups"
 )
 
 func TestListGitOpsSets(t *testing.T) {
@@ -172,7 +192,7 @@ func TestGetReconciledObjects(t *testing.T) {
 	})
 	g.Expect(err).NotTo(HaveOccurred())
 
-	automationName := "my-automation"
+	gsName := "my-gs"
 	ns1 := newNamespace(ctx, k, g)
 	ns2 := newNamespace(ctx, k, g)
 
@@ -182,19 +202,19 @@ func TestGetReconciledObjects(t *testing.T) {
 				Name:      "my-deployment",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
-					server.KustomizeNameKey:      automationName,
-					server.KustomizeNamespaceKey: ns1.Name,
+					server.GitOpsSetNameKey:      gsName,
+					server.GitOpsSetNamespaceKey: ns1.Name,
 				},
 			},
 			Spec: appsv1.DeploymentSpec{
 				Selector: &metav1.LabelSelector{
 					MatchLabels: map[string]string{
-						"app": automationName,
+						"app": gsName,
 					},
 				},
 				Template: corev1.PodTemplateSpec{
 					ObjectMeta: metav1.ObjectMeta{
-						Labels: map[string]string{"app": automationName},
+						Labels: map[string]string{"app": gsName},
 					},
 					Spec: corev1.PodSpec{
 						Containers: []corev1.Container{{
@@ -210,8 +230,8 @@ func TestGetReconciledObjects(t *testing.T) {
 				Name:      "my-configmap",
 				Namespace: ns2.Name,
 				Labels: map[string]string{
-					server.KustomizeNameKey:      automationName,
-					server.KustomizeNamespaceKey: ns1.Name,
+					server.GitOpsSetNameKey:     gsName,
+					server.GitOpsSetNamespaceKey: ns1.Name,
 				},
 			},
 		},
@@ -292,7 +312,7 @@ func TestGetReconciledObjects(t *testing.T) {
 			md := metadata.Pairs(MetadataUserKey, tt.user, MetadataGroupsKey, tt.group)
 			outgoingCtx := metadata.NewOutgoingContext(ctx, md)
 			res, err := c.GetReconciledObjects(outgoingCtx, &pb.GetReconciledObjectsRequest{
-				AutomationName: automationName,
+				Name: gsName,
 				Namespace:      ns1.Name,
 				AutomationKind: kustomizev1.KustomizationKind,
 				Kinds: []*pb.GroupVersionKind{
