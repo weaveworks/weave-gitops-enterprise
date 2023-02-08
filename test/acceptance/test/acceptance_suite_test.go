@@ -59,8 +59,10 @@ var _ = ginkgo.BeforeSuite(func() {
 var _ = ginkgo.AfterSuite(func() {
 	//Tear down the suite level setup
 	ginkgo.By(fmt.Sprintf("Logout as a %s user", userCredentials.UserType), func() {
-		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed()) // Make sure the UI should not has any popups and modal dialogs
-		logoutUser()                                                      // Logout to the weaveworks enterprise
+		if webDriver != nil {
+			gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed()) // Make sure the UI should not has any popups and modal dialogs
+			logoutUser()                                                      // Logout to the weaveworks enterprise
+		}
 	})
 
 	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
