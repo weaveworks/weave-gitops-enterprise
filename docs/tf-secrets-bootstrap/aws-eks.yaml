@@ -1,0 +1,141 @@
+apiVersion: capi.weave.works/v1alpha1
+kind: CAPITemplate
+metadata:
+  name: aws-eks
+  namespace: default
+  labels:
+    weave.works/template-type: terraform
+  annotations:
+    templates.weave.works/profiles-enabled: "true"
+    templates.weave.works/kustomizations-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+spec:
+  description: Template for creating new AWS EKS Cluster leaf clusters
+  params:
+    - name: CLUSTER_NAME
+      description: The name for this cluster.
+    - name: AWS_REGION
+      description: AWS Region to create cluster
+      options: ["eu-north-1"]
+    - name: KUBERNETES_VERSION
+      description: EKS Kubernetes version to use
+      options: ["v1.22.10","v1.24.1"]
+    - name: WORKER_MACHINE_COUNT
+      description: Number of worker nodes to create.
+    - name: INSTANCE_TYPE
+      description: Type of worker nodes
+      options: ["t3.medium","t3.large"]
+    - name: OWNER_EMAIL
+      description: E-Mail of Cluster Owner
+    - name: SSH_KEY_NAME
+      description: AWS ssh key name
+
+  resourcetemplates:
+  - apiVersion: gitops.weave.works/v1alpha1
+    kind: GitopsCluster
+    metadata:
+      name: "${CLUSTER_NAME}"
+      namespace: default
+      labels:
+        weave.works/capi: bootstrap
+        weave.works/flux: bootstrap
+    spec:
+      capiClusterRef:
+        name: "${CLUSTER_NAME}"
+
+  - apiVersion: infra.contrib.fluxcd.io/v1alpha1
+    kind: Terraform
+    metadata:
+      name: "${CLUSTER_NAME}-core"
+      namespace: flux-system
+    spec:
+      interval: 1h
+      retryInterval: 20s
+      path: ./eksctl-clusters/leaf-terraform
+      approvePlan: auto
+      destroyResourcesOnDeletion: true
+      writeOutputsToSecret:
+        name: "${CLUSTER_NAME}-core-outputs"
+      vars:
+        - name: cluster_name
+          value: "${CLUSTER_NAME}"
+        - name: aws_region
+          value: "${AWS_REGION}"
+        - name: target_path
+          value: "clusters/default/${CLUSTER_NAME}"
+      varsFrom:
+        - kind: Secret
+          name: ${CLUSTER_NAME}-kubeconfig
+      sourceRef:
+        kind: GitRepository
+        name: terraform
+        namespace: flux-system
+
+  - apiVersion: cluster.x-k8s.io/v1beta1
+    kind: Cluster
+    metadata:
+      name: ${CLUSTER_NAME}
+      namespace: default
+    spec:
+      clusterNetwork:
+        pods:
+          cidrBlocks:
+          - 10.120.0.0/20
+      controlPlaneRef:
+        apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: AWSManagedControlPlane
+        name: ${CLUSTER_NAME}-control-plane
+      infrastructureRef:
+        apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: AWSManagedControlPlane
+        name: ${CLUSTER_NAME}-control-plane
+
+  - apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+    kind: AWSManagedControlPlane
+    metadata:
+      name: ${CLUSTER_NAME}-control-plane
+      namespace: default
+    spec:
+      additionalTags:
+        creator: ${OWNER_EMAIL}
+      region: ${AWS_REGION}
+      sshKeyName: ${SSH_KEY_NAME}
+      version: ${KUBERNETES_VERSION}
+      iamAuthenticatorConfig:
+        mapRoles:
+        - username: "admin"
+          rolearn: "arn:aws:iam::894516026745:role/AdministratorAccess"
+          groups:
+          - "system:masters"
+        - username: "admin"
+          rolearn: "arn:aws:iam::894516026745:role/WeaveEksEditor"
+          groups:
+          - "system:masters"
+
+  - apiVersion: cluster.x-k8s.io/v1beta1
+    kind: MachinePool
+    metadata:
+      name: ${CLUSTER_NAME}-pool-0
+      namespace: default
+    spec:
+      clusterName: ${CLUSTER_NAME}
+      replicas: ${WORKER_MACHINE_COUNT}
+      template:
+        spec:
+          bootstrap:
+            dataSecretName: ""
+          clusterName: ${CLUSTER_NAME}
+          infrastructureRef:
+            apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+            kind: AWSManagedMachinePool
+            name: ${CLUSTER_NAME}-pool-0
+
+  - apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+    kind: AWSManagedMachinePool
+    metadata:
+      name: ${CLUSTER_NAME}-pool-0
+      namespace: default
+    spec:
+      additionalTags:
+        creator: ${OWNER_EMAIL}
+      instanceType: ${INSTANCE_TYPE}
