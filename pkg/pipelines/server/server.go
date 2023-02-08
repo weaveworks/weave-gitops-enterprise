@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -18,6 +19,7 @@ type ServerOpts struct {
 	ManagementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
 	Cluster                   string
 	PipelineControllerAddress string
+	GitProvider               git.Provider
 }
 
 type server struct {
@@ -28,6 +30,7 @@ type server struct {
 	managementFetcher         *mgmtfetcher.ManagementCrossNamespacesFetcher
 	cluster                   string
 	pipelineControllerAddress string
+	gitProvider               git.Provider
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -43,5 +46,6 @@ func NewPipelinesServer(opts ServerOpts) pb.PipelinesServer {
 		managementFetcher:         opts.ManagementFetcher,
 		cluster:                   opts.Cluster,
 		pipelineControllerAddress: opts.PipelineControllerAddress,
+		gitProvider:               opts.GitProvider,
 	}
 }

@@ -79,3 +79,13 @@ message Pipeline {
     string         yaml                     = 7;
     string         type                     = 8;
 }
+
+
+message PullRequestList {
+    repeated PullRequest pullRequests = 1;
+}
+
+message PullRequest {
+    string title = 1;
+    string url = 2;
+}

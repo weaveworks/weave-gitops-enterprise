@@ -41,6 +41,15 @@ export type ListError = {
   message?: string
 }
 
+export type ListPullRequestsRequest = {
+  pipelineName?: string
+  pipelineNamespace?: string
+}
+
+export type ListPullRequestsResponse = {
+  pullRequests?: {[key: string]: string}
+}
+
 export class Pipelines {
   static ListPipelines(req: ListPipelinesRequest, initReq?: fm.InitReq): Promise<ListPipelinesResponse> {
     return fm.fetchReq<ListPipelinesRequest, ListPipelinesResponse>(`/v1/pipelines?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -50,5 +59,8 @@ export class Pipelines {
   }
   static ApprovePromotion(req: ApprovePromotionRequest, initReq?: fm.InitReq): Promise<ApprovePromotionResponse> {
     return fm.fetchReq<ApprovePromotionRequest, ApprovePromotionResponse>(`/v1/pipelines/approve/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListPullRequests(req: ListPullRequestsRequest, initReq?: fm.InitReq): Promise<ListPullRequestsResponse> {
+    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list_prs/${req["pipelineName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

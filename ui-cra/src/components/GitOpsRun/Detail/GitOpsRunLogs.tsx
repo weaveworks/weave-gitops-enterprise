@@ -1,20 +1,26 @@
-import { Table, TableCell, TableContainer, TableRow } from '@material-ui/core';
+import {
+  IconButton,
+  Table,
+  TableCell,
+  TableContainer,
+  TableRow,
+} from '@material-ui/core';
 import { Error, Info } from '@material-ui/icons';
-import { Flex } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  formatLogTimestamp,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
+import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React from 'react';
 import styled from 'styled-components';
-import { Select } from '../../../utils/form';
-
-type Log = {
-  source: string;
-  message: string;
-  timestamp: string;
-  severity: string;
-};
+import { useGetLogs } from '../../../hooks/gitopsrun';
 
 type Props = {
   className?: string;
-  logs: Log[];
+  name: string;
+  namespace: string;
 };
 
 const Header = styled(Flex)`
@@ -25,44 +31,72 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
-const LogRow: React.FC<{ log: Log }> = ({ log }) => {
+const makeHeader = (logs: LogEntry[], reverseSort: boolean) => {
+  if (!logs.length) return 'No logs found';
+
+  const timestamp = formatLogTimestamp(
+    reverseSort ? logs[logs.length - 1].timestamp : logs[0].timestamp,
+  );
+
+  return `showing logs from ${
+    reverseSort ? `now to ${timestamp}` : `${timestamp} to now`
+  }`;
+};
+
+const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   return (
     <TableRow>
       <TableCell>
         <Flex /*this flex centers the icon*/>
-          {log.severity === 'info' ? (
+          {log.level === 'info' ? (
             <Info color="primary" fontSize="inherit" />
           ) : (
             <Error color="secondary" fontSize="inherit" />
           )}
         </Flex>
       </TableCell>
-      <TableCell className="gray">{log.timestamp || '-'}</TableCell>
+      <TableCell className="gray">
+        {formatLogTimestamp(log.timestamp)}
+      </TableCell>
       <TableCell>{log.source || '-'}</TableCell>
       <TableCell className="break-word">{log.message || '-'}</TableCell>
     </TableRow>
   );
 };
 
-function GitOpsRunLogs({ className, logs }: Props) {
-  const [logOptions, setLogOptions] = React.useState<string[]>([
-    'log one',
-    'log two',
-  ]);
-  const [levelOptions, setLevelOptions] = React.useState<string[]>([
-    'level one',
-    'level two',
-  ]);
-  const [logValue, setLogValue] = React.useState('-');
-  const [levelValue, setLevelValue] = React.useState('-');
+function GitOpsRunLogs({ className, name, namespace }: Props) {
+  // const [logOptions, setLogOptions] = React.useState<string[]>([
+  //   'log one',
+  //   'log two',
+  // ]);
+  // const [levelOptions, setLevelOptions] = React.useState<string[]>([
+  //   'level one',
+  //   'level two',
+  // ]);
+  // const [logValue, setLogValue] = React.useState('-');
+  // const [levelValue, setLevelValue] = React.useState('-');
+
+  const [reverseSort, setReverseSort] = React.useState<boolean>(false);
+  const [token, setToken] = React.useState<string>('');
+  const [logs, setLogs] = React.useState<LogEntry[]>([]);
+  const { isLoading, data } = useGetLogs({
+    sessionNamespace: namespace,
+    sessionId: name,
+    token,
+  });
 
   React.useEffect(() => {
-    //find logs and levels for selects, plus earliest timestamp?!
-  });
+    if (isLoading) return;
+    if (data?.logs?.length && data?.nextToken) {
+      setLogs(reverseSort ? [...data.logs, ...logs] : [...logs, ...data.logs]);
+      setToken(data.nextToken);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, data]);
 
   return (
     <Flex className={className} wide tall column>
-      <Flex>
+      {/* <Flex>
         <Select
           label="LOG"
           value={logValue}
@@ -76,8 +110,22 @@ function GitOpsRunLogs({ className, logs }: Props) {
           items={levelOptions}
           onChange={e => setLevelValue(e.target.value as string)}
         />
-      </Flex>
-      <Header wide>showing logs from ....</Header>
+      </Flex> */}
+      <Header wide align>
+        {makeHeader(logs, reverseSort)}
+        <IconButton
+          onClick={() => {
+            logs.reverse();
+            setReverseSort(!reverseSort);
+          }}
+        >
+          <Icon
+            type={IconType.ArrowUpwardIcon}
+            size="small"
+            className={reverseSort ? 'upward' : 'downward'}
+          />
+        </IconButton>
+      </Header>
       <TableContainer>
         <Table>
           {logs.map(log => (

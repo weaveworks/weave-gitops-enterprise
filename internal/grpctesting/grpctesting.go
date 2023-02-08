@@ -64,6 +64,7 @@ func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfak
 
 	factory := &clustersmngrfakes.FakeClustersManager{}
 	factory.GetImpersonatedClientReturns(clustersClient, nil)
+	factory.GetServerClientReturns(clustersClient, nil)
 
 	return factory
 }

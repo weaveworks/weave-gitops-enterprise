@@ -16,8 +16,8 @@ It is recommended to install latest and stable version of these tools. All tools
 | Helm | Package manager for Kubernetes | `https://helm.sh/docs/intro/install` |
 | Selenium server | Standalone server for web browser instance | `wget https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar` <br> `It is not required if test host is a macOS machine.`|
 | flux | Command-line interface to bootstrap and interact with Flux | `https://fluxcd.io/docs/installation/#install-the-flux-cli`|
-| WG Client | Command line utility for managing Kubernetes applications via GitOps | `https://github.com/weaveworks/weave-gitops#cli-installation`
-| Chrome Driver | WebDriver is an open source tool for automated testing of webapps across many browsers.  | `https://chromedriver.chromium.org/downloads` <br> Make sure to install the correct driver version for your browser version|
+| WG Client | Command line utility for managing Kubernetes applications via GitOps | at the root of this repo run `make cmd/gitops/gitops`<br> `sudo mv cmd/gitops/gitops /usr/local/bin` <br> `gitops version`
+| Chrome Driver | WebDriver is an open source tool for automated testing of webapps across many browsers.  | `https://chromedriver.chromium.org/downloads` <br> Make sure to install the correct driver version for your browser version otherwise initializing the webDriver will give a session id error|
 | Ginkgo | Ginkgo is a testing framework for Go. It is needed to run tests from cli.   | `go install github.com/onsi/ginkgo/v2/ginkgo` <br> Make sure to install ginkgo version 2.0 or higher|
 | Clusterctl | Cluster API management command-line tool | *macOs:* <br> `curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-darwin-amd64 -o clusterctl` <br> *linux:* <br> `curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.0.3/clusterctl-ubuntu-amd64 -o clusterctl` <br> <br> `chmod +x ./clusterctl` <br> `sudo mv ./clusterctl /usr/local/bin/clusterctl` |
 | Totp-cli | Generates OTP tokens for two factor authentication | *macOs:* <br> `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> *linux:* <br> `wget https://github.com/yitsushi/totp-cli/releases/download/v1.1.17/totp-cli-v1.1.17-ubuntu-amd64.tar.gz` <br> <br> `tar -xf totp-cli-v1.1.17-darwin-amd64.tar.gz` <br> `mv ./totp-cli /usr/local/bin` |
@@ -223,7 +223,7 @@ You can run all or selected set of acceptance tests from command line.
 - It will run only those tests which have both `upgrade` and `cluster` labels defined.
 
 	`ginkgo --label-filter='upgrade&&(cluster)' --v --timeout=2h test/acceptance/test/`
-	
+
 - It will run all tests without focusing or skipping any tests. However if any test has been focused in the test code, then only those test(s) will be run.
 
 	`ginkgo --v --timeout=2h test/acceptance/test/`
@@ -276,7 +276,7 @@ Running test from VS Code is useful as it enables you to debug the tests.
 				"CLUSTER_REPOSITORY": "gitops-testing",
 
 				"LOGIN_USER_TYPE": "cluster-user",
-                "CAPI_PROVIDER": "capd",            
+                "CAPI_PROVIDER": "capd",
                 "MANAGEMENT_CLUSTER_KIND": "kind",
                 "ENTERPRISE_CHART_VERSION": "0.12.0-19-g8a760ac",
                 "CLUSTER_REPOSITORY": "kind-management"

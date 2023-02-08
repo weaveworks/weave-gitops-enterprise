@@ -745,6 +745,108 @@ func (x *Pipeline) GetType() string {
 	return ""
 }
 
+type PullRequestList struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PullRequests []*PullRequest `protobuf:"bytes,1,rep,name=pullRequests,proto3" json:"pullRequests,omitempty"`
+}
+
+func (x *PullRequestList) Reset() {
+	*x = PullRequestList{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PullRequestList) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PullRequestList) ProtoMessage() {}
+
+func (x *PullRequestList) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PullRequestList.ProtoReflect.Descriptor instead.
+func (*PullRequestList) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *PullRequestList) GetPullRequests() []*PullRequest {
+	if x != nil {
+		return x.PullRequests
+	}
+	return nil
+}
+
+type PullRequest struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Title string `protobuf:"bytes,1,opt,name=title,proto3" json:"title,omitempty"`
+	Url   string `protobuf:"bytes,2,opt,name=url,proto3" json:"url,omitempty"`
+}
+
+func (x *PullRequest) Reset() {
+	*x = PullRequest{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_api_pipelines_types_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *PullRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*PullRequest) ProtoMessage() {}
+
+func (x *PullRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_api_pipelines_types_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use PullRequest.ProtoReflect.Descriptor instead.
+func (*PullRequest) Descriptor() ([]byte, []int) {
+	return file_api_pipelines_types_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *PullRequest) GetTitle() string {
+	if x != nil {
+		return x.Title
+	}
+	return ""
+}
+
+func (x *PullRequest) GetUrl() string {
+	if x != nil {
+		return x.Url
+	}
+	return ""
+}
+
 type PipelineStatus_EnvironmentStatus struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -757,7 +859,7 @@ type PipelineStatus_EnvironmentStatus struct {
 func (x *PipelineStatus_EnvironmentStatus) Reset() {
 	*x = PipelineStatus_EnvironmentStatus{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_api_pipelines_types_proto_msgTypes[11]
+		mi := &file_api_pipelines_types_proto_msgTypes[13]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -770,7 +872,7 @@ func (x *PipelineStatus_EnvironmentStatus) String() string {
 func (*PipelineStatus_EnvironmentStatus) ProtoMessage() {}
 
 func (x *PipelineStatus_EnvironmentStatus) ProtoReflect() protoreflect.Message {
-	mi := &file_api_pipelines_types_proto_msgTypes[11]
+	mi := &file_api_pipelines_types_proto_msgTypes[13]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -912,11 +1014,20 @@ var file_api_pipelines_types_proto_rawDesc = []byte{
 	0x74, 0x75, 0x73, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x12, 0x12, 0x0a, 0x04, 0x79,
 	0x61, 0x6d, 0x6c, 0x18, 0x07, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x79, 0x61, 0x6d, 0x6c, 0x12,
 	0x12, 0x0a, 0x04, 0x74, 0x79, 0x70, 0x65, 0x18, 0x08, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x74,
-	0x79, 0x70, 0x65, 0x42, 0x3d, 0x5a, 0x3b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f,
-	0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61,
-	0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f, 0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70,
-	0x72, 0x69, 0x73, 0x65, 0x2f, 0x70, 0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61,
-	0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x79, 0x70, 0x65, 0x22, 0x50, 0x0a, 0x0f, 0x50, 0x75, 0x6c, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65,
+	0x73, 0x74, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x3d, 0x0a, 0x0c, 0x70, 0x75, 0x6c, 0x6c, 0x52, 0x65,
+	0x71, 0x75, 0x65, 0x73, 0x74, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x19, 0x2e, 0x70,
+	0x69, 0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x75, 0x6c, 0x6c,
+	0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x0c, 0x70, 0x75, 0x6c, 0x6c, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x73, 0x22, 0x35, 0x0a, 0x0b, 0x50, 0x75, 0x6c, 0x6c, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x12, 0x14, 0x0a, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x05, 0x74, 0x69, 0x74, 0x6c, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x75, 0x72,
+	0x6c, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x75, 0x72, 0x6c, 0x42, 0x3d, 0x5a, 0x3b,
+	0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65,
+	0x77, 0x6f, 0x72, 0x6b, 0x73, 0x2f, 0x77, 0x65, 0x61, 0x76, 0x65, 0x2d, 0x67, 0x69, 0x74, 0x6f,
+	0x70, 0x73, 0x2d, 0x65, 0x6e, 0x74, 0x65, 0x72, 0x70, 0x72, 0x69, 0x73, 0x65, 0x2f, 0x70, 0x69,
+	0x70, 0x65, 0x6c, 0x69, 0x6e, 0x65, 0x73, 0x2f, 0x61, 0x70, 0x69, 0x62, 0x06, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x33,
 }
 
 var (
@@ -931,7 +1042,7 @@ func file_api_pipelines_types_proto_rawDescGZIP() []byte {
 	return file_api_pipelines_types_proto_rawDescData
 }
 
-var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_api_pipelines_types_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_api_pipelines_types_proto_goTypes = []interface{}{
 	(*ClusterRef)(nil),                       // 0: pipelines.v1.ClusterRef
 	(*Target)(nil),                           // 1: pipelines.v1.Target
@@ -944,8 +1055,10 @@ var file_api_pipelines_types_proto_goTypes = []interface{}{
 	(*WaitingStatus)(nil),                    // 8: pipelines.v1.WaitingStatus
 	(*PipelineStatus)(nil),                   // 9: pipelines.v1.PipelineStatus
 	(*Pipeline)(nil),                         // 10: pipelines.v1.Pipeline
-	(*PipelineStatus_EnvironmentStatus)(nil), // 11: pipelines.v1.PipelineStatus.EnvironmentStatus
-	nil,                                      // 12: pipelines.v1.PipelineStatus.EnvironmentsEntry
+	(*PullRequestList)(nil),                  // 11: pipelines.v1.PullRequestList
+	(*PullRequest)(nil),                      // 12: pipelines.v1.PullRequest
+	(*PipelineStatus_EnvironmentStatus)(nil), // 13: pipelines.v1.PipelineStatus.EnvironmentStatus
+	nil,                                      // 14: pipelines.v1.PipelineStatus.EnvironmentsEntry
 }
 var file_api_pipelines_types_proto_depIdxs = []int32{
 	0,  // 0: pipelines.v1.Target.clusterRef:type_name -> pipelines.v1.ClusterRef
@@ -953,19 +1066,20 @@ var file_api_pipelines_types_proto_depIdxs = []int32{
 	5,  // 2: pipelines.v1.WorkloadStatus.conditions:type_name -> pipelines.v1.Condition
 	0,  // 3: pipelines.v1.PipelineTargetStatus.clusterRef:type_name -> pipelines.v1.ClusterRef
 	6,  // 4: pipelines.v1.PipelineTargetStatus.workloads:type_name -> pipelines.v1.WorkloadStatus
-	12, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
+	14, // 5: pipelines.v1.PipelineStatus.environments:type_name -> pipelines.v1.PipelineStatus.EnvironmentsEntry
 	4,  // 6: pipelines.v1.Pipeline.appRef:type_name -> pipelines.v1.AppRef
 	2,  // 7: pipelines.v1.Pipeline.environments:type_name -> pipelines.v1.Environment
 	1,  // 8: pipelines.v1.Pipeline.targets:type_name -> pipelines.v1.Target
 	9,  // 9: pipelines.v1.Pipeline.status:type_name -> pipelines.v1.PipelineStatus
-	8,  // 10: pipelines.v1.PipelineStatus.EnvironmentStatus.waitingStatus:type_name -> pipelines.v1.WaitingStatus
-	7,  // 11: pipelines.v1.PipelineStatus.EnvironmentStatus.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
-	11, // 12: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.EnvironmentStatus
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	12, // 10: pipelines.v1.PullRequestList.pullRequests:type_name -> pipelines.v1.PullRequest
+	8,  // 11: pipelines.v1.PipelineStatus.EnvironmentStatus.waitingStatus:type_name -> pipelines.v1.WaitingStatus
+	7,  // 12: pipelines.v1.PipelineStatus.EnvironmentStatus.targetsStatuses:type_name -> pipelines.v1.PipelineTargetStatus
+	13, // 13: pipelines.v1.PipelineStatus.EnvironmentsEntry.value:type_name -> pipelines.v1.PipelineStatus.EnvironmentStatus
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_api_pipelines_types_proto_init() }
@@ -1107,6 +1221,30 @@ func file_api_pipelines_types_proto_init() {
 			}
 		}
 		file_api_pipelines_types_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PullRequestList); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*PullRequest); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_api_pipelines_types_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*PipelineStatus_EnvironmentStatus); i {
 			case 0:
 				return &v.state
@@ -1125,7 +1263,7 @@ func file_api_pipelines_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_api_pipelines_types_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

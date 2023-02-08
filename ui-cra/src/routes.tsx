@@ -43,6 +43,8 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
+import CreateSecret from './components/Secrets/Create';
+
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -263,6 +265,8 @@ const AppRoutes = () => {
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
+      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
@@ -276,6 +280,30 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
+            />
+          );
+        }}
+      />
+      <Route
+        exact
+        path={Routes.BitBucketOauthCallback}
+        component={({ location }: any) => {
+          const params = qs.parse(location.search);
+
+          const error = Array.isArray(params?.error)
+            ? params?.error.join(', ')
+            : params?.error;
+
+          const desc = Array.isArray(params.error_description)
+            ? params.error_description?.join('\n')
+            : params?.error_description;
+
+          return (
+            <OAuthCallback
+              provider={GitProvider.BitBucketServer}
+              code={params.code as string}
+              error={error}
+              errorDescription={desc}
             />
           );
         }}

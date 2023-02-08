@@ -426,6 +426,7 @@ export type ExternalSecretSpec = {
 
 export type externalSecretStoreRef = {
   name?: string
+  kind?: string
 }
 
 export type externalSecretTarget = {

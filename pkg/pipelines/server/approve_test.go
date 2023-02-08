@@ -32,7 +32,7 @@ func TestApprovePipeline(t *testing.T) {
 	}))
 	defer s.Close()
 
-	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", s.URL)
+	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", s.URL, nil)
 
 	hr := createHelmRelease(ctx, t, kclient, "app-1", targetNamespace.Name)
 

@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.15.1-0.20230130142913-7747ba410efa
+	github.com/weaveworks/weave-gitops v0.16.1-0.20230206153653-15f6ed263c8c
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -36,7 +36,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.21.0
-	github.com/fluxcd/go-git-providers v0.11.0
+	github.com/fluxcd/go-git-providers v0.14.0
 	github.com/fluxcd/helm-controller/api v0.27.0
 	github.com/fluxcd/kustomize-controller/api v0.31.0
 	github.com/fluxcd/pkg/apis/meta v0.18.0
@@ -63,14 +63,13 @@ require (
 	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/weaveworks/templates-controller v0.1.2
-	github.com/xanzy/go-gitlab v0.76.0
+	github.com/xanzy/go-gitlab v0.78.0
 	golang.org/x/crypto v0.3.0
-	golang.org/x/oauth2 v0.2.0
+	golang.org/x/oauth2 v0.3.0
 	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
 	google.golang.org/grpc v1.51.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.28.1
-	gopkg.in/src-d/go-git.v4 v4.13.1
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.25.4
@@ -108,7 +107,7 @@ require (
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
 	github.com/google/go-github/v30 v30.1.0 // indirect
-	github.com/google/go-github/v47 v47.1.0 // indirect
+	github.com/google/go-github/v49 v49.1.0 // indirect
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213 // indirect
@@ -222,7 +221,7 @@ require (
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.3.1 // indirect
-	github.com/go-git/go-git/v5 v5.4.2 // indirect
+	github.com/go-git/go-git/v5 v5.4.2
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
 	github.com/go-logr/zapr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
@@ -244,7 +243,7 @@ require (
 	github.com/gregjones/httpcache v0.0.0-20190611155906-901d90724c79 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
-	github.com/hashicorp/go-retryablehttp v0.7.1 // indirect
+	github.com/hashicorp/go-retryablehttp v0.7.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-3 // indirect
 	github.com/huandu/xstrings v1.3.3 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
@@ -297,7 +296,6 @@ require (
 	github.com/spf13/afero v1.8.2 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/src-d/gcfg v1.4.0 // indirect
 	github.com/subosito/gotenv v1.4.1 // indirect
 	github.com/tomwright/dasel v1.22.1 // indirect
 	github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4
@@ -315,13 +313,12 @@ require (
 	golang.org/x/sys v0.3.0 // indirect
 	golang.org/x/term v0.3.0 // indirect
 	golang.org/x/text v0.5.0
-	golang.org/x/time v0.2.0 // indirect
+	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
-	gopkg.in/src-d/go-billy.v4 v4.3.2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	k8s.io/apiserver v0.25.4 // indirect
@@ -348,4 +345,6 @@ replace (
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 	// Fix for CVE-2022-1996
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
+// un-comment for local dev
+// github.com/weaveworks/weave-gitops => ../weave-gitops
 )

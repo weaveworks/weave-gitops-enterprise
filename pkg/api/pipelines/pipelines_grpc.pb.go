@@ -21,6 +21,7 @@ type PipelinesClient interface {
 	ListPipelines(ctx context.Context, in *ListPipelinesRequest, opts ...grpc.CallOption) (*ListPipelinesResponse, error)
 	GetPipeline(ctx context.Context, in *GetPipelineRequest, opts ...grpc.CallOption) (*GetPipelineResponse, error)
 	ApprovePromotion(ctx context.Context, in *ApprovePromotionRequest, opts ...grpc.CallOption) (*ApprovePromotionResponse, error)
+	ListPullRequests(ctx context.Context, in *ListPullRequestsRequest, opts ...grpc.CallOption) (*ListPullRequestsResponse, error)
 }
 
 type pipelinesClient struct {
@@ -58,6 +59,15 @@ func (c *pipelinesClient) ApprovePromotion(ctx context.Context, in *ApprovePromo
 	return out, nil
 }
 
+func (c *pipelinesClient) ListPullRequests(ctx context.Context, in *ListPullRequestsRequest, opts ...grpc.CallOption) (*ListPullRequestsResponse, error) {
+	out := new(ListPullRequestsResponse)
+	err := c.cc.Invoke(ctx, "/pipelines.v1.Pipelines/ListPullRequests", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // PipelinesServer is the server API for Pipelines service.
 // All implementations must embed UnimplementedPipelinesServer
 // for forward compatibility
@@ -65,6 +75,7 @@ type PipelinesServer interface {
 	ListPipelines(context.Context, *ListPipelinesRequest) (*ListPipelinesResponse, error)
 	GetPipeline(context.Context, *GetPipelineRequest) (*GetPipelineResponse, error)
 	ApprovePromotion(context.Context, *ApprovePromotionRequest) (*ApprovePromotionResponse, error)
+	ListPullRequests(context.Context, *ListPullRequestsRequest) (*ListPullRequestsResponse, error)
 	mustEmbedUnimplementedPipelinesServer()
 }
 
@@ -80,6 +91,9 @@ func (UnimplementedPipelinesServer) GetPipeline(context.Context, *GetPipelineReq
 }
 func (UnimplementedPipelinesServer) ApprovePromotion(context.Context, *ApprovePromotionRequest) (*ApprovePromotionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ApprovePromotion not implemented")
+}
+func (UnimplementedPipelinesServer) ListPullRequests(context.Context, *ListPullRequestsRequest) (*ListPullRequestsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPullRequests not implemented")
 }
 func (UnimplementedPipelinesServer) mustEmbedUnimplementedPipelinesServer() {}
 
@@ -148,6 +162,24 @@ func _Pipelines_ApprovePromotion_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Pipelines_ListPullRequests_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPullRequestsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(PipelinesServer).ListPullRequests(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pipelines.v1.Pipelines/ListPullRequests",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(PipelinesServer).ListPullRequests(ctx, req.(*ListPullRequestsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Pipelines_ServiceDesc is the grpc.ServiceDesc for Pipelines service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -166,6 +198,10 @@ var Pipelines_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ApprovePromotion",
 			Handler:    _Pipelines_ApprovePromotion_Handler,
+		},
+		{
+			MethodName: "ListPullRequests",
+			Handler:    _Pipelines_ListPullRequests_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

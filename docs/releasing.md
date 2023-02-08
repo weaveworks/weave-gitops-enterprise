@@ -55,6 +55,14 @@ In particular:
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
 - policy-agent ([releases](https://github.com/weaveworks/policy-agent/releases))
   - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
+- gitopssets-controller ([releases](https://github.com/weaveworks/gitopssets-controller/releases))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/gitopssets-controller/values.yaml
+- templates-controller ([releases](https://github.com/weaveworks/templates-controller/releases))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/templates-controller/values.yaml
+- pipeline-controller ([Helm chart releases](https://github.com/weaveworks/pipeline-controller/pkgs/container/charts%2Fpipeline-controller))
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
+  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
 
 Check [how to update things in ../CONTRIBUTING.md](../CONTRIBUTING.md#how-to-update-the-version-of-weave-gitops) for instructions on how to update properly.
 

@@ -1,7 +1,7 @@
-import { URL } from '../types/global';
 import GitUrlParse from 'git-url-parse';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
 import { NotificationData } from '../contexts/Notifications';
+import { URL } from '../types/global';
 import { Routes } from './nav';
 
 export const toPercent = (value: number, precision = 0) =>
@@ -64,4 +64,8 @@ export const formatError = (error: Error) =>
 // configured on the Gitlab backend for our Oauth app.
 export function gitlabOAuthRedirectURI(): string {
   return `${window.location.origin}${Routes.GitlabOauthCallback}`;
+}
+
+export function bitbucketServerOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
 }
