@@ -33,7 +33,7 @@ const PromotePipeline = ({
   }, [req]);
 
   if (error) {
-    return <span>Something went wrong</span>;
+    return <Alert severity="error"><AlertTitle>Error promoting pipleline</AlertTitle>{error.message}</Alert>;
   }
   return (
     <Flex align center >
