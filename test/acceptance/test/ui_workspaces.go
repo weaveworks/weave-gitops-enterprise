@@ -253,7 +253,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 		}
 
 		workspaceName := "test-team"
-		workspaceNamespaces := "test-kustomization"
+		workspaceNamespaces := "test-kustomization, test-system"
 		workspaceClusterName := leafCluster.Name
 
 		ginkgo.JustBeforeEach(func() {
@@ -355,10 +355,10 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
 			})
 			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWorkspaceServiceAccounts(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWorkspaceRoles(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWorkspaceRoleBindings(workspaceName, workspaceNamespaces, workspacesDetailPage)
-			verifyWorkspacePolicies(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceServiceAccounts(workspaceName, leafCluster.Namespace, workspacesDetailPage)
+			verifyWorkspaceRoles(workspaceName, leafCluster.Namespace, workspacesDetailPage)
+			verifyWorkspaceRoleBindings(workspaceName, leafCluster.Namespace, workspacesDetailPage)
+			verifyWorkspacePolicies(workspaceName, leafCluster.Namespace, workspacesDetailPage)
 		})
 	})
 
