@@ -82,7 +82,7 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 		Password:            webDriver.Find(`input[type=password][name*=password]`),
 		Signin:              webDriver.Find(`input[type=submit][value="Sign in"]`),
 		UserCode:            webDriver.All(`input[type=text][name^=user-code-]`),
-		AuthCode:            webDriver.Find(`input#totp`),
+		AuthCode:            webDriver.Find(`input#app_totp`),
 		Verify:              webDriver.FindByButton(`Verify`),
 		Continue:            webDriver.Find(`[type=submit][name=commit]`),
 		AuthroizeWeaveworks: webDriver.FindByButton(`Authorize weaveworks`),
