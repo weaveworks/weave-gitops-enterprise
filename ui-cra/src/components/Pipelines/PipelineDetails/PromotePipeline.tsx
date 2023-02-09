@@ -6,6 +6,7 @@ import {
   Pipelines,
 } from '../../../api/pipelines/pipelines.pb';
 import { CircularProgress } from '@material-ui/core';
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 const PromotePipeline = ({
   req,
@@ -15,7 +16,7 @@ const PromotePipeline = ({
   promoteVersion: string;
 }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
   const [url, setUrl] = useState('');
 
   const approvePromotion = useCallback(() => {
@@ -24,19 +25,24 @@ const PromotePipeline = ({
       .then(res => {
         setUrl(res.pullRequestURL || '');
       })
-      .catch(() => {
-        setError(true);
+      .catch(err => {
+        setError(err?.message || 'Promoting fails');
       })
       .finally(() => {
         setLoading(false);
       });
   }, [req]);
 
-  if (error) {
-    return <Alert severity="error"><AlertTitle>Error promoting pipleline</AlertTitle>{error.message}</Alert>;
+  if (!!error) {
+    return (
+      <Alert severity="error">
+        <AlertTitle>Error promoting pipleline</AlertTitle>
+        {error}
+      </Alert>
+    );
   }
   return (
-    <Flex align center >
+    <Flex align center>
       {!url ? (
         <Button
           startIcon={<ShowChartIcon />}
