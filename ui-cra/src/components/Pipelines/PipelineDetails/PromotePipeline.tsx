@@ -21,6 +21,7 @@ const PromotePipeline = ({
 
   const approvePromotion = useCallback(() => {
     setLoading(true);
+    setError('');
     Pipelines.ApprovePromotion(req)
       .then(res => {
         setUrl(res.pullRequestURL || '');
@@ -33,31 +34,39 @@ const PromotePipeline = ({
       });
   }, [req]);
 
-  if (!!error) {
-    return (
-      <Alert severity="error">
-        <AlertTitle>Error promoting pipleline</AlertTitle>
-        {error}
-      </Alert>
-    );
-  }
+  // if (!!error) {
+  //   return (
+  //     <Alert severity="error">
+  //       <AlertTitle>Error promoting pipleline</AlertTitle>
+  //       {error}
+  //     </Alert>
+  //   );
+  // }
   return (
-    <Flex align center>
-      {!url ? (
-        <Button
-          startIcon={<ShowChartIcon />}
-          onClick={() => approvePromotion()}
-          disabled={loading}
-        >
-          Promote {promoteVersion}
-          {loading && (
-            <CircularProgress size={20} style={{ marginLeft: '8px' }} />
-          )}
-        </Button>
-      ) : (
-        <Link href={url}>Pull Request</Link>
+    <>
+      {error && !loading && (
+        <Alert severity="error">
+          <AlertTitle>Error promoting pipleline</AlertTitle>
+          {error}
+        </Alert>
       )}
-    </Flex>
+      <Flex align center>
+        {!url ? (
+          <Button
+            startIcon={<ShowChartIcon />}
+            onClick={() => approvePromotion()}
+            disabled={loading}
+          >
+            Promote {promoteVersion}
+            {loading && (
+              <CircularProgress size={20} style={{ marginLeft: '8px' }} />
+            )}
+          </Button>
+        ) : (
+          <Link href={url}>Pull Request</Link>
+        )}
+      </Flex>
+    </>
   );
 };
 
