@@ -34,22 +34,20 @@ const PromotePipeline = ({
       });
   }, [req]);
 
-  // if (!!error) {
-  //   return (
-  //     <Alert severity="error">
-  //       <AlertTitle>Error promoting pipleline</AlertTitle>
-  //       {error}
-  //     </Alert>
-  //   );
-  // }
   return (
     <>
       {error && !loading && (
-        <Alert severity="error">
+        <Alert
+          severity="error"
+          style={{
+            marginBottom: '8px',
+          }}
+        >
           <AlertTitle>Error promoting pipleline</AlertTitle>
           {error}
         </Alert>
       )}
+
       <Flex align center>
         {!url ? (
           <Button
