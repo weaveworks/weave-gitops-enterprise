@@ -10,7 +10,11 @@ import {
   Dialog,
   Box,
 } from '@material-ui/core';
-import { AppPRPreview, ClusterPRPreview } from '../../../../types/custom';
+import {
+  AppPRPreview,
+  ClusterPRPreview,
+  SecretPRPreview,
+} from '../../../../types/custom';
 import {
   CommitFile,
   RenderTemplateResponse,
@@ -88,10 +92,10 @@ const Preview: FC<{
   const handleChange = (event: React.ChangeEvent<{}>, newValue: number) => {
     setValue(newValue);
   };
-
-  const tabsContent: Array<TabContent> =
-    context === 'app'
-      ? [
+  const getTabsContent = (context: string) => {
+    switch (context) {
+      case 'app':
+        return [
           {
             tabName: 'Kustomizations',
             files: PRPreview.kustomizationFiles,
@@ -100,8 +104,16 @@ const Preview: FC<{
             tabName: 'Helm Releases',
             files: (PRPreview as AppPRPreview).helmReleaseFiles,
           },
-        ]
-      : [
+        ];
+      case 'secret':
+        return [
+          {
+            tabName: 'External Secret',
+            files: (PRPreview as SecretPRPreview).externalSecretsFiles,
+          },
+        ];
+      default:
+        return [
           {
             tabName: 'Resource Definition',
             files: (PRPreview as ClusterPRPreview).renderedTemplate,
@@ -115,6 +127,9 @@ const Preview: FC<{
             files: PRPreview.kustomizationFiles,
           },
         ];
+    }
+  };
+  const tabsContent: Array<TabContent> = getTabsContent(context || '');
 
   const downloadFile = () => {
     const zip = new JSZip();
