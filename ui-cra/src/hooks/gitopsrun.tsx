@@ -9,10 +9,14 @@ import { formatError } from '../utils/formatters';
 export const useGetLogs = (req: GetSessionLogsRequest) => {
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
-  const { isLoading, data, error } = useQuery<GetSessionLogsResponse, Error>(
-    'logs',
-    () => coreClient.GetSessionLogs(req),
-    { retry: false, refetchInterval: 5000, onError },
-  );
-  return { isLoading, data, error };
+
+  const { isLoading, data, error, refetch } = useQuery<
+    GetSessionLogsResponse,
+    Error
+  >([req, 'logs'], () => coreClient.GetSessionLogs(req), {
+    retry: false,
+    onError,
+    refetchInterval: 5000,
+  });
+  return { isLoading, data, error, refetch };
 };

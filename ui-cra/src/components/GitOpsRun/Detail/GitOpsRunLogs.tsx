@@ -1,6 +1,8 @@
 import {
   IconButton,
+  MenuItem,
   Table,
+  TableBody,
   TableCell,
   TableContainer,
   TableRow,
@@ -13,9 +15,10 @@ import {
   IconType,
 } from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import React from 'react';
+import React, { SetStateAction } from 'react';
 import styled from 'styled-components';
 import { useGetLogs } from '../../../hooks/gitopsrun';
+import { Select } from '../../../utils/form';
 
 type Props = {
   className?: string;
@@ -65,52 +68,88 @@ const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
 };
 
 function GitOpsRunLogs({ className, name, namespace }: Props) {
-  // const [logOptions, setLogOptions] = React.useState<string[]>([
-  //   'log one',
-  //   'log two',
-  // ]);
-  // const [levelOptions, setLevelOptions] = React.useState<string[]>([
-  //   'level one',
-  //   'level two',
-  // ]);
-  // const [logValue, setLogValue] = React.useState('-');
-  // const [levelValue, setLevelValue] = React.useState('-');
-
   const [reverseSort, setReverseSort] = React.useState<boolean>(false);
   const [token, setToken] = React.useState<string>('');
+  const [logValue, setLogValue] = React.useState<string>('all');
+  const [levelValue, setLevelValue] = React.useState<string>('all');
+  const [logSources, setLogSources] = React.useState<string[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
-  const { isLoading, data } = useGetLogs({
+  const { isLoading, data, refetch } = useGetLogs({
     sessionNamespace: namespace,
     sessionId: name,
     token,
+    logSourceFilter: logValue === 'all' ? '' : logValue,
+    logLevelFilter: levelValue === 'all' ? '' : levelValue,
   });
+
+  const refetchOnChange = (
+    value: string,
+    stateFunction: React.Dispatch<SetStateAction<string>>,
+  ) => {
+    //turn useState into a promise so it finishes before refetch
+    const stateActions = new Promise(() => {
+      //select dropdown value
+      stateFunction(value);
+      //reset logs request
+      setLogs([]);
+      setToken('' as string);
+    });
+
+    stateActions.then(() => refetch());
+  };
 
   React.useEffect(() => {
     if (isLoading) return;
     if (data?.logs?.length && data?.nextToken) {
-      setLogs(reverseSort ? [...data.logs, ...logs] : [...logs, ...data.logs]);
+      if (token)
+        setLogs(
+          reverseSort ? [...data.logs, ...logs] : [...logs, ...data.logs],
+        );
+      else setLogs(reverseSort ? data?.logs.reverse() : data?.logs);
       setToken(data.nextToken);
+      setLogSources(data?.logSources || []);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, data]);
 
   return (
     <Flex className={className} wide tall column>
-      {/* <Flex>
+      <Flex>
         <Select
           label="LOG"
           value={logValue}
-          items={logOptions}
-          onChange={e => setLogValue(e.target.value as string)}
+          defaultValue={''}
+          onChange={e => refetchOnChange(e.target.value as string, setLogValue)}
           className="pad-right"
-        />
+        >
+          <MenuItem key="all" value={'all'}>
+            all
+          </MenuItem>
+          {logSources.map((source, index) => (
+            <MenuItem key={index} value={source}>
+              {source}
+            </MenuItem>
+          ))}
+        </Select>
         <Select
           label="LEVEL"
           value={levelValue}
-          items={levelOptions}
-          onChange={e => setLevelValue(e.target.value as string)}
-        />
-      </Flex> */}
+          defaultValue={'all'}
+          onChange={e =>
+            refetchOnChange(e.target.value as string, setLevelValue)
+          }
+        >
+          <MenuItem key="all" value={'all'}>
+            all
+          </MenuItem>
+          <MenuItem key="info" value={'info'}>
+            info
+          </MenuItem>
+          <MenuItem key="error" value={'error'}>
+            error
+          </MenuItem>
+        </Select>
+      </Flex>
       <Header wide align>
         {makeHeader(logs, reverseSort)}
         <IconButton
@@ -128,9 +167,11 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
       </Header>
       <TableContainer>
         <Table>
-          {logs.map(log => (
-            <LogRow log={log} />
-          ))}
+          <TableBody>
+            {logs.map((log, index) => (
+              <LogRow key={index} log={log} />
+            ))}
+          </TableBody>
         </Table>
       </TableContainer>
     </Flex>
@@ -156,5 +197,9 @@ export default styled(GitOpsRunLogs).attrs({ className: GitOpsRunLogs.name })`
   }
   .MuiTableRow-root {
     border-bottom: none;
+  }
+  //adds padding left for Select text
+  .MuiInputBase-input {
+    padding: 6px 6px 7px;
   }
 `;
