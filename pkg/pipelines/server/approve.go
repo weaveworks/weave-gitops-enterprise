@@ -53,7 +53,7 @@ func (s *server) ApprovePromotion(ctx context.Context, msg *pb.ApprovePromotionR
 		}
 	}
 
-	prURL, err := postApproveRequest(s.pipelineControllerAddress, p, msg.Env, msg.Revision, hmacSecret)
+	prURL, err := s.postApproveRequest(s.pipelineControllerAddress, p, msg.Env, msg.Revision, hmacSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed sending approve request to pipeline controller for pipeline=%s in namespace=%s in cluster=%s: %w",
 			msg.Name, msg.Namespace, s.cluster, err)
@@ -70,7 +70,7 @@ func sign(payload, key string) string {
 	return fmt.Sprintf("sha256=%x", h.Sum(nil))
 }
 
-func postApproveRequest(controllerAddress string, p ctrl.Pipeline, env string, revision string, hmacSecret *corev1.Secret) (string, error) {
+func (s *server) postApproveRequest(controllerAddress string, p ctrl.Pipeline, env string, revision string, hmacSecret *corev1.Secret) (string, error) {
 	headers := map[string][]string{
 		"Content-Type": {"application/json"},
 	}
@@ -81,6 +81,7 @@ func postApproveRequest(controllerAddress string, p ctrl.Pipeline, env string, r
 		headers["X-Signature"] = []string{sign("", string(hmacSecret.Data["hmac-key"]))}
 	}
 
+	s.log.Info("Sending POST request to pipeline controller", "url", controllerAddress)
 	// Create the HTTP request
 	address := fmt.Sprintf("%s/approval/%s/%s/%s/%s", controllerAddress, p.Namespace, p.Name, env, revision)
 

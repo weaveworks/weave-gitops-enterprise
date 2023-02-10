@@ -6,6 +6,7 @@ import {
   Pipelines,
 } from '../../../api/pipelines/pipelines.pb';
 import { CircularProgress } from '@material-ui/core';
+import { Alert, AlertTitle } from '@material-ui/lab';
 
 const PromotePipeline = ({
   req,
@@ -15,43 +16,55 @@ const PromotePipeline = ({
   promoteVersion: string;
 }) => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState('');
   const [url, setUrl] = useState('');
 
   const approvePromotion = useCallback(() => {
     setLoading(true);
+    setError('');
     Pipelines.ApprovePromotion(req)
       .then(res => {
         setUrl(res.pullRequestURL || '');
       })
-      .catch(() => {
-        setError(true);
+      .catch(err => {
+        setError(err?.message || 'Promoting fails');
       })
       .finally(() => {
         setLoading(false);
       });
   }, [req]);
 
-  if (error) {
-    return <span>Something went wrong</span>;
-  }
   return (
-    <Flex align center >
-      {!url ? (
-        <Button
-          startIcon={<ShowChartIcon />}
-          onClick={() => approvePromotion()}
-          disabled={loading}
+    <>
+      {error && !loading && (
+        <Alert
+          severity="error"
+          style={{
+            marginBottom: '8px',
+          }}
         >
-          Promote {promoteVersion}
-          {loading && (
-            <CircularProgress size={20} style={{ marginLeft: '8px' }} />
-          )}
-        </Button>
-      ) : (
-        <Link href={url}>Pull Request</Link>
+          <AlertTitle>Error promoting pipleline</AlertTitle>
+          {error}
+        </Alert>
       )}
-    </Flex>
+
+      <Flex align center>
+        {!url ? (
+          <Button
+            startIcon={<ShowChartIcon />}
+            onClick={() => approvePromotion()}
+            disabled={loading}
+          >
+            Promote {promoteVersion}
+            {loading && (
+              <CircularProgress size={20} style={{ marginLeft: '8px' }} />
+            )}
+          </Button>
+        ) : (
+          <Link href={url}>Pull Request</Link>
+        )}
+      </Flex>
+    </>
   );
 };
 
