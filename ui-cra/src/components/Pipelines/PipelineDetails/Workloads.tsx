@@ -119,6 +119,7 @@ function Workloads({ pipeline }: { pipeline: Pipeline }) {
                   name: pipeline.name,
                   env: env.name,
                   namespace: pipeline.namespace,
+                  revision: promoteVersion,
                 }}
                 promoteVersion={promoteVersion || ''}
               />
