@@ -54,7 +54,7 @@ type server struct {
 	clients           clustersmngr.ClustersManager
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 	scheme            *k8sruntime.Scheme
-	cluster           string
+	// cluster           string
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -102,7 +102,7 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 			if apimeta.IsNoMatchError(e.Err) {
 				// Skip reporting an error if a leaf cluster does not have the tf-controller CRD installed.
 				// It is valid for leaf clusters to not have tf installed.
-				s.log.Info("tf-controller crd not present on cluster, skipping error", "cluster", e.Cluster)
+				s.log.Info("gitopssets crd not present on cluster, skipping error", "cluster", e.Cluster)
 				continue
 			}
 
@@ -112,7 +112,6 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 			})
 
 		}
-
 	}
 
 	gitopssets := []*pb.GitOpsSet{}
@@ -175,9 +174,9 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	var opts client.MatchingLabels
+	// var opts client.MatchingLabels
 
-	opts = client.MatchingLabels{
+	opts := client.MatchingLabels{
 		GitOpsSetNameKey:      msg.Name,
 		GitOpsSetNamespaceKey: msg.Namespace,
 	}

@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
+	gitopssetsv1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -13,7 +14,9 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
-	v1 "k8s.io/api/core/v1"
+	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,10 +25,13 @@ import (
 
 func BuildScheme() *runtime.Scheme {
 	scheme := runtime.NewScheme()
-	utilruntime.Must(v1.AddToScheme(scheme))
+	utilruntime.Must(corev1.AddToScheme(scheme))
 	utilruntime.Must(ctrl.AddToScheme(scheme))
 	utilruntime.Must(helm.AddToScheme(scheme))
 	utilruntime.Must(tfctrl.AddToScheme(scheme))
+	utilruntime.Must(gitopssetsv1.AddToScheme(scheme))
+	utilruntime.Must(rbacv1.AddToScheme(scheme))
+	utilruntime.Must(appsv1.AddToScheme(scheme))
 
 	return scheme
 }
@@ -59,7 +65,7 @@ func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfak
 		return nil, clustersmngr.ClusterNotFoundError{Cluster: s}
 	}
 
-	nsMap := map[string][]v1.Namespace{"Default": {}}
+	nsMap := map[string][]corev1.Namespace{"Default": {}}
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
 
 	factory := &clustersmngrfakes.FakeClustersManager{}
