@@ -27,6 +27,9 @@ spec:
           namespace: default
         spec:
           interval: 5m
+          kubeConfig:
+            secretRef:
+              name: "{{ .element.region }}-vcluster-kubeconfig"
           chart:
             spec:
               chart: podinfo
@@ -49,15 +52,13 @@ metadata:
 spec:
   generators:
     - gitRepository:
-        repositoryRef: flux-system
+        repositoryRef: foot-wge-dev-eu
         files:
-          - path: regions/eu/podinfo/config.yaml
-          # name: eu
+          - path: podinfo/config.yaml
     - gitRepository:
-        repositoryRef: flux-system
+        repositoryRef: foot-wge-dev-us
         files:
-          - path: regions/us/podinfo/config.yaml
-          # name: us
+          - path: podinfo/config.yaml
   templates:
     - content:
         apiVersion: v1
