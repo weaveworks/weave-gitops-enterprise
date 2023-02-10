@@ -1,4 +1,14 @@
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: podinfo-eu-env-values
+  namespace: default
+data:
+  values.yaml: |
+    ui:
+      color: "#00ccff"
+---
 apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
