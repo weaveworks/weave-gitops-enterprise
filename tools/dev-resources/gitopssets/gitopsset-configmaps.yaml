@@ -14,10 +14,24 @@ metadata:
   namespace: default
 spec:
   generators:
-    - list:
-        elements:
-          - region: eu
-          - region: us
+    - matrix:
+        generators:
+          - gitRepository:
+              repositoryRef: foot-wge-dev-eu
+              files:
+                - path: podinfo/config.yaml
+          - list:
+              elements:
+                - region: eu
+    - matrix:
+        generators:
+          - gitRepository:
+              repositoryRef: foot-wge-dev-us
+              files:
+                - path: podinfo/config.yaml
+          - list:
+              elements:
+                - region: us
   templates:
     - content:
         apiVersion: helm.toolkit.fluxcd.io/v2beta1
@@ -26,6 +40,7 @@ spec:
           name: podinfo-{{ .element.region }}
           namespace: default
         spec:
+          releaseName: podinfo
           interval: 5m
           kubeConfig:
             secretRef:
@@ -38,35 +53,5 @@ spec:
                 name: podinfo
                 namespace: default
               interval: 1m
-          valuesFrom:
-            - kind: ConfigMap
-              name: "podinfo-{{ .element.region }}-config"
-              optional: true
-              valuesKey: values.yaml
----
-apiVersion: templates.weave.works/v1alpha1
-kind: GitOpsSet
-metadata:
-  name: gitopsset-podinfo-config
-  namespace: default
-spec:
-  generators:
-    - gitRepository:
-        repositoryRef: foot-wge-dev-eu
-        files:
-          - path: podinfo/config.yaml
-    - gitRepository:
-        repositoryRef: foot-wge-dev-us
-        files:
-          - path: podinfo/config.yaml
-  templates:
-    - content:
-        apiVersion: v1
-        kind: ConfigMap
-        metadata:
-          name: podinfo-{{ .element.region }}-config
-          namespace: default
-        data:
-          values.yaml: |
-            ui:
-              color: "{{ .element.values.ui.color }}"
+          values: |
+            {{ .element.values | toJson }}
