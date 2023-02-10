@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -186,6 +187,7 @@ func TestGetReconciledObjects(t *testing.T) {
 	reconciledObjs := []client.Object{
 		&appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
+				UID: "abc",
 				Name:      "my-deployment",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
@@ -214,6 +216,7 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 		&corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
+				UID: "efg",
 				Name:      "my-configmap",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
@@ -224,6 +227,7 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 		&corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
+				UID: "hij",
 				Name:      "my-configmap-2",
 				Namespace: ns1.Name,
 			},
@@ -280,6 +284,8 @@ func TestGetReconciledObjects(t *testing.T) {
 				ClusterName: cluster.DefaultCluster,
 			})
 
+			fmt.Println(res.Objects)
+
 			g.Expect(err).NotTo(HaveOccurred())
 			g.Expect(res.Objects).To(HaveLen(tt.expectedLen), "unexpected size of returned object list")
 
@@ -310,88 +316,3 @@ func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.
 	return ns
 }
 
-// func TestGetChildObjects(t *testing.T) {
-// 	g := NewGomegaWithT(t)
-
-// 	ctx := context.Background()
-
-// 	automationName := "my-automation"
-
-// 	ns := corev1.Namespace{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name: "test-namespace",
-// 		},
-// 	}
-
-// 	deployment := &appsv1.Deployment{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      "my-deployment",
-// 			Namespace: ns.Name,
-// 			UID:       "this-is-not-an-uid",
-// 		},
-// 		Spec: appsv1.DeploymentSpec{
-// 			Selector: &metav1.LabelSelector{
-// 				MatchLabels: map[string]string{
-// 					"app": automationName,
-// 				},
-// 			},
-// 			Template: corev1.PodTemplateSpec{
-// 				ObjectMeta: metav1.ObjectMeta{
-// 					Labels: map[string]string{"app": automationName},
-// 				},
-// 				Spec: corev1.PodSpec{
-// 					Containers: []corev1.Container{{
-// 						Name:  "nginx",
-// 						Image: "nginx",
-// 					}},
-// 				},
-// 			},
-// 		},
-// 	}
-
-// 	rs := &appsv1.ReplicaSet{
-// 		ObjectMeta: metav1.ObjectMeta{
-// 			Name:      fmt.Sprintf("%s-123abcd", automationName),
-// 			Namespace: ns.Name,
-// 		},
-// 		Spec: appsv1.ReplicaSetSpec{
-// 			Template: deployment.Spec.Template,
-// 			Selector: deployment.Spec.Selector,
-// 		},
-// 		Status: appsv1.ReplicaSetStatus{
-// 			Replicas: 1,
-// 		},
-// 	}
-
-// 	rs.SetOwnerReferences([]metav1.OwnerReference{{
-// 		UID:        deployment.UID,
-// 		APIVersion: appsv1.SchemeGroupVersion.String(),
-// 		Kind:       "Deployment",
-// 		Name:       deployment.Name,
-// 	}})
-
-// 	scheme, err := kube.CreateScheme()
-// 	g.Expect(err).To(BeNil())
-
-// 	client := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&ns, deployment, rs).Build()
-// 	cfg := makeServerConfig(client, t)
-// 	c := makeServer(cfg, t)
-
-// 	res, err := c.GetChildObjects(ctx, &pb.GetChildObjectsRequest{
-// 		ParentUid: string(deployment.UID),
-// 		Namespace: ns.Name,
-// 		GroupVersionKind: &pb.GroupVersionKind{
-// 			Group:   "apps",
-// 			Version: "v1",
-// 			Kind:    "ReplicaSet",
-// 		},
-// 		ClusterName: cluster.DefaultCluster,
-// 	})
-
-// 	g.Expect(err).NotTo(HaveOccurred())
-// 	g.Expect(res.Objects).To(HaveLen(1))
-
-// 	first := res.Objects[0]
-// 	g.Expect(first.Payload).To(ContainSubstring("ReplicaSet"))
-// 	g.Expect(first.Payload).To(ContainSubstring(rs.Name))
-// }

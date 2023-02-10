@@ -44,17 +44,6 @@ service GitOpsSets {
         };
     };
 
-    /**
-    * GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-    * Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-    */
-    rpc GetChildObjects(GetChildObjectsRequest) returns (GetChildObjectsResponse) {
-        option (google.api.http) = {
-            post: "/v1/child_objects"
-            body: "*"
-        };
-    };
-
     rpc SyncGitOpsSet(SyncGitOpsSetRequest) returns (SyncGitOpsSetResponse) {
         option (google.api.http) = {
             post : "/v1/gitopssets/sync"
@@ -104,25 +93,12 @@ message GetReconciledObjectsResponse {
     repeated Object objects = 1;
 }
 
-
-message GetChildObjectsRequest {
-    GroupVersionKind groupVersionKind = 1;
-    string           namespace        = 2;
-    string           parentUid        = 3;
-    string           clusterName      = 4;
-}
-
-message GetChildObjectsResponse {
-    repeated Object objects = 1;
-}
-
-
 message SyncGitOpsSetRequest {
     string clusterName = 1;
     string name        = 2;
     string namespace   = 3;
 }
 
-message  SyncGitOpsSetResponse {
+message SyncGitOpsSetResponse {
     bool success = 1;
 }

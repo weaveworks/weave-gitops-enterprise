@@ -18,6 +18,7 @@ import {
   HelmRelease,
   Kustomization,
   Provider,
+  coreClient,
 } from '@weaveworks/weave-gitops';
 import {
   GroupVersionKind,
@@ -84,12 +85,22 @@ export function useGetReconciledTree(
 ) {
   return useQuery<any[], RequestError>(
     ['reconciled_objects', { name, namespace, type, kinds }],
-    () => getChildren(GitOpsSets, name, namespace, type, kinds, clusterName),
+    () =>
+      getChildren(
+        coreClient,
+        GitOpsSets,
+        name,
+        namespace,
+        type,
+        kinds,
+        clusterName,
+      ),
     { retry: false, refetchInterval: 5000 },
   );
 }
 
 export const getChildren = async (
+  core: typeof coreClient,
   client: typeof GitOpsSets,
   name: string,
   namespace: string,
@@ -109,7 +120,7 @@ export const getChildren = async (
   for (let o = 0; o < length; o++) {
     const obj = convertResponse('', objects?.[o] || ({} as ResponseObject));
     await getChildrenRecursive(
-      client,
+      core,
       namespace,
       obj,
       clusterName,
@@ -121,7 +132,7 @@ export const getChildren = async (
 };
 
 export const getChildrenRecursive = async (
-  client: typeof GitOpsSets,
+  core: typeof coreClient,
   namespace: string,
   object: FluxObject,
   clusterName: string,
@@ -135,7 +146,7 @@ export const getChildrenRecursive = async (
     for (let i = 0; i < k.children.length; i++) {
       const child: GroupVersionKind = k.children[i];
 
-      const res = await client.GetChildObjects({
+      const res = await core.GetChildObjects({
         parentUid: object.uid,
         namespace,
         groupVersionKind: child,
@@ -150,7 +161,7 @@ export const getChildrenRecursive = async (
           res?.objects?.[q] || ({} as ResponseObject),
         );
         // Dive down one level and update the lookup accordingly.
-        await getChildrenRecursive(client, namespace, c, clusterName, {
+        await getChildrenRecursive(core, namespace, c, clusterName, {
           [child.kind as string]: child,
         });
         children.push(c);

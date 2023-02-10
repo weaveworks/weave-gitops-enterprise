@@ -24,10 +24,6 @@ type GitOpsSetsClient interface {
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
-	//
-	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-	GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error)
 	SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error)
 }
 
@@ -66,15 +62,6 @@ func (c *gitOpsSetsClient) GetReconciledObjects(ctx context.Context, in *GetReco
 	return out, nil
 }
 
-func (c *gitOpsSetsClient) GetChildObjects(ctx context.Context, in *GetChildObjectsRequest, opts ...grpc.CallOption) (*GetChildObjectsResponse, error) {
-	out := new(GetChildObjectsResponse)
-	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/GetChildObjects", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *gitOpsSetsClient) SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error) {
 	out := new(SyncGitOpsSetResponse)
 	err := c.cc.Invoke(ctx, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", in, out, opts...)
@@ -94,10 +81,6 @@ type GitOpsSetsServer interface {
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
-	//
-	// GetChildObjects returns the children of a given object, specified by a GroupVersionKind.
-	// Not all Kubernets objects have children. For example, a Deployment has a child ReplicaSet, but a Service has no child objects.
-	GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error)
 	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }
@@ -114,9 +97,6 @@ func (UnimplementedGitOpsSetsServer) ToggleSuspendGitOpsSet(context.Context, *To
 }
 func (UnimplementedGitOpsSetsServer) GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetReconciledObjects not implemented")
-}
-func (UnimplementedGitOpsSetsServer) GetChildObjects(context.Context, *GetChildObjectsRequest) (*GetChildObjectsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChildObjects not implemented")
 }
 func (UnimplementedGitOpsSetsServer) SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncGitOpsSet not implemented")
@@ -188,24 +168,6 @@ func _GitOpsSets_GetReconciledObjects_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GitOpsSets_GetChildObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetChildObjectsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(GitOpsSetsServer).GetChildObjects(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/gitopssets.v1.GitOpsSets/GetChildObjects",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GitOpsSetsServer).GetChildObjects(ctx, req.(*GetChildObjectsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _GitOpsSets_SyncGitOpsSet_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(SyncGitOpsSetRequest)
 	if err := dec(in); err != nil {
@@ -242,10 +204,6 @@ var GitOpsSets_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetReconciledObjects",
 			Handler:    _GitOpsSets_GetReconciledObjects_Handler,
-		},
-		{
-			MethodName: "GetChildObjects",
-			Handler:    _GitOpsSets_GetChildObjects_Handler,
 		},
 		{
 			MethodName: "SyncGitOpsSet",

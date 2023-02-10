@@ -47,17 +47,6 @@ export type GetReconciledObjectsResponse = {
   objects?: GitopssetsV1Types.Object[]
 }
 
-export type GetChildObjectsRequest = {
-  groupVersionKind?: GitopssetsV1Types.GroupVersionKind
-  namespace?: string
-  parentUid?: string
-  clusterName?: string
-}
-
-export type GetChildObjectsResponse = {
-  objects?: GitopssetsV1Types.Object[]
-}
-
 export type SyncGitOpsSetRequest = {
   clusterName?: string
   name?: string
@@ -77,9 +66,6 @@ export class GitOpsSets {
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/reconciled_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static GetChildObjects(req: GetChildObjectsRequest, initReq?: fm.InitReq): Promise<GetChildObjectsResponse> {
-    return fm.fetchReq<GetChildObjectsRequest, GetChildObjectsResponse>(`/v1/child_objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static SyncGitOpsSet(req: SyncGitOpsSetRequest, initReq?: fm.InitReq): Promise<SyncGitOpsSetResponse> {
     return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/gitopssets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})

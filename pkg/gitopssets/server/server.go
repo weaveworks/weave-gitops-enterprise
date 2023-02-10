@@ -274,65 +274,7 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 		objects = append(objects, o)
 	}
 
-	fmt.Print("GetReconciledObjectsResponse: ", objects)
-
 	return &pb.GetReconciledObjectsResponse{Objects: objects}, respErrors.ErrorOrNil()
-}
-
-func (cs *server) GetChildObjects(ctx context.Context, msg *pb.GetChildObjectsRequest) (*pb.GetChildObjectsResponse, error) {
-	clustersClient, err := cs.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	if err != nil {
-		return nil, fmt.Errorf("error getting impersonating client: %w", err)
-	}
-
-	opts := client.InNamespace(msg.Namespace)
-
-	listResult := unstructured.UnstructuredList{}
-
-	listResult.SetGroupVersionKind(schema.GroupVersionKind{
-		Group:   msg.GroupVersionKind.Group,
-		Version: msg.GroupVersionKind.Version,
-		Kind:    msg.GroupVersionKind.Kind,
-	})
-
-	if err := clustersClient.List(ctx, msg.ClusterName, &listResult, opts); err != nil {
-		return nil, fmt.Errorf("could not get unstructured object: %s", err)
-	}
-
-	respErrors := multierror.Error{}
-	clusterUserNamespaces := cs.clients.GetUserNamespaces(auth.Principal(ctx))
-	objects := []*pb.Object{}
-
-ItemsLoop:
-	for _, obj := range listResult.Items {
-		refs := obj.GetOwnerReferences()
-		if len(refs) == 0 {
-			// Ignore items without OwnerReference.
-			// for example: dev-weave-gitops-test-connection
-			continue ItemsLoop
-		}
-
-		for _, ref := range refs {
-			if ref.UID != types.UID(msg.ParentUid) {
-				// Assuming all owner references have the same parent UID,
-				// this is not the child we are looking for.
-				// Skip the rest of the operations in Items loops.
-				continue ItemsLoop
-			}
-		}
-
-		tenant := core.GetTenant(obj.GetNamespace(), msg.ClusterName, clusterUserNamespaces)
-
-		obj, err := K8sObjectToProto(&obj, msg.ClusterName, tenant, nil)
-
-		if err != nil {
-			respErrors = *multierror.Append(fmt.Errorf("error converting objects: %w", err), respErrors.Errors...)
-			continue
-		}
-		objects = append(objects, obj)
-	}
-
-	return &pb.GetChildObjectsResponse{Objects: objects}, nil
 }
 
 func sanitizeSecret(obj *unstructured.Unstructured) (client.Object, error) {
