@@ -162,3 +162,6 @@ export interface AppPRPreview {
   kustomizationFiles: { path: string; content: string }[];
   helmReleaseFiles: { path: string; content: string }[];
 }
+export interface SecretPRPreview {
+  externalSecretsFiles: { path: string; content: string }[];
+}
