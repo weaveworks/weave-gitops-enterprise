@@ -174,8 +174,6 @@ func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciled
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	// var opts client.MatchingLabels
-
 	opts := client.MatchingLabels{
 		GitOpsSetNameKey:      msg.Name,
 		GitOpsSetNamespaceKey: msg.Namespace,

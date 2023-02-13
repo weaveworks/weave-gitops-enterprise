@@ -36,7 +36,6 @@ export const PrviewPRModal = ({ formData, getClusterAutomations }: any) => {
       })
       .finally(() => setPreviewLoading(false));
   }, [
-    formData,
     getClusterAutomations,
     setOpenPreview,
     setPRPreview,

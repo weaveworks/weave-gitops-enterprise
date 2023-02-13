@@ -14,10 +14,25 @@ import {
 import { Link } from 'react-router-dom';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
-import { GitOpsSet } from '../../api/gitopssets/types.pb';
+import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
 import _ from 'lodash';
 import { Routes } from '../../utils/nav';
+
+export const getInventory = (gs: GitOpsSet) => {
+  const entries = gs?.inventory || [];
+  return Array.from(
+    new Set(
+      entries.map((entry: ResourceRef) => {
+        // entry is namespace_name_group_kind, but name can contain '_' itself
+        const parts = entry?.id?.split('_');
+        const kind = parts?.[parts.length - 1];
+        const group = parts?.[parts.length - 2];
+        return { group, version: entry.version, kind };
+      }),
+    ),
+  );
+};
 
 const GitopsSets: FC = () => {
   const { isLoading, data } = useListGitOpsSets();

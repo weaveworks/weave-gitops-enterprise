@@ -31,8 +31,7 @@ import {
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { Condition, GroupVersionKind } from '../../api/gitopssets/types.pb';
-import { getInventory } from './ReconciledObjectsTable';
-import { RequestError } from '../../types/custom';
+import { getInventory } from '.';
 
 const YAML = require('yaml');
 
@@ -56,40 +55,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   const [suspending, setSuspending] = React.useState(false);
   const { data } = useListGitOpsSets();
   const { setNotifications } = useNotifications();
-
-  const [gitOpsSet] =
-    data?.gitopssets?.filter(
-      gs =>
-        gs.name === name &&
-        gs.namespace === namespace &&
-        gs.clusterName === clusterName,
-    ) || [];
-
-  //grab data
-  const {
-    data: objects,
-    error,
-    isLoading,
-  } = useGetReconciledTree(
-    gitOpsSet.name || '',
-    gitOpsSet.namespace || '',
-    'GitOpsSet',
-    getInventory(gitOpsSet) as GroupVersionKind[],
-    gitOpsSet.clusterName,
-  );
-
-  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    objects: objects || [],
-    error: error || ({} as RequestError),
-    isLoading: isLoading || false,
-    source: gitOpsSet.sourceRef || ({} as ObjectRef),
-    name: gitOpsSet.name || '',
-    namespace: gitOpsSet.namespace || '',
-    suspended: gitOpsSet.suspended || false,
-    conditions: gitOpsSet.conditions || ([] as Condition[]),
-    type: gitOpsSet.type || 'GitOpsSet',
-    clusterName: gitOpsSet.clusterName || '',
-  };
 
   const sync = useSyncGitOpsSet({
     name,
@@ -152,12 +117,43 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
       .finally(() => setSuspending(false));
   };
 
+  const [gitOpsSet] =
+    data?.gitopssets?.filter(
+      gs =>
+        gs.name === name &&
+        gs.namespace === namespace &&
+        gs.clusterName === clusterName,
+    ) || [];
+
+  //grab data
+  const {
+    data: objects,
+    error,
+    isLoading,
+  } = useGetReconciledTree(
+    gitOpsSet?.name || '',
+    gitOpsSet?.namespace || '',
+    'GitOpsSet',
+    gitOpsSet && (getInventory(gitOpsSet) as GroupVersionKind[]),
+    gitOpsSet?.clusterName,
+  );
+
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    objects: objects || [],
+    error: error || undefined,
+    isLoading: isLoading || false,
+    source: gitOpsSet?.sourceRef || ({} as ObjectRef),
+    name: gitOpsSet?.name || '',
+    namespace: gitOpsSet?.namespace || '',
+    suspended: gitOpsSet?.suspended || false,
+    conditions: gitOpsSet?.conditions || ([] as Condition[]),
+    type: gitOpsSet?.type || 'GitOpsSet',
+    clusterName: gitOpsSet?.clusterName || '',
+  };
+
   if (!gitOpsSet) {
     return null;
   }
-
-  console.log(gitOpsSet);
-  console.log(reconciledObjectsAutomation);
 
   return (
     <PageTemplate
