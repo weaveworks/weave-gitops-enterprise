@@ -101,7 +101,7 @@ func TestSuspendGitOpsSet(t *testing.T) {
 }
 
 func TestSyncGitOpsSet(t *testing.T) {
-	t.Skip("We need to implement flux reconcilation on the gitopssets-controller")
+	t.Skip("We need to implement flux reconciliation on the gitopssets-controller")
 
 	ctx := context.Background()
 	client, k8s := setup(t)

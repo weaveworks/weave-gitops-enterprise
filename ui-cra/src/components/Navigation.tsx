@@ -18,10 +18,10 @@ import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
+import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
-import GitopsSets from './GitopsSets';
 
 const { xxs, xs, small, medium } = theme.spacing;
 const { neutral10, neutral30, neutral40, primary } = theme.colors;
@@ -171,7 +171,7 @@ const NavItems = () => {
     {
       name: 'GITOPS SETS',
       link: Routes.GitOpsSets,
-      icon: <Applications />,
+      icon: <GitOpsSetsIcon />,
     },
     {
       name: 'GITOPS RUN',

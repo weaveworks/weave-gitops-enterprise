@@ -156,6 +156,9 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     return null;
   }
 
+  console.log(gitOpsSet);
+  console.log(reconciledObjectsAutomation);
+
   return (
     <PageTemplate
       documentTitle="GitOpsSets"
