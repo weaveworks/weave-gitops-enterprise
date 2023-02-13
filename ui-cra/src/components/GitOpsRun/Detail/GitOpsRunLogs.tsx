@@ -34,22 +34,16 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
-const makeHeader = (
-  logs: LogEntry[],
-  reverseSort: boolean,
-  isLoading: boolean,
-) => {
+const makeHeader = (logs: LogEntry[], refetching: boolean) => {
   if (!logs.length) {
-    if (isLoading) return 'Fetching logs...';
+    if (refetching) return 'Fetching logs...';
     else return 'No logs found';
   }
 
   const beginning = formatLogTimestamp(logs[0].timestamp);
   const end = formatLogTimestamp(logs[logs.length - 1].timestamp);
 
-  return `showing logs from ${
-    reverseSort ? `${end} to ${beginning}` : `${beginning} to ${end}`
-  }`;
+  return `showing logs from ${beginning} to ${end}`;
 };
 
 const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
@@ -80,7 +74,8 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   const [levelValue, setLevelValue] = React.useState<string>('all');
   const [logSources, setLogSources] = React.useState<string[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
-  const { isLoading, data } = useGetLogs({
+  const [refetching, setRefetching] = React.useState<boolean>(false);
+  const { isLoading, data, refetch } = useGetLogs({
     sessionNamespace: namespace,
     sessionId: name,
     token,
@@ -92,9 +87,19 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
     value: string,
     stateFunction: React.Dispatch<SetStateAction<string>>,
   ) => {
-    setLogs([]);
-    setToken('' as string);
-    stateFunction(value);
+    const stateActions = new Promise(() => {
+      setRefetching(true);
+      //select dropdown value
+      stateFunction(value);
+      //reset logs request
+      setLogs([]);
+      setToken('' as string);
+    });
+
+    stateActions.then(() => {
+      refetch();
+      setRefetching(false);
+    });
   };
 
   React.useEffect(() => {
@@ -140,19 +145,22 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
             refetchOnChange(e.target.value as string, setLevelValue)
           }
         >
-          <MenuItem key="all" value={'all'}>
+          <MenuItem key="all" value="all">
             all
           </MenuItem>
-          <MenuItem key="info" value={'info'}>
+          <MenuItem key="info" value="info">
             info
           </MenuItem>
-          <MenuItem key="error" value={'error'}>
+          <MenuItem key="warn" value="warn">
+            warn
+          </MenuItem>
+          <MenuItem key="error" value="error">
             error
           </MenuItem>
         </Select>
       </Flex>
       <Header wide align>
-        {makeHeader(logs, reverseSort, isLoading)}
+        {makeHeader(logs, refetching)}
         <IconButton
           onClick={() => {
             setLogs(logs.reverse());
