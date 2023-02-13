@@ -4,11 +4,11 @@ import {
   formatURL,
   Kind,
   KubeStatusIndicator,
+  V2Routes
 } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { Link } from 'react-router-dom';
 import { useListImageAutomation } from '../../../contexts/ImageAutomation';
-import { Routes } from '../../../utils/nav';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { showInterval } from '../time';
 
@@ -29,7 +29,7 @@ const ImageRepositoriesTable = () => {
             label: 'Name',
             value: ({ name, namespace, clusterName }) => (
               <Link
-                to={formatURL(Routes.ImageAutomationRepositoriesDetails, {
+                to={formatURL(V2Routes.ImageAutomationRepositoryDetails, {
                   name: name,
                   namespace: namespace,
                   clusterName: clusterName,

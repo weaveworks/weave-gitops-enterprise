@@ -31,7 +31,6 @@ export function getKindRoute(k: Kind | string): string {
   }
 }
 
-
 export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
@@ -69,7 +68,5 @@ export enum Routes {
   SecretDetails = '/secrets/details',
   CreateSecret = '/secrets/create',
 
-  ImageAutomation = "/image_automation",
-  ImageAutomationUpdatesDetails = "/image_update",
-  ImageAutomationRepositoriesDetails = "/image_repo",
+  ImageAutomation = '/image_automation',
 }
