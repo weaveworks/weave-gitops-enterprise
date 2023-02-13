@@ -13,10 +13,14 @@ export const useGetLogs = (req: GetSessionLogsRequest) => {
   const { isLoading, data, error, refetch } = useQuery<
     GetSessionLogsResponse,
     Error
-  >([req, 'logs'], () => coreClient.GetSessionLogs(req), {
-    retry: false,
-    onError,
-    refetchInterval: 5000,
-  });
+  >(
+    [req.logLevelFilter, req.logSourceFilter, 'logs'],
+    () => coreClient.GetSessionLogs(req),
+    {
+      retry: false,
+      onError,
+      refetchInterval: 5000,
+    },
+  );
   return { isLoading, data, error, refetch };
 };

@@ -34,15 +34,21 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
-const makeHeader = (logs: LogEntry[], reverseSort: boolean) => {
-  if (!logs.length) return 'No logs found';
+const makeHeader = (
+  logs: LogEntry[],
+  reverseSort: boolean,
+  isLoading: boolean,
+) => {
+  if (!logs.length) {
+    if (isLoading) return 'Fetching logs...';
+    else return 'No logs found';
+  }
 
-  const timestamp = formatLogTimestamp(
-    reverseSort ? logs[logs.length - 1].timestamp : logs[0].timestamp,
-  );
+  const beginning = formatLogTimestamp(logs[0].timestamp);
+  const end = formatLogTimestamp(logs[logs.length - 1].timestamp);
 
   return `showing logs from ${
-    reverseSort ? `now to ${timestamp}` : `${timestamp} to now`
+    reverseSort ? `${end} to ${beginning}` : `${beginning} to ${end}`
   }`;
 };
 
@@ -74,7 +80,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   const [levelValue, setLevelValue] = React.useState<string>('all');
   const [logSources, setLogSources] = React.useState<string[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
-  const { isLoading, data, refetch } = useGetLogs({
+  const { isLoading, data } = useGetLogs({
     sessionNamespace: namespace,
     sessionId: name,
     token,
@@ -86,26 +92,21 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
     value: string,
     stateFunction: React.Dispatch<SetStateAction<string>>,
   ) => {
-    //turn useState into a promise so it finishes before refetch
-    const stateActions = new Promise(() => {
-      //select dropdown value
-      stateFunction(value);
-      //reset logs request
-      setLogs([]);
-      setToken('' as string);
-    });
-
-    stateActions.then(() => refetch());
+    setLogs([]);
+    setToken('' as string);
+    stateFunction(value);
   };
 
   React.useEffect(() => {
     if (isLoading) return;
     if (data?.logs?.length && data?.nextToken) {
-      if (token)
+      const newLogs = data.logs;
+      //if there are already logs in state
+      if (logs.length)
         setLogs(
-          reverseSort ? [...data.logs, ...logs] : [...logs, ...data.logs],
+          reverseSort ? [...newLogs.reverse(), ...logs] : [...logs, ...newLogs],
         );
-      else setLogs(reverseSort ? data?.logs.reverse() : data?.logs);
+      else setLogs(reverseSort ? newLogs.reverse() : newLogs);
       setToken(data.nextToken);
       setLogSources(data?.logSources || []);
     }
@@ -151,10 +152,10 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
         </Select>
       </Flex>
       <Header wide align>
-        {makeHeader(logs, reverseSort)}
+        {makeHeader(logs, reverseSort, isLoading)}
         <IconButton
           onClick={() => {
-            logs.reverse();
+            setLogs(logs.reverse());
             setReverseSort(!reverseSort);
           }}
         >
