@@ -46,7 +46,7 @@ func TestBuildCache(t *testing.T) {
 						{
 							Verbs:     []string{"get", "list"},
 							APIGroups: []string{"capi.weave.works", "templates.weave.works"},
-							Resources: []string{"capitemplates", "gitopstemplates"},
+							Resources: []string{"capitemplates", "gitopstemplates", "gitopssets"},
 						},
 					},
 				},
@@ -54,7 +54,7 @@ func TestBuildCache(t *testing.T) {
 			want: map[string][]string{
 				"Pipeline":       {"test-ns", "default"},
 				"CAPITemplate":   {"test-ns", "default"},
-				"GitOpsSet": 	  {"test-ns", "default"},
+				"GitOpsSet":      {"test-ns", "default"},
 				"GitOpsTemplate": {"test-ns", "default"},
 				"GitopsCluster":  {"test-ns", "default"},
 			},
@@ -75,7 +75,7 @@ func TestBuildCache(t *testing.T) {
 			want: map[string][]string{
 				"Pipeline":       {"test-ns", "default"},
 				"CAPITemplate":   {"test-ns", "default"},
-				"GitOpsSet": 	  {"test-ns", "default"},
+				"GitOpsSet":      {"test-ns", "default"},
 				"GitOpsTemplate": {"test-ns", "default"},
 				"GitopsCluster":  {"test-ns", "default"},
 			},
@@ -96,7 +96,7 @@ func TestBuildCache(t *testing.T) {
 			want: map[string][]string{
 				"Pipeline":       {"test-ns", "default"},
 				"CAPITemplate":   {},
-				"GitOpsSet": 	  {},
+				"GitOpsSet":      {},
 				"GitOpsTemplate": {},
 				"GitopsCluster":  {"test-ns", "default"},
 			},
