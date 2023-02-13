@@ -54,6 +54,7 @@ func TestBuildCache(t *testing.T) {
 			want: map[string][]string{
 				"Pipeline":       {"test-ns", "default"},
 				"CAPITemplate":   {"test-ns", "default"},
+				"GitOpsSet": 	  {"test-ns", "default"},
 				"GitOpsTemplate": {"test-ns", "default"},
 				"GitopsCluster":  {"test-ns", "default"},
 			},
@@ -74,6 +75,7 @@ func TestBuildCache(t *testing.T) {
 			want: map[string][]string{
 				"Pipeline":       {"test-ns", "default"},
 				"CAPITemplate":   {"test-ns", "default"},
+				"GitOpsSet": 	  {"test-ns", "default"},
 				"GitOpsTemplate": {"test-ns", "default"},
 				"GitopsCluster":  {"test-ns", "default"},
 			},
@@ -94,6 +96,7 @@ func TestBuildCache(t *testing.T) {
 			want: map[string][]string{
 				"Pipeline":       {"test-ns", "default"},
 				"CAPITemplate":   {},
+				"GitOpsSet": 	  {},
 				"GitOpsTemplate": {},
 				"GitopsCluster":  {"test-ns", "default"},
 			},
