@@ -10,11 +10,12 @@ import { Link } from 'react-router-dom';
 import { useListImageAutomation } from '../../../contexts/ImageAutomation';
 import { Routes } from '../../../utils/nav';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
-import { showInterval } from '../updates/ImageAutomationUpdatesTable';
-const kind = 'ImageRepository' as Kind;
+import { showInterval } from '../time';
 
 const ImageRepositoriesTable = () => {
-  const { data, isLoading, error } = useListImageAutomation(kind);
+  const { data, isLoading, error } = useListImageAutomation(
+    Kind.ImageRepository,
+  );
   const initialFilterState = {
     ...filterConfig(data?.objects, 'name'),
   };

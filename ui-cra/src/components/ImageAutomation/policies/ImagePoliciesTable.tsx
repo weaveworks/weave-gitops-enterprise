@@ -5,20 +5,17 @@ import {
   Kind,
   KubeStatusIndicator,
   Link,
-  SourceLink,
-  Timestamp,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { ImgPolicy, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { useListImageAutomation } from '../../../contexts/ImageAutomation';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
-import { showInterval } from '../time';
 
-const ImageAutomationUpdatesTable = () => {
-  const { data, isLoading, error } = useListImageAutomation(
-    Kind.ImageUpdateAutomation,
-  );
+const ImagePoliciesTable = () => {
+  const { data, isLoading, error } = useListImageAutomation(Kind.ImagePolicy);
   const initialFilterState = {
     ...filterConfig(data?.objects, 'name'),
+    ...filterConfig(data?.objects, 'imageRepositoryRef'),
   };
   return (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
@@ -30,7 +27,7 @@ const ImageAutomationUpdatesTable = () => {
             label: 'Name',
             value: ({ name, namespace, clusterName }) => (
               <Link
-                to={formatURL(V2Routes.ImageAutomationUpdatesDetails, {
+                to={formatURL(V2Routes.ImagePolicyDetails, {
                   name: name,
                   namespace: namespace,
                   clusterName: clusterName,
@@ -48,29 +45,37 @@ const ImageAutomationUpdatesTable = () => {
           },
           {
             label: 'Status',
-            value: ({ conditions, suspended }) => (
+            value: (s: Source) => (
               <KubeStatusIndicator
                 short
-                conditions={conditions}
-                suspended={suspended}
+                conditions={s.conditions}
+                suspended={s.suspended}
               />
             ),
             defaultSort: true,
           },
           {
-            label: 'Source',
-            value: ({ sourceRef, clusterName }) => (
-              <SourceLink sourceRef={sourceRef} clusterName={clusterName} />
-            ),
+            label: 'Image Policy',
+            value: ({ imagePolicy }: { imagePolicy: ImgPolicy }) =>
+              imagePolicy?.type || '',
           },
           {
-            label: 'Interval',
-            value: ({ interval }) => showInterval(interval),
+            label: 'Order/Range',
+            value: ({ imagePolicy }: { imagePolicy: ImgPolicy }) =>
+              imagePolicy?.value || '',
           },
           {
-            label: 'Last Run',
-            value: ({ lastAutomationRunTime }) => (
-              <Timestamp time={lastAutomationRunTime} />
+            label: 'Image Repository',
+            value: ({ imageRepositoryRef, namespace, clusterName }) => (
+              <Link
+                to={formatURL(V2Routes.ImageAutomationRepositoryDetails, {
+                  name: imageRepositoryRef,
+                  namespace: namespace,
+                  clusterName: clusterName,
+                })}
+              >
+                {imageRepositoryRef}
+              </Link>
             ),
           },
         ]}
@@ -79,4 +84,4 @@ const ImageAutomationUpdatesTable = () => {
   );
 };
 
-export default ImageAutomationUpdatesTable;
+export default ImagePoliciesTable;

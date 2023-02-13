@@ -1,15 +1,17 @@
-import { Interval, Kind, useGetObject } from '@weaveworks/weave-gitops';
-import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
-
+import {
+  Button,
+  Interval,
+  Kind,
+  Link,
+  useGetObject,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
+import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
-import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { LinkTag } from '../../ProgressiveDelivery/CanaryStyles';
 
 import ImageAutomationDetails from '../ImageAutomationDetails';
-import ImagePolicy from './ImagePolicy';
 
 type Props = {
   className?: string;
@@ -17,57 +19,52 @@ type Props = {
   namespace: string;
   clusterName: string;
 };
-const kind = 'ImageRepository' as Kind; //Kind.ImageRepository
-function ImageAutomationRepoDetails({
-  className,
-  name,
-  namespace,
-  clusterName,
-}: Props) {
-  const { data, isLoading, error } = useGetObject<FluxObject>(
+
+function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
+  const { data, isLoading } = useGetObject<ImageRepository>(
     name,
     namespace,
-    kind,
+    Kind.ImageRepository,
     clusterName,
     {
       refetchInterval: 5000,
     },
   );
-  const rootPath = Routes.ImageAutomationRepositoriesDetails;
+  const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <PageTemplate
-      documentTitle="Image Automation Updates"
+      documentTitle={name}
       path={[
-        { label: 'Image Automation', url: Routes.ImageAutomation },
+        { label: 'Image Repositories', url: V2Routes.ImageRepositories },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading} errors={[error as ListError]}>
-        {!!data && (
-          <ImageAutomationDetails
-            data={data}
-            kind={kind}
-            infoFields={[
-              ['Kind', kind],
-              ['Namespace', data.namespace],
-              [
-                'Image',
-                <LinkTag newTab={true} to={data.obj?.spec?.image}>
-                  {data.obj?.spec?.image}
-                </LinkTag>,
-              ],
-              ['Interval', <Interval interval={data.interval} />],
-              ['Tag Count', data.obj?.status?.lastScanResult?.tagCount],
-            ]}
-            rootPath={rootPath}
-          >
-            <ImagePolicy
-              clusterName={clusterName}
-              name={name}
-              namespace={namespace}
-            />
-          </ImageAutomationDetails>
-        )}
+      <ContentWrapper loading={isLoading}>
+        <ImageAutomationDetails
+          data={data}
+          kind={Kind.ImageRepository}
+          infoFields={[
+            ['Kind', Kind.ImageRepository],
+            ['Namespace', data.namespace],
+            [
+              'Image',
+              <Link newTab={true} to={data.obj?.spec?.image}>
+                {data.obj?.spec?.image}
+              </Link>,
+            ],
+            ['Interval', <Interval interval={data.interval} />],
+            ['Tag Count', data.tagCount],
+          ]}
+          rootPath={rootPath}
+        >
+          <Button>
+            <Link
+              to={`/image_automation/policies?filters=imageRepositoryRef: ${name}_`}
+            >
+              Go To Image Policy
+            </Link>
+          </Button>
+        </ImageAutomationDetails>
       </ContentWrapper>
     </PageTemplate>
   );
