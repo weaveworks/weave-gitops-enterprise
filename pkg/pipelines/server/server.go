@@ -11,7 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 )
 
-const DefaultPipelineControllerAddress = "chart-pipeline-controller-promotion:8082"
+const DefaultPipelineControllerAddress = "http://chart-pipeline-controller-promotion:8082"
 
 type ServerOpts struct {
 	logr.Logger
