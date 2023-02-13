@@ -254,7 +254,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		workspaceName := "test-team"
 		workspaceNamespaces := "test-kustomization, test-system"
-		resourceNamespaceRegx := "test-kustomization|test-system"
+		resourceNamespaceRegx := "test-kustomization"
 		workspaceClusterName := leafCluster.Name
 
 		ginkgo.JustBeforeEach(func() {
