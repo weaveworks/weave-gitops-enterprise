@@ -1,6 +1,17 @@
-import { Table, TableCell, TableContainer, TableRow } from '@material-ui/core';
+import {
+  IconButton,
+  Table,
+  TableCell,
+  TableContainer,
+  TableRow,
+} from '@material-ui/core';
 import { Error, Info } from '@material-ui/icons';
-import { Flex } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  formatLogTimestamp,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React from 'react';
 import styled from 'styled-components';
@@ -20,6 +31,18 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
+const makeHeader = (logs: LogEntry[], reverseSort: boolean) => {
+  if (!logs.length) return 'No logs found';
+
+  const timestamp = formatLogTimestamp(
+    reverseSort ? logs[logs.length - 1].timestamp : logs[0].timestamp,
+  );
+
+  return `showing logs from ${
+    reverseSort ? `now to ${timestamp}` : `${timestamp} to now`
+  }`;
+};
+
 const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   return (
     <TableRow>
@@ -32,7 +55,9 @@ const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
           )}
         </Flex>
       </TableCell>
-      <TableCell className="gray">{log.timestamp || '-'}</TableCell>
+      <TableCell className="gray">
+        {formatLogTimestamp(log.timestamp)}
+      </TableCell>
       <TableCell>{log.source || '-'}</TableCell>
       <TableCell className="break-word">{log.message || '-'}</TableCell>
     </TableRow>
@@ -51,8 +76,10 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   // const [logValue, setLogValue] = React.useState('-');
   // const [levelValue, setLevelValue] = React.useState('-');
 
-  const [token, setToken] = React.useState('');
-  const { isLoading, data, error } = useGetLogs({
+  const [reverseSort, setReverseSort] = React.useState<boolean>(false);
+  const [token, setToken] = React.useState<string>('');
+  const [logs, setLogs] = React.useState<LogEntry[]>([]);
+  const { isLoading, data } = useGetLogs({
     sessionNamespace: namespace,
     sessionId: name,
     token,
@@ -60,10 +87,12 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
 
   React.useEffect(() => {
     if (isLoading) return;
-    setToken(data?.nextToken || '');
-  }, [data]);
-
-  const logs = data?.logs || [];
+    if (data?.logs?.length && data?.nextToken) {
+      setLogs(reverseSort ? [...data.logs, ...logs] : [...logs, ...data.logs]);
+      setToken(data.nextToken);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, data]);
 
   return (
     <Flex className={className} wide tall column>
@@ -82,10 +111,20 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
           onChange={e => setLevelValue(e.target.value as string)}
         />
       </Flex> */}
-      <Header wide>
-        {logs.length
-          ? 'showing logs from ' + logs[0].timestamp
-          : 'No logs found'}
+      <Header wide align>
+        {makeHeader(logs, reverseSort)}
+        <IconButton
+          onClick={() => {
+            logs.reverse();
+            setReverseSort(!reverseSort);
+          }}
+        >
+          <Icon
+            type={IconType.ArrowUpwardIcon}
+            size="small"
+            className={reverseSort ? 'upward' : 'downward'}
+          />
+        </IconButton>
       </Header>
       <TableContainer>
         <Table>

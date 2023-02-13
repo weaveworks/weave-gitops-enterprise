@@ -2336,9 +2336,9 @@
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
 "@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@":
-  version "0.15.0-38-geb24ee5b"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.15.0-38-geb24ee5b/430e59167ad847d5d2f4838999c93328e9726324#430e59167ad847d5d2f4838999c93328e9726324"
-  integrity sha512-jCrTCRREk7vJ9cNi4bCJuMDJaxUe6tFqEfV6H2SGe2cUs61l5LtXyxojbICtyWJaTY98Ew0FwC0XoI2f22A0OA==
+  version "0.16.0-32-g3f675703"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.16.0-32-g3f675703/1602eacd93fe6917d0eb9ece36bc36715f22d9c8#1602eacd93fe6917d0eb9ece36bc36715f22d9c8"
+  integrity sha512-+ZRD/K9sN7xrR/MEB2Uu4Totrh5QRWOcnwHRzO8f8I4X5WX27U8oD6J4U3wlbyaN7stw3MlkAw4ip20wnqNqWQ==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

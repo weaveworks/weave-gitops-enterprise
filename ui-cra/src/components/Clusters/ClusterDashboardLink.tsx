@@ -6,6 +6,12 @@ export function formatClusterDashboardUrl(clusterName: string): string {
   if (clusterName === 'management') return '';
   // clusterName includes namespace in manay places across the console
   // Taking in consideration that cluster Name doesn't contain any / separator
+
+  if (!clusterName) {
+    // https://github.com/weaveworks/weave-gitops-enterprise/issues/2332
+    return '';
+  }
+
   const cls = clusterName.split('/');
   let url = cls[0];
   if (cls.length > 1) {
