@@ -166,3 +166,7 @@ export interface AppPRPreview {
 export type RequestError = Error & {
   code?: number;
 };
+
+export interface SecretPRPreview {
+  externalSecretsFiles: { path: string; content: string }[];
+}
