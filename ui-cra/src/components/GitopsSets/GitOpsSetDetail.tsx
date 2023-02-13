@@ -6,6 +6,9 @@ import {
   KubeStatusIndicator,
   Metadata,
   PageStatus,
+  ReconciledObjectsAutomation,
+  ReconciledObjectsTable,
+  ReconciliationGraph,
   RouterTab,
   SubRouterTabs,
   YamlView,
@@ -21,13 +24,15 @@ import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import useNotifications from '../../contexts/Notifications';
 import {
+  useGetReconciledTree,
   useListGitOpsSets,
   useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import ReconciliationGraph from './ReconciliationGraph';
-import ReconciledObjectsTable from './ReconciledObjectsTable';
+import { Condition, GroupVersionKind } from '../../api/gitopssets/types.pb';
+import { getInventory } from './ReconciledObjectsTable';
+import { RequestError } from '../../types/custom';
 
 const YAML = require('yaml');
 
@@ -59,6 +64,32 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
         gs.namespace === namespace &&
         gs.clusterName === clusterName,
     ) || [];
+
+  //grab data
+  const {
+    data: objects,
+    error,
+    isLoading,
+  } = useGetReconciledTree(
+    gitOpsSet.name || '',
+    gitOpsSet.namespace || '',
+    'GitOpsSet',
+    getInventory(gitOpsSet) as GroupVersionKind[],
+    gitOpsSet.clusterName,
+  );
+
+  const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
+    objects: objects || [],
+    error: error || ({} as RequestError),
+    isLoading: isLoading || false,
+    source: gitOpsSet.sourceRef || ({} as ObjectRef),
+    name: gitOpsSet.name || '',
+    namespace: gitOpsSet.namespace || '',
+    suspended: gitOpsSet.suspended || false,
+    conditions: gitOpsSet.conditions || ([] as Condition[]),
+    type: gitOpsSet.type || 'GitOpsSet',
+    clusterName: gitOpsSet.clusterName || '',
+  };
 
   const sync = useSyncGitOpsSet({
     name,
@@ -184,7 +215,9 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 labels={getLabels(gitOpsSet)}
               />
               <TableWrapper>
-                <ReconciledObjectsTable gitOpsSet={gitOpsSet} />
+                <ReconciledObjectsTable
+                  reconciledObjectsAutomation={reconciledObjectsAutomation}
+                />
               </TableWrapper>
             </Box>
           </RouterTab>
@@ -200,8 +233,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
-              parentObject={gitOpsSet}
-              source={gitOpsSet?.sourceRef || ({} as ObjectRef)}
+              reconciledObjectsAutomation={reconciledObjectsAutomation}
             />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
