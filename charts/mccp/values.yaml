@@ -164,6 +164,9 @@ global:
   capiEnabled: true
   useK8sCachedClients: false
 
+clustersService:
+  args: []
+
 templates-controller:
   enabled: true
   # templates-controller-controller-manager etc

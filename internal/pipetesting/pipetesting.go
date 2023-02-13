@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/alecthomas/assert"
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
@@ -49,6 +50,7 @@ func SetupServer(t *testing.T, fact clustersmngr.ClustersManager, c client.Clien
 
 	fmt.Println(pipelineControllerAddress)
 	pipeSrv := server.NewPipelinesServer(server.ServerOpts{
+		Logger:                    logr.Discard(),
 		ClustersManager:           fact,
 		ManagementFetcher:         mgmtFetcher,
 		Cluster:                   cluster,
