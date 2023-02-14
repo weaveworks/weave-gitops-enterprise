@@ -767,6 +767,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   </div>
                 </div>
               </div>
+              
             </div>
             <div
               class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
@@ -1009,6 +1010,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   </div>
                 </div>
               </div>
+              
             </div>
             <div
               class="MuiGrid-root makeStyles-gridContainer-47 MuiGrid-item MuiGrid-grid-xs-true"
@@ -1140,6 +1142,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   </div>
                 </div>
               </div>
+              
             </div>
           </div>
         </div>
