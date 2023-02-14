@@ -53,7 +53,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 	pipelineErrors := []string{}
 	pipelineResp := convert.PipelineToProto(p)
 	pipelineResp.Status = &pb.PipelineStatus{
-		Environments: map[string]*pb.PipelineStatus_TargetStatusList{},
+		Environments: map[string]*pb.PipelineStatus_EnvironmentStatus{},
 	}
 
 	for _, e := range p.Spec.Environments {
@@ -90,7 +90,7 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 			}
 
 			if _, ok := pipelineResp.Status.Environments[e.Name]; !ok {
-				pipelineResp.Status.Environments[e.Name] = &pb.PipelineStatus_TargetStatusList{
+				pipelineResp.Status.Environments[e.Name] = &pb.PipelineStatus_EnvironmentStatus{
 					TargetsStatuses: []*pb.PipelineTargetStatus{},
 				}
 			}
@@ -117,6 +117,12 @@ func (s *server) GetPipeline(ctx context.Context, msg *pb.GetPipelineRequest) (*
 				Namespace:  t.Namespace,
 				Workloads:  workloads,
 			})
+
+			if envStatus, ok := p.Status.Environments[e.Name]; ok {
+				pipelineResp.Status.Environments[e.Name].WaitingStatus = &pb.WaitingStatus{
+					Revision: envStatus.WaitingApproval.Revision,
+				}
+			}
 		}
 	}
 

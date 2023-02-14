@@ -59,14 +59,14 @@ var _ = ginkgo.BeforeSuite(func() {
 var _ = ginkgo.AfterSuite(func() {
 	//Tear down the suite level setup
 	ginkgo.By(fmt.Sprintf("Logout as a %s user", userCredentials.UserType), func() {
-		gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed()) // Make sure the UI should not has any popups and modal dialogs
-		logoutUser()                                                      // Logout to the weaveworks enterprise
+		if webDriver != nil {
+			gomega.Expect(webDriver.Navigate(testUiUrl)).To(gomega.Succeed()) // Make sure the UI should not has any popups and modal dialogs
+			logoutUser()                                                      // Logout to the weaveworks enterprise
+			gomega.Expect(webDriver.Destroy()).To(gomega.Succeed())
+		}
 	})
 
 	deleteRepo(gitProviderEnv) // Delete the config repository to keep the org clean
-	if webDriver != nil {
-		gomega.Expect(webDriver.Destroy()).To(gomega.Succeed())
-	}
 
 	if _, err := logFile.Stat(); err == nil {
 		logFile.Close()
