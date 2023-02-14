@@ -56,12 +56,17 @@ message PipelineTargetStatus {
     repeated WorkloadStatus workloads = 3;
 }
 
+message WaitingStatus {
+    string revision = 1;
+}
+
 message PipelineStatus {
-    message TargetStatusList {
-        repeated PipelineTargetStatus targetsStatuses = 1;
+    message EnvironmentStatus {
+        WaitingStatus waitingStatus = 1;
+        repeated PipelineTargetStatus targetsStatuses = 2;
     }
 
-    map<string, TargetStatusList> environments = 1;
+    map<string, EnvironmentStatus> environments = 1;
 }
 
 message Pipeline {
