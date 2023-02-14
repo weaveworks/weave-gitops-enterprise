@@ -30,8 +30,8 @@ import {
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
 import {
-  GetTerraformObjectResponse,
   GetTerraformObjectPlanResponse,
+  GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
   ReplanTerraformObjectResponse,
   SyncTerraformObjectResponse,
@@ -43,7 +43,10 @@ import {
   GetExternalSecretResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
+  GetWorkspacePoliciesResponse,
   GetWorkspaceResponse,
+  GetWorkspaceRoleBindingsResponse,
+  GetWorkspaceRolesResponse,
   GetWorkspaceServiceAccountsResponse,
   ListExternalSecretsResponse,
   ListGitopsClustersResponse,
@@ -355,23 +358,23 @@ export class TerraformClientMock implements Terraform {
 }
 
 export class WorkspaceClientMock {
-  constructor() {
-    this.ListWorkspaces = this.ListWorkspaces.bind(this);
-    this.GetWorkspace = this.GetWorkspace.bind(this);
-    this.ListWSServiceAccounts = this.ListWSServiceAccounts.bind(this);
-  }
   ListWorkspacesReturns: ListWorkspacesResponse = {};
   GetWorkspaceReturns: GetWorkspaceResponse = {};
-  ListWSServiceAccountsReturns: GetWorkspaceServiceAccountsResponse = {};
-  ListWorkspaces() {
-    return promisify(this.ListWorkspacesReturns);
-  }
-  GetWorkspace() {
-    return promisify(this.GetWorkspaceReturns);
-  }
-  ListWSServiceAccounts() {
-    return promisify(this.GetWorkspaceReturns);
-  }
+  GetWorkspaceServiceAccountsReturns: GetWorkspaceServiceAccountsResponse = {};
+  GetWorkspaceRolesReturns: GetWorkspaceRolesResponse = {};
+  GetWorkspaceRoleBindingsReturns: GetWorkspaceRoleBindingsResponse = {};
+  GetWorkspacePoliciesReturn: GetWorkspacePoliciesResponse = {};
+  ListWorkspaces = () => promisify(this.ListWorkspacesReturns);
+
+  GetWorkspace = () => promisify(this.GetWorkspaceReturns);
+
+  GetWorkspaceServiceAccounts = () =>
+    promisify(this.GetWorkspaceServiceAccountsReturns);
+
+  GetWorkspaceRoles = () => promisify(this.GetWorkspaceRolesReturns);
+  GetWorkspaceRoleBindings = () =>
+    promisify(this.GetWorkspaceRoleBindingsReturns);
+  GetWorkspacePolicies = () => promisify(this.GetWorkspacePoliciesReturn);
 }
 
 export class SecretsClientMock {
