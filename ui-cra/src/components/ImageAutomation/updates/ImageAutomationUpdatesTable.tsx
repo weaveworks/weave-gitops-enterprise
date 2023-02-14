@@ -47,6 +47,10 @@ const ImageAutomationUpdatesTable = () => {
             value: 'namespace',
           },
           {
+            label: 'Cluster Name',
+            value: 'clusterName',
+          },
+          {
             label: 'Status',
             value: ({ conditions, suspended }) => (
               <KubeStatusIndicator

@@ -44,6 +44,10 @@ const ImagePoliciesTable = () => {
             value: 'namespace',
           },
           {
+            label: 'Cluster Name',
+            value: 'clusterName',
+          },
+          {
             label: 'Status',
             value: (s: Source) => (
               <KubeStatusIndicator

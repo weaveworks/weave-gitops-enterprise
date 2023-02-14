@@ -44,6 +44,7 @@ function ImagePolicyDetails({ name, namespace, clusterName }: Props) {
           infoFields={[
             ['Kind', Kind.ImagePolicy],
             ['Namespace', data?.namespace],
+            ['Namespace', data?.clusterName],
             ['Image Policy', data?.imagePolicy?.type || ''],
             ['Order/Range', data?.imagePolicy?.value],
           ]}

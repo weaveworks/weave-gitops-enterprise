@@ -31,7 +31,8 @@ function getInfoList(
 
   return [
     ['Kind', kind],
-    ['Namespace', data.namespace],
+    ['Namespace', data?.namespace],
+    ['Namespace', data?.clusterName],
     [
       'Source',
       <SourceLink sourceRef={data.sourceRef} clusterName={clusterName} />,
