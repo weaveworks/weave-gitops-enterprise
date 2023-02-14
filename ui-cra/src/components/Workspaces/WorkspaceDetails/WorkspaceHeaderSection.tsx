@@ -8,7 +8,6 @@ import { useWorkspaceStyle } from '../WorkspaceStyles';
 function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   const classes = useWorkspaceStyle();
   const history = useHistory();
-const n= ['a','b','v']
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Workspace Name',
@@ -16,7 +15,7 @@ const n= ['a','b','v']
     },
     {
       rowkey: 'Namespaces',
-      value: n?.join(', '),
+      value: namespaces?.join(', '),
     },
   ];
 
