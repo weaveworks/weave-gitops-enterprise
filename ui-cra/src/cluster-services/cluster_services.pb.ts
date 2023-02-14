@@ -810,9 +810,14 @@ export type PolicyConfigListItem = {
 export type PolicyConfig = {
   name?: string
   clusterName?: string
+<<<<<<< HEAD
   policiesCount?: number
   targetType?: string
 >>>>>>> d73bb70e (add list policy configs endpoint)
+=======
+  totalPolicies?: number
+  match?: string
+>>>>>>> 788e5f29 (update naming convention)
   status?: string
   age?: string
 }

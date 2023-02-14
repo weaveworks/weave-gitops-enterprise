@@ -2577,6 +2577,7 @@
           "type": "string"
         },
 <<<<<<< HEAD
+<<<<<<< HEAD
         "totalPolicies": {
           "type": "integer",
           "format": "int32"
@@ -2589,6 +2590,13 @@
         },
         "targetType": {
 >>>>>>> d73bb70e (add list policy configs endpoint)
+=======
+        "totalPolicies": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "match": {
+>>>>>>> 788e5f29 (update naming convention)
           "type": "string"
         },
         "status": {
