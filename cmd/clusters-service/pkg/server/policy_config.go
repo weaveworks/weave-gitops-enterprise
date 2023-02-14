@@ -15,17 +15,10 @@ import (
 )
 
 const (
-<<<<<<< HEAD
 	policyConfigTargetResource    = "resources"
 	policyConfigTargetApplication = "apps"
 	policyConfigTargetNamespace   = "namespaces"
 	policyConfigTargetWorkspace   = "workspaces"
-=======
-	resource    = "Resources"
-	application = "Applications"
-	namespace   = "Namespaces"
-	workspace   = "Workspaces"
->>>>>>> 788e5f29 (update naming convention)
 )
 
 // ListPolicyConfigs lists the policy configs
@@ -97,11 +90,7 @@ func (s *server) listPolicyConfigs(ctx context.Context, cl clustersmngr.Client) 
 					TotalPolicies: int32(len(item.Spec.Config)),
 					Name:          item.Name,
 					Match:         getPolicyConfigTargetType(item.Spec.Match),
-<<<<<<< HEAD
 					Status:        item.Status.Status,
-=======
-					Status:        "TBD",
->>>>>>> 788e5f29 (update naming convention)
 					Age:           item.CreationTimestamp.Format(time.RFC3339),
 				}
 
