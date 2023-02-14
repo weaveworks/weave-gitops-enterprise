@@ -13,6 +13,7 @@ import {
   formatLogTimestamp,
   Icon,
   IconType,
+  theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React, { SetStateAction } from 'react';
@@ -46,20 +47,29 @@ const makeHeader = (logs: LogEntry[], refetching: boolean) => {
   return `showing logs from ${beginning} to ${end}`;
 };
 
+const RowIcon: React.FC<{ level: string }> = ({ level }) => {
+  if (level === 'info') return <Info color="primary" fontSize="inherit" />;
+  else if (level === 'error')
+    return <Error color="secondary" fontSize="inherit" />;
+  else
+    return (
+      <Error
+        htmlColor={weaveTheme.colors.feedbackOriginal}
+        fontSize="inherit"
+      />
+    );
+};
+
 const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   return (
     <TableRow>
       <TableCell>
         <Flex /*this flex centers the icon*/>
-          {log.level === 'info' ? (
-            <Info color="primary" fontSize="inherit" />
-          ) : (
-            <Error color="secondary" fontSize="inherit" />
-          )}
+          <RowIcon level={log.level || ''} />
         </Flex>
       </TableCell>
       <TableCell className="gray">
-        {formatLogTimestamp(log.timestamp)}
+        {formatLogTimestamp(log.timestamp || '')}
       </TableCell>
       <TableCell>{log.source || '-'}</TableCell>
       <TableCell className="break-word">{log.message || '-'}</TableCell>
@@ -129,7 +139,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
           className="pad-right"
         >
           <MenuItem key="all" value={'all'}>
-            all
+            All
           </MenuItem>
           {logSources.map((source, index) => (
             <MenuItem key={index} value={source}>
@@ -146,16 +156,19 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
           }
         >
           <MenuItem key="all" value="all">
-            all
+            All
           </MenuItem>
           <MenuItem key="info" value="info">
-            info
+            <RowIcon level="info" />
+            &nbsp;Info
           </MenuItem>
           <MenuItem key="warn" value="warn">
-            warn
+            <RowIcon level="warn" />
+            &nbsp;Warning
           </MenuItem>
           <MenuItem key="error" value="error">
-            error
+            <RowIcon level="error" />
+            &nbsp;Error
           </MenuItem>
         </Select>
       </Flex>
