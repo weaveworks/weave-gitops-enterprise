@@ -671,6 +671,43 @@
         ]
       }
     },
+    "/v1/policy-configs/{policyConfigName}": {
+      "get": {
+        "summary": "GetPolicyConfig get policy config details",
+        "operationId": "ClustersService_GetPolicyConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "policyConfigName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policyviolations": {
       "post": {
         "summary": "ListPolicyValidations list policy validations available on the management cluster",
@@ -1303,6 +1340,20 @@
         }
       }
     },
+    "v1App": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
     "v1CapiCluster": {
       "type": "object",
       "properties": {
@@ -1919,6 +1970,36 @@
         }
       }
     },
+    "v1GetPolicyConfigResponse": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "match": {
+          "$ref": "#/definitions/v1Match"
+        },
+        "totalPolicies": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1TargetPolicy"
+          }
+        }
+      }
+    },
     "v1GetPolicyResponse": {
       "type": "object",
       "properties": {
@@ -2435,6 +2516,35 @@
         }
       }
     },
+    "v1Match": {
+      "type": "object",
+      "properties": {
+        "apps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1App"
+          }
+        },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "workspaces": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "resources": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Resource"
+          }
+        }
+      }
+    },
     "v1Metadata": {
       "type": "object",
       "properties": {
@@ -2914,6 +3024,20 @@
         }
       }
     },
+    "v1Resource": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
     "v1SourceRef": {
       "type": "object",
       "properties": {
@@ -2921,6 +3045,29 @@
           "type": "string"
         },
         "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1TargetPolicy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "status": {
           "type": "string"
         }
       }

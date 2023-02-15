@@ -835,6 +835,53 @@ export type ListPolicyConfigsResponse = {
   total?: number
 }
 
+export type GetPolicyConfigRequest = {
+  clusterName?: string
+  policyConfigName?: string
+}
+
+export type GetPolicyConfigResponse = {
+  name?: string
+  clusterName?: string
+  age?: string
+  status?: string
+  match?: Match
+  totalPolicies?: number
+  policies?: TargetPolicy[]
+}
+
+export type Match = {
+  apps?: App[]
+  namespaces?: string[]
+  workspaces?: string[]
+  resources?: Resource[]
+}
+
+export type App = {
+  name?: string
+  kind?: string
+  namespace?: string
+}
+
+export type Resource = {
+  name?: string
+  kind?: string
+  namespace?: string
+}
+
+export type TargetPolicy = {
+  id?: string
+  name?: string
+  description?: string
+  parameters?: {[key: string]: string}
+  status?: string
+}
+
+export type PolicyTarget = {
+  targetType?: string
+  targetNames?: string[]
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -934,5 +981,8 @@ export class ClustersService {
   }
   static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
+    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["policyConfigName"]}?${fm.renderURLSearchParams(req, ["policyConfigName"])}`, {...initReq, method: "GET"})
   }
 }

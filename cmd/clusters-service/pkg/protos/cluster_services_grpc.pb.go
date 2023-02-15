@@ -91,6 +91,8 @@ type ClustersServiceClient interface {
 	ListExternalSecretStores(ctx context.Context, in *ListExternalSecretStoresRequest, opts ...grpc.CallOption) (*ListExternalSecretStoresResponse, error)
 	// ListPolicyConfigs list policy configs
 	ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error)
+	// GetPolicyConfig get policy config details
+	GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -398,6 +400,15 @@ func (c *clustersServiceClient) ListPolicyConfigs(ctx context.Context, in *ListP
 	return out, nil
 }
 
+func (c *clustersServiceClient) GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error) {
+	out := new(GetPolicyConfigResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetPolicyConfig", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -474,6 +485,8 @@ type ClustersServiceServer interface {
 	ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error)
 	// ListPolicyConfigs list policy configs
 	ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error)
+	// GetPolicyConfig get policy config details
+	GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -579,6 +592,9 @@ func (UnimplementedClustersServiceServer) ListExternalSecretStores(context.Conte
 }
 func (UnimplementedClustersServiceServer) ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyConfigs not implemented")
+}
+func (UnimplementedClustersServiceServer) GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyConfig not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -1187,6 +1203,24 @@ func _ClustersService_ListPolicyConfigs_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_GetPolicyConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPolicyConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetPolicyConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetPolicyConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetPolicyConfig(ctx, req.(*GetPolicyConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1325,6 +1359,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListPolicyConfigs",
 			Handler:    _ClustersService_ListPolicyConfigs_Handler,
+		},
+		{
+			MethodName: "GetPolicyConfig",
+			Handler:    _ClustersService_GetPolicyConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
