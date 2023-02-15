@@ -624,6 +624,33 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     />
                   </span>
                 </a>
+                <a
+                  aria-disabled="false"
+                  aria-selected="false"
+                  class="c15 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
+                  href="/applications/pipelines/details/pullrequests"
+                  role="tab"
+                  tabindex="-1"
+                >
+                  <span
+                    class="c16 c17"
+                    color="primary"
+                  >
+                    <span
+                      class="MuiTab-wrapper"
+                    >
+                      <span
+                        class="c16 c18"
+                        color="neutral30"
+                      >
+                        Pull Requests
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTouchRipple-root"
+                    />
+                  </span>
+                </a>
               </div>
               <span
                 class="PrivateTabIndicator-root-65 PrivateTabIndicator-colorPrimary-66 MuiTabs-indicator"
