@@ -22,6 +22,19 @@ func TestListPolicyConfigs(t *testing.T) {
 		{
 			name: "management",
 			state: []runtime.Object{
+<<<<<<< HEAD
+=======
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-1",
+					},
+				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-2",
+					},
+				},
+>>>>>>> cd42303c (add unit tests)
 				&pacv2beta2.PolicyConfig{
 					TypeMeta: metav1.TypeMeta{
 						APIVersion: pacv2beta2.GroupVersion.Identifier(),
@@ -49,9 +62,12 @@ func TestListPolicyConfigs(t *testing.T) {
 							Namespaces: []string{"namespace-1", "namespace-2"},
 						},
 					},
+<<<<<<< HEAD
 					Status: pacv2beta2.PolicyConfigStatus{
 						Status: "OK",
 					},
+=======
+>>>>>>> cd42303c (add unit tests)
 				},
 				&pacv2beta2.PolicyConfig{
 					TypeMeta: metav1.TypeMeta{
@@ -63,7 +79,11 @@ func TestListPolicyConfigs(t *testing.T) {
 					},
 					Spec: pacv2beta2.PolicyConfigSpec{
 						Config: map[string]pacv2beta2.PolicyConfigConfig{
+<<<<<<< HEAD
 							"policy-3": {
+=======
+							"policy-x": {
+>>>>>>> cd42303c (add unit tests)
 								Parameters: map[string]apiextensionsv1.JSON{
 									"param-a": {Raw: []byte{}},
 									"param-b": {Raw: []byte{}},
@@ -80,10 +100,13 @@ func TestListPolicyConfigs(t *testing.T) {
 							},
 						},
 					},
+<<<<<<< HEAD
 					Status: pacv2beta2.PolicyConfigStatus{
 						Status:          "Warning",
 						MissingPolicies: []string{"policy-3"},
 					},
+=======
+>>>>>>> cd42303c (add unit tests)
 				},
 				&pacv2beta2.PolicyConfig{
 					TypeMeta: metav1.TypeMeta{
@@ -95,7 +118,11 @@ func TestListPolicyConfigs(t *testing.T) {
 					},
 					Spec: pacv2beta2.PolicyConfigSpec{
 						Config: map[string]pacv2beta2.PolicyConfigConfig{
+<<<<<<< HEAD
 							"policy-1": {
+=======
+							"policy-y": {
+>>>>>>> cd42303c (add unit tests)
 								Parameters: map[string]apiextensionsv1.JSON{
 									"param-i":  {Raw: []byte{}},
 									"param-ii": {Raw: []byte{}},
@@ -124,6 +151,7 @@ func TestListPolicyConfigs(t *testing.T) {
 							},
 						},
 					},
+<<<<<<< HEAD
 					Status: pacv2beta2.PolicyConfigStatus{
 						Status:          "Warning",
 						MissingPolicies: []string{"policy-x", "policy-z"},
@@ -195,6 +223,8 @@ func TestListPolicyConfigs(t *testing.T) {
 					Status: pacv2beta2.PolicyConfigStatus{
 						Status: "OK",
 					},
+=======
+>>>>>>> cd42303c (add unit tests)
 				},
 			},
 		},
@@ -208,6 +238,7 @@ func TestListPolicyConfigs(t *testing.T) {
 		{
 			request: &capiv1_proto.ListPolicyConfigsRequest{},
 			response: &capiv1_proto.ListPolicyConfigsResponse{
+<<<<<<< HEAD
 				PolicyConfigs: []*capiv1_proto.PolicyConfigListItem{
 					{
 						Name:          "policyconfig-1",
@@ -215,19 +246,35 @@ func TestListPolicyConfigs(t *testing.T) {
 						TotalPolicies: int32(2),
 						Match:         "namespaces",
 						Status:        "OK",
+=======
+				PolicyConfigs: []*capiv1_proto.PolicyConfig{
+					{
+						Name:          "policyconfig-1",
+						ClusterName:   "management",
+						TotalPolicies: 2,
+						Match:         "namespaces",
+						Status:        "TBD",
+>>>>>>> cd42303c (add unit tests)
 						Age:           "0001-01-01T00:00:00Z",
 					},
 					{
 						Name:          "policyconfig-2",
 						ClusterName:   "management",
+<<<<<<< HEAD
 						TotalPolicies: int32(1),
 						Match:         "apps",
 						Status:        "Warning",
+=======
+						TotalPolicies: 1,
+						Match:         "apps",
+						Status:        "TBD",
+>>>>>>> cd42303c (add unit tests)
 						Age:           "0001-01-01T00:00:00Z",
 					},
 					{
 						Name:          "policyconfig-3",
 						ClusterName:   "management",
+<<<<<<< HEAD
 						TotalPolicies: int32(3),
 						Match:         "resources",
 						Status:        "Warning",
@@ -251,6 +298,15 @@ func TestListPolicyConfigs(t *testing.T) {
 					},
 				},
 				Total:  5,
+=======
+						TotalPolicies: 3,
+						Match:         "resources",
+						Status:        "TBD",
+						Age:           "0001-01-01T00:00:00Z",
+					},
+				},
+				Total:  3,
+>>>>>>> cd42303c (add unit tests)
 				Errors: []*capiv1_proto.ListError{},
 			},
 			err: false,
@@ -274,5 +330,9 @@ func TestListPolicyConfigs(t *testing.T) {
 		}
 		assert.ElementsMatch(t, tt.response.PolicyConfigs, res.PolicyConfigs, "policy configs do not match expected configs")
 		assert.Equal(t, tt.response.Total, res.Total, "total config number is not correct")
+<<<<<<< HEAD
+=======
+
+>>>>>>> cd42303c (add unit tests)
 	}
 }
