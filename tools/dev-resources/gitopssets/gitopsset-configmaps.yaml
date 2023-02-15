@@ -18,10 +18,10 @@ spec:
         kind: ConfigMap
         apiVersion: v1
         metadata:
-          name: "{{ .element.env }}-info-configmap"
+          name: "{{ .Element.env }}-info-configmap"
           namespace: default
         spec:
           data:
-            team: "{{ .element.team }}"
-            env: "{{ .element.env }}"
-            description: "This is a configmap for the {{ .element.env }} environment"
+            team: "{{ .Element.team }}"
+            env: "{{ .Element.env }}"
+            description: "This is a configmap for the {{ .Element.env }} environment"
