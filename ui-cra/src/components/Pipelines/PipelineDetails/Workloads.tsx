@@ -1,10 +1,9 @@
-import { Button, Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
 import {
   Pipeline,
   PipelineTargetStatus,
 } from '../../../api/pipelines/types.pb';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
-
 import { Grid } from '@material-ui/core';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import {
