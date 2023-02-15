@@ -23,13 +23,18 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   return (
     <div className={className}>
       <Pad wide center>
-        <p className="code-text" data-testid="github-code">
-          {codeRes.userCode}
-        </p>
-        <CopyToClipboard
-          value={codeRes.userCode as string}
-          className="copy-code"
-        />
+        <div
+          className="github-code-container"
+          data-testid="github-code-container"
+        >
+          <p className="code-text" data-testid="github-code">
+            {codeRes.userCode}
+          </p>
+          <CopyToClipboard
+            value={codeRes.userCode as string}
+            className="copy-code"
+          />
+        </div>
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI} rel="noreferrer">
@@ -60,6 +65,10 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   .code-text {
     font-size: ${extraLarge};
     margin: 0px 5px 0px 0px;
+  }
+  .github-code-container {
+    display: flex;
+    align-items: center;
   }
 `;
 export default ModalContent;
