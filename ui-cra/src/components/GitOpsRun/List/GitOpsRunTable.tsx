@@ -145,7 +145,11 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
         {
           label: 'Created',
           value: ({ obj }) => (
-            <Timestamp time={obj.metadata.creationTimestamp} hideSeconds />
+            <Timestamp
+              tooltip
+              time={obj.metadata.creationTimestamp}
+              hideSeconds
+            />
           ),
           sortValue: ({ obj }) => obj.metadata.creationTimestamp,
           minWidth: 175,

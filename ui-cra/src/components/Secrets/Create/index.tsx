@@ -1,44 +1,45 @@
 import { MenuItem } from '@material-ui/core';
+import { ThemeProvider } from '@material-ui/core/styles';
+import {
+  Button,
+  GitRepository,
+  Link,
+  LoadingPage,
+  theme,
+  useListSources
+} from '@weaveworks/weave-gitops';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
   ExternalSecretStore,
-  GitopsCluster,
+  GitopsCluster
 } from '../../../cluster-services/cluster_services.pb';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import useNotifications from '../../../contexts/Notifications';
+import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
-import useNotifications from '../../../contexts/Notifications';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-import GitOps from '../../Templates/Form/Partials/GitOps';
-import { ThemeProvider } from '@material-ui/core/styles';
-import { localEEMuiTheme } from '../../../muiTheme';
-import { useHistory } from 'react-router-dom';
-import {
-  Button,
-  Link,
-  LoadingPage,
-  theme,
-  GitRepository,
-  useListSources,
-} from '@weaveworks/weave-gitops';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import {
   CreateDeploymentObjects,
-  useClustersWithSources,
+  useClustersWithSources
 } from '../../Applications/utils';
+import { getGitRepos } from '../../Clusters';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { PageTemplate } from '../../Layout/PageTemplate';
+import { GitRepositoryEnriched } from '../../Templates/Form';
+import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getInitialGitRepo,
-  getRepositoryUrl,
+  getRepositoryUrl
 } from '../../Templates/Form/utils';
-import { GitRepositoryEnriched } from '../../Templates/Form';
-import { getGitRepos } from '../../Clusters';
-import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
+import { PrviewPRModal } from './PrviewPRModal';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -424,6 +425,10 @@ const CreateSecret = () => {
                   }
                 />
               </div>
+              <PrviewPRModal
+                formData={formData}
+                getClusterAutomations={getClusterAutomations}
+              />
               <GitOps
                 formData={formData}
                 setFormData={setFormData}

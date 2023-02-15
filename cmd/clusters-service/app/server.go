@@ -523,7 +523,7 @@ func StartServer(ctx context.Context, p Params) error {
 		WithManagementCluster(p.Cluster),
 		WithTemplateCostEstimator(estimator),
 		WithUIConfig(p.UIConfig),
-		WithPipelineControllerAddress(p.CAPIRepositoryClustersPath),
+		WithPipelineControllerAddress(p.PipelineControllerAddress),
 	)
 }
 

@@ -379,6 +379,9 @@ func dumpConfigRepo(testName string) {
 }
 
 func dumpBrowserLogs(testName string) {
+	if webDriver == nil {
+		return
+	}
 	if currentSpecType("cli") {
 		return
 	}

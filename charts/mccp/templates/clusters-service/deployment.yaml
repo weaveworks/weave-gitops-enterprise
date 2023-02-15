@@ -33,6 +33,11 @@ spec:
       containers:
         - name: clusters-service
           image: {{ .Values.images.clustersService }}
+          args:
+            - --pipeline-controller-address={{ .Values.clustersService.pipeline_controller_address | default (printf "http://%s-pipeline-controller-promotion" .Release.Name) }}:8082
+            {{- range .Values.clustersService.args }}
+            - {{ . }}
+            {{- end }}
           imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:
