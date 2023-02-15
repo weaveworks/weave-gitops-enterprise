@@ -405,7 +405,7 @@ func verifyAppViolationsDetailsPage(clusterName string, violatingApp Application
 		// Navigate back to the app violations list
 		gomega.Expect(webDriver.Back()).ShouldNot(gomega.HaveOccurred(), fmt.Sprintf("Failed to navigate back to the '%s' app violations list", violatingApp.Name))
 
-		gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.Equal("Cluster Name :"), "Failed to get cluster name field on App violations details page")
+		gomega.Eventually(appViolationsDetialsPage.ClusterName.Text).Should(gomega.Equal("Cluster :"), "Failed to get cluster field on App violations details page")
 		gomega.Eventually(appViolationsDetialsPage.ClusterNameValue.Text).Should(gomega.MatchRegexp(clusterName), "Failed to get cluster name value on App violations details page")
 
 		gomega.Eventually(appViolationsDetialsPage.ViolationTime.Text).Should(gomega.Equal("Violation Time :"), "Failed to get violation time field on App violations details page")
