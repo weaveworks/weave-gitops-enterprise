@@ -250,6 +250,12 @@ service ClustersService {
       get : "/v1/policy-configs"
     };
   }
+  // GetPolicyConfig get policy config details
+  rpc GetPolicyConfig(GetPolicyConfigRequest) returns (GetPolicyConfigResponse) {
+    option (google.api.http) = {
+      get : "/v1/policy-configs/{policyConfigName}"
+    };
+  }
 }
 
 
@@ -1091,4 +1097,54 @@ message ListPolicyConfigsResponse{
   repeated PolicyConfigListItem policyConfigs = 1;
   repeated ListError errors = 2;
   int32 total = 3;
+}
+
+
+
+
+message GetPolicyConfigRequest{
+  string clusterName = 1;
+  string policyConfigName = 2;
+}
+
+message GetPolicyConfigResponse{
+  string name = 1;
+  string clusterName = 2;
+  string age = 3;
+  string status = 4;
+  Match match = 5;
+  int32 totalPolicies = 7;
+  repeated TargetPolicy policies = 8;
+}
+
+message Match {
+  repeated App apps = 1;
+  repeated string namespaces = 2;
+  repeated string workspaces = 3;
+  repeated Resource resources = 4;
+}
+
+message App {
+  string name = 1;
+  string kind = 2;
+  string namespace = 3;
+}
+
+message Resource {
+  string name = 1;
+  string kind = 2;
+  string namespace = 3;
+}
+
+message TargetPolicy {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  map<string, string> parameters = 4;
+  string status = 5;
+}
+
+message PolicyTarget {
+  string targetType = 1;
+  repeated string targetNames = 2;
 }
