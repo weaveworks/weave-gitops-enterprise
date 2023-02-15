@@ -14,13 +14,14 @@ spec:
           - env: staging
             team: ops-team
   templates:
-    - kind: ConfigMap
-      apiVersion: v1
-      metadata:
-        name: "{{ .env }}-info-configmap"
-        namespace: default
-      spec:
-        data:
-          team: "{{ .team }}"
-          env: "{{ .env }}"
-          description: "This is a configmap for the {{ .env }} environment"
+    - content:
+        kind: ConfigMap
+        apiVersion: v1
+        metadata:
+          name: "{{ .element.env }}-info-configmap"
+          namespace: default
+        spec:
+          data:
+            team: "{{ .element.team }}"
+            env: "{{ .element.env }}"
+            description: "This is a configmap for the {{ .element.env }} environment"
