@@ -174,11 +174,11 @@ function getInitialData(
       ? `edit-${resourceName}-branch-${random}`
       : `wge-create-branch-${random}`,
     pullRequestTitle: resourceData
-      ? `Edits ${resourceName}`
-      : `Creates ${templateName} instance`,
+      ? `Edit ${resourceName}`
+      : `Create ${templateName} instance`,
     commitMessage: resourceData
-      ? `Edits ${resourceName}`
-      : `Creates ${templateName} instance`,
+      ? `Edit ${resourceName}`
+      : `Create ${templateName} instance`,
     pullRequestDescription: resourceData
       ? `This PR edits the resource ${resourceName}`
       : `This PR creates a ${templateName} instance`,
@@ -505,7 +505,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     if (!resource) {
       setFormData((prevState: any) => ({
         ...prevState,
-        pullRequestTitle: `Creates resource ${
+        pullRequestTitle: `Create resource ${
           Object.values(formData.parameterValues)?.[0] || ''
         }`,
       }));
