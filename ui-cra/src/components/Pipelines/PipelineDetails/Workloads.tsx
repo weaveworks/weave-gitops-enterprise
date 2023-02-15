@@ -1,4 +1,4 @@
-import { Button, Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
 import {
   Pipeline,
   PipelineTargetStatus,
@@ -7,6 +7,7 @@ import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 
 import { Grid } from '@material-ui/core';
 import { useListConfigContext } from '../../../contexts/ListConfig';
+import PromotePipeline from './PromotePipeline';
 import {
   CardContainer,
   ClusterName,
@@ -18,7 +19,6 @@ import {
   WorkloadWrapper,
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
-import PromotePipeline from './PromotePipeline';
 
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
