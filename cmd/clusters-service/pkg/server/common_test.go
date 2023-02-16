@@ -6,6 +6,7 @@ import (
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -94,7 +95,7 @@ func getServer(t *testing.T, clients map[string]client.Client, namespaces map[st
 		}
 		return nil, fmt.Errorf("cluster %s not found", name)
 	}
-	clustersClient := clustersmngr.NewClient(clientsPool, namespaces)
+	clustersClient := clustersmngr.NewClient(clientsPool, namespaces, logr.Discard())
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
 	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
@@ -179,7 +180,7 @@ func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clus
 		}
 		return nil, fmt.Errorf("cluster %s not found", name)
 	}
-	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{}, logr.Discard())
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
 	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
