@@ -30,7 +30,11 @@ import {
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import { Condition, GroupVersionKind } from '../../api/gitopssets/types.pb';
+import {
+  Condition,
+  GitOpsSet,
+  GroupVersionKind,
+} from '../../api/gitopssets/types.pb';
 import { getInventory } from '.';
 
 const YAML = require('yaml');
@@ -117,15 +121,14 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
       .finally(() => setSuspending(false));
   };
 
-  const [gitOpsSet] =
-    data?.gitopssets?.filter(
+  const gitOpsSet =
+    data?.gitopssets?.find(
       gs =>
         gs.name === name &&
         gs.namespace === namespace &&
         gs.clusterName === clusterName,
-    ) || [];
+    ) || ({} as GitOpsSet);
 
-  //grab data
   const {
     data: objects,
     error,
@@ -138,22 +141,22 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     gitOpsSet?.clusterName,
   );
 
+  if (!gitOpsSet) {
+    return null;
+  }
+
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
     objects: objects || [],
     error: error || undefined,
     isLoading: isLoading || false,
-    source: gitOpsSet?.sourceRef || ({} as ObjectRef),
-    name: gitOpsSet?.name || '',
-    namespace: gitOpsSet?.namespace || '',
-    suspended: gitOpsSet?.suspended || false,
-    conditions: gitOpsSet?.conditions || ([] as Condition[]),
-    type: gitOpsSet?.type || 'GitOpsSet',
-    clusterName: gitOpsSet?.clusterName || '',
+    source: gitOpsSet.sourceRef || ({} as ObjectRef),
+    name: gitOpsSet.name || '',
+    namespace: gitOpsSet.namespace || '',
+    suspended: gitOpsSet.suspended || false,
+    conditions: gitOpsSet.conditions || ([] as Condition[]),
+    type: gitOpsSet.type || 'GitOpsSet',
+    clusterName: gitOpsSet.clusterName || '',
   };
-
-  if (!gitOpsSet) {
-    return null;
-  }
 
   return (
     <PageTemplate
