@@ -11,19 +11,11 @@ message GitOpsSet {
     repeated Condition    conditions               = 4;
     string                cluster_name             = 5;
     string                type                     = 6;
-    map<string, string>                labels      = 7;
-    map<string, string>                annotations = 8;
-    SourceRef sourceRef            = 9;
-    bool suspended = 10;
-    int64 observed_generation = 11;
-    string yaml = 12;
-}
-
-message SourceRef {
-    string apiVersion = 1;
-    string kind       = 2;
-    string name       = 3;
-    string namespace  = 4;
+    map<string, string>   labels                   = 7;
+    map<string, string>   annotations              = 8;
+    bool                  suspended                = 9;
+    int64                 observed_generation      = 10;
+    string                yaml                     = 11;
 }
 
 message GitOpsSetListError {
@@ -48,13 +40,6 @@ message Condition {
 message GitOpsSetGenerator { 
    string list = 1;
    string git_repository = 2;
-}
-
-message ObjectRef {
-    string         kind      = 1;
-    string         name      = 2;
-    string         namespace = 3;
-    string         clusterName = 4;
 }
 
 // GroupVersionKind represents an objects Kubernetes API type data

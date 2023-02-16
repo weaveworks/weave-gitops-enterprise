@@ -20,9 +20,6 @@ spec:
         metadata:
           name: "{{ .element.env }}-info-configmap"
           namespace: default
-          labels:
-            templates.weave.works/name: gitopsset-configmaps
-            templates.weave.works/namespace: default
         spec:
           data:
             team: "{{ .element.team }}"
