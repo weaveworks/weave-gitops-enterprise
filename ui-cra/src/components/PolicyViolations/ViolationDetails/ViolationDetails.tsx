@@ -33,7 +33,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
   } = violation || {};
   const defaultHeaders = [
     {
-      rowkey: 'Cluster Name',
+      rowkey: 'Cluster',
       value: clusterName,
     },
     {
