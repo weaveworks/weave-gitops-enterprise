@@ -254,10 +254,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 
 		workspaceName := "test-team"
 		workspaceNamespaces := "test-kustomization, test-system"
+		resourceNamespaceRegx := "test-kustomization|test-system"
 		workspaceClusterName := leafCluster.Name
 
 		ginkgo.JustBeforeEach(func() {
-			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml")
+			workspacesYaml = path.Join(testDataPath, "tenancy/multiple-tenant.yaml.tpl")
 			mgmtClusterContext, errStd = runCommandAndReturnStringOutput("kubectl config current-context")
 			gomega.Expect(errStd).Should(gomega.BeEmpty(), "Failed to get the management cluster context")
 
@@ -329,6 +330,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			})
 
 			workspaceInfo := WorkspacesPage.FindWorkspaceInList(workspaceName)
+			workspacesDetailPage := pages.GetWorkspaceDetailsPage(webDriver)
 
 			ginkgo.By(fmt.Sprintf("And filter leaf cluster '%s' workspaces", leafCluster.Name), func() {
 				filterID := "clusterName: " + leafCluster.Namespace + `/` + leafCluster.Name
@@ -350,6 +352,14 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Workspaces", ginkgo.Label("
 			verifyFilterWorkspacesByClusterName(leafCluster.Name, workspaceName)
 			verifySearchWorkspaceByName(workspaceName)
 
+			ginkgo.By(fmt.Sprintf("And navigate to '%s' workspace details page", workspaceName), func() {
+				gomega.Eventually(workspaceInfo.Name.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to navigate to '%s' workspace details page", workspaceName))
+			})
+			verifyWorkspaceDetailsPage(workspaceName, workspaceNamespaces, workspacesDetailPage)
+			verifyWorkspaceServiceAccounts(workspaceName, resourceNamespaceRegx, workspacesDetailPage)
+			verifyWorkspaceRoles(workspaceName, resourceNamespaceRegx, workspacesDetailPage)
+			verifyWorkspaceRoleBindings(workspaceName, resourceNamespaceRegx, workspacesDetailPage)
+			verifyWorkspacePolicies(workspaceName, resourceNamespaceRegx, workspacesDetailPage)
 		})
 	})
 

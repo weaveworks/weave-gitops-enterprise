@@ -98,7 +98,7 @@ describe('ListPolicViolations', () => {
       policy.tenant || '--',
     );
 
-    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
+    expect(screen.getByTestId('Cluster')).toHaveTextContent(
       policy.clusterName,
     );
 

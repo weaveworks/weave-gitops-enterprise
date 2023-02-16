@@ -95,7 +95,7 @@ func GetPolicyDetailPage(webDriver *agouti.Page) *PolicyDetailPage {
 	return &PolicyDetailPage{
 		Header:          webDriver.FindByXPath(`//div[@role="heading"]/a[@href="/policies"]/parent::node()/parent::node()/following-sibling::div`),
 		ID:              webDriver.Find(`div[data-testid="Policy ID"]`),
-		ClusterName:     webDriver.Find(`div[data-testid="Cluster Name"]`),
+		ClusterName:     webDriver.Find(`div[data-testid="Cluster"]`),
 		Tags:            webDriver.All(`div[data-testid="Tags"] span`),
 		Severity:        webDriver.Find(`div[data-testid="Severity"]`),
 		Category:        webDriver.Find(`div[data-testid="Category"]`),
