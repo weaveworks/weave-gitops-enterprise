@@ -11,6 +11,8 @@ spec:
     kind: GitOpsSet
     listKind: GitOpsSetList
     plural: gitopssets
+    shortNames:
+    - gs
     singular: gitopsset
   scope: Namespaced
   versions:
@@ -143,6 +145,11 @@ spec:
                                     - gitlab
                                     - bitbucketserver
                                     type: string
+                                  forks:
+                                    description: Fork is used to filter out forks
+                                      from the target PRs if false, or to include
+                                      forks if  true
+                                    type: boolean
                                   interval:
                                     description: The interval at which to check for
                                       repository updates.
@@ -194,6 +201,10 @@ spec:
                           - gitlab
                           - bitbucketserver
                           type: string
+                        forks:
+                          description: Fork is used to filter out forks from the target
+                            PRs if false, or to include forks if  true
+                          type: boolean
                         interval:
                           description: The interval at which to check for repository
                             updates.
@@ -230,6 +241,10 @@ spec:
                       type: object
                   type: object
                 type: array
+              serviceAccountName:
+                description: The name of the Kubernetes service account to impersonate
+                  when reconciling this Kustomization.
+                type: string
               suspend:
                 description: Suspend tells the controller to suspend the reconciliation
                   of this GitOpsSet.
