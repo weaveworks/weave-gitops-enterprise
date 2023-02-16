@@ -220,7 +220,7 @@ export const validateFormData = (
   event: any,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
-  setSubmitType: Dispatch<React.SetStateAction<string>>,
+  setSubmitType?: Dispatch<React.SetStateAction<string>>,
 ) => {
   event.preventDefault();
   const requiredButEmptyInputs = Array.from(event.target).filter(
@@ -234,5 +234,5 @@ export const validateFormData = (
     (firstEmpty as HTMLInputElement).focus();
     setFormError((firstEmpty as HTMLInputElement).name);
   }
-  setSubmitType('');
+  setSubmitType && setSubmitType('');
 };

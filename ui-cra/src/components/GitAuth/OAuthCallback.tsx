@@ -51,7 +51,6 @@ function OAuthCallback({
   const { setNotifications } = useNotifications();
   const { gitAuthClient } = React.useContext(GitAuth);
   const params = qs.parse(history.location.search);
-  const errorState = error || paramsError;
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
@@ -89,7 +88,7 @@ function OAuthCallback({
       history.push(linkResolver(state?.page || ''));
       return;
     }
-  }, [res, history, linkResolver]);
+  }, [res, history, linkResolver, params.error, provider]);
 
   React.useEffect(() => {
     if (error) {
