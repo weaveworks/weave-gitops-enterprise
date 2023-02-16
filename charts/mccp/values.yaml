@@ -177,7 +177,7 @@ templates-controller:
         tag: v0.1.2
 
 gitopssets-controller:
-  enabled: false
+  enabled: true
   # gitops-controller-manager etc
   fullnameOverride: gitopssets
   controllerManager:
