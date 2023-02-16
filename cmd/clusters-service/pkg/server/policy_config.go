@@ -142,14 +142,15 @@ func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, re
 	}
 
 	policyConfigDetails := capiv1_proto.GetPolicyConfigResponse{
-		Name:          policyConfig.Name,
-		ClusterName:   req.ClusterName,
-		Age:           policyConfig.CreationTimestamp.Format(time.RFC3339),
-		Status:        "TBD", // TODO: add item status when agent is merged
-		Match:         getPolicyConfigMatch(policyConfig.Spec.Match),
-		Policies:      getPolicyConfigPolicies(policyConfig.Spec.Config),
+		Name:        policyConfig.Name,
+		ClusterName: req.ClusterName,
+		Age:         policyConfig.CreationTimestamp.Format(time.RFC3339),
+		Status:      "TBD", // TODO: add item status when agent is merged
+		Match:       getPolicyConfigMatch(policyConfig.Spec.Match),
+		//Policies:      getPolicyConfigPolicies(policyConfig.Spec.Config),
 		TotalPolicies: int32(len(policyConfig.Spec.Config)),
 	}
+	policyConfigDetails.Policies, _ = getPolicyConfigPolicies(policyConfig.Spec.Config)
 	return &policyConfigDetails, nil
 }
 
