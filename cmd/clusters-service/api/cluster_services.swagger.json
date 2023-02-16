@@ -3064,7 +3064,7 @@
         "parameters": {
           "type": "object",
           "additionalProperties": {
-            "type": "string"
+            "$ref": "#/definitions/protobufAny"
           }
         },
         "status": {

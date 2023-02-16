@@ -873,7 +873,7 @@ export type TargetPolicy = {
   id?: string
   name?: string
   description?: string
-  parameters?: {[key: string]: string}
+  parameters?: {[key: string]: GoogleProtobufAny.Any}
   status?: string
 }
 
