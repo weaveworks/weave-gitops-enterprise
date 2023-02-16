@@ -235,7 +235,7 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(map[string]client.Client{})
 
-	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{})
+	client := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{}, logr.Discard())
 	clustersManager.GetImpersonatedClientReturns(client, nil)
 	clustersManager.GetServerClientReturns(client, nil)
 
