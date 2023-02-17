@@ -5,7 +5,7 @@ import { PageTemplate } from './Layout/PageTemplate';
 import React from 'react';
 
 const WGUserInfo: FC = () => {
-  const { userInfo, error, loading } = React.useContext(Auth);
+  const { userInfo, error } = React.useContext(Auth);
 
   return (
     <PageTemplate
@@ -16,10 +16,7 @@ const WGUserInfo: FC = () => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={loading}
-        errors={error ? [{ message: error?.statusText }] : []}
-      >
+      <ContentWrapper errors={error ? [{ message: error?.statusText }] : []}>
         <UserGroupsTable rows={userInfo?.groups} />
       </ContentWrapper>
     </PageTemplate>
