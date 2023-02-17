@@ -23,9 +23,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   return (
     <div className={className}>
       <Pad wide center>
-        <Flex
-          align
-          center
+        <div
           className="github-code-container"
           data-testid="github-code-container"
         >
@@ -36,7 +34,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
             value={codeRes.userCode as string}
             className="copy-code"
           />
-        </Flex>
+        </div>
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI} rel="noreferrer">
@@ -67,6 +65,10 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   .code-text {
     font-size: ${extraLarge};
     margin: 0px 5px 0px 0px;
+  }
+  .github-code-container {
+    display: flex;
+    align-items: center;
   }
 `;
 export default ModalContent;
