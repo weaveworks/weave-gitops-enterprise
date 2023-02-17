@@ -44,7 +44,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import CreateSecret from './components/Secrets/Create';
-
+import WGUserInfo from './components/UserInfo';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -223,6 +223,14 @@ const AppRoutes = () => {
           </CoreWrapper>
         ))}
         path={V2Routes.Notifications}
+      />
+      <Route
+        component={withSearchParams((props: any) => (
+          <CoreWrapper>
+            <WGUserInfo {...props} />
+          </CoreWrapper>
+        ))}
+        path={V2Routes.UserInfo}
       />
       <Route
         component={withSearchParams((props: any) => (
