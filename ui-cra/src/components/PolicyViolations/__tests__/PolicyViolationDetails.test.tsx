@@ -59,7 +59,7 @@ describe('ListPolicViolations', () => {
 
     // Details
 
-    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
+    expect(screen.getByTestId('Cluster')).toHaveTextContent(
       'default/tw-cluster-2',
     );
     expect(screen.getByTestId('Violation Time')).toHaveTextContent(
@@ -129,7 +129,7 @@ describe('ListPolicViolations', () => {
       render(c);
     });
 
-    expect(screen.getByTestId('Cluster Name')).toHaveTextContent('--');
+    expect(screen.getByTestId('Cluster')).toHaveTextContent('--');
     expect(screen.getByTestId('Severity')).toHaveTextContent('test');
     expect(screen.getByTestId('Category')).toHaveTextContent('--');
   });
@@ -175,7 +175,7 @@ describe('ListPolicViolations', () => {
     expect(await screen.findByText('helm-controller')).toBeTruthy();
 
     // Details
-    expect(screen.getByTestId('Cluster Name')).toHaveTextContent(
+    expect(screen.getByTestId('Cluster')).toHaveTextContent(
       'default/tw-cluster-2',
     );
 
