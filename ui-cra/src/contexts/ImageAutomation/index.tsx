@@ -1,16 +1,10 @@
 import { IsCRDAvailableResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { CoreClientContext } from '@weaveworks/weave-gitops';
 import React from 'react';
 import { useQuery } from 'react-query';
 import { RequestError } from '../../utils/test-utils';
 
-// export const CoreClientContext = React.createContext<{
-//   api: typeof coreClient;
-// }>({
-//   api: coreClient,
-// });
 export const useCoreClientContext = () => React.useContext(CoreClientContext);
 
 export function useListImageObjects<T>(
