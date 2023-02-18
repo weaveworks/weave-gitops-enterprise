@@ -57,7 +57,7 @@ function ImageAutomationUpdatesDetails({
     Kind.ImageUpdateAutomation,
     clusterName,
     {
-      refetchInterval: 5000,
+      refetchInterval: 30000,
     },
   );
 

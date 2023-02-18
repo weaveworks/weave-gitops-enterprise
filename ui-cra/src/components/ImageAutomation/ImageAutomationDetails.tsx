@@ -10,8 +10,20 @@ import {
   YamlView,
 } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
-import { Header4 } from '../ProgressiveDelivery/CanaryStyles';
+import styled from 'styled-components';
 
+const HeaderSection = styled.div`
+  font-size: ${({ theme }) => theme.fontSizes.large};
+  margin-bottom: ${({ theme }) => theme.spacing.small};
+  .title {
+    margin-bottom: ${({ theme }) => theme.spacing.small};
+    font-weight: bold;
+  }
+  svg {
+    height: 24px;
+    width: 24px;
+  }
+`;
 interface Props {
   data: any;
   kind: Kind;
@@ -30,19 +42,20 @@ const ImageAutomationDetails = ({
   const { name, namespace, clusterName, suspended, conditions } = data;
   return (
     <Flex wide tall column>
-      <Header4>{name}</Header4>
-      <Box margin={2}>
+      <HeaderSection>
+        <div className="title">{name}</div>
+
         <KubeStatusIndicator
-          short
           conditions={conditions || []}
           suspended={suspended}
         />
-      </Box>
+      </HeaderSection>
+
       <SubRouterTabs rootPath={`${rootPath}/details`}>
         <RouterTab name="Details" path={`${rootPath}/details`}>
           <>
             <InfoList items={infoFields} />
-            <Box margin={2}>{children}</Box>
+            <Box marginTop={2}>{children}</Box>
           </>
         </RouterTab>
         <RouterTab name="Events" path={`${rootPath}/events`}>

@@ -25,7 +25,7 @@ function ImagePolicyDetails({ name, namespace, clusterName }: Props) {
     Kind.ImagePolicy,
     clusterName,
     {
-      refetchInterval: 5000,
+      refetchInterval: 30000,
     },
   );
   const rootPath = V2Routes.ImagePolicyDetails;

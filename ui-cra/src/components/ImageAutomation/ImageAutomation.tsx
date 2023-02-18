@@ -10,7 +10,7 @@ const ImageAutomation = () => {
 
   const tabs: Array<routeTab> = [
     {
-      name: "Image Repositories",
+      name: 'Image Repositories',
       path: `${path}/repositories`,
       component: () => {
         return <ImageRepositoriesTable />;
@@ -18,7 +18,7 @@ const ImageAutomation = () => {
       visible: true,
     },
     {
-      name: "Image Policies",
+      name: 'Image Policies',
       path: `${path}/policies`,
       component: () => {
         return <ImagePoliciesTable />;
@@ -26,7 +26,7 @@ const ImageAutomation = () => {
       visible: true,
     },
     {
-      name: "Image Update Automations",
+      name: 'Image Update Automations',
       path: `${path}/updates`,
       component: () => {
         return <ImageAutomationUpdatesTable />;

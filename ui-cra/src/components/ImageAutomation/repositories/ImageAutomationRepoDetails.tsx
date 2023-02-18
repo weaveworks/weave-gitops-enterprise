@@ -27,7 +27,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
     Kind.ImageRepository,
     clusterName,
     {
-      refetchInterval: 5000,
+      refetchInterval: 30000,
     },
   );
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
@@ -40,32 +40,34 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
       ]}
     >
       <ContentWrapper loading={isLoading}>
-        <ImageAutomationDetails
-          data={data}
-          kind={Kind.ImageRepository}
-          infoFields={[
-            ['Kind', Kind.ImageRepository],
-            ['Namespace', data.namespace],
-            ['Namespace', data?.clusterName],
-            [
-              'Image',
-              <Link newTab={true} to={data.obj?.spec?.image}>
-                {data.obj?.spec?.image}
-              </Link>,
-            ],
-            ['Interval', <Interval interval={data.interval} />],
-            ['Tag Count', data.tagCount],
-          ]}
-          rootPath={rootPath}
-        >
-          <Button>
-            <Link
-              to={`/image_automation/policies?filters=imageRepositoryRef: ${name}_`}
-            >
-              Go To Image Policy
-            </Link>
-          </Button>
-        </ImageAutomationDetails>
+        {data && (
+          <ImageAutomationDetails
+            data={data}
+            kind={Kind.ImageRepository}
+            infoFields={[
+              ['Kind', Kind.ImageRepository],
+              ['Namespace', data?.namespace],
+              ['Namespace', data?.clusterName],
+              [
+                'Image',
+                <Link newTab={true} to={data.obj?.spec?.image}>
+                  {data.obj?.spec?.image}
+                </Link>,
+              ],
+              ['Interval', <Interval interval={data.interval} />],
+              ['Tag Count', data.tagCount],
+            ]}
+            rootPath={rootPath}
+          >
+            <Button>
+              <Link
+                to={`/image_automation/policies?filters=imageRepositoryRef%3A%20${name}_`}
+              >
+                Go To Image Policy
+              </Link>
+            </Button>
+          </ImageAutomationDetails>
+        )}
       </ContentWrapper>
     </PageTemplate>
   );
