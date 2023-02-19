@@ -1,12 +1,19 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  getByTestId,
+  render,
+  screen,
+} from '@testing-library/react';
 import moment from 'moment';
 import PolicyConfigsList from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
-    defaultContexts,
-    PolicyConfigsClientMock,
-    TestFilterableTable,
-    withContext
+  defaultContexts,
+  getRowInfoByIndex,
+  PolicyConfigsClientMock,
+  TestFilterableTable,
+  withContext,
 } from '../../../utils/test-utils';
 
 const listPolicyConfigsResponse = {
@@ -128,7 +135,6 @@ describe('ListPolicies', () => {
     filterTable.testSearchTableByValue(search, searchedRows);
     filterTable.clearSearchByVal(search);
   });
-
   it('sort policyConfigs', async () => {
     const filterTable = new TestFilterableTable(
       'policyConfigs-list',
@@ -154,5 +160,15 @@ describe('ListPolicies', () => {
       }),
     );
     filterTable.testSorthTableByColumn('Age', sortRowsByAge);
+  });
+  it('renders Warning Icon', async () => {
+    listPolicyConfigsResponse.policyConfigs[0].status = 'Warning';
+    api.ListPolicyConfigsReturns = listPolicyConfigsResponse;
+    const name = listPolicyConfigsResponse.policyConfigs[0].name;
+    await act(async () => {
+      const c = wrap(<PolicyConfigsList />);
+      render(c);
+    });
+    expect(await screen.getByTestId(`warning-icon-${name}`)).toBeTruthy()
   });
 });

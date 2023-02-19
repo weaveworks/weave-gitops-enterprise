@@ -27,10 +27,11 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
         fields={[
           {
             label: '',
-            value: ({ status, clusterName }) =>
+            value: ({ status, clusterName, name }) =>
               status === 'Warning' ? (
                 <span
                   title={`one or more policies are not found in cluster ${clusterName}`}
+                  data-testid={`warning-icon-${name}`}
                 >
                   <WarningIcon />
                 </span>
