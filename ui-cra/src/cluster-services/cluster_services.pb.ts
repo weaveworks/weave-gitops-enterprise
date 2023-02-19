@@ -800,6 +800,24 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
+export type PolicyConfig = {
+  name?: string
+  clusterName?: string
+  totalPolicies?: number
+  match?: string
+  status?: string
+  age?: string
+}
+
+export type ListPolicyConfigsRequest = {
+}
+
+export type ListPolicyConfigsResponse = {
+  policyConfigs?: PolicyConfig[]
+  errors?: ListError[]
+  total?: number
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -896,5 +914,8 @@ export class ClustersService {
   }
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
+    return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

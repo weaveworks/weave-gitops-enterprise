@@ -1,0 +1,74 @@
+import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import moment from 'moment';
+import { FC } from 'react';
+import { PolicyConfig } from '../../../cluster-services/cluster_services.pb';
+import { TableWrapper } from '../../Shared';
+import { usePolicyConfigStyle, WarningIcon } from '../PolicyConfigStyles';
+
+interface Props {
+  PolicyConfigs: PolicyConfig[];
+}
+
+export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
+  const classes = usePolicyConfigStyle();
+  let initialFilterState = {
+    ...filterConfig(PolicyConfigs, 'name'),
+  };
+
+  return (
+    <TableWrapper id="policyConfigs-list">
+      <DataTable
+        key={PolicyConfigs?.length}
+        filters={initialFilterState}
+        rows={PolicyConfigs}
+        fields={[
+          {
+            label: '',
+            value: ({ status, clusterName }) =>
+              status === 'Warning' ? (
+                <span
+                  title={`one or more policies are not found in cluster ${clusterName}`}
+                >
+                  <WarningIcon />
+                </span>
+              ) : (
+                ' '
+              ),
+            maxWidth: 50,
+          },
+          {
+            label: 'Name',
+            value: 'name',
+            textSearchable: true,
+            sortValue: ({ name }) => name,
+            maxWidth: 650,
+          },
+          {
+            label: 'Cluster',
+            value: 'clusterName',
+          },
+          {
+            label: 'No Of Policies',
+            value: ({ totalPolicies }) => (
+              <div className={classes.centered}>{totalPolicies}</div>
+            ),
+            maxWidth: 100,
+          },
+          {
+            label: 'Applied To',
+            value: 'match',
+          },
+          {
+            label: 'Age',
+            value: ({ age }) => moment(age).fromNow(),
+            defaultSort: true,
+            sortValue: ({ age }) => {
+              const t = age && new Date(age).getTime();
+              return t * -1;
+            },
+          },
+        ]}
+      />
+    </TableWrapper>
+  );
+};

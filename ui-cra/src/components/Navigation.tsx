@@ -21,6 +21,7 @@ import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
+import PolicyConfigsList from './PolicyConfigs';
 
 const { xxs, xs, small, medium } = theme.spacing;
 const { neutral10, neutral30, neutral40, primary } = theme.colors;
@@ -202,6 +203,11 @@ const NavItems = () => {
       name: 'POLICIES',
       link: Routes.Policies,
       icon: <Policies />,
+    },
+    {
+      name: 'POLICY CONFIGS',
+      link: Routes.PolicyConfigs,
+      icon:  <Policies />,
     },
   ];
   return (

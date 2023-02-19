@@ -51,6 +51,7 @@ import {
   ListExternalSecretsResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
+  ListPolicyConfigsResponse,
   ListPolicyValidationsResponse,
   ListTemplatesResponse,
   ListWorkspacesResponse,
@@ -296,6 +297,15 @@ export class PolicyClientMock {
   }
 }
 
+
+export class PolicyConfigsClientMock {
+  ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
+
+  ListPolicyConfigs() {
+    return promisify(this.ListPolicyConfigsReturns);
+  }
+
+}
 export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
