@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	helm "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/go-logr/logr"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -60,7 +61,7 @@ func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfak
 	}
 
 	nsMap := map[string][]v1.Namespace{"Default": {}}
-	clustersClient := clustersmngr.NewClient(clientsPool, nsMap)
+	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	factory := &clustersmngrfakes.FakeClustersManager{}
 	factory.GetImpersonatedClientReturns(clustersClient, nil)

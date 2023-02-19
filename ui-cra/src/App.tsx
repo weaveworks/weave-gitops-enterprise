@@ -1,5 +1,7 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
+import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
+import { AppContextProvider, theme } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import {
   QueryCache,
@@ -8,21 +10,19 @@ import {
   QueryClientProvider,
 } from 'react-query';
 import { BrowserRouter } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import { muiTheme } from './muiTheme';
-import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
-import { theme, AppContextProvider } from '@weaveworks/weave-gitops';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import bg from './assets/img/bg.svg';
 import ResponsiveDrawer from './components/ResponsiveDrawer';
-import { PipelinesProvider } from './contexts/Pipelines';
 import { GitAuthProvider } from './contexts/GitAuth/index';
+import { PipelinesProvider } from './contexts/Pipelines';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { muiTheme } from './muiTheme';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -135,14 +135,12 @@ const App: FC = () => {
                 <PipelinesProvider api={Pipelines}>
                   <GitAuthProvider>
                     <AppContextProvider>
-                     
-                          <ResponsiveDrawer />
-                          <ToastContainer
-                            position="top-center"
-                            autoClose={5000}
-                            newestOnTop={false}
-                          />
-                      
+                      <ResponsiveDrawer />
+                      <ToastContainer
+                        position="top-center"
+                        autoClose={5000}
+                        newestOnTop={false}
+                      />
                     </AppContextProvider>
                   </GitAuthProvider>
                 </PipelinesProvider>
