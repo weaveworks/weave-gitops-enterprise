@@ -9,7 +9,6 @@ export const useCoreClientContext = () => React.useContext(CoreClientContext);
 
 export function useListImageObjects<T>(
   type: { new (obj: Object): T },
-  queryKey: string,
   kind: string,
   namespace: string = '',
 ) {
@@ -22,7 +21,7 @@ export function useListImageObjects<T>(
     },
     RequestError
   >(
-    [queryKey, namespace],
+    ['list_image_automation_object', namespace, kind],
     () =>
       api.ListObjects({ namespace, kind }).then(res => {
         const providers = res.objects?.map(obj => new type(obj));

@@ -18,7 +18,6 @@ import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabs
 const ImageAutomationUpdatesTable = () => {
   const { data, isLoading, error } = useListImageObjects(
     ImageUpdateAutomation,
-    'image_update',
     Kind.ImageUpdateAutomation,
   );
   const initialFilterState = {
@@ -44,6 +43,7 @@ const ImageAutomationUpdatesTable = () => {
                   {name}
                 </Link>
               ),
+              sortValue: ({ name }) => name || '',
               textSearchable: true,
               maxWidth: 600,
             },

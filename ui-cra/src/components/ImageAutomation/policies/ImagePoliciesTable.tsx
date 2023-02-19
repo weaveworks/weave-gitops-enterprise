@@ -16,7 +16,6 @@ import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabs
 const ImagePoliciesTable = () => {
   const { data, isLoading, error } = useListImageObjects(
     ImagePolicy,
-    'image_policies',
     Kind.ImagePolicy,
   );
   const initialFilterState = {
@@ -43,6 +42,7 @@ const ImagePoliciesTable = () => {
                   {name}
                 </Link>
               ),
+              sortValue: ({ name }) => name || '',
               textSearchable: true,
               maxWidth: 600,
             },

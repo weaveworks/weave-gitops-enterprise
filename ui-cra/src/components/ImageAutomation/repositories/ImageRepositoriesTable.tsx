@@ -17,7 +17,6 @@ import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabs
 const ImageRepositoriesTable = () => {
   const { data, isLoading, error } = useListImageObjects(
     ImageRepository,
-    'image_repository',
     Kind.ImageRepository,
   );
   const initialFilterState = {
@@ -45,6 +44,7 @@ const ImageRepositoriesTable = () => {
                   </Link>
                 ),
                 textSearchable: true,
+                sortValue: ({ name }) => name || '',
                 maxWidth: 600,
               },
               {
