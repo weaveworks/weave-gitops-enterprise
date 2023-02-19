@@ -2,8 +2,11 @@ import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
 import { PolicyConfig } from '../../../cluster-services/cluster_services.pb';
-import { TableWrapper } from '../../Shared';
-import { usePolicyConfigStyle, WarningIcon } from '../PolicyConfigStyles';
+import {
+  PolicyConfigsTableWrapper,
+  usePolicyConfigStyle,
+  WarningIcon,
+} from '../PolicyConfigStyles';
 
 interface Props {
   PolicyConfigs: PolicyConfig[];
@@ -16,7 +19,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
   };
 
   return (
-    <TableWrapper id="policyConfigs-list">
+    <PolicyConfigsTableWrapper id="policyConfigs-list">
       <DataTable
         key={PolicyConfigs?.length}
         filters={initialFilterState}
@@ -69,6 +72,6 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
           },
         ]}
       />
-    </TableWrapper>
+    </PolicyConfigsTableWrapper>
   );
 };
