@@ -60,7 +60,7 @@ const mappedPolicyConfigs = (policyConfigs: Array<any>) => {
     moment(e.age).fromNow(),
   ]);
 };
-describe('ListPolicies', () => {
+describe('ListPolicyConfigs', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: PolicyConfigsClientMock;
 
