@@ -14,6 +14,10 @@ RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make nod
 
 COPY --chown=node:node . /home/node/
 ARG version
+# When set to true, Create React App treats warnings as failures in the build.
+# It also makes the test runner non-watching. Most CIs set this flag by default.
+# https://create-react-app.dev/docs/advanced-configuration
+ENV CI=true
 RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
 
 FROM alpine:3.9
