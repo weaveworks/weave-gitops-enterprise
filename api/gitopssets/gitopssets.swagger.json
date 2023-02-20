@@ -275,6 +275,9 @@
         },
         "yaml": {
           "type": "string"
+        },
+        "objectRef": {
+          "$ref": "#/definitions/v1ObjectRef"
         }
       }
     },
@@ -344,6 +347,23 @@
           "items": {
             "$ref": "#/definitions/v1GroupVersionKind"
           }
+        }
+      }
+    },
+    "v1ObjectRef": {
+      "type": "object",
+      "properties": {
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
         }
       }
     },

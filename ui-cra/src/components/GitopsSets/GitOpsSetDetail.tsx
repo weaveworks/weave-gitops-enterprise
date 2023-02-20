@@ -16,7 +16,6 @@ import {
 import * as React from 'react';
 import styled from 'styled-components';
 import { useRouteMatch } from 'react-router-dom';
-import { ObjectRef } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Routes } from '../../utils/nav';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -34,6 +33,7 @@ import {
   Condition,
   GitOpsSet,
   GroupVersionKind,
+  ObjectRef,
 } from '../../api/gitopssets/types.pb';
 import { getInventory } from '.';
 
@@ -149,7 +149,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     objects: objects || [],
     error: error || undefined,
     isLoading: isLoading || false,
-    source: {} as ObjectRef,
+    source: gitOpsSet.objectRef || ({} as ObjectRef),
     name: gitOpsSet.name || '',
     namespace: gitOpsSet.namespace || '',
     suspended: gitOpsSet.suspended || false,

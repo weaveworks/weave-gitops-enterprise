@@ -15,6 +15,7 @@ export type GitOpsSet = {
   suspended?: boolean
   observedGeneration?: string
   yaml?: string
+  objectRef?: ObjectRef
 }
 
 export type GitOpsSetListError = {
@@ -53,4 +54,11 @@ export type Object = {
   tenant?: string
   uid?: string
   inventory?: GroupVersionKind[]
+}
+
+export type ObjectRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+  clusterName?: string
 }
