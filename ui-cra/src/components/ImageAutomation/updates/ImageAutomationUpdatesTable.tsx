@@ -11,6 +11,7 @@ import {
   Timestamp,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import moment from 'moment';
 import { useListImageObjects } from '../../../contexts/ImageAutomation';
 import { TableWrapper } from '../../Shared';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
@@ -79,7 +80,7 @@ const ImageAutomationUpdatesTable = () => {
             {
               label: 'Last Run',
               value: ({ lastAutomationRunTime }) => (
-                <Timestamp time={lastAutomationRunTime} />
+                <span>{moment(lastAutomationRunTime).fromNow()}</span>
               ),
             },
           ]}
