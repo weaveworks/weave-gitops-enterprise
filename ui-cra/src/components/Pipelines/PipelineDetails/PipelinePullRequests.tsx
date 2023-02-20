@@ -1,4 +1,4 @@
-import { DataTable, Flex, Link } from '@weaveworks/weave-gitops';
+import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -23,9 +23,9 @@ function PipelinePullRequests({ className, pipeline }: Props) {
             {
               label: 'URL',
               value: r => (
-                <Link href={r.url} newTab>
+                <a href={r.url} target="_blank">
                   {r.url}
-                </Link>
+                </a>
               ),
             },
           ]}
