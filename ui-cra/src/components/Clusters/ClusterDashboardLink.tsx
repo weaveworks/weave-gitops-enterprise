@@ -12,7 +12,7 @@ export function formatClusterDashboardUrl(clusterName: string): string {
     return '';
   }
 
-  const cls = clusterName.split('/');
+  const cls = clusterName?.split('/');
   let url = cls[0];
   if (cls.length > 1) {
     url = cls[1];
