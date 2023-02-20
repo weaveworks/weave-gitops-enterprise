@@ -69,7 +69,7 @@ func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	return &AuthenticateGithub{
 		AuthenticateGithub: webDriver.FindByButton(`Authenticate with GitHub`),
 		// FIXME: bit brittle
-		AccessCode:         webDriver.FindByXPath(`//button[contains(.,'Authorize Github Access')]/../../preceding-sibling::div/span`),
+		AccessCode:         webDriver.FindByXPath(`//button[contains(.,'Authorize Github Access')]/../../preceding-sibling::div/div/p`),
 		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),
 		AuthorizationError: webDriver.FindByXPath(`//div[@role="alert"]//div[.="Error"]`),
 		Close:              webDriver.FindByButton(`Close`),
