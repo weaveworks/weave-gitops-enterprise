@@ -22,6 +22,7 @@ import (
 	"sigs.k8s.io/yaml"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -32,6 +33,7 @@ type GetAutomations struct {
 	HelmReleaseFiles     []*capiv1_proto.CommitFile
 	Clusters             []string
 	ExternalSecretsFiles []*capiv1_proto.CommitFile
+	PolicyConfigsFiles   []*capiv1_proto.CommitFile
 }
 
 func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
@@ -81,6 +83,12 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 
 	if len(automations.ExternalSecretsFiles) > 0 {
 		for _, f := range automations.ExternalSecretsFiles {
+			files = append(files, toGitCommitFile(f))
+		}
+	}
+
+	if len(automations.PolicyConfigsFiles) > 0 {
+		for _, f := range automations.PolicyConfigsFiles {
 			files = append(files, toGitCommitFile(f))
 		}
 	}
@@ -159,6 +167,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 	var kustomizationFiles []*capiv1_proto.CommitFile
 	var helmReleaseFiles []*capiv1_proto.CommitFile
 	var externalSecretsFiles []*capiv1_proto.CommitFile
+	var policyConfigsFiles []*capiv1_proto.CommitFile
 
 	if len(ca) > 0 {
 		for _, c := range ca {
@@ -214,11 +223,31 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 					Content: *externalSecret.Content,
 				})
 			}
+
+			if c.PolicyConfig != nil {
+				policiesConfig, err := generatePolicyConfigFile(ctx, c.IsControlPlane, cluster, client, c.PolicyConfig, c.FilePath)
+
+				if err != nil {
+					return nil, err
+				}
+
+				externalSecretsFiles = append(externalSecretsFiles, &capiv1_proto.CommitFile{
+					Path:    *policiesConfig.Path,
+					Content: *policiesConfig.Content,
+				})
+			}
+
 			clusters = append(clusters, c.Cluster.Name)
 		}
 	}
 
-	return &GetAutomations{KustomizationFiles: kustomizationFiles, HelmReleaseFiles: helmReleaseFiles, Clusters: clusters, ExternalSecretsFiles: externalSecretsFiles}, nil
+	return &GetAutomations{
+		KustomizationFiles:   kustomizationFiles,
+		HelmReleaseFiles:     helmReleaseFiles,
+		Clusters:             clusters,
+		ExternalSecretsFiles: externalSecretsFiles,
+		PolicyConfigsFiles:   policyConfigsFiles,
+	}, nil
 }
 
 func generateHelmReleaseFile(
@@ -339,6 +368,8 @@ func validateAutomations(ca []*capiv1_proto.ClusterAutomation) error {
 			err = multierror.Append(err, validateHelmRelease(c.HelmRelease))
 		} else if c.ExternalSecret != nil {
 			err = multierror.Append(err, validateExternalSecret(c.ExternalSecret))
+		} else if c.PolicyConfig != nil {
+			err = multierror.Append(err, validatePolicyConfig(c.PolicyConfig))
 		} else {
 			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release or external secret"))
 		}
@@ -559,6 +590,145 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 			err = multierror.Append(err, fmt.Errorf("remoteRef property kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 		}
 	}
+
+	return err
+}
+
+func generatePolicyConfigFile(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	kubeClient client.Client,
+	policyConfig *capiv1_proto.PolicyConfigObject,
+	filePath string) (gitprovider.CommitFile, error) {
+
+	policyConfigYAML, err := createPolicyConfigObject(policyConfig)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("failed to create Policy Config object: %s/%s: %w", policyConfig.Metadata.Namespace, policyConfig.Metadata.Name, err)
+	}
+
+	b, err := yaml.Marshal(policyConfigYAML)
+	if err != nil {
+		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s Policy Config, %w", policyConfig.Metadata.Name, err)
+	}
+
+	es := createNamespacedName(policyConfig.Metadata.Name, policyConfig.Metadata.Namespace)
+	externalSecretPath := getClusterResourcePath(isControlPlane, "policyconfig", cluster, es)
+	if filePath != "" {
+		externalSecretPath = filePath
+	}
+
+	externalSecretContent := string(b)
+
+	return gitprovider.CommitFile{
+		Path:    &externalSecretPath,
+		Content: &externalSecretContent,
+	}, nil
+}
+
+func createPolicyConfigObject(config *capiv1_proto.PolicyConfigObject) (*pacv2beta2.PolicyConfig, error) {
+	object := &pacv2beta2.PolicyConfig{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       pacv2beta2.PolicyConfigKind,
+			APIVersion: "",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: config.Metadata.Name,
+		},
+		Spec: pacv2beta2.PolicyConfigSpec{
+			Match: pacv2beta2.PolicyConfigTarget{
+				Workspaces: config.Spec.Match.Workspaces,
+				Namespaces: config.Spec.Match.Namespaces,
+			},
+			Config: map[string]pacv2beta2.PolicyConfigConfig{},
+		},
+	}
+
+	for _, app := range config.Spec.Match.Apps {
+		object.Spec.Match.Applications = append(object.Spec.Match.Applications, pacv2beta2.PolicyTargetApplication{
+			Kind:      app.Kind,
+			Name:      app.Name,
+			Namespace: app.Namespace,
+		})
+	}
+
+	for _, resource := range config.Spec.Match.Resources {
+		object.Spec.Match.Resources = append(object.Spec.Match.Resources, pacv2beta2.PolicyTargetResource{
+			Kind:      resource.Kind,
+			Name:      resource.Name,
+			Namespace: resource.Namespace,
+		})
+	}
+
+	for policyID, policyConfig := range config.Spec.Config {
+		params := pacv2beta2.PolicyConfigConfig{
+			Parameters: map[string]apiextensionsv1.JSON{},
+		}
+		for key, value := range policyConfig.Parameters {
+			params.Parameters[key] = apiextensionsv1.JSON{Raw: value.Value}
+		}
+		object.Spec.Config[policyID] = params
+	}
+
+	return object, nil
+}
+
+func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
+	var err error
+
+	if config.Metadata == nil {
+		err = multierror.Append(err, errors.New("policy config metadata must be specified"))
+		return err
+	} else {
+		if config.Metadata.Name == "" {
+			err = multierror.Append(err, errors.New("policy config name must be specified"))
+			return err
+		}
+	}
+
+	var target string
+
+	if config.Spec.Match.Workspaces != nil {
+		target = "workspaces"
+	}
+
+	if config.Spec.Match.Namespaces != nil {
+		if target != "" {
+			err = multierror.Append(err, fmt.Errorf("cannot target %s and namespaces in same policy config", target))
+			return err
+		}
+		target = "namespaces"
+	}
+
+	if config.Spec.Match.Apps != nil {
+		if target != "" {
+			err = multierror.Append(err, fmt.Errorf("cannot target %s and apps in same policy config", target))
+			return err
+		}
+		target = "apps"
+	}
+
+	if config.Spec.Match.Resources != nil {
+		if target != "" {
+			err = multierror.Append(err, fmt.Errorf("cannot target %s and resources in same policy config", target))
+			return err
+		}
+		target = "resources"
+	}
+
+	if target == "" {
+		err = multierror.Append(err, errors.New("policy config must target workspace, namespace, application or resource"))
+	}
+
+	// if len(config.Spec.Config) == 0 {
+	// 	err = multierror.Append(err, errors.New("policy config must have at least one policy configuration"))
+	// }
+
+	// for policyID, policyConfig := range config.Spec.Config {
+	// 	if len(policyConfig.Parameters) == 0 {
+	// 		err = multierror.Append(err, fmt.Errorf("policy %s configuration must have at least one parameter", policyID))
+	// 	}
+	// }
 
 	return err
 }
