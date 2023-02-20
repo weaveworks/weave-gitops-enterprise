@@ -124,7 +124,7 @@ func TestGetReconciledObjects(t *testing.T) {
 	reconciledObjs := []client.Object{
 		&appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
-				UID: "abc",
+				UID:       "abc",
 				Name:      "my-deployment",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
@@ -153,7 +153,7 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 		&corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				UID: "efg",
+				UID:       "efg",
 				Name:      "my-configmap",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
@@ -164,7 +164,7 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 		&corev1.ConfigMap{
 			ObjectMeta: metav1.ObjectMeta{
-				UID: "hij",
+				UID:       "hij",
 				Name:      "my-configmap-2",
 				Namespace: ns1.Name,
 			},
@@ -252,4 +252,3 @@ func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.
 
 	return ns
 }
-
