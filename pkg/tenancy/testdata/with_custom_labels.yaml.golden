@@ -113,6 +113,7 @@ spec:
   description: Determines which helm release and kustomization can be used in a tenant
   how_to_solve: ""
   id: weave.policies.tenancy.foo-tenant-allowed-application-deploy
+  mutate: false
   name: foo-tenant allowed application deploy
   parameters:
   - name: namespaces
