@@ -8,7 +8,6 @@ import {
   Link,
   showInterval,
   SourceLink,
-  Timestamp,
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
