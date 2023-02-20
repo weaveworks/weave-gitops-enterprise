@@ -2,12 +2,13 @@ import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
+import CodeView from '../../CodeView';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import CodeView from '../../CodeView';
 
-import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { EditButton } from './../../../components/Templates/Edit/EditButton';
+import PipelinePullRequests from './PipelinePullRequests';
 import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
 
@@ -69,6 +70,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
               code={data?.pipeline?.yaml || ''}
               object={data?.pipeline || {}}
             />
+          </RouterTab>
+          <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
+            <PipelinePullRequests pipeline={data?.pipeline} />
           </RouterTab>
         </SubRouterTabs>
       </ContentWrapper>
