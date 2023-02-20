@@ -149,7 +149,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     objects: objects || [],
     error: error || undefined,
     isLoading: isLoading || false,
-    source: gitOpsSet.sourceRef || ({} as ObjectRef),
+    source: {} as ObjectRef,
     name: gitOpsSet.name || '',
     namespace: gitOpsSet.namespace || '',
     suspended: gitOpsSet.suspended || false,
@@ -206,7 +206,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               <InfoList
                 data-testid="info-list"
                 items={[
-                  ['Source', gitOpsSet?.sourceRef?.name],
                   ['Observed generation', gitOpsSet?.observedGeneration],
                   ['Cluster', gitOpsSet?.clusterName],
                   ['Suspended', gitOpsSet?.suspended ? 'True' : 'False'],

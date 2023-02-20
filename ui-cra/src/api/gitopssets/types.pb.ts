@@ -12,17 +12,9 @@ export type GitOpsSet = {
   type?: string
   labels?: {[key: string]: string}
   annotations?: {[key: string]: string}
-  sourceRef?: SourceRef
   suspended?: boolean
   observedGeneration?: string
   yaml?: string
-}
-
-export type SourceRef = {
-  apiVersion?: string
-  kind?: string
-  name?: string
-  namespace?: string
 }
 
 export type GitOpsSetListError = {
@@ -47,13 +39,6 @@ export type Condition = {
 export type GitOpsSetGenerator = {
   list?: string
   gitRepository?: string
-}
-
-export type ObjectRef = {
-  kind?: string
-  name?: string
-  namespace?: string
-  clusterName?: string
 }
 
 export type GroupVersionKind = {

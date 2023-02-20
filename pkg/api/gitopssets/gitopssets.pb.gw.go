@@ -181,12 +181,13 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ListGitOpsSets", runtime.WithHTTPPathPattern("/v1/gitopssets"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ListGitOpsSets", runtime.WithHTTPPathPattern("/v1/gitopssets"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_GitOpsSets_ListGitOpsSets_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_GitOpsSets_ListGitOpsSets_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -204,12 +205,13 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/suspend"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_GitOpsSets_ToggleSuspendGitOpsSet_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_GitOpsSets_ToggleSuspendGitOpsSet_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -227,12 +229,13 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/reconciled_objects"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/gitops_reconciled_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_GitOpsSets_GetReconciledObjects_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_GitOpsSets_GetReconciledObjects_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -250,12 +253,13 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/sync"))
+		var err error
+		ctx, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_GitOpsSets_SyncGitOpsSet_0(rctx, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_GitOpsSets_SyncGitOpsSet_0(ctx, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
@@ -312,12 +316,13 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ListGitOpsSets", runtime.WithHTTPPathPattern("/v1/gitopssets"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ListGitOpsSets", runtime.WithHTTPPathPattern("/v1/gitopssets"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_GitOpsSets_ListGitOpsSets_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_GitOpsSets_ListGitOpsSets_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -332,12 +337,13 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/suspend"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_GitOpsSets_ToggleSuspendGitOpsSet_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_GitOpsSets_ToggleSuspendGitOpsSet_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -352,12 +358,13 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/reconciled_objects"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/gitops_reconciled_objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_GitOpsSets_GetReconciledObjects_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_GitOpsSets_GetReconciledObjects_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -372,12 +379,13 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		rctx, err := runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/sync"))
+		var err error
+		ctx, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_GitOpsSets_SyncGitOpsSet_0(rctx, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_GitOpsSets_SyncGitOpsSet_0(ctx, inboundMarshaler, client, req, pathParams)
 		ctx = runtime.NewServerMetadataContext(ctx, md)
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
@@ -396,7 +404,7 @@ var (
 
 	pattern_GitOpsSets_ToggleSuspendGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitopssets", "suspend"}, ""))
 
-	pattern_GitOpsSets_GetReconciledObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "reconciled_objects"}, ""))
+	pattern_GitOpsSets_GetReconciledObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "gitops_reconciled_objects"}, ""))
 
 	pattern_GitOpsSets_SyncGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitopssets", "sync"}, ""))
 )

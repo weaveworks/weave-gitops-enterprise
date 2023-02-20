@@ -39,7 +39,7 @@ service GitOpsSets {
     */
     rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
-            post: "/v1/reconciled_objects"
+            post: "/v1/gitops_reconciled_objects"
             body: "*"
         };
     };
