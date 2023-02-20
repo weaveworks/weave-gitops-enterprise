@@ -133,7 +133,7 @@ const ChartValuesDialog: FC<{
         <DialogActions>
           <Button
             id="discard-yaml"
-            startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+            startIcon={<Icon type={IconType.ClearIcon} size="base" />}
             onClick={onDiscard}
             disabled={profile.required && profile.editable !== true}
           >
