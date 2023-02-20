@@ -49,6 +49,7 @@ const ChartValuesDialog: FC<{
   onSave: () => void;
   onClose: () => void;
   helmRepo: RepositoryRef;
+  onDiscard: () => void;
 }> = ({
   profile,
   yaml,
@@ -58,6 +59,7 @@ const ChartValuesDialog: FC<{
   onSave,
   onClose,
   helmRepo,
+  onDiscard,
 }) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
@@ -75,14 +77,19 @@ const ChartValuesDialog: FC<{
     () =>
       api.GetValuesForChart({
         repository: {
-          cluster: cluster || { name: getConfigResp?.data?.managementClusterName},
+          cluster: cluster || {
+            name: getConfigResp?.data?.managementClusterName,
+          },
           name: helmRepo.name || DEFAULT_PROFILE_REPO.name,
           namespace: helmRepo.namespace || DEFAULT_PROFILE_REPO.namespace,
         },
         name: profile.name,
         version,
       }),
-    { enabled: !yaml && !!getConfigResp?.data?.managementClusterName, refetchOnWindowFocus: false },
+    {
+      enabled: !yaml && !!getConfigResp?.data?.managementClusterName,
+      refetchOnWindowFocus: false,
+    },
   );
 
   const { isLoading: valuesLoading, data: jobResult } = useQuery<
@@ -104,7 +111,6 @@ const ChartValuesDialog: FC<{
   const isLoading =
     !yaml &&
     (jobLoading || valuesLoading || (!jobResult?.error && !jobResult?.values));
-
   return (
     <>
       <Dialog open maxWidth="md" fullWidth scroll="paper" onClose={onClose}>
@@ -125,6 +131,14 @@ const ChartValuesDialog: FC<{
           )}
         </DialogContent>
         <DialogActions>
+          <Button
+            id="discard-yaml"
+            startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+            onClick={onDiscard}
+            disabled={profile.required && profile.editable !== true}
+          >
+            DISCARD CHANGES
+          </Button>
           <Button
             id="edit-yaml"
             startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}

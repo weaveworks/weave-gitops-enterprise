@@ -109,6 +109,11 @@ const ProfilesListItem: FC<{
     setOpenYamlPreview(false);
   }, [profile, handleUpdateProfile, version, yaml]);
 
+  const resetChartsValues = () => {
+    setYaml('');
+    setOpenYamlPreview(false);
+  };
+
   useEffect(() => {
     const [selectedValue] = profile.values.filter(
       value => value.selected === true,
@@ -166,8 +171,9 @@ const ProfilesListItem: FC<{
           version={version}
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
-          onClose={() => setOpenYamlPreview(false)}
+          onClose={() => resetChartsValues()}
           helmRepo={helmRepo}
+          onDiscard={() => resetChartsValues()}
         />
       )}
     </>
