@@ -47,10 +47,10 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		ObservedGeneration: gs.Status.ObservedGeneration,
 		Yaml:               string(gsYaml),
 		ObjectRef: &pb.ObjectRef{
-			Kind:       gs.GetObjectKind().GroupVersionKind().Kind,
-			Name:       gs.Name,
-			Namespace:  gs.Namespace,
-			ClusterName:        clusterName,
+			Kind:        gs.GetObjectKind().GroupVersionKind().Kind,
+			Name:        gs.Name,
+			Namespace:   gs.Namespace,
+			ClusterName: clusterName,
 		},
 	}
 }
