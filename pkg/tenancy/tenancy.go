@@ -40,53 +40,53 @@ var (
 // ServiceAccountOptions is additional configuration for generating
 // ServiceAccounts.
 type ServiceAccountOptions struct {
-	Name string `yaml:"name"`
+	Name string `json:"name"`
 }
 
 // AllowedRepository defines the allowed urls for each source type
 type AllowedRepository struct {
-	URL  string `yaml:"url"`
-	Kind string `yaml:"kind"`
+	URL  string `json:"url"`
+	Kind string `json:"kind"`
 }
 
 // AllowedCluster defines the allowed secret names that contains cluster's kubeconfig
 type AllowedCluster struct {
-	KubeConfig string `yaml:"kubeConfig"`
+	KubeConfig string `json:"kubeConfig"`
 }
 
 // TenanTeamRBAC defines the permissions of a tenant
 type TenantTeamRBAC struct {
-	GroupNames []string            `yaml:"groupNames"`
-	Rules      []rbacv1.PolicyRule `yaml:"rules"`
+	GroupNames []string            `json:"groupNames"`
+	Rules      []rbacv1.PolicyRule `json:"rules"`
 }
 
 type TenantRoleBinding struct {
-	Name string `yaml:"Name"`
-	Kind string `yaml:"Kind"`
+	Name string `json:"Name"`
+	Kind string `json:"Kind"`
 }
 
 // TenantDeploymentRBAC defines the permissions of the tenants service account
 type TenantDeploymentRBAC struct {
-	Rules     []rbacv1.PolicyRule `yaml:"rules"`
-	BindRoles []TenantRoleBinding `yaml:"bindRoles"`
+	Rules     []rbacv1.PolicyRule `json:"rules"`
+	BindRoles []TenantRoleBinding `json:"bindRoles"`
 }
 
 // Config represents the structure of the Tenancy file.
 type Config struct {
-	ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
-	Tenants        []Tenant               `yaml:"tenants"`
+	ServiceAccount *ServiceAccountOptions `json:"serviceAccount,omitempty"`
+	Tenants        []Tenant               `json:"tenants"`
 }
 
 // Tenant represents a tenant that we generate resources for in the tenancy
 // system.
 type Tenant struct {
-	Name                string                `yaml:"name"`
-	Namespaces          []string              `yaml:"namespaces"`
-	Labels              map[string]string     `yaml:"labels"`
-	AllowedRepositories []AllowedRepository   `yaml:"allowedRepositories"`
-	AllowedClusters     []AllowedCluster      `yaml:"allowedClusters"`
-	TeamRBAC            *TenantTeamRBAC       `yaml:"teamRBAC,omitempty"`
-	DeploymentRBAC      *TenantDeploymentRBAC `yaml:"deploymentRBAC,omitempty"`
+	Name                string                `json:"name"`
+	Namespaces          []string              `json:"namespaces"`
+	Labels              map[string]string     `json:"labels"`
+	AllowedRepositories []AllowedRepository   `json:"allowedRepositories"`
+	AllowedClusters     []AllowedCluster      `json:"allowedClusters"`
+	TeamRBAC            *TenantTeamRBAC       `json:"teamRBAC,omitempty"`
+	DeploymentRBAC      *TenantDeploymentRBAC `json:"deploymentRBAC,omitempty"`
 }
 
 // Validate returns an error if any of the fields isn't valid
@@ -700,8 +700,8 @@ func Parse(filename string) (*Config, error) {
 	}
 
 	var tenancy struct {
-		ServiceAccount *ServiceAccountOptions `yaml:"serviceAccount,optional"`
-		Tenants        []Tenant               `yaml:"tenants"`
+		ServiceAccount *ServiceAccountOptions `json:"serviceAccount,omitempty"`
+		Tenants        []Tenant               `json:"tenants"`
 	}
 
 	err = yaml.Unmarshal(tenantsYAML, &tenancy)
