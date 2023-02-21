@@ -11,6 +11,8 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	structpb "google.golang.org/protobuf/types/known/structpb"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -114,4 +116,114 @@ func getPolicyConfigTargetType(target pacv2beta2.PolicyConfigTarget) string {
 	} else {
 		return "Unknown match target"
 	}
+}
+
+// GetPolicyConfig gets the policy config details
+func (s *server) GetPolicyConfig(ctx context.Context, req *capiv1_proto.GetPolicyConfigRequest) (*capiv1_proto.GetPolicyConfigResponse, error) {
+	clustersClient, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
+	}
+
+	policyConfig, err := s.getPolicyConfig(ctx, clustersClient, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return policyConfig, nil
+}
+
+// getPolicyConfigDetails helper inner function to get policy config details by using cluster manager client
+func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, req *capiv1_proto.GetPolicyConfigRequest) (*capiv1_proto.GetPolicyConfigResponse, error) {
+	policyConfig := pacv2beta2.PolicyConfig{}
+	// get policyconfig object using cluster manager client with the given cluster name and policy config name
+	if err := cl.Get(ctx, req.ClusterName, types.NamespacedName{Name: req.Name}, &policyConfig); err != nil {
+		return nil, fmt.Errorf("failed to get policy config, error: %w", err)
+	}
+
+	policyConfigDetails := capiv1_proto.GetPolicyConfigResponse{
+		Name:          policyConfig.Name,
+		ClusterName:   req.ClusterName,
+		Age:           policyConfig.CreationTimestamp.Format(time.RFC3339),
+		Status:        policyConfig.Status.Status,
+		Match:         getPolicyConfigMatch(policyConfig.Spec.Match),
+		TotalPolicies: int32(len(policyConfig.Spec.Config)),
+	}
+
+	policyConfigDetails.Policies, _ = getPolicyConfigPolicies(ctx, s, req.ClusterName, policyConfig.Spec.Config)
+	return &policyConfigDetails, nil
+}
+
+// getPolicyConfigMatch gets policy config match from policy config target
+func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.PolicyConfigMatch {
+	match := &capiv1_proto.PolicyConfigMatch{}
+	//check for applications, namespaces, resources and workspaces in policy config target object which is not nil
+	//and set the match object accordingly
+	if target.Applications != nil {
+		match.Apps = []*capiv1_proto.PolicyConfigApplicationMatch{}
+		for _, app := range target.Applications {
+			newApp := &capiv1_proto.PolicyConfigApplicationMatch{
+				Name:      app.Name,
+				Kind:      app.Kind,
+				Namespace: app.Namespace,
+			}
+			match.Apps = append(match.Apps, newApp)
+		}
+	} else if target.Namespaces != nil {
+		match.Namespaces = []string{}
+		for _, ns := range target.Namespaces {
+			match.Namespaces = append(match.Namespaces, ns)
+		}
+
+	} else if target.Workspaces != nil {
+		match.Workspaces = []string{}
+		for _, ns := range target.Workspaces {
+			match.Workspaces = append(match.Workspaces, ns)
+		}
+	} else if target.Resources != nil {
+		match.Resources = []*capiv1_proto.PolicyConfigResourceMatch{}
+		for _, res := range target.Resources {
+			newRes := &capiv1_proto.PolicyConfigResourceMatch{
+				Name:      res.Name,
+				Kind:      res.Kind,
+				Namespace: res.Namespace,
+			}
+			match.Resources = append(match.Resources, newRes)
+		}
+	}
+	return match
+}
+
+// getPolicyConfigPolicies gets policy config policies from policy config spec
+
+func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string, config map[string]pacv2beta2.PolicyConfigConfig) ([]*capiv1_proto.PolicyConfigConfig, error) {
+	policies := []*capiv1_proto.PolicyConfigConfig{}
+	for policyID, policyConfig := range config {
+
+		// Get policy from policy manager
+		policy, err := s.GetPolicy(ctx, &capiv1_proto.GetPolicyRequest{ClusterName: clusterName, PolicyName: policyID})
+		if err != nil {
+			return nil, err
+		}
+
+		params := map[string]*structpb.Value{}
+		for key, value := range policyConfig.Parameters {
+			v := structpb.Value{}
+			if err := v.UnmarshalJSON(value.Raw); err != nil {
+				return nil, err
+			}
+			params[key] = &v
+		}
+
+		policyTarget := &capiv1_proto.PolicyConfigConfig{
+			Id:          policyID,
+			Name:        policy.Policy.Name,
+			Description: policy.Policy.Description,
+			Parameters:  params,
+		}
+
+		policies = append(policies, policyTarget)
+	}
+
+	return policies, nil
 }

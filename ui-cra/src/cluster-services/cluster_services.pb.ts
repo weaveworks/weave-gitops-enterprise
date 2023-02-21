@@ -7,6 +7,7 @@
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
 import * as GoogleProtobufAny from "./google/protobuf/any.pb"
+import * as GoogleProtobufStruct from "./google/protobuf/struct.pb"
 export type ListTemplatesRequest = {
   provider?: string
   templateKind?: string
@@ -818,6 +819,48 @@ export type ListPolicyConfigsResponse = {
   total?: number
 }
 
+export type GetPolicyConfigRequest = {
+  clusterName?: string
+  name?: string
+}
+
+export type GetPolicyConfigResponse = {
+  name?: string
+  clusterName?: string
+  age?: string
+  status?: string
+  match?: PolicyConfigMatch
+  policies?: PolicyConfigConfig[]
+  totalPolicies?: number
+}
+
+export type PolicyConfigApplicationMatch = {
+  name?: string
+  kind?: string
+  namespace?: string
+}
+
+export type PolicyConfigResourceMatch = {
+  name?: string
+  kind?: string
+  namespace?: string
+}
+
+export type PolicyConfigMatch = {
+  namespaces?: string[]
+  workspaces?: string[]
+  apps?: PolicyConfigApplicationMatch[]
+  resources?: PolicyConfigResourceMatch[]
+}
+
+export type PolicyConfigConfig = {
+  id?: string
+  name?: string
+  description?: string
+  parameters?: {[key: string]: GoogleProtobufStruct.Value}
+  status?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -917,5 +960,8 @@ export class ClustersService {
   }
   static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
+    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }

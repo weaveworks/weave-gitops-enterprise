@@ -7,6 +7,8 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+
 
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
@@ -248,6 +250,12 @@ service ClustersService {
   rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
     option (google.api.http) = {
       get : "/v1/policy-configs"
+    };
+  }
+  // GetPolicyConfig get policy config details
+  rpc GetPolicyConfig(GetPolicyConfigRequest) returns (GetPolicyConfigResponse) {
+    option (google.api.http) = {
+      get : "/v1/policy-configs/{name}"
     };
   }
 }
@@ -1092,3 +1100,47 @@ message ListPolicyConfigsResponse{
   repeated ListError errors = 2;
   int32 total = 3;
 }
+
+
+message GetPolicyConfigRequest{
+  string clusterName = 1;
+  string name = 2;
+}
+
+message GetPolicyConfigResponse{
+  string name = 1;
+  string clusterName = 2;
+  string age = 3;
+  string status = 4;
+  PolicyConfigMatch match = 5;
+  repeated PolicyConfigConfig policies = 6;
+  int32 totalPolicies = 7;
+}
+
+message PolicyConfigApplicationMatch {
+  string name = 1;
+  string kind = 2;
+  string namespace = 3;
+}
+
+message PolicyConfigResourceMatch {
+  string name = 1;
+  string kind = 2;
+  string namespace = 3;
+}
+
+message PolicyConfigMatch {
+  repeated string namespaces = 1;
+  repeated string workspaces = 2;
+  repeated PolicyConfigApplicationMatch apps = 3;
+  repeated PolicyConfigResourceMatch resources = 4;
+}
+
+message PolicyConfigConfig {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  map<string, google.protobuf.Value> parameters = 4;
+  string status = 5;
+}
+
