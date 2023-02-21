@@ -79,7 +79,11 @@ const ImageAutomationUpdatesTable = () => {
             {
               label: 'Last Run',
               value: ({ lastAutomationRunTime }) => (
-                <span>{moment(lastAutomationRunTime).fromNow()}</span>
+                <span>
+                  {lastAutomationRunTime
+                    ? moment(lastAutomationRunTime).fromNow()
+                    : ''}
+                </span>
               ),
             },
           ]}
