@@ -1461,6 +1461,9 @@
         },
         "externalSecret": {
           "$ref": "#/definitions/v1ExternalSecret"
+        },
+        "policyConfig": {
+          "$ref": "#/definitions/v1PolicyConfigObject"
         }
       }
     },
@@ -1645,6 +1648,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1ExternalSecret"
+          }
+        },
+        "policyConfigs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyConfigObject"
           }
         }
       }
@@ -2648,6 +2657,17 @@
         }
       }
     },
+    "v1PolicyConfigConf": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        }
+      }
+    },
     "v1PolicyConfigConfig": {
       "type": "object",
       "properties": {
@@ -2720,6 +2740,31 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1PolicyConfigResourceMatch"
+          }
+        }
+      }
+    },
+    "v1PolicyConfigObject": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "#/definitions/v1Metadata"
+        },
+        "spec": {
+          "$ref": "#/definitions/v1PolicyConfigObjectSpec"
+        }
+      }
+    },
+    "v1PolicyConfigObjectSpec": {
+      "type": "object",
+      "properties": {
+        "match": {
+          "$ref": "#/definitions/v1PolicyConfigMatch"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": {
+            "$ref": "#/definitions/v1PolicyConfigConf"
           }
         }
       }
@@ -2920,6 +2965,12 @@
           "items": {
             "$ref": "#/definitions/v1ExternalSecret"
           }
+        },
+        "policyConfigs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyConfigObject"
+          }
         }
       },
       "description": "Previous values for a CreatePullRequestRequest."
@@ -2975,6 +3026,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "policyConfigFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -3003,6 +3060,12 @@
           "$ref": "#/definitions/v1CostEstimate"
         },
         "externalSecretsFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "policyConfigFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"

@@ -345,6 +345,7 @@ message RenderTemplateResponse {
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
   repeated CommitFile external_secrets_files = 5;
+  repeated CommitFile policy_config_files = 6;
 }
 
 message RenderAutomationRequest {
@@ -355,6 +356,7 @@ message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
   repeated CommitFile external_secrets_files = 3;
+  repeated CommitFile policy_config_files = 4;
 }
 
 message ListGitopsClustersRequest {
@@ -471,6 +473,7 @@ message CreatePullRequestRequest {
   string template_kind = 15;
   PreviousValues previous_values = 16;
   repeated ExternalSecret external_secrets = 17;
+  repeated PolicyConfigObject policy_configs = 18;
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -480,6 +483,7 @@ message PreviousValues {
   repeated ProfileValues values = 3;
   repeated Kustomization kustomizations = 4;
   repeated ExternalSecret external_secrets = 5;
+  repeated PolicyConfigObject policy_configs = 6;
  }
 
 message CreatePullRequestResponse {
@@ -694,6 +698,7 @@ message ClusterAutomation {
   // A path to write the resource to in the management git repo
   string file_path = 5;
   ExternalSecret external_secret = 6;
+  PolicyConfigObject policy_config = 7;
 }
 
 // External Secrets template
@@ -1144,3 +1149,17 @@ message PolicyConfigConfig {
   string status = 5;
 }
 
+
+message PolicyConfigConf {
+  map<string, google.protobuf.Value>  parameters  = 2;
+}
+
+message PolicyConfigObjectSpec {
+  PolicyConfigMatch match = 1;
+  map<string, PolicyConfigConf>  config  = 2;
+}
+
+message PolicyConfigObject {
+  Metadata metadata = 1;
+  PolicyConfigObjectSpec spec  = 2;
+}

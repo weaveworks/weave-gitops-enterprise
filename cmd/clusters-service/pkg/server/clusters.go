@@ -1018,6 +1018,16 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		)
 	}
 
+	if resourceType == "policy-config" {
+		return filepath.Join(
+			viper.GetString("capi-repository-clusters-path"),
+			clusterNamespace,
+			cluster.Name,
+			"policy-configs",
+			fileName,
+		)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
