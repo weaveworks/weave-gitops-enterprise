@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	"google.golang.org/protobuf/testing/protocmp"
+	structpb "google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -1060,6 +1061,429 @@ status:
 				},
 			},
 			err: errors.New("remoteRef property kind must be specified in ExternalSecret new-secret"),
+		},
+		{
+			name: "committed files for policy config matching workspace",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Workspaces: []string{"devteam"},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("a"),
+											"boolVar": structpb.NewBoolValue(true),
+											"intVar":  structpb.NewNumberValue(1),
+										},
+									},
+									"policy-2": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("b"),
+											"boolVar": structpb.NewBoolValue(false),
+											"intVar":  structpb.NewNumberValue(2),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/policy-configs/my-config-policy-config.yaml",
+					Content: `apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  creationTimestamp: null
+  name: my-config
+spec:
+  config:
+    policy-1:
+      parameters:
+        boolVar: true
+        intVar: 1
+        strVal: a
+    policy-2:
+      parameters:
+        boolVar: false
+        intVar: 2
+        strVal: b
+  match:
+    workspaces:
+    - devteam
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files for policy config matching namespace",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Namespaces: []string{"dev"},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("a"),
+											"boolVar": structpb.NewBoolValue(true),
+											"intVar":  structpb.NewNumberValue(1),
+										},
+									},
+									"policy-2": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("b"),
+											"boolVar": structpb.NewBoolValue(false),
+											"intVar":  structpb.NewNumberValue(2),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/policy-configs/my-config-policy-config.yaml",
+					Content: `apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  creationTimestamp: null
+  name: my-config
+spec:
+  config:
+    policy-1:
+      parameters:
+        boolVar: true
+        intVar: 1
+        strVal: a
+    policy-2:
+      parameters:
+        boolVar: false
+        intVar: 2
+        strVal: b
+  match:
+    namespaces:
+    - dev
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files for policy config matching application",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Apps: []*capiv1_protos.PolicyConfigApplicationMatch{
+										{
+											Kind:      "HelmRelease",
+											Name:      "my-app",
+											Namespace: "test",
+										},
+									},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("a"),
+											"boolVar": structpb.NewBoolValue(true),
+											"intVar":  structpb.NewNumberValue(1),
+										},
+									},
+									"policy-2": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("b"),
+											"boolVar": structpb.NewBoolValue(false),
+											"intVar":  structpb.NewNumberValue(2),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/policy-configs/my-config-policy-config.yaml",
+					Content: `apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  creationTimestamp: null
+  name: my-config
+spec:
+  config:
+    policy-1:
+      parameters:
+        boolVar: true
+        intVar: 1
+        strVal: a
+    policy-2:
+      parameters:
+        boolVar: false
+        intVar: 2
+        strVal: b
+  match:
+    apps:
+    - kind: HelmRelease
+      name: my-app
+      namespace: test
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files for policy config matching resource",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Resources: []*capiv1_protos.PolicyConfigResourceMatch{
+										{
+											Kind:      "Deployment",
+											Name:      "my-deployment",
+											Namespace: "test",
+										},
+									},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("a"),
+											"boolVar": structpb.NewBoolValue(true),
+											"intVar":  structpb.NewNumberValue(1),
+										},
+									},
+									"policy-2": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("b"),
+											"boolVar": structpb.NewBoolValue(false),
+											"intVar":  structpb.NewNumberValue(2),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/policy-configs/my-config-policy-config.yaml",
+					Content: `apiVersion: pac.weave.works/v2beta2
+kind: PolicyConfig
+metadata:
+  creationTimestamp: null
+  name: my-config
+spec:
+  config:
+    policy-1:
+      parameters:
+        boolVar: true
+        intVar: 1
+        strVal: a
+    policy-2:
+      parameters:
+        boolVar: false
+        intVar: 2
+        strVal: b
+  match:
+    resources:
+    - kind: Deployment
+      name: my-deployment
+      namespace: test
+status: {}
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "invalid policy config missing matches",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("a"),
+											"boolVar": structpb.NewBoolValue(true),
+											"intVar":  structpb.NewNumberValue(1),
+										},
+									},
+									"policy-2": {
+										Parameters: map[string]*structpb.Value{
+											"strVal":  structpb.NewStringValue("b"),
+											"boolVar": structpb.NewBoolValue(false),
+											"intVar":  structpb.NewNumberValue(2),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("policy config must target workspace, namespace, application or resource"),
+		},
+		{
+			name: "invalid policy config missing policy configs",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Resources: []*capiv1_protos.PolicyConfigResourceMatch{
+										{
+											Kind:      "Deployment",
+											Name:      "my-deployment",
+											Namespace: "test",
+										},
+									},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("policy config must have at least one policy configuration"),
+		},
+		{
+			name: "invalid policy config missing parameters",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Resources: []*capiv1_protos.PolicyConfigResourceMatch{
+										{
+											Kind:      "Deployment",
+											Name:      "my-deployment",
+											Namespace: "test",
+										},
+									},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("policy policy-1 configuration must have at least one parameter"),
 		},
 	}
 
