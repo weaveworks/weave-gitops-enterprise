@@ -38,20 +38,22 @@ function ImagePolicyDetails({ name, namespace, clusterName }: Props) {
       ]}
     >
       <ContentWrapper loading={isLoading}>
-        <ImageAutomationDetails
-          data={data}
-          kind={Kind.ImagePolicy}
-          infoFields={[
-            ['Kind', Kind.ImagePolicy],
-            ['Namespace', data?.namespace],
-            ['Namespace', data?.clusterName],
-            ['Image Policy', data?.imagePolicy?.type || ''],
-            ['Order/Range', data?.imagePolicy?.value],
-          ]}
-          rootPath={rootPath}
-        >
-          <Metadata metadata={data?.metadata} labels={data?.labels} />
-        </ImageAutomationDetails>
+        {data && (
+          <ImageAutomationDetails
+            data={data}
+            kind={Kind.ImagePolicy}
+            infoFields={[
+              ['Kind', Kind.ImagePolicy],
+              ['Namespace', data?.namespace],
+              ['Namespace', data?.clusterName],
+              ['Image Policy', data?.imagePolicy?.type || ''],
+              ['Order/Range', data?.imagePolicy?.value],
+            ]}
+            rootPath={rootPath}
+          >
+            <Metadata metadata={data?.metadata} labels={data?.labels} />
+          </ImageAutomationDetails>
+        )}
       </ContentWrapper>
     </PageTemplate>
   );

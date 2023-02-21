@@ -71,14 +71,16 @@ function ImageAutomationUpdatesDetails({
       ]}
     >
       <ContentWrapper loading={isLoading}>
-        <ImageAutomationDetails
-          data={data}
-          kind={Kind.ImageUpdateAutomation}
-          infoFields={getInfoList(data, data.clusterName)}
-          rootPath={rootPath}
-        >
-          <Metadata metadata={data.metadata} labels={data.labels} />
-        </ImageAutomationDetails>
+        {data && (
+          <ImageAutomationDetails
+            data={data}
+            kind={Kind.ImageUpdateAutomation}
+            infoFields={getInfoList(data, data?.clusterName)}
+            rootPath={rootPath}
+          >
+            <Metadata metadata={data.metadata} labels={data?.labels} />
+          </ImageAutomationDetails>
+        )}
       </ContentWrapper>
     </PageTemplate>
   );
