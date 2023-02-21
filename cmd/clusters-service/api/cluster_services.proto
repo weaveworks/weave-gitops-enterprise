@@ -244,6 +244,12 @@ service ClustersService {
       get : "/v1/external-secrets-stores"
     };
   }
+  // ListPolicyConfigs list policy configs
+  rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
+    option (google.api.http) = {
+      get : "/v1/policy-configs"
+    };
+  }
 }
 
 
@@ -1068,4 +1074,21 @@ message ListExternalSecretStoresRequest{
 message ListExternalSecretStoresResponse{
   repeated ExternalSecretStore stores = 1;
   int32 total = 2;
+}
+
+message PolicyConfigListItem {
+  string name = 1;
+  string clusterName = 2;
+  int32 totalPolicies = 3;
+  string match = 4;
+  string status = 5;
+  string age = 6;
+}
+
+message ListPolicyConfigsRequest {}
+
+message ListPolicyConfigsResponse{
+  repeated PolicyConfigListItem policyConfigs = 1;
+  repeated ListError errors = 2;
+  int32 total = 3;
 }
