@@ -7,6 +7,7 @@
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
 import * as GoogleProtobufAny from "./google/protobuf/any.pb"
+import * as GoogleProtobufStruct from "./google/protobuf/struct.pb"
 export type ListTemplatesRequest = {
   provider?: string
   templateKind?: string
@@ -805,24 +806,11 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
-<<<<<<< HEAD
 export type PolicyConfigListItem = {
   name?: string
   clusterName?: string
   totalPolicies?: number
   match?: string
-=======
-export type PolicyConfig = {
-  name?: string
-  clusterName?: string
-<<<<<<< HEAD
-  policiesCount?: number
-  targetType?: string
->>>>>>> d73bb70e (add list policy configs endpoint)
-=======
-  totalPolicies?: number
-  match?: string
->>>>>>> 788e5f29 (update naming convention)
   status?: string
   age?: string
 }
@@ -831,11 +819,7 @@ export type ListPolicyConfigsRequest = {
 }
 
 export type ListPolicyConfigsResponse = {
-<<<<<<< HEAD
   policyConfigs?: PolicyConfigListItem[]
-=======
-  policyConfigs?: PolicyConfig[]
->>>>>>> d73bb70e (add list policy configs endpoint)
   errors?: ListError[]
   total?: number
 }
@@ -888,7 +872,7 @@ export type PolicyTarget = {
 }
 
 export type PolicyConfigConfig = {
-  parameters?: {[key: string]: GoogleProtobufAny.Any}
+  parameters?: {[key: string]: GoogleProtobufStruct.Value}
 }
 
 export type PolicyConfigObjectSpec = {

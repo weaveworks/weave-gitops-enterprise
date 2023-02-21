@@ -665,7 +665,11 @@ func createPolicyConfigObject(config *capiv1_proto.PolicyConfigObject) (*pacv2be
 			Parameters: map[string]apiextensionsv1.JSON{},
 		}
 		for key, value := range policyConfig.Parameters {
-			params.Parameters[key] = apiextensionsv1.JSON{Raw: value.Value}
+			b, err := value.MarshalJSON()
+			if err != nil {
+				return nil, err
+			}
+			params.Parameters[key] = apiextensionsv1.JSON{Raw: b}
 		}
 		object.Spec.Config[policyID] = params
 	}

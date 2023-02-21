@@ -7,6 +7,7 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
 
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
@@ -1156,7 +1157,7 @@ message PolicyTarget {
 }
 
 message PolicyConfigConfig {
-  map<string, google.protobuf.Any> parameters = 1;
+  map<string, google.protobuf.Value> parameters = 1;
 }
 
 message PolicyConfigObjectSpec {
