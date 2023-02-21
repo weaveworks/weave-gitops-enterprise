@@ -123,7 +123,7 @@ describe('ListPolicyConfigs', () => {
     expect(await screen.findByText('PolicyConfigs')).toBeTruthy();
 
     filterTable.testRenderTable(
-      ['', 'Name', 'Cluster', 'No Of Policies', 'Applied To', 'Age'],
+      ['', 'Name', 'Cluster', 'Policy Count', 'Applied To', 'Age'],
       policyConfigs.length,
     );
 

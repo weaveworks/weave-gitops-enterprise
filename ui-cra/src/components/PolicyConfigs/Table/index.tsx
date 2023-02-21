@@ -52,7 +52,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
             value: 'clusterName',
           },
           {
-            label: 'No Of Policies',
+            label: 'Policy Count',
             value: ({ totalPolicies }) => (
               <div className={classes.centered}>{totalPolicies}</div>
             ),
