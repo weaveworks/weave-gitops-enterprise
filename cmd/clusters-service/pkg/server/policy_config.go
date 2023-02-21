@@ -150,7 +150,7 @@ func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, re
 		TotalPolicies: int32(len(policyConfig.Spec.Config)),
 	}
 
-	policyConfigDetails.Policies, _ = getPolicyConfigPolicies(ctx, s, req.ClusterName, policyConfig.Spec.Config)
+	policyConfigDetails.Policies, _ = getPolicyConfigPolicies(ctx, s, req.ClusterName, &policyConfig)
 	return &policyConfigDetails, nil
 }
 
@@ -196,16 +196,11 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 
 // getPolicyConfigPolicies gets policy config policies from policy config spec
 
-func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string, config map[string]pacv2beta2.PolicyConfigConfig) ([]*capiv1_proto.PolicyConfigConfig, error) {
+func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string, item *pacv2beta2.PolicyConfig) ([]*capiv1_proto.PolicyConfigConfig, error) {
 	policies := []*capiv1_proto.PolicyConfigConfig{}
-	for policyID, policyConfig := range config {
+	for policyID, policyConfig := range item.Spec.Config {
 
-		// Get policy from policy manager
-		policy, err := s.GetPolicy(ctx, &capiv1_proto.GetPolicyRequest{ClusterName: clusterName, PolicyName: policyID})
-		if err != nil {
-			return nil, err
-		}
-
+		//convert policy config parameters to structpb.Value
 		params := map[string]*structpb.Value{}
 		for key, value := range policyConfig.Parameters {
 			v := structpb.Value{}
@@ -215,15 +210,39 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 			params[key] = &v
 		}
 
-		policyTarget := &capiv1_proto.PolicyConfigConfig{
-			Id:          policyID,
-			Name:        policy.Policy.Name,
-			Description: policy.Policy.Description,
-			Parameters:  params,
+		//check if policy exist on MissingPolicies then set status to Warning else OK
+		if contains(item.Status.MissingPolicies, policyID) {
+			policyTarget := &capiv1_proto.PolicyConfigConfig{
+				Id:         policyID,
+				Parameters: params,
+				Status:     "Warning",
+			}
+			policies = append(policies, policyTarget)
+
+		} else {
+			policy, err := s.GetPolicy(ctx, &capiv1_proto.GetPolicyRequest{ClusterName: clusterName, PolicyName: policyID})
+			if err != nil {
+				return nil, err
+			}
+			policyTarget := &capiv1_proto.PolicyConfigConfig{
+				Id:          policyID,
+				Name:        policy.Policy.Name,
+				Description: policy.Policy.Description,
+				Parameters:  params,
+				Status:      "OK",
+			}
+			policies = append(policies, policyTarget)
 		}
-
-		policies = append(policies, policyTarget)
 	}
-
 	return policies, nil
+}
+
+// contains checks if a string is present in a slice of strings
+func contains(slice []string, s string) bool {
+	for _, v := range slice {
+		if v == s {
+			return true
+		}
+	}
+	return false
 }
