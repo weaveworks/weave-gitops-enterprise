@@ -341,6 +341,17 @@
         }
       }
     },
+    "v1LocalObjectReference": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Notification": {
+      "type": "object"
+    },
     "v1Pipeline": {
       "type": "object",
       "properties": {
@@ -373,6 +384,9 @@
         },
         "type": {
           "type": "string"
+        },
+        "promotion": {
+          "$ref": "#/definitions/v1Promotion"
         }
       }
     },
@@ -401,6 +415,45 @@
           "items": {
             "$ref": "#/definitions/v1WorkloadStatus"
           }
+        }
+      }
+    },
+    "v1Promotion": {
+      "type": "object",
+      "properties": {
+        "manual": {
+          "type": "boolean"
+        },
+        "strategy": {
+          "$ref": "#/definitions/v1Strategy"
+        }
+      }
+    },
+    "v1PullRequestPromotion": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "branch": {
+          "type": "string"
+        }
+      }
+    },
+    "v1Strategy": {
+      "type": "object",
+      "properties": {
+        "pullRequest": {
+          "$ref": "#/definitions/v1PullRequestPromotion"
+        },
+        "notification": {
+          "$ref": "#/definitions/v1Notification"
+        },
+        "secretRef": {
+          "$ref": "#/definitions/v1LocalObjectReference"
         }
       }
     },
