@@ -85,31 +85,23 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   const [logSources, setLogSources] = React.useState<string[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
   const [refetching, setRefetching] = React.useState<boolean>(false);
-  const { isLoading, data, refetch } = useGetLogs({
-    sessionNamespace: namespace,
-    sessionId: name,
-    token,
-    logSourceFilter: logValue === 'all' ? '' : logValue,
-    logLevelFilter: levelValue === 'all' ? '' : levelValue,
-  });
+  const { isLoading, data, refetch } = useGetLogs(
+    {
+      sessionNamespace: namespace,
+      sessionId: name,
+      token,
+    },
+    levelValue === 'all' ? '' : levelValue,
+    logValue === 'all' ? '' : logValue,
+  );
 
   const refetchOnChange = (
     value: string,
     stateFunction: React.Dispatch<SetStateAction<string>>,
   ) => {
-    const stateActions = new Promise(() => {
-      setRefetching(true);
-      //select dropdown value
-      stateFunction(value);
-      //reset logs request
-      setLogs([]);
-      setToken('' as string);
-    });
-
-    stateActions.then(() => {
-      refetch();
-      setRefetching(false);
-    });
+    stateFunction(value);
+    setLogs([]);
+    setToken('' as string);
   };
 
   React.useEffect(() => {
@@ -127,6 +119,8 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, data]);
+
+  console.log(token, logs);
 
   return (
     <Flex className={className} wide tall column>
