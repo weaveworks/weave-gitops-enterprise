@@ -1,7 +1,7 @@
 import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
-import { PolicyConfig } from '../../../cluster-services/cluster_services.pb';
+import { PolicyConfigListItem } from '../../../cluster-services/cluster_services.pb';
 import {
   PolicyConfigsTableWrapper,
   usePolicyConfigStyle,
@@ -9,7 +9,7 @@ import {
 } from '../PolicyConfigStyles';
 
 interface Props {
-  PolicyConfigs: PolicyConfig[];
+  PolicyConfigs: PolicyConfigListItem[];
 }
 
 export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
