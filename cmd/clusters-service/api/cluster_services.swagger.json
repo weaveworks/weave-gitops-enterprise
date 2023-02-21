@@ -648,6 +648,29 @@
         ]
       }
     },
+    "/v1/policy-configs": {
+      "get": {
+        "summary": "ListPolicyConfigs list policy configs",
+        "operationId": "ClustersService_ListPolicyConfigs",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListPolicyConfigsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policyviolations": {
       "post": {
         "summary": "ListPolicyValidations list policy validations available on the management cluster",
@@ -2267,6 +2290,27 @@
         }
       }
     },
+    "v1ListPolicyConfigsResponse": {
+      "type": "object",
+      "properties": {
+        "policyConfigs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyConfigListItem"
+          }
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ListError"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListPolicyValidationsRequest": {
       "type": "object",
       "properties": {
@@ -2512,6 +2556,30 @@
           "items": {
             "type": "string"
           }
+        }
+      }
+    },
+    "v1PolicyConfigListItem": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        },
+        "totalPolicies": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "match": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "age": {
+          "type": "string"
         }
       }
     },

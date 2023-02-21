@@ -88,6 +88,7 @@ spec:
   description: Determines which helm release and kustomization can be used in a tenant
   how_to_solve: ""
   id: weave.policies.tenancy.foo-tenant-allowed-application-deploy
+  mutate: false
   name: foo-tenant allowed application deploy
   parameters:
   - name: namespaces
@@ -333,6 +334,7 @@ spec:
   description: Determines which helm release and kustomization can be used in a tenant
   how_to_solve: ""
   id: weave.policies.tenancy.bar-tenant-allowed-application-deploy
+  mutate: false
   name: bar-tenant allowed application deploy
   parameters:
   - name: namespaces
@@ -420,6 +422,7 @@ spec:
   description: Controls the allowed repositories to be used as sources
   how_to_solve: ""
   id: weave.policies.tenancy.bar-tenant-allowed-repositories
+  mutate: false
   name: bar-tenant allowed repositories
   parameters:
   - name: git_urls
@@ -499,6 +502,7 @@ spec:
   description: Controls the allowed clusters to be added
   how_to_solve: ""
   id: weave.policies.tenancy.bar-tenant-allowed-clusters
+  mutate: false
   name: bar-tenant allowed clusters
   parameters:
   - name: cluster_secrets

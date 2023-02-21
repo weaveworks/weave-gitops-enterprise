@@ -2,7 +2,15 @@ module github.com/weaveworks/weave-gitops-enterprise
 
 go 1.18
 
-replace k8s.io/client-go => k8s.io/client-go v0.25.4
+// replace components from policy agent to align with wge
+replace (
+	k8s.io/api => k8s.io/api v0.25.4
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.25.4
+	k8s.io/apimachinery => k8s.io/apimachinery v0.25.4
+	k8s.io/client-go => k8s.io/client-go v0.25.4
+	k8s.io/component-base => k8s.io/component-base v0.25.4
+	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.13.1
+)
 
 require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect
@@ -17,15 +25,15 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.1
-	github.com/weaveworks/weave-gitops v0.17.1-0.20230217091209-bbc43ef746d2
+	github.com/weaveworks/weave-gitops v0.17.1-0.20230220194849-b061bf0a80f6
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.25.4
-	k8s.io/apimachinery v0.25.4
+	k8s.io/api v0.26.1
+	k8s.io/apimachinery v0.26.1
 	k8s.io/cli-runtime v0.25.4
 	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.13.1
+	sigs.k8s.io/controller-runtime v0.14.4
 )
 
 require (
@@ -42,7 +50,7 @@ require (
 	github.com/fluxcd/pkg/apis/meta v0.18.0
 	github.com/fluxcd/pkg/runtime v0.24.0
 	github.com/fluxcd/pkg/untar v0.2.0
-	github.com/fluxcd/source-controller/api v0.32.1
+	github.com/fluxcd/source-controller/api v0.33.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang/protobuf v1.5.2
 	github.com/google/go-github/v32 v32.1.0
@@ -54,13 +62,13 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo/v2 v2.5.1
+	github.com/onsi/ginkgo/v2 v2.6.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.13.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
 	github.com/weaveworks/go-checkpoint v0.0.0-20220223124739-fd9899e2b4f2
-	github.com/weaveworks/policy-agent/api v1.0.5-0.20221109123742-b4c76a211b34
+	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/weaveworks/templates-controller v0.1.2
 	github.com/xanzy/go-gitlab v0.78.0
@@ -72,7 +80,7 @@ require (
 	google.golang.org/protobuf v1.28.1
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
-	k8s.io/apiextensions-apiserver v0.25.4
+	k8s.io/apiextensions-apiserver v0.26.1
 	sigs.k8s.io/cluster-api v1.1.3
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
@@ -160,9 +168,9 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/weaveworks/pipeline-controller/api v0.0.0-20230112113438-e3f798eb925b
 	go.opencensus.io v0.23.0 // indirect
-	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.33.0 // indirect
-	go.opentelemetry.io/otel v1.8.0 // indirect
-	go.opentelemetry.io/otel/trace v1.8.0 // indirect
+	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.35.0 // indirect
+	go.opentelemetry.io/otel v1.10.0 // indirect
+	go.opentelemetry.io/otel/trace v1.10.0 // indirect
 	golang.org/x/mod v0.6.0 // indirect
 )
 
@@ -321,12 +329,12 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/apiserver v0.25.4 // indirect
-	k8s.io/component-base v0.25.4 // indirect
+	k8s.io/apiserver v0.26.1 // indirect
+	k8s.io/component-base v0.26.1 // indirect
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221110221610-a28e98eb7c70 // indirect
 	k8s.io/kubectl v0.25.4 // indirect
-	k8s.io/utils v0.0.0-20221108210102-8e77b1f39fe2 // indirect
+	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448 // indirect
 	oras.land/oras-go v1.2.0 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
