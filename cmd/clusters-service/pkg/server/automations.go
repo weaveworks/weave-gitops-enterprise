@@ -690,6 +690,21 @@ func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
 		}
 	}
 
+	if config.Spec == nil {
+		err = multierror.Append(err, errors.New("policy config spec must be specified"))
+		return err
+	}
+
+	if config.Spec.Match == nil {
+		err = multierror.Append(err, errors.New("policy config matches must be specified"))
+		return err
+	}
+
+	if config.Spec.Config == nil {
+		err = multierror.Append(err, errors.New("policy config configuration must be specified"))
+		return err
+	}
+
 	var target string
 
 	if config.Spec.Match.Workspaces != nil {
@@ -722,10 +737,7 @@ func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
 
 	if target == "" {
 		err = multierror.Append(err, errors.New("policy config must target workspaces, namespaces, applications or resources"))
-	}
-
-	if len(config.Spec.Config) == 0 {
-		err = multierror.Append(err, errors.New("policy config must have at least one policy configuration"))
+		return err
 	}
 
 	for policyID, policyConfig := range config.Spec.Config {

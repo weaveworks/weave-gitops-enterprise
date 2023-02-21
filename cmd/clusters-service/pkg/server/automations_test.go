@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http/httptest"
 	"testing"
 
@@ -1407,7 +1408,7 @@ status: {}
 					},
 				},
 			},
-			err: errors.New("policy config must target workspace, namespace, application or resource"),
+			err: errors.New("policy config must target workspaces, namespaces, applications or resources"),
 		},
 		{
 			name: "invalid policy config missing policy configs",
@@ -1437,13 +1438,12 @@ status: {}
 										},
 									},
 								},
-								Config: map[string]*capiv1_protos.PolicyConfigConf{},
 							},
 						},
 					},
 				},
 			},
-			err: errors.New("policy config must have at least one policy configuration"),
+			err: errors.New("policy config configuration must be specified"),
 		},
 		{
 			name: "invalid policy config missing parameters",
@@ -1485,6 +1485,43 @@ status: {}
 			},
 			err: errors.New("policy policy-1 configuration must have at least one parameter"),
 		},
+		{
+			name: "invalid policy config different matches",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Workspaces: []string{"devteam"},
+									Namespaces: []string{"dev"},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal": structpb.NewStringValue("a"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("cannot target workspaces and namespaces in same policy config"),
+		},
 	}
 
 	for _, tt := range testCases {
@@ -1512,10 +1549,12 @@ status: {}
 					t.Fatalf("failed to create a pull request:\n%s", err)
 				}
 				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
+					fmt.Println(tt.err.Error(), err.Error())
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
 				if diff := cmp.Diff(tt.expected, createPullRequestResponse.WebUrl, protocmp.Transform()); diff != "" {
+					fmt.Println("==============", tt.name)
 					t.Fatalf("pull request url didn't match expected:\n%s", diff)
 				}
 				fakeGitProvider := (tt.provider).(*gitfakes.FakeGitProvider)
