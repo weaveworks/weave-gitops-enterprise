@@ -133,7 +133,7 @@ describe('Image automation', () => {
       fireEvent,
     );
     filterTable.testRenderTable(
-      ['Name', 'Namespace', 'Cluster Name', 'Status', 'Interval', 'Tag Count'],
+      ['Name', 'Namespace', 'Cluster', 'Status', 'Interval', 'Tag Count'],
       imageRepositories.objects.length,
     );
     const mappedObjects = imageRepositories.objects.map(
@@ -168,7 +168,7 @@ describe('Image automation', () => {
       [
         'Name',
         'Namespace',
-        'Cluster Name',
+        'Cluster',
         'Status',
         'Image Policy',
         'Order/Range',
@@ -208,7 +208,7 @@ describe('Image automation', () => {
       [
         'Name',
         'Namespace',
-        'Cluster Name',
+        'Cluster',
         'Status',
         'Source',
         'Interval',

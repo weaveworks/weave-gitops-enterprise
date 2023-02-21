@@ -52,7 +52,7 @@ const ImageAutomationUpdatesTable = () => {
               value: 'namespace',
             },
             {
-              label: 'Cluster Name',
+              label: 'Cluster',
               value: 'clusterName',
             },
             {

@@ -52,7 +52,7 @@ const ImageRepositoriesTable = () => {
                 value: 'namespace',
               },
               {
-                label: 'Cluster Name',
+                label: 'Cluster',
                 value: 'clusterName',
               },
               {
