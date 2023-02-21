@@ -800,7 +800,7 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
-export type PolicyConfig = {
+export type PolicyConfigListItem = {
   name?: string
   clusterName?: string
   totalPolicies?: number
@@ -813,7 +813,7 @@ export type ListPolicyConfigsRequest = {
 }
 
 export type ListPolicyConfigsResponse = {
-  policyConfigs?: PolicyConfig[]
+  policyConfigs?: PolicyConfigListItem[]
   errors?: ListError[]
   total?: number
 }
