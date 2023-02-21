@@ -721,7 +721,7 @@ func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
 	}
 
 	if target == "" {
-		err = multierror.Append(err, errors.New("policy config must target workspace, namespace, application or resource"))
+		err = multierror.Append(err, errors.New("policy config must target workspaces, namespaces, applications or resources"))
 	}
 
 	if len(config.Spec.Config) == 0 {
