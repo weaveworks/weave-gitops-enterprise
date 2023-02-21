@@ -5,6 +5,7 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -86,7 +87,7 @@ func TestGetPolicyViolation(t *testing.T) {
 			clientsPool.ClientReturns(fakeCl, nil)
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
 				corev1.Namespace{},
-			}})
+			}}, logr.Discard())
 
 			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
@@ -187,7 +188,7 @@ func TestListPolicyValidations(t *testing.T) {
 			clientsPool.ClientReturns(fakeCl, nil)
 			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
 				corev1.Namespace{},
-			}})
+			}}, logr.Discard())
 
 			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
@@ -224,7 +225,7 @@ func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
 	clientsPool.ClientReturns(fakeCl, nil)
 	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
 		corev1.Namespace{},
-	}})
+	}}, logr.Discard())
 
 	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}

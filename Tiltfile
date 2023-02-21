@@ -10,10 +10,12 @@ secret_settings(disable_scrub=True)
 if os.getenv('MANUAL_MODE'):
    trigger_mode(TRIGGER_MODE_MANUAL)
 
-if not os.path.exists("./charts/mccp/charts"):
-   # Download chart deps on first run. This command is slow, so you'd have to
-   # re-run it yourself if you upgrade the chart
-   local("helm dep update charts/mccp")
+# Download chart deps on first run. This command is slow, so you'd have to
+# re-run it yourself if you upgrade the chart or the chart changes at all.
+# By declaring a local_resource with TRIGGER_MODE_MANUAL we can have it run
+# only once on `tilt up`
+# https://docs.tilt.dev/local_resource.html#file-dependencies
+local_resource("helm-dep-update", "helm dep update charts/mccp", trigger_mode=TRIGGER_MODE_MANUAL, auto_init=True)
 
 # This is needed for javascript access
 if not os.getenv('GITHUB_TOKEN'):
@@ -22,7 +24,6 @@ if not os.getenv('GITHUB_TOKEN'):
 # --- what to edit
 # e.g.
 # TO_EDIT="templates-controller,clusters-controller" tilt up
-
 
 to_edit = os.getenv('TO_EDIT', '').split(",")
 

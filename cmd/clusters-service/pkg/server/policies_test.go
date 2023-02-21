@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/hashicorp/go-multierror"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
@@ -310,7 +311,7 @@ func TestListPolicies(t *testing.T) {
 
 				return nil, fmt.Errorf("cluster %s not found", name)
 			}
-			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{}, logr.Discard())
 
 			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
@@ -341,7 +342,7 @@ func TestPartialPoliciesConnectionErrors(t *testing.T) {
 	clientsPool.ClientsReturns(clients)
 	clientsPool.ClientReturns(fakeCl, nil)
 
-	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{}, logr.Discard())
 	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
@@ -478,7 +479,7 @@ func TestGetPolicy(t *testing.T) {
 			fakeCl := createClient(t, tt.clusterState...)
 			clientsPool.ClientsReturns(map[string]client.Client{tt.clusterName: fakeCl})
 			clientsPool.ClientReturns(fakeCl, nil)
-			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{})
+			clustersClient := clustersmngr.NewClient(clientsPool, map[string][]v1.Namespace{}, logr.Discard())
 
 			fakeFactory := &clustersmngrfakes.FakeClustersManager{}
 			fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
