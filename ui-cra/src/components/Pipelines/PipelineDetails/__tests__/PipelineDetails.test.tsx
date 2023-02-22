@@ -3,6 +3,7 @@ import { act, render, RenderResult, screen } from '@testing-library/react';
 import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
+import { Pipeline } from '../../../../api/pipelines/types.pb';
 import { PipelinesProvider } from '../../../../contexts/Pipelines';
 import {
   CoreClientMock,
@@ -363,6 +364,76 @@ describe('PipelineDetails', () => {
     // textContent does not return newlines it seems
     const expected = params?.yaml!.replace(/\n/g, '').trimEnd();
     expect(code).toEqual(expected);
+  });
+  describe('renders promotion strategy', () => {
+    it('pull request', async () => {
+      const params = res.pipeline;
+      const withPromotion: Pipeline = {
+        ...res.pipeline,
+        promotion: {
+          manual: false,
+          strategy: {
+            pullRequest: {
+              type: 'github',
+              url: 'https://gitlab.com/weaveworks/cool-project',
+              branch: 'main',
+            },
+          },
+        },
+      };
+      api.GetPipelineReturns = { ...res, pipeline: withPromotion };
+      core.GetObjectReturns = { object: {} };
+
+      await act(async () => {
+        const c = wrap(
+          <PipelineDetails
+            name={params?.name || ''}
+            namespace={params?.namespace || ''}
+          />,
+        );
+        render(c);
+      });
+
+      const keyVal = document.querySelector('.KeyValueTable');
+
+      expect(keyVal?.textContent).toContain('Pull Request');
+      expect(keyVal?.textContent).toContain(
+        withPromotion.promotion?.strategy?.pullRequest?.url,
+      );
+      expect(keyVal?.textContent).toContain(
+        withPromotion.promotion?.strategy?.pullRequest?.branch,
+      );
+      expect(keyVal?.textContent).not.toContain('Notification');
+    });
+    it('notification', async () => {
+      const params = res.pipeline;
+      const withPromotion: Pipeline = {
+        ...res.pipeline,
+        promotion: {
+          manual: false,
+          strategy: {
+            notification: {},
+          },
+        },
+      };
+      api.GetPipelineReturns = { ...res, pipeline: withPromotion };
+      core.GetObjectReturns = { object: {} };
+
+      await act(async () => {
+        const c = wrap(
+          <PipelineDetails
+            name={params?.name || ''}
+            namespace={params?.namespace || ''}
+          />,
+        );
+        render(c);
+      });
+
+      const keyVal = document.querySelector('.KeyValueTable');
+
+      expect(keyVal?.textContent).toContain('Notification');
+      expect(keyVal?.textContent).not.toContain('Pull Request');
+    });
   });
 
   describe('snapshots', () => {
