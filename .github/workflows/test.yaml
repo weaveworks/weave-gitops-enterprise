@@ -147,8 +147,8 @@ jobs:
         run: |
           go version
           make dependencies
-          cd cmd/clusters-service
-          go test -v ./... -tags=integration
+          go test -v ./cmd/clusters-service/... -tags=integration
+          go test -v ./pkg/git/... -tags=integration
 
   ui-unit-tests:
     runs-on: ubuntu-latest

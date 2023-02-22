@@ -18,10 +18,10 @@ import (
 	"time"
 
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
@@ -43,7 +43,7 @@ import (
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
@@ -398,7 +398,7 @@ func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
-		provider       git.Provider
+		provider       csgit.Provider
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
@@ -1608,7 +1608,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		provider       git.Provider
+		provider       csgit.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
 		CommittedFiles []*capiv1_protos.CommitFile
 		expected       string
@@ -1720,8 +1720,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				if fakeGitProvider.OriginalFiles != nil {
 					// sort CommittedFiles and OriginalFiles for comparison
 					sort.Slice(fakeGitProvider.CommittedFiles[:], func(i, j int) bool {
-						currFile := *fakeGitProvider.CommittedFiles[i].Path
-						nextFile := *fakeGitProvider.CommittedFiles[j].Path
+						currFile := fakeGitProvider.CommittedFiles[i].Path
+						nextFile := fakeGitProvider.CommittedFiles[j].Path
 						return currFile < nextFile
 					})
 					sort.Strings(fakeGitProvider.OriginalFiles)
@@ -1730,8 +1730,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.CommittedFiles), len(fakeGitProvider.OriginalFiles))
 					}
 					for ind, committedFile := range fakeGitProvider.CommittedFiles {
-						if *committedFile.Path != fakeGitProvider.OriginalFiles[ind] {
-							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.OriginalFiles[ind])
+						if committedFile.Path != fakeGitProvider.OriginalFiles[ind] {
+							t.Fatalf("committed file does not match expected file\n%v\n%v", committedFile.Path, fakeGitProvider.OriginalFiles[ind])
 
 						}
 					}
@@ -1858,7 +1858,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -1934,7 +1934,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2009,7 +2009,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"management/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2085,7 +2085,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2162,7 +2162,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2268,7 +2268,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2341,7 +2341,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2424,7 +2424,7 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2586,13 +2586,13 @@ status: {}
 	var tests = []struct {
 		name     string
 		template *gapiv1.GitOpsTemplate
-		expected []gitprovider.CommitFile
+		expected []git.CommitFile
 		params   map[string]string
 	}{
 		{
 			name:     "generate profile paths",
 			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "", "", ""),
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"ns-foo/cluster-foo/profiles.yaml",
 					concatYaml(expectedHelmRelease, expectedBarHelmRelease, expectedFooHelmRelease),
@@ -2602,7 +2602,7 @@ status: {}
 		{
 			name:     "generate profile paths with custom paths",
 			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "repo.yaml", "foo.yaml", "bar.yaml"),
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"bar.yaml",
 					concatYaml(expectedBarHelmRelease),
@@ -2623,7 +2623,7 @@ status: {}
 			params: map[string]string{
 				"BAR_PATH": "special-bar.yaml",
 			},
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"foo.yaml",
 					concatYaml(expectedFooHelmRelease),
@@ -2644,7 +2644,7 @@ status: {}
 			params: map[string]string{
 				"BAR_PATH": "special-bar.yaml",
 			},
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"foo.yaml",
 					concatYaml(expectedFooHelmRelease),
@@ -2706,11 +2706,11 @@ func makeTestHelmRepositoryTemplate(base string) *sourcev1.HelmRepository {
 	})
 }
 
-func makeCommitFile(path, content string) gitprovider.CommitFile {
+func makeCommitFile(path, content string) git.CommitFile {
 	p := path
 	c := content
-	return gitprovider.CommitFile{
-		Path:    &p,
+	return git.CommitFile{
+		Path:    p,
 		Content: &c,
 	}
 }

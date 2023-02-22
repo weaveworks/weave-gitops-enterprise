@@ -21,6 +21,7 @@ import (
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
@@ -38,9 +39,11 @@ import (
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+
+	// "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/validation"
 )
@@ -215,8 +218,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	files := []gitprovider.CommitFile{}
-
+	files := []git.CommitFile{}
 	files = append(files, gitFiles.RenderedTemplate...)
 	files = append(files, gitFiles.ProfileFiles...)
 	files = append(files, gitFiles.KustomizationFiles...)
@@ -245,12 +247,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Add Cluster Manifests"
 	}
+
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
 		ReposistoryAPIURL: msg.RepositoryApiUrl,
@@ -291,7 +294,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		baseBranch = msg.BaseBranch
 	}
 
-	var filesList []gitprovider.CommitFile
+	var filesList []git.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
 			// Files in manifest path
@@ -300,8 +303,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 					clusterNamespacedName.Name,
 					getClusterNamespace(clusterNamespacedName.Namespace)),
 			)
-			filesList = append(filesList, gitprovider.CommitFile{
-				Path:    &path,
+			filesList = append(filesList, git.CommitFile{
+				Path:    path,
 				Content: nil,
 			})
 
@@ -317,8 +320,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			}
 
 			for _, treeEntry := range treeEntries {
-				filesList = append(filesList, gitprovider.CommitFile{
-					Path:    &treeEntry.Path,
+				filesList = append(filesList, git.CommitFile{
+					Path:    treeEntry.Path,
 					Content: nil,
 				})
 			}
@@ -329,8 +332,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			path := getClusterManifestPath(
 				createNamespacedName(clusterName, getClusterNamespace("")),
 			)
-			filesList = append(filesList, gitprovider.CommitFile{
-				Path:    &path,
+			filesList = append(filesList, git.CommitFile{
+				Path:    path,
 				Content: nil,
 			})
 
@@ -346,8 +349,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			}
 
 			for _, treeEntry := range treeEntries {
-				filesList = append(filesList, gitprovider.CommitFile{
-					Path:    &treeEntry.Path,
+				filesList = append(filesList, git.CommitFile{
+					Path:    treeEntry.Path,
 					Content: nil,
 				})
 			}
@@ -372,7 +375,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
 
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
 		ReposistoryAPIURL: msg.RepositoryApiUrl,
@@ -517,7 +520,7 @@ func getToken(ctx context.Context) (string, string, error) {
 	return providerToken.AccessToken, "oauth2", nil
 }
 
-func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFile, error) {
+func getCommonKustomization(cluster types.NamespacedName) (*git.CommitFile, error) {
 	commonKustomizationPath := getCommonKustomizationPath(cluster)
 	commonKustomization := createKustomizationObject(&capiv1_proto.Kustomization{
 		Metadata: &capiv1_proto.Metadata{
@@ -540,8 +543,8 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
 	}
 	commonKustomizationString := string(b)
-	file := &gitprovider.CommitFile{
-		Path:    &commonKustomizationPath,
+	file := &git.CommitFile{
+		Path:    commonKustomizationPath,
 		Content: &commonKustomizationString,
 	}
 
@@ -586,7 +589,7 @@ func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*g
 	return file, nil
 }
 
-func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider, error) {
+func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
@@ -608,7 +611,7 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider
 		repoHostname = repoURL.URL().Host
 	}
 
-	return &git.GitProvider{
+	return &csgit.GitProvider{
 		Type:      repoType,
 		TokenType: tokenType,
 		Token:     token,
@@ -660,7 +663,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]git.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -770,7 +773,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		return nil, err
 	}
 
-	commitFiles := []gitprovider.CommitFile{}
+	commitFiles := []git.CommitFile{}
 	// For each path, we join the content of relative profiles and add to a commit file
 	for path := range profilesByPath {
 		profileContent := string(bytes.Join(profilesByPath[path], []byte("---\n")))
@@ -779,15 +782,15 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			return nil, fmt.Errorf("cannot render path %s: %w", path, err)
 		}
 		renderedPathStr := string(renderedPath)
-		file := &gitprovider.CommitFile{
-			Path:    &renderedPathStr,
+		file := git.CommitFile{
+			Path:    renderedPathStr,
 			Content: &profileContent,
 		}
-		commitFiles = append(commitFiles, *file)
+		commitFiles = append(commitFiles, file)
 	}
 
 	sort.Slice(commitFiles, func(i, j int) bool {
-		return *commitFiles[i].Path < *commitFiles[j].Path
+		return commitFiles[i].Path < commitFiles[j].Path
 	})
 
 	return commitFiles, nil
@@ -1018,12 +1021,12 @@ func generateKustomizationFile(
 	isControlPlane bool,
 	cluster types.NamespacedName,
 	kustomization *capiv1_proto.Kustomization,
-	filePath string) (gitprovider.CommitFile, error) {
+	filePath string) (git.CommitFile, error) {
 	kustomizationYAML := createKustomizationObject(kustomization)
 
 	b, err := yaml.Marshal(kustomizationYAML)
 	if err != nil {
-		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Metadata.Name, err)
+		return git.CommitFile{}, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Metadata.Name, err)
 	}
 
 	k := createNamespacedName(kustomization.Metadata.Name, kustomization.Metadata.Namespace)
@@ -1035,8 +1038,8 @@ func generateKustomizationFile(
 
 	kustomizationContent := string(b)
 
-	file := &gitprovider.CommitFile{
-		Path:    &kustomizationPath,
+	file := &git.CommitFile{
+		Path:    kustomizationPath,
 		Content: &kustomizationContent,
 	}
 
@@ -1165,11 +1168,11 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 	}
 }
 
-// Get list of gitprovider.CommitFile objects of files that should be deleted with empty content
+// Get list of git.CommitFile objects of files that should be deleted with empty content
 // Kustomizations and Profiles removed during an edit are added to the deleted list
 // Old files with changed paths are added to the deleted list
-func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
-	deletedFiles := []gitprovider.CommitFile{}
+func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []git.CommitFile {
+	deletedFiles := []git.CommitFile{}
 
 	removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
 	removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)

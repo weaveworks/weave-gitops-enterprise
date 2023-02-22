@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -14,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/pipetesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -44,7 +44,7 @@ func TestGetListPullRequest(t *testing.T) {
 	}
 	require.NoError(t, kclient.Create(ctx, p))
 
-	prs := []gitprovider.PullRequest{gitfakes.NewPullRequest(0, "testing", pipelineNamespace.Name+"/pipe-2/env-1", "http://example.com/foo/bar/pulls/1", false, "main")}
+	prs := []*git.PullRequest{gitfakes.NewPullRequest(0, "testing", pipelineNamespace.Name+"/pipe-2/env-1", "http://example.com/foo/bar/pulls/1", false, "main")}
 	fakeGitProvider := gitfakes.NewFakeGitProvider("", nil, nil, nil, prs)
 
 	factory := grpctesting.MakeClustersManager(kclient, "management", fmt.Sprintf("%s/cluster-1", pipelineNamespace.Name))
