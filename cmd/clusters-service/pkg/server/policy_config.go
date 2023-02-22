@@ -13,14 +13,17 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	structpb "google.golang.org/protobuf/types/known/structpb"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	policyConfigTargetResource    = "resources"
-	policyConfigTargetApplication = "apps"
-	policyConfigTargetNamespace   = "namespaces"
-	policyConfigTargetWorkspace   = "workspaces"
+	policyConfigTargetResource     = "resources"
+	policyConfigTargetApplication  = "apps"
+	policyConfigTargetNamespace    = "namespaces"
+	policyConfigTargetWorkspace    = "workspaces"
+	policyConfigConfigStatusOK     = "OK"
+	policyConfigConfigStausWarning = "Warning"
 )
 
 // ListPolicyConfigs lists the policy configs
@@ -154,7 +157,12 @@ func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, re
 		TotalPolicies: int32(len(policyConfig.Spec.Config)),
 	}
 
-	policyConfigDetails.Policies, _ = getPolicyConfigPolicies(ctx, s, req.ClusterName, &policyConfig)
+	policies, err := getPolicyConfigPolicies(ctx, s, req.ClusterName, &policyConfig)
+	if err != nil {
+		return nil, err
+	}
+	policyConfigDetails.Policies = policies
+
 	return &policyConfigDetails, nil
 }
 
@@ -164,7 +172,6 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 	//check for applications, namespaces, resources and workspaces in policy config target object which is not nil
 	//and set the match object accordingly
 	if target.Applications != nil {
-		match.Apps = []*capiv1_proto.PolicyConfigApplicationMatch{}
 		for _, app := range target.Applications {
 			newApp := &capiv1_proto.PolicyConfigApplicationMatch{
 				Name:      app.Name,
@@ -174,14 +181,11 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 			match.Apps = append(match.Apps, newApp)
 		}
 	} else if target.Namespaces != nil {
-		match.Namespaces = []string{}
 		match.Namespaces = append(match.Namespaces, target.Namespaces...)
 
 	} else if target.Workspaces != nil {
-		match.Workspaces = []string{}
 		match.Workspaces = append(match.Workspaces, target.Workspaces...)
 	} else if target.Resources != nil {
-		match.Resources = []*capiv1_proto.PolicyConfigResourceMatch{}
 		for _, res := range target.Resources {
 			newRes := &capiv1_proto.PolicyConfigResourceMatch{
 				Name:      res.Name,
@@ -211,11 +215,11 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 		}
 
 		//check if policy exist on MissingPolicies then set status to Warning else OK
-		if contains(item.Status.MissingPolicies, policyID) {
+		if slices.Contains(item.Status.MissingPolicies, policyID) {
 			policyTarget := &capiv1_proto.PolicyConfigConfig{
 				Id:         policyID,
 				Parameters: params,
-				Status:     "Warning",
+				Status:     policyConfigConfigStausWarning,
 			}
 			policies = append(policies, policyTarget)
 
@@ -229,20 +233,10 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 				Name:        policy.Policy.Name,
 				Description: policy.Policy.Description,
 				Parameters:  params,
-				Status:      "OK",
+				Status:      policyConfigConfigStatusOK,
 			}
 			policies = append(policies, policyTarget)
 		}
 	}
 	return policies, nil
-}
-
-// contains checks if a string is present in a slice of strings
-func contains(slice []string, s string) bool {
-	for _, v := range slice {
-		if v == s {
-			return true
-		}
-	}
-	return false
 }
