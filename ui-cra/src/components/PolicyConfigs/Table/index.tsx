@@ -30,7 +30,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
             value: ({ status, clusterName, name }) =>
               status === 'Warning' ? (
                 <span
-                  title={`one or more policies are not found in cluster ${clusterName}`}
+                  title={`One or more policies are not found in cluster ${clusterName}.`}
                   data-testid={`warning-icon-${name}`}
                 >
                   <WarningIcon />
@@ -44,6 +44,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
             label: 'Name',
             value: 'name',
             textSearchable: true,
+            defaultSort: true,
             sortValue: ({ name }) => name,
             maxWidth: 650,
           },
@@ -53,6 +54,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
           },
           {
             label: 'Policy Count',
+            sortValue: ({ totalPolicies }) => totalPolicies,
             value: ({ totalPolicies }) => (
               <div className={classes.centered}>{totalPolicies}</div>
             ),
@@ -60,12 +62,12 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
           },
           {
             label: 'Applied To',
-            value: 'match',
+            sortValue: ({ match }) => match,
+            value:({ match})=> <span className={classes.capitlize}>{match}</span>,
           },
           {
             label: 'Age',
             value: ({ age }) => moment(age).fromNow(),
-            defaultSort: true,
             sortValue: ({ age }) => {
               const t = age && new Date(age).getTime();
               return t * -1;

@@ -12,7 +12,9 @@ export const usePolicyConfigStyle = makeStyles(() =>
       textAlign: 'center',
       width: '100px',
     },
-    fixedCell: {},
+    capitlize: {
+      textTransform: 'capitalize',
+    },
   }),
 );
 
