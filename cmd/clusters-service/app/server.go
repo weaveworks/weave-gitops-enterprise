@@ -220,7 +220,7 @@ func NewAPIServerCommand() *cobra.Command {
 
 	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
-	cmdFlags.String("oidc-client-id", "", "The client ID for the OpenID Connect client")
+	cmdFlags.String("oidc-client-id", "example-app", "The client ID for the OpenID Connect client")
 	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmdFlags.String("oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmdFlags.Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
@@ -517,7 +517,7 @@ func StartServer(ctx context.Context, p Params) error {
 		WithHtmlRootPath(p.HtmlRootPath),
 		WithClientGetter(clientGetter),
 		WithAuthConfig(authMethods, p.OIDC),
-		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
+		WithTLSConfig(p.TLSCert, p.TLSKey, false),
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
 		WithDevMode(p.DevMode),
