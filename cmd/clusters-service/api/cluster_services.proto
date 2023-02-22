@@ -7,6 +7,8 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
+import "google/protobuf/struct.proto";
+
 
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
@@ -244,6 +246,18 @@ service ClustersService {
       get : "/v1/external-secrets-stores"
     };
   }
+  // ListPolicyConfigs list policy configs
+  rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
+    option (google.api.http) = {
+      get : "/v1/policy-configs"
+    };
+  }
+  // GetPolicyConfig get policy config details
+  rpc GetPolicyConfig(GetPolicyConfigRequest) returns (GetPolicyConfigResponse) {
+    option (google.api.http) = {
+      get : "/v1/policy-configs/{name}"
+    };
+  }
 }
 
 
@@ -331,6 +345,7 @@ message RenderTemplateResponse {
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
   repeated CommitFile external_secrets_files = 5;
+  repeated CommitFile policy_config_files = 6;
 }
 
 message RenderAutomationRequest {
@@ -341,6 +356,7 @@ message RenderAutomationResponse {
   repeated CommitFile kustomization_files = 1;
   repeated CommitFile helm_release_files = 2;
   repeated CommitFile external_secrets_files = 3;
+  repeated CommitFile policy_config_files = 4;
 }
 
 message ListGitopsClustersRequest {
@@ -457,6 +473,7 @@ message CreatePullRequestRequest {
   string template_kind = 15;
   PreviousValues previous_values = 16;
   repeated ExternalSecret external_secrets = 17;
+  repeated PolicyConfigObject policy_configs = 18;
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -466,6 +483,7 @@ message PreviousValues {
   repeated ProfileValues values = 3;
   repeated Kustomization kustomizations = 4;
   repeated ExternalSecret external_secrets = 5;
+  repeated PolicyConfigObject policy_configs = 6;
  }
 
 message CreatePullRequestResponse {
@@ -680,6 +698,7 @@ message ClusterAutomation {
   // A path to write the resource to in the management git repo
   string file_path = 5;
   ExternalSecret external_secret = 6;
+  PolicyConfigObject policy_config = 7;
 }
 
 // External Secrets template
@@ -1068,4 +1087,79 @@ message ListExternalSecretStoresRequest{
 message ListExternalSecretStoresResponse{
   repeated ExternalSecretStore stores = 1;
   int32 total = 2;
+}
+
+message PolicyConfigListItem {
+  string name = 1;
+  string clusterName = 2;
+  int32 totalPolicies = 3;
+  string match = 4;
+  string status = 5;
+  string age = 6;
+}
+
+message ListPolicyConfigsRequest {}
+
+message ListPolicyConfigsResponse{
+  repeated PolicyConfigListItem policyConfigs = 1;
+  repeated ListError errors = 2;
+  int32 total = 3;
+}
+
+
+message GetPolicyConfigRequest{
+  string clusterName = 1;
+  string name = 2;
+}
+
+message GetPolicyConfigResponse{
+  string name = 1;
+  string clusterName = 2;
+  string age = 3;
+  string status = 4;
+  PolicyConfigMatch match = 5;
+  repeated PolicyConfigConfig policies = 6;
+  int32 totalPolicies = 7;
+}
+
+message PolicyConfigApplicationMatch {
+  string name = 1;
+  string kind = 2;
+  string namespace = 3;
+}
+
+message PolicyConfigResourceMatch {
+  string name = 1;
+  string kind = 2;
+  string namespace = 3;
+}
+
+message PolicyConfigMatch {
+  repeated string namespaces = 1;
+  repeated string workspaces = 2;
+  repeated PolicyConfigApplicationMatch apps = 3;
+  repeated PolicyConfigResourceMatch resources = 4;
+}
+
+message PolicyConfigConfig {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  map<string, google.protobuf.Value> parameters = 4;
+  string status = 5;
+}
+
+
+message PolicyConfigConf {
+  map<string, google.protobuf.Value>  parameters  = 2;
+}
+
+message PolicyConfigObjectSpec {
+  PolicyConfigMatch match = 1;
+  map<string, PolicyConfigConf>  config  = 2;
+}
+
+message PolicyConfigObject {
+  Metadata metadata = 1;
+  PolicyConfigObjectSpec spec  = 2;
 }

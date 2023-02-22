@@ -7,6 +7,7 @@
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
 import * as GoogleProtobufAny from "./google/protobuf/any.pb"
+import * as GoogleProtobufStruct from "./google/protobuf/struct.pb"
 export type ListTemplatesRequest = {
   provider?: string
   templateKind?: string
@@ -95,6 +96,7 @@ export type RenderTemplateResponse = {
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
   externalSecretsFiles?: CommitFile[]
+  policyConfigFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -105,6 +107,7 @@ export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
+  policyConfigFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -215,6 +218,7 @@ export type CreatePullRequestRequest = {
   templateKind?: string
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
+  policyConfigs?: PolicyConfigObject[]
 }
 
 export type PreviousValues = {
@@ -223,6 +227,7 @@ export type PreviousValues = {
   values?: ProfileValues[]
   kustomizations?: Kustomization[]
   externalSecrets?: ExternalSecret[]
+  policyConfigs?: PolicyConfigObject[]
 }
 
 export type CreatePullRequestResponse = {
@@ -410,6 +415,7 @@ export type ClusterAutomation = {
   helmRelease?: HelmRelease
   filePath?: string
   externalSecret?: ExternalSecret
+  policyConfig?: PolicyConfigObject
 }
 
 export type ExternalSecret = {
@@ -800,6 +806,80 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
+export type PolicyConfigListItem = {
+  name?: string
+  clusterName?: string
+  totalPolicies?: number
+  match?: string
+  status?: string
+  age?: string
+}
+
+export type ListPolicyConfigsRequest = {
+}
+
+export type ListPolicyConfigsResponse = {
+  policyConfigs?: PolicyConfigListItem[]
+  errors?: ListError[]
+  total?: number
+}
+
+export type GetPolicyConfigRequest = {
+  clusterName?: string
+  name?: string
+}
+
+export type GetPolicyConfigResponse = {
+  name?: string
+  clusterName?: string
+  age?: string
+  status?: string
+  match?: PolicyConfigMatch
+  policies?: PolicyConfigConfig[]
+  totalPolicies?: number
+}
+
+export type PolicyConfigApplicationMatch = {
+  name?: string
+  kind?: string
+  namespace?: string
+}
+
+export type PolicyConfigResourceMatch = {
+  name?: string
+  kind?: string
+  namespace?: string
+}
+
+export type PolicyConfigMatch = {
+  namespaces?: string[]
+  workspaces?: string[]
+  apps?: PolicyConfigApplicationMatch[]
+  resources?: PolicyConfigResourceMatch[]
+}
+
+export type PolicyConfigConfig = {
+  id?: string
+  name?: string
+  description?: string
+  parameters?: {[key: string]: GoogleProtobufStruct.Value}
+  status?: string
+}
+
+export type PolicyConfigConf = {
+  parameters?: {[key: string]: GoogleProtobufStruct.Value}
+}
+
+export type PolicyConfigObjectSpec = {
+  match?: PolicyConfigMatch
+  config?: {[key: string]: PolicyConfigConf}
+}
+
+export type PolicyConfigObject = {
+  metadata?: Metadata
+  spec?: PolicyConfigObjectSpec
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -896,5 +976,11 @@ export class ClustersService {
   }
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
+    return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
+    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }

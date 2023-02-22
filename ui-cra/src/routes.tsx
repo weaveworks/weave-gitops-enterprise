@@ -23,6 +23,10 @@ import ClusterDashboard from './components/Clusters/ClusterDashboard';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
+import ImageAutomationPage from './components/ImageAutomation';
+import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
+import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
+import ImageAutomationUpdatesDetails from './components/ImageAutomation/updates/ImageAutomationUpdatesDetails';
 import { ContentWrapper } from './components/Layout/ContentWrapper';
 import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
@@ -34,6 +38,7 @@ import PolicyViolationDetails from './components/PolicyViolations/ViolationDetai
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
+import CreateSecret from './components/Secrets/Create';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
 import AddClusterWithCredentials from './components/Templates/Create';
@@ -252,7 +257,19 @@ const AppRoutes = () => {
         path={Routes.PipelineDetails}
         component={withSearchParams(PipelineDetails)}
       />
-
+      <Route path={Routes.ImageAutomation} component={ImageAutomationPage} />
+      <Route
+          path={V2Routes.ImageAutomationUpdatesDetails}
+          component={withSearchParams(ImageAutomationUpdatesDetails)}
+        />
+        <Route
+          path={V2Routes.ImageAutomationRepositoryDetails}
+          component={withSearchParams(ImageAutomationRepoDetails)}
+        />
+        <Route
+          path={V2Routes.ImagePolicyDetails}
+          component={withSearchParams(ImagePolicyDetails)}
+        />
       <Route exact path={Routes.Policies} component={Policies} />
       <Route
         exact

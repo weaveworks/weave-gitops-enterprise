@@ -13,6 +13,8 @@ import { FC } from 'react';
 import { Routes } from '../../../utils/nav';
 import CommandCell from './CommandCell';
 
+const sessionObjectsInfo = 'session objects created';
+
 const PortLinks: React.FC<{ ports: string }> = ({ ports = '' }) => {
   const list = ports.split(',');
   return (
@@ -37,7 +39,9 @@ const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
   const route =
     kind === Kind.Kustomization ? V2Routes.Kustomization : V2Routes.HelmRelease;
 
-  return (
+  const text = `${kind}/${name}`;
+
+  return s.info === sessionObjectsInfo ? (
     <Link
       to={formatURL(route, {
         name,
@@ -45,8 +49,10 @@ const AutomationLink: React.FC<{ s: FluxObject }> = ({ s }) => {
         clusterName,
       })}
     >
-      {kind}/{name}
+      {text}
     </Link>
+  ) : (
+    <>{text}</>
   );
 };
 interface Props {
@@ -104,7 +110,9 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           value: s => {
             const metadata = s.obj.metadata;
             const clusterName = `${metadata.annotations['run.weave.works/namespace']}/${metadata.name}`;
-            return (
+            const text = 'Bucket/run-dev-bucket';
+
+            return s.info === sessionObjectsInfo ? (
               <Link
                 to={formatURL(V2Routes.Bucket, {
                   name: 'run-dev-bucket',
@@ -112,8 +120,10 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
                   clusterName,
                 })}
               >
-                Bucket/run-dev-bucket
+                {text}
               </Link>
+            ) : (
+              text
             );
           },
         },
