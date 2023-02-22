@@ -76,4 +76,6 @@ export enum Routes {
   GitOpsSetDetail = '/gitopssets/object',
 
   ImageAutomation = '/image_automation',
+
+  Explorer = '/explorer',
 }

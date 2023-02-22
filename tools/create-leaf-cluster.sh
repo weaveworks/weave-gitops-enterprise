@@ -14,10 +14,10 @@ then
 fi
 
 echo "Creating cluster..."
-vcluster create --connect=false -n vcluster-$1 $1
+# vcluster create --connect=false -n vcluster-$1 $1
 
 echo "Waiting cluster config..."
-TRY=12
+TRY=600
 until [[ $i -gt TRY  ]] || kubectl get secret -n vcluster-$1 vc-$1 &>/dev/null
 do
     sleep 10
@@ -26,7 +26,7 @@ done
 
 echo "Creating GitopsCluster secret..."
 kubectl get secret -n vcluster-$1 vc-$1 --template={{.data.config}} \
- | base64 -D \
+ | base64 -d \
  | sed "s/localhost:8443/$1.vcluster-$1/g" \
  | kubectl create secret -n vcluster-$1 generic $1-config --from-file=value=/dev/stdin
 

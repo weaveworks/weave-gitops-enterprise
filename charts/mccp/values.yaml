@@ -56,15 +56,16 @@ config:
     enabled: true
   oidc:
     enabled: false
-    issuerURL: ""
-    redirectURL: ""
+    issuerURL: "https://dex.dex:32000"
+    redirectURL: "http://localhost:3000/oauth2/callback"
     cookieDuration: 1h
-    claimUsername: ""
-    claimGroups: ""
+    claimUsername: "email"
+    claimGroups: "groups"
+    clientID: "github"
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
-    clientCredentialsSecret: ""
+    clientCredentialsSecret: "github-client"
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
-    customScopes: ""
+    customScopes: "groups, openid, email, profile"
   auth:
     userAccount:
       enabled: true
