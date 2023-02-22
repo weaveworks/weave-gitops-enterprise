@@ -75,14 +75,19 @@ const ChartValuesDialog: FC<{
     () =>
       api.GetValuesForChart({
         repository: {
-          cluster: cluster || { name: getConfigResp?.data?.managementClusterName},
+          cluster: cluster || {
+            name: getConfigResp?.data?.managementClusterName,
+          },
           name: helmRepo.name || DEFAULT_PROFILE_REPO.name,
           namespace: helmRepo.namespace || DEFAULT_PROFILE_REPO.namespace,
         },
         name: profile.name,
         version,
       }),
-    { enabled: !yaml && !!getConfigResp?.data?.managementClusterName, refetchOnWindowFocus: false },
+    {
+      enabled: !yaml && !!getConfigResp?.data?.managementClusterName,
+      refetchOnWindowFocus: false,
+    },
   );
 
   const { isLoading: valuesLoading, data: jobResult } = useQuery<
@@ -110,7 +115,9 @@ const ChartValuesDialog: FC<{
       <Dialog open maxWidth="md" fullWidth scroll="paper" onClose={onClose}>
         {error && <Alert severity="error">{error}</Alert>}
         <DialogTitle disableTypography>
-          <Typography variant="h5">{profile.name}</Typography>
+          <Typography variant="h5">
+            {profile.name} (version:{version})
+          </Typography>
           <CloseIconButton onClick={onClose} />
         </DialogTitle>
         <DialogContent>
