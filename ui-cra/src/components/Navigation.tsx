@@ -13,14 +13,14 @@ import { ReactComponent as Applications } from '../assets/img/applications.svg';
 import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as GitOpsRun } from '../assets/img/gitops-run-icon.svg';
+import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as PolicyConfigs } from '../assets/img/policyConfigs.svg';
 import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
-import { ReactComponent as PolicyConfigs } from '../assets/img/policyConfigs.svg';
-import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
-import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
 
@@ -184,6 +184,7 @@ const NavItems = () => {
       link: Routes.GitOpsSets,
       icon: <GitOpsSetsIcon />,
     },
+    { name: 'OBJECT EXPLORER', link: Routes.Explorer, icon: null },
     {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
@@ -224,7 +225,7 @@ const NavItems = () => {
     {
       name: 'POLICY CONFIGS',
       link: Routes.PolicyConfigs,
-      icon:  <PolicyConfigs />,
+      icon: <PolicyConfigs />,
     },
   ];
   return (
