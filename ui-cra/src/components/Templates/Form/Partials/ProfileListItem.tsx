@@ -1,5 +1,13 @@
-import { FormControl, Input, MenuItem, Select } from '@material-ui/core';
+import {
+  FormControl,
+  Input,
+  TextField,
+  createStyles,
+  makeStyles,
+} from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
+import { debounce } from 'lodash';
 import React, {
   ChangeEvent,
   Dispatch,
@@ -15,7 +23,11 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
+import { Tooltip } from '../../../Shared';
 import ChartValuesDialog from './ChartValuesDialog';
+const semverValid = require('semver/functions/valid');
+const semverValidRange = require('semver/ranges/valid');
+const semverMaxSatisfying = require('semver/ranges/max-satisfying');
 
 const ProfileWrapper = styled.div`
   display: flex;
@@ -34,17 +46,19 @@ const ProfilesListItem: FC<{
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
   const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
-
-  const profileVersions = (profile: UpdatedProfile) => [
-    ...profile.values.map((value, index) => {
-      const { version } = value;
-      return (
-        <MenuItem key={index} value={version}>
-          {version}
-        </MenuItem>
-      );
+  const [inValidVersionErrorMessage, setInValidVersionErrorMessage] =
+    useState<string>('');
+  const [isValidVersion, setIsValidVersion] = useState<boolean>(true);
+  const [availableVersions] = useState(
+    profile.values.map(item => item.version),
+  );
+  const useStyles = makeStyles(() =>
+    createStyles({
+      autoComplete: { minWidth: '155px', overflow: 'hidden' },
+      input: {},
     }),
-  ];
+  );
+  const classes = useStyles();
 
   const handleUpdateProfile = useCallback(
     profile => {
@@ -57,23 +71,53 @@ const ProfilesListItem: FC<{
   );
 
   const handleSelectVersion = useCallback(
-    (event: ChangeEvent<{ name?: string | undefined; value: unknown }>) => {
-      const value = event.target.value as string;
+    (value: string) => {
       setVersion(value);
-
-      profile.values.forEach(item =>
-        item.selected === true ? (item.selected = false) : null,
+      const filteredVersions = profile.values.filter(
+        item => item.version !== value,
+      );
+      const selectedVersion = profile.values.find(
+        item => item.version === value,
       );
 
-      profile.values.forEach(item => {
-        if (item.version === value) {
-          item.selected = true;
-          setYaml(item.yaml as string);
-          return;
-        }
-      });
-
+      if (selectedVersion) {
+        profile.values.forEach(item =>
+          item.selected === true ? (item.selected = false) : null,
+        );
+        profile.values = [
+          ...filteredVersions,
+          { ...selectedVersion, selected: true },
+        ];
+        setYaml(selectedVersion.yaml as string);
+      }
       handleUpdateProfile(profile);
+    },
+    [profile, handleUpdateProfile],
+  );
+  const handleInputChange = useCallback(
+    (value: string) => {
+      setInValidVersionErrorMessage('');
+      setIsValidVersion(true);
+      if ((semverValid(value) || semverValidRange(value)) && value !== '') {
+        setVersion(value);
+
+        const selectedVersion = profile.values.find(
+          item => item.version === value,
+        );
+
+        if (!selectedVersion) {
+          profile.values.forEach(item =>
+            item.selected === true ? (item.selected = false) : null,
+          );
+          profile.values.push({ version: value, selected: true, yaml: '' });
+        }
+        handleUpdateProfile(profile);
+      } else {
+        setInValidVersionErrorMessage(
+          'The provided version | range  is invalid',
+        );
+        setIsValidVersion(false);
+      }
     },
     [profile, handleUpdateProfile],
   );
@@ -133,42 +177,91 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <ProfileWrapper data-profile-name={profile.name}>
-        <div className="profile-version">
-          <FormControl>
-            <Select
-              disabled={profile.required && profile.values.length === 1}
-              value={version}
-              onChange={handleSelectVersion}
-              autoWidth
-              label="Versions"
-            >
-              {profileVersions(profile)}
-            </Select>
-          </FormControl>
-        </div>
-        <div className="profile-namespace">
-          <FormControl>
-            <Input
-              id="profile-namespace"
-              value={namespace}
-              placeholder={DEFAULT_PROFILE_NAMESPACE}
-              onChange={handleChangeNamespace}
-              error={!isNamespaceValid}
-            />
-          </FormControl>
-        </div>
-        <Button variant="text" onClick={handleYamlPreview}>
-          Values.yaml
-        </Button>
-      </ProfileWrapper>
+      <Tooltip
+        title="This fields are disabled as the profile is not checked"
+        placement="top"
+        disabled={Boolean(profile.selected)}
+      >
+        <ProfileWrapper data-profile-name={profile.name}>
+          <div className="profile-version">
+            <FormControl>
+              <Autocomplete
+                disabled={
+                  (profile.required && profile.values.length === 1) ||
+                  !Boolean(profile.selected)
+                }
+                disableClearable
+                freeSolo
+                className={classes.autoComplete}
+                options={profile.values.map(option => option.version)}
+                onChange={(event, newValue) => {
+                  handleSelectVersion(newValue);
+                }}
+                onInputChange={debounce(
+                  (event, newInputValue) => handleInputChange(newInputValue),
+                  500,
+                )}
+                value={version}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    InputProps={{
+                      ...params.InputProps,
+                      className: classes.input,
+                    }}
+                    variant="standard"
+                    error={!isValidVersion}
+                    helperText={
+                      !!inValidVersionErrorMessage && inValidVersionErrorMessage
+                    }
+                  />
+                )}
+              />
+            </FormControl>
+          </div>
+          <div className="profile-namespace">
+            <FormControl>
+              <Input
+                id="profile-namespace"
+                value={namespace}
+                placeholder={DEFAULT_PROFILE_NAMESPACE}
+                onChange={handleChangeNamespace}
+                error={!isNamespaceValid}
+                disabled={!Boolean(profile.selected)}
+              />
+            </FormControl>
+          </div>
+          <Tooltip
+            title="There is no Yaml file for this version | range"
+            placement="top"
+            disabled={Boolean(
+              semverMaxSatisfying(availableVersions, version) && isValidVersion,
+            )}
+          >
+            <div>
+              <Button
+                disabled={
+                  !Boolean(
+                    semverMaxSatisfying(availableVersions, version) &&
+                      isValidVersion,
+                  ) || !Boolean(profile.selected)
+                }
+                variant="text"
+                onClick={handleYamlPreview}
+              >
+                Values.yaml
+              </Button>
+            </div>
+          </Tooltip>
+        </ProfileWrapper>
+      </Tooltip>
 
       {openYamlPreview && (
         <ChartValuesDialog
           yaml={yaml}
           cluster={cluster}
           profile={profile}
-          version={version}
+          version={semverMaxSatisfying(availableVersions, version)}
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => resetChartsValues()}

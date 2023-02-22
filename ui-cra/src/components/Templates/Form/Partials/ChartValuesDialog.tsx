@@ -127,7 +127,9 @@ const ChartValuesDialog: FC<{
       >
         {error && <Alert severity="error">{error}</Alert>}
         <DialogTitle disableTypography>
-          <Typography variant="h5">{profile.name}</Typography>
+          <Typography variant="h5">
+            {profile.name} (version:{version})
+          </Typography>
           <CloseIconButton onClick={resetQueryOnClose} />
         </DialogTitle>
         <DialogContent>
