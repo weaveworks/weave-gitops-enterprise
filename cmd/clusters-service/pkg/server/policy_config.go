@@ -175,15 +175,11 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 		}
 	} else if target.Namespaces != nil {
 		match.Namespaces = []string{}
-		for _, ns := range target.Namespaces {
-			match.Namespaces = append(match.Namespaces, ns)
-		}
+		match.Namespaces = append(match.Namespaces, target.Namespaces...)
 
 	} else if target.Workspaces != nil {
 		match.Workspaces = []string{}
-		for _, ns := range target.Workspaces {
-			match.Workspaces = append(match.Workspaces, ns)
-		}
+		match.Workspaces = append(match.Workspaces, target.Workspaces...)
 	} else if target.Resources != nil {
 		match.Resources = []*capiv1_proto.PolicyConfigResourceMatch{}
 		for _, res := range target.Resources {
