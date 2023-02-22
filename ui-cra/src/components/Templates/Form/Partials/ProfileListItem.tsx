@@ -173,7 +173,6 @@ const ProfilesListItem: FC<{
           onSave={handleUpdateProfiles}
           onClose={() => resetChartsValues()}
           helmRepo={helmRepo}
-          onDiscard={() => resetChartsValues()}
         />
       )}
     </>

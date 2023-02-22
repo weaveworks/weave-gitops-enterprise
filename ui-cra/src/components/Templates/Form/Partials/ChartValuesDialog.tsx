@@ -15,7 +15,7 @@ import {
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import { ChangeEvent, FC, useContext } from 'react';
-import { useQuery } from 'react-query';
+import { useQuery, useQueryClient } from 'react-query';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
   GetConfigResponse,
@@ -49,7 +49,6 @@ const ChartValuesDialog: FC<{
   onSave: () => void;
   onClose: () => void;
   helmRepo: RepositoryRef;
-  onDiscard: () => void;
 }> = ({
   profile,
   yaml,
@@ -59,10 +58,10 @@ const ChartValuesDialog: FC<{
   onSave,
   onClose,
   helmRepo,
-  onDiscard,
 }) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
+  const queryClient = useQueryClient();
 
   const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
@@ -111,13 +110,25 @@ const ChartValuesDialog: FC<{
   const isLoading =
     !yaml &&
     (jobLoading || valuesLoading || (!jobResult?.error && !jobResult?.values));
+
+  const resetQueryOnClose = () => {
+    const query = `values-job-${jobData?.jobId}`;
+    queryClient.removeQueries({ queryKey: query, exact: true });
+    onClose();
+  };
   return (
     <>
-      <Dialog open maxWidth="md" fullWidth scroll="paper" onClose={onClose}>
+      <Dialog
+        open
+        maxWidth="md"
+        fullWidth
+        scroll="paper"
+        onClose={resetQueryOnClose}
+      >
         {error && <Alert severity="error">{error}</Alert>}
         <DialogTitle disableTypography>
           <Typography variant="h5">{profile.name}</Typography>
-          <CloseIconButton onClick={onClose} />
+          <CloseIconButton onClick={resetQueryOnClose} />
         </DialogTitle>
         <DialogContent>
           {isLoading ? (
@@ -134,7 +145,7 @@ const ChartValuesDialog: FC<{
           <Button
             id="discard-yaml"
             startIcon={<Icon type={IconType.ClearIcon} size="base" />}
-            onClick={onDiscard}
+            onClick={resetQueryOnClose}
             disabled={profile.required && profile.editable !== true}
           >
             DISCARD CHANGES
