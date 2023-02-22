@@ -16,6 +16,7 @@ import {
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import { sortBy, sortedUniqBy, uniq } from 'lodash';
 import React, { SetStateAction } from 'react';
 import styled from 'styled-components';
 import { useGetLogs } from '../../../hooks/gitopsrun';
@@ -35,14 +36,23 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
-const makeHeader = (logs: LogEntry[], refetching: boolean) => {
+const makeHeader = (
+  logs: LogEntry[],
+  isLoading: boolean,
+  reverseSort: boolean,
+) => {
   if (!logs.length) {
-    if (refetching) return 'Fetching logs...';
-    else return 'No logs found';
+    if (isLoading) return 'Refreshing logs';
+    return 'No logs found';
   }
 
-  const beginning = formatLogTimestamp(logs[0].timestamp);
-  const end = formatLogTimestamp(logs[logs.length - 1].timestamp);
+  if (logs.length === 1)
+    return `showing logs from ${formatLogTimestamp(logs[0].timestamp)}`;
+
+  const beginning = formatLogTimestamp(logs[reverseSort ? 0 : 1].timestamp);
+  const end = formatLogTimestamp(
+    logs[logs.length - (reverseSort ? 2 : 1)].timestamp,
+  );
 
   return `showing logs from ${beginning} to ${end}`;
 };
@@ -60,9 +70,12 @@ const RowIcon: React.FC<{ level: string }> = ({ level }) => {
     );
 };
 
-const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
+const LogRow: React.FC<{ log: LogEntry; className?: string }> = ({
+  log,
+  className,
+}) => {
   return (
-    <TableRow>
+    <TableRow className={className}>
       <TableCell>
         <Flex /*this flex centers the icon*/>
           <RowIcon level={log.level || ''} />
@@ -84,8 +97,9 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   const [levelValue, setLevelValue] = React.useState<string>('all');
   const [logSources, setLogSources] = React.useState<string[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
-  const [refetching, setRefetching] = React.useState<boolean>(false);
-  const { isLoading, data, refetch } = useGetLogs(
+  const [runLog, setRunLog] = React.useState<LogEntry | null>(null);
+
+  const { isLoading, data } = useGetLogs(
     {
       sessionNamespace: namespace,
       sessionId: name,
@@ -107,20 +121,19 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   React.useEffect(() => {
     if (isLoading) return;
     if (data?.logs?.length && data?.nextToken) {
-      const newLogs = data.logs;
-      //if there are already logs in state
-      if (logs.length)
-        setLogs(
-          reverseSort ? [...newLogs.reverse(), ...logs] : [...logs, ...newLogs],
-        );
-      else setLogs(reverseSort ? newLogs.reverse() : newLogs);
+      //keep old logs if they exist
+      const tempLogs = logs.length ? [...data.logs, ...logs] : data.logs;
+      //sort and filter
+      const sorted = sortBy(tempLogs, e => e.sortingKey);
+      //sorted has to be reversed so we grab latest log from gitops-run-client
+      let filtered = sortedUniqBy(sorted.reverse(), 'sortingKey');
+      setLogs(reverseSort ? filtered : filtered.reverse());
       setToken(data.nextToken);
-      setLogSources(data?.logSources || []);
+      setLogSources(uniq([...(data?.logSources || []), ...logSources]));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, data]);
 
-  console.log(token, logs);
+  console.log(logValue);
 
   return (
     <Flex className={className} wide tall column>
@@ -167,7 +180,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
         </Select>
       </Flex>
       <Header wide align>
-        {makeHeader(logs, refetching)}
+        {makeHeader(logs, isLoading, reverseSort)}
         <IconButton
           onClick={() => {
             setLogs(logs.reverse());
@@ -184,9 +197,20 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
       <TableContainer>
         <Table>
           <TableBody>
-            {logs.map((log, index) => (
-              <LogRow key={index} log={log} />
-            ))}
+            {(logValue === 'all' || logValue === 'gitops-run-client') &&
+            logs.length ? (
+              <LogRow
+                log={reverseSort ? logs[logs.length - 1] : logs[0]}
+                className="run"
+              />
+            ) : null}
+            {logs.map((log, index) => {
+              if (logValue === 'all' || logValue === 'gitops-run-client') {
+                if (reverseSort && index === logs.length - 1) return;
+                else if (index === 0) return;
+              }
+              return <LogRow key={index} log={log} />;
+            })}
           </TableBody>
         </Table>
       </TableContainer>
@@ -213,6 +237,9 @@ export default styled(GitOpsRunLogs).attrs({ className: GitOpsRunLogs.name })`
   }
   .MuiTableRow-root {
     border-bottom: none;
+    &.run {
+      border-bottom: 1px solid ${props => props.theme.colors.neutral20};
+    }
   }
   //adds padding left for Select text
   .MuiInputBase-input {
