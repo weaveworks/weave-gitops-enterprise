@@ -1,31 +1,33 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import {
   Checkbox,
   createStyles,
   makeStyles,
-  withStyles,
+  withStyles
 } from '@material-ui/core';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
-  Button,
-  filterByStatusCallback,
-  filterConfig,
-  Icon,
-  IconType,
-  DataTable,
-  KubeStatusIndicator,
+  Button, DataTable, filterByStatusCallback,
+  filterConfig, GitRepository, Icon,
+  IconType, Kind, KubeStatusIndicator,
   LoadingPage,
   statusSortHelper,
   theme,
-  useListSources,
-  GitRepository,
-  Kind,
+  useListSources
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
+import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import _ from 'lodash';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Link, useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
+import { useListConfigContext } from '../../contexts/ListConfig';
+import useNotifications, {
+  NotificationData
+} from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { useCallbackState } from '../../utils/callback-state';
@@ -33,34 +35,22 @@ import {
   EKSDefault,
   GKEDefault,
   KindIcon,
-  Kubernetes,
-  Vsphere,
-  LiquidMetal,
-  Rancher,
-  Openshift,
-  OtherOnprem,
+  Kubernetes, LiquidMetal, Openshift,
+  OtherOnprem, Rancher, Vsphere
 } from '../../utils/icons';
-import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
+import { openLinkHandler } from '../../utils/link-checker';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { TableWrapper, Tooltip } from '../Shared';
+import { EditButton } from '../Templates/Edit/EditButton';
+import { GitRepositoryEnriched } from '../Templates/Form';
+import {
+  getCreateRequestAnnotation,
+  getInitialGitRepo
+} from '../Templates/Form/utils';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
-import { openLinkHandler } from '../../utils/link-checker';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
-import { EditButton } from '../Templates/Edit/EditButton';
-import { useListConfigContext } from '../../contexts/ListConfig';
-import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
-import _ from 'lodash';
-import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import {
-  getCreateRequestAnnotation,
-  getInitialGitRepo,
-} from '../Templates/Form/utils';
-import { GitRepositoryEnriched } from '../Templates/Form';
-import { GitProvider } from '../../api/gitauth/gitauth.pb';
 
 interface Size {
   size?: 'small';
@@ -90,10 +80,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
     color: ${({ theme }) => theme.colors.primary};
   }
   max-width: calc(100vw - 220px);
-`;
-
-const LoadingWrapper = styled.div`
-  ${contentCss};
 `;
 
 export function computeMessage(conditions: Condition[]) {
@@ -221,7 +207,7 @@ export const getGitRepos = (sources: Source[] | undefined) =>
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { clusters, isLoading } = useClusters();
+  const { clusters } = useClusters();
   const { setNotifications } = useNotifications();
   const [selectedCluster, setSelectedCluster] =
     useState<ClusterNamespacedName | null>(null);
