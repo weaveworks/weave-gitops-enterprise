@@ -120,9 +120,13 @@ func getPolicyConfigTargetType(target pacv2beta2.PolicyConfigTarget) string {
 
 // GetPolicyConfig gets the policy config details
 func (s *server) GetPolicyConfig(ctx context.Context, req *capiv1_proto.GetPolicyConfigRequest) (*capiv1_proto.GetPolicyConfigResponse, error) {
-	clustersClient, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
 	if err != nil {
-		return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	if clustersClient == nil {
+		return nil, fmt.Errorf("cluster %s not found", req.ClusterName)
 	}
 
 	policyConfig, err := s.getPolicyConfig(ctx, clustersClient, req)
