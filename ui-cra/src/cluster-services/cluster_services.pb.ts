@@ -96,6 +96,7 @@ export type RenderTemplateResponse = {
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
   externalSecretsFiles?: CommitFile[]
+  policyConfigFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -106,6 +107,7 @@ export type RenderAutomationResponse = {
   kustomizationFiles?: CommitFile[]
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
+  policyConfigFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -216,6 +218,7 @@ export type CreatePullRequestRequest = {
   templateKind?: string
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
+  policyConfigs?: PolicyConfigObject[]
 }
 
 export type PreviousValues = {
@@ -224,6 +227,7 @@ export type PreviousValues = {
   values?: ProfileValues[]
   kustomizations?: Kustomization[]
   externalSecrets?: ExternalSecret[]
+  policyConfigs?: PolicyConfigObject[]
 }
 
 export type CreatePullRequestResponse = {
@@ -411,6 +415,7 @@ export type ClusterAutomation = {
   helmRelease?: HelmRelease
   filePath?: string
   externalSecret?: ExternalSecret
+  policyConfig?: PolicyConfigObject
 }
 
 export type ExternalSecret = {
@@ -859,6 +864,20 @@ export type PolicyConfigConfig = {
   description?: string
   parameters?: {[key: string]: GoogleProtobufStruct.Value}
   status?: string
+}
+
+export type PolicyConfigConf = {
+  parameters?: {[key: string]: GoogleProtobufStruct.Value}
+}
+
+export type PolicyConfigObjectSpec = {
+  match?: PolicyConfigMatch
+  config?: {[key: string]: PolicyConfigConf}
+}
+
+export type PolicyConfigObject = {
+  metadata?: Metadata
+  spec?: PolicyConfigObjectSpec
 }
 
 export class ClustersService {
