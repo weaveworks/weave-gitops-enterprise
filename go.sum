@@ -426,8 +426,8 @@ github.com/fluxcd/pkg/ssa v0.22.0 h1:HvJTuiYLZMxCjin7bAqBgnc2RjSqEfYrMbV5yINoM64
 github.com/fluxcd/pkg/ssa v0.22.0/go.mod h1:QND0ZNOQ5EzFxoNKfjUxE9J46AbRK3WKF8YkURwbVg0=
 github.com/fluxcd/pkg/untar v0.2.0 h1:sJXU+FbJcNUb2ffLJNjeR3hwt3X2loVpOMlCUjyFw6E=
 github.com/fluxcd/pkg/untar v0.2.0/go.mod h1:33AyoWaPpjX/xXpczcfhQh2AkB63TFwiR2YwROtv23E=
-github.com/fluxcd/source-controller/api v0.32.1 h1:PD8XEG4k5otsnusZZNEQ9XYY5udHoNgp5bX2yZHcb6k=
-github.com/fluxcd/source-controller/api v0.32.1/go.mod h1:+DiGND4WSNdGkS7loPUroSarif6dHU4VlVgtLMRKCR8=
+github.com/fluxcd/source-controller/api v0.33.0 h1:NZYU3+MNf9puyrTbBa7AJbBDlN7tmt0uw8lyye++5fE=
+github.com/fluxcd/source-controller/api v0.33.0/go.mod h1:+DiGND4WSNdGkS7loPUroSarif6dHU4VlVgtLMRKCR8=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
 github.com/form3tech-oss/jwt-go v3.2.3+incompatible/go.mod h1:pbq4aXjuKjdthFRnoDwaVPLA+WlJuPGy+QneDUgJi2k=
 github.com/frankban/quicktest v1.14.3 h1:FJKSZTDHjyhriyC81FLQ0LY93eSai0ZyR/ZIkd3ZUKE=
@@ -1362,8 +1362,8 @@ github.com/weaveworks/templates-controller v0.1.2 h1:PVPePP8NUnB2OqCsNvHvp8zm2vk
 github.com/weaveworks/templates-controller v0.1.2/go.mod h1:iLs/20GkUY94KzDhRvmctwun7yX3SGJWs8q0gbTu53I=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4 h1:RRpzQlhbEC5WjL0jaMEvGUSZ8EsxzdqSSzginwSBTyc=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4/go.mod h1:VK60b9WR7XEK1DvQNOpKEOlIQ56Qcy5KlAIFksQmUxI=
-github.com/weaveworks/weave-gitops v0.17.1-0.20230217091209-bbc43ef746d2 h1:42b0UYpNXN41275psZWn3zYMgXEIa9L4FGzlImarRmc=
-github.com/weaveworks/weave-gitops v0.17.1-0.20230217091209-bbc43ef746d2/go.mod h1:cUnWoB/os7EQY8yxKn9fr+f3Ny8wCXnnF74PPd0l+PU=
+github.com/weaveworks/weave-gitops v0.17.1-0.20230220194849-b061bf0a80f6 h1:t19xKIzu1DnCIAk4Jr1PUvDtArklqYbcL1y6qzPx8cQ=
+github.com/weaveworks/weave-gitops v0.17.1-0.20230220194849-b061bf0a80f6/go.mod h1:KiyIeYvpnrDRhYrMdhbxWgQyGqYy7Nyd7E4KODHkoq8=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.78.0 h1:8jUHfQVAprG04Av5g0PxVd3CNsZ5hCbojIax7Hba1mE=
