@@ -14,12 +14,14 @@ import { ReactComponent as Clusters } from '../assets/img/clusters.svg';
 import { ReactComponent as FluxIcon } from '../assets/img/flux-icon.svg';
 import { ReactComponent as GitOpsRun } from '../assets/img/gitops-run-icon.svg';
 import { ReactComponent as Policies } from '../assets/img/policies.svg';
+import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
+import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
 
@@ -150,6 +152,16 @@ const NavItems = () => {
             V2Routes.HelmRepo,
             V2Routes.OCIRepository,
             V2Routes.HelmChart,
+          ],
+        },
+        {
+          name: 'IMAGE AUTOMATION',
+          link: Routes.ImageAutomation,
+          isVisible: true,
+          relatedRoutes: [
+            V2Routes.ImageAutomationRepositoryDetails,
+            V2Routes.ImagePolicyDetails,
+            V2Routes.ImageAutomationUpdatesDetails,
           ],
         },
         {

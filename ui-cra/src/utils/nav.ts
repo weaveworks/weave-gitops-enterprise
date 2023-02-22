@@ -70,4 +70,6 @@ export enum Routes {
 
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
+
+  ImageAutomation = '/image_automation',
 }
