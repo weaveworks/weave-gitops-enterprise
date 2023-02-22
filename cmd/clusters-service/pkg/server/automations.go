@@ -700,18 +700,18 @@ func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
 		return err
 	}
 
-	if config.Spec.Config == nil {
+	if len(config.Spec.Config) == 0 {
 		err = multierror.Append(err, errors.New("policy config configuration must be specified"))
 		return err
 	}
 
 	var target string
 
-	if config.Spec.Match.Workspaces != nil {
+	if len(config.Spec.Match.Workspaces) > 0 {
 		target = "workspaces"
 	}
 
-	if config.Spec.Match.Namespaces != nil {
+	if len(config.Spec.Match.Namespaces) > 0 {
 		if target != "" {
 			err = multierror.Append(err, fmt.Errorf("cannot target %s and namespaces in same policy config", target))
 			return err
@@ -719,20 +719,38 @@ func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
 		target = "namespaces"
 	}
 
-	if config.Spec.Match.Apps != nil {
+	if len(config.Spec.Match.Apps) > 0 {
 		if target != "" {
 			err = multierror.Append(err, fmt.Errorf("cannot target %s and apps in same policy config", target))
 			return err
 		}
 		target = "apps"
+
+		for _, app := range config.Spec.Match.Apps {
+			if app.Kind == "" {
+				err = multierror.Append(err, errors.New("invalid matches, application kind is required"))
+			}
+			if app.Name == "" {
+				err = multierror.Append(err, errors.New("invalid matches, application name is required"))
+			}
+		}
 	}
 
-	if config.Spec.Match.Resources != nil {
+	if len(config.Spec.Match.Resources) > 0 {
 		if target != "" {
 			err = multierror.Append(err, fmt.Errorf("cannot target %s and resources in same policy config", target))
 			return err
 		}
 		target = "resources"
+
+		for _, resource := range config.Spec.Match.Resources {
+			if resource.Kind == "" {
+				err = multierror.Append(err, errors.New("invalid matches, resource kind is required"))
+			}
+			if resource.Name == "" {
+				err = multierror.Append(err, errors.New("invalid matches, resource name is required"))
+			}
+		}
 	}
 
 	if target == "" {
