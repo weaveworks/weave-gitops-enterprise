@@ -9,6 +9,8 @@ import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
 import {
   GetObjectRequest,
   GetObjectResponse,
+  IsCRDAvailableRequest,
+  IsCRDAvailableResponse,
   ListObjectsRequest,
   ListObjectsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
@@ -187,6 +189,7 @@ export class CoreClientMock {
     this.ListObjects = this.ListObjects.bind(this);
     this.GetFeatureFlags = this.GetFeatureFlags.bind(this);
     this.GetObject = this.GetObject.bind(this);
+    this.IsCRDAvailable = this.IsCRDAvailable.bind(this);
   }
   GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
     flags: {
@@ -196,6 +199,7 @@ export class CoreClientMock {
   };
   ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
   GetObjectReturns: GetObjectResponse = {};
+  IsCRDAvailableReturn: { [name: string]: IsCRDAvailableResponse } = {};
 
   GetFeatureFlags() {
     return promisify(this.GetFeatureFlagsReturns);
@@ -209,6 +213,9 @@ export class CoreClientMock {
 
   GetObject(req: GetObjectRequest) {
     return promisify(this.GetObjectReturns);
+  }
+  IsCRDAvailable(req: IsCRDAvailableRequest) {
+    return promisify(this.IsCRDAvailableReturn[req.name!]);
   }
 }
 
