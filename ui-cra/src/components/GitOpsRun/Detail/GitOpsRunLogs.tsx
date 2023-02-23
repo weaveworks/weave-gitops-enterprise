@@ -46,15 +46,13 @@ const makeHeader = (
     return 'No logs found';
   }
 
-  if (logs.length === 1)
-    return `showing logs from ${formatLogTimestamp(logs[0].timestamp)}`;
+  const beginning = formatLogTimestamp(logs[0].timestamp);
+  if (logs.length === 1) return `showing logs from ${beginning}`;
+  const end = formatLogTimestamp(logs[logs.length - 1].timestamp);
 
-  const beginning = formatLogTimestamp(logs[reverseSort ? 0 : 1].timestamp);
-  const end = formatLogTimestamp(
-    logs[logs.length - (reverseSort ? 2 : 1)].timestamp,
-  );
-
-  return `showing logs from ${beginning} to ${end}`;
+  return `showing logs from ${reverseSort ? end : beginning} to ${
+    reverseSort ? beginning : end
+  }`;
 };
 
 const RowIcon: React.FC<{ level: string }> = ({ level }) => {
@@ -70,12 +68,9 @@ const RowIcon: React.FC<{ level: string }> = ({ level }) => {
     );
 };
 
-const LogRow: React.FC<{ log: LogEntry; className?: string }> = ({
-  log,
-  className,
-}) => {
+const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
   return (
-    <TableRow className={className}>
+    <TableRow>
       <TableCell>
         <Flex /*this flex centers the icon*/>
           <RowIcon level={log.level || ''} />
@@ -97,7 +92,6 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   const [levelValue, setLevelValue] = React.useState<string>('all');
   const [logSources, setLogSources] = React.useState<string[]>([]);
   const [logs, setLogs] = React.useState<LogEntry[]>([]);
-  const [runLog, setRunLog] = React.useState<LogEntry | null>(null);
 
   const { isLoading, data } = useGetLogs(
     {
@@ -125,15 +119,13 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
       const tempLogs = logs.length ? [...data.logs, ...logs] : data.logs;
       //sort and filter
       const sorted = sortBy(tempLogs, e => e.sortingKey);
-      //sorted has to be reversed so we grab latest log from gitops-run-client
-      let filtered = sortedUniqBy(sorted.reverse(), 'sortingKey');
-      setLogs(reverseSort ? filtered : filtered.reverse());
+      let filtered = sortedUniqBy(sorted, 'sortingKey');
+      setLogs(reverseSort ? filtered.reverse() : filtered);
       setToken(data.nextToken);
       setLogSources(uniq([...(data?.logSources || []), ...logSources]));
     }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, data]);
-
-  console.log(logValue);
 
   return (
     <Flex className={className} wide tall column>
@@ -190,6 +182,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
           <Icon
             type={IconType.ArrowUpwardIcon}
             size="small"
+            //start with latest logs
             className={reverseSort ? 'upward' : 'downward'}
           />
         </IconButton>
@@ -197,18 +190,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
       <TableContainer>
         <Table>
           <TableBody>
-            {(logValue === 'all' || logValue === 'gitops-run-client') &&
-            logs.length ? (
-              <LogRow
-                log={reverseSort ? logs[logs.length - 1] : logs[0]}
-                className="run"
-              />
-            ) : null}
             {logs.map((log, index) => {
-              if (logValue === 'all' || logValue === 'gitops-run-client') {
-                if (reverseSort && index === logs.length - 1) return;
-                else if (index === 0) return;
-              }
               return <LogRow key={index} log={log} />;
             })}
           </TableBody>
@@ -237,9 +219,6 @@ export default styled(GitOpsRunLogs).attrs({ className: GitOpsRunLogs.name })`
   }
   .MuiTableRow-root {
     border-bottom: none;
-    &.run {
-      border-bottom: 1px solid ${props => props.theme.colors.neutral20};
-    }
   }
   //adds padding left for Select text
   .MuiInputBase-input {
