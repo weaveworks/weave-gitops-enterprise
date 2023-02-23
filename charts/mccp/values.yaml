@@ -183,4 +183,4 @@ gitopssets-controller:
   controllerManager:
     manager:
       image:
-        tag: main
+        tag: v0.4.0
