@@ -8455,7 +8455,7 @@ type GetPolicyConfigResponse struct {
 	Age           string                `protobuf:"bytes,3,opt,name=age,proto3" json:"age,omitempty"`
 	Status        string                `protobuf:"bytes,4,opt,name=status,proto3" json:"status,omitempty"`
 	Match         *PolicyConfigMatch    `protobuf:"bytes,5,opt,name=match,proto3" json:"match,omitempty"`
-	Policies      []*PolicyConfigConfig `protobuf:"bytes,6,rep,name=policies,proto3" json:"policies,omitempty"`
+	Policies      []*PolicyConfigPolicy `protobuf:"bytes,6,rep,name=policies,proto3" json:"policies,omitempty"`
 	TotalPolicies int32                 `protobuf:"varint,7,opt,name=totalPolicies,proto3" json:"totalPolicies,omitempty"`
 }
 
@@ -8526,7 +8526,7 @@ func (x *GetPolicyConfigResponse) GetMatch() *PolicyConfigMatch {
 	return nil
 }
 
-func (x *GetPolicyConfigResponse) GetPolicies() []*PolicyConfigConfig {
+func (x *GetPolicyConfigResponse) GetPolicies() []*PolicyConfigPolicy {
 	if x != nil {
 		return x.Policies
 	}
@@ -8737,7 +8737,7 @@ func (x *PolicyConfigMatch) GetResources() []*PolicyConfigResourceMatch {
 	return nil
 }
 
-type PolicyConfigConfig struct {
+type PolicyConfigPolicy struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
@@ -8749,8 +8749,8 @@ type PolicyConfigConfig struct {
 	Status      string                     `protobuf:"bytes,5,opt,name=status,proto3" json:"status,omitempty"`
 }
 
-func (x *PolicyConfigConfig) Reset() {
-	*x = PolicyConfigConfig{}
+func (x *PolicyConfigPolicy) Reset() {
+	*x = PolicyConfigPolicy{}
 	if protoimpl.UnsafeEnabled {
 		mi := &file_cluster_services_proto_msgTypes[127]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -8758,13 +8758,13 @@ func (x *PolicyConfigConfig) Reset() {
 	}
 }
 
-func (x *PolicyConfigConfig) String() string {
+func (x *PolicyConfigPolicy) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*PolicyConfigConfig) ProtoMessage() {}
+func (*PolicyConfigPolicy) ProtoMessage() {}
 
-func (x *PolicyConfigConfig) ProtoReflect() protoreflect.Message {
+func (x *PolicyConfigPolicy) ProtoReflect() protoreflect.Message {
 	mi := &file_cluster_services_proto_msgTypes[127]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -8776,40 +8776,40 @@ func (x *PolicyConfigConfig) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use PolicyConfigConfig.ProtoReflect.Descriptor instead.
-func (*PolicyConfigConfig) Descriptor() ([]byte, []int) {
+// Deprecated: Use PolicyConfigPolicy.ProtoReflect.Descriptor instead.
+func (*PolicyConfigPolicy) Descriptor() ([]byte, []int) {
 	return file_cluster_services_proto_rawDescGZIP(), []int{127}
 }
 
-func (x *PolicyConfigConfig) GetId() string {
+func (x *PolicyConfigPolicy) GetId() string {
 	if x != nil {
 		return x.Id
 	}
 	return ""
 }
 
-func (x *PolicyConfigConfig) GetName() string {
+func (x *PolicyConfigPolicy) GetName() string {
 	if x != nil {
 		return x.Name
 	}
 	return ""
 }
 
-func (x *PolicyConfigConfig) GetDescription() string {
+func (x *PolicyConfigPolicy) GetDescription() string {
 	if x != nil {
 		return x.Description
 	}
 	return ""
 }
 
-func (x *PolicyConfigConfig) GetParameters() map[string]*structpb.Value {
+func (x *PolicyConfigPolicy) GetParameters() map[string]*structpb.Value {
 	if x != nil {
 		return x.Parameters
 	}
 	return nil
 }
 
-func (x *PolicyConfigConfig) GetStatus() string {
+func (x *PolicyConfigPolicy) GetStatus() string {
 	if x != nil {
 		return x.Status
 	}
@@ -10417,7 +10417,7 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x08, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x69, 0x65, 0x73, 0x18, 0x06, 0x20, 0x03, 0x28, 0x0b, 0x32,
 	0x27, 0x2e, 0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63,
 	0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x08, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x69,
+	0x69, 0x67, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x52, 0x08, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x69,
 	0x65, 0x73, 0x12, 0x24, 0x0a, 0x0d, 0x74, 0x6f, 0x74, 0x61, 0x6c, 0x50, 0x6f, 0x6c, 0x69, 0x63,
 	0x69, 0x65, 0x73, 0x18, 0x07, 0x20, 0x01, 0x28, 0x05, 0x52, 0x0d, 0x74, 0x6f, 0x74, 0x61, 0x6c,
 	0x50, 0x6f, 0x6c, 0x69, 0x63, 0x69, 0x65, 0x73, 0x22, 0x64, 0x0a, 0x1c, 0x50, 0x6f, 0x6c, 0x69,
@@ -10448,8 +10448,8 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x69, 0x63, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f,
 	0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x4d, 0x61, 0x74, 0x63,
 	0x68, 0x52, 0x09, 0x72, 0x65, 0x73, 0x6f, 0x75, 0x72, 0x63, 0x65, 0x73, 0x22, 0xa2, 0x02, 0x0a,
-	0x12, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x43, 0x6f, 0x6e,
-	0x66, 0x69, 0x67, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
+	0x12, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x50, 0x6f, 0x6c,
+	0x69, 0x63, 0x79, 0x12, 0x0e, 0x0a, 0x02, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52,
 	0x02, 0x69, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
 	0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x12, 0x20, 0x0a, 0x0b, 0x64, 0x65, 0x73, 0x63, 0x72,
 	0x69, 0x70, 0x74, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0b, 0x64, 0x65,
@@ -10457,7 +10457,7 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x61, 0x6d, 0x65, 0x74, 0x65, 0x72, 0x73, 0x18, 0x04, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x37, 0x2e,
 	0x63, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73,
 	0x2e, 0x76, 0x31, 0x2e, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67,
-	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x65, 0x74, 0x65, 0x72,
+	0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x2e, 0x50, 0x61, 0x72, 0x61, 0x6d, 0x65, 0x74, 0x65, 0x72,
 	0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0a, 0x70, 0x61, 0x72, 0x61, 0x6d, 0x65, 0x74, 0x65,
 	0x72, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x18, 0x05, 0x20, 0x01,
 	0x28, 0x09, 0x52, 0x06, 0x73, 0x74, 0x61, 0x74, 0x75, 0x73, 0x1a, 0x55, 0x0a, 0x0f, 0x50, 0x61,
@@ -10979,7 +10979,7 @@ var file_cluster_services_proto_goTypes = []interface{}{
 	(*PolicyConfigApplicationMatch)(nil),          // 124: cluster_services.v1.PolicyConfigApplicationMatch
 	(*PolicyConfigResourceMatch)(nil),             // 125: cluster_services.v1.PolicyConfigResourceMatch
 	(*PolicyConfigMatch)(nil),                     // 126: cluster_services.v1.PolicyConfigMatch
-	(*PolicyConfigConfig)(nil),                    // 127: cluster_services.v1.PolicyConfigConfig
+	(*PolicyConfigPolicy)(nil),                    // 127: cluster_services.v1.PolicyConfigPolicy
 	(*PolicyConfigConf)(nil),                      // 128: cluster_services.v1.PolicyConfigConf
 	(*PolicyConfigObjectSpec)(nil),                // 129: cluster_services.v1.PolicyConfigObjectSpec
 	(*PolicyConfigObject)(nil),                    // 130: cluster_services.v1.PolicyConfigObject
@@ -10996,7 +10996,7 @@ var file_cluster_services_proto_goTypes = []interface{}{
 	nil,                                           // 141: cluster_services.v1.Template.LabelsEntry
 	nil,                                           // 142: cluster_services.v1.Profile.AnnotationsEntry
 	nil,                                           // 143: cluster_services.v1.PolicyTargetLabel.ValuesEntry
-	nil,                                           // 144: cluster_services.v1.PolicyConfigConfig.ParametersEntry
+	nil,                                           // 144: cluster_services.v1.PolicyConfigPolicy.ParametersEntry
 	nil,                                           // 145: cluster_services.v1.PolicyConfigConf.ParametersEntry
 	nil,                                           // 146: cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry
 	(*anypb.Any)(nil),                             // 147: google.protobuf.Any
@@ -11125,16 +11125,16 @@ var file_cluster_services_proto_depIdxs = []int32{
 	119, // 118: cluster_services.v1.ListPolicyConfigsResponse.policyConfigs:type_name -> cluster_services.v1.PolicyConfigListItem
 	2,   // 119: cluster_services.v1.ListPolicyConfigsResponse.errors:type_name -> cluster_services.v1.ListError
 	126, // 120: cluster_services.v1.GetPolicyConfigResponse.match:type_name -> cluster_services.v1.PolicyConfigMatch
-	127, // 121: cluster_services.v1.GetPolicyConfigResponse.policies:type_name -> cluster_services.v1.PolicyConfigConfig
+	127, // 121: cluster_services.v1.GetPolicyConfigResponse.policies:type_name -> cluster_services.v1.PolicyConfigPolicy
 	124, // 122: cluster_services.v1.PolicyConfigMatch.apps:type_name -> cluster_services.v1.PolicyConfigApplicationMatch
 	125, // 123: cluster_services.v1.PolicyConfigMatch.resources:type_name -> cluster_services.v1.PolicyConfigResourceMatch
-	144, // 124: cluster_services.v1.PolicyConfigConfig.parameters:type_name -> cluster_services.v1.PolicyConfigConfig.ParametersEntry
+	144, // 124: cluster_services.v1.PolicyConfigPolicy.parameters:type_name -> cluster_services.v1.PolicyConfigPolicy.ParametersEntry
 	145, // 125: cluster_services.v1.PolicyConfigConf.parameters:type_name -> cluster_services.v1.PolicyConfigConf.ParametersEntry
 	126, // 126: cluster_services.v1.PolicyConfigObjectSpec.match:type_name -> cluster_services.v1.PolicyConfigMatch
 	146, // 127: cluster_services.v1.PolicyConfigObjectSpec.config:type_name -> cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry
 	68,  // 128: cluster_services.v1.PolicyConfigObject.metadata:type_name -> cluster_services.v1.Metadata
 	129, // 129: cluster_services.v1.PolicyConfigObject.spec:type_name -> cluster_services.v1.PolicyConfigObjectSpec
-	148, // 130: cluster_services.v1.PolicyConfigConfig.ParametersEntry.value:type_name -> google.protobuf.Value
+	148, // 130: cluster_services.v1.PolicyConfigPolicy.ParametersEntry.value:type_name -> google.protobuf.Value
 	148, // 131: cluster_services.v1.PolicyConfigConf.ParametersEntry.value:type_name -> google.protobuf.Value
 	128, // 132: cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry.value:type_name -> cluster_services.v1.PolicyConfigConf
 	0,   // 133: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
@@ -12743,7 +12743,7 @@ func file_cluster_services_proto_init() {
 			}
 		}
 		file_cluster_services_proto_msgTypes[127].Exporter = func(v interface{}, i int) interface{} {
-			switch v := v.(*PolicyConfigConfig); i {
+			switch v := v.(*PolicyConfigPolicy); i {
 			case 0:
 				return &v.state
 			case 1:

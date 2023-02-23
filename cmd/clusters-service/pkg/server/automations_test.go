@@ -1522,6 +1522,119 @@ status: {}
 			},
 			err: errors.New("cannot target workspaces and namespaces in same policy config"),
 		},
+		{
+			name: "invalid policy config different matches",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Workspaces: []string{"devteam"},
+									Namespaces: []string{"dev"},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("policy config configuration must be specified"),
+		},
+		{
+			name: "invalid policy config empty app kind",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Apps: []*capiv1_protos.PolicyConfigApplicationMatch{
+										{
+											Kind: "",
+											Name: "test",
+										},
+									},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal": structpb.NewStringValue("a"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("invalid matches, application kind is required"),
+		},
+		{
+			name: "invalid policy config empty app name",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New policy config",
+				Description:   "Creates policy config",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						PolicyConfig: &capiv1_protos.PolicyConfigObject{
+							Metadata: testNewMetadata(t, "my-config", ""),
+							Spec: &capiv1_protos.PolicyConfigObjectSpec{
+								Match: &capiv1_protos.PolicyConfigMatch{
+									Apps: []*capiv1_protos.PolicyConfigApplicationMatch{
+										{
+											Kind: "Deployment",
+											Name: "",
+										},
+									},
+								},
+								Config: map[string]*capiv1_protos.PolicyConfigConf{
+									"policy-1": {
+										Parameters: map[string]*structpb.Value{
+											"strVal": structpb.NewStringValue("a"),
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("invalid matches, application name is required"),
+		},
 	}
 
 	for _, tt := range testCases {
