@@ -686,15 +686,36 @@ func TestGetPolicyConfig(t *testing.T) {
 		assert.Equal(t, tt.response.Match.Apps, res.Match.Apps, "policy config match apps is not equal")
 		assert.Equal(t, tt.response.Match.Resources, res.Match.Resources, "policy config match resources is not equal")
 		assert.Equal(t, tt.response.Match.Workspaces, res.Match.Workspaces, "policy config match workspaces is not equal")
-		//for each policy check if the parameters are equal
-		for i, policy := range tt.response.Policies {
-			assert.Equal(t, policy.Id, res.Policies[i].Id, "policy id is not equal")
-			assert.Equal(t, policy.Name, res.Policies[i].Name, "policy name is not equal")
-			assert.Equal(t, policy.Description, res.Policies[i].Description, "policy description is not equal")
-			assert.Equal(t, policy.Status, res.Policies[i].Status, "policy status is not equal")
-			for key, value := range policy.Parameters {
-				assert.Equal(t, value.AsInterface(), res.Policies[i].Parameters[key].AsInterface(), "policy parameters are not equal")
+
+		// create a map from result policies to compare
+		resPoliciesMap := map[string]*capiv1_proto.PolicyConfigPolicy{}
+		for _, policy := range res.Policies {
+			resPoliciesMap[policy.Id] = policy
+		}
+
+		// for each policy check if the parameters are equal
+		for _, policy := range tt.response.Policies {
+			// check if the policy exists in the result
+			_, ok := resPoliciesMap[policy.Id]
+			if !ok {
+				assert.Fail(t, "policy is not found in the result")
+			} else {
+				assert.Equal(t, policy.Id, resPoliciesMap[policy.Id].Id, "policy id is not equal")
+				assert.Equal(t, policy.Name, resPoliciesMap[policy.Id].Name, "policy name is not equal")
+				assert.Equal(t, policy.Description, resPoliciesMap[policy.Id].Description, "policy description is not equal")
+				assert.Equal(t, policy.Status, resPoliciesMap[policy.Id].Status, "policy status is not equal")
+				for param, paramVal := range policy.Parameters {
+					// check if the parameter exists in the result
+					_, ok := resPoliciesMap[policy.Id].Parameters[param]
+					if !ok {
+						assert.Fail(t, "policy parameter is not found in the result")
+					} else {
+						assert.Equal(t, paramVal.AsInterface(), resPoliciesMap[policy.Id].Parameters[param].AsInterface(), "policy parameters are not equal")
+					}
+
+				}
 			}
+
 		}
 
 	}
