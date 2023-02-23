@@ -36,11 +36,7 @@ const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xxs};
 `;
 
-const makeHeader = (
-  logs: LogEntry[],
-  isLoading: boolean,
-  reverseSort: boolean,
-) => {
+const makeHeader = (logs: LogEntry[], isLoading: boolean) => {
   if (!logs.length) {
     if (isLoading) return 'Refreshing logs';
     return 'No logs found';
@@ -50,9 +46,9 @@ const makeHeader = (
   if (logs.length === 1) return `showing logs from ${beginning}`;
   const end = formatLogTimestamp(logs[logs.length - 1].timestamp);
 
-  return `showing logs from ${reverseSort ? end : beginning} to ${
-    reverseSort ? beginning : end
-  }`;
+  const header = `showing logs from ${beginning} to ${end}`;
+
+  return header;
 };
 
 const RowIcon: React.FC<{ level: string }> = ({ level }) => {
@@ -172,7 +168,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
         </Select>
       </Flex>
       <Header wide align>
-        {makeHeader(logs, isLoading, reverseSort)}
+        {makeHeader(logs, isLoading)}
         <IconButton
           onClick={() => {
             setLogs(logs.reverse());
