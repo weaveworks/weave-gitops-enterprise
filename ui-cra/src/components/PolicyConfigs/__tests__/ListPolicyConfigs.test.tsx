@@ -1,19 +1,15 @@
 import {
   act,
-  fireEvent,
-  getByTestId,
-  render,
-  screen,
+  fireEvent, render,
+  screen
 } from '@testing-library/react';
 import moment from 'moment';
 import PolicyConfigsList from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
-  defaultContexts,
-  getRowInfoByIndex,
-  PolicyConfigsClientMock,
+  defaultContexts, PolicyConfigsClientMock,
   TestFilterableTable,
-  withContext,
+  withContext
 } from '../../../utils/test-utils';
 
 const listPolicyConfigsResponse = {
@@ -148,10 +144,9 @@ describe('ListPolicyConfigs', () => {
     });
 
     const sortRowsByName = mappedPolicyConfigs(
-      policyConfigs.sort((a, b) => b.name.localeCompare(a.name)),
+      policyConfigs.sort((a, b) => a.name.localeCompare(b.name)),
     );
     filterTable.testSorthTableByColumn('Name', sortRowsByName);
-
     const sortRowsByAge = mappedPolicyConfigs(
       policyConfigs.sort((a, b) => {
         const t1 = new Date(a.age).getTime();
