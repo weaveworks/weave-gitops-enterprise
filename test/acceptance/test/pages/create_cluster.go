@@ -105,7 +105,7 @@ func GetCredential(webDriver *agouti.Page, value string) *agouti.Selection {
 }
 
 func GetOption(webDriver *agouti.Page, value string) *agouti.Selection {
-	return webDriver.Find(fmt.Sprintf(`li[data-value="%s"]`, value))
+	return webDriver.FindByXPath(fmt.Sprintf(`//li[contains(text(), "%s")]`, value))
 }
 
 func GetCostEstimation(webDriver *agouti.Page) *CostEstimation {
