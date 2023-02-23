@@ -22,6 +22,9 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 	}
 
 	if p.Spec.Promotion != nil {
+
+		r.Promotion.Manual = p.Spec.Promotion.Manual
+
 		if p.Spec.Promotion.Strategy.SecretRef != nil {
 			r.Promotion.Strategy.SecretRef = &pb.LocalObjectReference{
 				Name: p.Spec.Promotion.Strategy.SecretRef.Name,
