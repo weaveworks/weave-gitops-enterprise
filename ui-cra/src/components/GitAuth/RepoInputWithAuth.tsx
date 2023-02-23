@@ -10,11 +10,8 @@ import {
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import {
-  GitProvider,
-  ParseRepoURLResponse,
-} from '../../api/gitauth/gitauth.pb';
-import { GitAuth } from '../../contexts/GitAuth';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import { GitAuth, UseParseRepoUrl } from '../../contexts/GitAuth';
 import { Select, SelectProps } from '../../utils/form';
 import { getGitRepos } from '../Clusters';
 import AuthButton from './AuthButton';
@@ -50,7 +47,7 @@ export function RepoInputWithAuth({
   value,
   ...props
 }: Props) {
-  const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
+  const { data: res, error: err } = UseParseRepoUrl(value);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -61,17 +58,13 @@ export function RepoInputWithAuth({
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
   React.useEffect(() => {
+    console.log('value', value);
     if (!value) {
       return;
     }
 
     setValueForSelect(value);
 
-    req(
-      gitAuthClient.ParseRepoURL({
-        url: value,
-      }),
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gitAuthClient, value]);
 

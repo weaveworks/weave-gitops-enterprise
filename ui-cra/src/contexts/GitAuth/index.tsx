@@ -4,6 +4,7 @@ import {
   GitAuth as gitAuthClient,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
+  ParseRepoURLResponse,
 } from '../../api/gitauth/gitauth.pb';
 
 export interface DialogState {
@@ -66,6 +67,20 @@ export const useGetGithubDeviceCode = () => {
   return useQuery<GetGithubDeviceCodeResponse, Error>(
     [GITHUB_DEVICE_KEY],
     () => gitAuthClient.GetGithubDeviceCode({}),
+    {
+      retry: false,
+    },
+  );
+};
+
+export const UseParseRepoUrl = (value: string) => {
+  const { gitAuthClient } = React.useContext(GitAuth);
+  return useQuery<ParseRepoURLResponse, Error>(
+    [value],
+    () =>
+      gitAuthClient.ParseRepoURL({
+        url: value,
+      }),
     {
       retry: false,
     },
