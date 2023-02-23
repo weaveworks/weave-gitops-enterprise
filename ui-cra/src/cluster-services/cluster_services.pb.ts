@@ -835,7 +835,7 @@ export type GetPolicyConfigResponse = {
   age?: string
   status?: string
   match?: PolicyConfigMatch
-  policies?: PolicyConfigConfig[]
+  policies?: PolicyConfigPolicy[]
   totalPolicies?: number
 }
 
@@ -858,7 +858,7 @@ export type PolicyConfigMatch = {
   resources?: PolicyConfigResourceMatch[]
 }
 
-export type PolicyConfigConfig = {
+export type PolicyConfigPolicy = {
   id?: string
   name?: string
   description?: string
