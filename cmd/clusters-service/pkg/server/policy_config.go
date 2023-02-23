@@ -140,7 +140,7 @@ func (s *server) GetPolicyConfig(ctx context.Context, req *capiv1_proto.GetPolic
 	return policyConfig, nil
 }
 
-// getPolicyConfigDetails helper inner function to get policy config details by using cluster manager client
+// getPolicyConfig gets policy config details by using cluster manager client
 func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, req *capiv1_proto.GetPolicyConfigRequest) (*capiv1_proto.GetPolicyConfigResponse, error) {
 	policyConfig := pacv2beta2.PolicyConfig{}
 	// get policyconfig object using cluster manager client with the given cluster name and policy config name
@@ -180,11 +180,16 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 			}
 			match.Apps = append(match.Apps, newApp)
 		}
+		return match
+
 	} else if target.Namespaces != nil {
 		match.Namespaces = append(match.Namespaces, target.Namespaces...)
+		return match
 
 	} else if target.Workspaces != nil {
 		match.Workspaces = append(match.Workspaces, target.Workspaces...)
+		return match
+
 	} else if target.Resources != nil {
 		for _, res := range target.Resources {
 			newRes := &capiv1_proto.PolicyConfigResourceMatch{
@@ -194,14 +199,16 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 			}
 			match.Resources = append(match.Resources, newRes)
 		}
+		return match
+
 	}
 	return match
 }
 
 // getPolicyConfigPolicies gets policy config policies from policy config spec
 
-func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string, item *pacv2beta2.PolicyConfig) ([]*capiv1_proto.PolicyConfigConfig, error) {
-	policies := []*capiv1_proto.PolicyConfigConfig{}
+func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string, item *pacv2beta2.PolicyConfig) ([]*capiv1_proto.PolicyConfigPolicy, error) {
+	policies := []*capiv1_proto.PolicyConfigPolicy{}
 	for policyID, policyConfig := range item.Spec.Config {
 
 		//convert policy config parameters to structpb.Value
@@ -216,7 +223,7 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 
 		//check if policy exist on MissingPolicies then set status to Warning else OK
 		if slices.Contains(item.Status.MissingPolicies, policyID) {
-			policyTarget := &capiv1_proto.PolicyConfigConfig{
+			policyTarget := &capiv1_proto.PolicyConfigPolicy{
 				Id:         policyID,
 				Parameters: params,
 				Status:     policyConfigConfigStausWarning,
@@ -228,7 +235,7 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 			if err != nil {
 				return nil, err
 			}
-			policyTarget := &capiv1_proto.PolicyConfigConfig{
+			policyTarget := &capiv1_proto.PolicyConfigPolicy{
 				Id:          policyID,
 				Name:        policy.Policy.Name,
 				Description: policy.Policy.Description,

@@ -280,7 +280,7 @@ func TestListPolicyConfigs(t *testing.T) {
 	}
 }
 
-// Add test for GetPolicyConfig
+// TestGetPolicyConfig executes unittests for GetPolicyConfig
 func TestGetPolicyConfig(t *testing.T) {
 
 	clusters := []struct {
@@ -457,7 +457,7 @@ func TestGetPolicyConfig(t *testing.T) {
 				Match: &capiv1_proto.PolicyConfigMatch{
 					Namespaces: []string{"namespace-1", "namespace-2"},
 				},
-				Policies: []*capiv1_proto.PolicyConfigConfig{
+				Policies: []*capiv1_proto.PolicyConfigPolicy{
 					{
 						Id:          "policy-1",
 						Name:        "Missing Owner Label",
@@ -517,7 +517,7 @@ func TestGetPolicyConfig(t *testing.T) {
 						},
 					},
 				},
-				Policies: []*capiv1_proto.PolicyConfigConfig{
+				Policies: []*capiv1_proto.PolicyConfigPolicy{
 					{
 						Id:          "policy-3",
 						Name:        "",
@@ -559,7 +559,7 @@ func TestGetPolicyConfig(t *testing.T) {
 						},
 					},
 				},
-				Policies: []*capiv1_proto.PolicyConfigConfig{
+				Policies: []*capiv1_proto.PolicyConfigPolicy{
 					{
 						Id:          "policy-1",
 						Name:        "Missing Owner Label",
@@ -631,7 +631,7 @@ func TestGetPolicyConfig(t *testing.T) {
 				Match: &capiv1_proto.PolicyConfigMatch{
 					Workspaces: []string{"tenant-1", "tenant-2"},
 				},
-				Policies: []*capiv1_proto.PolicyConfigConfig{
+				Policies: []*capiv1_proto.PolicyConfigPolicy{
 					{
 						Id:          "policy-1",
 						Name:        "Missing Owner Label",
