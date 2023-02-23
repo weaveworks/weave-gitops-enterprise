@@ -14,9 +14,8 @@ import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { GitAuth, UseParseRepoUrl } from '../../contexts/GitAuth';
 import { Select, SelectProps } from '../../utils/form';
 import { getGitRepos } from '../Clusters';
+import { getRepositoryUrl } from '../Templates/Form/utils';
 import AuthButton from './AuthButton';
-
-const getUrlFromRepo = (repo: GitRepository | null) => repo?.obj?.spec?.url;
 
 const GitAuthForm = styled(Flex)`
   #SELECT_GIT_REPO-group {
@@ -58,11 +57,9 @@ export function RepoInputWithAuth({
   const [valueForSelect, setValueForSelect] = React.useState<string>('');
 
   React.useEffect(() => {
-    console.log('value', value);
     if (!value) {
       return;
     }
-
     setValueForSelect(value);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -84,7 +81,7 @@ export function RepoInputWithAuth({
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    const gitRepo = gitRepos.find(repo => getUrlFromRepo(repo) === value);
+    const gitRepo = gitRepos.find(repo => getRepositoryUrl(repo) === value);
 
     setFormData((prevState: any) => {
       return {
@@ -107,7 +104,7 @@ export function RepoInputWithAuth({
         disabled={!enableGitRepoSelection}
       >
         {gitRepos
-          ?.map(gitRepo => gitRepo.obj.spec.url)
+          ?.map(gitRepo => getRepositoryUrl(gitRepo))
           .map((option, index: number) => (
             <MenuItem key={index} value={option}>
               {option}
