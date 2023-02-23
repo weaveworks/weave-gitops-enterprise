@@ -1118,7 +1118,7 @@ message GetPolicyConfigResponse{
   string age = 3;
   string status = 4;
   PolicyConfigMatch match = 5;
-  repeated PolicyConfigConfig policies = 6;
+  repeated PolicyConfigPolicy policies = 6;
   int32 totalPolicies = 7;
 }
 
@@ -1141,7 +1141,7 @@ message PolicyConfigMatch {
   repeated PolicyConfigResourceMatch resources = 4;
 }
 
-message PolicyConfigConfig {
+message PolicyConfigPolicy {
   string id = 1;
   string name = 2;
   string description = 3;
