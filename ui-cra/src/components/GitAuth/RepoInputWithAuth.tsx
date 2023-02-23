@@ -2,11 +2,9 @@ import { MenuItem } from '@material-ui/core';
 import {
   Button,
   Flex,
-  GitRepository,
   Icon,
   IconType,
   useListSources,
-  useRequestState,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
