@@ -53,15 +53,10 @@ const makeHeader = (logs: LogEntry[], isLoading: boolean) => {
 
 const RowIcon: React.FC<{ level: string }> = ({ level }) => {
   if (level === 'info') return <Info color="primary" fontSize="inherit" />;
-  else if (level === 'error')
-    return <Error color="secondary" fontSize="inherit" />;
-  else
-    return (
-      <Error
-        htmlColor={weaveTheme.colors.feedbackOriginal}
-        fontSize="inherit"
-      />
-    );
+  if (level === 'error') return <Error color="secondary" fontSize="inherit" />;
+  return (
+    <Error htmlColor={weaveTheme.colors.feedbackOriginal} fontSize="inherit" />
+  );
 };
 
 const LogRow: React.FC<{ log: LogEntry }> = ({ log }) => {
@@ -110,17 +105,18 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
 
   React.useEffect(() => {
     if (isLoading) return;
-    if (data?.logs?.length && data?.nextToken) {
-      //keep old logs if they exist
-      const tempLogs = logs.length ? [...data.logs, ...logs] : data.logs;
-      //sort and filter
-      const sorted = sortBy(tempLogs, e => e.sortingKey);
-      let filtered = sortedUniqBy(sorted, 'sortingKey');
-      setLogs(reverseSort ? filtered.reverse() : filtered);
-      setToken(data.nextToken);
-      setLogSources(uniq([...(data?.logSources || []), ...logSources]));
-    }
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+    if (!data?.logs?.length || !data?.nextToken) return;
+
+    //keep old logs if they exist
+    const tempLogs = logs.length ? [...data.logs, ...logs] : data.logs;
+    //sort and filter
+    const sorted = sortBy(tempLogs, e => e.sortingKey);
+    let filtered = sortedUniqBy(sorted, 'sortingKey');
+    setLogs(reverseSort ? filtered.reverse() : filtered);
+    setToken(data.nextToken);
+    setLogSources(uniq([...(data?.logSources || []), ...logSources]));
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, data]);
 
   return (
@@ -154,16 +150,22 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
             All
           </MenuItem>
           <MenuItem key="info" value="info">
-            <RowIcon level="info" />
-            &nbsp;Info
+            <Flex align>
+              <RowIcon level="info" />
+              &nbsp;Info
+            </Flex>
           </MenuItem>
           <MenuItem key="warn" value="warn">
-            <RowIcon level="warn" />
-            &nbsp;Warning
+            <Flex align>
+              <RowIcon level="warn" />
+              &nbsp;Warning
+            </Flex>
           </MenuItem>
           <MenuItem key="error" value="error">
-            <RowIcon level="error" />
-            &nbsp;Error
+            <Flex align>
+              <RowIcon level="error" />
+              &nbsp;Error
+            </Flex>
           </MenuItem>
         </Select>
       </Flex>
@@ -171,7 +173,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
         {makeHeader(logs, isLoading)}
         <IconButton
           onClick={() => {
-            setLogs(logs.reverse());
+            setLogs(logs.slice().reverse());
             setReverseSort(!reverseSort);
           }}
         >
