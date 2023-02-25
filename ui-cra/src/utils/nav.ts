@@ -78,4 +78,5 @@ export enum Routes {
   ImageAutomation = '/image_automation',
 
   Explorer = '/explorer',
+  Notifications = '/notifications',
 }

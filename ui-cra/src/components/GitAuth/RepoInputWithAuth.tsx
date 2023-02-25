@@ -53,16 +53,16 @@ export function RepoInputWithAuth({
   );
   const { gitAuthClient } = React.useContext(GitAuth);
 
-  const [valueForSelect, setValueForSelect] = React.useState<string>('');
+  const [valueForSelect, setValueForSelect] = React.useState<string>(value);
 
   React.useEffect(() => {
-    if (!value) {
+    if (!valueForSelect) {
       return;
     }
     setValueForSelect(value);
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [gitAuthClient, value]);
+  }, [gitAuthClient, valueForSelect]);
 
   React.useEffect(() => {
     if (!res) {
@@ -89,6 +89,15 @@ export function RepoInputWithAuth({
         repo: gitRepo,
       };
     });
+    console.log(
+      gitRepo?.obj?.metadata?.annotations?.['weave.works/repo-https-url'],
+      gitRepo?.obj?.spec?.url,
+    );
+
+    setValueForSelect(
+      gitRepo?.obj?.metadata?.annotations?.['weave.works/repo-https-url'] ||
+        gitRepo?.obj?.spec?.url,
+    );
   };
 
   return (
