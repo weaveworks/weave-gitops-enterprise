@@ -63,7 +63,7 @@ const AppFields: FC<{
   setHelmRepo,
   formError,
 }) => {
-  const { data } = useListSources();
+  const { data } = useListSources('', '', { retry: false });
   const automation = formData.clusterAutomations[index];
   const { cluster, source, name, namespace, target_namespace, path } =
     formData.clusterAutomations[index];
