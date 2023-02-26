@@ -288,6 +288,8 @@ spec:
                       type: array
                     path:
                       type: string
+                    raw:
+                      type: string
                   type: object
                 type: array
             type: object

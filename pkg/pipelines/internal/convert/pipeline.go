@@ -16,6 +16,32 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 		},
 		Environments: []*pb.Environment{},
 		Type:         p.GetObjectKind().GroupVersionKind().Kind,
+		Promotion: &pb.Promotion{
+			Strategy: &pb.Strategy{},
+		},
+	}
+
+	if p.Spec.Promotion != nil {
+
+		r.Promotion.Manual = p.Spec.Promotion.Manual
+
+		if p.Spec.Promotion.Strategy.SecretRef != nil {
+			r.Promotion.Strategy.SecretRef = &pb.LocalObjectReference{
+				Name: p.Spec.Promotion.Strategy.SecretRef.Name,
+			}
+		}
+
+		if p.Spec.Promotion.Strategy.PullRequest != nil {
+			r.Promotion.Strategy.PullRequest = &pb.PullRequestPromotion{
+				Type:   string(p.Spec.Promotion.Strategy.PullRequest.Type),
+				Url:    p.Spec.Promotion.Strategy.PullRequest.URL,
+				Branch: p.Spec.Promotion.Strategy.PullRequest.Branch,
+			}
+		}
+
+		if p.Spec.Promotion.Strategy.Notification != nil {
+			r.Promotion.Strategy.Notification = &pb.Notification{}
+		}
 	}
 
 	for _, e := range p.Spec.Environments {

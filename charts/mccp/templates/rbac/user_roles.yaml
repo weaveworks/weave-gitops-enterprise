@@ -120,7 +120,7 @@ metadata:
     {{- end }}
 rules:
   - apiGroups: ["pac.weave.works"]
-    resources: ["policies"]
+    resources: ["policies", "policyconfigs"]
     verbs: ["get", "list", "watch"]
   - apiGroups: [""]
     resources: ["events"]
