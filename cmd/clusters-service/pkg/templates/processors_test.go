@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -50,6 +51,7 @@ func TestProcessor_RenderTemplates(t *testing.T) {
 		filename string
 		params   map[string]string
 		want     string
+		wantErr  error
 	}{
 		{
 			filename: "testdata/text-template4.yaml",
@@ -59,7 +61,29 @@ func TestProcessor_RenderTemplates(t *testing.T) {
 				"CONTROL_PLANE_MACHINE_COUNT": "5",
 				"KUBERNETES_VERSION":          "1.2.5",
 			},
-			want: "---\napiVersion: controlplane.cluster.x-k8s.io/v1beta1\nkind: KubeadmControlPlane\nmetadata:\n  name: testing-control-plane\n  namespace: testing\nspec:\n  machineTemplate:\n    infrastructureRef:\n      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1\n      kind: DockerMachineTemplate\n      name: testing-control-plane\n      namespace: testing\n  replicas: 5\n  version: 1.2.5\n",
+			want:    "---\napiVersion: controlplane.cluster.x-k8s.io/v1beta1\nkind: KubeadmControlPlane\nmetadata:\n  name: testing-control-plane\n  namespace: testing\nspec:\n  machineTemplate:\n    infrastructureRef:\n      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1\n      kind: DockerMachineTemplate\n      name: testing-control-plane\n      namespace: testing\n  replicas: 5\n  version: 1.2.5\n",
+			wantErr: nil,
+		},
+		{
+			filename: "testdata/text-template5.yaml",
+			params: map[string]string{
+				"CLUSTER_NAME":                "testing",
+				"NAMESPACE":                   "testing",
+				"CONTROL_PLANE_MACHINE_COUNT": "5",
+				"KUBERNETES_VERSION":          "1.2.5",
+			},
+			want:    "---\napiVersion: controlplane.cluster.x-k8s.io/v1beta1\nkind: KubeadmControlPlane\nmetadata:\n  name: testing-control-plane\n  namespace: testing\n  labels:\n    cluster.x-k8s.io/cluster-name: testing #{\"$test-comment\": \"bar\"}\nspec:\n  machineTemplate:\n    infrastructureRef:\n      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1\n      kind: DockerMachineTemplate\n      name: testing-control-plane\n      namespace: testing\n  replicas: 5\n  version: 1.2.5 #{\"$promotion\": \"foo\"}\n",
+			wantErr: nil,
+		},
+		{
+			filename: "testdata/text-template6.yaml",
+			params: map[string]string{
+				"CLUSTER_NAME":                "testing",
+				"NAMESPACE":                   "testing",
+				"CONTROL_PLANE_MACHINE_COUNT": "5",
+				"KUBERNETES_VERSION":          "1.2.5",
+			},
+			wantErr: errors.New("cannot specify both raw and content in the same resource template: cluster-template-1/default"),
 		},
 	}
 
@@ -72,7 +96,13 @@ func TestProcessor_RenderTemplates(t *testing.T) {
 			}
 			result, err := proc.RenderTemplates(tt.params)
 			if err != nil {
-				t.Fatal(err)
+				if tt.wantErr == nil {
+					t.Fatal(err)
+				}
+				if msg := err.Error(); msg != tt.wantErr.Error() {
+					t.Fatalf("want error %s, got %s", msg, tt.wantErr.Error())
+				}
+				return
 			}
 			resultData := [][]byte{}
 			for _, r := range result {
@@ -206,6 +236,20 @@ func TestProcessor_Params(t *testing.T) {
 					Name:        "CLUSTER_NAME",
 					Description: "This is used for the cluster naming.",
 				},
+			},
+		},
+		{
+			filename: "testdata/text-template5.yaml",
+			want: []Param{
+				{
+					Name:        "CLUSTER_NAME",
+					Description: "This is used for the cluster naming.",
+					Required:    true,
+					Options:     []string{},
+				},
+				{Name: "NAMESPACE", Required: true},
+				{Name: "CONTROL_PLANE_MACHINE_COUNT", Required: true},
+				{Name: "KUBERNETES_VERSION", Required: true},
 			},
 		},
 	}
