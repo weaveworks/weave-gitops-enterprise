@@ -102,10 +102,10 @@ export function RepoInputWithAuth({
         disabled={!enableGitRepoSelection}
       >
         {gitRepos
-          ?.map(gitRepo => getRepositoryUrl(gitRepo))
+          ?.map(gitRepo => ({'value': getRepositoryUrl(gitRepo), 'key': gitRepo.obj.spec.url }))
           .map((option, index: number) => (
-            <MenuItem key={index} value={option}>
-              {option}
+            <MenuItem key={index} value={option.value}>
+              {option.key}
             </MenuItem>
           ))}
       </Select>
