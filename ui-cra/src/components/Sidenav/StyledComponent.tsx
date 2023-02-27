@@ -4,44 +4,46 @@ import styled from 'styled-components';
 import { makeStyles } from '@material-ui/core/styles';
 
 const { xs, medium } = theme.spacing;
+const { small } = theme.fontSizes;
 const { neutral40, primary, neutral30 } = theme.colors;
+console.log(theme.spacing);
 
 export const useStyles = makeStyles({
-    root: {
-      paddingTop: medium,
-      alignItems: 'center',
-      height: 'calc(100vh - 84px)',
-      borderTopRightRadius: '10px',
-    },
-    navWrapper: {
-      display: 'flex',
-      flexDirection: 'column',
-    },
-    sideNavOpened: {
-      width: '210px',
-      transition: 'width 0.3s ease-in-out',
-    },
-    sidenavClosed: {
-      transition: 'width 0.3s ease-in-out',
-      width: '60px',
-    },
-    collapseText: {
-      fontSize: '12px',
-      fontWeight: 700,
-      color: '#737373',
-    },
+  root: {
+    paddingTop: medium,
+    alignItems: 'center',
+    height: 'calc(100vh - 80px)',
+    borderTopRightRadius: '10px',
+  },
+  navWrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  sideNavOpened: {
+    width: '210px',
+    transition: 'width 0.3s ease-in-out',
+  },
+  sidenavClosed: {
+    transition: 'width 0.3s ease-in-out',
+    width: '60px',
+  },
+  collapseText: {
+    fontSize: small,
+    fontWeight: 700,
+    color: neutral30,
+  },
 });
-  
+
 export const NavGroupItemWrapper = styled(Flex)`
   padding-top: ${xs};
-  font-size: 12px;
+  font-size: ${small};
   .title {
     color: ${neutral30};
     font-weight: 600;
-    padding: 8px 0 8px 20px;
+    padding: ${xs} 0 ${xs} 20px;
   }
   &:not(:first-of-type, .tilte) {
-    margin-top: 8px;
+    margin-top: ${xs};
   }
   .toggleOpacity {
     opacity: ${props => (!props.collapsed ? 0 : 1)};
@@ -62,7 +64,7 @@ export const NavGroupItemWrapper = styled(Flex)`
   }
   .route-item {
     width: ${props => (!props.collapsed ? 0 : 'auto')};
-    margin-left: ${props => (!props.collapsed ? 0 : '12px')};
+    margin-left: ${props => (!props.collapsed ? 0 : small)};
     transition: width 0.3s;
   }
 `;
@@ -104,20 +106,21 @@ export const LogoWrapper = styled.div`
 
 export const CollapseWrapper = styled(Flex)`
   align-items: center;
-  justify-content: end;
-  margin: 20px 20px 0 0;
-  font-size: 12px;
-  color: #737373;
+  justify-content: ${props => (!props.collapsed ? 'center' : 'end')};
+  margin: ${props => (!props.collapsed ? '20px 0 0 0' : ' 20px 20px 0 0')};
+  font-size: ${small};
+  color: ${neutral30};
   font-weight: 700;
+
   .toggleOpacity {
+    margin-right: ${xs};
     opacity: ${props => (!props.collapsed ? 0 : 1)};
-    width: ${props => (!props.collapsed ? 0 : 'auto')};
+    display: ${props => (!props.collapsed ? 'none' : 'block')};
     transition: opacity 200ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
-    transition: width 0.2s;
   }
   .icon {
     font-size: 24px;
-    background: #737373;
+    background: ${neutral30};
     border-radius: 50%;
     color: white;
   }
