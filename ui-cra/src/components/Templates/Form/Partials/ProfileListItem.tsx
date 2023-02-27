@@ -226,28 +226,11 @@ const ProfilesListItem: FC<{
               />
             </FormControl>
           </div>
-          <Tooltip
-            title="There is no Yaml file for this version | range"
-            placement="top"
-            disabled={Boolean(
-              semverMaxSatisfying(availableVersions, version) && isValidVersion,
-            )}
-          >
-            <div>
-              <Button
-                disabled={
-                  !Boolean(
-                    semverMaxSatisfying(availableVersions, version) &&
-                      isValidVersion,
-                  ) || !Boolean(profile.selected)
-                }
-                variant="text"
-                onClick={handleYamlPreview}
-              >
-                Values.yaml
-              </Button>
-            </div>
-          </Tooltip>
+          <div>
+            <Button variant="text" onClick={handleYamlPreview}>
+              Values.yaml
+            </Button>
+          </div>
         </ProfileWrapper>
       </Tooltip>
 
@@ -256,7 +239,10 @@ const ProfilesListItem: FC<{
           yaml={yaml}
           cluster={cluster}
           profile={profile}
-          version={semverMaxSatisfying(availableVersions, version)}
+          version={
+            semverMaxSatisfying(availableVersions, version) ||
+            availableVersions[0]
+          }
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}
