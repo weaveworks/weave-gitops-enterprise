@@ -1,8 +1,5 @@
-import Box from '@material-ui/core/Box';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import Drawer from '@material-ui/core/Drawer';
-import Hidden from '@material-ui/core/Hidden';
-import IconButton from '@material-ui/core/IconButton';
 import {
   createStyles,
   makeStyles,
@@ -15,71 +12,32 @@ import {
   AuthContextProvider,
   coreClient,
   CoreClientContextProvider,
+  DetailModal,
   LinkResolverProvider,
   Pendo,
   SignIn,
-  theme as weaveTheme,
-  DetailModal,
 } from '@weaveworks/weave-gitops';
 import React, { useContext } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
 import { Terraform } from '../api/terraform/terraform.pb';
-import { ReactComponent as MenuIcon } from '../assets/img/menu-burger.svg';
 import { ClustersService } from '../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
-import { TerraformProvider } from '../contexts/Terraform';
-import NotificationsProvider from '../contexts/Notifications/Provider';
-import AppRoutes from '../routes';
-import { Navigation } from './Sidenav/Navigation';
-import Compose from './ProvidersCompose';
-import { resolver } from '../utils/link-resolver';
 import { ListConfigProvider, VersionProvider } from '../contexts/ListConfig';
+import NotificationsProvider from '../contexts/Notifications/Provider';
+import { TerraformProvider } from '../contexts/Terraform';
+import AppRoutes from '../routes';
+import { resolver } from '../utils/link-resolver';
 import ErrorBoundary from './ErrorBoundary';
-
-const drawerWidth = 220;
+import Compose from './ProvidersCompose';
+import { Navigation } from './Sidenav/Navigation';
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
     },
-    drawer: {
-      [theme.breakpoints.up('sm')]: {
-        width: drawerWidth,
-        flexShrink: 0,
-      },
-    },
-    appBar: {
-      [theme.breakpoints.up('sm')]: {
-        width: `calc(100% - ${drawerWidth}px)`,
-        marginLeft: drawerWidth,
-      },
-      backgroundColor: weaveTheme.colors.primary,
-      boxShadow: 'none',
-    },
-    menuButton: {
-      [theme.breakpoints.up('sm')]: {
-        display: 'none',
-      },
-      marginLeft: 0,
-    },
-    menuButtonBox: {
-      height: '80px',
-      background: weaveTheme.colors.primary,
-      display: 'flex',
-      justifyContent: 'center',
-      position: 'sticky',
-      top: '0',
-      zIndex: 2,
-    },
     toolbar: theme.mixins.toolbar,
-    drawerPaper: {
-      overflowY: 'hidden',
-      width: drawerWidth,
-      border: 'none',
-      background: 'none',
-    },
     content: {
       flexGrow: 1,
     },
@@ -122,48 +80,7 @@ const App = () => {
     <Compose components={[NotificationsProvider]}>
       <div className={classes.root}>
         <CssBaseline />
-        <Box className={classes.menuButtonBox}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            className={classes.menuButton}
-          >
-            <MenuIcon />
-          </IconButton>
-        </Box>
-        <nav className={classes.drawer} aria-label="mailbox folders">
-          <Hidden smUp implementation="css">
-            <Drawer
-              variant="temporary"
-              anchor={theme.direction === 'rtl' ? 'right' : 'left'}
-              open={mobileOpen}
-              onClose={handleDrawerToggle}
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              ModalProps={{
-                keepMounted: true, // Better open performance on mobile.
-              }}
-            >
-              <div>
-                <Navigation />
-              </div>
-            </Drawer>
-          </Hidden>
-          <Hidden xsDown implementation="css">
-            <Drawer
-              classes={{
-                paper: classes.drawerPaper,
-              }}
-              variant="permanent"
-              open
-            >
-              <Navigation />
-            </Drawer>
-          </Hidden>
-        </nav>
+        <Navigation />
         <main className={classes.content}>
           <ErrorBoundary>
             <AppRoutes />
