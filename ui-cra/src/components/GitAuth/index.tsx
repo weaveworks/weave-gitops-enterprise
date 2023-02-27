@@ -70,7 +70,13 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
-        value={formData?.repo && getRepositoryUrl(formData?.repo)}
+        value={
+          formData?.repo &&
+          JSON.stringify({
+            value: getRepositoryUrl(formData?.repo),
+            key: formData?.repo?.obj?.spec?.url,
+          })
+        }
         description=""
         formData={formData}
         setFormData={setFormData}

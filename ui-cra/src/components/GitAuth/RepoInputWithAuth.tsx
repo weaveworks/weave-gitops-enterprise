@@ -44,7 +44,9 @@ export function RepoInputWithAuth({
   value,
   ...props
 }: Props) {
-  const { data: res, error: err } = UseParseRepoUrl(value);
+  const { data: res, error: err } = UseParseRepoUrl(
+    value && JSON.parse(value)?.value,
+  );
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -79,7 +81,9 @@ export function RepoInputWithAuth({
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    const gitRepo = gitRepos.find(repo => getRepositoryUrl(repo) === value);
+    const gitRepo = gitRepos.find(
+      repo => getRepositoryUrl(repo) === JSON.parse(value).value,
+    );
 
     setFormData((prevState: any) => {
       return {
@@ -102,9 +106,12 @@ export function RepoInputWithAuth({
         disabled={!enableGitRepoSelection}
       >
         {gitRepos
-          ?.map(gitRepo => ({'value': getRepositoryUrl(gitRepo), 'key': gitRepo.obj.spec.url }))
+          ?.map(gitRepo => ({
+            value: getRepositoryUrl(gitRepo),
+            key: gitRepo.obj.spec.url,
+          }))
           .map((option, index: number) => (
-            <MenuItem key={index} value={option.value}>
+            <MenuItem key={index} value={JSON.stringify(option)}>
               {option.key}
             </MenuItem>
           ))}
