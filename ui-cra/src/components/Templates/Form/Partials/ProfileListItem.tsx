@@ -14,6 +14,7 @@ import React, {
   FC,
   useCallback,
   useEffect,
+  useMemo,
   useState,
 } from 'react';
 import styled from 'styled-components';
@@ -71,7 +72,7 @@ const ProfilesListItem: FC<{
   );
 
   const handleSelectVersion = useCallback(
-    (value: string) => {
+    (event, value: string) => {
       setVersion(value);
       const filteredVersions = profile.values.filter(
         item => item.version !== value,
@@ -94,8 +95,9 @@ const ProfilesListItem: FC<{
     },
     [profile, handleUpdateProfile],
   );
+
   const handleInputChange = useCallback(
-    (value: string) => {
+    (event, value: string) => {
       setInValidVersionErrorMessage('');
       setIsValidVersion(true);
       if ((semverValid(value) || semverValidRange(value)) && value !== '') {
@@ -120,6 +122,11 @@ const ProfilesListItem: FC<{
       }
     },
     [profile, handleUpdateProfile],
+  );
+
+  const debouncedHandleInputChange = useMemo(
+    () => debounce(handleInputChange, 500),
+    [handleInputChange],
   );
 
   const handleYamlPreview = () => {
@@ -189,13 +196,8 @@ const ProfilesListItem: FC<{
                 freeSolo
                 className={classes.autoComplete}
                 options={profile.values.map(option => option.version)}
-                onChange={(event, newValue) => {
-                  handleSelectVersion(newValue);
-                }}
-                onInputChange={debounce(
-                  (event, newInputValue) => handleInputChange(newInputValue),
-                  500,
-                )}
+                onChange={handleSelectVersion}
+                onInputChange={debouncedHandleInputChange}
                 value={version}
                 renderInput={params => (
                   <TextField
@@ -227,7 +229,11 @@ const ProfilesListItem: FC<{
             </FormControl>
           </div>
           <div>
-            <Button variant="text" onClick={handleYamlPreview}>
+            <Button
+              variant="text"
+              onClick={handleYamlPreview}
+              disabled={!Boolean(profile.selected)}
+            >
               Values.yaml
             </Button>
           </div>
@@ -239,7 +245,10 @@ const ProfilesListItem: FC<{
           yaml={yaml}
           cluster={cluster}
           profile={profile}
-          version={semverMaxSatisfying(availableVersions, version) || version}
+          version={
+            semverMaxSatisfying(availableVersions, version) ||
+            availableVersions[0]
+          }
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}

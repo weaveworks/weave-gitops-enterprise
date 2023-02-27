@@ -1,4 +1,4 @@
-import React, { Dispatch, FC } from 'react';
+import React, { Dispatch, FC, useCallback } from 'react';
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import styled from 'styled-components';
 import { Loader } from '../../../Loader';
@@ -54,7 +54,6 @@ const Profiles: FC<{
   updatedProfiles: ProfilesIndex;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   isLoading: boolean;
-  isProfilesEnabled?: string;
   helmRepo: RepositoryRef;
 }> = ({
   context,
@@ -62,7 +61,6 @@ const Profiles: FC<{
   updatedProfiles,
   setUpdatedProfiles,
   isLoading,
-  isProfilesEnabled = 'true',
   helmRepo,
 }) => {
   const handleIndividualClick = (
@@ -78,18 +76,29 @@ const Profiles: FC<{
     }));
   };
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setUpdatedProfiles(sp =>
-      _.mapValues(sp, p => ({
-        ...p,
-        selected: event.target.checked || p.required,
-      })),
-    );
-  };
+  const handleSelectAllClick = useCallback(
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      setUpdatedProfiles(sp =>
+        _.mapValues(sp, p => ({
+          ...p,
+          selected: event.target.checked || p.required,
+        })),
+      );
+    },
+    [setUpdatedProfiles],
+  );
 
   const updatedProfilesList = _.sortBy(Object.values(updatedProfiles), [
     'name',
-  ]);
+  ]).map(profile => ({
+    ...profile,
+    // Add in a uid field, DataTable will use that as the Row key
+    // The data loads at different times and so the index key is re-used.
+    // ProfileListItem is quite complicated, and we don't wanna handle props changing
+    // too much.
+    uid: profile.name,
+  }));
+
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
 
