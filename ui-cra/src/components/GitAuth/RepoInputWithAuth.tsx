@@ -99,7 +99,7 @@ export function RepoInputWithAuth({
         name="repo-select"
         required={true}
         label="SELECT_GIT_REPO"
-        value={valueForSelect}
+        value={valueForSelect || ''}
         onChange={handleSelectSource}
         disabled={!enableGitRepoSelection}
       >
