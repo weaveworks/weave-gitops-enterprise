@@ -44,9 +44,8 @@ export function RepoInputWithAuth({
   value,
   ...props
 }: Props) {
-  const { data: res, error: err } = UseParseRepoUrl(
-    value && JSON.parse(value)?.value,
-  );
+  const parsedValue = value && JSON.parse(value);
+  const { data: res, error: err } = UseParseRepoUrl(parsedValue.value);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
