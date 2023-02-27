@@ -13,7 +13,6 @@ import React, {
   Dispatch,
   FC,
   useCallback,
-  useEffect,
   useMemo,
   useState,
 } from 'react';
@@ -49,10 +48,8 @@ const ProfilesListItem: FC<{
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   helmRepo: RepositoryRef;
 }> = ({ profile, cluster, setUpdatedProfiles, helmRepo }) => {
-  const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [namespace, setNamespace] = useState<string>();
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
   const [inValidVersionErrorMessage, setInValidVersionErrorMessage] =
     useState<string>('');
@@ -65,6 +62,7 @@ const ProfilesListItem: FC<{
 
   const handleUpdateProfile = useCallback(
     profile => {
+      console.log('handleUpdateProfile', profile);
       setUpdatedProfiles(sp => ({
         ...sp,
         [profile.name]: profile,
@@ -75,7 +73,6 @@ const ProfilesListItem: FC<{
 
   const handleSelectVersion = useCallback(
     (event, value: string) => {
-      setVersion(value);
       const filteredVersions = profile.values.filter(
         item => item.version !== value,
       );
@@ -93,6 +90,7 @@ const ProfilesListItem: FC<{
         ];
         setYaml(selectedVersion.yaml as string);
       }
+
       handleUpdateProfile(profile);
     },
     [profile, handleUpdateProfile],
@@ -103,11 +101,13 @@ const ProfilesListItem: FC<{
       setInValidVersionErrorMessage('');
       setIsValidVersion(true);
       if ((semverValid(value) || semverValidRange(value)) && value !== '') {
-        setVersion(value);
-
         const selectedVersion = profile.values.find(
           item => item.version === value,
         );
+
+        if (selectedVersion?.version === value) {
+          return;
+        }
 
         if (!selectedVersion) {
           profile.values.forEach(item =>
@@ -134,6 +134,7 @@ const ProfilesListItem: FC<{
   const handleYamlPreview = () => {
     setOpenYamlPreview(true);
   };
+
   const handleChangeNamespace = (event: ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     const pattern = /^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/;
@@ -142,13 +143,22 @@ const ProfilesListItem: FC<{
     } else {
       setNamespaceValidation(false);
     }
-    setNamespace(value);
     profile.namespace = value;
     handleUpdateProfile(profile);
   };
 
   const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
     setYaml(event.target.value);
+
+  const [selectedValue] = profile.values.filter(
+    value => value.selected === true,
+  );
+  let version = '';
+  if (selectedValue) {
+    version = selectedValue.version;
+  } else {
+    version = profile.values?.[0].version || '';
+  }
 
   const handleUpdateProfiles = useCallback(() => {
     profile.values.forEach(item => {
@@ -161,23 +171,6 @@ const ProfilesListItem: FC<{
 
     setOpenYamlPreview(false);
   }, [profile, handleUpdateProfile, version, yaml]);
-
-  useEffect(() => {
-    const [selectedValue] = profile.values.filter(
-      value => value.selected === true,
-    );
-    setNamespace(profile.namespace || '');
-    if (selectedValue) {
-      setVersion(selectedValue.version);
-      setYaml(selectedValue.yaml);
-    } else {
-      if (profile.values.length > 0) {
-        setVersion(profile.values?.[0]?.version);
-        setYaml(profile.values?.[0]?.yaml);
-        profile.values[0].selected = true;
-      }
-    }
-  }, [profile]);
 
   const handleRenderInput = useCallback(
     (params: AutocompleteRenderInputParams) => (
@@ -230,7 +223,7 @@ const ProfilesListItem: FC<{
             <FormControl>
               <Input
                 id="profile-namespace"
-                value={namespace}
+                value={profile.namespace}
                 placeholder={DEFAULT_PROFILE_NAMESPACE}
                 onChange={handleChangeNamespace}
                 error={!isNamespaceValid}

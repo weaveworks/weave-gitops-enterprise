@@ -67,6 +67,7 @@ const Profiles: FC<{
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
   ) => {
+    console.log('handleIndividualClick', name);
     setUpdatedProfiles(sp => ({
       ...sp,
       [name]: {
@@ -124,20 +125,26 @@ const Profiles: FC<{
                     }}
                   />
                 ),
-                value: (profile: UpdatedProfile) => (
-                  <Checkbox
-                    onChange={event =>
-                      handleIndividualClick(event, profile.name)
-                    }
-                    checked={Boolean(updatedProfiles[profile.name]?.selected)}
-                    disabled={profile.required}
-                    style={{
-                      color: profile.required
-                        ? undefined
-                        : weaveTheme.colors.primary,
-                    }}
-                  />
-                ),
+                value: (profile: UpdatedProfile) => {
+                  const checked = Boolean(
+                    updatedProfiles[profile.name]?.selected,
+                  );
+                  console.log({ name: profile.name, checked });
+                  return (
+                    <Checkbox
+                      onChange={event =>
+                        handleIndividualClick(event, profile.name)
+                      }
+                      checked={checked}
+                      disabled={profile.required}
+                      style={{
+                        color: profile.required
+                          ? undefined
+                          : weaveTheme.colors.primary,
+                      }}
+                    />
+                  );
+                },
                 maxWidth: 25,
               },
 
