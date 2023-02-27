@@ -5,7 +5,7 @@ import {
   createStyles,
   makeStyles,
 } from '@material-ui/core';
-import { Autocomplete } from '@material-ui/lab';
+import { Autocomplete, AutocompleteRenderInputParams } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
 import { debounce } from 'lodash';
 import React, {
@@ -35,6 +35,13 @@ const ProfileWrapper = styled.div`
   justify-content: space-around;
 `;
 
+const useStyles = makeStyles(() =>
+  createStyles({
+    autoComplete: { minWidth: '155px', overflow: 'hidden' },
+    input: {},
+  }),
+);
+
 const ProfilesListItem: FC<{
   cluster?: ClusterNamespacedName;
   profile: UpdatedProfile;
@@ -53,12 +60,7 @@ const ProfilesListItem: FC<{
   const [availableVersions] = useState(
     profile.values.map(item => item.version),
   );
-  const useStyles = makeStyles(() =>
-    createStyles({
-      autoComplete: { minWidth: '155px', overflow: 'hidden' },
-      input: {},
-    }),
-  );
+
   const classes = useStyles();
 
   const handleUpdateProfile = useCallback(
@@ -177,6 +179,27 @@ const ProfilesListItem: FC<{
     }
   }, [profile]);
 
+  const handleRenderInput = useCallback(
+    (params: AutocompleteRenderInputParams) => (
+      <TextField
+        {...params}
+        InputProps={{
+          ...params.InputProps,
+          className: classes.input,
+        }}
+        variant="standard"
+        error={!isValidVersion}
+        helperText={!!inValidVersionErrorMessage && inValidVersionErrorMessage}
+      />
+    ),
+    [classes.input, isValidVersion, inValidVersionErrorMessage],
+  );
+
+  const autocompleteVersions = useMemo(
+    () => profile.values.map(option => option.version),
+    [profile.values],
+  );
+
   return (
     <>
       <Tooltip
@@ -195,24 +218,11 @@ const ProfilesListItem: FC<{
                 disableClearable
                 freeSolo
                 className={classes.autoComplete}
-                options={profile.values.map(option => option.version)}
+                options={autocompleteVersions}
                 onChange={handleSelectVersion}
                 onInputChange={debouncedHandleInputChange}
                 value={version}
-                renderInput={params => (
-                  <TextField
-                    {...params}
-                    InputProps={{
-                      ...params.InputProps,
-                      className: classes.input,
-                    }}
-                    variant="standard"
-                    error={!isValidVersion}
-                    helperText={
-                      !!inValidVersionErrorMessage && inValidVersionErrorMessage
-                    }
-                  />
-                )}
+                renderInput={handleRenderInput}
               />
             </FormControl>
           </div>
