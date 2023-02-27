@@ -45,7 +45,7 @@ export function RepoInputWithAuth({
   ...props
 }: Props) {
   const parsedValue = value && JSON.parse(value);
-  const { data: res, error: err } = UseParseRepoUrl(parsedValue.value);
+  const { data: res, error: err } = UseParseRepoUrl(parsedValue?.value);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -80,10 +80,9 @@ export function RepoInputWithAuth({
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    const gitRepo = gitRepos.find(
-      repo => getRepositoryUrl(repo) === JSON.parse(value).value,
-    );
-
+    const gitRepo = gitRepos.find(repo => {
+      return repo?.obj?.spec?.url === JSON.parse(value).key;
+    });
     setFormData((prevState: any) => {
       return {
         ...prevState,
