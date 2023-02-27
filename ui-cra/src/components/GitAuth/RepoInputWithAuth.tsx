@@ -9,7 +9,7 @@ import {
 import * as React from 'react';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
-import { GitAuth, UseParseRepoUrl } from '../../contexts/GitAuth';
+import { GitAuth, useParseRepoUrl } from '../../contexts/GitAuth';
 import { Select, SelectProps } from '../../utils/form';
 import { getGitRepos } from '../Clusters';
 import { getRepositoryUrl } from '../Templates/Form/utils';
@@ -45,7 +45,7 @@ export function RepoInputWithAuth({
   ...props
 }: Props) {
   const parsedValue = value && JSON.parse(value);
-  const { data: res, error: err } = UseParseRepoUrl(parsedValue?.value);
+  const { data: res, error: err } = useParseRepoUrl(parsedValue?.value);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),

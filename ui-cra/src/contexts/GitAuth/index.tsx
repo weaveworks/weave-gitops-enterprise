@@ -73,7 +73,7 @@ export const useGetGithubDeviceCode = () => {
   );
 };
 
-export const UseParseRepoUrl = (value: string) => {
+export const useParseRepoUrl = (value: string) => {
   const { gitAuthClient } = React.useContext(GitAuth);
   return useQuery<ParseRepoURLResponse, Error>(
     [value],
