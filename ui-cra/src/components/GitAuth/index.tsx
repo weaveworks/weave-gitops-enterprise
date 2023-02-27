@@ -4,6 +4,7 @@ import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
+import { getRepositoryUrl } from '../Templates/Form/utils';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
@@ -69,7 +70,13 @@ const GitAuth: FC<{
         id="url"
         label="Source Repo URL"
         variant="standard"
-        value={formData?.repo?.obj?.spec?.url}
+        value={
+          formData?.repo &&
+          JSON.stringify({
+            value: getRepositoryUrl(formData?.repo),
+            key: formData?.repo?.obj?.spec?.url,
+          })
+        }
         description=""
         formData={formData}
         setFormData={setFormData}
