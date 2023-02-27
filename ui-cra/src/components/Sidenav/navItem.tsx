@@ -18,7 +18,7 @@ const NavLinkItem = ({
     <NavItem to={item.link} className={`route-nav ${className}`}>
       {!collapsed ? (
         <Tooltip arrow placement="right" title={item.name}>
-          <Flex center>{item.icon}</Flex>
+          {item.icon}
         </Tooltip>
       ) : (
         <Flex center>{item.icon}</Flex>
