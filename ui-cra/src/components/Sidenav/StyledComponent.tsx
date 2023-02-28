@@ -6,7 +6,6 @@ import { makeStyles } from '@material-ui/core/styles';
 const { xs, medium } = theme.spacing;
 const { small } = theme.fontSizes;
 const { neutral40, primary, neutral30 } = theme.colors;
-console.log(theme.spacing);
 
 export const useStyles = makeStyles({
   root: {
@@ -20,7 +19,7 @@ export const useStyles = makeStyles({
     flexDirection: 'column',
   },
   sideNavOpened: {
-    width: '210px',
+    width: '250px',
     transition: 'width 0.3s ease-in-out',
   },
   sidenavClosed: {

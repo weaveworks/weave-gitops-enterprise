@@ -81,7 +81,7 @@ const CoreWrapper = styled.div`
   .MuiButton-root {
     margin-right: 0;
   }
-  max-width: calc(100vw - 220px);
+  width: 100%;
 `;
 
 const Page404 = () => (

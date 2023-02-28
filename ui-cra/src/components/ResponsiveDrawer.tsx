@@ -31,10 +31,14 @@ const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       display: 'flex',
+      width: '100vw',
     },
     toolbar: theme.mixins.toolbar,
     content: {
       flexGrow: 1,
+      display: 'flex',
+      width: '100%',
+      overflow: 'hidden',
     },
   }),
 );

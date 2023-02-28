@@ -99,7 +99,7 @@ export const ContentWrapper: FC<Props> = ({
       style={{
         display: 'flex',
         flexDirection: 'column',
-        width: 'calc(100% - 4px)',
+        width: '100%',
         maxHeight: 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',

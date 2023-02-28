@@ -89,7 +89,7 @@ const ClustersTableWrapper = styled(TableWrapper)`
   a {
     color: ${({ theme }) => theme.colors.primary};
   }
-  max-width: calc(100vw - 220px);
+  width: 100%;
 `;
 
 const LoadingWrapper = styled.div`
