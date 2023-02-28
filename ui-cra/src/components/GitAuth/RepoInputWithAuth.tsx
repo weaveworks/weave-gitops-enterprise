@@ -2,24 +2,18 @@ import { MenuItem } from '@material-ui/core';
 import {
   Button,
   Flex,
-  GitRepository,
   Icon,
   IconType,
   useListSources,
-  useRequestState,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import {
-  GitProvider,
-  ParseRepoURLResponse,
-} from '../../api/gitauth/gitauth.pb';
-import { GitAuth } from '../../contexts/GitAuth';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import { GitAuth, useParseRepoUrl } from '../../contexts/GitAuth';
 import { Select, SelectProps } from '../../utils/form';
 import { getGitRepos } from '../Clusters';
+import { getRepositoryUrl } from '../Templates/Form/utils';
 import AuthButton from './AuthButton';
-
-const getUrlFromRepo = (repo: GitRepository | null) => repo?.obj?.spec?.url;
 
 const GitAuthForm = styled(Flex)`
   #SELECT_GIT_REPO-group {
@@ -50,7 +44,8 @@ export function RepoInputWithAuth({
   value,
   ...props
 }: Props) {
-  const [res, , err, req] = useRequestState<ParseRepoURLResponse>();
+  const parsedValue = value && JSON.parse(value);
+  const { data: res, error: err } = useParseRepoUrl(parsedValue?.value);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -64,14 +59,8 @@ export function RepoInputWithAuth({
     if (!value) {
       return;
     }
-
     setValueForSelect(value);
 
-    req(
-      gitAuthClient.ParseRepoURL({
-        url: value,
-      }),
-    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gitAuthClient, value]);
 
@@ -91,8 +80,9 @@ export function RepoInputWithAuth({
   const handleSelectSource = (event: React.ChangeEvent<any>) => {
     const { value } = event.target;
 
-    const gitRepo = gitRepos.find(repo => getUrlFromRepo(repo) === value);
-
+    const gitRepo = gitRepos.find(repo => {
+      return repo?.obj?.spec?.url === JSON.parse(value).key;
+    });
     setFormData((prevState: any) => {
       return {
         ...prevState,
@@ -109,15 +99,18 @@ export function RepoInputWithAuth({
         name="repo-select"
         required={true}
         label="SELECT_GIT_REPO"
-        value={valueForSelect}
+        value={valueForSelect || ''}
         onChange={handleSelectSource}
         disabled={!enableGitRepoSelection}
       >
         {gitRepos
-          ?.map(gitRepo => gitRepo.obj.spec.url)
+          ?.map(gitRepo => ({
+            value: getRepositoryUrl(gitRepo),
+            key: gitRepo.obj.spec.url,
+          }))
           .map((option, index: number) => (
-            <MenuItem key={index} value={option}>
-              {option}
+            <MenuItem key={index} value={JSON.stringify(option)}>
+              {option.key}
             </MenuItem>
           ))}
       </Select>
