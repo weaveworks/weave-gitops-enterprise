@@ -9,10 +9,12 @@ const { neutral40, primary, neutral30 } = theme.colors;
 
 export const useStyles = makeStyles({
   root: {
-    paddingTop: medium,
-    alignItems: 'center',
+    padding: `${medium} 0`,
     height: 'calc(100vh - 80px)',
     borderTopRightRadius: '10px',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'space-between',
   },
   navWrapper: {
     display: 'flex',
@@ -106,7 +108,7 @@ export const LogoWrapper = styled.div`
 export const CollapseWrapper = styled(Flex)`
   align-items: center;
   justify-content: ${props => (!props.collapsed ? 'center' : 'end')};
-  margin: ${props => (!props.collapsed ? '20px 0 0 0' : ' 20px 20px 0 0')};
+  margin: ${props => (!props.collapsed ? '0' : ' 0 20px 0 0')};
   font-size: ${small};
   color: ${neutral30};
   font-weight: 700;

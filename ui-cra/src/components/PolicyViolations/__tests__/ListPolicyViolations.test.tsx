@@ -1,16 +1,13 @@
 import {
-  act,
-  fireEvent,
-  queryByTestId,
-  render,
-  screen,
+  act, render,
+  screen
 } from '@testing-library/react';
 import PoliciesViolations from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
   PolicyClientMock,
-  withContext,
+  withContext
 } from '../../../utils/test-utils';
 
 describe('ListPolicViolations', () => {

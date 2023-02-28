@@ -4,6 +4,7 @@ import { ReactComponent as Clusters } from '../../assets/img/menu-icon/cluster.s
 import { ReactComponent as FluxIcon } from '../../assets/img/menu-icon/fluxruntime.svg';
 import { ReactComponent as GitOpsRun } from '../../assets/img/menu-icon/gitopsrun.svg';
 import { ReactComponent as Policies } from '../../assets/img/menu-icon/policies.svg';
+import { ReactComponent as Sources } from '../../assets/img/menu-icon/sources.svg';
 import { ReactComponent as PolicyConfigs } from '../../assets/img/menu-icon/policyConfigs.svg';
 import { Routes } from '../../utils/nav';
 
@@ -68,6 +69,18 @@ export function getNavItems(flagsRes: {
           link: V2Routes.Automations,
           icon: <Applications />,
           relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
+        },
+        {
+          name: 'SOURCES',
+          link: V2Routes.Sources,
+          icon: <Sources />,
+          isVisible: true,
+          relatedRoutes: [
+            V2Routes.GitRepo,
+            V2Routes.HelmRepo,
+            V2Routes.OCIRepository,
+            V2Routes.HelmChart,
+          ],
         },
         {
           name: 'IMAGE AUTOMATION',
