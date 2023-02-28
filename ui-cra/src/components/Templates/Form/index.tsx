@@ -239,7 +239,7 @@ const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
       return {
         name: p.name,
         version: v?.version,
-        values: v?.yaml && utf8_to_b64(v?.yaml),
+        values: utf8_to_b64(v?.yaml),
         layer: p.layer,
         namespace: p.namespace,
       };
