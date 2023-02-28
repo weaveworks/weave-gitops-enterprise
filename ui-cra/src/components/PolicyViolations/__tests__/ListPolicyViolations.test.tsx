@@ -105,7 +105,6 @@ describe('ListPolicViolations', () => {
       render(c);
     });
 
-
     const tbl = document.querySelector('#violations-list table');
     const rows = tbl?.querySelectorAll('tbody tr');
 
@@ -124,7 +123,6 @@ describe('ListPolicViolations', () => {
       const c = wrap(<PoliciesViolations clusterName="default/tw-cluster-2" />);
       render(c);
     });
-
 
     const btns = document.querySelectorAll<HTMLElement>(
       '#violations-list table thead tr th button',
@@ -145,7 +143,6 @@ describe('ListPolicViolations', () => {
       const c = wrap(<PoliciesViolations clusterName="default/tw-cluster-2" />);
       render(c);
     });
-
 
     const btns = document.querySelectorAll<HTMLElement>(
       '#violations-list table thead tr th button',

@@ -40,7 +40,9 @@ export const Navigation: FC = () => {
         className={`nav-items ${classes.root} `}
         bgcolor={theme.colors.white}
       >
-        <MemoizedNavItems collapsed={collapsed} />
+        <div>
+          <MemoizedNavItems collapsed={collapsed} />
+        </div>
         <CollapseWrapper collapsed={collapsed}>
           <div className="toggleOpacity">Collapse</div>
           <IconButton size="small" onClick={() => setCollapsed(!collapsed)}>
