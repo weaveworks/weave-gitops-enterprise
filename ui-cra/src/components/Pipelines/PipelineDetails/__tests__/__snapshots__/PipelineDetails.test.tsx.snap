@@ -555,7 +555,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
     >
       <div
         class="c10"
