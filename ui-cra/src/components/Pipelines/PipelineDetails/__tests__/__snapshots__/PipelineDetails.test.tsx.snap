@@ -488,37 +488,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
           >
             <a
               class="makeStyles-link-123"
-              href="/applications"
-            >
-              Applications
-            </a>
-          </div>
-        </div>
-        <div
-          class="makeStyles-path-120"
-          style="align-items: center;"
-        >
-          <div
-            class="makeStyles-divider-121"
-          >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-122"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5.88 4.12L13.76 12l-7.88 7.88L8 22l10-10L8 2z"
-              />
-            </svg>
-          </div>
-          <div
-            class="c3"
-            role="heading"
-          >
-            <a
-              class="makeStyles-link-123"
-              href="/applications/pipelines"
+              href="/pipelines"
             >
               Pipelines
             </a>
@@ -745,7 +715,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   aria-disabled="false"
                   aria-selected="true"
                   class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false Mui-selected"
-                  href="/applications/pipelines/details/status"
+                  href="/pipelines/details/status"
                   role="tab"
                   tabindex="0"
                 >
@@ -772,7 +742,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   aria-disabled="false"
                   aria-selected="false"
                   class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
-                  href="/applications/pipelines/details/yaml"
+                  href="/pipelines/details/yaml"
                   role="tab"
                   tabindex="-1"
                 >
@@ -799,7 +769,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   aria-disabled="false"
                   aria-selected="false"
                   class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
-                  href="/applications/pipelines/details/pullrequests"
+                  href="/pipelines/details/pullrequests"
                   role="tab"
                   tabindex="-1"
                 >
