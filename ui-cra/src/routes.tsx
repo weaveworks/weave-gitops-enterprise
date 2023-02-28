@@ -49,6 +49,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import PolicyConfigsList from './components/PolicyConfigs';
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails'
 import WGUserInfo from './components/UserInfo';
 
 function withSearchParams(Cmp: any) {
@@ -292,6 +293,7 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
+      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
 
       <Route
         path={Routes.TerraformDetail}

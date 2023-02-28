@@ -68,5 +68,7 @@ export enum Routes {
   SecretDetails = '/secrets/details',
   CreateSecret = '/secrets/create',
   PolicyConfigs = '/policyConfigs',
+  PolicyConfigsDetails = '/policyConfigs/details',
+
   ImageAutomation = '/image_automation',
 }
