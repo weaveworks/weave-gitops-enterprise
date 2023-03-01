@@ -7,7 +7,7 @@ const { xs, medium } = theme.spacing;
 const { small } = theme.fontSizes;
 const { neutral40, primary, neutral30 } = theme.colors;
 
-export const useStyles = makeStyles({
+export const useNavStyles = makeStyles({
   root: {
     padding: `${medium} 0`,
     height: 'calc(100vh - 80px)',

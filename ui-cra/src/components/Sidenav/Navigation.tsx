@@ -7,13 +7,13 @@ import { ArrowLeft, ArrowRight } from '@material-ui/icons';
 import LogoIcon from '../../assets/img/logo.svg';
 import WeaveGitOps from '../../assets/img/weave-logo.svg';
 import { Routes } from '../../utils/nav';
-import NavItems from './navItem';
-import { CollapseWrapper, LogoWrapper, useStyles } from './StyledComponent';
+import NavItems from './NavItems';
+import { CollapseWrapper, LogoWrapper, useNavStyles } from './styles';
 
 const MemoizedNavItems = React.memo(NavItems);
 
 export const Navigation: FC = () => {
-  const classes = useStyles();
+  const classes = useNavStyles();
   const [collapsed, setCollapsed] = useState(true);
 
   return (

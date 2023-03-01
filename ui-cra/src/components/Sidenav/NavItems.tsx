@@ -2,8 +2,8 @@ import { Flex, useFeatureFlags } from '@weaveworks/weave-gitops';
 import { useLocation } from 'react-router-dom';
 
 import { Tooltip } from '../Shared';
-import { getNavItems, NavigationItem } from './NavItemList';
-import { NavGroupItemWrapper, NavItem } from './StyledComponent';
+import { getNavItems, NavigationItem } from './utils';
+import { NavGroupItemWrapper, NavItem } from './styles';
 
 const NavLinkItem = ({
   item,
