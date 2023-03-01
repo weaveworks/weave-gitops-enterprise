@@ -42,6 +42,11 @@ export function getNavItems(flagsRes: {
           name: 'CLUSTERS',
           link: Routes.Clusters,
           icon: <Clusters />,
+          relatedRoutes: [
+            Routes.ClusterDashboard,
+            Routes.PolicyViolations,
+            Routes.PolicyViolationDetails,
+          ],
         },
         {
           name: 'TEMPLATES',

@@ -55,6 +55,7 @@ import { Routes } from './utils/nav';
 
 import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
+import ClusterDetails from './components/Clusters/ClusterDetails';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -107,7 +108,7 @@ const AppRoutes = () => {
       <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (
-          <ClusterDashboard {...props} />
+          <ClusterDetails {...props} />
         ))}
         path={Routes.ClusterDashboard}
       />
