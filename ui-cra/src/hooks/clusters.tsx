@@ -1,14 +1,14 @@
+import fileDownload from 'js-file-download';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { request } from '../utils/request';
-import useNotifications from '../contexts/Notifications';
-import fileDownload from 'js-file-download';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { ListGitopsClustersResponse } from '../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import useNotifications from '../contexts/Notifications';
 import {
-  GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
+  GitopsClusterEnriched,
 } from '../types/custom';
+import { request } from '../utils/request';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -35,6 +35,7 @@ const useClusters = () => {
     'clusters',
     () => api.ListGitopsClusters({}),
     {
+      retry: false,
       keepPreviousData: true,
       refetchInterval: CLUSTERS_POLL_INTERVAL,
       onError,
