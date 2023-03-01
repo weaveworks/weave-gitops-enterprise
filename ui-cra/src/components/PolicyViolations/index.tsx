@@ -5,7 +5,11 @@ import { FieldsType, PolicyViolationsTable } from './Table';
 const PoliciesViolations = ({ clusterName }: { clusterName: string }) => {
   const { data, error, isLoading } = useListPolicyValidations({ clusterName });
   return (
-    <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
+    <LoadingWrapper
+      loading={isLoading}
+      errorMessage={error?.message}
+      errors={data?.errors}
+    >
       <PolicyViolationsTable
         violations={data?.violations || []}
         tableType={FieldsType.policy}
