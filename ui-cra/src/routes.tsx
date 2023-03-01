@@ -19,7 +19,6 @@ import WGNotificationsProvider from './components/Applications/NotificationsProv
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
-import ClusterDashboard from './components/Clusters/ClusterDashboard';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
