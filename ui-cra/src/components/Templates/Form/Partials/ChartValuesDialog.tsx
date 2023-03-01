@@ -15,7 +15,7 @@ import {
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
 import { ChangeEvent, FC, useContext } from 'react';
-import { useQuery, useQueryClient } from 'react-query';
+import { useQuery } from 'react-query';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
   GetConfigResponse,
@@ -48,6 +48,7 @@ const ChartValuesDialog: FC<{
   onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   onSave: () => void;
   onClose: () => void;
+  onDiscard:()=> void;
   helmRepo: RepositoryRef;
 }> = ({
   profile,
@@ -58,10 +59,10 @@ const ChartValuesDialog: FC<{
   onSave,
   onClose,
   helmRepo,
+  onDiscard,
 }) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
-  const queryClient = useQueryClient();
 
   const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
@@ -83,7 +84,9 @@ const ChartValuesDialog: FC<{
         name: profile.name,
         version,
       }),
-    { enabled: !yaml && !!getConfigResp?.data?.managementClusterName, refetchOnWindowFocus: false },
+    { enabled: !yaml && !!getConfigResp?.data?.managementClusterName, refetchOnWindowFocus: false, 
+      refetchOnMount: false, 
+    },
   );
 
   const { isLoading: valuesLoading, data: jobResult } = useQuery<
@@ -98,6 +101,7 @@ const ChartValuesDialog: FC<{
     {
       enabled: Boolean(jobData?.jobId),
       refetchInterval: res => (!res?.error && !res?.values ? 2000 : false),
+      refetchOnMount: false,
     },
   );
 
@@ -106,11 +110,6 @@ const ChartValuesDialog: FC<{
     !yaml &&
     (jobLoading || valuesLoading || (!jobResult?.error && !jobResult?.values));
 
-  const resetQueryOnClose = () => {
-    const query = `values-job-${jobData?.jobId}`;
-    queryClient.removeQueries({ queryKey: query, exact: true });
-    onClose();
-  };
   return (
     <>
       <Dialog
@@ -118,7 +117,7 @@ const ChartValuesDialog: FC<{
         maxWidth="md"
         fullWidth
         scroll="paper"
-        onClose={resetQueryOnClose}
+        onClose={onClose}
       >
         {error && <Alert severity="error">{error}</Alert>}
         <DialogTitle disableTypography>
@@ -140,7 +139,7 @@ const ChartValuesDialog: FC<{
           <Button
             id="discard-yaml"
             startIcon={<Icon type={IconType.ClearIcon} size="base" />}
-            onClick={resetQueryOnClose}
+            onClick={onDiscard}
             disabled={profile.required && profile.editable !== true}
           >
             DISCARD CHANGES

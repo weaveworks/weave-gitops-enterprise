@@ -171,8 +171,9 @@ const ProfilesListItem: FC<{
           version={version}
           onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
-          onClose={() => resetChartsValues()}
+          onClose={() => setOpenYamlPreview(false)}
           helmRepo={helmRepo}
+          onDiscard={()=>resetChartsValues()}
         />
       )}
     </>
