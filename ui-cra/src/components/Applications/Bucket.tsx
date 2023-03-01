@@ -9,7 +9,6 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
-import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -29,10 +28,6 @@ const WGApplicationsBucket: FC<Props> = props => {
     <PageTemplate
       documentTitle="Bucket"
       path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
         {
           label: 'Sources',
           url: V2Routes.Sources,
