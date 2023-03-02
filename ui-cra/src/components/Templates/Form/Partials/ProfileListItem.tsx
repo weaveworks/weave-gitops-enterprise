@@ -62,7 +62,6 @@ const ProfilesListItem: FC<{
 
   const handleUpdateProfile = useCallback(
     profile => {
-      console.log('handleUpdateProfile', profile);
       setUpdatedProfiles(sp => ({
         ...sp,
         [profile.name]: profile,

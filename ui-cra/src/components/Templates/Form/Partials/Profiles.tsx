@@ -67,7 +67,6 @@ const Profiles: FC<{
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
   ) => {
-    console.log('handleIndividualClick', name);
     setUpdatedProfiles(sp => ({
       ...sp,
       [name]: {
@@ -129,7 +128,6 @@ const Profiles: FC<{
                   const checked = Boolean(
                     updatedProfiles[profile.name]?.selected,
                   );
-                  console.log({ name: profile.name, checked });
                   return (
                     <Checkbox
                       onChange={event =>
