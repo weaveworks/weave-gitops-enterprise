@@ -88,9 +88,8 @@ const ProfilesListItem: FC<{
           { ...selectedVersion, selected: true },
         ];
         setYaml(selectedVersion.yaml as string);
+        handleUpdateProfile(profile);
       }
-
-      handleUpdateProfile(profile);
     },
     [profile, handleUpdateProfile],
   );
@@ -104,17 +103,13 @@ const ProfilesListItem: FC<{
           item => item.version === value,
         );
 
-        if (selectedVersion?.version === value) {
-          return;
-        }
-
         if (!selectedVersion) {
           profile.values.forEach(item =>
             item.selected === true ? (item.selected = false) : null,
           );
           profile.values.push({ version: value, selected: true, yaml: '' });
+          handleUpdateProfile(profile);
         }
-        handleUpdateProfile(profile);
       } else {
         setInValidVersionErrorMessage(
           'The provided version | range  is invalid',
