@@ -60,6 +60,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
+
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -220,7 +222,7 @@ func NewAPIServerCommand() *cobra.Command {
 
 	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
-	cmdFlags.String("oidc-client-id", "example-app", "The client ID for the OpenID Connect client")
+	cmdFlags.String("oidc-client-id", "8633ff590c7ddfb84432", "The client ID for the OpenID Connect client")
 	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
 	cmdFlags.String("oidc-redirect-url", "", "The OAuth2 redirect URL")
 	cmdFlags.Duration("oidc-token-duration", time.Hour, "The duration of the ID token. It should be set in the format: number + time unit (s,m,h) e.g., 20m")
@@ -520,7 +522,8 @@ func StartServer(ctx context.Context, p Params) error {
 		WithTLSConfig(p.TLSCert, p.TLSKey, false),
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
-		WithDevMode(p.DevMode),
+		// WithDevMode(p.DevMode),
+		WithDevMode(false),
 		WithClustersManager(clustersManager),
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
@@ -631,6 +634,15 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
+	if err := query.Hydrate(ctx, grpcMux, query.ServerOpts{
+		Logger:             args.Log,
+		StoreType:          "memory",
+		ClustersManager:    args.ClustersManager,
+		CollectionInterval: 5 * time.Second,
+	}); err != nil {
+		return fmt.Errorf("failed to register query service: %w", err)
+	}
+
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
 		if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{
 			Logger:                    args.Log,
@@ -722,7 +734,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.AuthMethods,
 	)
 	if err != nil {
-		return fmt.Errorf("could not create auth server: %w", err)
+		return fmt.Errorf("could not create auth server config: %w", err)
 	}
 	srv, err := auth.NewAuthServer(
 		ctx,
