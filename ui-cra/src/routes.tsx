@@ -49,6 +49,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
+import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
 
 function withSearchParams(Cmp: any) {
@@ -257,17 +258,17 @@ const AppRoutes = () => {
       />
       <Route path={Routes.ImageAutomation} component={ImageAutomationPage} />
       <Route
-          path={V2Routes.ImageAutomationUpdatesDetails}
-          component={withSearchParams(ImageAutomationUpdatesDetails)}
-        />
-        <Route
-          path={V2Routes.ImageAutomationRepositoryDetails}
-          component={withSearchParams(ImageAutomationRepoDetails)}
-        />
-        <Route
-          path={V2Routes.ImagePolicyDetails}
-          component={withSearchParams(ImagePolicyDetails)}
-        />
+        path={V2Routes.ImageAutomationUpdatesDetails}
+        component={withSearchParams(ImageAutomationUpdatesDetails)}
+      />
+      <Route
+        path={V2Routes.ImageAutomationRepositoryDetails}
+        component={withSearchParams(ImageAutomationRepoDetails)}
+      />
+      <Route
+        path={V2Routes.ImagePolicyDetails}
+        component={withSearchParams(ImagePolicyDetails)}
+      />
       <Route exact path={Routes.Policies} component={Policies} />
       <Route
         exact
@@ -296,6 +297,7 @@ const AppRoutes = () => {
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
+      <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
       <Route
         exact
         path={Routes.GitlabOauthCallback}

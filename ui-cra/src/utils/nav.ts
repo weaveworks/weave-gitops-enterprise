@@ -69,4 +69,6 @@ export enum Routes {
   CreateSecret = '/secrets/create',
 
   ImageAutomation = '/image_automation',
+
+  Explorer = '/explorer',
 }

@@ -176,6 +176,7 @@ const NavItems = () => {
       ],
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
     },
+    { name: 'OBJECT EXPLORER', link: Routes.Explorer, icon: null },
     {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
