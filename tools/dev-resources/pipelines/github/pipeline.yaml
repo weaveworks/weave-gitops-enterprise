@@ -19,6 +19,7 @@ spec:
     strategy:
       pull-request:
         type: "github"
+        baseBranch: main
         url: "https://github.com/weaveworks/pipeline-controller-e2e"
         secretRef:
           name: "github-promotion-credentials"
