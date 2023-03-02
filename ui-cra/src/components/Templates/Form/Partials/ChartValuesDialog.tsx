@@ -14,7 +14,7 @@ import {
   IconType,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
-import { ChangeEvent, FC, useContext } from 'react';
+import { ChangeEvent, Dispatch, FC, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
@@ -45,24 +45,25 @@ const ChartValuesDialog: FC<{
   yaml: string;
   profile: UpdatedProfile;
   version: string;
-  onChange: (event: ChangeEvent<HTMLTextAreaElement>) => void;
   onSave: () => void;
   onClose: () => void;
-  onDiscard:()=> void;
+  onDiscard: () => void;
+  setYaml: Dispatch<React.SetStateAction<string>>;
   helmRepo: RepositoryRef;
 }> = ({
   profile,
   yaml,
   version,
   cluster,
-  onChange,
   onSave,
   onClose,
   helmRepo,
   onDiscard,
+  setYaml,
 }) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
+  const [yamlPreview, setYamlPreview] = useState<string>(yaml);
 
   const getConfigResp = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
@@ -77,15 +78,19 @@ const ChartValuesDialog: FC<{
     () =>
       api.GetValuesForChart({
         repository: {
-          cluster: cluster || { name: getConfigResp?.data?.managementClusterName},
+          cluster: cluster || {
+            name: getConfigResp?.data?.managementClusterName,
+          },
           name: helmRepo.name || DEFAULT_PROFILE_REPO.name,
           namespace: helmRepo.namespace || DEFAULT_PROFILE_REPO.namespace,
         },
         name: profile.name,
         version,
       }),
-    { enabled: !yaml && !!getConfigResp?.data?.managementClusterName, refetchOnWindowFocus: false, 
-      refetchOnMount: false, 
+    {
+      enabled: !yaml && !!getConfigResp?.data?.managementClusterName,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
     },
   );
 
@@ -107,8 +112,26 @@ const ChartValuesDialog: FC<{
 
   const error = jobError?.message || jobResult?.error;
   const isLoading =
-    !yaml &&
+    !yamlPreview &&
     (jobLoading || valuesLoading || (!jobResult?.error && !jobResult?.values));
+
+  const handleYamlPreview = (event: ChangeEvent<HTMLTextAreaElement>) =>
+    setYamlPreview(event.target.value);
+
+  const handleModalClose = () => {
+    onClose();
+    setYamlPreview('');
+  };
+
+  const handleModalDiscard = () => {
+    onDiscard();
+    setYaml('');
+  };
+
+  const handleModalSave = () => {
+    onSave();
+    setYaml(yamlPreview);
+  };
 
   return (
     <>
@@ -117,12 +140,12 @@ const ChartValuesDialog: FC<{
         maxWidth="md"
         fullWidth
         scroll="paper"
-        onClose={onClose}
+        onClose={handleModalClose}
       >
         {error && <Alert severity="error">{error}</Alert>}
         <DialogTitle disableTypography>
           <Typography variant="h5">{profile.name}</Typography>
-          <CloseIconButton onClick={onClose} />
+          <CloseIconButton onClick={handleModalClose} />
         </DialogTitle>
         <DialogContent>
           {isLoading ? (
@@ -130,8 +153,8 @@ const ChartValuesDialog: FC<{
           ) : (
             <TextareaAutosize
               className={classes.textarea}
-              defaultValue={yaml || jobResult?.values}
-              onChange={onChange}
+              defaultValue={yamlPreview || jobResult?.values}
+              onChange={handleYamlPreview}
             />
           )}
         </DialogContent>
@@ -139,7 +162,7 @@ const ChartValuesDialog: FC<{
           <Button
             id="discard-yaml"
             startIcon={<Icon type={IconType.ClearIcon} size="base" />}
-            onClick={onDiscard}
+            onClick={handleModalDiscard}
             disabled={profile.required && profile.editable !== true}
           >
             DISCARD CHANGES
@@ -147,7 +170,7 @@ const ChartValuesDialog: FC<{
           <Button
             id="edit-yaml"
             startIcon={<Icon type={IconType.SaveAltIcon} size="base" />}
-            onClick={onSave}
+            onClick={handleModalSave}
             disabled={profile.required && profile.editable !== true}
           >
             SAVE CHANGES

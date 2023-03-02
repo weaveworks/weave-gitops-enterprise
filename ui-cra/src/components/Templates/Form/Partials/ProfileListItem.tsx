@@ -94,9 +94,6 @@ const ProfilesListItem: FC<{
     handleUpdateProfile(profile);
   };
 
-  const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
-    setYaml(event.target.value);
-
   const handleUpdateProfiles = useCallback(() => {
     profile.values.forEach(item => {
       if (item.version === version) {
@@ -108,11 +105,6 @@ const ProfilesListItem: FC<{
 
     setOpenYamlPreview(false);
   }, [profile, handleUpdateProfile, version, yaml]);
-
-  const resetChartsValues = () => {
-    setYaml('');
-    setOpenYamlPreview(false);
-  };
 
   useEffect(() => {
     const [selectedValue] = profile.values.filter(
@@ -166,14 +158,14 @@ const ProfilesListItem: FC<{
       {openYamlPreview && (
         <ChartValuesDialog
           yaml={yaml}
+          setYaml={setYaml}
           cluster={cluster}
           profile={profile}
           version={version}
-          onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}
           helmRepo={helmRepo}
-          onDiscard={()=>resetChartsValues()}
+          onDiscard={() => setOpenYamlPreview(false)}
         />
       )}
     </>
