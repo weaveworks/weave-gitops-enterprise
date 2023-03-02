@@ -32,6 +32,10 @@ func TestMaybeInjectCredentials(t *testing.T) {
 	templateBit := `
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
+metdata:
+  name: test # this is the name
+spec:
+  foo: bar # this is the bar
 `
 	result, _ = MaybeInjectCredentials([]byte(templateBit), "FooKind", nil)
 	if diff := cmp.Diff(string(result), templateBit); diff != "" {
@@ -41,7 +45,10 @@ kind: AWSCluster
 	// Right kind !
 	expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
+metdata:
+  name: test # this is the name
 spec:
+  foo: bar # this is the bar
   identityRef:
     kind: FooKind
     name: FooName
