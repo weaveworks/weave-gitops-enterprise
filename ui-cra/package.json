@@ -24,7 +24,7 @@
     "@types/react-syntax-highlighter": "^13.5.2",
     "@types/styled-components": "^5.1.9",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@v0.18.0-rc.0-17-g4f2ff6d2",
+    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@v0.18.0-rc.0-27-gd48bd12d",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
     "d3-time": "^3.0.0",
