@@ -2,11 +2,14 @@ package git
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/url"
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -18,6 +21,8 @@ import (
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-logr/logr"
+	"github.com/jenkins-x/go-scm/scm"
+	"github.com/jenkins-x/go-scm/scm/factory"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"k8s.io/apimachinery/pkg/util/wait"
@@ -113,6 +118,8 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 		Files:         req.Files,
 	})
 
+	s.log.Info("Before writing files to branch", "files", req.Files, "head", req.HeadBranch)
+
 	if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
 		Repository: repo,
 		HeadBranch: req.HeadBranch,
@@ -121,6 +128,8 @@ func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.
 	}); err != nil {
 		return nil, fmt.Errorf("unable to write files to branch %q: %w", req.HeadBranch, err)
 	}
+
+	s.log.Info("Before creating PR", "head", req.HeadBranch)
 
 	res, err := s.createPullRequest(ctx, createPullRequestRequest{
 		Repository:  repo,
@@ -223,12 +232,88 @@ func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, re
 		return nil, err
 	}
 
-	treePaths, err := repo.Trees().List(ctx, sha, path, recursive)
-	if err != nil {
-		return nil, err
-	}
+	s.log.Info("GetTreeList", "provider-type", gp.Type, "hostname", gp.Hostname, "url", repoUrl, "path", path, "sha", sha, "recursive", recursive)
 
-	return treePaths, nil
+	// fluxcd/go-git-providers does not implement TreeClient.List so we have to provide an
+	// alternative implementation, hence the conditional below. Interestingly jenkins-x/go-scm
+	// does not implement ContentService.List either (although drone/go-scm does) and therefore
+	// we have to implement it ourselves.
+	if gp.Type == "bitbucket-server" {
+		treePaths := []*gitprovider.TreeEntry{}
+
+		u := url.URL{
+			Scheme: "https",
+			Host:   gp.Hostname,
+		}
+
+		s.log.Info("Using bitbucket-server", "url", u.String())
+
+		client, err := factory.NewClient("bitbucketserver", u.String(), gp.Token)
+		if err != nil {
+			s.log.Error(err, "failed to create new client")
+			return nil, err
+		}
+
+		projectKey, repositorySlug, err := parseBitBucketServerRepositoryURL(repoUrl)
+		if err != nil {
+			return nil, err
+		}
+
+		opts := scm.ListOptions{
+			Page: 1,
+			Size: 25,
+		}
+		endpoint := fmt.Sprintf("rest/api/1.0/projects/%s/repos/%s/files/%s?at=%s&%s", projectKey, repositorySlug, path, sha, encodeListOptions(opts))
+		req := &scm.Request{
+			Method: "GET",
+			Path:   endpoint,
+		}
+		s.log.Info("Before issuing request", "req", req, "endpoint", endpoint)
+		res, err := client.Do(ctx, req)
+		if err != nil {
+			s.log.Error(err, "failed to get files at path")
+			return nil, err
+		}
+		s.log.Info("Get files at path", "response", res.Body)
+
+		var contents contents
+		if err := json.NewDecoder(res.Body).Decode(&contents); err != nil {
+			return nil, err
+		}
+		s.log.Info("After json parsing", "contents", contents)
+
+		for _, v := range contents.Values {
+			treePaths = append(treePaths, &gitprovider.TreeEntry{
+				Path: v,
+			})
+		}
+
+		return treePaths, nil
+	} else {
+		treePaths, err := repo.Trees().List(ctx, sha, path, recursive)
+		if err != nil {
+			return nil, err
+		}
+
+		return treePaths, nil
+	}
+}
+
+type contents struct {
+	Values []string `json:"values"`
+}
+
+func encodeListOptions(opts scm.ListOptions) string {
+	params := url.Values{}
+	if opts.Page > 1 {
+		params.Set("start", strconv.Itoa(
+			(opts.Page-1)*opts.Size),
+		)
+	}
+	if opts.Size != 0 {
+		params.Set("limit", strconv.Itoa(opts.Size))
+	}
+	return params.Encode()
 }
 
 func (s *GitProviderService) ListPullRequests(ctx context.Context, gp GitProvider, repoURL string) ([]gitprovider.PullRequest, error) {
@@ -423,4 +508,20 @@ func (s *GitProviderService) getUpdatedFiles(
 	}
 
 	return updatedFiles, nil
+}
+
+func parseBitBucketServerRepositoryURL(url string) (string, string, error) {
+	re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)
+	match := re.FindStringSubmatch(url)
+	result := make(map[string]string)
+	for i, name := range re.SubexpNames() {
+		if i != 0 && name != "" {
+			result[name] = match[i]
+		}
+	}
+	if len(result) != 3 {
+		return "", "", fmt.Errorf("unable to parse repository URL %q using regex %q", url, re.String())
+	}
+
+	return result["key"], result["repo"], nil
 }

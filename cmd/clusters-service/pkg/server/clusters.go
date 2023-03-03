@@ -370,6 +370,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
 
+	s.log.Info("Before writing files to the branch and creating PR", "files", filesList)
+
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
