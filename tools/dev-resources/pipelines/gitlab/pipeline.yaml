@@ -18,6 +18,7 @@ spec:
   promotion:
     strategy:
       pull-request:
+        baseBranch: main
         type: "gitlab"
         url: "https://gitlab.git.dev.weave.works/pipeline-controller/pipeline-controller-e2e"
         secretRef:
