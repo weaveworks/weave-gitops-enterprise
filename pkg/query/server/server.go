@@ -1,16 +1,20 @@
-package query
+package server
 
 import (
 	"context"
 	"fmt"
 	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
-	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/memorystore"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/memorystore"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -18,11 +22,12 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	qs QueryService
+	qs query.QueryService
 }
 
 var DefaultKinds = []schema.GroupVersionKind{
 	kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind),
+	helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
 }
 
 type ServerOpts struct {
@@ -50,23 +55,30 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 		opts.ObjectKinds = DefaultKinds
 	}
 
-	col := NewCollector(opts.Logger, opts.ClustersManager, CollectorOpts{
-		ObjectKinds: opts.ObjectKinds,
+	col := collector.NewCollector(collector.CollectorOpts{
+		Log:            opts.Logger,
+		ClusterManager: opts.ClustersManager,
+		ObjectKinds:    opts.ObjectKinds,
 	})
 
-	var w StoreWriter
-	var r StoreReader
+	var w store.StoreWriter
+	var r store.StoreReader
 
 	switch opts.StoreType {
 	case "memory":
-		s := store.NewInMemoryStore()
+		s := memorystore.NewInMemoryStore()
 		w = s
 		r = s
 	default:
 		return nil, fmt.Errorf("unknown store type: %s", opts.StoreType)
 	}
 
-	qs, err := NewQueryService(ctx, opts.Logger, col, w, r, time.NewTicker(opts.CollectionInterval), time.NewTicker(opts.CollectionInterval))
+	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
+		Log:         opts.Logger,
+		Collector:   col,
+		StoreWriter: w,
+		StoreReader: r,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create query service: %w", err)
 	}

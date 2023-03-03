@@ -19,6 +19,7 @@ function Explorer({ className }: Props) {
             fields={[
               { label: 'Name', value: 'name' },
               { label: 'Kind', value: 'kind' },
+              { label: 'Namespace', value: 'namespace' },
               { label: 'Cluster', value: 'cluster' },
             ]}
             rows={data?.objects}
