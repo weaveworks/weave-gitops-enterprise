@@ -58,7 +58,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
+	queryServer "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
@@ -630,7 +630,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
-	if err := query.Hydrate(ctx, grpcMux, query.ServerOpts{
+	if err := queryServer.Hydrate(ctx, grpcMux, queryServer.ServerOpts{
 		Logger:             args.Log,
 		StoreType:          "memory",
 		ClustersManager:    args.ClustersManager,

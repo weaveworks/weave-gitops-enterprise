@@ -182,6 +182,9 @@ push:
 proto: ## Generate protobuf files
 	./tools/bin/buf generate
 
+fakes: ## Generate testing fakes
+	go generate ./...
+
 
 FORCE:
 
