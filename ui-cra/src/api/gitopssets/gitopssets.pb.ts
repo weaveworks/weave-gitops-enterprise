@@ -15,16 +15,6 @@ export type ListGitOpsSetsResponse = {
   errors?: GitopssetsV1Types.GitOpsSetListError[]
 }
 
-export type GetGitOpsSetRequest = {
-  name?: string
-  namespace?: string
-  kind?: string
-}
-
-export type GetGitOpsSetResponse = {
-  gitopsSet?: GitopssetsV1Types.GitOpsSet
-}
-
 export type ToggleSuspendGitOpsSetRequest = {
   clusterName?: string
   name?: string

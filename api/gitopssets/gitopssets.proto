@@ -61,16 +61,6 @@ message ListGitOpsSetsResponse {
     repeated GitOpsSetListError errors = 2;
 }
 
-message GetGitOpsSetRequest {
-    string name        = 1;
-    string namespace   = 2;
-    string kind        = 3;
-}
-
-message GetGitOpsSetResponse {
-    GitOpsSet gitops_set = 1;
-}
-
 message ToggleSuspendGitOpsSetRequest {
     string clusterName = 1;
     string name        = 2;
