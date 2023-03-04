@@ -12,10 +12,12 @@ const PolicyConfigDetails = ({
   name: string;
 }) => {
   const { data: PolicyConfig, isLoading: isPolicyConfigLoading } =
-  useGetPolicyConfigDetails({
-    name,
+    useGetPolicyConfigDetails({
+      name,
       clusterName,
     });
+
+    console.log(PolicyConfig)
   return (
     <>
       <PageTemplate
@@ -29,6 +31,7 @@ const PolicyConfigDetails = ({
           <PolicyConfigHeaderSection
             clusterName={PolicyConfig?.clusterName}
             age={PolicyConfig?.age}
+            match={PolicyConfig?.match}
           />
         </ContentWrapper>
       </PageTemplate>
