@@ -48,6 +48,7 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
+import PolicyConfigsList from './components/PolicyConfigs';
 import GitopsSets from './components/GitopsSets';
 import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import WGUserInfo from './components/UserInfo';
@@ -292,6 +293,7 @@ const AppRoutes = () => {
         component={withSearchParams(SecretDetails)}
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
 
       <Route
         path={Routes.TerraformDetail}

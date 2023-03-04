@@ -68,6 +68,8 @@ export enum Routes {
   SecretDetails = '/secrets/details',
   CreateSecret = '/secrets/create',
 
+  PolicyConfigs = '/policyConfigs',
+
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
 

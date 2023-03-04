@@ -17,6 +17,7 @@ import { ReactComponent as Policies } from '../assets/img/policies.svg';
 import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
+import { ReactComponent as PolicyConfigs } from '../assets/img/policyConfigs.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
 import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
@@ -219,6 +220,11 @@ const NavItems = () => {
       name: 'POLICIES',
       link: Routes.Policies,
       icon: <Policies />,
+    },
+    {
+      name: 'POLICY CONFIGS',
+      link: Routes.PolicyConfigs,
+      icon:  <PolicyConfigs />,
     },
   ];
   return (

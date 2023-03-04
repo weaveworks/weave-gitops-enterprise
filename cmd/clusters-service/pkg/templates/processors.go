@@ -74,6 +74,11 @@ type TemplateProcessor struct {
 func (p TemplateProcessor) Params() ([]Param, error) {
 	paramNames := sets.NewString()
 	for _, resourcetemplateDefinition := range p.GetSpec().ResourceTemplates {
+		if resourcetemplateDefinition.Content != nil && resourcetemplateDefinition.Raw != "" {
+			return nil, fmt.Errorf("cannot specify both raw and content in the same resource template: %s/%s",
+				p.GetName(), p.GetNamespace())
+		}
+
 		names, err := p.Processor.ParamNames([]byte(resourcetemplateDefinition.Path))
 		if err != nil {
 			return nil, fmt.Errorf("failed to get params from template path: %w", err)
@@ -84,6 +89,14 @@ func (p TemplateProcessor) Params() ([]Param, error) {
 			names, err := p.Processor.ParamNames(v.Raw)
 			if err != nil {
 				return nil, fmt.Errorf("failed to get params from template: %w", err)
+			}
+			paramNames.Insert(names...)
+		}
+
+		if resourcetemplateDefinition.Raw != "" {
+			names, err := p.Processor.ParamNames([]byte(resourcetemplateDefinition.Raw))
+			if err != nil {
+				return nil, fmt.Errorf("failed to get params from raw template: %w", err)
 			}
 			paramNames.Insert(names...)
 		}
@@ -200,32 +213,46 @@ func (p TemplateProcessor) RenderTemplates(vars map[string]string, opts ...Rende
 	}
 
 	var renderedTemplates []RenderedTemplate
-	for _, resourceTemplatesDefintion := range p.GetSpec().ResourceTemplates {
+	for _, resourcetemplateDefinition := range p.GetSpec().ResourceTemplates {
+		if resourcetemplateDefinition.Content != nil && resourcetemplateDefinition.Raw != "" {
+			return nil, fmt.Errorf("cannot specify both raw and content in the same resource template: %s/%s",
+				p.GetName(), p.GetNamespace())
+		}
+
 		var renderedPath string
-		if resourceTemplatesDefintion.Path != "" {
-			p, err := p.Processor.Render([]byte(resourceTemplatesDefintion.Path), vars)
+		if resourcetemplateDefinition.Path != "" {
+			p, err := p.Processor.Render([]byte(resourcetemplateDefinition.Path), vars)
 			if err != nil {
 				return nil, fmt.Errorf("failed to render resource template definition path: %w", err)
 			}
 			renderedPath = string(p)
 		}
 		var processed [][]byte
-		for _, v := range resourceTemplatesDefintion.Content {
-			b, err := yaml.JSONToYAML(v.Raw)
-			if err != nil {
-				return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
-			}
-
-			data, err := p.Processor.Render(b, vars)
+		if resourcetemplateDefinition.Raw != "" {
+			data, err := p.Processor.Render([]byte(resourcetemplateDefinition.Raw), vars)
 			if err != nil {
 				return nil, fmt.Errorf("processing template: %w", err)
 			}
 
-			data, err = processUnstructured(data, opts...)
-			if err != nil {
-				return nil, fmt.Errorf("modifying template: %w", err)
-			}
 			processed = append(processed, data)
+		} else {
+			for _, v := range resourcetemplateDefinition.Content {
+				b, err := yaml.JSONToYAML(v.Raw)
+				if err != nil {
+					return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
+				}
+
+				data, err := p.Processor.Render(b, vars)
+				if err != nil {
+					return nil, fmt.Errorf("processing template: %w", err)
+				}
+
+				data, err = processUnstructured(data, opts...)
+				if err != nil {
+					return nil, fmt.Errorf("modifying template: %w", err)
+				}
+				processed = append(processed, data)
+			}
 		}
 		renderedTemplates = append(renderedTemplates, RenderedTemplate{
 			Data: processed,

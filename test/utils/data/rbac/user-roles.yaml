@@ -85,7 +85,7 @@ metadata:
   name: gitops-policies-reader
 rules:
   - apiGroups: ["pac.weave.works"]
-    resources: ["policies"]
+    resources: ["policies", "policyconfigs"]
     verbs: ["get", "list"]
   - apiGroups: [""]
     resources: ["events"]

@@ -78,6 +78,7 @@ message Pipeline {
     PipelineStatus status                   = 6;
     string         yaml                     = 7;
     string         type                     = 8;
+    Promotion      promotion                = 9;
 }
 
 
@@ -87,5 +88,28 @@ message PullRequestList {
 
 message PullRequest {
     string title = 1;
-    string url = 2;
+    string url   = 2;
+}
+
+message Promotion {
+    bool     manual   = 1;
+    Strategy strategy = 2;
+}
+
+message Strategy {
+    PullRequestPromotion pullRequest  = 1;
+    Notification         notification = 2;
+    LocalObjectReference secretRef    = 3;
+}
+
+message PullRequestPromotion {
+    string    type      = 1;
+    string    url       = 2;
+    string    branch    = 3;
+}
+
+message Notification {}
+
+message LocalObjectReference {
+    string name = 1;
 }

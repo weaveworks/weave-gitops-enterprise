@@ -1994,7 +1994,7 @@
         "policies": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1PolicyConfigConfig"
+            "$ref": "#/definitions/v1PolicyConfigPolicy"
           }
         },
         "totalPolicies": {
@@ -2668,29 +2668,6 @@
         }
       }
     },
-    "v1PolicyConfigConfig": {
-      "type": "object",
-      "properties": {
-        "id": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "description": {
-          "type": "string"
-        },
-        "parameters": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "object"
-          }
-        },
-        "status": {
-          "type": "string"
-        }
-      }
-    },
     "v1PolicyConfigListItem": {
       "type": "object",
       "properties": {
@@ -2766,6 +2743,29 @@
           "additionalProperties": {
             "$ref": "#/definitions/v1PolicyConfigConf"
           }
+        }
+      }
+    },
+    "v1PolicyConfigPolicy": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object"
+          }
+        },
+        "status": {
+          "type": "string"
         }
       }
     },

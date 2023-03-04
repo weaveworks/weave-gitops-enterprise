@@ -3,7 +3,6 @@ import {
   CanaryMetricTemplate,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { CopyToClipboard } from '@weaveworks/weave-gitops';
-import * as React from 'react';
 import styled from 'styled-components';
 
 type Props = {
