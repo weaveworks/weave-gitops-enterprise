@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"sync"
 
@@ -24,7 +23,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
-	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -73,65 +71,32 @@ func NewGitOpsSetsServer(opts ServerOpts) pb.GitOpsSetsServer {
 }
 
 func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsRequest) (*pb.ListGitOpsSetsResponse, error) {
-	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	gitopsSets := []*pb.GitOpsSet{}
+	errors := []*pb.GitOpsSetListError{}
 
-	if err != nil {
-		return nil, fmt.Errorf("getting impersonated client: %w", err)
-	}
-
-	clist := clustersmngr.NewClusteredList(func() client.ObjectList {
+	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
 		return &ctrl.GitOpsSetList{}
 	})
-
-	opts := []client.ListOption{}
-
-	if msg.Namespace != "" {
-		opts = append(opts, client.InNamespace(msg.Namespace))
+	if err != nil {
+		return nil, fmt.Errorf("failed to query gitopssets: %w", err)
 	}
 
-	listErrors := []*pb.GitOpsSetListError{}
-
-	if err := c.ClusteredList(ctx, clist, false, opts...); err != nil {
-		var errs clustersmngr.ClusteredListError
-
-		if !errors.As(err, &errs) {
-			return nil, fmt.Errorf("converting to ClusteredListError: %w", errs)
-		}
-
-		for _, e := range errs.Errors {
-			if apimeta.IsNoMatchError(e.Err) {
-				// Skip reporting an error if a leaf cluster does not have the tf-controller CRD installed.
-				// It is valid for leaf clusters to not have tf installed.
-				s.log.Info("gitopssets crd not present on cluster, skipping error", "cluster", e.Cluster)
-				continue
-			}
-
-			listErrors = append(listErrors, &pb.GitOpsSetListError{
-				ClusterName: e.Cluster,
-				Message:     e.Err.Error(),
+	for _, namespacedList := range namespacedLists {
+		if namespacedList.Error != nil {
+			errors = append(errors, &pb.GitOpsSetListError{
+				Namespace: namespacedList.Namespace,
+				Message:   namespacedList.Error.Error(),
 			})
-
 		}
-	}
-
-	gitopssets := []*pb.GitOpsSet{}
-
-	for clusterName, lists := range clist.Lists() {
-		for _, l := range lists {
-			list, ok := l.(*ctrl.GitOpsSetList)
-			if !ok {
-				continue
-			}
-
-			for _, gs := range list.Items {
-				gitopssets = append(gitopssets, convert.GitOpsToProto(clusterName, gs))
-			}
+		gsList := namespacedList.List.(*ctrl.GitOpsSetList)
+		for _, gs := range gsList.Items {
+			gitopsSets = append(gitopsSets, convert.GitOpsToProto("management", gs))
 		}
 	}
 
 	return &pb.ListGitOpsSetsResponse{
-		Gitopssets: gitopssets,
-		Errors:     listErrors,
+		Gitopssets: gitopsSets,
+		Errors:     errors,
 	}, nil
 }
 
