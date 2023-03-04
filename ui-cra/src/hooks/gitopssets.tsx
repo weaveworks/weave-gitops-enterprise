@@ -19,6 +19,7 @@ import {
   Kustomization,
   Provider,
   coreClient,
+  useListObjects,
 } from '@weaveworks/weave-gitops';
 import {
   GroupVersionKind,
@@ -34,9 +35,13 @@ export function useListGitOpsSets() {
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, severity: 'error' }]);
 
-  return useQuery<ListGitOpsSetsResponse, Error>(
-    [GITOPSSETS_KEY],
-    () => GitOpsSets.ListGitOpsSets({}),
+  const kind = 'GitOpsSet';
+
+  return useListObjects(
+    '',
+    kind,
+    '',
+    {},
     {
       keepPreviousData: true,
       onError,

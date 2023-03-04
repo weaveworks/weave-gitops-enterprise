@@ -1,3 +1,4 @@
+import { FluxObject } from '@weaveworks/weave-gitops';
 import {
   DeleteClustersPullRequestRequest,
   GitopsCluster,
@@ -170,3 +171,5 @@ export type RequestError = Error & {
 export interface SecretPRPreview {
   externalSecretsFiles: { path: string; content: string }[];
 }
+
+export class GitOpsSet extends FluxObject {}
