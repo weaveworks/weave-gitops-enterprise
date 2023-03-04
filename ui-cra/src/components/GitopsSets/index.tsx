@@ -37,7 +37,7 @@ export const getInventory = (gs: GitOpsSet) => {
 const GitopsSets: FC = () => {
   const { isLoading, data } = useListGitOpsSets();
 
-  const gitopssets = data?.objects;
+  const gitopssets = data?.gitopssets;
 
   let initialFilterState = {
     ...filterConfig(gitopssets, 'status', filterByStatusCallback),
@@ -130,7 +130,7 @@ const GitopsSets: FC = () => {
         ) : (
           <DataTable
             fields={fields}
-            rows={gitopssets}
+            rows={data?.gitopssets}
             filters={initialFilterState}
           />
         )}

@@ -493,8 +493,6 @@ func StartServer(ctx context.Context, p Params) error {
 	if err != nil {
 		return err
 	}
-	// add gitopssets
-	coreCfg.PrimaryKinds.Add("GitOpsSet", gitopssetsv1alpha1.GroupVersion.WithKind("GitOpsSet"))
 
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),

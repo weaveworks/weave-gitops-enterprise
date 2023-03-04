@@ -122,7 +122,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   };
 
   const gitOpsSet =
-    data?.objects?.find(
+    data?.gitopssets?.find(
       gs =>
         gs.name === name &&
         gs.namespace === namespace &&
