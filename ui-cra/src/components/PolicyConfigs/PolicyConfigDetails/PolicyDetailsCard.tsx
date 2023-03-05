@@ -3,9 +3,9 @@ import { formatURL, Link } from '@weaveworks/weave-gitops';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
 import {
-    PolicyDetailsCardWrapper,
-    usePolicyConfigStyle,
-    WarningIcon
+  PolicyDetailsCardWrapper,
+  usePolicyConfigStyle,
+  WarningIcon,
 } from '../PolicyConfigStyles';
 
 function PolicyDetailsCard({
@@ -49,7 +49,7 @@ function PolicyDetailsCard({
                 )}
                 <label className="cardLbl">Parameters</label>
                 {Object.entries(policy.parameters || {}).map(param => (
-                  <div className="parameterItem">
+                  <div className="parameterItem" key={param[0]}>
                     <label>{param[0]}: </label>
                     <div className="parameterItemValue">{param[1]}</div>
                   </div>

@@ -57,7 +57,7 @@ function PolicyConfigHeaderSection({
                 </li>
               ))
             : target?.targetList.map((item: any) => (
-                <li key={`${item}`}>{item}</li>
+                <li key={item}>{item}</li>
               ))}
         </ul>
       </div>
