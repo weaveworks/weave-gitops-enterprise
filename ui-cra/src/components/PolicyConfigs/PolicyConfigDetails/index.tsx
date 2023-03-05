@@ -19,7 +19,6 @@ const PolicyConfigDetails = ({
       clusterName,
     });
 
-  console.log(PolicyConfig);
   return (
     <>
       <PageTemplate

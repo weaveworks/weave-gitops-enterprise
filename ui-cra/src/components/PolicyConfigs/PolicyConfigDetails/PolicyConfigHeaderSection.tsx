@@ -1,8 +1,6 @@
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import {
-  GetPolicyConfigResponse
-} from '../../../cluster-services/cluster_services.pb';
+import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { usePolicyConfigStyle } from '../PolicyConfigStyles';
 interface Target {
@@ -37,18 +35,25 @@ function PolicyConfigHeaderSection({
       {generateRowHeaders(defaultHeaders)}
       <div>
         <label className={classes.sectionTitle}>Applied To</label>
-        <div className={`${classes.sectionTitle} ${classes.capitlize}`} style={{ fontWeight: 'normal', marginTop: '12px' }}>
+        <div
+          className={`${classes.sectionTitle} ${classes.capitlize}`}
+          style={{ fontWeight: 'normal', marginTop: '12px' }}
+        >
           {target?.targetName}
           <span> ({target?.targetList.length})</span>
         </div>
-        <ul  className={classes.targetItemsList}>
-          {target?.targetName === 'resources' ||target?.targetName === 'apps'
+        <ul className={classes.targetItemsList}>
+          {target?.targetName === 'resources' || target?.targetName === 'apps'
             ? target?.targetList.map((item: any) => (
                 <li key={`${item.name}`}>
                   <span>
                     {item.namespace}/{item.name}
                   </span>
-                  <span className={classes.targetItemKind}>{item.kind}</span>
+                  <span
+                    className={`${classes.targetItemKind} ${classes.capitlize}`}
+                  >
+                    {item.kind}
+                  </span>
                 </li>
               ))
             : target?.targetList.map((item: any) => (

@@ -5,17 +5,10 @@ import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
-const {
-  defaultOriginal,
-  black,
-  primary,
-  neutral30,
-  feedbackLight,
-  neutralGray,
-} = theme.colors;
+const { defaultOriginal, black, primary, neutral30, feedbackLight, backGrey } =
+  theme.colors;
 const { medium: mediumFont } = theme.fontSizes;
-const { none, xs, small , base} = theme.spacing;
-console.log(theme.borderRadius);
+const { none, xxs, xs, small, base } = theme.spacing;
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     centered: {
@@ -36,16 +29,16 @@ export const usePolicyConfigStyle = makeStyles(() =>
       whiteSpace: 'pre-line',
     },
     targetItemsList: {
-      '& li': { marginTop: small },
+      '& li': { marginTop: base, display: 'flex', alignItems: 'center' },
       listStyle: 'none',
       padding: none,
     },
     targetItemKind: {
-      background: neutralGray,
-      padding: small,
+      background: backGrey,
+      padding: `${xxs} ${base}`,
       color: black,
       marginLeft: small,
-      borderRadius: base
+      borderRadius: base,
     },
   }),
 );
@@ -100,7 +93,6 @@ export const PolicyDetailsCardWrapper = styled.ul`
       .parameterItemValue {
         color: ${neutral30};
         text-transform: capitalize;
-
       }
     }
   }
