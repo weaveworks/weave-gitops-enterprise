@@ -35,7 +35,7 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 			r.Promotion.Strategy.PullRequest = &pb.PullRequestPromotion{
 				Type:   string(p.Spec.Promotion.Strategy.PullRequest.Type),
 				Url:    p.Spec.Promotion.Strategy.PullRequest.URL,
-				Branch: p.Spec.Promotion.Strategy.PullRequest.Branch,
+				Branch: p.Spec.Promotion.Strategy.PullRequest.BaseBranch,
 			}
 		}
 
