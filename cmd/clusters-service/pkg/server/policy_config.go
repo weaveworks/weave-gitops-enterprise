@@ -153,6 +153,7 @@ func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, re
 		ClusterName:   req.ClusterName,
 		Age:           policyConfig.CreationTimestamp.Format(time.RFC3339),
 		Status:        policyConfig.Status.Status,
+		MatchType:     getPolicyConfigTargetType(policyConfig.Spec.Match),
 		Match:         getPolicyConfigMatch(policyConfig.Spec.Match),
 		TotalPolicies: int32(len(policyConfig.Spec.Config)),
 	}
