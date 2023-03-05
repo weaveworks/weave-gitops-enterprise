@@ -49,6 +49,7 @@ interface Props {
   errors?: ListError[];
   loading?: boolean;
   notifications?: NotificationData[];
+  customMaxHieght?: string;
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -56,6 +57,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
+  customMaxHieght,
 }) => {
   const versionResponse = useVersionContext();
   const { notifications, setNotifications } = useNotifications();
@@ -94,7 +96,7 @@ export const ContentWrapper: FC<Props> = ({
         display: 'flex',
         flexDirection: 'column',
         width: 'calc(100% - 4px)',
-        maxHeight: 'calc(100vh - 80px)',
+        maxHeight: customMaxHieght ? customMaxHieght : 'calc(100vh - 80px',
         overflowWrap: 'normal',
         overflowX: 'scroll',
         padding: '0px 12px',

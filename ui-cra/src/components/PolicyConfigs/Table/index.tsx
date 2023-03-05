@@ -54,7 +54,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
                   clusterName: s.clusterName,
                   name: s.name,
                 })}
-                data-policyConfig-name={s.name}
+                data-policyconfig-name={s.name}
               >
                 {s.name}
               </Link>
