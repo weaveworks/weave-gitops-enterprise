@@ -1988,6 +1988,9 @@
         "status": {
           "type": "string"
         },
+        "matchType": {
+          "type": "string"
+        },
         "match": {
           "$ref": "#/definitions/v1PolicyConfigMatch"
         },
