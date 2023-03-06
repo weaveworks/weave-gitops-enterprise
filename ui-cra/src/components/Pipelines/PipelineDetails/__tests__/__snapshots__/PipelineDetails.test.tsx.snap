@@ -124,22 +124,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: 24px;
 }
 
-.c9 svg path.image-automation {
-  fill: !important;
-}
-
-.c9 svg.sources {
-  fill: none !important;
-}
-
-.c9 svg.sources path {
-  fill: !important;
-}
-
-.c9 svg.sources rect {
-  stroke: !important;
-}
-
 .c9.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
@@ -164,22 +148,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   fill: #27AE60 !important;
   height: 16px;
   width: 16px;
-}
-
-.c35 svg path.image-automation {
-  fill: #27AE60 !important;
-}
-
-.c35 svg.sources {
-  fill: none !important;
-}
-
-.c35 svg.sources path {
-  fill: #27AE60 !important;
-}
-
-.c35 svg.sources rect {
-  stroke: #27AE60 !important;
 }
 
 .c35.downward {
@@ -586,7 +554,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px; overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
     >
       <div
         class="c10"
