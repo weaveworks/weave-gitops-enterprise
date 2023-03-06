@@ -1002,7 +1002,12 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		clusterNamespace = cluster.Namespace
 	}
 
-	fileName := fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType)
+	var fileName string
+	if resource.Namespace == "" {
+		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
+	} else {
+		fileName = fmt.Sprintf("%s-%s-%s.yaml", resource.Name, resource.Namespace, resourceType)
+	}
 
 	if resourceType == "namespace" {
 		fileName = fmt.Sprintf("%s-%s.yaml", resource.Name, resourceType)
@@ -1014,6 +1019,16 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 			clusterNamespace,
 			cluster.Name,
 			"secrets",
+			fileName,
+		)
+	}
+
+	if resourceType == "policy-config" {
+		return filepath.Join(
+			viper.GetString("capi-repository-clusters-path"),
+			clusterNamespace,
+			cluster.Name,
+			"policy-configs",
 			fileName,
 		)
 	}

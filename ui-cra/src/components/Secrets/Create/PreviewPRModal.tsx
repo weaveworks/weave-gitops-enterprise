@@ -5,6 +5,7 @@ import useNotifications from '../../../contexts/Notifications';
 import { SecretPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
+
 const { small } = theme.spacing;
 const PreviewPRSection = styled.div`
   display: flex;
@@ -12,7 +13,7 @@ const PreviewPRSection = styled.div`
   padding: ${small};
 `;
 
-export const PrviewPRModal = ({ formData, getClusterAutomations }: any) => {
+export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<SecretPRPreview | null>(null);
@@ -36,7 +37,6 @@ export const PrviewPRModal = ({ formData, getClusterAutomations }: any) => {
       })
       .finally(() => setPreviewLoading(false));
   }, [
-    formData,
     getClusterAutomations,
     setOpenPreview,
     setPRPreview,

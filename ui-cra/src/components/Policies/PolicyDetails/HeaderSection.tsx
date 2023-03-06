@@ -32,7 +32,7 @@ function HeaderSection({
       value: id,
     },
     {
-      rowkey: 'Cluster Name',
+      rowkey: 'Cluster',
       value: <ClusterDashboardLink clusterName={clusterName || ''}/>,
     },
     {

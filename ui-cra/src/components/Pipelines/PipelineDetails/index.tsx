@@ -1,13 +1,17 @@
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
+import CodeView from '../../CodeView';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import CodeView from '../../CodeView';
 
-import { EditButton } from './../../../components/Templates/Edit/EditButton';
+import { Box } from '@material-ui/core';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
+import KeyValueTable, { KeyValuePairs } from '../../KeyValueTable';
+import { EditButton } from './../../../components/Templates/Edit/EditButton';
+import PipelinePullRequests from './PipelinePullRequests';
 import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
 
@@ -24,6 +28,45 @@ interface Props {
   name: string;
   namespace: string;
 }
+
+const pipelineStrategyText = (data?: GetPipelineResponse): KeyValuePairs => {
+  const pairs: KeyValuePairs = [];
+
+  if (!data) {
+    return pairs;
+  }
+
+  // Trying to differentiate between null and negative values
+  if (data?.pipeline?.promotion?.manual === null) {
+    pairs.push(['Automated', null]);
+  } else {
+    pairs.push([
+      'Automated',
+      data?.pipeline?.promotion?.manual ? 'False' : 'True',
+    ]);
+  }
+
+  const strat = data?.pipeline?.promotion?.strategy;
+
+  if (strat?.pullRequest === null && strat?.notification === null) {
+    pairs.push(['Strategy', null]);
+  } else {
+    pairs.push([
+      'Strategy',
+      data?.pipeline?.promotion?.strategy?.pullRequest
+        ? 'Pull Request'
+        : 'Notification',
+    ]);
+
+    if (strat?.pullRequest !== null) {
+      const pr = data.pipeline?.promotion?.strategy?.pullRequest;
+      pairs.push(['URL', pr?.url]);
+      pairs.push(['Branch', pr?.branch]);
+    }
+  }
+
+  return pairs;
+};
 
 const PipelineDetails = ({ name, namespace }: Props) => {
   const { isLoading, data } = useGetPipeline({
@@ -55,10 +98,18 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         loading={isLoading}
         errors={mappedErrors(data?.errors || [], namespace)}
       >
-        <EditButton
-          className={classes.editButton}
-          resource={data?.pipeline || ({} as Pipeline)}
-        />
+        <Box marginBottom={2}>
+          <Flex align wide between>
+            <KeyValueTable pairs={pipelineStrategyText(data)} />
+            <div>
+              <EditButton
+                className={classes.editButton}
+                resource={data?.pipeline || ({} as Pipeline)}
+              />
+            </div>
+          </Flex>
+        </Box>
+
         <SubRouterTabs rootPath={`${path}/status`}>
           <RouterTab name="Status" path={`${path}/status`}>
             <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
@@ -69,6 +120,9 @@ const PipelineDetails = ({ name, namespace }: Props) => {
               code={data?.pipeline?.yaml || ''}
               object={data?.pipeline || {}}
             />
+          </RouterTab>
+          <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
+            <PipelinePullRequests pipeline={data?.pipeline} />
           </RouterTab>
         </SubRouterTabs>
       </ContentWrapper>

@@ -76,6 +76,7 @@ export type Pipeline = {
   status?: PipelineStatus
   yaml?: string
   type?: string
+  promotion?: Promotion
 }
 
 export type PullRequestList = {
@@ -85,4 +86,28 @@ export type PullRequestList = {
 export type PullRequest = {
   title?: string
   url?: string
+}
+
+export type Promotion = {
+  manual?: boolean
+  strategy?: Strategy
+}
+
+export type Strategy = {
+  pullRequest?: PullRequestPromotion
+  notification?: Notification
+  secretRef?: LocalObjectReference
+}
+
+export type PullRequestPromotion = {
+  type?: string
+  url?: string
+  branch?: string
+}
+
+export type Notification = {
+}
+
+export type LocalObjectReference = {
+  name?: string
 }

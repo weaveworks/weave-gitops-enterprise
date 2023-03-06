@@ -29,11 +29,11 @@ dependencies:
     repository: "file://../templates-controller"
     condition: templates-controller.enabled
   - name: policy-agent
-    version: "2.2.0"
+    version: "2.3.0"
     repository: "https://weaveworks.github.io/policy-agent"
     condition: policy-agent.enabled
   - name: pipeline-controller
-    version: "0.14.0"
+    version: "0.20.0"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: enablePipelines
   - name: gitopssets-controller

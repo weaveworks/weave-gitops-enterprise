@@ -59,7 +59,10 @@ describe('Github Authenticate', () => {
     const ghCode = await screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
     await act(async () => {
-      fireEvent.click(ghCode as Element);
+      const copyButton = await (
+        await screen.findByTestId('github-code-container')
+      ).querySelector('button');
+      fireEvent.click(copyButton as Element);
       await navigator.clipboard.readText().then(code => {
         expect(ghCode.textContent).toEqual(code);
       });

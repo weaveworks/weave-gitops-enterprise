@@ -2,8 +2,7 @@ import {
   Canary,
   CanaryMetricTemplate,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import * as React from 'react';
+import { CopyToClipboard } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 type Props = {
@@ -13,18 +12,6 @@ type Props = {
   kind?: string;
   colorizeChanges?: boolean;
 };
-
-export const IconButton = styled(Button)`
-  &.MuiButton-root {
-    border-radius: 50%;
-    min-width: 48px;
-    height: 48px;
-    padding: 0;
-  }
-  &.MuiButton-text {
-    padding: 0;
-  }
-`;
 
 const YamlHeader = styled.div`
   background: ${props => props.theme.colors.neutral10};
@@ -36,25 +23,11 @@ const YamlHeader = styled.div`
   text-overflow: ellipsis;
 `;
 
-const CopyButton = styled(IconButton)`
-  &.MuiButton-outlinedPrimary {
-    border: 1px solid ${props => props.theme.colors.neutral10};
-    padding: ${props => props.theme.spacing.xs};
-  }
-  &.MuiButton-root {
-    height: initial;
-    width: initial;
-    min-width: 0px;
-  }
-`;
-
 const additionColor = '#2e5f38';
 const deletionColor = '#814a1c';
 const updateColor = '#787118';
 
 function CodeView({ code, object, className, kind, colorizeChanges }: Props) {
-  const [copied, setCopied] = React.useState(false);
-
   let headerText = '';
 
   if (kind && object) {
@@ -68,17 +41,7 @@ function CodeView({ code, object, className, kind, colorizeChanges }: Props) {
       {headerText && (
         <YamlHeader>
           {headerText}
-          <CopyButton
-            onClick={() => {
-              navigator.clipboard.writeText(headerText);
-              setCopied(true);
-            }}
-          >
-            <Icon
-              type={copied ? IconType.CheckMark : IconType.FileCopyIcon}
-              size="small"
-            />
-          </CopyButton>
+          <CopyToClipboard size="small" value={headerText}></CopyToClipboard>
         </YamlHeader>
       )}
 
