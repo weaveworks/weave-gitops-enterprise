@@ -29,7 +29,7 @@ function PolicyConfigHeaderSection({
       const m = match[targett as keyof typeof match];
       if (m?.length) setTarget({ targetName: targett, targetList: m });
     }
-  }, []);
+  }, [match]);
   return (
     <div>
       {generateRowHeaders(defaultHeaders)}
