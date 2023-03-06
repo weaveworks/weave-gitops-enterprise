@@ -89,6 +89,32 @@ rules:
   - patch
   - update
 - apiGroups:
+  - capi.weave.works
+  resources:
+  - secretsyncs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - capi.weave.works
+  resources:
+  - secretsyncs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - capi.weave.works
+  resources:
+  - secretsyncs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
   - cluster.x-k8s.io
   resources:
   - clusters
@@ -101,27 +127,13 @@ rules:
 - apiGroups:
   - gitops.weave.works
   resources:
-  - gitopsclusters/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - gitops.weave.works
-  resources:
-  - gitopsclusters/status
-  verbs:
-  - get
-  - patch
-  - update
-- apiGroups:
-  - gitops.weave.works
-  resources:
   - gitopsclusters
   verbs:
   - get
   - list
   - patch
-  - update
   - watch
+
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
