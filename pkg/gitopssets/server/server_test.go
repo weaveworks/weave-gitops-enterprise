@@ -9,10 +9,14 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
+	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	appsv1 "k8s.io/api/apps/v1"
@@ -95,20 +99,6 @@ func TestSuspendGitOpsSet(t *testing.T) {
 	assert.NoError(t, k8s.Get(ctx, key, s))
 
 	assert.True(t, s.Spec.Suspend, "expected Spec.Suspend to be true")
-}
-
-func setup(t *testing.T) (pb.GitOpsSetsClient, client.Client) {
-	k8s, factory := grpctesting.MakeFactoryWithObjects()
-	opts := server.ServerOpts{
-		ClientsFactory: factory,
-	}
-	srv := server.NewGitOpsSetsServer(opts)
-
-	conn := grpctesting.Setup(t, func(s *grpc.Server) {
-		pb.RegisterGitOpsSetsServer(s, srv)
-	})
-
-	return pb.NewGitOpsSetsClient(conn), k8s
 }
 
 func TestGetReconciledObjects(t *testing.T) {
@@ -244,6 +234,45 @@ func TestGetReconciledObjects(t *testing.T) {
 	}
 }
 
+func setup(t *testing.T) (pb.GitOpsSetsClient, client.Client) {
+	k8s, factory := grpctesting.MakeFactoryWithObjects()
+	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
+		Namespaces: []*corev1.Namespace{
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "default",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+			{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "test-ns",
+				},
+				TypeMeta: metav1.TypeMeta{
+					APIVersion: "v1",
+					Kind:       "Namespace",
+				},
+			},
+		},
+	}, kubefakes.NewFakeClientGetter(k8s), &mgmtfetcherfake.FakeAuthClientGetter{})
+
+	opts := server.ServerOpts{
+		ClientsFactory:    factory,
+		ManagementFetcher: mgmtFetcher,
+		Cluster:           cluster.DefaultCluster,
+	}
+	srv := server.NewGitOpsSetsServer(opts)
+
+	conn := grpctesting.Setup(t, func(s *grpc.Server) {
+		pb.RegisterGitOpsSetsServer(s, srv)
+	}, WithClientsPoolInterceptor(&auth.UserPrincipal{ID: "bob"}))
+
+	return pb.NewGitOpsSetsClient(conn), k8s
+}
+
 func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
 	ns := &corev1.Namespace{}
 	ns.Name = "kube-test-" + rand.String(5)
@@ -251,4 +280,11 @@ func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.
 	g.Expect(k.Create(ctx, ns)).To(Succeed())
 
 	return ns
+}
+
+func WithClientsPoolInterceptor(user *auth.UserPrincipal) grpc.ServerOption {
+	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+		ctx = auth.WithPrincipal(ctx, user)
+		return handler(ctx, req)
+	})
 }

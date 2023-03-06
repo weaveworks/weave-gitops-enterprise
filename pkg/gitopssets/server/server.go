@@ -52,7 +52,7 @@ type server struct {
 	clients           clustersmngr.ClustersManager
 	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
 	scheme            *k8sruntime.Scheme
-	// cluster           string
+	cluster           string
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -67,6 +67,7 @@ func NewGitOpsSetsServer(opts ServerOpts) pb.GitOpsSetsServer {
 		clients:           opts.ClientsFactory,
 		managementFetcher: opts.ManagementFetcher,
 		scheme:            opts.Scheme,
+		cluster:           opts.Cluster,
 	}
 }
 
@@ -90,7 +91,7 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 		}
 		gsList := namespacedList.List.(*ctrl.GitOpsSetList)
 		for _, gs := range gsList.Items {
-			gitopsSets = append(gitopsSets, convert.GitOpsToProto("management", gs))
+			gitopsSets = append(gitopsSets, convert.GitOpsToProto(s.cluster, gs))
 		}
 	}
 

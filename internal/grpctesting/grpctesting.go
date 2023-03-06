@@ -77,10 +77,10 @@ func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfak
 	return factory
 }
 
-func Setup(t *testing.T, register func(s *grpc.Server)) *grpc.ClientConn {
+func Setup(t *testing.T, register func(s *grpc.Server), opt ...grpc.ServerOption) *grpc.ClientConn {
 	lis := bufconn.Listen(1024 * 1024)
 
-	s := grpc.NewServer()
+	s := grpc.NewServer(opt...)
 
 	register(s)
 
