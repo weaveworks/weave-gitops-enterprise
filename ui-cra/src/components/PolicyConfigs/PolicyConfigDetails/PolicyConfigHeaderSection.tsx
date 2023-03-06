@@ -47,7 +47,7 @@ function PolicyConfigHeaderSection({
             ? target?.targetList.map((item: any) => (
                 <li key={`${item.name}`}>
                   <span>
-                    {item.namespace}/{item.name}
+                    {item.namespace === "" ? <span>*</span>: item.namespace}/{item.name}
                   </span>
                   <span
                     className={`${classes.targetItemKind} ${classes.capitlize}`}

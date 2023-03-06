@@ -40,11 +40,11 @@ function PolicyDetailsCard({
                   <div>
                     <span
                       title={`One or more policies are not found in cluster ${clusterName}.`}
-                      data-testid={`warning-icon-${policy.name}`}
+                      data-testid={`warning-icon-${policy.id}`}
                     >
                       <WarningIcon />
                     </span>
-                    {policy.name}
+                    {policy.id}
                   </div>
                 )}
                 <label className="cardLbl">Parameters</label>
