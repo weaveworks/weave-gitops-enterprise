@@ -117,8 +117,8 @@ const ChartValuesDialog: FC<{
     setYamlPreview(event.target.value);
 
   const handleModalClose = () => {
-    onClose();
     setYamlPreview('');
+    onClose();
   };
 
   const handleModalDiscard = () => {
