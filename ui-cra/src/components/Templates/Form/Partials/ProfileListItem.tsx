@@ -94,17 +94,21 @@ const ProfilesListItem: FC<{
     handleUpdateProfile(profile);
   };
 
-  const handleUpdateProfiles = useCallback(() => {
-    profile.values.forEach(item => {
-      if (item.version === version) {
-        item.yaml = yaml;
-      }
-    });
+  const handleUpdateProfiles = useCallback(
+    value => {
+      setYaml(value);
+      profile.values.forEach(item => {
+        if (item.version === version) {
+          item.yaml = value;
+        }
+      });
 
-    handleUpdateProfile(profile);
+      handleUpdateProfile(profile);
 
-    setOpenYamlPreview(false);
-  }, [profile, handleUpdateProfile, version, yaml]);
+      setOpenYamlPreview(false);
+    },
+    [profile, handleUpdateProfile, version],
+  );
 
   useEffect(() => {
     const [selectedValue] = profile.values.filter(
@@ -158,7 +162,6 @@ const ProfilesListItem: FC<{
       {openYamlPreview && (
         <ChartValuesDialog
           yaml={yaml}
-          setYaml={setYaml}
           cluster={cluster}
           profile={profile}
           version={version}

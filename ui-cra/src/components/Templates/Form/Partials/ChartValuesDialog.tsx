@@ -45,10 +45,9 @@ const ChartValuesDialog: FC<{
   yaml: string;
   profile: UpdatedProfile;
   version: string;
-  onSave: () => void;
+  onSave: (value: string) => void;
   onClose: () => void;
   onDiscard: () => void;
-  setYaml: Dispatch<React.SetStateAction<string>>;
   helmRepo: RepositoryRef;
 }> = ({
   profile,
@@ -59,7 +58,6 @@ const ChartValuesDialog: FC<{
   onClose,
   helmRepo,
   onDiscard,
-  setYaml,
 }) => {
   const classes = useStyles();
   const { api } = useContext(EnterpriseClientContext);
@@ -124,13 +122,12 @@ const ChartValuesDialog: FC<{
   };
 
   const handleModalDiscard = () => {
+    onSave('');
     onDiscard();
-    setYaml('');
   };
 
   const handleModalSave = () => {
-    onSave();
-    setYaml(yamlPreview);
+    onSave(yamlPreview);
   };
 
   return (
