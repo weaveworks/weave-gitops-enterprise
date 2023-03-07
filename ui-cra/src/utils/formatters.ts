@@ -97,3 +97,6 @@ export const getMetadata = (
     }
   });
 };
+export function azureServerOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.AzureOauthCallback}`;
+}
