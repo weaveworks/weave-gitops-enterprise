@@ -29,7 +29,13 @@ service Query {
 }
 
 message QueryRequest {
-    
+    QueryOpts query = 1;
+}
+
+message QueryOpts {
+    string Key = 1;
+    string Value = 2;
+    string Operand = 3;
 }
 
 message QueryResponse {

@@ -39,8 +39,8 @@ type ServerOpts struct {
 	SkipCollection     bool
 }
 
-func (s *server) DoQuery(ctx context.Context, in *pb.QueryRequest) (*pb.QueryResponse, error) {
-	objs, err := s.qs.RunQuery(ctx)
+func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
+	objs, err := s.qs.RunQuery(ctx, msg.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}

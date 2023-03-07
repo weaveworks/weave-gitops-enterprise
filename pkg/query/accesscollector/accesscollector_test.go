@@ -56,7 +56,7 @@ func TestAccessRulesCollector(t *testing.T) {
 
 			expected := models.AccessRule{
 				Cluster:         "test-cluster",
-				Role:            "test",
+				Principal:       "test",
 				AccessibleKinds: []string{"somegroup/somekind"},
 			}
 
@@ -89,7 +89,7 @@ func TestAccessLogic(t *testing.T) {
 			},
 			expected: []models.AccessRule{{
 				Cluster:         "test-cluster",
-				Role:            "test",
+				Principal:       "test",
 				AccessibleKinds: []string{"somegroup/somekind"},
 			}},
 		},
@@ -112,7 +112,7 @@ func TestAccessLogic(t *testing.T) {
 			},
 			expected: []models.AccessRule{{
 				Cluster:         "test-cluster",
-				Role:            "test",
+				Principal:       "test",
 				AccessibleKinds: []string{"somegroup/somekind", "othergroup/otherkind"},
 			}},
 		},
@@ -131,7 +131,7 @@ func TestAccessLogic(t *testing.T) {
 			},
 			expected: []models.AccessRule{{
 				Cluster:         "test-cluster",
-				Role:            "test",
+				Principal:       "test",
 				AccessibleKinds: []string{},
 			}},
 		},
@@ -149,8 +149,8 @@ func TestAccessLogic(t *testing.T) {
 				}},
 			},
 			expected: []models.AccessRule{{
-				Cluster: "test-cluster",
-				Role:    "test",
+				Cluster:   "test-cluster",
+				Principal: "test",
 				// Weird case here. Someone would have to have a completely open API server to hit this.
 				AccessibleKinds: []string{
 					"*/somekind",
@@ -173,7 +173,7 @@ func TestAccessLogic(t *testing.T) {
 			},
 			expected: []models.AccessRule{{
 				Cluster:         "test-cluster",
-				Role:            "test",
+				Principal:       "test",
 				AccessibleKinds: []string{},
 			}},
 		},
@@ -191,8 +191,8 @@ func TestAccessLogic(t *testing.T) {
 				}},
 			},
 			expected: []models.AccessRule{{
-				Cluster: "test-cluster",
-				Role:    "test",
+				Cluster:   "test-cluster",
+				Principal: "test",
 				// Weird case here. Someone would have to have a completely open API server to hit this.
 				AccessibleKinds: []string{
 					"someapigroup.example.com/*",
@@ -213,8 +213,8 @@ func TestAccessLogic(t *testing.T) {
 				}},
 			},
 			expected: []models.AccessRule{{
-				Cluster: "test-cluster",
-				Role:    "test",
+				Cluster:   "test-cluster",
+				Principal: "test",
 				AccessibleKinds: []string{
 					"someapigroup.example.com/somekind",
 					"someapigroup.example.com/otherkind",
@@ -250,7 +250,7 @@ func TestAccessLogic(t *testing.T) {
 			},
 			expected: []models.AccessRule{{
 				Cluster:   "test-cluster",
-				Role:      "test",
+				Principal: "test",
 				Namespace: "test-namespace",
 				AccessibleKinds: []string{
 					"somegroup/somekind",

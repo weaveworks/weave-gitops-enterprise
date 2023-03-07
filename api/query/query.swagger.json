@@ -19,7 +19,7 @@
   "paths": {
     "/v1/query": {
       "post": {
-        "operationId": "Query_Run",
+        "operationId": "Query_DoQuery",
         "responses": {
           "200": {
             "description": "A successful response.",
@@ -98,8 +98,27 @@
         }
       }
     },
+    "v1QueryOpts": {
+      "type": "object",
+      "properties": {
+        "Key": {
+          "type": "string"
+        },
+        "Value": {
+          "type": "string"
+        },
+        "Operand": {
+          "type": "string"
+        }
+      }
+    },
     "v1QueryRequest": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "query": {
+          "$ref": "#/definitions/v1QueryOpts"
+        }
+      }
     },
     "v1QueryResponse": {
       "type": "object",

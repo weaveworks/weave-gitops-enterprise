@@ -20,7 +20,8 @@ type StoreWriter interface {
 
 // StoreReader is an interface for querying objects
 type StoreReader interface {
-	Query(groups []string) ([]models.Object, error)
+	GetObjects() ([]models.Object, error)
+	GetAccessRules() ([]models.AccessRule, error)
 }
 
 func NewStore() StoreWriter {
