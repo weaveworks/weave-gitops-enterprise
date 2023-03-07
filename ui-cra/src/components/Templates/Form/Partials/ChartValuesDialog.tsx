@@ -14,7 +14,7 @@ import {
   IconType,
   theme as weaveTheme,
 } from '@weaveworks/weave-gitops';
-import { ChangeEvent, Dispatch, FC, useContext, useState } from 'react';
+import { ChangeEvent, FC, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
