@@ -21,7 +21,7 @@ export type Object = {
 }
 
 export class Query {
-  static Run(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
+  static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
     return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

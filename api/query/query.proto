@@ -20,7 +20,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
 };
 
 service Query {
-    rpc Run(QueryRequest) returns (QueryResponse) {
+    rpc DoQuery(QueryRequest) returns (QueryResponse) {
         option (google.api.http) = {
             post: "/v1/query"
             body: "*"

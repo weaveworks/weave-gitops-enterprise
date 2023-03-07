@@ -6,9 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -41,13 +39,5 @@ func NewCollector(opts CollectorOpts) Collector {
 		ticker: time.NewTicker(opts.PollInterval),
 		quit:   make(chan bool, 1),
 		msg:    make(chan []ObjectRecord, 1),
-	}
-}
-
-func convertK8sToModelObject(obj *unstructured.Unstructured) models.Object {
-	return models.Object{
-		Kind:      obj.GetKind(),
-		Name:      obj.GetName(),
-		Namespace: obj.GetNamespace(),
 	}
 }

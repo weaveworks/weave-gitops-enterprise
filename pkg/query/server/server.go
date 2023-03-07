@@ -11,9 +11,9 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/memorystore"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectcollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -39,7 +39,7 @@ type ServerOpts struct {
 	SkipCollection     bool
 }
 
-func (s *server) Run(ctx context.Context, in *pb.QueryRequest) (*pb.QueryResponse, error) {
+func (s *server) DoQuery(ctx context.Context, in *pb.QueryRequest) (*pb.QueryResponse, error) {
 	objs, err := s.qs.RunQuery(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
@@ -55,12 +55,6 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 		opts.ObjectKinds = DefaultKinds
 	}
 
-	col := collector.NewCollector(collector.CollectorOpts{
-		Log:            opts.Logger,
-		ClusterManager: opts.ClustersManager,
-		ObjectKinds:    opts.ObjectKinds,
-	})
-
 	var w store.StoreWriter
 	var r store.StoreReader
 
@@ -75,8 +69,6 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
 		Log:         opts.Logger,
-		Collector:   col,
-		StoreWriter: w,
 		StoreReader: r,
 	})
 	if err != nil {
@@ -84,9 +76,8 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 	}
 
 	if !opts.SkipCollection {
-		if err := qs.Start(); err != nil {
-			return nil, fmt.Errorf("failed to start query service: %w", err)
-		}
+		objCollector := objectcollector.NewObjectCollector(opts.Logger, opts.ClustersManager, w, nil)
+		objCollector.Start()
 	}
 
 	return &server{qs: qs}, nil
