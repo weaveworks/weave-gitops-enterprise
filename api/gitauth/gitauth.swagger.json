@@ -61,6 +61,68 @@
         ]
       }
     },
+    "/v1/gitauth/auth_providers/azureserver": {
+      "get": {
+        "operationId": "GitAuth_GetAzureServerAuthURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAzureServerAuthURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/auth_providers/azureserver/authorize": {
+      "post": {
+        "operationId": "GitAuth_AuthorizeAzureServer",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeAzureServerResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeAzureServerRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
     "/v1/gitauth/auth_providers/bitbucketserver": {
       "get": {
         "operationId": "GitAuth_GetBitbucketServerAuthURL",
@@ -344,6 +406,25 @@
         }
       }
     },
+    "v1AuthorizeAzureServerRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "redirectUri": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AuthorizeAzureServerResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
     "v1AuthorizeBitbucketServerRequest": {
       "type": "object",
       "properties": {
@@ -378,6 +459,14 @@
       "type": "object",
       "properties": {
         "token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetAzureServerAuthURLResponse": {
+      "type": "object",
+      "properties": {
+        "url": {
           "type": "string"
         }
       }
@@ -441,7 +530,8 @@
         "Unknown",
         "GitHub",
         "GitLab",
-        "BitBucketServer"
+        "BitBucketServer",
+        "AzureServer"
       ],
       "default": "Unknown"
     },

@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/azure"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/bitbucket"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
@@ -39,6 +40,7 @@ type applicationServer struct {
 	ghAuthClient auth.GithubAuthClient
 	glAuthClient auth.GitlabAuthClient
 	bbAuthClient bitbucket.AuthClient
+	azAuthClient azure.AuthClient
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -49,6 +51,7 @@ type ApplicationsConfig struct {
 	GithubAuthClient      auth.GithubAuthClient
 	GitlabAuthClient      auth.GitlabAuthClient
 	BitBucketServerClient bitbucket.AuthClient
+	AzureServerClient     azure.AuthClient
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -65,6 +68,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 		ghAuthClient: cfg.GithubAuthClient,
 		glAuthClient: cfg.GitlabAuthClient,
 		bbAuthClient: cfg.BitBucketServerClient,
+		azAuthClient: cfg.AzureServerClient,
 	}
 }
 
@@ -198,6 +202,29 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 
 }
 
+func (s *applicationServer) GetAzureServerAuthURL(ctx context.Context, msg *pb.GetAzureServerAuthURLRequest) (*pb.GetAzureServerAuthURLResponse, error) {
+	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
+	if err != nil {
+		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
+	}
+
+	return &pb.GetAzureServerAuthURLResponse{Url: u.String()}, nil
+}
+
+func (s *applicationServer) AuthorizeAzureServer(ctx context.Context, msg *pb.AuthorizeAzureServerRequest) (*pb.AuthorizeAzureServerResponse, error) {
+	tokenState, err := s.azAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
+	if err != nil {
+		return nil, fmt.Errorf("could not exchange code: %w", err)
+	}
+
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderAzureServer, tokenState.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	return &pb.AuthorizeAzureServerResponse{Token: token}, nil
+
+}
 func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
 	token, err := middleware.ExtractProviderToken(ctx)
 	if err != nil {

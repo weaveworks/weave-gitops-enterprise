@@ -158,7 +158,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		}
 		ref.Domain = addSchemeToDomain(ref.Domain)
 		ref = WithCombinedSubOrgs(*ref)
-	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) {
+	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) || gp.Type == string(gitproviders.GitProviderAzureServer) {
 		// The ParseOrgRepositoryURL function used for other providers
 		// fails to parse BitBucket Server URLs correctly
 		re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)

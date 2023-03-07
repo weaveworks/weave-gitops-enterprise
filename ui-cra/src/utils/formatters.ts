@@ -69,3 +69,6 @@ export function gitlabOAuthRedirectURI(): string {
 export function bitbucketServerOAuthRedirectURI(): string {
   return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
 }
+export function azureServerOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.AzureOauthCallback}`;
+}
