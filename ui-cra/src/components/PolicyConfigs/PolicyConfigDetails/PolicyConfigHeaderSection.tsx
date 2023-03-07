@@ -24,7 +24,7 @@ function PolicyConfigHeaderSection({
   ];
   useEffect(() => {
     const matchTarget = Object.entries(match)
-      .filter(item => item[0] == matchType)
+      .filter(item => item[0] === matchType)
       .map(item => item[1]);
     setTarget(matchTarget.flat());
   }, [matchType, match]);

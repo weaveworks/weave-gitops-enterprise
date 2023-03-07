@@ -49,6 +49,22 @@ exports[`Applications index test snapshots loading 1`] = `
   width: 24px;
 }
 
+.c7 svg path.image-automation {
+  fill: !important;
+}
+
+.c7 svg.sources {
+  fill: none !important;
+}
+
+.c7 svg.sources path {
+  fill: !important;
+}
+
+.c7 svg.sources rect {
+  stroke: !important;
+}
+
 .c7.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
@@ -73,6 +89,22 @@ exports[`Applications index test snapshots loading 1`] = `
   fill: !important;
   height: 16px;
   width: 16px;
+}
+
+.c11 svg path.image-automation {
+  fill: !important;
+}
+
+.c11 svg.sources {
+  fill: none !important;
+}
+
+.c11 svg.sources path {
+  fill: !important;
+}
+
+.c11 svg.sources rect {
+  stroke: !important;
 }
 
 .c11.downward {
@@ -606,6 +638,22 @@ exports[`Applications index test snapshots success 1`] = `
   width: 24px;
 }
 
+.c7 svg path.image-automation {
+  fill: !important;
+}
+
+.c7 svg.sources {
+  fill: none !important;
+}
+
+.c7 svg.sources path {
+  fill: !important;
+}
+
+.c7 svg.sources rect {
+  stroke: !important;
+}
+
 .c7.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
@@ -630,6 +678,22 @@ exports[`Applications index test snapshots success 1`] = `
   fill: !important;
   height: 16px;
   width: 16px;
+}
+
+.c11 svg path.image-automation {
+  fill: !important;
+}
+
+.c11 svg.sources {
+  fill: none !important;
+}
+
+.c11 svg.sources path {
+  fill: !important;
+}
+
+.c11 svg.sources rect {
+  stroke: !important;
 }
 
 .c11.downward {
@@ -658,6 +722,22 @@ exports[`Applications index test snapshots success 1`] = `
   width: 24px;
 }
 
+.c26 svg path.image-automation {
+  fill: #737373 !important;
+}
+
+.c26 svg.sources {
+  fill: none !important;
+}
+
+.c26 svg.sources path {
+  fill: #737373 !important;
+}
+
+.c26 svg.sources rect {
+  stroke: #737373 !important;
+}
+
 .c26.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
@@ -683,6 +763,22 @@ exports[`Applications index test snapshots success 1`] = `
   fill: #d8d8d8 !important;
   height: 16px;
   width: 16px;
+}
+
+.c32 svg path.image-automation {
+  fill: #d8d8d8 !important;
+}
+
+.c32 svg.sources {
+  fill: none !important;
+}
+
+.c32 svg.sources path {
+  fill: #d8d8d8 !important;
+}
+
+.c32 svg.sources rect {
+  stroke: #d8d8d8 !important;
 }
 
 .c32.downward {
