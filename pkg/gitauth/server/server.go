@@ -253,6 +253,8 @@ func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
 		return pb.GitProvider_GitLab
 	case gitproviders.GitProviderBitBucketServer:
 		return pb.GitProvider_BitBucketServer
+	case gitproviders.GitProviderAzureDevOps:
+		return pb.GitProvider_AzureDevOps
 	}
 
 	return pb.GitProvider_Unknown
@@ -266,6 +268,8 @@ func findValidator(provider pb.GitProvider, s *applicationServer) (auth.Provider
 		return s.glAuthClient, nil
 	case pb.GitProvider_BitBucketServer:
 		return s.bbAuthClient, nil
+	case pb.GitProvider_AzureDevOps:
+		return s.azAuthClient, nil
 	}
 
 	return nil, fmt.Errorf("unknown git provider %s", provider)
