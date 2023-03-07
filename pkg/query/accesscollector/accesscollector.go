@@ -5,14 +5,13 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	v1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/kubernetes/pkg/apis/rbac"
 	"k8s.io/kubernetes/pkg/util/slice"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 var DefaultVerbsRequiredForAccess = []string{"list"}
@@ -66,6 +65,8 @@ func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) 
 	opts.ObjectKinds = []schema.GroupVersionKind{
 		rbac.SchemeGroupVersion.WithKind("ClusterRole"),
 		rbac.SchemeGroupVersion.WithKind("Role"),
+		rbac.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
+		rbac.SchemeGroupVersion.WithKind("RoleBinding"),
 	}
 	col := collector.NewCollector(opts)
 
@@ -81,63 +82,36 @@ func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) 
 func (a *accessRulesCollector) handleRulesReceived(objects []collector.ObjectRecord) ([]models.AccessRule, error) {
 	result := []models.AccessRule{}
 
-	for _, o := range objects {
-		c := o.ClusterName()
-		obj := o.Object()
-		var r models.AccessRule
+	roles := []adapters.RoleLike{}
+	bindings := []adapters.BindingLike{}
 
-		adapter, err := newAdapter(obj)
-		if err != nil {
-			return result, fmt.Errorf("failed to create adapter for object: %w", err)
+	for _, obj := range objects {
+		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
+
+		if kind == "ClusterRole" || kind == "Role" {
+			adapter, err := adapters.NewRoleAdapter(obj.Object())
+			if err != nil {
+				return result, fmt.Errorf("failed to create adapter for object: %w", err)
+			}
+			roles = append(roles, adapter)
 		}
 
-		r = convertToAccessRule(c, adapter, a.verbs)
+		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
+			adapter, err := adapters.NewBindingAdapter(obj.Object())
+			if err != nil {
+				return result, fmt.Errorf("failed to create binding adapter: %w", err)
+			}
 
-		result = append(result, r)
-
+			bindings = append(bindings, adapter)
+		}
 	}
+
+	// Figure out the binding/role pairs
 
 	return result, nil
 }
 
-// RoleLike is an interface that represents a role or cluster role
-// Tried this with generics but it didn't work out.
-type RoleLike interface {
-	client.Object
-
-	GetRules() []v1.PolicyRule
-}
-
-type cRoleAdapter struct {
-	*v1.ClusterRole
-}
-
-func (c *cRoleAdapter) GetRules() []v1.PolicyRule {
-	return c.Rules
-}
-
-type roleAdapter struct {
-	*v1.Role
-}
-
-func (r *roleAdapter) GetRules() []v1.PolicyRule {
-	return r.Rules
-}
-
-func newAdapter(obj client.Object) (RoleLike, error) {
-	switch o := obj.(type) {
-	case *v1.ClusterRole:
-		return &cRoleAdapter{o}, nil
-	case *v1.Role:
-		return &roleAdapter{o}, nil
-
-	default:
-		return nil, fmt.Errorf("unknown object type %T", obj)
-	}
-
-}
-
-func convertToAccessRule(clusterName string, obj RoleLike, requiredVerbs []string) models.AccessRule {
+func convertToAccessRule(clusterName string, obj adapters.RoleLike, requiredVerbs []string) models.AccessRule {
 	rules := obj.GetRules()
 
 	derivedAccess := map[string]map[string]bool{}
@@ -172,7 +146,7 @@ func convertToAccessRule(clusterName string, obj RoleLike, requiredVerbs []strin
 
 	return models.AccessRule{
 		Cluster:         clusterName,
-		Role:            obj.GetName(),
+		Principal:       obj.GetName(),
 		Namespace:       obj.GetNamespace(),
 		AccessibleKinds: kinds2,
 	}

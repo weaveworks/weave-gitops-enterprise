@@ -40,13 +40,26 @@ func (s *MemoryStore) StoreObjects(objects []models.Object) error {
 	return nil
 }
 
-func (s *MemoryStore) Query(groups []string) ([]models.Object, error) {
+func (s *MemoryStore) GetObjects() ([]models.Object, error) {
 	s.m.Lock()
 	defer s.m.Unlock()
 
 	list := []models.Object{}
 
 	for _, v := range s.objects {
+		list = append(list, v)
+	}
+
+	return list, nil
+}
+
+func (s *MemoryStore) GetAccessRules() ([]models.AccessRule, error) {
+	s.m.Lock()
+	defer s.m.Unlock()
+
+	list := []models.AccessRule{}
+
+	for _, v := range s.accessRules {
 		list = append(list, v)
 	}
 

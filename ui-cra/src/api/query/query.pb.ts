@@ -6,6 +6,13 @@
 
 import * as fm from "../../fetch.pb"
 export type QueryRequest = {
+  query?: QueryOpts
+}
+
+export type QueryOpts = {
+  key?: string
+  value?: string
+  operand?: string
 }
 
 export type QueryResponse = {

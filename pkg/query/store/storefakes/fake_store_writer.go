@@ -9,16 +9,27 @@ import (
 )
 
 type FakeStoreWriter struct {
-	QueryStub        func([]string) ([]models.Object, error)
-	queryMutex       sync.RWMutex
-	queryArgsForCall []struct {
-		arg1 []string
+	GetAccessRulesStub        func() ([]models.AccessRule, error)
+	getAccessRulesMutex       sync.RWMutex
+	getAccessRulesArgsForCall []struct {
 	}
-	queryReturns struct {
+	getAccessRulesReturns struct {
+		result1 []models.AccessRule
+		result2 error
+	}
+	getAccessRulesReturnsOnCall map[int]struct {
+		result1 []models.AccessRule
+		result2 error
+	}
+	GetObjectsStub        func() ([]models.Object, error)
+	getObjectsMutex       sync.RWMutex
+	getObjectsArgsForCall []struct {
+	}
+	getObjectsReturns struct {
 		result1 []models.Object
 		result2 error
 	}
-	queryReturnsOnCall map[int]struct {
+	getObjectsReturnsOnCall map[int]struct {
 		result1 []models.Object
 		result2 error
 	}
@@ -48,23 +59,17 @@ type FakeStoreWriter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStoreWriter) Query(arg1 []string) ([]models.Object, error) {
-	var arg1Copy []string
-	if arg1 != nil {
-		arg1Copy = make([]string, len(arg1))
-		copy(arg1Copy, arg1)
-	}
-	fake.queryMutex.Lock()
-	ret, specificReturn := fake.queryReturnsOnCall[len(fake.queryArgsForCall)]
-	fake.queryArgsForCall = append(fake.queryArgsForCall, struct {
-		arg1 []string
-	}{arg1Copy})
-	stub := fake.QueryStub
-	fakeReturns := fake.queryReturns
-	fake.recordInvocation("Query", []interface{}{arg1Copy})
-	fake.queryMutex.Unlock()
+func (fake *FakeStoreWriter) GetAccessRules() ([]models.AccessRule, error) {
+	fake.getAccessRulesMutex.Lock()
+	ret, specificReturn := fake.getAccessRulesReturnsOnCall[len(fake.getAccessRulesArgsForCall)]
+	fake.getAccessRulesArgsForCall = append(fake.getAccessRulesArgsForCall, struct {
+	}{})
+	stub := fake.GetAccessRulesStub
+	fakeReturns := fake.getAccessRulesReturns
+	fake.recordInvocation("GetAccessRules", []interface{}{})
+	fake.getAccessRulesMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -72,46 +77,95 @@ func (fake *FakeStoreWriter) Query(arg1 []string) ([]models.Object, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeStoreWriter) QueryCallCount() int {
-	fake.queryMutex.RLock()
-	defer fake.queryMutex.RUnlock()
-	return len(fake.queryArgsForCall)
+func (fake *FakeStoreWriter) GetAccessRulesCallCount() int {
+	fake.getAccessRulesMutex.RLock()
+	defer fake.getAccessRulesMutex.RUnlock()
+	return len(fake.getAccessRulesArgsForCall)
 }
 
-func (fake *FakeStoreWriter) QueryCalls(stub func([]string) ([]models.Object, error)) {
-	fake.queryMutex.Lock()
-	defer fake.queryMutex.Unlock()
-	fake.QueryStub = stub
+func (fake *FakeStoreWriter) GetAccessRulesCalls(stub func() ([]models.AccessRule, error)) {
+	fake.getAccessRulesMutex.Lock()
+	defer fake.getAccessRulesMutex.Unlock()
+	fake.GetAccessRulesStub = stub
 }
 
-func (fake *FakeStoreWriter) QueryArgsForCall(i int) []string {
-	fake.queryMutex.RLock()
-	defer fake.queryMutex.RUnlock()
-	argsForCall := fake.queryArgsForCall[i]
-	return argsForCall.arg1
+func (fake *FakeStoreWriter) GetAccessRulesReturns(result1 []models.AccessRule, result2 error) {
+	fake.getAccessRulesMutex.Lock()
+	defer fake.getAccessRulesMutex.Unlock()
+	fake.GetAccessRulesStub = nil
+	fake.getAccessRulesReturns = struct {
+		result1 []models.AccessRule
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *FakeStoreWriter) QueryReturns(result1 []models.Object, result2 error) {
-	fake.queryMutex.Lock()
-	defer fake.queryMutex.Unlock()
-	fake.QueryStub = nil
-	fake.queryReturns = struct {
+func (fake *FakeStoreWriter) GetAccessRulesReturnsOnCall(i int, result1 []models.AccessRule, result2 error) {
+	fake.getAccessRulesMutex.Lock()
+	defer fake.getAccessRulesMutex.Unlock()
+	fake.GetAccessRulesStub = nil
+	if fake.getAccessRulesReturnsOnCall == nil {
+		fake.getAccessRulesReturnsOnCall = make(map[int]struct {
+			result1 []models.AccessRule
+			result2 error
+		})
+	}
+	fake.getAccessRulesReturnsOnCall[i] = struct {
+		result1 []models.AccessRule
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStoreWriter) GetObjects() ([]models.Object, error) {
+	fake.getObjectsMutex.Lock()
+	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
+	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
+	}{})
+	stub := fake.GetObjectsStub
+	fakeReturns := fake.getObjectsReturns
+	fake.recordInvocation("GetObjects", []interface{}{})
+	fake.getObjectsMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStoreWriter) GetObjectsCallCount() int {
+	fake.getObjectsMutex.RLock()
+	defer fake.getObjectsMutex.RUnlock()
+	return len(fake.getObjectsArgsForCall)
+}
+
+func (fake *FakeStoreWriter) GetObjectsCalls(stub func() ([]models.Object, error)) {
+	fake.getObjectsMutex.Lock()
+	defer fake.getObjectsMutex.Unlock()
+	fake.GetObjectsStub = stub
+}
+
+func (fake *FakeStoreWriter) GetObjectsReturns(result1 []models.Object, result2 error) {
+	fake.getObjectsMutex.Lock()
+	defer fake.getObjectsMutex.Unlock()
+	fake.GetObjectsStub = nil
+	fake.getObjectsReturns = struct {
 		result1 []models.Object
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStoreWriter) QueryReturnsOnCall(i int, result1 []models.Object, result2 error) {
-	fake.queryMutex.Lock()
-	defer fake.queryMutex.Unlock()
-	fake.QueryStub = nil
-	if fake.queryReturnsOnCall == nil {
-		fake.queryReturnsOnCall = make(map[int]struct {
+func (fake *FakeStoreWriter) GetObjectsReturnsOnCall(i int, result1 []models.Object, result2 error) {
+	fake.getObjectsMutex.Lock()
+	defer fake.getObjectsMutex.Unlock()
+	fake.GetObjectsStub = nil
+	if fake.getObjectsReturnsOnCall == nil {
+		fake.getObjectsReturnsOnCall = make(map[int]struct {
 			result1 []models.Object
 			result2 error
 		})
 	}
-	fake.queryReturnsOnCall[i] = struct {
+	fake.getObjectsReturnsOnCall[i] = struct {
 		result1 []models.Object
 		result2 error
 	}{result1, result2}
@@ -252,8 +306,10 @@ func (fake *FakeStoreWriter) StoreObjectsReturnsOnCall(i int, result1 error) {
 func (fake *FakeStoreWriter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.queryMutex.RLock()
-	defer fake.queryMutex.RUnlock()
+	fake.getAccessRulesMutex.RLock()
+	defer fake.getAccessRulesMutex.RUnlock()
+	fake.getObjectsMutex.RLock()
+	defer fake.getObjectsMutex.RUnlock()
 	fake.storeAccessRulesMutex.RLock()
 	defer fake.storeAccessRulesMutex.RUnlock()
 	fake.storeObjectsMutex.RLock()
