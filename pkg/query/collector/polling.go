@@ -72,6 +72,7 @@ func (c *pollingCollector) collect(ctx context.Context) ([]ObjectRecord, error) 
 	result := []ObjectRecord{}
 
 	clusters := c.mgr.GetClusters()
+	namespaces := c.mgr.GetClustersNamespaces()
 
 	for _, clus := range clusters {
 		clusterName := clus.GetName()
@@ -81,22 +82,25 @@ func (c *pollingCollector) collect(ctx context.Context) ([]ObjectRecord, error) 
 			continue
 		}
 
-		for _, kind := range c.kinds {
-			list := &unstructured.UnstructuredList{}
-			list.SetGroupVersionKind(kind)
+		for _, ns := range namespaces[clusterName] {
+			for _, kind := range c.kinds {
+				list := &unstructured.UnstructuredList{}
+				list.SetGroupVersionKind(kind)
 
-			if err := cl.List(ctx, list); err != nil {
-				c.log.Error(err, "failed to list objects")
-				continue
-			}
+				if err := cl.List(ctx, list, client.InNamespace(ns.Name)); err != nil {
+					c.log.Error(err, "failed to list objects", "cluster", clusterName, "namespace", ns.Name, "kind", kind)
+					continue
+				}
 
-			for _, obj := range list.Items {
-				result = append(result, record{
-					clusterName: clusterName,
-					object:      &obj,
-				})
+				for _, obj := range list.Items {
+					result = append(result, record{
+						clusterName: clusterName,
+						object:      &obj,
+					})
+				}
 			}
 		}
+
 	}
 
 	return result, nil
