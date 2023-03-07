@@ -42,7 +42,7 @@ function PolicyConfigHeaderSection({
           <span> ({target?.length})</span>
         </div>
         <ul className={classes.targetItemsList}>
-          {matchType === 'resources' || 'apps'
+          {matchType === 'resources' || matchType === 'apps'
             ? target?.map((item: any) => (
                 <li key={`${item.name}`}>
                   <span>
