@@ -39,8 +39,8 @@ type GitAuthClient interface {
 	GetGitlabAuthURL(ctx context.Context, in *GetGitlabAuthURLRequest, opts ...grpc.CallOption) (*GetGitlabAuthURLResponse, error)
 	GetBitbucketServerAuthURL(ctx context.Context, in *GetBitbucketServerAuthURLRequest, opts ...grpc.CallOption) (*GetBitbucketServerAuthURLResponse, error)
 	AuthorizeBitbucketServer(ctx context.Context, in *AuthorizeBitbucketServerRequest, opts ...grpc.CallOption) (*AuthorizeBitbucketServerResponse, error)
-	GetAzureServerAuthURL(ctx context.Context, in *GetAzureServerAuthURLRequest, opts ...grpc.CallOption) (*GetAzureServerAuthURLResponse, error)
-	AuthorizeAzureServer(ctx context.Context, in *AuthorizeAzureServerRequest, opts ...grpc.CallOption) (*AuthorizeAzureServerResponse, error)
+	GetAzureDevOpsAuthURL(ctx context.Context, in *GetAzureDevOpsAuthURLRequest, opts ...grpc.CallOption) (*GetAzureDevOpsAuthURLResponse, error)
+	AuthorizeAzureDevOps(ctx context.Context, in *AuthorizeAzureDevOpsRequest, opts ...grpc.CallOption) (*AuthorizeAzureDevOpsResponse, error)
 	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
 	// The returned token is useable for authentication with the GitOps server only.
 	// See the GitLab OAuth docs for more more information:
@@ -114,18 +114,18 @@ func (c *gitAuthClient) AuthorizeBitbucketServer(ctx context.Context, in *Author
 	return out, nil
 }
 
-func (c *gitAuthClient) GetAzureServerAuthURL(ctx context.Context, in *GetAzureServerAuthURLRequest, opts ...grpc.CallOption) (*GetAzureServerAuthURLResponse, error) {
-	out := new(GetAzureServerAuthURLResponse)
-	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/GetAzureServerAuthURL", in, out, opts...)
+func (c *gitAuthClient) GetAzureDevOpsAuthURL(ctx context.Context, in *GetAzureDevOpsAuthURLRequest, opts ...grpc.CallOption) (*GetAzureDevOpsAuthURLResponse, error) {
+	out := new(GetAzureDevOpsAuthURLResponse)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *gitAuthClient) AuthorizeAzureServer(ctx context.Context, in *AuthorizeAzureServerRequest, opts ...grpc.CallOption) (*AuthorizeAzureServerResponse, error) {
-	out := new(AuthorizeAzureServerResponse)
-	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/AuthorizeAzureServer", in, out, opts...)
+func (c *gitAuthClient) AuthorizeAzureDevOps(ctx context.Context, in *AuthorizeAzureDevOpsRequest, opts ...grpc.CallOption) (*AuthorizeAzureDevOpsResponse, error) {
+	out := new(AuthorizeAzureDevOpsResponse)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/AuthorizeAzureDevOps", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -180,8 +180,8 @@ type GitAuthServer interface {
 	GetGitlabAuthURL(context.Context, *GetGitlabAuthURLRequest) (*GetGitlabAuthURLResponse, error)
 	GetBitbucketServerAuthURL(context.Context, *GetBitbucketServerAuthURLRequest) (*GetBitbucketServerAuthURLResponse, error)
 	AuthorizeBitbucketServer(context.Context, *AuthorizeBitbucketServerRequest) (*AuthorizeBitbucketServerResponse, error)
-	GetAzureServerAuthURL(context.Context, *GetAzureServerAuthURLRequest) (*GetAzureServerAuthURLResponse, error)
-	AuthorizeAzureServer(context.Context, *AuthorizeAzureServerRequest) (*AuthorizeAzureServerResponse, error)
+	GetAzureDevOpsAuthURL(context.Context, *GetAzureDevOpsAuthURLRequest) (*GetAzureDevOpsAuthURLResponse, error)
+	AuthorizeAzureDevOps(context.Context, *AuthorizeAzureDevOpsRequest) (*AuthorizeAzureDevOpsResponse, error)
 	// AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
 	// The returned token is useable for authentication with the GitOps server only.
 	// See the GitLab OAuth docs for more more information:
@@ -216,11 +216,11 @@ func (UnimplementedGitAuthServer) GetBitbucketServerAuthURL(context.Context, *Ge
 func (UnimplementedGitAuthServer) AuthorizeBitbucketServer(context.Context, *AuthorizeBitbucketServerRequest) (*AuthorizeBitbucketServerResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeBitbucketServer not implemented")
 }
-func (UnimplementedGitAuthServer) GetAzureServerAuthURL(context.Context, *GetAzureServerAuthURLRequest) (*GetAzureServerAuthURLResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAzureServerAuthURL not implemented")
+func (UnimplementedGitAuthServer) GetAzureDevOpsAuthURL(context.Context, *GetAzureDevOpsAuthURLRequest) (*GetAzureDevOpsAuthURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAzureDevOpsAuthURL not implemented")
 }
-func (UnimplementedGitAuthServer) AuthorizeAzureServer(context.Context, *AuthorizeAzureServerRequest) (*AuthorizeAzureServerResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeAzureServer not implemented")
+func (UnimplementedGitAuthServer) AuthorizeAzureDevOps(context.Context, *AuthorizeAzureDevOpsRequest) (*AuthorizeAzureDevOpsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeAzureDevOps not implemented")
 }
 func (UnimplementedGitAuthServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
@@ -352,38 +352,38 @@ func _GitAuth_AuthorizeBitbucketServer_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GitAuth_GetAzureServerAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAzureServerAuthURLRequest)
+func _GitAuth_GetAzureDevOpsAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAzureDevOpsAuthURLRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GitAuthServer).GetAzureServerAuthURL(ctx, in)
+		return srv.(GitAuthServer).GetAzureDevOpsAuthURL(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gitauth.v1.GitAuth/GetAzureServerAuthURL",
+		FullMethod: "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GitAuthServer).GetAzureServerAuthURL(ctx, req.(*GetAzureServerAuthURLRequest))
+		return srv.(GitAuthServer).GetAzureDevOpsAuthURL(ctx, req.(*GetAzureDevOpsAuthURLRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _GitAuth_AuthorizeAzureServer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(AuthorizeAzureServerRequest)
+func _GitAuth_AuthorizeAzureDevOps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeAzureDevOpsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(GitAuthServer).AuthorizeAzureServer(ctx, in)
+		return srv.(GitAuthServer).AuthorizeAzureDevOps(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/gitauth.v1.GitAuth/AuthorizeAzureServer",
+		FullMethod: "/gitauth.v1.GitAuth/AuthorizeAzureDevOps",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(GitAuthServer).AuthorizeAzureServer(ctx, req.(*AuthorizeAzureServerRequest))
+		return srv.(GitAuthServer).AuthorizeAzureDevOps(ctx, req.(*AuthorizeAzureDevOpsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -474,12 +474,12 @@ var GitAuth_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _GitAuth_AuthorizeBitbucketServer_Handler,
 		},
 		{
-			MethodName: "GetAzureServerAuthURL",
-			Handler:    _GitAuth_GetAzureServerAuthURL_Handler,
+			MethodName: "GetAzureDevOpsAuthURL",
+			Handler:    _GitAuth_GetAzureDevOpsAuthURL_Handler,
 		},
 		{
-			MethodName: "AuthorizeAzureServer",
-			Handler:    _GitAuth_AuthorizeAzureServer_Handler,
+			MethodName: "AuthorizeAzureDevOps",
+			Handler:    _GitAuth_AuthorizeAzureDevOps_Handler,
 		},
 		{
 			MethodName: "AuthorizeGitlab",

@@ -83,17 +83,17 @@ service GitAuth {
 
     /**
     */
-    rpc GetAzureServerAuthURL(GetAzureServerAuthURLRequest) returns (GetAzureServerAuthURLResponse) {
+    rpc GetAzureDevOpsAuthURL(GetAzureDevOpsAuthURLRequest) returns (GetAzureDevOpsAuthURLResponse) {
         option (google.api.http) = {
-            get : "/v1/gitauth/auth_providers/azureserver"
+            get : "/v1/gitauth/auth_providers/azuredevops"
         };
     }
 
     /**
     */
-    rpc AuthorizeAzureServer (AuthorizeAzureServerRequest) returns (AuthorizeAzureServerResponse) {
+    rpc AuthorizeAzureDevOps (AuthorizeAzureDevOpsRequest) returns (AuthorizeAzureDevOpsResponse) {
         option (google.api.http) = {
-            post : "/v1/gitauth/auth_providers/azureserver/authorize"
+            post : "/v1/gitauth/auth_providers/azuredevops/authorize"
             body: "*"
         };
     }
@@ -165,7 +165,7 @@ enum GitProvider {
     GitHub          = 1;
     GitLab          = 2;
     BitBucketServer = 3;
-    AzureServer     = 4;
+    AzureDevOps     = 4;
 }
 
 message ParseRepoURLRequest {
@@ -211,11 +211,11 @@ message GetBitbucketServerAuthURLResponse {
     string url = 1; // The URL that users must visit to authorize BitBucket Server authentication.
 }
 
-message GetAzureServerAuthURLRequest {
+message GetAzureDevOpsAuthURLRequest {
     string redirectUri = 1; // The URI that Azure will use to send users back to GitOps.
 }
 
-message GetAzureServerAuthURLResponse {
+message GetAzureDevOpsAuthURLResponse {
     string url = 1; // The URL that users must visit to authorize Azure Server authentication.
 }
 
@@ -228,11 +228,11 @@ message AuthorizeBitbucketServerResponse {
     string token = 1; // A token that can be used to authenticate the GitOps API server. 
 }
 
-message AuthorizeAzureServerRequest {
+message AuthorizeAzureDevOpsRequest {
     string code        = 1; // The challenge code obtained from the OAuth callback
     string redirectUri = 2; // The redirect URI that originated the OAuth flow
 }
 
-message AuthorizeAzureServerResponse {
+message AuthorizeAzureDevOpsResponse {
     string token = 1; // A token that can be used to authenticate the GitOps API server. 
 }

@@ -23,7 +23,7 @@ function AzureAuthButton({ onClick, ...props }: Props) {
     storeCallbackState(callbackState);
 
     gitAuthClient
-      .GetAzureServerAuthURL({
+      .GetAzureDevOpsAuthURL({
         redirectUri: azureServerOAuthRedirectURI(),
       })
       .then(res => {

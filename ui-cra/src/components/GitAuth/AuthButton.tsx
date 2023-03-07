@@ -36,11 +36,11 @@ function AuthButton({ className, provider, onClick, ...rest }: Props) {
           onClick={() => onClick(GitProvider.BitBucketServer)}
         />
       );
-    case GitProvider.AzureServer:
+    case GitProvider.AzureDevOps:
       return (
         <AzureServerAuthButton
           {...rest}
-          onClick={() => onClick(GitProvider.AzureServer)}
+          onClick={() => onClick(GitProvider.AzureDevOps)}
         />
       );
     default:
