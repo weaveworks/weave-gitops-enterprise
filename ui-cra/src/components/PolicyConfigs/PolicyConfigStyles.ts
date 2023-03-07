@@ -40,6 +40,14 @@ export const usePolicyConfigStyle = makeStyles(() =>
       marginLeft: small,
       borderRadius: base,
     },
+    policyTitle:{
+      '& span':{
+        marginRight: xs,
+      },
+      display: 'flex',
+      alignItems: 'flex-start',
+      whiteSpace: 'pre-line',
+    }
   }),
 );
 

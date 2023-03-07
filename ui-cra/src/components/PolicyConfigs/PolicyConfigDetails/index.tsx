@@ -35,7 +35,7 @@ const PolicyConfigDetails = ({
               warning: <WarningIcon />,
             }}
           >
-            <span>One or more than a policy isn’t found in the cluster</span>
+            <span>One or more than a policy isn’t found in the cluster.</span>
           </WarningWrapper>
         )}
 
@@ -47,6 +47,7 @@ const PolicyConfigDetails = ({
             clusterName={PolicyConfig?.clusterName}
             age={PolicyConfig?.age}
             match={PolicyConfig?.match}
+            matchType={PolicyConfig?.matchType}
           />
           <PolicyDetailsCard
             policies={PolicyConfig?.policies}

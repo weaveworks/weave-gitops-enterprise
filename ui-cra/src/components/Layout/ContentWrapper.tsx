@@ -96,7 +96,7 @@ export const ContentWrapper: FC<Props> = ({
         display: 'flex',
         flexDirection: 'column',
         width: 'calc(100% - 4px)',
-        maxHeight: customMaxHieght ? customMaxHieght : 'calc(100vh - 80px',
+        maxHeight: customMaxHieght ? customMaxHieght : 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
         padding: '0px 12px',

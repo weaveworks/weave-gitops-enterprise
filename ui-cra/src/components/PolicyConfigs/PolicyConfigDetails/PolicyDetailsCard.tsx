@@ -14,7 +14,18 @@ function PolicyDetailsCard({
   clusterName,
 }: GetPolicyConfigResponse) {
   const classes = usePolicyConfigStyle();
-
+  const renderParameterValue = (param: any) => {
+    if (Array.isArray(param)) return param.join(', ');
+    else {
+      const paramType = typeof param;
+      switch (paramType) {
+        case 'boolean':
+          return paramType ? 'True' : 'False';
+        default:
+          return param;
+      }
+    }
+  };
   return (
     <div>
       <label className={classes.sectionTitle}>
@@ -37,7 +48,7 @@ function PolicyDetailsCard({
                     {policy.name}
                   </Link>
                 ) : (
-                  <div>
+                  <div className={classes.policyTitle}>
                     <span
                       title={`One or more policies are not found in cluster ${clusterName}.`}
                       data-testid={`warning-icon-${policy.id}`}
@@ -51,7 +62,9 @@ function PolicyDetailsCard({
                 {Object.entries(policy.parameters || {}).map(param => (
                   <div className="parameterItem" key={param[0]}>
                     <label>{param[0]}: </label>
-                    <div className="parameterItemValue">{param[1]}</div>
+                    <div className="parameterItemValue">
+                      {renderParameterValue(param[1])}
+                    </div>
                   </div>
                 ))}
               </CardContent>

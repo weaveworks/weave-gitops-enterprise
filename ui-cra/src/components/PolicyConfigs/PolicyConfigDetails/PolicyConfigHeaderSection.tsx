@@ -3,17 +3,15 @@ import { useEffect, useState } from 'react';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { usePolicyConfigStyle } from '../PolicyConfigStyles';
-interface Target {
-  targetName: string;
-  targetList: any[];
-}
+
 function PolicyConfigHeaderSection({
   age,
   clusterName,
-  match,
+  match = {},
+  matchType,
 }: GetPolicyConfigResponse) {
   const classes = usePolicyConfigStyle();
-  const [target, setTarget] = useState<Target>();
+  const [target, setTarget] = useState<any[]>();
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Cluster',
@@ -25,11 +23,12 @@ function PolicyConfigHeaderSection({
     },
   ];
   useEffect(() => {
-    for (var targett in match) {
-      const m = match[targett as keyof typeof match];
-      if (m?.length) setTarget({ targetName: targett, targetList: m });
-    }
-  }, [match]);
+    const matchTarget = Object.entries(match)
+      .filter(item => item[0] == matchType)
+      .map(item => item[1]);
+    setTarget(matchTarget.flat());
+  }, [matchType, match]);
+
   return (
     <div>
       {generateRowHeaders(defaultHeaders)}
@@ -39,15 +38,16 @@ function PolicyConfigHeaderSection({
           className={`${classes.sectionTitle} ${classes.capitlize}`}
           style={{ fontWeight: 'normal', marginTop: '12px' }}
         >
-          {target?.targetName}
-          <span> ({target?.targetList.length})</span>
+          {matchType}
+          <span> ({target?.length})</span>
         </div>
         <ul className={classes.targetItemsList}>
-          {target?.targetName === 'resources' || target?.targetName === 'apps'
-            ? target?.targetList.map((item: any) => (
+          {matchType === 'resources' || 'apps'
+            ? target?.map((item: any) => (
                 <li key={`${item.name}`}>
                   <span>
-                    {item.namespace === "" ? <span>*</span>: item.namespace}/{item.name}
+                    {item.namespace === '' ? <span>*</span> : item.namespace}/
+                    {item.name}
                   </span>
                   <span
                     className={`${classes.targetItemKind} ${classes.capitlize}`}
@@ -56,9 +56,7 @@ function PolicyConfigHeaderSection({
                   </span>
                 </li>
               ))
-            : target?.targetList.map((item: any) => (
-                <li key={item}>{item}</li>
-              ))}
+            : target?.map((item: any) => <li key={item}>{item}</li>)}
         </ul>
       </div>
     </div>
