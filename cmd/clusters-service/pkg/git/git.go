@@ -158,7 +158,7 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		}
 		ref.Domain = addSchemeToDomain(ref.Domain)
 		ref = WithCombinedSubOrgs(*ref)
-	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) || gp.Type == string(gitproviders.GitProviderAzureDevOps) {
+	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) {
 		// The ParseOrgRepositoryURL function used for other providers
 		// fails to parse BitBucket Server URLs correctly
 		re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)
@@ -183,6 +183,8 @@ func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, 
 		}
 		ref.SetKey(result["key"])
 		ref.Domain = addSchemeToDomain(ref.Domain)
+	} else if gp.Type == string(gitproviders.GitProviderAzureDevOps) {
+		return nil, fmt.Errorf("azure devops provider - work in progress")
 	} else {
 		return nil, fmt.Errorf("unsupported git provider")
 	}
