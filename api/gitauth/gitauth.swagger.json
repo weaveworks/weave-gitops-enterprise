@@ -61,14 +61,14 @@
         ]
       }
     },
-    "/v1/gitauth/auth_providers/azureserver": {
+    "/v1/gitauth/auth_providers/azuredevops": {
       "get": {
-        "operationId": "GitAuth_GetAzureServerAuthURL",
+        "operationId": "GitAuth_GetAzureDevOpsAuthURL",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1GetAzureServerAuthURLResponse"
+              "$ref": "#/definitions/v1GetAzureDevOpsAuthURLResponse"
             }
           },
           "default": {
@@ -91,14 +91,14 @@
         ]
       }
     },
-    "/v1/gitauth/auth_providers/azureserver/authorize": {
+    "/v1/gitauth/auth_providers/azuredevops/authorize": {
       "post": {
-        "operationId": "GitAuth_AuthorizeAzureServer",
+        "operationId": "GitAuth_AuthorizeAzureDevOps",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1AuthorizeAzureServerResponse"
+              "$ref": "#/definitions/v1AuthorizeAzureDevOpsResponse"
             }
           },
           "default": {
@@ -114,7 +114,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1AuthorizeAzureServerRequest"
+              "$ref": "#/definitions/v1AuthorizeAzureDevOpsRequest"
             }
           }
         ],
@@ -406,7 +406,7 @@
         }
       }
     },
-    "v1AuthorizeAzureServerRequest": {
+    "v1AuthorizeAzureDevOpsRequest": {
       "type": "object",
       "properties": {
         "code": {
@@ -417,7 +417,7 @@
         }
       }
     },
-    "v1AuthorizeAzureServerResponse": {
+    "v1AuthorizeAzureDevOpsResponse": {
       "type": "object",
       "properties": {
         "token": {
@@ -463,7 +463,7 @@
         }
       }
     },
-    "v1GetAzureServerAuthURLResponse": {
+    "v1GetAzureDevOpsAuthURLResponse": {
       "type": "object",
       "properties": {
         "url": {
@@ -531,7 +531,7 @@
         "GitHub",
         "GitLab",
         "BitBucketServer",
-        "AzureServer"
+        "AzureDevOps"
       ],
       "default": "Unknown"
     },

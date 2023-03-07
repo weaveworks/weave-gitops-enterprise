@@ -33,15 +33,15 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 	u, err := buildAzureURL()
 
 	if err != nil {
-		return u, fmt.Errorf("building azure server url: %w", err)
+		return u, fmt.Errorf("building azure devOps url: %w", err)
 	}
 
-	u.Path = "/rest/oauth2/latest/authorize"
+	u.Path = "/oauth2/authorize"
 
 	cid := getClientID()
 
 	if cid == "" {
-		return u, errors.New("env var AZURE_SERVER_CLIENT_ID not set")
+		return u, errors.New("env var AZURE_DEVOPS_CLIENT_ID not set")
 	}
 
 	params := u.Query()
@@ -64,15 +64,15 @@ func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code 
 
 	cid := getClientID()
 	if cid == "" {
-		return nil, errors.New("env var AZURE_SERVER_CLIENT_ID not set")
+		return nil, errors.New("env var AZURE_DEVOPS_CLIENT_ID not set")
 	}
 
 	secret := getClientSecret()
 	if secret == "" {
-		return nil, errors.New("env var AZURE_SERVER_CLIENT_SECRET not set")
+		return nil, errors.New("env var AZURE_DEVOPS_CLIENT_SECRET not set")
 	}
-	// https://atlassian.example.com/rest/oauth2/latest/token?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&code=CODE&grant_type=authorization_code&redirect_uri=REDIRECT_URI
-	u.Path = "/rest/oauth2/latest/token"
+	// https://app.vssps.visualstudio.com/oauth2/authorize?client_id=88e2dd5f-4e34-45c6-a75d-524eb2a0399e&response_type=Assertion&state=User1&scope=vso.work%20vso.code_write&redirect_uri=https://fabrikam.azurewebsites.net/myapp/oauth-callback
+	u.Path = "/oauth2/token"
 	params := u.Query()
 	params.Set("client_id", cid)
 	params.Set("client_secret", secret)
@@ -90,11 +90,11 @@ func (c *defaultAuthClient) ValidateToken(ctx context.Context, token string) err
 }
 
 func buildAzureURL() (url.URL, error) {
-	host := os.Getenv("AZURE_SERVER_HOSTNAME")
+	host := os.Getenv("AZURE_DEVOPS_HOSTNAME")
 	u := url.URL{}
 
 	if host == "" {
-		return u, errors.New("env var AZURE_SERVER_HOSTNAME is not set")
+		return u, errors.New("env var AZURE_DEVOPS_HOSTNAME is not set")
 	}
 
 	u.Scheme = "https"
@@ -104,11 +104,11 @@ func buildAzureURL() (url.URL, error) {
 }
 
 func getClientID() string {
-	return os.Getenv("AZURE_SERVER_CLIENT_ID")
+	return os.Getenv("AZURE_DEVOPS_CLIENT_ID")
 }
 
 func getClientSecret() string {
-	return os.Getenv("AZURE_SERVER_CLIENT_SECRET")
+	return os.Getenv("AZURE_DEVOPS_CLIENT_SECRET")
 }
 
 func doCodeExchangeRequest(ctx context.Context, tURL url.URL, c *http.Client) (*TokenResponseState, error) {

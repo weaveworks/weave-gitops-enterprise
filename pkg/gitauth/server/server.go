@@ -51,7 +51,7 @@ type ApplicationsConfig struct {
 	GithubAuthClient      auth.GithubAuthClient
 	GitlabAuthClient      auth.GitlabAuthClient
 	BitBucketServerClient bitbucket.AuthClient
-	AzureServerClient     azure.AuthClient
+	AzureDevOpsClient     azure.AuthClient
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -68,7 +68,7 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 		ghAuthClient: cfg.GithubAuthClient,
 		glAuthClient: cfg.GitlabAuthClient,
 		bbAuthClient: cfg.BitBucketServerClient,
-		azAuthClient: cfg.AzureServerClient,
+		azAuthClient: cfg.AzureDevOpsClient,
 	}
 }
 
@@ -202,27 +202,27 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 
 }
 
-func (s *applicationServer) GetAzureServerAuthURL(ctx context.Context, msg *pb.GetAzureServerAuthURLRequest) (*pb.GetAzureServerAuthURLResponse, error) {
+func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.GetAzureDevOpsAuthURLRequest) (*pb.GetAzureDevOpsAuthURLResponse, error) {
 	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
 	if err != nil {
 		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
 	}
 
-	return &pb.GetAzureServerAuthURLResponse{Url: u.String()}, nil
+	return &pb.GetAzureDevOpsAuthURLResponse{Url: u.String()}, nil
 }
 
-func (s *applicationServer) AuthorizeAzureServer(ctx context.Context, msg *pb.AuthorizeAzureServerRequest) (*pb.AuthorizeAzureServerResponse, error) {
+func (s *applicationServer) AuthorizeAzureDevOps(ctx context.Context, msg *pb.AuthorizeAzureDevOpsRequest) (*pb.AuthorizeAzureDevOpsResponse, error) {
 	tokenState, err := s.azAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange code: %w", err)
 	}
 
-	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderAzureServer, tokenState.AccessToken)
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderAzureDevOps, tokenState.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate token: %w", err)
 	}
 
-	return &pb.AuthorizeAzureServerResponse{Token: token}, nil
+	return &pb.AuthorizeAzureDevOpsResponse{Token: token}, nil
 
 }
 func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
