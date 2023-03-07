@@ -1,4 +1,4 @@
-package collector
+package accesscollector
 
 import (
 	"fmt"
@@ -11,8 +11,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/kubernetes/pkg/apis/rbac"
+	"k8s.io/kubernetes/pkg/util/slice"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var DefaultVerbsRequiredForAccess = []string{"list"}
 
 // accessRulesCollector is responsible for collecting access rules from all clusters.
 // It is a wrapper around a Collector that converts the received objects to AccessRules.
@@ -22,6 +25,8 @@ type accessRulesCollector struct {
 	log       logr.Logger
 	converter runtime.UnstructuredConverter
 	w         store.StoreWriter
+	verbs     []string
+	quit      chan struct{}
 }
 
 func (a *accessRulesCollector) Start() {
@@ -34,8 +39,7 @@ func (a *accessRulesCollector) Start() {
 		for {
 			select {
 			case objects := <-ch:
-
-				rules, err := handleRulesReceived(a.converter, objects)
+				rules, err := a.handleRulesReceived(objects)
 				if err != nil {
 					a.log.Error(err, "failed to handle rules received")
 					continue
@@ -45,9 +49,17 @@ func (a *accessRulesCollector) Start() {
 					a.log.Error(err, "failed to store access rules")
 					continue
 				}
+			case <-a.quit:
+				return
 			}
 		}
 	}()
+}
+
+func (a *accessRulesCollector) Stop() {
+	a.col.Stop()
+	a.quit <- struct{}{}
+	close(a.quit)
 }
 
 func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) accessRulesCollector {
@@ -62,10 +74,11 @@ func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) 
 		log:       opts.Log,
 		converter: runtime.DefaultUnstructuredConverter,
 		w:         w,
+		verbs:     DefaultVerbsRequiredForAccess,
 	}
 }
 
-func handleRulesReceived(converter runtime.UnstructuredConverter, objects []collector.ObjectRecord) ([]models.AccessRule, error) {
+func (a *accessRulesCollector) handleRulesReceived(objects []collector.ObjectRecord) ([]models.AccessRule, error) {
 	result := []models.AccessRule{}
 
 	for _, o := range objects {
@@ -78,7 +91,7 @@ func handleRulesReceived(converter runtime.UnstructuredConverter, objects []coll
 			return result, fmt.Errorf("failed to create adapter for object: %w", err)
 		}
 
-		r = convertToAccessRule(c, adapter)
+		r = convertToAccessRule(c, adapter, a.verbs)
 
 		result = append(result, r)
 
@@ -86,52 +99,6 @@ func handleRulesReceived(converter runtime.UnstructuredConverter, objects []coll
 
 	return result, nil
 }
-
-// func (c *pollingCollector) CollectAccessRules() ([]models.AccessRule, error) {
-// 	result := []models.AccessRule{}
-
-// 	clusters := c.mgr.GetClusters()
-
-// 	for _, clus := range clusters {
-// 		clusterName := clus.GetName()
-// 		cl, err := clus.GetServerClient()
-// 		if err != nil {
-// 			c.log.Error(err, "failed to get client for cluster")
-// 			continue
-// 		}
-
-// 		cRoles := v1.ClusterRoleList{}
-// 		if err := cl.List(context.Background(), &cRoles); err != nil {
-// 			c.log.Error(err, "failed to list cluster roles")
-// 		}
-
-// 		roles := v1.RoleList{}
-// 		if err := cl.List(context.Background(), &roles); err != nil {
-// 			c.log.Error(err, "failed to list roles")
-// 		}
-
-// 		for _, cRole := range cRoles.Items {
-// 			result = append(result, models.AccessRule{
-// 				Cluster:         clusterName,
-// 				Role:            cRole.Name,
-// 				Namespace:       cRole.Namespace,
-// 				AccessibleKinds: cRole.Rules[0].Resources,
-// 			})
-// 		}
-
-// 		for _, r := range roles.Items {
-// 			result = append(result, models.AccessRule{
-// 				Cluster:         clusterName,
-// 				Role:            r.Name,
-// 				Namespace:       r.Namespace,
-// 				AccessibleKinds: r.Rules[0].Resources,
-// 			})
-// 		}
-
-// 	}
-
-// 	return result, nil
-// }
 
 // RoleLike is an interface that represents a role or cluster role
 // Tried this with generics but it didn't work out.
@@ -170,13 +137,66 @@ func newAdapter(obj client.Object) (RoleLike, error) {
 
 }
 
-func convertToAccessRule(clusterName string, obj RoleLike) models.AccessRule {
+func convertToAccessRule(clusterName string, obj RoleLike, requiredVerbs []string) models.AccessRule {
 	rules := obj.GetRules()
+
+	derivedAccess := map[string]map[string]bool{}
+
+	// {wego.weave.works: {Application: true, Source: true}}
+	for _, rule := range rules {
+		for _, apiGroup := range rule.APIGroups {
+			if _, ok := derivedAccess[apiGroup]; !ok {
+				derivedAccess[apiGroup] = map[string]bool{}
+			}
+
+			if containsWildcard(rule.Resources) {
+				derivedAccess[apiGroup]["*"] = true
+			}
+
+			if containsWildcard(rule.Verbs) || hasVerbs(rule.Verbs, requiredVerbs) {
+				for _, resource := range rule.Resources {
+					derivedAccess[apiGroup][resource] = true
+				}
+			}
+		}
+	}
+
+	kinds2 := []string{}
+	for group, resources := range derivedAccess {
+		for k, v := range resources {
+			if v {
+				kinds2 = append(kinds2, fmt.Sprintf("%s/%s", group, k))
+			}
+		}
+	}
 
 	return models.AccessRule{
 		Cluster:         clusterName,
 		Role:            obj.GetName(),
 		Namespace:       obj.GetNamespace(),
-		AccessibleKinds: rules[0].Resources,
+		AccessibleKinds: kinds2,
 	}
+}
+
+func hasVerbs(a, b []string) bool {
+	for _, v := range b {
+		if containsWildcard(a) {
+			return true
+		}
+		if slice.ContainsString(a, v, nil) {
+			return true
+		}
+	}
+
+	return false
+}
+
+func containsWildcard(permissions []string) bool {
+	for _, p := range permissions {
+		if p == "*" {
+			return true
+		}
+	}
+
+	return false
 }
