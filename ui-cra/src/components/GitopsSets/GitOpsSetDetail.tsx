@@ -4,6 +4,7 @@ import {
   Flex,
   InfoList,
   KubeStatusIndicator,
+  LoadingPage,
   Metadata,
   PageStatus,
   ReconciledObjectsAutomation,
@@ -138,7 +139,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     gitOpsSet?.namespace || '',
     'GitOpsSet',
     gitOpsSet && (getInventory(gitOpsSet) as GroupVersionKind[]),
-    gitOpsSet?.clusterName,
+    gitOpsSet?.clusterName || '',
   );
 
   if (!gitOpsSet) {
@@ -171,83 +172,92 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
         },
       ]}
     >
-      <ContentWrapper>
-        <Box paddingBottom={3}>
-          <KubeStatusIndicator
-            conditions={gitOpsSet?.conditions || []}
-            suspended={gitOpsSet?.suspended}
-          />
-        </Box>
-        <Box paddingBottom={3}>
-          <Flex>
-            <Button
-              loading={syncing}
-              variant="outlined"
-              onClick={handleSyncClick}
-              style={{ marginRight: 0, textTransform: 'uppercase' }}
-            >
-              Sync
-            </Button>
-            <Box paddingLeft={1}>
+      <ContentWrapper loading={isLoading}>
+        {/* {isLoading ? (
+          <LoadingPage />
+        ) : ( */}
+        <>
+          <Box paddingBottom={3}>
+            <KubeStatusIndicator
+              conditions={gitOpsSet?.conditions || []}
+              suspended={gitOpsSet?.suspended}
+            />
+          </Box>
+          <Box paddingBottom={3}>
+            <Flex>
               <Button
-                loading={suspending}
+                loading={syncing}
                 variant="outlined"
-                onClick={handleSuspendClick}
+                onClick={handleSyncClick}
                 style={{ marginRight: 0, textTransform: 'uppercase' }}
               >
-                {gitOpsSet?.suspended ? 'Resume' : 'Suspend'}
+                Sync
               </Button>
-            </Box>
-          </Flex>
-        </Box>
-        <SubRouterTabs rootPath={`${path}/details`}>
-          <RouterTab name="Details" path={`${path}/details`}>
-            <Box style={{ width: '100%' }}>
-              <InfoList
-                data-testid="info-list"
-                items={[
-                  ['Observed generation', gitOpsSet?.observedGeneration],
-                  ['Cluster', gitOpsSet?.clusterName],
-                  ['Suspended', gitOpsSet?.suspended ? 'True' : 'False'],
-                ]}
-              />
-              <Metadata
-                metadata={getMetadata(gitOpsSet)}
-                labels={getLabels(gitOpsSet)}
-              />
-              <TableWrapper>
-                <ReconciledObjectsTable
-                  reconciledObjectsAutomation={reconciledObjectsAutomation}
+              <Box paddingLeft={1}>
+                <Button
+                  loading={suspending}
+                  variant="outlined"
+                  onClick={handleSuspendClick}
+                  style={{ marginRight: 0, textTransform: 'uppercase' }}
+                >
+                  {gitOpsSet?.suspended ? 'Resume' : 'Suspend'}
+                </Button>
+              </Box>
+            </Flex>
+          </Box>
+          <SubRouterTabs rootPath={`${path}/details`}>
+            <RouterTab name="Details" path={`${path}/details`}>
+              <Box style={{ width: '100%' }}>
+                <InfoList
+                  data-testid="info-list"
+                  items={[
+                    ['Observed generation', gitOpsSet?.observedGeneration],
+                    ['Cluster', gitOpsSet?.clusterName],
+                    ['Suspended', gitOpsSet?.suspended ? 'True' : 'False'],
+                  ]}
                 />
-              </TableWrapper>
-            </Box>
-          </RouterTab>
-          <RouterTab name="Events" path={`${path}/events`}>
-            <ListEvents
-              clusterName={gitOpsSet?.clusterName}
-              involvedObject={{
-                kind: 'GitOpsSet',
-                name: gitOpsSet?.name,
-                namespace: gitOpsSet?.namespace,
-              }}
-            />
-          </RouterTab>
-          <RouterTab name="Graph" path={`${path}/graph`}>
-            <ReconciliationGraph
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
-            />
-          </RouterTab>
-          <RouterTab name="Yaml" path={`${path}/yaml`}>
-            <YamlView
-              yaml={YAML.stringify(JSON.parse(gitOpsSet?.yaml as string))}
-              object={{
-                kind: gitOpsSet?.type,
-                name: gitOpsSet?.name,
-                namespace: gitOpsSet?.namespace,
-              }}
-            />
-          </RouterTab>
-        </SubRouterTabs>
+                <Metadata
+                  metadata={getMetadata(gitOpsSet)}
+                  labels={getLabels(gitOpsSet)}
+                />
+                <TableWrapper>
+                  <ReconciledObjectsTable
+                    reconciledObjectsAutomation={reconciledObjectsAutomation}
+                  />
+                </TableWrapper>
+              </Box>
+            </RouterTab>
+            <RouterTab name="Events" path={`${path}/events`}>
+              <ListEvents
+                clusterName={gitOpsSet?.clusterName}
+                involvedObject={{
+                  kind: 'GitOpsSet',
+                  name: gitOpsSet?.name,
+                  namespace: gitOpsSet?.namespace,
+                }}
+              />
+            </RouterTab>
+            <RouterTab name="Graph" path={`${path}/graph`}>
+              <ReconciliationGraph
+                reconciledObjectsAutomation={reconciledObjectsAutomation}
+              />
+            </RouterTab>
+            <RouterTab name="Yaml" path={`${path}/yaml`}>
+              <YamlView
+                yaml={
+                  gitOpsSet?.yaml &&
+                  YAML.stringify(JSON.parse(gitOpsSet?.yaml as string))
+                }
+                object={{
+                  kind: gitOpsSet?.type,
+                  name: gitOpsSet?.name,
+                  namespace: gitOpsSet?.namespace,
+                }}
+              />
+            </RouterTab>
+          </SubRouterTabs>
+        </>
+        {/* )} */}
       </ContentWrapper>
     </PageTemplate>
   );
