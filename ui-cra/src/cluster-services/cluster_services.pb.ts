@@ -806,6 +806,15 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
+export type SyncExternalSecretsRequest = {
+  clusterName?: string
+  namespace?: string
+  externalSecretName?: string
+}
+
+export type SyncExternalSecretsResponse = {
+}
+
 export type PolicyConfigListItem = {
   name?: string
   clusterName?: string
@@ -976,6 +985,9 @@ export class ClustersService {
   }
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
+    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

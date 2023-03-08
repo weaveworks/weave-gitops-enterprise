@@ -524,6 +524,49 @@
         ]
       }
     },
+    "/v1/external-secrets/sync": {
+      "get": {
+        "summary": "SyncExternalSecrets sync externalSecret Operator secrets",
+        "operationId": "ClustersService_SyncExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "externalSecretName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/external-secrets/{externalSecretName}": {
       "get": {
         "summary": "GetExternalSecret get secret details",
@@ -3118,6 +3161,9 @@
           "type": "string"
         }
       }
+    },
+    "v1SyncExternalSecretsResponse": {
+      "type": "object"
     },
     "v1Template": {
       "type": "object",
