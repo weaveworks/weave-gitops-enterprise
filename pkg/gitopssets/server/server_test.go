@@ -293,8 +293,6 @@ func WithClientsPoolInterceptor(user *auth.UserPrincipal) grpc.ServerOption {
 }
 
 func TestSyncGitOpsSet(t *testing.T) {
-	t.Skip("We need to implement flux reconciliation on the gitopssets-controller")
-
 	ctx := context.Background()
 	client, k8s := setup(t)
 
