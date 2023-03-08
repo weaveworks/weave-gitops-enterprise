@@ -416,7 +416,7 @@ const MCCP: FC<{
                 placement="top"
                 disabled={
                   Boolean(selectedCapiCluster) &&
-                  provider !== GitProvider.BitBucketServer
+                  provider === GitProvider.BitBucketServer
                 }
               >
                 <div>
@@ -429,7 +429,7 @@ const MCCP: FC<{
                     }}
                     color="secondary"
                     disabled={
-                      !selectedCapiCluster &&
+                      !selectedCapiCluster ||
                       provider === GitProvider.BitBucketServer
                     }
                   >
