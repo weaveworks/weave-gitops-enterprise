@@ -2,6 +2,7 @@ import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import useNotifications from '../contexts/Notifications';
 import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
+  GetGitOpsSetResponse,
   GitOpsSets,
   ListGitOpsSetsResponse,
 } from '../api/gitopssets/gitopssets.pb';
@@ -40,6 +41,30 @@ export function useListGitOpsSets() {
     {
       keepPreviousData: true,
       onError,
+    },
+  );
+}
+
+interface DetailParams {
+  name: string;
+  namespace: string;
+  clusterName: string;
+}
+
+export function useGetGitOpsSet(
+  { name, namespace, clusterName }: DetailParams,
+  enabled?: boolean,
+) {
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) =>
+    setNotifications([{ message: { text: error.message }, severity: 'error' }]);
+
+  return useQuery<GetGitOpsSetResponse, RequestError>(
+    [GITOPSSETS_KEY, clusterName, namespace, name],
+    () => GitOpsSets.GetGitOpsSet({ name, namespace, clusterName }),
+    {
+      onError,
+      // enabled
     },
   );
 }

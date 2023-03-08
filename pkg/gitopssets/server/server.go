@@ -101,6 +101,26 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 	}, nil
 }
 
+func (s *server) GetGitOpsSet(ctx context.Context, msg *pb.GetGitOpsSetRequest) (*pb.GetGitOpsSetResponse, error) {
+	c, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("getting impersonated client: %w", err)
+	}
+
+	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
+
+	result := &ctrl.GitOpsSet{}
+	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
+	}
+
+	gitOpsSet := convert.GitOpsToProto(msg.ClusterName, *result)
+
+	return &pb.GetGitOpsSetResponse{
+		GitopsSet: gitOpsSet,
+	}, nil
+}
+
 func (s *server) ToggleSuspendGitOpsSet(ctx context.Context, msg *pb.ToggleSuspendGitOpsSetRequest) (*pb.ToggleSuspendGitOpsSetResponse, error) {
 	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {

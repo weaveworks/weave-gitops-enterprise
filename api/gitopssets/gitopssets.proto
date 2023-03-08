@@ -26,6 +26,13 @@ service GitOpsSets {
         };
     }
 
+    rpc GetGitOpsSet(GetGitOpsSetRequest) returns (GetGitOpsSetResponse) {
+        option (google.api.http) = {
+            get : "/v1/gitopssets/{name}"
+        };
+    }
+    
+
     rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest) returns (ToggleSuspendGitOpsSetResponse) {
         option (google.api.http) = {
             post : "/v1/gitopssets/suspend"
@@ -91,4 +98,14 @@ message SyncGitOpsSetRequest {
 
 message SyncGitOpsSetResponse {
     bool success = 1;
+}
+
+message GetGitOpsSetRequest {
+    string name        = 1;
+    string namespace   = 2;
+    string clusterName = 3;
+}
+
+message GetGitOpsSetResponse {
+    GitOpsSet gitops_set = 1;
 }

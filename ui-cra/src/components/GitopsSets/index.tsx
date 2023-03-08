@@ -19,7 +19,7 @@ import { computeMessage } from '../Clusters';
 import _ from 'lodash';
 import { Routes } from '../../utils/nav';
 
-export const getInventory = (gs: GitOpsSet) => {
+export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
   return Array.from(
     new Set(

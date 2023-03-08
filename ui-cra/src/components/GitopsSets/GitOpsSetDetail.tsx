@@ -4,7 +4,6 @@ import {
   Flex,
   InfoList,
   KubeStatusIndicator,
-  LoadingPage,
   Metadata,
   PageStatus,
   ReconciledObjectsAutomation,
@@ -24,18 +23,13 @@ import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import useNotifications from '../../contexts/Notifications';
 import {
+  useGetGitOpsSet,
   useGetReconciledTree,
-  useListGitOpsSets,
   useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import {
-  Condition,
-  GitOpsSet,
-  GroupVersionKind,
-  ObjectRef,
-} from '../../api/gitopssets/types.pb';
+import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import { getInventory } from '.';
 
 const YAML = require('yaml');
@@ -58,7 +52,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   const { path } = useRouteMatch();
   const [syncing, setSyncing] = React.useState(false);
   const [suspending, setSuspending] = React.useState(false);
-  const { data } = useListGitOpsSets();
   const { setNotifications } = useNotifications();
 
   const sync = useSyncGitOpsSet({
@@ -99,7 +92,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   const handleSuspendClick = () => {
     setSuspending(true);
 
-    const suspend = !gitOpsSet?.suspended;
+    const suspend = !gs?.suspended;
 
     return toggleSuspend(suspend)
       .then(() => {
@@ -107,7 +100,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           {
             message: {
               text: `Successfully ${suspend ? 'suspended' : 'resumed'} ${
-                gitOpsSet?.name
+                gs?.name
               }`,
             },
             severity: 'success',
@@ -122,27 +115,27 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
       .finally(() => setSuspending(false));
   };
 
-  const gitOpsSet =
-    data?.gitopssets?.find(
-      gs =>
-        gs.name === name &&
-        gs.namespace === namespace &&
-        gs.clusterName === clusterName,
-    ) || ({} as GitOpsSet);
+  const { data: gitOpsSet, isLoading: gitOpsSetLoading } = useGetGitOpsSet({
+    name,
+    namespace,
+    clusterName,
+  });
+
+  const gs = gitOpsSet?.gitopsSet;
 
   const {
     data: objects,
     error,
     isLoading,
   } = useGetReconciledTree(
-    gitOpsSet?.name || '',
-    gitOpsSet?.namespace || '',
+    gs?.name || '',
+    gs?.namespace || '',
     'GitOpsSet',
-    gitOpsSet && (getInventory(gitOpsSet) as GroupVersionKind[]),
-    gitOpsSet?.clusterName || '',
+    getInventory(gs) || [],
+    gs?.clusterName || '',
   );
 
-  if (!gitOpsSet) {
+  if (!gs) {
     return null;
   }
 
@@ -150,13 +143,13 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     objects: objects || [],
     error: error || undefined,
     isLoading: isLoading || false,
-    source: gitOpsSet.objectRef || ({} as ObjectRef),
-    name: gitOpsSet.name || '',
-    namespace: gitOpsSet.namespace || '',
-    suspended: gitOpsSet.suspended || false,
-    conditions: gitOpsSet.conditions || ([] as Condition[]),
-    type: gitOpsSet.type || 'GitOpsSet',
-    clusterName: gitOpsSet.clusterName || '',
+    source: gs.objectRef || ({} as ObjectRef),
+    name: gs.name || '',
+    namespace: gs.namespace || '',
+    suspended: gs.suspended || false,
+    conditions: gs.conditions || ([] as Condition[]),
+    type: gs.type || 'GitOpsSet',
+    clusterName: gs.clusterName || '',
   };
 
   return (
@@ -168,96 +161,84 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           url: Routes.GitOpsSets,
         },
         {
-          label: gitOpsSet?.name || '',
+          label: gs?.name || '',
         },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
-        {/* {isLoading ? (
-          <LoadingPage />
-        ) : ( */}
-        <>
-          <Box paddingBottom={3}>
-            <KubeStatusIndicator
-              conditions={gitOpsSet?.conditions || []}
-              suspended={gitOpsSet?.suspended}
-            />
-          </Box>
-          <Box paddingBottom={3}>
-            <Flex>
+      <ContentWrapper loading={gitOpsSetLoading || isLoading}>
+        <Box paddingBottom={3}>
+          <KubeStatusIndicator
+            conditions={gs?.conditions || []}
+            suspended={gs?.suspended}
+          />
+        </Box>
+        <Box paddingBottom={3}>
+          <Flex>
+            <Button
+              loading={syncing}
+              variant="outlined"
+              onClick={handleSyncClick}
+              style={{ marginRight: 0, textTransform: 'uppercase' }}
+            >
+              Sync
+            </Button>
+            <Box paddingLeft={1}>
               <Button
-                loading={syncing}
+                loading={suspending}
                 variant="outlined"
-                onClick={handleSyncClick}
+                onClick={handleSuspendClick}
                 style={{ marginRight: 0, textTransform: 'uppercase' }}
               >
-                Sync
+                {gs?.suspended ? 'Resume' : 'Suspend'}
               </Button>
-              <Box paddingLeft={1}>
-                <Button
-                  loading={suspending}
-                  variant="outlined"
-                  onClick={handleSuspendClick}
-                  style={{ marginRight: 0, textTransform: 'uppercase' }}
-                >
-                  {gitOpsSet?.suspended ? 'Resume' : 'Suspend'}
-                </Button>
-              </Box>
-            </Flex>
-          </Box>
-          <SubRouterTabs rootPath={`${path}/details`}>
-            <RouterTab name="Details" path={`${path}/details`}>
-              <Box style={{ width: '100%' }}>
-                <InfoList
-                  data-testid="info-list"
-                  items={[
-                    ['Observed generation', gitOpsSet?.observedGeneration],
-                    ['Cluster', gitOpsSet?.clusterName],
-                    ['Suspended', gitOpsSet?.suspended ? 'True' : 'False'],
-                  ]}
+            </Box>
+          </Flex>
+        </Box>
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
+            <Box style={{ width: '100%' }}>
+              <InfoList
+                data-testid="info-list"
+                items={[
+                  ['Observed generation', gs?.observedGeneration],
+                  ['Cluster', gs?.clusterName],
+                  ['Suspended', gs?.suspended ? 'True' : 'False'],
+                ]}
+              />
+              <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
+              <TableWrapper>
+                <ReconciledObjectsTable
+                  reconciledObjectsAutomation={reconciledObjectsAutomation}
                 />
-                <Metadata
-                  metadata={getMetadata(gitOpsSet)}
-                  labels={getLabels(gitOpsSet)}
-                />
-                <TableWrapper>
-                  <ReconciledObjectsTable
-                    reconciledObjectsAutomation={reconciledObjectsAutomation}
-                  />
-                </TableWrapper>
-              </Box>
-            </RouterTab>
-            <RouterTab name="Events" path={`${path}/events`}>
-              <ListEvents
-                clusterName={gitOpsSet?.clusterName}
-                involvedObject={{
-                  kind: 'GitOpsSet',
-                  name: gitOpsSet?.name,
-                  namespace: gitOpsSet?.namespace,
-                }}
-              />
-            </RouterTab>
-            <RouterTab name="Graph" path={`${path}/graph`}>
-              <ReconciliationGraph
-                reconciledObjectsAutomation={reconciledObjectsAutomation}
-              />
-            </RouterTab>
-            <RouterTab name="Yaml" path={`${path}/yaml`}>
-              <YamlView
-                yaml={
-                  gitOpsSet?.yaml &&
-                  YAML.stringify(JSON.parse(gitOpsSet?.yaml as string))
-                }
-                object={{
-                  kind: gitOpsSet?.type,
-                  name: gitOpsSet?.name,
-                  namespace: gitOpsSet?.namespace,
-                }}
-              />
-            </RouterTab>
-          </SubRouterTabs>
-        </>
-        {/* )} */}
+              </TableWrapper>
+            </Box>
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
+            <ListEvents
+              clusterName={gs?.clusterName}
+              involvedObject={{
+                kind: 'GitOpsSet',
+                name: gs?.name,
+                namespace: gs?.namespace,
+              }}
+            />
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
+            <ReconciliationGraph
+              reconciledObjectsAutomation={reconciledObjectsAutomation}
+            />
+          </RouterTab>
+          <RouterTab name="Yaml" path={`${path}/yaml`}>
+            <YamlView
+              yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
+              object={{
+                kind: gs?.type,
+                name: gs?.name,
+                namespace: gs?.namespace,
+              }}
+            />
+          </RouterTab>
+        </SubRouterTabs>
       </ContentWrapper>
     </PageTemplate>
   );

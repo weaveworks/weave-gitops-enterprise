@@ -47,9 +47,23 @@ export type SyncGitOpsSetResponse = {
   success?: boolean
 }
 
+export type GetGitOpsSetRequest = {
+  name?: string
+  namespace?: string
+  kind?: string
+  clusterName?: string
+}
+
+export type GetGitOpsSetResponse = {
+  gitopsSet?: GitopssetsV1Types.GitOpsSet
+}
+
 export class GitOpsSets {
   static ListGitOpsSets(req: ListGitOpsSetsRequest, initReq?: fm.InitReq): Promise<ListGitOpsSetsResponse> {
     return fm.fetchReq<ListGitOpsSetsRequest, ListGitOpsSetsResponse>(`/v1/gitopssets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetGitOpsSet(req: GetGitOpsSetRequest, initReq?: fm.InitReq): Promise<GetGitOpsSetResponse> {
+    return fm.fetchReq<GetGitOpsSetRequest, GetGitOpsSetResponse>(`/v1/gitopssets/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static ToggleSuspendGitOpsSet(req: ToggleSuspendGitOpsSetRequest, initReq?: fm.InitReq): Promise<ToggleSuspendGitOpsSetResponse> {
     return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/gitopssets/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
