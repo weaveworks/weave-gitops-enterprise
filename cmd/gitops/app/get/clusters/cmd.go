@@ -22,12 +22,12 @@ func GetCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Comman
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
-		Short:   "Display one or many CAPI clusters",
+		Short:   "Display one or many clusters",
 		Example: `
-# Get all CAPI clusters
+# Get all clusters
 gitops get clusters
 
-# Get a single CAPI cluster
+# Get a single cluster
 gitops get cluster <cluster-name>
 
 # Get the Kubeconfig of a cluster
