@@ -66,7 +66,7 @@ func TestListGitOpsSets(t *testing.T) {
 
 	o := res.Gitopssets[0]
 
-	assert.Equal(t, o.ClusterName, "management")
+	assert.Equal(t, o.ClusterName, "Default")
 	assert.Equal(t, o.Name, obj.Name)
 	assert.Equal(t, o.Namespace, obj.Namespace)
 }
