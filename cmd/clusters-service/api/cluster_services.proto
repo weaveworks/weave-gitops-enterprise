@@ -246,6 +246,13 @@ service ClustersService {
       get : "/v1/external-secrets-stores"
     };
   }
+  // SyncExternalSecrets sync externalSecret Operator secrets
+  rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
+    option (google.api.http) = {
+      get : "/v1/external-secrets/sync"
+    };
+  }
+
   // ListPolicyConfigs list policy configs
   rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
     option (google.api.http) = {
@@ -1087,6 +1094,15 @@ message ListExternalSecretStoresRequest{
 message ListExternalSecretStoresResponse{
   repeated ExternalSecretStore stores = 1;
   int32 total = 2;
+}
+
+message SyncExternalSecretsRequest{
+  string clusterName = 1;
+  string namespace = 2;
+  string externalSecretName = 3;
+}
+
+message SyncExternalSecretsResponse{
 }
 
 message PolicyConfigListItem {
