@@ -1,8 +1,10 @@
+import { formatURL, Link } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { useEffect, useState } from 'react';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { usePolicyConfigStyle } from '../PolicyConfigStyles';
+import { getKindRoute, Routes } from '../../../utils/nav';
 
 function PolicyConfigHeaderSection({
   age,
@@ -22,12 +24,69 @@ function PolicyConfigHeaderSection({
       value: moment(age).fromNow(),
     },
   ];
+
   useEffect(() => {
     const matchTarget = Object.entries(match)
       .filter(item => item[0] === matchType)
       .map(item => item[1]);
     setTarget(matchTarget.flat());
   }, [matchType, match]);
+  
+  const getMatchedItem = (
+    item: any,
+    clusterName: string | undefined,
+    type: string,
+  ) => {
+    switch (type) {
+      case 'apps':
+        return (
+          <li key={`${item.name}`}>
+            <Link
+              to={formatURL(getKindRoute(item.kind), {
+                clusterName: clusterName,
+                name: item.name,
+                namespace: item.namespace || null,
+              })}
+            >
+              <span>
+                {item.namespace === '' ? <span>*</span> : item.namespace}/
+                {item.name}
+              </span>
+            </Link>
+            <span className={`${classes.targetItemKind} ${classes.capitlize}`}>
+              {item.kind}
+            </span>
+          </li>
+        );
+      case 'resources':
+        return (
+          <li key={`${item.name}`}>
+            <span>
+              {item.namespace === '' ? <span>*</span> : item.namespace}/
+              {item.name}
+            </span>
+            <span className={`${classes.targetItemKind} ${classes.capitlize}`}>
+              {item.kind}
+            </span>
+          </li>
+        );
+      case 'workspaces':
+        return (
+          <li key={item}>
+            <Link
+              to={formatURL(Routes.WorkspaceDetails, {
+                clusterName: clusterName,
+                workspaceName: item.name,
+              })}
+            >
+              {item}
+            </Link>
+          </li>
+        );
+      case 'namespaces':
+        return <li key={item}>{item}</li>;
+    }
+  };
 
   return (
     <div>
@@ -39,24 +98,13 @@ function PolicyConfigHeaderSection({
           style={{ fontWeight: 'normal', marginTop: '12px' }}
         >
           {matchType}
+
           <span> ({target?.length})</span>
         </div>
         <ul className={classes.targetItemsList}>
-          {matchType === 'resources' || matchType === 'apps'
-            ? target?.map((item: any) => (
-                <li key={`${item.name}`}>
-                  <span>
-                    {item.namespace === '' ? <span>*</span> : item.namespace}/
-                    {item.name}
-                  </span>
-                  <span
-                    className={`${classes.targetItemKind} ${classes.capitlize}`}
-                  >
-                    {item.kind}
-                  </span>
-                </li>
-              ))
-            : target?.map((item: any) => <li key={item}>{item}</li>)}
+          {target?.map((item: any) =>
+            getMatchedItem(item, clusterName, matchType || ''),
+          )}
         </ul>
       </div>
     </div>

@@ -8,24 +8,26 @@ import {
   WarningIcon,
 } from '../PolicyConfigStyles';
 
+const renderParameterValue = (param: any) => {
+  if (Array.isArray(param)) return param.join(', ');
+  else {
+    const paramType = typeof param;
+    switch (paramType) {
+      case 'boolean':
+        return paramType ? 'True' : 'False';
+      default:
+        return param;
+    }
+  }
+};
+
 function PolicyDetailsCard({
   policies,
   totalPolicies,
   clusterName,
 }: GetPolicyConfigResponse) {
   const classes = usePolicyConfigStyle();
-  const renderParameterValue = (param: any) => {
-    if (Array.isArray(param)) return param.join(', ');
-    else {
-      const paramType = typeof param;
-      switch (paramType) {
-        case 'boolean':
-          return paramType ? 'True' : 'False';
-        default:
-          return param;
-      }
-    }
-  };
+
   return (
     <div>
       <label className={classes.sectionTitle}>

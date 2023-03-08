@@ -20,7 +20,6 @@ const PolicyConfigDetails = ({
     });
 
   return (
-    <>
       <PageTemplate
         documentTitle="PolicyConfigs"
         path={[
@@ -56,7 +55,6 @@ const PolicyConfigDetails = ({
           />
         </ContentWrapper>
       </PageTemplate>
-    </>
   );
 };
 
