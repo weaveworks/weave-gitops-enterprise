@@ -11,10 +11,9 @@ type GitOpsSetAdapter struct {
 	*ctrl.GitOpsSet
 }
 
-// FIX ME: gitopssets controller needs to implement lastHandledReconcileRequest for this to be used
-// func (obj GitOpsSetAdapter) GetLastHandledReconcileRequest() string {
-// 	return obj.Status.GetLastHandledReconcileRequest()
-// }
+func (obj GitOpsSetAdapter) GetLastHandledReconcileRequest() string {
+	return obj.Status.GetLastHandledReconcileRequest()
+}
 
 func (obj GitOpsSetAdapter) AsClientObject() client.Object {
 	return obj.GitOpsSet
