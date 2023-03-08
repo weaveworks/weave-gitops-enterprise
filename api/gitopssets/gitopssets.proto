@@ -1,0 +1,111 @@
+syntax = "proto3";
+
+package gitopssets.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+import "api/gitopssets/types.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps GitOpsSets API",
+      version: "0.1";
+      description: "The API handles operations for Weave GitOps GitopsSets";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+service GitOpsSets {
+    rpc ListGitOpsSets(ListGitOpsSetsRequest) returns (ListGitOpsSetsResponse) {
+        option (google.api.http) = {
+            get : "/v1/gitopssets"
+        };
+    }
+
+    rpc GetGitOpsSet(GetGitOpsSetRequest) returns (GetGitOpsSetResponse) {
+        option (google.api.http) = {
+            get : "/v1/gitopssets/{name}"
+        };
+    }
+    
+
+    rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest) returns (ToggleSuspendGitOpsSetResponse) {
+        option (google.api.http) = {
+            post : "/v1/gitopssets/suspend"
+            body: "*"
+        }; 
+    }
+
+    /**
+    * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
+    * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+    */
+    rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
+        option (google.api.http) = {
+            post: "/v1/gitops_reconciled_objects"
+            body: "*"
+        };
+    };
+
+    rpc SyncGitOpsSet(SyncGitOpsSetRequest) returns (SyncGitOpsSetResponse) {
+        option (google.api.http) = {
+            post : "/v1/gitopssets/sync"
+            body: "*"
+        };  
+    }    
+}
+
+message ListGitOpsSetsRequest {
+    string namespace   = 1;
+}
+
+message ListGitOpsSetsResponse {
+    repeated GitOpsSet gitopssets = 1;
+    repeated GitOpsSetListError errors = 2;
+}
+
+message ToggleSuspendGitOpsSetRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+    bool   suspend     = 4;
+}
+
+message ToggleSuspendGitOpsSetResponse {
+}
+
+message GetReconciledObjectsRequest {
+    string         name                   = 1;
+    string         namespace              = 2;
+    string         automationKind         = 3;
+    repeated       GroupVersionKind kinds = 4;
+    string         clusterName            = 5;
+}
+
+message GetReconciledObjectsResponse {
+    repeated Object objects = 1;
+}
+
+message SyncGitOpsSetRequest {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+}
+
+message SyncGitOpsSetResponse {
+    bool success = 1;
+}
+
+message GetGitOpsSetRequest {
+    string name        = 1;
+    string namespace   = 2;
+    string clusterName = 3;
+}
+
+message GetGitOpsSetResponse {
+    GitOpsSet gitops_set = 1;
+}

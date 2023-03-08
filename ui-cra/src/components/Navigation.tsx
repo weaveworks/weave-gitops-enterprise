@@ -18,8 +18,9 @@ import { ReactComponent as SecretsIcon } from '../assets/img/secrets-Icon.svg';
 import { ReactComponent as Templates } from '../assets/img/templates.svg';
 import { ReactComponent as TerraformLogo } from '../assets/img/terraform-logo.svg';
 import { ReactComponent as PolicyConfigs } from '../assets/img/policyConfigs.svg';
-import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { ReactComponent as WorkspacesIcon } from '../assets/img/Workspace-Icon.svg';
+import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
+import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
 
@@ -176,6 +177,12 @@ const NavItems = () => {
         },
       ],
       relatedRoutes: [V2Routes.Kustomization, V2Routes.HelmRelease],
+    },
+
+    {
+      name: 'GITOPS SETS',
+      link: Routes.GitOpsSets,
+      icon: <GitOpsSetsIcon />,
     },
     {
       name: 'GITOPS RUN',
