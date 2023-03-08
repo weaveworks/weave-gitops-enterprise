@@ -659,6 +659,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		ClientsFactory:    args.ClustersManager,
 		ManagementFetcher: args.ManagementFetcher,
 		Scheme:            args.KubernetesClient.Scheme(),
+		Cluster:           args.Cluster,
 	}); err != nil {
 		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
