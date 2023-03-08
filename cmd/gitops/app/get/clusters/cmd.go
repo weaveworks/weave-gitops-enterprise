@@ -31,7 +31,7 @@ gitops get clusters
 gitops get cluster <cluster-name>
 
 # Get the Kubeconfig of a cluster
-gitops get cluster <cluster-name> --kubeconfig`,
+gitops get cluster <cluster-name> --print-kubeconfig`,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PreRunE:       getClusterCmdPreRunE(&opts.Endpoint),
