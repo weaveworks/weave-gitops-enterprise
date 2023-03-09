@@ -5,8 +5,15 @@ import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
-const { defaultOriginal, black, primary, neutral30, feedbackLight, backGrey } =
-  theme.colors;
+const {
+  defaultOriginal,
+  black,
+  primary,
+  neutral30,
+  neutral20,
+  feedbackLight,
+  backGrey,
+} = theme.colors;
 const { medium: mediumFont } = theme.fontSizes;
 const { none, xxs, xs, small, base, large } = theme.spacing;
 
@@ -90,6 +97,7 @@ export const PolicyDetailsCardWrapper = styled.ul`
     padding: ${small};
     .MuiCard-root {
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
+      border: 1px solid ${neutral20};
       height: 245px;
       border-radius: ${xs} !important;
     }
