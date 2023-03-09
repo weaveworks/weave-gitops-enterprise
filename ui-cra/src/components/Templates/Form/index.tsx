@@ -287,7 +287,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
-  const { data } = useListSources('', '', { retry: false });
+  const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
     [data?.result],

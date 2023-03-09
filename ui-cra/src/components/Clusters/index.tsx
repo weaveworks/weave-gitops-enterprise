@@ -25,7 +25,6 @@ import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import path from 'path';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
@@ -395,7 +394,7 @@ const MCCP: FC<{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom:'20px'
+              marginBottom: '20px',
             }}
           >
             <ActionsWrapper>
