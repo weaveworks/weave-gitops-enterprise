@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
 func TestSetSeparateValues(t *testing.T) {
@@ -145,7 +144,7 @@ func TestEndpointNotSet(t *testing.T) {
 }
 
 func TestGitProviderToken(t *testing.T) {
-	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+	t.Setenv("GITHUB_TOKEN", "test-token")
 
 	client := adapters.NewHTTPClient()
 
@@ -218,7 +217,7 @@ func TestGitProviderToken_InvalidURL(t *testing.T) {
 }
 
 func TestParseProfiles_ValidRequest(t *testing.T) {
-	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+	t.Setenv("GITHUB_TOKEN", "test-token")
 
 	client := adapters.NewHTTPClient()
 
@@ -255,7 +254,7 @@ func TestParseProfiles_ValidRequest(t *testing.T) {
 }
 
 func TestParseProfiles_InvalidKey(t *testing.T) {
-	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+	t.Setenv("GITHUB_TOKEN", "test-token")
 
 	client := adapters.NewHTTPClient()
 
@@ -292,7 +291,7 @@ func TestParseProfiles_InvalidKey(t *testing.T) {
 }
 
 func TestParseProfiles_InvalidValue(t *testing.T) {
-	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+	t.Setenv("GITHUB_TOKEN", "test-token")
 
 	client := adapters.NewHTTPClient()
 
