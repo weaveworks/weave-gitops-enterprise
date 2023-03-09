@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
-import AzureServerAuthButton from './AzureServerAuthButton';
+import AzureDevOpsAuthButton from './AzureDevOpsAuthButton';
 import BitBucketServerAuthButton from './BitBucketServerAuthButton';
 import GithubAuthButton from './GithubAuthButton';
 import GitlabAuthButton from './GitlabAuthButton';
@@ -38,7 +38,7 @@ function AuthButton({ className, provider, onClick, ...rest }: Props) {
       );
     case GitProvider.AzureDevOps:
       return (
-        <AzureServerAuthButton
+        <AzureDevOpsAuthButton
           {...rest}
           onClick={() => onClick(GitProvider.AzureDevOps)}
         />

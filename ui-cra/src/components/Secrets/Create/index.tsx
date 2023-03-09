@@ -139,7 +139,7 @@ const CreateSecret = () => {
     useState<ExternalSecretStore>({});
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
-  const { data } = useListSources();
+  const { data } = useListSources('', '', { retry: false });
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
   const initialGitRepo = getInitialGitRepo(
     null,

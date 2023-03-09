@@ -13,13 +13,14 @@ type Props = {
   onClick: () => void;
 };
 
-function AzureAuthButton({ onClick, ...props }: Props) {
+function AzureDevOpsAuthButton({ onClick, ...props }: Props) {
   const { callbackState } = React.useContext<CallbackStateContextType>(
     CallbackStateContext as any,
   );
   const { gitAuthClient } = React.useContext(GitAuth);
 
   const handleClick = (e: any) => {
+    e.preventDefault();
     storeCallbackState(callbackState);
 
     gitAuthClient
@@ -38,6 +39,6 @@ function AzureAuthButton({ onClick, ...props }: Props) {
   );
 }
 
-export default styled(AzureAuthButton).attrs({
-  className: AzureAuthButton.name,
+export default styled(AzureDevOpsAuthButton).attrs({
+  className: AzureDevOpsAuthButton.name,
 })``;
