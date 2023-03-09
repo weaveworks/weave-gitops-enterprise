@@ -222,4 +222,4 @@ rules:
     - clusterexternalsecrets
     - secretstores
     - clustersecretstores
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "update", "patch"]
