@@ -194,7 +194,7 @@ const NavContainer = styled.div`
 const Navigation: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
   const { data } = useFeatureFlags();
-  const navItems = useMemo(() => getNavItems(data.flags), [data]);
+  const navItems = useMemo(() => getNavItems(data?.flags || {}), [data]);
   const currentPage = useLocation();
   const routeValue = getParentNavRouteValueExtended(
     '/' + currentPage.pathname.split('/')[1],
