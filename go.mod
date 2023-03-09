@@ -1,6 +1,6 @@
 module github.com/weaveworks/weave-gitops-enterprise
 
-go 1.18
+go 1.20
 
 // replace components from policy agent to align with wge
 replace (
@@ -33,7 +33,7 @@ require (
 	k8s.io/apimachinery v0.26.1
 	k8s.io/cli-runtime v0.26.1
 	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.14.4
+	sigs.k8s.io/controller-runtime v0.14.5
 )
 
 require (
@@ -62,9 +62,9 @@ require (
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo/v2 v2.8.4
+	github.com/onsi/ginkgo/v2 v2.9.0
 	github.com/spf13/pflag v1.0.5
-	github.com/spf13/viper v1.13.0
+	github.com/spf13/viper v1.15.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
 	github.com/weaveworks/gitopssets-controller v0.5.2-0.20230306134151-79578e0349c2
@@ -74,15 +74,15 @@ require (
 	github.com/weaveworks/templates-controller v0.1.3
 	github.com/xanzy/go-gitlab v0.78.0
 	golang.org/x/crypto v0.6.0
-	golang.org/x/oauth2 v0.3.0
-	google.golang.org/genproto v0.0.0-20221027153422-115e99e71e1c
-	google.golang.org/grpc v1.51.0
+	golang.org/x/oauth2 v0.6.0
+	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef
+	google.golang.org/grpc v1.52.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.28.1
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.26.1
-	sigs.k8s.io/cluster-api v1.1.3
+	sigs.k8s.io/cluster-api v1.4.0-beta.2
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -101,7 +101,6 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 // indirect
 	github.com/aws/smithy-go v1.13.3 // indirect
-	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/charmbracelet/bubbles v0.14.0 // indirect
 	github.com/charmbracelet/bubbletea v0.22.1 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
@@ -112,7 +111,7 @@ require (
 	github.com/fluxcd/image-reflector-controller/api v0.25.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.32.1 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
-	github.com/gobuffalo/flect v0.3.0 // indirect
+	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/google/go-github/v49 v49.1.0 // indirect
 	github.com/google/pprof v0.0.0-20220829040838-70bd9ae97f40 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -155,7 +154,7 @@ require (
 	github.com/rs/xid v1.4.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d
-	go.opencensus.io v0.23.0 // indirect
+	go.opencensus.io v0.24.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.35.0 // indirect
 	go.opentelemetry.io/otel v1.10.0 // indirect
 	go.opentelemetry.io/otel/trace v1.10.0 // indirect
@@ -201,7 +200,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
-	github.com/fatih/color v1.13.0 // indirect
+	github.com/fatih/color v1.14.1 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.8.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.23.1 // indirect
@@ -248,10 +247,10 @@ require (
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
 	github.com/lib/pq v1.10.6 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
-	github.com/magiconair/properties v1.8.6 // indirect
+	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.16 // indirect
+	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -270,7 +269,7 @@ require (
 	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/opencontainers/image-spec v1.0.3-0.20220114050600-8b9d41f48198 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
-	github.com/pelletier/go-toml/v2 v2.0.5 // indirect
+	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/prometheus/client_model v0.3.0 // indirect
@@ -281,10 +280,10 @@ require (
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/sethvargo/go-limiter v0.7.2 // indirect
 	github.com/shopspring/decimal v1.3.1 // indirect
-	github.com/spf13/afero v1.9.2 // indirect
+	github.com/spf13/afero v1.9.3 // indirect
 	github.com/spf13/cast v1.5.0 // indirect
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
-	github.com/subosito/gotenv v1.4.1 // indirect
+	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/tomwright/dasel v1.22.1 // indirect
 	github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
@@ -296,11 +295,11 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.8.0 // indirect
 	go.uber.org/zap v1.24.0 // indirect
-	golang.org/x/net v0.7.0
+	golang.org/x/net v0.8.0
 	golang.org/x/sync v0.1.0
-	golang.org/x/sys v0.5.0 // indirect
-	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0
+	golang.org/x/sys v0.6.0 // indirect
+	golang.org/x/term v0.6.0 // indirect
+	golang.org/x/text v0.8.0
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
