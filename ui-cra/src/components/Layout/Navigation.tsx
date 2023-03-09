@@ -180,7 +180,6 @@ const Navigation: FC = () => {
 
   const { data } = useFeatureFlags();
   const navItems = useMemo(() => getNavItems(data?.flags || {}), [data]);
-
   const currentPage = useLocation();
   const routeValue = getParentNavRouteValueExtended(
     '/' + currentPage.pathname.split('/')[1],
