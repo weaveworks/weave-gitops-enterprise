@@ -26,6 +26,12 @@ service Query {
             body: "*"
         };
     }
+
+    rpc DebugGetAccessRules(DebugGetAccessRulesRequest) returns (DebugGetAccessRulesResponse) {
+        option (google.api.http) = {
+            get: "/v1/debug/access-rules"
+        };
+    }
 }
 
 message QueryRequest {
@@ -49,4 +55,19 @@ message Object {
     string kind      = 3;
     string name      = 4;
     string status    = 5;
+}
+
+message DebugGetAccessRulesRequest {
+
+}
+
+message DebugGetAccessRulesResponse {
+    repeated AccessRule rules = 1;
+}
+
+message AccessRule {
+    string   cluster                = 1;
+    string   principal              = 2;
+    string   namespace              = 3;
+    repeated string accessibleKinds = 4;
 }
