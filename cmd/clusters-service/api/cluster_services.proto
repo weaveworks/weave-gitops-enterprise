@@ -249,7 +249,7 @@ service ClustersService {
   // SyncExternalSecrets sync externalSecret Operator secrets
   rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
     option (google.api.http) = {
-      get : "/v1/external-secrets/sync"
+      post : "/v1/external-secrets/sync"
     };
   }
 
