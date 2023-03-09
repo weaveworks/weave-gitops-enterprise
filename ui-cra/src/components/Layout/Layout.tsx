@@ -44,22 +44,8 @@ const SignInWrapper = styled.div`
   }
 `;
 
-const App = () => {
-  const classes = useStyles();
-  return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <Navigation />
-      <main className={classes.content}>
-        <ErrorBoundary>
-          <AppRoutes />
-        </ErrorBoundary>
-      </main>
-    </div>
-  );
-};
-
 const Layout = () => {
+  const classes = useStyles();
   return (
     <Switch>
       <Route
@@ -76,7 +62,15 @@ const Layout = () => {
         <AuthCheck>
           <ListConfigProvider>
             <VersionProvider>
-              <App />
+              <div className={classes.root}>
+                <CssBaseline />
+                <Navigation />
+                <main className={classes.content}>
+                  <ErrorBoundary>
+                    <AppRoutes />
+                  </ErrorBoundary>
+                </main>
+              </div>
             </VersionProvider>
           </ListConfigProvider>
         </AuthCheck>

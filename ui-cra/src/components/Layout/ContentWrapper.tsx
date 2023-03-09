@@ -32,6 +32,7 @@ export const Title = styled.h2`
 
 export const PageWrapper = styled.div`
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 `;
 
@@ -100,7 +101,7 @@ export const ContentWrapper: FC<Props> = ({
         display: 'flex',
         flexDirection: 'column',
         width: '100%',
-        maxHeight: 'calc(100vh - 80px)',
+        maxHeight: 'calc(100vh - 60px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
         paddingRight: '12px',
