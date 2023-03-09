@@ -266,7 +266,7 @@ func getSecretStoreType(provider *esv1beta1.SecretStoreProvider) string {
 
 // syncExternalSecret syncs externalSecrets from externalSecret operators
 
-func (s *server) SyncExternalSecret(ctx context.Context, req *capiv1_proto.SyncExternalSecretsRequest) (*capiv1_proto.SyncExternalSecretsResponse, error) {
+func (s *server) SyncExternalSecrets(ctx context.Context, req *capiv1_proto.SyncExternalSecretsRequest) (*capiv1_proto.SyncExternalSecretsResponse, error) {
 
 	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
 	if err != nil {
@@ -281,7 +281,13 @@ func (s *server) SyncExternalSecret(ctx context.Context, req *capiv1_proto.SyncE
 	if err := clustersClient.Get(ctx, req.ClusterName, client.ObjectKey{Name: req.ExternalSecretName, Namespace: req.Namespace}, &externalSecret); err != nil {
 		return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 	} else {
-		externalSecret.Annotations["force-sync"] = time.Now().Format(time.RFC3339)
+
+		if _, ok := externalSecret.Annotations["force-sync"]; ok {
+			externalSecret.Annotations["force-sync"] = time.Now().Format(time.RFC3339)
+		} else {
+			externalSecret.Annotations = map[string]string{"force-sync": time.Now().Format(time.RFC3339)}
+		}
+
 		if err := clustersClient.Update(ctx, req.ClusterName, &externalSecret); err != nil {
 			return nil, fmt.Errorf("error updating external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 		}
