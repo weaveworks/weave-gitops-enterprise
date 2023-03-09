@@ -26,8 +26,10 @@ import { Terraform } from './api/terraform/terraform.pb';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
 import Layout from './components/Layout/Layout';
+import Compose from './components/ProvidersCompose';
 import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
+import NotificationsProvider from './contexts/Notifications/Provider';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
@@ -158,12 +160,14 @@ const App: FC = () => {
                                   tier="enterprise"
                                   version={process.env.REACT_APP_VERSION}
                                 />
-                                <Layout />
-                                <ToastContainer
-                                  position="top-center"
-                                  autoClose={5000}
-                                  newestOnTop={false}
-                                />
+                                <Compose components={[NotificationsProvider]}>
+                                  <Layout />
+                                  <ToastContainer
+                                    position="top-center"
+                                    autoClose={5000}
+                                    newestOnTop={false}
+                                  />
+                                </Compose>
                               </LinkResolverProvider>
                             </TerraformProvider>
                           </CoreClientContextProvider>

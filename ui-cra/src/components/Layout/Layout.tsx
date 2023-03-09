@@ -4,10 +4,8 @@ import { AuthCheck, SignIn } from '@weaveworks/weave-gitops';
 import { Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
 import { ListConfigProvider, VersionProvider } from '../../contexts/ListConfig';
-import NotificationsProvider from '../../contexts/Notifications/Provider';
 import AppRoutes from '../../routes';
 import ErrorBoundary from '../ErrorBoundary';
-import Compose from '../ProvidersCompose';
 import Navigation from './Navigation';
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -49,17 +47,15 @@ const SignInWrapper = styled.div`
 const App = () => {
   const classes = useStyles();
   return (
-    <Compose components={[NotificationsProvider]}>
-      <div className={classes.root}>
-        <CssBaseline />
-        <Navigation />
-        <main className={classes.content}>
-          <ErrorBoundary>
-            <AppRoutes />
-          </ErrorBoundary>
-        </main>
-      </div>
-    </Compose>
+    <div className={classes.root}>
+      <CssBaseline />
+      <Navigation />
+      <main className={classes.content}>
+        <ErrorBoundary>
+          <AppRoutes />
+        </ErrorBoundary>
+      </main>
+    </div>
   );
 };
 
