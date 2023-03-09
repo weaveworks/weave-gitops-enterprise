@@ -8,7 +8,8 @@ import { TableWrapper } from '../Shared';
 const { defaultOriginal, black, primary, neutral30, feedbackLight, backGrey } =
   theme.colors;
 const { medium: mediumFont } = theme.fontSizes;
-const { none, xxs, xs, small, base } = theme.spacing;
+const { none, xxs, xs, small, base, large } = theme.spacing;
+
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     centered: {
@@ -18,20 +19,29 @@ export const usePolicyConfigStyle = makeStyles(() =>
     capitlize: {
       textTransform: 'capitalize',
     },
+    upperCase: {
+      textTransform: 'uppercase',
+    },
     sectionTitle: {
       color: black,
       fontSize: mediumFont,
       fontWeight: 600,
+      marginTop: large,
+      display: 'block',
+    },
+    appliedTo: {
+      marginTop: base,
     },
     link: {
       color: primary,
       fontWeight: 600,
       whiteSpace: 'pre-line',
+      textTransform: 'capitalize',
     },
     targetItemsList: {
-      '& li': { marginTop: base, display: 'flex', alignItems: 'center' },
-      listStyle: 'none',
+      '& li': { marginTop: xs, display: 'flex', alignItems: 'center' },
       padding: none,
+      margin: none,
     },
     targetItemKind: {
       background: backGrey,
@@ -40,14 +50,15 @@ export const usePolicyConfigStyle = makeStyles(() =>
       marginLeft: small,
       borderRadius: base,
     },
-    policyTitle:{
-      '& span':{
+    policyTitle: {
+      '& span': {
         marginRight: xs,
       },
       display: 'flex',
       alignItems: 'flex-start',
       whiteSpace: 'pre-line',
-    }
+      textTransform: 'capitalize',
+    },
   }),
 );
 
@@ -59,7 +70,6 @@ export const WarningWrapper = styled(Alert)`
   margin: ${none} ${small} ${small};
   height: 50px;
   border-radius: ${xs} !important;
-  font-weight: 600 !important;
   color: ${black} !important;
   display: flex !important;
   align-items: center;
@@ -76,7 +86,7 @@ export const PolicyDetailsCardWrapper = styled.ul`
   display: flex;
   flex-flow: wrap;
   li {
-    width: 25%;
+    width: 33%;
     padding: ${small};
     .MuiCard-root {
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
@@ -88,19 +98,18 @@ export const PolicyDetailsCardWrapper = styled.ul`
       font-size: ${small};
       display: block;
       font-weight: ${700};
-      margin: ${small} ${none};
+      margin: ${base} ${none} ${none};
     }
     .parameterItem {
       font-size: ${small};
       font-weight: 400;
-      margin-bottom: ${xs};
+      margin-top: ${xs};
       label {
         margin-bottom: ${xs};
         display: block;
       }
       .parameterItemValue {
         color: ${neutral30};
-        text-transform: capitalize;
       }
     }
   }

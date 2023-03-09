@@ -63,8 +63,8 @@ function PolicyDetailsCard({
                 <label className="cardLbl">Parameters</label>
                 {Object.entries(policy.parameters || {}).map(param => (
                   <div className="parameterItem" key={param[0]}>
-                    <label>{param[0]}: </label>
-                    <div className="parameterItemValue">
+                    <label className={classes.upperCase}>{param[0]} </label>
+                    <div className={`parameterItemValue ${classes.upperCase}`}>
                       {renderParameterValue(param[1])}
                     </div>
                   </div>

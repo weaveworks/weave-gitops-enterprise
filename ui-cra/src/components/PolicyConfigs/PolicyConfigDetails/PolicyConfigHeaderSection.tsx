@@ -1,10 +1,9 @@
 import { formatURL, Link } from '@weaveworks/weave-gitops';
 import moment from 'moment';
-import { useEffect, useState } from 'react';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
+import { getKindRoute, Routes } from '../../../utils/nav';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { usePolicyConfigStyle } from '../PolicyConfigStyles';
-import { getKindRoute, Routes } from '../../../utils/nav';
 
 function PolicyConfigHeaderSection({
   age,
@@ -13,7 +12,6 @@ function PolicyConfigHeaderSection({
   matchType,
 }: GetPolicyConfigResponse) {
   const classes = usePolicyConfigStyle();
-  const [target, setTarget] = useState<any[]>();
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Cluster',
@@ -25,13 +23,11 @@ function PolicyConfigHeaderSection({
     },
   ];
 
-  useEffect(() => {
-    const matchTarget = Object.entries(match)
-      .filter(item => item[0] === matchType)
-      .map(item => item[1]);
-    setTarget(matchTarget.flat());
-  }, [matchType, match]);
-  
+  const target: any[] = [];
+  Object.entries(match).forEach(([key, val]) => {
+    if (key === matchType) target.push(...val);
+  });
+
   const getMatchedItem = (
     item: any,
     clusterName: string | undefined,
@@ -76,7 +72,7 @@ function PolicyConfigHeaderSection({
             <Link
               to={formatURL(Routes.WorkspaceDetails, {
                 clusterName: clusterName,
-                workspaceName: item.name,
+                workspaceName: item,
               })}
             >
               {item}
@@ -93,10 +89,7 @@ function PolicyConfigHeaderSection({
       {generateRowHeaders(defaultHeaders)}
       <div>
         <label className={classes.sectionTitle}>Applied To</label>
-        <div
-          className={`${classes.sectionTitle} ${classes.capitlize}`}
-          style={{ fontWeight: 'normal', marginTop: '12px' }}
-        >
+        <div className={`${classes.appliedTo} ${classes.capitlize}`}>
           {matchType}
 
           <span> ({target?.length})</span>
