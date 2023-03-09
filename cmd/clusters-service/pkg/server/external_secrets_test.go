@@ -577,6 +577,32 @@ func TestSyncExternalSecret(t *testing.T) {
 						},
 					},
 				},
+				&esv1beta1.ExternalSecret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "external-secret-b",
+						Namespace: "namespace-a",
+						Annotations: map[string]string{
+							"force-sync": "2020-01-01T00:00:00Z",
+						},
+					},
+					Spec: esv1beta1.ExternalSecretSpec{
+						SecretStoreRef: esv1beta1.SecretStoreRef{
+							Name: "aws-secret-store",
+						},
+						Target: esv1beta1.ExternalSecretTarget{
+							Name: "secret-b",
+						},
+						Data: []esv1beta1.ExternalSecretData{
+							{
+								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+									Key:      "Data/key-b",
+									Property: "property-b",
+									Version:  "1.0.0",
+								},
+							},
+						},
+					},
+				},
 			},
 		},
 	}
@@ -600,6 +626,14 @@ func TestSyncExternalSecret(t *testing.T) {
 				Namespace:          "namespace-a",
 				ExternalSecretName: "external-secret-b",
 			},
+			response: nil,
+		},
+		{
+			request: &capiv1_proto.SyncExternalSecretsRequest{
+				ClusterName:        "management",
+				Namespace:          "namespace-a",
+				ExternalSecretName: "external-secret-c",
+			},
 			err: true,
 		},
 	}
@@ -613,14 +647,13 @@ func TestSyncExternalSecret(t *testing.T) {
 
 	for _, tt := range tests {
 		res, err := s.SyncExternalSecrets(context.Background(), tt.request)
-		if err != nil {
-			if tt.err {
-				continue
-			}
-			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
+		if tt.err {
+			assert.NotNil(t, err)
+			continue
 		}
+		assert.Nil(t, err)
 
-		//get the CR from the cluster and check if the annotation has been added
+		//get the CR from the cluster and check if the annotation has been added/updated
 		externalSecret := &esv1beta1.ExternalSecret{}
 		err = clustersClients[tt.request.ClusterName].Get(context.Background(), types.NamespacedName{
 			Namespace: tt.request.Namespace,

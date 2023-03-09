@@ -264,8 +264,7 @@ func getSecretStoreType(provider *esv1beta1.SecretStoreProvider) string {
 	}
 }
 
-// syncExternalSecret syncs externalSecrets from externalSecret operators
-
+// SyncExternalSecret triggers a sync of an externalSecret from externalSecret operators
 func (s *server) SyncExternalSecrets(ctx context.Context, req *capiv1_proto.SyncExternalSecretsRequest) (*capiv1_proto.SyncExternalSecretsResponse, error) {
 
 	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
