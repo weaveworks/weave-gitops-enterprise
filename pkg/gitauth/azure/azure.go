@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-var bitbucketScopes = []string{"vso.code_write"}
+var azureScopes = []string{"vso.code_write"}
 
 type AuthClient interface {
 	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
@@ -30,11 +30,7 @@ type defaultAuthClient struct {
 }
 
 func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (url.URL, error) {
-	u, err := buildAzureURL()
-
-	if err != nil {
-		return u, fmt.Errorf("building azure devOps url: %w", err)
-	}
+	u := buildAzureURL()
 
 	u.Path = "/oauth2/authorize"
 
@@ -46,21 +42,16 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 
 	params := u.Query()
 	params.Set("client_id", cid)
+	params.Set("response_type", "Assertion")
+	params.Set("scope", strings.Join(azureScopes, " "))
 	params.Set("redirect_uri", redirectURI)
-	params.Set("response_type", "code")
-	params.Set("grant_type", "authorization_code")
 
-	params.Set("scope", strings.Join(bitbucketScopes, " "))
 	u.RawQuery = params.Encode()
 	return u, nil
 }
 
 func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error) {
-	u, err := buildAzureURL()
-
-	if err != nil {
-		return nil, fmt.Errorf("building azure server url: %w", err)
-	}
+	u := buildAzureURL()
 
 	cid := getClientID()
 	if cid == "" {
@@ -89,18 +80,13 @@ func (c *defaultAuthClient) ValidateToken(ctx context.Context, token string) err
 	return nil
 }
 
-func buildAzureURL() (url.URL, error) {
-	host := os.Getenv("AZURE_DEVOPS_HOSTNAME")
-	u := url.URL{}
-
-	if host == "" {
-		return u, errors.New("env var AZURE_DEVOPS_HOSTNAME is not set")
+func buildAzureURL() url.URL {
+	u := url.URL{
+		Scheme: "https",
+		Host:   "app.vssps.visualstudio.com",
 	}
 
-	u.Scheme = "https"
-	u.Host = host
-
-	return u, nil
+	return u
 }
 
 func getClientID() string {
