@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // creating test for list external secrets
@@ -593,6 +594,14 @@ func TestSyncExternalSecret(t *testing.T) {
 			},
 			response: nil,
 		},
+		{
+			request: &capiv1_proto.SyncExternalSecretsRequest{
+				ClusterName:        "management",
+				Namespace:          "namespace-a",
+				ExternalSecretName: "external-secret-b",
+			},
+			err: true,
+		},
 	}
 
 	clustersClients := map[string]client.Client{}
@@ -610,6 +619,21 @@ func TestSyncExternalSecret(t *testing.T) {
 			}
 			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
 		}
+
+		//get the CR from the cluster and check if the annotation has been added
+		externalSecret := &esv1beta1.ExternalSecret{}
+		err = clustersClients[tt.request.ClusterName].Get(context.Background(), types.NamespacedName{
+			Namespace: tt.request.Namespace,
+			Name:      tt.request.ExternalSecretName,
+		}, externalSecret)
+		if err != nil {
+			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
+		}
+		_, ok := externalSecret.Annotations["force-sync"]
+		if !ok {
+			t.Fatalf("external secret has not been updated")
+		}
+
 		assert.Equal(t, tt.response, res, "stores do not match expected stores")
 	}
 
