@@ -266,6 +266,14 @@ service ClustersService {
       get : "/v1/policy-configs/{name}"
     };
   }
+
+  // SopsEncryptSecret get policy config details
+  rpc SopsEncryptSecret(SopsEncryptSecretRequest) returns (SopsEncryptSecretResponse) {
+    option (google.api.http) = {
+      post : "/v1/sops-encrypt-secret",
+      body : "*"
+    };
+  }
 }
 
 
@@ -1191,4 +1199,22 @@ message PolicyConfigObjectSpec {
 message PolicyConfigObject {
   Metadata metadata = 1;
   PolicyConfigObjectSpec spec  = 2;
+}
+
+
+message SopsEncryptSecretRequest {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+  string type = 4; 
+  bool immutable = 5;
+  map<string, string> data = 6;
+  map<string, string> stringData = 7;
+  string kustomization_name = 8;
+  string kustomization_namespace = 9;
+  string clusterName = 10;
+}
+
+message SopsEncryptSecretResponse {
+  google.protobuf.Value encrypted_secret = 1;
 }

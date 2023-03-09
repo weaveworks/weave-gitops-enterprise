@@ -901,6 +901,23 @@ export type PolicyConfigObject = {
   spec?: PolicyConfigObjectSpec
 }
 
+export type SopsEncryptSecretRequest = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+  type?: string
+  immutable?: boolean
+  data?: {[key: string]: string}
+  stringData?: {[key: string]: string}
+  kustomizationName?: string
+  kustomizationNamespace?: string
+  clusterName?: string
+}
+
+export type SopsEncryptSecretResponse = {
+  encryptedSecret?: GoogleProtobufStruct.Value
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -1006,5 +1023,8 @@ export class ClustersService {
   }
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
     return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static SopsEncryptSecret(req: SopsEncryptSecretRequest, initReq?: fm.InitReq): Promise<SopsEncryptSecretResponse> {
+    return fm.fetchReq<SopsEncryptSecretRequest, SopsEncryptSecretResponse>(`/v1/sops-encrypt-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
