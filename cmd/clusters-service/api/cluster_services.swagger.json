@@ -544,22 +544,12 @@
         },
         "parameters": [
           {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "externalSecretName",
-            "in": "query",
-            "required": false,
-            "type": "string"
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncExternalSecretsRequest"
+            }
           }
         ],
         "tags": [
@@ -3158,6 +3148,20 @@
           "type": "string"
         },
         "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SyncExternalSecretsRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "externalSecretName": {
           "type": "string"
         }
       }

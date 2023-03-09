@@ -987,7 +987,7 @@ export class ClustersService {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
-    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST"})
+    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
