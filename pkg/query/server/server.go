@@ -11,6 +11,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesscollector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/memorystore"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectcollector"
@@ -50,6 +52,17 @@ func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryRe
 	}, nil
 }
 
+func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccessRulesRequest) (*pb.DebugGetAccessRulesResponse, error) {
+	rules, err := s.qs.GetAccessRules(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get access rules: %w", err)
+	}
+
+	return &pb.DebugGetAccessRulesResponse{
+		Rules: convertToPbAccessRule(rules),
+	}, nil
+}
+
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 	if opts.ObjectKinds == nil {
 		opts.ObjectKinds = DefaultKinds
@@ -76,6 +89,13 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 	}
 
 	if !opts.SkipCollection {
+		arc := accesscollector.NewAccessRulesCollector(w, collector.CollectorOpts{
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
+			PollInterval:   opts.CollectionInterval,
+		})
+		arc.Start()
+
 		objCollector := objectcollector.NewObjectCollector(opts.Logger, opts.ClustersManager, w, nil)
 		objCollector.Start()
 	}
@@ -106,4 +126,25 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 	}
 
 	return pbObjects
+}
+
+func convertToPbAccessRule(rules []models.AccessRule) []*pb.AccessRule {
+	pbRules := []*pb.AccessRule{}
+
+	for _, r := range rules {
+		rule := &pb.AccessRule{
+			Principal:       r.Principal,
+			Namespace:       r.Namespace,
+			Cluster:         r.Cluster,
+			AccessibleKinds: []string{},
+		}
+
+		for _, k := range r.AccessibleKinds {
+			rule.AccessibleKinds = append(rule.AccessibleKinds, k)
+		}
+
+		pbRules = append(pbRules, rule)
+
+	}
+	return pbRules
 }

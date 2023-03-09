@@ -44,6 +44,8 @@ func (a *accessRulesCollector) Start() {
 					continue
 				}
 
+				a.log.Info(fmt.Sprintf("received %d access rules", len(rules)))
+
 				if err := a.w.StoreAccessRules(rules); err != nil {
 					a.log.Error(err, "failed to store access rules")
 					continue
@@ -89,7 +91,7 @@ func (a *accessRulesCollector) handleRulesReceived(objects []collector.ObjectRec
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
 
 		if kind == "ClusterRole" || kind == "Role" {
-			adapter, err := adapters.NewRoleAdapter(obj.Object())
+			adapter, err := adapters.NewRoleAdapter(obj.ClusterName(), obj.Object())
 			if err != nil {
 				return result, fmt.Errorf("failed to create adapter for object: %w", err)
 			}
@@ -97,7 +99,7 @@ func (a *accessRulesCollector) handleRulesReceived(objects []collector.ObjectRec
 		}
 
 		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
-			adapter, err := adapters.NewBindingAdapter(obj.Object())
+			adapter, err := adapters.NewBindingAdapter(obj.ClusterName(), obj.Object())
 			if err != nil {
 				return result, fmt.Errorf("failed to create binding adapter: %w", err)
 			}
@@ -107,6 +109,14 @@ func (a *accessRulesCollector) handleRulesReceived(objects []collector.ObjectRec
 	}
 
 	// Figure out the binding/role pairs
+	for _, binding := range bindings {
+		for _, role := range roles {
+			if bindingRoleMatch(binding, role) {
+				result = append(result, convertToAccessRule(role.GetClusterName(), role, a.verbs))
+			}
+		}
+
+	}
 
 	return result, nil
 }
@@ -173,4 +183,12 @@ func containsWildcard(permissions []string) bool {
 	}
 
 	return false
+}
+
+func bindingRoleMatch(binding adapters.BindingLike, role adapters.RoleLike) bool {
+	ref := binding.GetRoleRef()
+	roleGroup := role.GetObjectKind().GroupVersionKind().Group
+	roleKind := role.GetObjectKind().GroupVersionKind().Kind
+
+	return ref.APIGroup == roleGroup && binding.GetNamespace() == role.GetNamespace() && ref.Kind == roleKind && ref.Name == role.GetName()
 }

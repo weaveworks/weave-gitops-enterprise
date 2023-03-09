@@ -2,14 +2,17 @@ package collector
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-logr/logr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 )
 
 // pollingCollector is a collector that polls the cluster for objects at a regular interval.
@@ -76,19 +79,43 @@ func (c *pollingCollector) collect(ctx context.Context) ([]ObjectRecord, error) 
 
 	for _, clus := range clusters {
 		clusterName := clus.GetName()
-		cl, err := clus.GetServerClient()
+		// cls, err := clus.GetServerClientset()
+		// if err != nil {
+		// 	c.log.Error(err, "failed to get client for cluster")
+		// 	continue
+		// }
+
+		cfg, err := clus.GetServerConfig()
 		if err != nil {
-			c.log.Error(err, "failed to get client for cluster")
+			c.log.Error(err, "failed to get config for cluster")
+			continue
+		}
+
+		dyn, err := dynamic.NewForConfig(cfg)
+		if err != nil {
+			c.log.Error(err, "failed to get dynamic client for cluster")
 			continue
 		}
 
 		for _, ns := range namespaces[clusterName] {
 			for _, kind := range c.kinds {
-				list := &unstructured.UnstructuredList{}
-				list.SetGroupVersionKind(kind)
 
-				if err := cl.List(ctx, list, client.InNamespace(ns.Name)); err != nil {
-					c.log.Error(err, "failed to list objects", "cluster", clusterName, "namespace", ns.Name, "kind", kind)
+				gvr := kind.GroupVersion().WithResource(kind.Kind)
+
+				list, err := dyn.Resource(gvr).Namespace(ns.Name).List(ctx, metav1.ListOptions{})
+
+				if err != nil {
+					if apierrors.IsNotFound(err) {
+						fmt.Printf("not found: %s/%s in %s\n", gvr.Group, gvr.Resource, clusterName)
+						continue
+					}
+
+					if apierrors.IsForbidden(err) {
+						fmt.Printf("forbidden: %s/%s in %s\n", gvr.Group, gvr.Resource, clusterName)
+						continue
+					}
+
+					c.log.Error(err, "failed to list objects", "cluster", clusterName, "namespace", ns.Name, "kind", kind.Kind)
 					continue
 				}
 
