@@ -1,21 +1,21 @@
-import React, { FC, useEffect } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
 import { Flex, theme } from '@weaveworks/weave-gitops';
+import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 
-import { AlertListErrors } from './AlertListErrors';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
+import { AlertListErrors } from './AlertListErrors';
 import Notifications from './Notifications';
 
-import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 import { useVersionContext } from '../../contexts/ListConfig';
 import {
   WarningIcon,
   WarningWrapper,
 } from '../PolicyConfigs/PolicyConfigStyles';
+import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
@@ -103,7 +103,7 @@ export const ContentWrapper: FC<Props> = ({
         maxHeight: 'calc(100vh - 80px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
-        padding: '0px 12px',
+        paddingRight: '12px',
         margin: '0 auto',
       }}
     >

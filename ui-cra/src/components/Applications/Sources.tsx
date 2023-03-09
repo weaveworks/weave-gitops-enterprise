@@ -1,7 +1,4 @@
-import {
-  SourcesTable,
-  useListSources
-} from '@weaveworks/weave-gitops';
+import { SourcesTable, useListSources } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
