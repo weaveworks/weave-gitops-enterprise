@@ -90,6 +90,7 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 		GithubAuthClient:      auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient:      auth.NewGitlabAuthClient(http.DefaultClient),
 		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
+		AzureDevOpsClient:     azure.NewAuthClient(http.DefaultClient),
 	}, nil
 }
 
