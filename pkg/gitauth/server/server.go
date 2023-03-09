@@ -203,9 +203,9 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 }
 
 func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.GetAzureDevOpsAuthURLRequest) (*pb.GetAzureDevOpsAuthURLResponse, error) {
-	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
+	u, err := s.azAuthClient.AuthURL(ctx, msg.RedirectUri)
 	if err != nil {
-		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
+		return nil, fmt.Errorf("could not get azure auth url: %w", err)
 	}
 
 	return &pb.GetAzureDevOpsAuthURLResponse{Url: u.String()}, nil
