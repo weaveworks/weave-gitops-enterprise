@@ -250,6 +250,7 @@ service ClustersService {
   rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
     option (google.api.http) = {
       post : "/v1/external-secrets/sync"
+      body : "*"
     };
   }
 
