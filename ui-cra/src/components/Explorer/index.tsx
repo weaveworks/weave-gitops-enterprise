@@ -1,6 +1,6 @@
 import { DataTable } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { useQueryService } from '../../hooks/query';
+import { useListAccessRules, useQueryService } from '../../hooks/query';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
@@ -10,6 +10,7 @@ type Props = {
 
 function Explorer({ className }: Props) {
   const { data, error, isLoading } = useQueryService();
+  const { data: rules } = useListAccessRules();
 
   return (
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
@@ -25,6 +26,15 @@ function Explorer({ className }: Props) {
             rows={data?.objects}
           />
         </div>
+        <br />
+        <DataTable
+          fields={[
+            { label: 'Cluster', value: 'cluster' },
+            { label: 'Principal', value: 'principal' },
+            { label: 'Accessible Kinds', value: 'accessibleKinds' },
+          ]}
+          rows={rules?.rules}
+        />
       </ContentWrapper>
     </PageTemplate>
   );

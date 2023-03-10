@@ -9,21 +9,22 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/dynamic"
 )
 
 // pollingCollector is a collector that polls the cluster for objects at a regular interval.
 // This is meant to be a temporary solution until we can implement a `watch` pattern.
 type pollingCollector struct {
-	mgr    clustersmngr.ClustersManager
-	log    logr.Logger
-	kinds  []schema.GroupVersionKind
-	ticker *time.Ticker
-	quit   chan bool
-	msg    chan []ObjectRecord
+	mgr                  clustersmngr.ClustersManager
+	log                  logr.Logger
+	kinds                []schema.GroupVersionKind
+	ticker               *time.Ticker
+	quit                 chan bool
+	msg                  chan []ObjectRecord
+	additionalNamespaces []string
 }
 
 func (c *pollingCollector) Start() (<-chan []ObjectRecord, error) {
@@ -77,46 +78,51 @@ func (c *pollingCollector) collect(ctx context.Context) ([]ObjectRecord, error) 
 	clusters := c.mgr.GetClusters()
 	namespaces := c.mgr.GetClustersNamespaces()
 
+	cl, err := c.mgr.GetServerClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get server client: %w", err)
+	}
+
 	for _, clus := range clusters {
 		clusterName := clus.GetName()
-		// cls, err := clus.GetServerClientset()
-		// if err != nil {
-		// 	c.log.Error(err, "failed to get client for cluster")
-		// 	continue
-		// }
 
-		cfg, err := clus.GetServerConfig()
-		if err != nil {
-			c.log.Error(err, "failed to get config for cluster")
-			continue
+		namespaces := namespaces[clusterName]
+
+		if len(c.additionalNamespaces) > 0 {
+			for _, n := range c.additionalNamespaces {
+				add := v1.Namespace{}
+				add.Name = n
+				namespaces = append(namespaces, add)
+			}
+
 		}
 
-		dyn, err := dynamic.NewForConfig(cfg)
-		if err != nil {
-			c.log.Error(err, "failed to get dynamic client for cluster")
-			continue
-		}
-
-		for _, ns := range namespaces[clusterName] {
+		for _, ns := range namespaces {
 			for _, kind := range c.kinds {
 
-				gvr := kind.GroupVersion().WithResource(kind.Kind)
+				list := unstructured.UnstructuredList{}
 
-				list, err := dyn.Resource(gvr).Namespace(ns.Name).List(ctx, metav1.ListOptions{})
+				list.SetGroupVersionKind(kind)
+
+				err := cl.List(ctx, clusterName, &list, client.InNamespace(ns.Name))
 
 				if err != nil {
 					if apierrors.IsNotFound(err) {
-						fmt.Printf("not found: %s/%s in %s\n", gvr.Group, gvr.Resource, clusterName)
+						// fmt.Printf("not found: %s/%s in %s/%s\n", kind.Group, kind.Kind, clusterName, ns.Name)
 						continue
 					}
 
 					if apierrors.IsForbidden(err) {
-						fmt.Printf("forbidden: %s/%s in %s\n", gvr.Group, gvr.Resource, clusterName)
+						fmt.Printf("forbidden: %s/%s in %s\n", kind.Group, kind.Kind, clusterName)
 						continue
 					}
 
 					c.log.Error(err, "failed to list objects", "cluster", clusterName, "namespace", ns.Name, "kind", kind.Kind)
 					continue
+				}
+
+				if len(list.Items) > 0 {
+					fmt.Printf("found %d %s/%s in %s/%s\n", len(list.Items), kind.Group, kind.Kind, clusterName, ns.Name)
 				}
 
 				for _, obj := range list.Items {

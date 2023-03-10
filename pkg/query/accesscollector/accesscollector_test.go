@@ -35,7 +35,7 @@ func TestAccessRulesCollector(t *testing.T) {
 		col := &collectorfakes.FakeCollector{}
 		ch := make(chan []collector.ObjectRecord)
 		col.StartReturns(ch, nil)
-		arc := &accessRulesCollector{
+		arc := &AccessRulesCollector{
 			log:       logr.Discard(),
 			col:       col,
 			w:         store,
@@ -255,14 +255,14 @@ func TestAccessLogic(t *testing.T) {
 	}
 }
 
-func createAccessRulesCollector(t *testing.T) (*accessRulesCollector, chan []collector.ObjectRecord, *storefakes.FakeStoreWriter) {
+func createAccessRulesCollector(t *testing.T) (*AccessRulesCollector, chan []collector.ObjectRecord, *storefakes.FakeStoreWriter) {
 	store := &storefakes.FakeStoreWriter{}
 
 	col := &collectorfakes.FakeCollector{}
 	ch := make(chan []collector.ObjectRecord)
 	col.StartReturns(ch, nil)
 
-	arc := &accessRulesCollector{
+	arc := &AccessRulesCollector{
 		log:       logr.Discard(),
 		col:       col,
 		w:         store,

@@ -48,21 +48,21 @@ type qs struct {
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object
 
 func (q *qs) RunQuery(ctx context.Context, opts Query) ([]models.Object, error) {
-	principal := auth.Principal(ctx)
+	// principal := auth.Principal(ctx)
 
 	allObjects, err := q.r.GetObjects()
 	if err != nil {
 		return nil, fmt.Errorf("error getting objects from store: %w", err)
 	}
 
-	rules, err := q.r.GetAccessRules()
-	if err != nil {
-		return nil, fmt.Errorf("error getting access rules: %w", err)
-	}
+	// rules, err := q.r.GetAccessRules()
+	// if err != nil {
+	// 	return nil, fmt.Errorf("error getting access rules: %w", err)
+	// }
 
-	result := q.filter(principal, rules, allObjects)
+	// result := q.filter(principal, rules, allObjects)
 
-	return result, nil
+	return allObjects, nil
 }
 
 func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
