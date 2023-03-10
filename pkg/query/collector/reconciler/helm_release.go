@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"

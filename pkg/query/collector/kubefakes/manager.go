@@ -1,4 +1,4 @@
-package fakes
+package kubefakes
 
 import (
 	"context"

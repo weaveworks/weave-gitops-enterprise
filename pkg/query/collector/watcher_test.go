@@ -1,4 +1,4 @@
-package cluster
+package collector
 
 import (
 	"context"
@@ -6,8 +6,9 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/fakes"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store/storefakes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -20,7 +21,7 @@ import (
 func TestNewWatcher(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := fakes.NewStore(log)
+	fakeStore := storefakes.NewStore(log)
 
 	tests := []struct {
 		name                      string
@@ -153,7 +154,7 @@ func TestNewWatcher(t *testing.T) {
 
 func newFakeWatcherManagerFunc(config *rest.Config, kinds []string, store store.Store, options manager.Options) (manager.Manager, error) {
 	options.Logger.Info("created fake watcher manager")
-	return fakes.NewControllerManager(config, options)
+	return kubefakes.NewControllerManager(config, options)
 }
 
 func TestStartWatcher(t *testing.T) {
@@ -173,7 +174,7 @@ func TestStartWatcher(t *testing.T) {
 	}
 
 	log := testr.New(t)
-	fakeStore := fakes.NewStore(log)
+	fakeStore := storefakes.NewStore(log)
 	//setup a valid watcher
 	watcher, err := NewWatcher(options, newFakeWatcherManagerFunc, fakeStore, log)
 	g.Expect(err).To(BeNil())

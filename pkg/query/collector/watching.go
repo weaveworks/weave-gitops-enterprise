@@ -1,4 +1,4 @@
-package cluster
+package collector
 
 import (
 	"context"
@@ -6,46 +6,48 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
 
-// Cluster watcher for watching flux applications kinds helm releases and kustomizations
-type DefaultClustersWatcher struct {
-	store           store.Store
-	clusterWatchers map[string]Watcher
-	newWatcherFunc  NewWatcherFunc
-	kinds           []string
-}
-
 // Interface for watching clusters via kuberentes api
 // https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClustersWatcher interface {
-	Start(ctx context.Context, log logr.Logger) error
-	Stop() error
 	AddCluster(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error
 	RemoveCluster(cluster types.NamespacedName) error
 	StatusCluster(cluster types.NamespacedName) (string, error)
 }
 
-// Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, store store.Store, kind []string, log logr.Logger) (Watcher, error)
+// Cluster watcher for watching flux applications kinds helm releases and kustomizations
+type watchingCollector struct {
+	store           store.Store
+	clusterWatchers map[string]Watcher
+	newWatcherFunc  NewWatcherFunc
+	kinds           []string
+	msg             chan []ObjectRecord
+}
 
-func NewClustersWatcher(store store.Store, newWatcherFunc NewWatcherFunc, log logr.Logger) (*DefaultClustersWatcher, error) {
+// Collector factory method. It creates a collection with cluster watching strategy by default.
+func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc NewWatcherFunc) (*watchingCollector, error) {
+	if opts.Log.GetSink() == nil {
+		return &watchingCollector{}, fmt.Errorf("invalid log")
+	}
+	log := opts.Log
+
 	if store == nil {
 		return nil, fmt.Errorf("invalid store")
 	}
 
 	if newWatcherFunc == nil {
 		newWatcherFunc = defaultNewWatcher
-		log.V(2).Info("using default watcher function")
+		log.Info("using default watcher function")
 	}
 	kinds := []string{
 		v2beta1.HelmReleaseKind,
 		v1beta2.KustomizationKind,
 	}
-	return &DefaultClustersWatcher{
+	return &watchingCollector{
 		clusterWatchers: make(map[string]Watcher),
 		newWatcherFunc:  newWatcherFunc,
 		store:           store,
@@ -53,9 +55,19 @@ func NewClustersWatcher(store store.Store, newWatcherFunc NewWatcherFunc, log lo
 	}, nil
 }
 
+func (c *watchingCollector) Start() (<-chan []ObjectRecord, error) {
+	return c.msg, fmt.Errorf("not implemented yet")
+}
+
+func (c *watchingCollector) Stop() error {
+	return fmt.Errorf("not implemented yet")
+}
+
+// Function to create a watcher for a set of kinds. Operations target an store.
+type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, store store.Store, kind []string, log logr.Logger) (Watcher, error)
+
 // TODO add unit tests
 func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, store store.Store, kinds []string, log logr.Logger) (Watcher, error) {
-
 	if store == nil {
 		return nil, fmt.Errorf("invalid store")
 	}
@@ -77,16 +89,8 @@ func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, store 
 	return w, nil
 }
 
-func (w *DefaultClustersWatcher) Start(ctx context.Context, log logr.Logger) error {
-	return fmt.Errorf("not implemented yet")
-}
-
-func (w *DefaultClustersWatcher) Stop() error {
-	return fmt.Errorf("not implemented yet")
-}
-
 // TODO make me compatible with gitopscluster
-func (w *DefaultClustersWatcher) AddCluster(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error {
+func (w *watchingCollector) AddCluster(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error {
 	if config == nil {
 		return fmt.Errorf("config not found")
 	}
@@ -112,11 +116,11 @@ func (w *DefaultClustersWatcher) AddCluster(cluster types.NamespacedName, config
 	return nil
 }
 
-func (w *DefaultClustersWatcher) RemoveCluster(cluster types.NamespacedName) error {
+func (w *watchingCollector) RemoveCluster(cluster types.NamespacedName) error {
 	return fmt.Errorf("not yet implemented")
 }
 
-func (w *DefaultClustersWatcher) StatusCluster(cluster types.NamespacedName) (string, error) {
+func (w *watchingCollector) StatusCluster(cluster types.NamespacedName) (string, error) {
 	if cluster.Name == "" || cluster.Namespace == "" {
 		return "", fmt.Errorf("cluster name or namespace is empty")
 	}

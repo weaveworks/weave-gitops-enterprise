@@ -1,260 +1,61 @@
-package collector_test
+package collector
 
 import (
-	"context"
-	"errors"
-	"fmt"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes/scheme"
-	"k8s.io/client-go/rest"
-	"os"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/envtest"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store/storefakes"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"testing"
-	"time"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
-
-const (
-	defaultTimeout  = time.Second * 10
-	defaultInterval = time.Second
-)
-
-type clustersWatcherKey struct{}
-
 var log logr.Logger
 var g *WithT
 
-func TestCollectorAcceptance(t *testing.T) {
+func TestNewCollector(t *testing.T) {
 	g = NewWithT(t)
-	g.SetDefaultEventuallyTimeout(defaultTimeout)
-	g.SetDefaultEventuallyPollingInterval(defaultInterval)
-
 	log = testr.New(t)
+
+	kinds := []schema.GroupVersionKind{
+		v2beta1.GroupVersion.WithKind(v2beta1.HelmReleaseKind),
+		v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
+	}
+
+	fakeStore := storefakes.NewStore(log)
+
 	tests := []struct {
-		name       string
-		kind       string
-		errPattern string
+		name           string
+		options        CollectorOpts
+		store          store.Store
+		newWatcherFunc NewWatcherFunc
+		errPattern     string
 	}{
 		{
-			name: "can watch helm releases",
-			kind: v2beta1.HelmReleaseKind,
-		},
-		{
-			name: "can watch kustomizations",
-			kind: v1beta2.KustomizationKind,
+			name: "can create collector with valid arguments",
+			options: CollectorOpts{
+				Log:         log,
+				ObjectKinds: kinds,
+			},
+			store:          fakeStore,
+			newWatcherFunc: newFakeWatcher,
+			errPattern:     "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			ctx := context.Background()
-			ctx, err := aClustersWatcher(ctx)
-			if err != nil {
-				t.Fatalf(err.Error())
-			}
-			ctx, err = aKubernetesClusterToWatch(ctx)
-			if err != nil {
-				t.Fatalf(err.Error())
-			}
-			ctx, err = aKindToWatch(ctx, tt.kind)
-			if err != nil {
-				t.Fatalf(err.Error())
-			}
-			ctx, err = aKubernetesClusterWithResourcesOfThatKind(ctx)
-			if err != nil {
-				t.Fatalf(err.Error())
-			}
 
-			ctx, err = watchedTheKindInTheCluster(ctx)
-			if err != nil {
-				t.Fatalf(err.Error())
+			collector, err := NewCollector(tt.options, tt.store, tt.newWatcherFunc)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
 			}
-			ctx, err = iGotAllTheResults(ctx)
-			if err != nil {
-				t.Fatalf(err.Error())
-			}
+			g.Expect(err).To(BeNil())
+			g.Expect(collector).NotTo(BeNil())
 		})
 	}
 
-}
-
-func aClustersWatcher(ctx context.Context) (context.Context, error) {
-	//store
-	dbDir, err := os.MkdirTemp("", "db")
-	store, err := store.NewInMemoryStore(dbDir, log)
-	g.Expect(err).To(BeNil())
-	log.Info("created inmemory store")
-	ctx = context.WithValue(ctx, storeKey{}, store)
-
-	//clusters watcher
-	multiClusterWatcher, err := cluster.NewClustersWatcher(store, nil, log)
-	g.Expect(err).To(BeNil())
-	ctx = context.WithValue(ctx, clustersWatcherKey{}, multiClusterWatcher)
-	g.Expect(multiClusterWatcher).ToNot(BeNil())
-
-	log.Info("created clusters watcher")
-	return ctx, nil
-}
-
-type clientKey struct{}
-
-func aKubernetesClusterToWatch(ctx context.Context) (context.Context, error) {
-	//create config
-	cfg, err := kubeEnvironment()
-	if err != nil {
-		return ctx, fmt.Errorf("could not start kube environment: %w", err)
-	}
-	ctx = context.WithValue(ctx, configRefKey{}, cfg)
-	log.Info(fmt.Sprintf("kube environment created: %s", cfg.Host))
-	clusterRef := types.NamespacedName{
-		Name:      cfg.Host,
-		Namespace: "default",
-	}
-	ctx = context.WithValue(ctx, clusterRefKey{}, clusterRef)
-
-	//create runtime client with application schemes
-	v2beta1.AddToScheme(scheme.Scheme)
-	v1beta2.AddToScheme(scheme.Scheme)
-
-	if err != nil {
-		return ctx, err
-	}
-	runtimeClient, err := client.New(cfg, client.Options{
-		Scheme: scheme.Scheme,
-	})
-	if err != nil {
-		return ctx, err
-	}
-	log.Info("kube client created")
-	ctx = context.WithValue(ctx, clientKey{}, runtimeClient)
-	return ctx, nil
-}
-
-type watchKindKey struct{}
-
-func aKindToWatch(ctx context.Context, kind string) (context.Context, error) {
-	log.Info(fmt.Sprintf("kind to watch: %s", kind))
-	return context.WithValue(ctx, watchKindKey{}, kind), nil
-}
-
-type clusterRefKey struct{}
-
-type configRefKey struct{}
-
-type numItemsKey struct{}
-
-func aKubernetesClusterWithResourcesOfThatKind(ctx context.Context) (context.Context, error) {
-	runtimeClient := ctx.Value(clientKey{}).(client.Client)
-	watchKind := ctx.Value(watchKindKey{}).(string)
-	numItems, err := getNumItemsByKind(ctx, runtimeClient, watchKind)
-	if err != nil {
-		return ctx, err
-	}
-	log.Info(fmt.Sprintf("number of resources found: %d", numItems))
-	if numItems < 1 {
-		return ctx, fmt.Errorf("not found elements in the cluster")
-	}
-	ctx = context.WithValue(ctx, numItemsKey{}, int64(numItems))
-	return ctx, nil
-}
-
-func getNumItemsByKind(ctx context.Context, client client.Client, kind string) (int, error) {
-	switch kind {
-	case v2beta1.HelmReleaseKind:
-		list := v2beta1.HelmReleaseList{}
-		err := client.List(ctx, &list)
-		if err != nil {
-			return 0, err
-		}
-		return len(list.Items), nil
-	case v1beta2.KustomizationKind:
-		list := v1beta2.KustomizationList{}
-		err := client.List(ctx, &list)
-		if err != nil {
-			return 0, err
-		}
-		return len(list.Items), nil
-	default:
-		return 0, fmt.Errorf("not supported: %s", kind)
-	}
-}
-
-func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
-	clustersWatcher := ctx.Value(clustersWatcherKey{}).(cluster.ClustersWatcher)
-	clusterRef := ctx.Value(clusterRefKey{}).(types.NamespacedName)
-	cfg := ctx.Value(configRefKey{}).(*rest.Config)
-	err := clustersWatcher.AddCluster(clusterRef, cfg, ctx, log)
-	if err != nil {
-		log.Info("could not add cluster:", err)
-		return ctx, err
-	}
-	log.Info("watcher added to cluster:", clusterRef)
-
-	isTrue := g.Eventually(func() bool {
-		status, err := clustersWatcher.StatusCluster(clusterRef)
-		if err != nil {
-			log.Info("cannot get cluster watcher status:", err)
-			return false
-		}
-		log.Info("waiting for started status:", status)
-		//TODO move me to cluster status instead of watcher
-		return status == string(cluster.WatcherStarted)
-	}).Should(BeTrue())
-
-	if !isTrue {
-		return ctx, errors.New("watcher not started")
-	}
-
-	log.Info("watcher has started")
-	return ctx, nil
-}
-
-type storeKey struct{}
-
-func iGotAllTheResults(ctx context.Context) (context.Context, error) {
-	store := ctx.Value(storeKey{}).(store.Store)
-	kind := ctx.Value(watchKindKey{}).(string)
-	numDocsExpected := ctx.Value(numItemsKey{}).(int64)
-	log.Info(fmt.Sprintf("expected num docs: '%d'", numDocsExpected))
-
-	isTrue := g.Eventually(func() bool {
-		numDocuments, err := store.Count(ctx, kind)
-		if err != nil {
-			log.Error(err, "error counting")
-			return false
-		}
-		log.Info(fmt.Sprintf("found num docs: '%d' ", numDocuments))
-
-		return numDocuments == numDocsExpected
-	}).Should(BeTrue())
-
-	if !isTrue {
-		return ctx, fmt.Errorf("not found same number of documents")
-	}
-	return ctx, nil
-}
-
-func kubeEnvironment() (*rest.Config, error) {
-	var err error
-
-	useExistingCluster := true
-	testEnv := &envtest.Environment{
-		UseExistingCluster: &useExistingCluster,
-	}
-
-	cfg, err := testEnv.Start()
-	if err != nil {
-		return nil, fmt.Errorf("error on starting environment:%e", err)
-	}
-	log.Info("environment started")
-
-	return cfg, err
 }

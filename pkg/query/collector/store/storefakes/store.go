@@ -1,9 +1,9 @@
-package fakes
+package storefakes
 
 import (
 	"context"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
 )
 
 type FakeStore struct {

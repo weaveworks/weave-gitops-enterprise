@@ -1,4 +1,4 @@
-package cluster
+package collector
 
 import (
 	"context"
@@ -6,8 +6,9 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/fakes"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store/storefakes"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"testing"
@@ -15,27 +16,17 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestNewMultiClusterWatcher(t *testing.T) {
-	g := NewGomegaWithT(t)
-	log := testr.New(t)
-	fakeStore := fakes.NewStore(log)
-	clustersWatcher, err := NewClustersWatcher(fakeStore, newFakeWatcher, log)
-	g.Expect(err).To(BeNil())
-	g.Expect(clustersWatcher).NotTo(BeNil())
-	g.Expect(clustersWatcher.store).NotTo(BeNil())
-	g.Expect(clustersWatcher.kinds).To(ContainElements(v2beta1.HelmReleaseKind,
-		v1beta2.KustomizationKind))
-}
-
 func TestAddCluster(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := fakes.NewStore(log)
-	clustersWatcher, err := NewClustersWatcher(fakeStore, newFakeWatcher, log)
-	g.Expect(err).To(BeNil())
-	g.Expect(clustersWatcher).NotTo(BeNil())
-	g.Expect(len(clustersWatcher.clusterWatchers)).To(Equal(0))
 	ctx := context.Background()
+	fakeStore := storefakes.NewStore(log)
+	opts := CollectorOpts{
+		Log: log,
+	}
+	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher)
+	g.Expect(err).To(BeNil())
+	g.Expect(collector).NotTo(BeNil())
 
 	tests := []struct {
 		name       string
@@ -81,13 +72,13 @@ func TestAddCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := clustersWatcher.AddCluster(tt.cluster, tt.config, ctx, log)
+			err := collector.AddCluster(tt.cluster, tt.config, ctx, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(clustersWatcher.clusterWatchers[tt.cluster.String()]).NotTo(BeNil())
+			g.Expect(collector.clusterWatchers[tt.cluster.String()]).NotTo(BeNil())
 
 		})
 	}
@@ -98,8 +89,15 @@ func TestStatusCluster(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
-	fakeStore := fakes.NewStore(log)
-	clustersWatcher, err := NewClustersWatcher(fakeStore, newFakeWatcher, log)
+	fakeStore := storefakes.NewStore(log)
+	options := CollectorOpts{
+		Log: log,
+		ObjectKinds: []schema.GroupVersionKind{
+			v2beta1.GroupVersion.WithKind(v2beta1.HelmReleaseKind),
+			v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
+		},
+	}
+	clustersWatcher, err := newWatchingCollector(options, fakeStore, newFakeWatcher)
 	g.Expect(err).To(BeNil())
 	g.Expect(clustersWatcher).NotTo(BeNil())
 	g.Expect(len(clustersWatcher.clusterWatchers)).To(Equal(0))

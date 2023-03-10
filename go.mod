@@ -46,6 +46,8 @@ require (
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.14.0
 	github.com/fluxcd/helm-controller/api v0.27.0
+	github.com/fluxcd/image-automation-controller/api v0.27.0
+	github.com/fluxcd/image-reflector-controller/api v0.23.0
 	github.com/fluxcd/kustomize-controller/api v0.31.0
 	github.com/fluxcd/pkg/apis/meta v0.18.0
 	github.com/fluxcd/pkg/runtime v0.24.0
@@ -81,6 +83,7 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.26.1
+	k8s.io/kubernetes v1.26.2
 	sigs.k8s.io/cluster-api v1.1.3
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
@@ -109,8 +112,6 @@ require (
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
-	github.com/fluxcd/image-automation-controller/api v0.27.0 // indirect
-	github.com/fluxcd/image-reflector-controller/api v0.23.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.29.1 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect
@@ -214,7 +215,7 @@ require (
 	github.com/docker/docker-credential-helpers v0.6.4 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-metrics v0.0.1 // indirect
-	github.com/docker/go-units v0.4.0 // indirect
+	github.com/docker/go-units v0.5.0 // indirect
 	github.com/drone/envsubst/v2 v2.0.0-20210730161058-179042472c46 // indirect
 	github.com/emicklei/go-restful/v3 v3.10.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
@@ -334,7 +335,7 @@ require (
 	k8s.io/klog/v2 v2.80.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20221110221610-a28e98eb7c70 // indirect
 	k8s.io/kubectl v0.25.4 // indirect
-	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448 // indirect
+	k8s.io/utils v0.0.0-20221128185143-99ec85e7a448
 	oras.land/oras-go v1.2.0 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

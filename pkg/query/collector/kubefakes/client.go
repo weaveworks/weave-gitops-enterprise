@@ -1,4 +1,4 @@
-package fakes
+package kubefakes
 
 import (
 	"context"
@@ -14,6 +14,11 @@ func NewClient(log logr.Logger) FakeClient {
 
 type FakeClient struct {
 	log logr.Logger
+}
+
+func (f FakeClient) Status() client.StatusWriter {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (f FakeClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
@@ -47,16 +52,6 @@ func (f FakeClient) Patch(ctx context.Context, obj client.Object, patch client.P
 }
 
 func (f FakeClient) DeleteAllOf(ctx context.Context, obj client.Object, opts ...client.DeleteAllOfOption) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (f FakeClient) Status() client.SubResourceWriter {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (f FakeClient) SubResource(subResource string) client.SubResourceClient {
 	//TODO implement me
 	panic("implement me")
 }

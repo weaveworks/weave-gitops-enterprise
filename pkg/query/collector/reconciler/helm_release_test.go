@@ -4,8 +4,8 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/fakes"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store/storefakes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
@@ -15,8 +15,8 @@ var log logr.Logger
 func TestNewHelmWatcherReconciler(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log = testr.New(t)
-	fakeClient := fakes.NewClient(log)
-	fakeStore := fakes.NewStore(log)
+	fakeClient := collectorfakes.NewClient(log)
+	fakeStore := storefakes.NewStore(log)
 	tests := []struct {
 		name       string
 		client     client.Client
