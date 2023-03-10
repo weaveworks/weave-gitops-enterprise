@@ -24,11 +24,7 @@
     "@types/react-syntax-highlighter": "^13.5.2",
     "@types/styled-components": "^5.1.9",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-<<<<<<< HEAD
     "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.19.0-14-g18efa32a",
-=======
-    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.18.0-35-g01a2e3fa",
->>>>>>> f161c100 (import nav and icons from oss)
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
     "d3-time": "^3.0.0",

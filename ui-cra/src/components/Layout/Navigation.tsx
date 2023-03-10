@@ -1,26 +1,24 @@
 import {
+  Flex,
   getParentNavRouteValue,
   IconType,
   Logo,
   Nav,
   NavItem,
   useFeatureFlags,
+  V2Routes,
 } from '@weaveworks/weave-gitops';
-import { FC, useMemo, useState } from 'react';
-
-import { V2Routes } from '@weaveworks/weave-gitops';
-
-import { Routes } from '../../utils/nav';
-
 import { FeatureFlags } from '@weaveworks/weave-gitops/ui/hooks/featureflags';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { FC, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
+import { Routes } from '../../utils/nav';
 
 function getParentNavRouteValueExtended(
   route: string,
-): V2Routes | Routes | boolean {
+): V2Routes | Routes | boolean | PageRoute {
   if (Object.values(V2Routes).includes(route as V2Routes)) {
-    console.log(getParentNavRouteValue(route));
     return getParentNavRouteValue(route);
   }
   switch (route) {
@@ -80,106 +78,97 @@ function getNavItems(flagsRes: FeatureFlags): NavItem[] {
     {
       label: 'Platform',
     },
-
     {
-      label: 'CLUSTERS',
+      label: 'Clusters',
       link: { value: Routes.Clusters },
       icon: IconType.DnsOutlined,
     },
     {
-      label: 'TEMPLATES',
+      label: 'Templates',
       link: { value: Routes.Templates },
       icon: IconType.DashboardOutlined,
     },
     {
-      label: 'TERRAFORM',
+      label: 'Terraform',
       link: { value: Routes.TerraformObjects },
       icon: IconType.TerraformIcon,
       disabled: !!flagsRes.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
     },
     {
-      label: 'SECRETS',
+      label: 'Secrets',
       link: { value: Routes.Secrets },
       icon: IconType.VpnKeyOutlined,
     },
-
     {
       label: 'Delivery',
     },
-
     {
-      label: 'APPLICATIONS',
+      label: 'Applications',
       link: { value: V2Routes.Automations },
       icon: IconType.ApplicationsIcon,
     },
     {
-      label: 'SOURCES',
+      label: 'Sources',
       link: { value: V2Routes.Sources },
       icon: IconType.SourcesIcon,
     },
     {
-      label: 'IMAGE AUTOMATION',
+      label: 'Image Automation',
       link: { value: Routes.ImageAutomation },
       icon: IconType.ImageAutomationIcon,
     },
     {
-      label: 'PIPELINES',
+      label: 'Pipelines',
       link: { value: Routes.Pipelines },
       icon: IconType.PipelinesIcon,
       disabled: !!flagsRes.WEAVE_GITOPS_FEATURE_PIPELINES,
     },
     {
-      label: 'DELIVERY',
+      label: 'Delivery',
       link: { value: Routes.Canaries },
       icon: IconType.DeliveryIcon,
       disabled: process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY !== 'true',
     },
     {
-      label: 'FLUX RUNTIME',
+      label: 'Flux Runtime',
       link: { value: V2Routes.FluxRuntime },
       icon: IconType.FluxIcon,
     },
-
     {
-      label: 'GUARDRAILS',
+      label: 'Guardrails',
     },
-
     {
-      label: 'WORKSPACES',
+      label: 'Workspaces',
       link: { value: Routes.Workspaces },
       icon: IconType.TabOutlined,
     },
     {
-      label: 'POLICIES',
+      label: 'Policies',
       link: { value: Routes.Policies },
       icon: IconType.PolicyOutlined,
     },
     {
-      label: 'POLICY CONFIGS',
+      label: 'Policy Configs',
       link: { value: Routes.PolicyConfigs },
       icon: IconType.VerifiedUserOutlined,
     },
-
     {
-      label: 'DEVELOPER EX.',
+      label: 'Developer Ex.',
     },
-
     {
-      label: 'GITOPS RUN',
+      label: 'GitOps Run',
       link: { value: Routes.GitOpsRun },
       icon: IconType.GitOpsRunIcon,
     },
     {
-      label: 'NOTIFICATIONS',
+      label: 'Notifications',
       link: { value: Routes.Notifications },
       icon: IconType.NotificationsBell,
     },
   ];
 }
 
-const LogoHeight = styled.div`
-  display: flex;
-  align-items: center;
+const LogoHeight = styled(Flex)`
   height: 60px;
 `;
 
@@ -193,15 +182,18 @@ const NavContainer = styled.div`
 
 const Navigation: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
+
   const { data } = useFeatureFlags();
   const navItems = useMemo(() => getNavItems(data?.flags || {}), [data]);
+
   const currentPage = useLocation();
   const routeValue = getParentNavRouteValueExtended(
     '/' + currentPage.pathname.split('/')[1],
   );
+
   return (
     <NavContainer>
-      <LogoHeight>
+      <LogoHeight align>
         <Logo link={Routes.Clusters} collapsed={collapsed} />
       </LogoHeight>
       <NavHeight>
