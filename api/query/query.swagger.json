@@ -169,7 +169,10 @@
       "type": "object",
       "properties": {
         "query": {
-          "$ref": "#/definitions/v1QueryOpts"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1QueryOpts"
+          }
         }
       }
     },

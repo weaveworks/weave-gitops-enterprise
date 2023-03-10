@@ -77,7 +77,7 @@ func TestRunQuery(t *testing.T) {
 				Groups: tt.userRoles,
 			})
 
-			actual, err := qs.RunQuery(ctx, tt.q)
+			actual, err := qs.RunQuery(ctx, []Query{tt.q})
 			assert.NoError(t, err)
 
 			assert.EqualValues(t, tt.expected, actual)

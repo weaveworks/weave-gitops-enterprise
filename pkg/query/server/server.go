@@ -62,7 +62,14 @@ type ServerOpts struct {
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
-	objs, err := s.qs.RunQuery(ctx, msg.Query)
+	// Go complains about using msq.Query directly, so we have to copy it into a slice.
+	// query.Query is specifically designed to fit msg.Query.
+	q := []query.Query{}
+	for _, qm := range msg.Query {
+		q = append(q, qm)
+	}
+
+	objs, err := s.qs.RunQuery(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}

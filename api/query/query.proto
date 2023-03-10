@@ -35,7 +35,7 @@ service Query {
 }
 
 message QueryRequest {
-    QueryOpts query = 1;
+    repeated QueryOpts query = 1;
 }
 
 message QueryOpts {
