@@ -3,11 +3,32 @@ package storefakes
 import (
 	"context"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 
 type FakeStore struct {
 	log logr.Logger
+}
+
+func (f FakeStore) StoreAccessRules(roles []models.AccessRule) error {
+	f.log.Info("faked")
+	return nil
+}
+
+func (f FakeStore) StoreObjects(objects []models.Object) error {
+	f.log.Info("faked")
+	return nil
+}
+
+func (f FakeStore) GetObjects() ([]models.Object, error) {
+	f.log.Info("faked")
+	return nil, nil
+}
+
+func (f FakeStore) GetAccessRules() ([]models.AccessRule, error) {
+	f.log.Info("faked ")
+	return nil, nil
 }
 
 func NewStore(log logr.Logger) FakeStore {

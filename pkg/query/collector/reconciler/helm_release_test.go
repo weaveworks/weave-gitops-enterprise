@@ -4,8 +4,8 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store/storefakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )

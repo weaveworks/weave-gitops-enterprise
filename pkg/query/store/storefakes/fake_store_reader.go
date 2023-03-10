@@ -2,6 +2,7 @@
 package storefakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -176,3 +177,7 @@ func (fake *FakeStoreReader) recordInvocation(key string, args []interface{}) {
 }
 
 var _ store.StoreReader = new(FakeStoreReader)
+
+func (fake *FakeStoreReader) Count(ctx context.Context, kind string) (int64, error) {
+	return -1, nil
+}

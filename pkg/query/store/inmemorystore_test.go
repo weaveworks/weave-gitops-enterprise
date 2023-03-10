@@ -31,7 +31,7 @@ func TestNewInMemoryStore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store, err := NewInMemoryStore(tt.location, log)
+			store, err := newInMemoryStore(tt.location, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -47,7 +47,7 @@ func TestAdd(t *testing.T) {
 	log := testr.New(t)
 	dbDir, err := os.MkdirTemp("", "db")
 	g.Expect(err).To(BeNil())
-	store, _ := NewInMemoryStore(dbDir, log)
+	store, _ := newInMemoryStore(dbDir, log)
 	ctx := context.Background()
 
 	tests := []struct {

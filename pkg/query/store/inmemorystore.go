@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"os"
 	"path/filepath"
 
@@ -17,21 +18,6 @@ type Document struct {
 	Kind      string
 }
 
-type StoreWriter interface {
-	Add(ctx context.Context, document Document) (int64, error)
-	Delete(ctx context.Context, document Document) error
-}
-
-type StoreReader interface {
-	Count(ctx context.Context, kind string) (int64, error)
-	GetAll(ctx context.Context) ([]Document, error)
-}
-
-type Store interface {
-	StoreReader
-	StoreWriter
-}
-
 // dbFile is the name of the sqlite3 database file
 const dbFile = "charts.db"
 
@@ -39,6 +25,37 @@ type InMemoryStore struct {
 	location string
 	db       *sql.DB
 	log      logr.Logger
+}
+
+func newInMemoryStore(location string, log logr.Logger) (*InMemoryStore, error) {
+	if location == "" {
+		return nil, fmt.Errorf("invalid location")
+	}
+	dbLocation, db, err := createDB(location, log)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create cache database: %w", err)
+	}
+	return &InMemoryStore{
+		location: dbLocation,
+		db:       db,
+		log:      log,
+	}, nil
+}
+
+func (i InMemoryStore) StoreAccessRules(roles []models.AccessRule) error {
+	return fmt.Errorf("not implemented yet")
+}
+
+func (i InMemoryStore) StoreObjects(objects []models.Object) error {
+	return fmt.Errorf("not implemented yet")
+}
+
+func (i InMemoryStore) GetObjects() ([]models.Object, error) {
+	return []models.Object{}, fmt.Errorf("not implemented yet")
+}
+
+func (i InMemoryStore) GetAccessRules() ([]models.AccessRule, error) {
+	return []models.AccessRule{}, fmt.Errorf("not implemented yet")
 }
 
 // TODO add unit tests
@@ -57,7 +74,6 @@ func (i InMemoryStore) Count(ctx context.Context, kind string) (int64, error) {
 		}
 		count += n
 	}
-
 	return count, nil
 }
 
@@ -92,21 +108,6 @@ func (i InMemoryStore) Delete(ctx context.Context, document Document) error {
 
 func (i InMemoryStore) GetLocation() string {
 	return i.location
-}
-
-func NewInMemoryStore(location string, log logr.Logger) (*InMemoryStore, error) {
-	if location == "" {
-		return nil, fmt.Errorf("invalid location")
-	}
-	dbLocation, db, err := createDB(location, log)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create cache database: %w", err)
-	}
-	return &InMemoryStore{
-		location: dbLocation,
-		db:       db,
-		log:      log,
-	}, nil
 }
 
 func applySchema(db *sql.DB) error {

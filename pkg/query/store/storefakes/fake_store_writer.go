@@ -2,6 +2,7 @@
 package storefakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -334,3 +335,13 @@ func (fake *FakeStoreWriter) recordInvocation(key string, args []interface{}) {
 }
 
 var _ store.StoreWriter = new(FakeStoreWriter)
+
+func (fake *FakeStoreWriter) Add(ctx context.Context, document store.Document) (int64, error) {
+	return -1, nil
+
+}
+
+func (fake *FakeStoreWriter) Delete(ctx context.Context, document store.Document) error {
+	return nil
+
+}

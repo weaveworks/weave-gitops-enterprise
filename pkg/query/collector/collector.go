@@ -2,7 +2,7 @@ package collector
 
 import (
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"

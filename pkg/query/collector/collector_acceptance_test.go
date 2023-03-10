@@ -10,7 +10,7 @@ import (
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -88,7 +88,7 @@ func TestCollectorAcceptance(t *testing.T) {
 func aCollector(ctx context.Context) (context.Context, error) {
 	//store
 	dbDir, err := os.MkdirTemp("", "db")
-	store, err := store.NewInMemoryStore(dbDir, log)
+	store, err := store.NewStore(dbDir, log)
 	g.Expect(err).To(BeNil())
 	log.Info("created inmemory store")
 	ctx = context.WithValue(ctx, storeKey{}, store)
