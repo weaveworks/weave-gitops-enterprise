@@ -23,6 +23,8 @@ import ClusterDashboard from './components/Clusters/ClusterDashboard';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
+import GitopsSets from './components/GitopsSets';
+import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
@@ -33,6 +35,7 @@ import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
+import PolicyConfigsList from './components/PolicyConfigs';
 import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
@@ -45,13 +48,10 @@ import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
+import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import PolicyConfigsList from './components/PolicyConfigs';
-import GitopsSets from './components/GitopsSets';
-import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
-import WGUserInfo from './components/UserInfo';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -345,6 +345,31 @@ const AppRoutes = () => {
           );
         }}
       />
+      <Route
+        exact
+        path={Routes.AzureOauthCallback}
+        component={({ location }: any) => {
+          const params = qs.parse(location.search);
+
+          const error = Array.isArray(params?.error)
+            ? params?.error.join(', ')
+            : params?.error;
+
+          const desc = Array.isArray(params.error_description)
+            ? params.error_description?.join('\n')
+            : params?.error_description;
+
+          return (
+            <OAuthCallback
+              provider={GitProvider.AzureDevOps}
+              code={params.code as string}
+              error={error}
+              errorDescription={desc}
+            />
+          );
+        }}
+      />
+
       <Route exact render={Page404} />
     </Switch>
   );
