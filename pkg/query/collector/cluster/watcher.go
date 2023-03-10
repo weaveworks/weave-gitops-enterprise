@@ -3,16 +3,16 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/enekofb/collector/pkg/cluster/reconciler"
-	"github.com/enekofb/collector/pkg/cluster/store"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/reconciler"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"

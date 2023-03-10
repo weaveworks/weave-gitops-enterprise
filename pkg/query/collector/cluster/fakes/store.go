@@ -2,8 +2,8 @@ package fakes
 
 import (
 	"context"
-	"github.com/enekofb/collector/pkg/cluster/store"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
 )
 
 type FakeStore struct {

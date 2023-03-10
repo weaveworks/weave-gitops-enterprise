@@ -3,9 +3,9 @@ package reconciler
 import (
 	"context"
 	"fmt"
-	"github.com/enekofb/collector/pkg/cluster/store"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"

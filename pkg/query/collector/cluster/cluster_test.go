@@ -2,12 +2,12 @@ package cluster
 
 import (
 	"context"
-	"github.com/enekofb/collector/pkg/cluster/fakes"
-	"github.com/enekofb/collector/pkg/cluster/store"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/fakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"testing"

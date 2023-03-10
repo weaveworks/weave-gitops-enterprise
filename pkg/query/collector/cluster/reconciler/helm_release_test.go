@@ -1,11 +1,11 @@
 package reconciler
 
 import (
-	"github.com/enekofb/collector/pkg/cluster/fakes"
-	"github.com/enekofb/collector/pkg/cluster/store"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/fakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/cluster/store"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
