@@ -6,3 +6,9 @@ export function useQueryService() {
 
   return useQuery(['query'], () => api.Run({}));
 }
+
+export function useListAccessRules() {
+  const api = Query;
+
+  return useQuery(['listAccessRules'], () => api.DebugGetAccessRules({}));
+}
