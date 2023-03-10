@@ -77,6 +77,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -510,6 +511,22 @@ func StartServer(ctx context.Context, p Params) error {
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
 				grpc_runtime.WithMetadata(TrackEvents(log)),
+				grpc_runtime.WithForwardResponseOption(func(ctx context.Context, w http.ResponseWriter, m protoreflect.ProtoMessage) error {
+					md, ok := grpc_runtime.ServerMetadataFromContext(ctx)
+					if !ok {
+						return nil
+					}
+
+					if vals := md.HeaderMD.Get("x-git-provider-csrf"); len(vals) > 0 {
+						state := vals[0]
+						fmt.Println("gRPC middleware", state)
+						md.HeaderMD.Delete("x-git-provider-csrf")
+						w.Header().Del("Grpc-Metadata-X-Git-Provider-Csrf")
+						http.SetCookie(w, &http.Cookie{Name: "_git_provider_csrf", Value: state, Secure: true, Path: "/", HttpOnly: true, Expires: time.Now().UTC().Add(5 * time.Minute)})
+					}
+
+					return nil
+				}),
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),

@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -12,7 +13,10 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
 	"k8s.io/apimachinery/pkg/util/rand"
 
@@ -143,6 +147,20 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	return &pb.AuthenticateResponse{Token: token}, nil
 }
 
+// func cookieHeader(rawCookies string) []*http.Cookie {
+// 	header := http.Header{}
+// 	header.Add("Cookie", rawCookies)
+// 	req := http.Request{Header: header}
+// 	return req.Cookies()
+// }
+
+// if md, ok := metadata.FromIncomingContext(ctx); ok {
+// 	raw := md.Get(grpc_runtime.MetadataPrefix + "cookie")[0]
+// 	s.log.Info("Dumping metadata received", "grpcgateway-cookie", md.Get("grpcgateway-cookie"), "raw", raw)
+// } else {
+// 	s.log.Info("No metadata received")
+// }
+
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
 	u, err := gitproviders.NewRepoURL(msg.Url)
 	if err != nil {
@@ -204,7 +222,11 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 }
 
 func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.GetAzureDevOpsAuthURLRequest) (*pb.GetAzureDevOpsAuthURLResponse, error) {
-	u, err := s.azAuthClient.AuthURL(ctx, msg.RedirectUri)
+	state := base64.URLEncoding.EncodeToString([]byte(uuid.NewString()))
+
+	_ = grpc.SetHeader(ctx, metadata.Pairs("x-git-provider-csrf", state))
+
+	u, err := s.azAuthClient.AuthURL(ctx, msg.RedirectUri, state)
 	if err != nil {
 		return nil, fmt.Errorf("could not get azure auth url: %w", err)
 	}
@@ -213,6 +235,8 @@ func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.G
 }
 
 func (s *applicationServer) AuthorizeAzureDevOps(ctx context.Context, msg *pb.AuthorizeAzureDevOpsRequest) (*pb.AuthorizeAzureDevOpsResponse, error) {
+	s.log.Info("AuthorizeAzureDevOps", "code", msg.Code, "redirectUri", msg.RedirectUri)
+
 	tokenState, err := s.azAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange code: %w", err)

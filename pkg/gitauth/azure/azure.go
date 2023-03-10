@@ -16,7 +16,7 @@ import (
 var azureScopes = []string{"vso.code_write"}
 
 type AuthClient interface {
-	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
+	AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error)
 	ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error)
 	ValidateToken(ctx context.Context, token string) error
 }
@@ -29,7 +29,7 @@ type defaultAuthClient struct {
 	http *http.Client
 }
 
-func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (url.URL, error) {
+func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error) {
 	u := buildAzureURL()
 
 	u.Path = "/oauth2/authorize"
@@ -43,6 +43,7 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 	params := u.Query()
 	params.Set("client_id", cid)
 	params.Set("response_type", "Assertion")
+	params.Set("state", state)
 	params.Set("scope", strings.Join(azureScopes, " "))
 	params.Set("redirect_uri", redirectURI)
 
