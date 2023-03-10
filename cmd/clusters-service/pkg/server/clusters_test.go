@@ -536,9 +536,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
-      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\"}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -636,9 +634,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"foo","NAMESPACE":"default"},"commit_message":"Add
-      cluster manifest","template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"foo\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -704,9 +700,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
-      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1","namespace":"test-system"}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\",\"namespace\":\"test-system\"}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -821,9 +815,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
-      cluster manifest","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}},{"metadata":{"name":"apps-billing","namespace":"flux-system"},"spec":{"path":"./apps/billing","source_ref":{"name":"flux-system","namespace":"flux-system"}}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Add cluster manifest\",\"kustomizations\":[{\"metadata\":{\"name\":\"apps-capi\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/capi\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"},\"target_namespace\":\"foo-ns\"}},{\"metadata\":{\"name\":\"apps-billing\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/billing\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"}}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1007,9 +999,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
-      Cluster","description":"Delete kustomization from cluster","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits
-      dev","template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"Edit Cluster\",\"description\":\"Delete kustomization from cluster\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Edits dev\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1149,9 +1139,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
-      Cluster","description":"Edit namespace","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace-2"},"commit_message":"Edits
-      dev","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"Edit Cluster\",\"description\":\"Edit namespace\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace-2\"},\"commit_message\":\"Edits dev\",\"kustomizations\":[{\"metadata\":{\"name\":\"apps-capi\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/capi\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"},\"target_namespace\":\"foo-ns\"}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1163,7 +1151,7 @@ metadata:
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
-			name: "Edit cluster namespace and kustomization name ",
+			name: "Edit cluster namespace and kustomization name",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
@@ -1269,9 +1257,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
-      Cluster","description":"Edit namespace","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace-2"},"commit_message":"Edits
-      dev","kustomizations":[{"metadata":{"name":"apps-capi-2","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"Edit Cluster\",\"description\":\"Edit namespace\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace-2\"},\"commit_message\":\"Edits dev\",\"kustomizations\":[{\"metadata\":{\"name\":\"apps-capi-2\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/capi\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"},\"target_namespace\":\"foo-ns\"}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
