@@ -3,7 +3,7 @@ import {
   getParentNavRouteValue,
   IconType,
   NavItem,
-  V2Routes,
+  V2Routes
 } from '@weaveworks/weave-gitops';
 import { FeatureFlags } from '@weaveworks/weave-gitops/ui/hooks/featureflags';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -180,6 +180,7 @@ const Navigation: FC = () => {
 
   const { data } = useFeatureFlags();
   const navItems = useMemo(() => getNavItems(data?.flags || {}), [data]);
+
   const currentPage = useLocation();
   const routeValue = getParentNavRouteValueExtended(
     '/' + currentPage.pathname.split('/')[1],
