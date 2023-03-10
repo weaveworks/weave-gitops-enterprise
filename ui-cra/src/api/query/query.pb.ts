@@ -27,8 +27,25 @@ export type Object = {
   status?: string
 }
 
+export type DebugGetAccessRulesRequest = {
+}
+
+export type DebugGetAccessRulesResponse = {
+  rules?: AccessRule[]
+}
+
+export type AccessRule = {
+  cluster?: string
+  principal?: string
+  namespace?: string
+  accessibleKinds?: string[]
+}
+
 export class Query {
   static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
     return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static DebugGetAccessRules(req: DebugGetAccessRulesRequest, initReq?: fm.InitReq): Promise<DebugGetAccessRulesResponse> {
+    return fm.fetchReq<DebugGetAccessRulesRequest, DebugGetAccessRulesResponse>(`/v1/debug/access-rules?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

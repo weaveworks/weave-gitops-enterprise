@@ -2335,10 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.17.0-18-gb061bf0a":
-  version "0.17.0-18-gb061bf0a"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.17.0-18-gb061bf0a/f7411dff3c8716b84be7837908a3dc3ebbf541ee#f7411dff3c8716b84be7837908a3dc3ebbf541ee"
-  integrity sha512-8YsOKOG2IM+CODtHokfm60aEu+UXtSpx09qbiUGH1oF78x4XWiydS86SHiRYNWlBiiWeROPiGihom9PxO1fSng==
+"@weaveworks/weave-gitops@^0.18.0":
+  version "0.18.0"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.18.0/af8de1b5d15a5d52fabae240e3735f287aeeceb8#af8de1b5d15a5d52fabae240e3735f287aeeceb8"
+  integrity sha512-Xs9AbHt7fbAekeBvRcR8A8C3sH+gqH1HWOYDqpX99ih3QH9Bp6ll4XzU697DXK7X1cOdSgrCoQoQYNRSdhOY+w==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -6914,9 +6914,9 @@ lru-cache@^6.0.0:
     yallist "^4.0.0"
 
 luxon@^3.2.1:
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.2.1.tgz#14f1af209188ad61212578ea7e3d518d18cee45f"
-  integrity sha512-QrwPArQCNLAKGO/C+ZIilgIuDnEnKx5QYODdDtbFaxzsbZcc/a7WFq7MhsVYgRlwawLtvOUESTlfJ+hc/USqPg==
+  version "3.3.0"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.3.0.tgz#d73ab5b5d2b49a461c47cedbc7e73309b4805b48"
+  integrity sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==
 
 lz-string@^1.4.4:
   version "1.4.4"

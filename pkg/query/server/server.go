@@ -24,7 +24,27 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	qs query.QueryService
+	qs   query.QueryService
+	arc  *accesscollector.AccessRulesCollector
+	objs *objectcollector.ObjectCollector
+}
+
+func (s *server) StopCollection() error {
+	// These collectors can be nil if we are doing collection elsewhere.
+	// Controlled by the opts.SkipCollection flag.
+	if s.arc != nil {
+		if err := s.arc.Stop(); err != nil {
+			return fmt.Errorf("failed to stop access rules collection: %w", err)
+		}
+	}
+
+	if s.objs != nil {
+		if err := s.objs.Stop(); err != nil {
+			return fmt.Errorf("failed to stop object collection: %w", err)
+		}
+	}
+
+	return nil
 }
 
 var DefaultKinds = []schema.GroupVersionKind{
@@ -63,7 +83,7 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 	}, nil
 }
 
-func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
+func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
 	if opts.ObjectKinds == nil {
 		opts.ObjectKinds = DefaultKinds
 	}
@@ -77,7 +97,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 		w = s
 		r = s
 	default:
-		return nil, fmt.Errorf("unknown store type: %s", opts.StoreType)
+		return nil, nil, fmt.Errorf("unknown store type: %s", opts.StoreType)
 	}
 
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
@@ -85,8 +105,10 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 		StoreReader: r,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to create query service: %w", err)
+		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
+
+	serv := &server{qs: qs}
 
 	if !opts.SkipCollection {
 		arc := accesscollector.NewAccessRulesCollector(w, collector.CollectorOpts{
@@ -98,18 +120,21 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 
 		objCollector := objectcollector.NewObjectCollector(opts.Logger, opts.ClustersManager, w, nil)
 		objCollector.Start()
+
+		serv.arc = arc
+		serv.objs = objCollector
 	}
 
-	return &server{qs: qs}, nil
+	return serv, serv.StopCollection, nil
 }
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
-	s, err := NewServer(ctx, opts)
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
+	s, stop, err := NewServer(ctx, opts)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return pb.RegisterQueryHandlerServer(ctx, mux, s)
+	return stop, pb.RegisterQueryHandlerServer(ctx, mux, s)
 }
 
 func convertToPbObject(obj []models.Object) []*pb.Object {

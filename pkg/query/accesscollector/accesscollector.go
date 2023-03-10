@@ -16,10 +16,10 @@ import (
 
 var DefaultVerbsRequiredForAccess = []string{"list"}
 
-// accessRulesCollector is responsible for collecting access rules from all clusters.
+// AccessRulesCollector is responsible for collecting access rules from all clusters.
 // It is a wrapper around a Collector that converts the received objects to AccessRules.
 // It writes the received rules to a StoreWriter.
-type accessRulesCollector struct {
+type AccessRulesCollector struct {
 	col       collector.Collector
 	log       logr.Logger
 	converter runtime.UnstructuredConverter
@@ -28,7 +28,7 @@ type accessRulesCollector struct {
 	quit      chan struct{}
 }
 
-func (a *accessRulesCollector) Start() {
+func (a *AccessRulesCollector) Start() {
 	go func() {
 		ch, error := a.col.Start()
 		if error != nil {
@@ -57,13 +57,13 @@ func (a *accessRulesCollector) Start() {
 	}()
 }
 
-func (a *accessRulesCollector) Stop() {
-	a.col.Stop()
+func (a *AccessRulesCollector) Stop() error {
 	a.quit <- struct{}{}
-	close(a.quit)
+	return a.col.Stop()
 }
 
-func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) accessRulesCollector {
+func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) *AccessRulesCollector {
+
 	opts.ObjectKinds = []schema.GroupVersionKind{
 		rbac.SchemeGroupVersion.WithKind("ClusterRole"),
 		rbac.SchemeGroupVersion.WithKind("Role"),
@@ -72,7 +72,7 @@ func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) 
 	}
 	col := collector.NewCollector(opts)
 
-	return accessRulesCollector{
+	return &AccessRulesCollector{
 		col:       col,
 		log:       opts.Log,
 		converter: runtime.DefaultUnstructuredConverter,
@@ -81,7 +81,7 @@ func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) 
 	}
 }
 
-func (a *accessRulesCollector) handleRulesReceived(objects []collector.ObjectRecord) ([]models.AccessRule, error) {
+func (a *AccessRulesCollector) handleRulesReceived(objects []collector.ObjectRecord) ([]models.AccessRule, error) {
 	result := []models.AccessRule{}
 
 	roles := []adapters.RoleLike{}

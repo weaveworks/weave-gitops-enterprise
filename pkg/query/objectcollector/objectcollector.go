@@ -17,10 +17,11 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-type objectCollector struct {
-	col collector.Collector
-	log logr.Logger
-	w   store.StoreWriter
+type ObjectCollector struct {
+	col  collector.Collector
+	log  logr.Logger
+	w    store.StoreWriter
+	quit chan struct{}
 }
 
 var DefaultObjectCollectorKinds = []schema.GroupVersionKind{
@@ -33,7 +34,7 @@ var DefaultObjectCollectorKinds = []schema.GroupVersionKind{
 	sourcev1.GroupVersion.WithKind(sourcev1.BucketKind),
 }
 
-func NewObjectCollector(log logr.Logger, mgr clustersmngr.ClustersManager, w store.StoreWriter, kinds []schema.GroupVersionKind) *objectCollector {
+func NewObjectCollector(log logr.Logger, mgr clustersmngr.ClustersManager, w store.StoreWriter, kinds []schema.GroupVersionKind) *ObjectCollector {
 	if kinds == nil {
 		kinds = DefaultObjectCollectorKinds
 	}
@@ -45,14 +46,14 @@ func NewObjectCollector(log logr.Logger, mgr clustersmngr.ClustersManager, w sto
 		PollInterval:   10 * time.Second,
 	})
 
-	return &objectCollector{
+	return &ObjectCollector{
 		col: col,
 		log: log,
 		w:   w,
 	}
 }
 
-func (o *objectCollector) Start() {
+func (o *ObjectCollector) Start() {
 	go func() {
 		ch, error := o.col.Start()
 		if error != nil {
@@ -68,9 +69,17 @@ func (o *objectCollector) Start() {
 					o.log.Error(err, "failed to store objects")
 					continue
 				}
+
+			case <-o.quit:
+				return
 			}
 		}
 	}()
+}
+
+func (o *ObjectCollector) Stop() error {
+	o.quit <- struct{}{}
+	return o.col.Stop()
 }
 
 func convertToObject(objs []collector.ObjectRecord) []models.Object {

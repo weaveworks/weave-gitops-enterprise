@@ -19,10 +19,11 @@ type Collector interface {
 }
 
 type CollectorOpts struct {
-	Log            logr.Logger
-	ClusterManager clustersmngr.ClustersManager
-	ObjectKinds    []schema.GroupVersionKind
-	PollInterval   time.Duration
+	Log                  logr.Logger
+	ClusterManager       clustersmngr.ClustersManager
+	ObjectKinds          []schema.GroupVersionKind
+	PollInterval         time.Duration
+	AdditionalNamespaces []string
 }
 
 //counterfeiter:generate . ObjectRecord

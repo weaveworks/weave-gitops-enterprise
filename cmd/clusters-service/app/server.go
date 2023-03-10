@@ -630,12 +630,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
-	if err := queryServer.Hydrate(ctx, grpcMux, queryServer.ServerOpts{
+	stopQueryServer, err := queryServer.Hydrate(ctx, grpcMux, queryServer.ServerOpts{
 		Logger:             args.Log,
 		StoreType:          "memory",
 		ClustersManager:    args.ClustersManager,
 		CollectionInterval: 5 * time.Second,
-	}); err != nil {
+	})
+
+	if err != nil {
 		return fmt.Errorf("failed to register query service: %w", err)
 	}
 
@@ -772,6 +774,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		close(factoryStopCh)
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
+		}
+
+		if err := stopQueryServer(); err != nil {
+			args.Log.Error(err, "Failed to stop query server")
 		}
 	}()
 
