@@ -35,6 +35,7 @@ import (
 	flag "github.com/spf13/pflag"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
@@ -55,6 +56,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
+	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
@@ -388,6 +390,7 @@ func StartServer(ctx context.Context, p Params) error {
 		pacv2beta1.AddToScheme,
 		pacv2beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		gitopssetsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
 		pipelinev1alpha1.AddToScheme,
@@ -418,6 +421,7 @@ func StartServer(ctx context.Context, p Params) error {
 		pipelinev1alpha1.AddToScheme,
 		tfctrl.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
+		gitopssetsv1alpha1.AddToScheme,
 		clusterv1.AddToScheme,
 		gapiv1.AddToScheme,
 	)
@@ -648,6 +652,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}); err != nil {
 			return fmt.Errorf("hydrating terraform server: %w", err)
 		}
+	}
+
+	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
+		Logger:            args.Log,
+		ClientsFactory:    args.ClustersManager,
+		ManagementFetcher: args.ManagementFetcher,
+		Scheme:            args.KubernetesClient.Scheme(),
+		Cluster:           args.Cluster,
+	}); err != nil {
+		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
 
 	// UI

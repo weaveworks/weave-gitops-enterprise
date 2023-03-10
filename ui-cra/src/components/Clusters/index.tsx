@@ -60,6 +60,7 @@ import {
   getInitialGitRepo,
 } from '../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../Templates/Form';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
 
 interface Size {
   size?: 'small';
@@ -239,6 +240,8 @@ const MCCP: FC<{
 
   const listConfigContext = useListConfigContext();
   const repoLink = listConfigContext?.repoLink || '';
+  const provider = listConfigContext?.provider;
+
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
     [clusters],
@@ -252,7 +255,6 @@ const MCCP: FC<{
       ) || null,
     [capiClusters, selectedCluster],
   );
-
   const [random, setRandom] = useState<string>(
     Math.random().toString(36).substring(7),
   );
@@ -406,9 +408,16 @@ const MCCP: FC<{
                 CONNECT A CLUSTER
               </Button>
               <Tooltip
-                title="No CAPI cluster selected"
+                title={
+                  provider === GitProvider.BitBucketServer
+                    ? 'Operation is not supported'
+                    : 'No CAPI cluster selected'
+                }
                 placement="top"
-                disabled={Boolean(selectedCapiCluster)}
+                disabled={
+                  Boolean(selectedCapiCluster) &&
+                  provider !== GitProvider.BitBucketServer
+                }
               >
                 <div>
                   <Button
@@ -419,7 +428,10 @@ const MCCP: FC<{
                       setOpenDeletePR(true);
                     }}
                     color="secondary"
-                    disabled={!selectedCapiCluster}
+                    disabled={
+                      !selectedCapiCluster ||
+                      provider === GitProvider.BitBucketServer
+                    }
                   >
                     CREATE A PR TO DELETE CLUSTERS
                   </Button>
