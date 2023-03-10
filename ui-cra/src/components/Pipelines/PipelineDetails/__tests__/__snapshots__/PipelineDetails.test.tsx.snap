@@ -303,6 +303,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c0 {
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 }
 
@@ -331,7 +332,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c4 {
-  color: #fff;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -555,7 +555,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding-right: 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 12px; margin: 0px auto;"
     >
       <div
         class="c10"
