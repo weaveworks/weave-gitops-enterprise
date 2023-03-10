@@ -147,20 +147,6 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 	return &pb.AuthenticateResponse{Token: token}, nil
 }
 
-// func cookieHeader(rawCookies string) []*http.Cookie {
-// 	header := http.Header{}
-// 	header.Add("Cookie", rawCookies)
-// 	req := http.Request{Header: header}
-// 	return req.Cookies()
-// }
-
-// if md, ok := metadata.FromIncomingContext(ctx); ok {
-// 	raw := md.Get(grpc_runtime.MetadataPrefix + "cookie")[0]
-// 	s.log.Info("Dumping metadata received", "grpcgateway-cookie", md.Get("grpcgateway-cookie"), "raw", raw)
-// } else {
-// 	s.log.Info("No metadata received")
-// }
-
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
 	u, err := gitproviders.NewRepoURL(msg.Url)
 	if err != nil {
@@ -233,6 +219,20 @@ func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.G
 
 	return &pb.GetAzureDevOpsAuthURLResponse{Url: u.String()}, nil
 }
+
+// func cookieHeader(rawCookies string) []*http.Cookie {
+// 	header := http.Header{}
+// 	header.Add("Cookie", rawCookies)
+// 	req := http.Request{Header: header}
+// 	return req.Cookies()
+// }
+
+// if md, ok := metadata.FromIncomingContext(ctx); ok {
+// 	raw := md.Get(grpc_runtime.MetadataPrefix + "cookie")[0]
+// 	s.log.Info("Dumping metadata received", "grpcgateway-cookie", md.Get("grpcgateway-cookie"), "raw", raw)
+// } else {
+// 	s.log.Info("No metadata received")
+// }
 
 func (s *applicationServer) AuthorizeAzureDevOps(ctx context.Context, msg *pb.AuthorizeAzureDevOpsRequest) (*pb.AuthorizeAzureDevOpsResponse, error) {
 	s.log.Info("AuthorizeAzureDevOps", "code", msg.Code, "redirectUri", msg.RedirectUri)
