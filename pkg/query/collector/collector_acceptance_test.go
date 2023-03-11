@@ -101,8 +101,13 @@ func aCollector(ctx context.Context) (context.Context, error) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).ToNot(BeNil())
 	ctx = context.WithValue(ctx, collectorKey{}, collector)
+	log.Info("collector created")
 
-	log.Info("created clusters watcher")
+	start, err := collector.Start(ctx)
+	g.Expect(err).To(BeNil())
+	g.Expect(start).ToNot(BeNil())
+
+	log.Info("collector created")
 	return ctx, nil
 }
 
@@ -228,7 +233,7 @@ func iGotAllTheResults(ctx context.Context) (context.Context, error) {
 	log.Info(fmt.Sprintf("expected num docs: '%d'", numDocsExpected))
 
 	isTrue := g.Eventually(func() bool {
-		numDocuments, err := store.Count(ctx, kind)
+		numDocuments, err := store.CountObjects(ctx, kind)
 		if err != nil {
 			log.Error(err, "error counting")
 			return false

@@ -12,12 +12,6 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-type Document struct {
-	Name      string
-	Namespace string
-	Kind      string
-}
-
 // dbFile is the name of the sqlite3 database file
 const dbFile = "charts.db"
 
@@ -59,7 +53,7 @@ func (i InMemoryStore) GetAccessRules() ([]models.AccessRule, error) {
 }
 
 // TODO add unit tests
-func (i InMemoryStore) Count(ctx context.Context, kind string) (int64, error) {
+func (i InMemoryStore) CountObjects(ctx context.Context, kind string) (int64, error) {
 	rows, err := i.db.QueryContext(ctx, "SELECT COUNT(*) FROM documents WHERE kind=?", kind)
 	if err != nil {
 		return 0, fmt.Errorf("failed to query database: %w", err)
@@ -77,31 +71,26 @@ func (i InMemoryStore) Count(ctx context.Context, kind string) (int64, error) {
 	return count, nil
 }
 
-func (i InMemoryStore) GetAll(ctx context.Context) ([]Document, error) {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (i InMemoryStore) Add(ctx context.Context, document Document) (int64, error) {
+func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (int64, error) {
 	if ctx == nil {
 		return -1, fmt.Errorf("invalid context")
 	}
 
-	if document.Namespace == "" || document.Name == "" || document.Kind == "" {
-		return -1, fmt.Errorf("invalid document")
+	if object.Namespace == "" || object.Name == "" || object.Kind == "" {
+		return -1, fmt.Errorf("invalid object")
 	}
 
 	sqlStatement := `INSERT INTO documents (name, namespace, kind) VALUES ($1, $2,$3)`
 	result, err := i.db.ExecContext(
 		ctx,
-		sqlStatement, document.Name, document.Namespace, document.Kind)
+		sqlStatement, object.Name, object.Namespace, object.Kind)
 	if err != nil {
 		return -1, err
 	}
 	return result.LastInsertId()
 }
 
-func (i InMemoryStore) Delete(ctx context.Context, document Document) error {
+func (i InMemoryStore) DeleteObject(ctx context.Context, object models.Object) error {
 	//TODO implement me
 	panic("implement me")
 }

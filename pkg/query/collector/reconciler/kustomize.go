@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -76,13 +77,13 @@ func (r *KustomizationWatcherReconciler) reconcileDelete(ctx context.Context, ku
 		"kustomization", kustomization)
 
 	//adapt to document
-	document := store.Document{
+	document := models.Object{
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
 		Kind:      kustomization.Kind,
 	}
 
-	if err := r.store.Delete(ctx, document); err != nil {
+	if err := r.store.DeleteObject(ctx, document); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -96,13 +97,13 @@ func (r *KustomizationWatcherReconciler) reconcileAddOrUpdate(ctx context.Contex
 		"kustomization", kustomization)
 
 	//adapt to document
-	document := store.Document{
+	document := models.Object{
 		Name:      kustomization.Name,
 		Namespace: kustomization.Namespace,
 		Kind:      kustomization.Kind,
 	}
 
-	id, err := r.store.Add(ctx, document)
+	id, err := r.store.StoreObject(ctx, document)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

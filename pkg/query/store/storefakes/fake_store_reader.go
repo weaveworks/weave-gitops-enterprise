@@ -178,6 +178,6 @@ func (fake *FakeStoreReader) recordInvocation(key string, args []interface{}) {
 
 var _ store.StoreReader = new(FakeStoreReader)
 
-func (fake *FakeStoreReader) Count(ctx context.Context, kind string) (int64, error) {
+func (fake *FakeStoreReader) CountObjects(ctx context.Context, kind string) (int64, error) {
 	return -1, nil
 }

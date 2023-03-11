@@ -1,8 +1,10 @@
 package collector
 
 import (
+	"context"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -19,14 +21,15 @@ type ObjectRecord interface {
 
 //counterfeiter:generate . Collector
 type Collector interface {
-	Start() (<-chan []ObjectRecord, error)
-	Stop() error
+	Start(ctx context.Context) (<-chan []ObjectRecord, error)
+	Stop(ctx context.Context) error
 }
 
 type CollectorOpts struct {
 	Log            logr.Logger
 	ObjectKinds    []schema.GroupVersionKind
 	ClusterManager clustersmngr.ClustersManager
+	Clusters       []cluster.Cluster
 }
 
 // Collector factory method. It creates a collection with cluster watching strategy by default.

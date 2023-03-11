@@ -7,6 +7,7 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
@@ -21,11 +22,14 @@ type ClustersWatcher interface {
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
-	store           store.Store
-	clusterWatchers map[string]Watcher
-	newWatcherFunc  NewWatcherFunc
-	kinds           []string
-	msg             chan []ObjectRecord
+	store               store.Store
+	clusterWatchers     map[string]Watcher
+	newWatcherFunc      NewWatcherFunc
+	kinds               []string
+	msg                 chan []ObjectRecord
+	log                 logr.Logger
+	clusters            []cluster.Cluster
+	objectRecordChannel chan []ObjectRecord
 }
 
 // Collector factory method. It creates a collection with cluster watching strategy by default.
@@ -52,14 +56,38 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 		newWatcherFunc:  newWatcherFunc,
 		store:           store,
 		kinds:           kinds,
+		log:             log,
+		clusters:        opts.Clusters,
 	}, nil
 }
 
-func (c *watchingCollector) Start() (<-chan []ObjectRecord, error) {
-	return c.msg, fmt.Errorf("not implemented yet")
+func (c *watchingCollector) Start(ctx context.Context) (<-chan []ObjectRecord, error) {
+	c.log.Info("starting collector")
+	c.objectRecordChannel = make(chan []ObjectRecord)
+
+	for _, cluster := range c.clusters {
+		clusterName := types.NamespacedName{
+			Name:      cluster.GetName(),
+			Namespace: "default",
+		}
+		c.log.Info("cluster adding", "name", clusterName.Name)
+		config, err := cluster.GetServerConfig()
+		if err != nil {
+			return nil, err
+		}
+		err = c.AddCluster(clusterName, config, ctx, c.log)
+		if err != nil {
+			return nil, err
+		}
+		c.log.Info("cluster added", "name", clusterName.Name)
+	}
+
+	c.log.Info("collector started")
+	return c.objectRecordChannel, nil
+
 }
 
-func (c *watchingCollector) Stop() error {
+func (c *watchingCollector) Stop(ctx context.Context) error {
 	return fmt.Errorf("not implemented yet")
 }
 

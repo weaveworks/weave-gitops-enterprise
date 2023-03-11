@@ -18,17 +18,17 @@ type Store interface {
 type StoreWriter interface {
 	StoreAccessRules(roles []models.AccessRule) error
 	StoreObjects(objects []models.Object) error
-	Add(ctx context.Context, document Document) (int64, error)
-	Delete(ctx context.Context, document Document) error
+	StoreObject(ctx context.Context, object models.Object) (int64, error)
+	DeleteObject(ctx context.Context, object models.Object) error
 }
 
-//counterfeiter:generate . StoreReader
-
 // StoreReader is an interface for querying objects
+//
+//counterfeiter:generate . StoreReader
 type StoreReader interface {
 	GetObjects() ([]models.Object, error)
+	CountObjects(ctx context.Context, kind string) (int64, error)
 	GetAccessRules() ([]models.AccessRule, error)
-	Count(ctx context.Context, kind string) (int64, error)
 }
 
 // factory method that by default creates a in memory store

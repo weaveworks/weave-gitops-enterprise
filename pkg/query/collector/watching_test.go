@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/logr/testr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -15,6 +16,42 @@ import (
 
 	. "github.com/onsi/gomega"
 )
+
+func TestStart(t *testing.T) {
+	g := NewGomegaWithT(t)
+	log := testr.New(t)
+	ctx := context.Background()
+	fakeStore := storefakes.NewStore(log)
+	opts := CollectorOpts{
+		Log:      log,
+		Clusters: []cluster.Cluster{},
+	}
+	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher)
+	g.Expect(err).To(BeNil())
+	g.Expect(collector).NotTo(BeNil())
+
+	tests := []struct {
+		name       string
+		clusters   []cluster.Cluster
+		errPattern string
+	}{
+		{
+			name:       "can start collector",
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			objectRecordsChannel, err := collector.Start(ctx)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			g.Expect(objectRecordsChannel).NotTo(BeNil())
+		})
+	}
+}
 
 func TestAddCluster(t *testing.T) {
 	g := NewGomegaWithT(t)

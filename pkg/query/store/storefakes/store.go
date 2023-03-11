@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 
 type FakeStore struct {
@@ -35,22 +34,22 @@ func NewStore(log logr.Logger) FakeStore {
 	return FakeStore{log: log}
 }
 
-func (f FakeStore) Delete(ctx context.Context, document store.Document) error {
+func (f FakeStore) DeleteObject(ctx context.Context, object models.Object) error {
 	f.log.Info("faked delete")
 	return nil
 }
 
-func (f FakeStore) Count(ctx context.Context, kind string) (int64, error) {
+func (f FakeStore) CountObjects(ctx context.Context, kind string) (int64, error) {
 	f.log.Info("faked count")
 	return 0, nil
 }
 
-func (f FakeStore) GetAll(ctx context.Context) ([]store.Document, error) {
+func (f FakeStore) GetAll(ctx context.Context) ([]models.Object, error) {
 	f.log.Info("faked store: get all")
-	return []store.Document{}, nil
+	return []models.Object{}, nil
 }
 
-func (f FakeStore) Add(ctx context.Context, document store.Document) (int64, error) {
+func (f FakeStore) StoreObject(ctx context.Context, object models.Object) (int64, error) {
 	f.log.Info("faked store: add")
 	return 0, nil
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -75,13 +76,13 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, helmRelease
 		"helmRelease", helmRelease)
 
 	//adapt to document
-	document := store.Document{
+	document := models.Object{
 		Name:      helmRelease.Name,
 		Namespace: helmRelease.Namespace,
 		Kind:      helmRelease.Kind,
 	}
 
-	if err := r.store.Delete(ctx, document); err != nil {
+	if err := r.store.DeleteObject(ctx, document); err != nil {
 		return ctrl.Result{}, err
 	}
 
@@ -95,13 +96,13 @@ func (r *HelmWatcherReconciler) reconcileAddOrUpdate(ctx context.Context, helmRe
 		"helmRelease", helmRelease)
 
 	//adapt to document
-	document := store.Document{
+	document := models.Object{
 		Name:      helmRelease.Name,
 		Namespace: helmRelease.Namespace,
 		Kind:      helmRelease.Kind,
 	}
 
-	id, err := r.store.Add(ctx, document)
+	id, err := r.store.StoreObject(ctx, document)
 	if err != nil {
 		return ctrl.Result{}, err
 	}

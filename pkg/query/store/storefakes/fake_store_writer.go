@@ -336,12 +336,12 @@ func (fake *FakeStoreWriter) recordInvocation(key string, args []interface{}) {
 
 var _ store.StoreWriter = new(FakeStoreWriter)
 
-func (fake *FakeStoreWriter) Add(ctx context.Context, document store.Document) (int64, error) {
+func (fake *FakeStoreWriter) StoreObject(ctx context.Context, object models.Object) (int64, error) {
 	return -1, nil
 
 }
 
-func (fake *FakeStoreWriter) Delete(ctx context.Context, document store.Document) error {
+func (fake *FakeStoreWriter) DeleteObject(ctx context.Context, object models.Object) error {
 	return nil
 
 }

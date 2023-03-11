@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"os"
 	"testing"
 )
@@ -52,41 +53,41 @@ func TestAdd(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		document   Document
+		object     models.Object
 		errPattern string
 	}{
 		{
-			name:       "cannot add document for nil document",
-			errPattern: "invalid document",
+			name:       "cannot add object for nil object",
+			errPattern: "invalid object",
 		},
 		{
-			name:       "cannot add document for empty document",
-			document:   Document{},
-			errPattern: "invalid document",
+			name:       "cannot add object for empty object",
+			object:     models.Object{},
+			errPattern: "invalid object",
 		},
 		{
-			name:       "cannot add document for empty document name",
-			document:   Document{},
-			errPattern: "invalid document",
+			name:       "cannot add object for empty object name",
+			object:     models.Object{},
+			errPattern: "invalid object",
 		},
 		{
-			name: "cannot add document for empty document namespace",
-			document: Document{
-				Name: "document",
+			name: "cannot add object for empty object namespace",
+			object: models.Object{
+				Name: "object",
 			},
-			errPattern: "invalid document",
+			errPattern: "invalid object",
 		},
 		{
-			name: "cannot add document for empty document kind",
-			document: Document{
+			name: "cannot add object for empty object kind",
+			object: models.Object{
 				Name:      "name",
 				Namespace: "namespace",
 			},
-			errPattern: "invalid document",
+			errPattern: "invalid object",
 		},
 		{
-			name: "can add document for a valid kind",
-			document: Document{
+			name: "can add object for a valid kind",
+			object: models.Object{
 				Name:      "name",
 				Namespace: "namespace",
 				Kind:      "ValidKind",
@@ -96,7 +97,7 @@ func TestAdd(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			id, err := store.Add(ctx, tt.document)
+			id, err := store.StoreObject(ctx, tt.object)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
