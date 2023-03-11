@@ -8,7 +8,7 @@ import {
   WarningIcon,
 } from '../PolicyConfigStyles';
 
-const renderParameterValue = (param: any) => {
+export const renderParameterValue = (param: any) => {
   if (Array.isArray(param)) return param.join(', ');
   else {
     const paramType = typeof param;
@@ -31,11 +31,11 @@ function PolicyDetailsCard({
   return (
     <div>
       <label className={classes.sectionTitle}>
-        Policies <span>({totalPolicies})</span>
+        Policies <span data-testid="totalPolicies">({totalPolicies})</span>
       </label>
-      <PolicyDetailsCardWrapper>
+      <PolicyDetailsCardWrapper role="list">
         {policies?.map(policy => (
-          <li key={policy.id}>
+          <li key={policy.id} role="list-item">
             <Card>
               <CardContent>
                 {policy.status === 'OK' ? (
@@ -47,7 +47,9 @@ function PolicyDetailsCard({
                     className={classes.link}
                     data-policy-name={policy.name}
                   >
-                    {policy.name}
+                    <span data-testid={`policyId-${policy.name}`}>
+                      {policy.name}
+                    </span>
                   </Link>
                 ) : (
                   <div className={classes.policyTitle}>
@@ -57,14 +59,21 @@ function PolicyDetailsCard({
                     >
                       <WarningIcon />
                     </span>
-                    {policy.id}
+                    <span data-testid={`policyId-${policy.id}`}>
+                      {policy.id}
+                    </span>
                   </div>
                 )}
                 <label className="cardLbl">Parameters</label>
                 {Object.entries(policy.parameters || {}).map(param => (
                   <div className="parameterItem" key={param[0]}>
-                    <label className={classes.upperCase}>{param[0]} </label>
-                    <div className={`parameterItemValue ${classes.upperCase}`}>
+                    <label data-testid={param[0]} className={classes.upperCase}>
+                      {param[0]}{' '}
+                    </label>
+                    <div
+                      data-testid={`${param[0]}Value`}
+                      className={`parameterItemValue ${classes.upperCase}`}
+                    >
                       {renderParameterValue(param[1])}
                     </div>
                   </div>

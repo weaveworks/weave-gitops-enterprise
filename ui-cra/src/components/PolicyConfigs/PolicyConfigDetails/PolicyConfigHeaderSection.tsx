@@ -44,12 +44,14 @@ function PolicyConfigHeaderSection({
                 namespace: item.namespace || null,
               })}
             >
-              <span>
-                {item.namespace === '' ? <span>*</span> : item.namespace}/
-                {item.name}
+              <span data-testid={`matchItem${item.name}`}>
+                {item.namespace === '' ? '*' : item.namespace}/{item.name}
               </span>
             </Link>
-            <span className={`${classes.targetItemKind} ${classes.capitlize}`}>
+            <span
+              data-testid={`matchItemKind${item.kind}`}
+              className={`${classes.targetItemKind} ${classes.capitlize}`}
+            >
               {item.kind}
             </span>
           </li>
@@ -57,11 +59,13 @@ function PolicyConfigHeaderSection({
       case 'resources':
         return (
           <li key={`${item.name}`}>
-            <span>
-              {item.namespace === '' ? <span>*</span> : item.namespace}/
-              {item.name}
+            <span data-testid={`matchItem${item.name}`}>
+              {item.namespace === '' ? '*' : item.namespace}/{item.name}
             </span>
-            <span className={`${classes.targetItemKind} ${classes.capitlize}`}>
+            <span
+              data-testid={`matchItemKind${item.kind}`}
+              className={`${classes.targetItemKind} ${classes.capitlize}`}
+            >
               {item.kind}
             </span>
           </li>
@@ -75,12 +79,16 @@ function PolicyConfigHeaderSection({
                 workspaceName: item,
               })}
             >
-              {item}
+              <span data-testid={`matchItem${item}`}>{item}</span>
             </Link>
           </li>
         );
       case 'namespaces':
-        return <li key={item}>{item}</li>;
+        return (
+          <li key={item} data-testid={`matchItem${item}`}>
+            {item}
+          </li>
+        );
     }
   };
 
@@ -89,9 +97,11 @@ function PolicyConfigHeaderSection({
       {generateRowHeaders(defaultHeaders)}
       <div>
         <label className={classes.sectionTitle}>Applied To</label>
-        <div className={`${classes.appliedTo} ${classes.capitlize}`}>
-          {matchType}
-
+        <div
+          data-testid="appliedTo"
+          className={`${classes.appliedTo} ${classes.capitlize}`}
+        >
+          <span>{matchType}</span>
           <span> ({target?.length})</span>
         </div>
         <ul className={classes.targetItemsList}>
