@@ -140,7 +140,7 @@ func TestNewWatcher(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			g.Expect(watcher).NotTo(BeNil())
 			g.Expect(watcher.clusterRef).To(Equal(tt.options.ClusterRef))
-			g.Expect(watcher.status).To(Equal(WatcherStopped))
+			g.Expect(watcher.status).To(Equal(ClusterWatchingStopped))
 			g.Expect(watcher.scheme).NotTo(BeNil())
 			if tt.expectedRegisteredVersion.Version != "" {
 				g.Expect(watcher.scheme.IsVersionRegistered(tt.expectedRegisteredVersion)).To(BeTrue())
@@ -213,7 +213,7 @@ func TestStartWatcher(t *testing.T) {
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(watcher.status).To(Equal(WatcherStarted))
+			g.Expect(watcher.status).To(Equal(ClusterWatchingStarted))
 			g.Expect(watcher.watcherManager).NotTo(BeNil())
 		})
 	}

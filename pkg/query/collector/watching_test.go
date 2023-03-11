@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -49,6 +50,53 @@ func TestStart(t *testing.T) {
 			}
 			g.Expect(err).To(BeNil())
 			g.Expect(objectRecordsChannel).NotTo(BeNil())
+		})
+	}
+}
+
+// TODO add new stop with
+func TestStop(t *testing.T) {
+	g := NewGomegaWithT(t)
+	log := testr.New(t)
+	ctx := context.Background()
+	fakeStore := storefakes.NewStore(log)
+	opts := CollectorOpts{
+		Log: log,
+		Clusters: []cluster.Cluster{
+			&clusterfakes.FakeCluster{
+				GetHostStub: nil,
+				GetNameStub: func() string {
+					return "faked"
+				},
+				GetServerConfigStub: func() (*rest.Config, error) {
+					return &rest.Config{}, nil
+				},
+			},
+		},
+	}
+	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher)
+	g.Expect(err).To(BeNil())
+	_, err = collector.Start(ctx)
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name       string
+		clusters   []cluster.Cluster
+		errPattern string
+	}{
+		{
+			name:       "can stop collector",
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := collector.Stop(ctx)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
 		})
 	}
 }
@@ -109,7 +157,7 @@ func TestAddCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.AddCluster(tt.cluster, tt.config, ctx, log)
+			err := collector.Watch(tt.cluster, tt.config, ctx, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -145,7 +193,7 @@ func TestStatusCluster(t *testing.T) {
 	config := &rest.Config{
 		Host: "http://idontexist",
 	}
-	err = clustersWatcher.AddCluster(cluster, config, ctx, log)
+	err = clustersWatcher.Watch(cluster, config, ctx, log)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -174,7 +222,7 @@ func TestStatusCluster(t *testing.T) {
 				Name:      "test",
 				Namespace: "test",
 			},
-			expectedStatus: string(WatcherStopped),
+			expectedStatus: string(ClusterWatchingStopped),
 		},
 		{
 			name: "could not get status for non existing cluster",
@@ -187,7 +235,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			status, err := clustersWatcher.StatusCluster(tt.cluster)
+			status, err := clustersWatcher.Status(tt.cluster)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -218,5 +266,5 @@ func (f fakeWatcher) Stop() error {
 
 func (f fakeWatcher) Status() (string, error) {
 	f.log.Info("fake watcher status")
-	return string(WatcherStopped), nil
+	return string(ClusterWatchingStopped), nil
 }

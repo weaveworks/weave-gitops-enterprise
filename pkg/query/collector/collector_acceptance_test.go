@@ -195,10 +195,10 @@ func getNumItemsByKind(ctx context.Context, client client.Client, kind string) (
 }
 
 func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
-	c := ctx.Value(collectorKey{}).(collector.ClustersWatcher)
+	c := ctx.Value(collectorKey{}).(collector.ClusterWatcher)
 	clusterRef := ctx.Value(clusterRefKey{}).(types.NamespacedName)
 	cfg := ctx.Value(configRefKey{}).(*rest.Config)
-	err := c.AddCluster(clusterRef, cfg, ctx, log)
+	err := c.Watch(clusterRef, cfg, ctx, log)
 	if err != nil {
 		log.Info("could not add cluster:", err)
 		return ctx, err
@@ -206,14 +206,14 @@ func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
 	log.Info("watcher added to cluster:", clusterRef)
 
 	isTrue := g.Eventually(func() bool {
-		status, err := c.StatusCluster(clusterRef)
+		status, err := c.Status(clusterRef)
 		if err != nil {
 			log.Info("cannot get cluster watcher status:", err)
 			return false
 		}
 		log.Info("waiting for started status:", status)
 		//TODO move me to cluster status instead of watcher
-		return status == string(collector.WatcherStarted)
+		return status == string(collector.ClusterWatchingStarted)
 	}).Should(BeTrue())
 
 	if !isTrue {

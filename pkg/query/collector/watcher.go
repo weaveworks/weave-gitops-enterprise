@@ -19,11 +19,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 )
 
-type WatcherStatus string
+type ClusterWatchingStatus string
 
 const (
-	WatcherStarted WatcherStatus = "started"
-	WatcherStopped WatcherStatus = "stopped"
+	ClusterWatchingStarted ClusterWatchingStatus = "started"
+	ClusterWatchingStopped ClusterWatchingStatus = "stopped"
 )
 
 type WatcherOptions struct {
@@ -45,7 +45,7 @@ type DefaultWatcher struct {
 	cluster           cluster.Cluster
 	stopFn            context.CancelFunc
 	log               logr.Logger
-	status            WatcherStatus
+	status            ClusterWatchingStatus
 	newWatcherManager newWatcherManagerFunc
 	watcherManager    manager.Manager
 	store             store.Store
@@ -132,7 +132,7 @@ func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, store
 		cluster:           cluster,
 		kinds:             opts.Kinds,
 		scheme:            scheme,
-		status:            WatcherStopped,
+		status:            ClusterWatchingStopped,
 		newWatcherManager: newManagerFunc,
 		store:             store,
 	}, nil
@@ -200,7 +200,7 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 		}
 	}()
 
-	w.status = WatcherStarted
+	w.status = ClusterWatchingStarted
 	w.log.Info("watcher with helm reconciler started")
 	return nil
 }

@@ -12,12 +12,56 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+func (c *watchingCollector) Start(ctx context.Context) (<-chan []ObjectRecord, error) {
+	c.log.Info("starting collector")
+	c.objectRecordChannel = make(chan []ObjectRecord)
+
+	for _, cluster := range c.clusters {
+		clusterName := types.NamespacedName{
+			Name:      cluster.GetName(),
+			Namespace: "default",
+		}
+		c.log.Info("cluster adding", "name", clusterName.Name)
+		config, err := cluster.GetServerConfig()
+		if err != nil {
+			return nil, err
+		}
+		err = c.Watch(clusterName, config, ctx, c.log)
+		if err != nil {
+			return nil, err
+		}
+		c.log.Info("cluster added", "name", clusterName.Name)
+	}
+
+	c.log.Info("collector started")
+	return c.objectRecordChannel, nil
+}
+
+func (c *watchingCollector) Stop(ctx context.Context) error {
+	c.log.Info("stopping collector")
+
+	for _, cluster := range c.clusters {
+		clusterName := types.NamespacedName{
+			Name:      cluster.GetName(),
+			Namespace: "default",
+		}
+		c.log.Info("cluster stopping", "name", clusterName.Name)
+		err := c.Unwatch(clusterName)
+		if err != nil {
+			return err
+		}
+		c.log.Info("cluster stopped", "name", clusterName.Name)
+	}
+	c.log.Info("collector stopped")
+	return nil
+}
+
 // Interface for watching clusters via kuberentes api
 // https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
-type ClustersWatcher interface {
-	AddCluster(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error
-	RemoveCluster(cluster types.NamespacedName) error
-	StatusCluster(cluster types.NamespacedName) (string, error)
+type ClusterWatcher interface {
+	Watch(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error
+	Unwatch(cluster types.NamespacedName) error
+	Status(cluster types.NamespacedName) (string, error)
 }
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
@@ -61,36 +105,6 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 	}, nil
 }
 
-func (c *watchingCollector) Start(ctx context.Context) (<-chan []ObjectRecord, error) {
-	c.log.Info("starting collector")
-	c.objectRecordChannel = make(chan []ObjectRecord)
-
-	for _, cluster := range c.clusters {
-		clusterName := types.NamespacedName{
-			Name:      cluster.GetName(),
-			Namespace: "default",
-		}
-		c.log.Info("cluster adding", "name", clusterName.Name)
-		config, err := cluster.GetServerConfig()
-		if err != nil {
-			return nil, err
-		}
-		err = c.AddCluster(clusterName, config, ctx, c.log)
-		if err != nil {
-			return nil, err
-		}
-		c.log.Info("cluster added", "name", clusterName.Name)
-	}
-
-	c.log.Info("collector started")
-	return c.objectRecordChannel, nil
-
-}
-
-func (c *watchingCollector) Stop(ctx context.Context) error {
-	return fmt.Errorf("not implemented yet")
-}
-
 // Function to create a watcher for a set of kinds. Operations target an store.
 type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, store store.Store, kind []string, log logr.Logger) (Watcher, error)
 
@@ -117,8 +131,7 @@ func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, store 
 	return w, nil
 }
 
-// TODO make me compatible with gitopscluster
-func (w *watchingCollector) AddCluster(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error {
+func (w *watchingCollector) Watch(cluster types.NamespacedName, config *rest.Config, ctx context.Context, log logr.Logger) error {
 	if config == nil {
 		return fmt.Errorf("config not found")
 	}
@@ -144,11 +157,24 @@ func (w *watchingCollector) AddCluster(cluster types.NamespacedName, config *res
 	return nil
 }
 
-func (w *watchingCollector) RemoveCluster(cluster types.NamespacedName) error {
-	return fmt.Errorf("not yet implemented")
+func (w *watchingCollector) Unwatch(cluster types.NamespacedName) error {
+	if cluster.Name == "" || cluster.Namespace == "" {
+		return fmt.Errorf("cluster name or namespace is empty")
+	}
+	w.log.Info("stopping cluster", "cluster", cluster.String())
+	clusterWatcher := w.clusterWatchers[cluster.String()]
+	if clusterWatcher == nil {
+		return fmt.Errorf("cluster watcher not found")
+	}
+	err := clusterWatcher.Stop()
+	if err != nil {
+		return err
+	}
+	w.log.Info("cluster stopped")
+	return nil
 }
 
-func (w *watchingCollector) StatusCluster(cluster types.NamespacedName) (string, error) {
+func (w *watchingCollector) Status(cluster types.NamespacedName) (string, error) {
 	if cluster.Name == "" || cluster.Namespace == "" {
 		return "", fmt.Errorf("cluster name or namespace is empty")
 	}
