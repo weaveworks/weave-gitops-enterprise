@@ -2,8 +2,9 @@ import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
-    defaultContexts,
-    PolicyConfigsClientMock, withContext
+  defaultContexts,
+  PolicyConfigsClientMock,
+  withContext,
 } from '../../../utils/test-utils';
 import PolicyConfigDetails from '../PolicyConfigDetails';
 import { renderParameterValue } from '../PolicyConfigDetails/PolicyDetailsCard';
@@ -214,7 +215,7 @@ describe('GetPolicyConfigDetails', () => {
       'span[data-testid="totalPolicies"]',
     );
     expect(totalPolicies).toHaveTextContent(`(${policyConfig.totalPolicies})`);
-    const policiesCard = await screen.getAllByRole('list-item');
+    const policiesCard = await screen.getAllByTestId('list-item');
     expect(policiesCard).toHaveLength(policyConfig.totalPolicies);
 
     const warning = async (id: string) =>

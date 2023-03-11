@@ -33,9 +33,9 @@ function PolicyDetailsCard({
       <label className={classes.sectionTitle}>
         Policies <span data-testid="totalPolicies">({totalPolicies})</span>
       </label>
-      <PolicyDetailsCardWrapper role="list">
+      <PolicyDetailsCardWrapper>
         {policies?.map(policy => (
-          <li key={policy.id} role="list-item">
+          <li key={policy.id} data-testid="list-item">
             <Card>
               <CardContent>
                 {policy.status === 'OK' ? (
