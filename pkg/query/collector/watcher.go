@@ -222,7 +222,7 @@ func addReconcilerByKind(kind string, watcherManager manager.Manager, store stor
 	}
 	//add helm reconciler
 	log.Info(fmt.Sprintf("created reconciler %s", kind))
-	err = rec.SetupWithManager(watcherManager)
+	err = rec.Setup(watcherManager)
 	if err != nil {
 		return fmt.Errorf("cannot setup helm reconciler: %v", err)
 	}

@@ -81,7 +81,6 @@ func TestStop(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		clusters   []cluster.Cluster
 		errPattern string
 	}{
 		{

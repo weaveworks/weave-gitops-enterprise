@@ -42,7 +42,7 @@ func NewHelmWatcherReconciler(
 
 }
 
-func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *HelmWatcherReconciler) Setup(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v2beta1.HelmRelease{}).
 		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).

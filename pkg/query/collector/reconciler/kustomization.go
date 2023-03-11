@@ -42,7 +42,7 @@ func NewKustomizeWatcherReconciler(
 
 }
 
-func (r *KustomizationWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *KustomizationWatcherReconciler) Setup(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1beta2.Kustomization{}).
 		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).
