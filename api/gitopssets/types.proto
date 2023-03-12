@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package gitopssets.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
+
+message GitOpsSet {
+    string                name                     = 1;
+    string                namespace                = 2;
+    repeated ResourceRef  inventory                = 3;
+    repeated Condition    conditions               = 4;
+    string                cluster_name             = 5;
+    string                type                     = 6;
+    map<string, string>   labels                   = 7;
+    map<string, string>   annotations              = 8;
+    bool                  suspended                = 9;
+    int64                 observed_generation      = 10;
+    string                yaml                     = 11;
+    ObjectRef             objectRef                = 12;
+}
+
+message GitOpsSetListError {
+    string namespace = 1;
+    string message = 2;
+    string clusterName = 3;
+}
+
+message ResourceRef {
+    string id       = 1;
+    string version  = 2;
+}
+
+message Condition {
+    string type = 1;
+    string status = 2;
+    string reason = 3;
+    string message = 4;
+    string timestamp = 5;
+}
+
+message GitOpsSetGenerator { 
+   string list = 1;
+   string git_repository = 2;
+}
+
+// GroupVersionKind represents an objects Kubernetes API type data
+message GroupVersionKind {
+    string group   = 1;
+    string kind    = 2;
+    string version = 3;
+}
+
+message Object {
+    string   payload                    = 1;
+    string   clusterName                = 2;
+    string   tenant                     = 3;
+    string   uid                        = 4;
+    repeated GroupVersionKind inventory = 5;
+}
+
+message ObjectRef {
+    string kind          = 1;
+    string name          = 2;
+    string namespace     = 3;
+    string clusterName   = 4;
+}

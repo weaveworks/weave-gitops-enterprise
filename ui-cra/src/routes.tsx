@@ -50,6 +50,8 @@ import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails'
+import GitopsSets from './components/GitopsSets';
+import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import WGUserInfo from './components/UserInfo';
 
 function withSearchParams(Cmp: any) {
@@ -258,17 +260,17 @@ const AppRoutes = () => {
       />
       <Route path={Routes.ImageAutomation} component={ImageAutomationPage} />
       <Route
-          path={V2Routes.ImageAutomationUpdatesDetails}
-          component={withSearchParams(ImageAutomationUpdatesDetails)}
-        />
-        <Route
-          path={V2Routes.ImageAutomationRepositoryDetails}
-          component={withSearchParams(ImageAutomationRepoDetails)}
-        />
-        <Route
-          path={V2Routes.ImagePolicyDetails}
-          component={withSearchParams(ImagePolicyDetails)}
-        />
+        path={V2Routes.ImageAutomationUpdatesDetails}
+        component={withSearchParams(ImageAutomationUpdatesDetails)}
+      />
+      <Route
+        path={V2Routes.ImageAutomationRepositoryDetails}
+        component={withSearchParams(ImageAutomationRepoDetails)}
+      />
+      <Route
+        path={V2Routes.ImagePolicyDetails}
+        component={withSearchParams(ImagePolicyDetails)}
+      />
       <Route exact path={Routes.Policies} component={Policies} />
       <Route
         exact
@@ -298,6 +300,15 @@ const AppRoutes = () => {
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
+      />
+      <Route
+        exact
+        path={Routes.GitOpsSets}
+        component={withSearchParams(GitopsSets)}
+      />
+      <Route
+        path={Routes.GitOpsSetDetail}
+        component={withSearchParams(GitOpsSetDetail)}
       />
       <Route
         exact
