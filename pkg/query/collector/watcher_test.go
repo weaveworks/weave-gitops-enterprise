@@ -91,7 +91,7 @@ func TestNewWatcher(t *testing.T) {
 					v2beta1.HelmReleaseKind,
 				},
 			},
-			errPattern: "invalid objectsChannel",
+			errPattern: "invalid objects channel",
 		},
 		{
 			name: "can create watcher with default func",

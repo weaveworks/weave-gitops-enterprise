@@ -25,7 +25,7 @@ func NewHelmWatcherReconciler(
 	}
 
 	if objectsChannel == nil {
-		return nil, fmt.Errorf("invalid objectsChannel")
+		return nil, fmt.Errorf("invalid objects channel")
 	}
 
 	//TODO add some Id for better instrumentation
