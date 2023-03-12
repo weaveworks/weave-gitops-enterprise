@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"os"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -11,10 +13,8 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/memorystore"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectcollector"
-	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -22,7 +22,8 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	qs query.QueryService
+	qs        query.QueryService
+	collector collector.Collector
 }
 
 var DefaultKinds = []schema.GroupVersionKind{
@@ -50,37 +51,35 @@ func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryRe
 	}, nil
 }
 
+// TODO set to acceptance
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, error) {
 	if opts.ObjectKinds == nil {
 		opts.ObjectKinds = DefaultKinds
 	}
 
-	var w store.StoreWriter
-	var r store.StoreReader
-
-	switch opts.StoreType {
-	case "memory":
-		s := memorystore.NewInMemoryStore()
-		w = s
-		r = s
-	default:
-		return nil, fmt.Errorf("unknown store type: %s", opts.StoreType)
+	dbDir, err := os.MkdirTemp("", "db")
+	st, err := store.NewStore(dbDir, opts.Logger)
+	if err != nil {
+		return nil, err
 	}
 
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
 		Log:         opts.Logger,
-		StoreReader: r,
+		StoreReader: st,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to create query service: %w", err)
 	}
 
-	if !opts.SkipCollection {
-		objCollector := objectcollector.NewObjectCollector(opts.Logger, opts.ClustersManager, w, nil)
-		objCollector.Start()
+	optsCollector := collector.CollectorOpts{}
+	c, err := collector.NewCollector(optsCollector, st, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create collector: %w", err)
 	}
 
-	return &server{qs: qs}, nil
+	c.Start(ctx)
+
+	return &server{qs: qs, collector: c}, nil
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
