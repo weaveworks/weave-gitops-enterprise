@@ -238,7 +238,7 @@ func (fake *FakeStoreWriter) StoreAccessRulesReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreObjects(arg1 []models.Object) error {
+func (fake *FakeStoreWriter) StoreObjects(ctx context.Context, arg1 []models.Object) error {
 	var arg1Copy []models.Object
 	if arg1 != nil {
 		arg1Copy = make([]models.Object, len(arg1))

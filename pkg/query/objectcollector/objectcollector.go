@@ -54,7 +54,7 @@ func NewObjectCollector(log logr.Logger, mgr clustersmngr.ClustersManager, w sto
 
 func (o *objectCollector) Start() {
 	go func() {
-		ch, error := o.col.Start()
+		error := o.col.Start()
 		if error != nil {
 			o.log.Error(error, "failed to start object collector")
 			return
@@ -64,7 +64,7 @@ func (o *objectCollector) Start() {
 			select {
 			case objects := <-ch:
 				converted := convertToObject(objects)
-				if err := o.w.StoreObjects(converted); err != nil {
+				if err := o.w.StoreObjects(nil, converted); err != nil {
 					o.log.Error(err, "failed to store objects")
 					continue
 				}

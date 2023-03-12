@@ -40,7 +40,7 @@ func (i InMemoryStore) StoreAccessRules(roles []models.AccessRule) error {
 	return fmt.Errorf("not implemented yet")
 }
 
-func (i InMemoryStore) StoreObjects(objects []models.Object) error {
+func (i InMemoryStore) StoreObjects(ctx context.Context, objects []models.Object) error {
 	return fmt.Errorf("not implemented yet")
 }
 

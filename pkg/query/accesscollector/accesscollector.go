@@ -30,7 +30,7 @@ type accessRulesCollector struct {
 
 func (a *accessRulesCollector) Start() {
 	go func() {
-		ch, error := a.col.Start()
+		error := a.col.Start()
 		if error != nil {
 			a.log.Error(error, "failed to start collector")
 			return

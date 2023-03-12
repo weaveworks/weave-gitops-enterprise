@@ -15,7 +15,7 @@ func (f FakeStore) StoreAccessRules(roles []models.AccessRule) error {
 	return nil
 }
 
-func (f FakeStore) StoreObjects(objects []models.Object) error {
+func (f FakeStore) StoreObjects(ctx context.Context, objects []models.Object) error {
 	f.log.Info("faked")
 	return nil
 }

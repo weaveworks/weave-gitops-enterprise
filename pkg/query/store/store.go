@@ -17,8 +17,7 @@ type Store interface {
 // StoreWriter is an interface for storing access rules and objects
 type StoreWriter interface {
 	StoreAccessRules(roles []models.AccessRule) error
-	StoreObjects(objects []models.Object) error
-	StoreObject(ctx context.Context, object models.Object) (int64, error)
+	StoreObjects(ctx context.Context, objects []models.Object) error
 	DeleteObject(ctx context.Context, object models.Object) error
 }
 

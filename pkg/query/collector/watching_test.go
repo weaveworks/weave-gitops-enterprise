@@ -43,7 +43,7 @@ func TestStart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			objectRecordsChannel, err := collector.Start(ctx)
+			err := collector.Start(ctx)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -76,7 +76,7 @@ func TestStop(t *testing.T) {
 	}
 	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher)
 	g.Expect(err).To(BeNil())
-	_, err = collector.Start(ctx)
+	err = collector.Start(ctx)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -163,10 +163,8 @@ func TestAddCluster(t *testing.T) {
 			}
 			g.Expect(err).To(BeNil())
 			g.Expect(collector.clusterWatchers[tt.cluster.String()]).NotTo(BeNil())
-
 		})
 	}
-
 }
 
 func TestStatusCluster(t *testing.T) {

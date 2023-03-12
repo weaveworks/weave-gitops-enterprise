@@ -48,14 +48,14 @@ type DefaultWatcher struct {
 	status            ClusterWatchingStatus
 	newWatcherManager newWatcherManagerFunc
 	watcherManager    manager.Manager
-	store             store.Store
+	objectsChannel    chan []ObjectRecord
 	// useProxy is a flag to indicate if the helm watcher should use the proxy
 	useProxy bool
 }
 
-type newWatcherManagerFunc = func(config *rest.Config, kinds []string, store store.Store, options manager.Options) (manager.Manager, error)
+type newWatcherManagerFunc = func(config *rest.Config, kinds []string, objectsChannel chan []ObjectRecord, options manager.Options) (manager.Manager, error)
 
-func defaultNewWatcherManager(config *rest.Config, kinds []string, store store.Store, options manager.Options) (manager.Manager, error) {
+func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChannel chan []ObjectRecord, options manager.Options) (manager.Manager, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -83,7 +83,7 @@ func defaultNewWatcherManager(config *rest.Config, kinds []string, store store.S
 	}
 
 	for _, kind := range kinds {
-		err := addReconcilerByKind(kind, mgr, store, log)
+		err := addReconcilerByKind(kind, mgr, objectsChannel, log)
 		if err != nil {
 			return nil, err
 		}
@@ -95,7 +95,7 @@ func defaultNewWatcherManager(config *rest.Config, kinds []string, store store.S
 	return mgr, nil
 }
 
-func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, store store.Store, log logr.Logger) (*DefaultWatcher, error) {
+func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, objectsChannel chan []ObjectRecord, log logr.Logger) (*DefaultWatcher, error) {
 
 	if opts.ClientConfig == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -114,8 +114,8 @@ func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, store
 		log.Info("using default manager function")
 	}
 
-	if store == nil {
-		return nil, fmt.Errorf("invalid store")
+	if objectsChannel == nil {
+		return nil, fmt.Errorf("invalid objects channel")
 	}
 
 	scheme, err := newScheme(opts.Kinds)
@@ -134,7 +134,7 @@ func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, store
 		scheme:            scheme,
 		status:            ClusterWatchingStopped,
 		newWatcherManager: newManagerFunc,
-		store:             store,
+		objectsChannel:    objectsChannel,
 	}, nil
 }
 
@@ -184,7 +184,7 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 		return fmt.Errorf("invalid cluster config")
 	}
 
-	w.watcherManager, err = w.newWatcherManager(cfg, w.kinds, w.store, ctrl.Options{
+	w.watcherManager, err = w.newWatcherManager(cfg, w.kinds, w.objectsChannel, ctrl.Options{
 		Scheme:             w.scheme,
 		Logger:             w.log,
 		LeaderElection:     false,
@@ -206,14 +206,14 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 }
 
 // TODO add unit
-func addReconcilerByKind(kind string, watcherManager manager.Manager, store store.Store, log logr.Logger) error {
+func addReconcilerByKind(kind string, watcherManager manager.Manager, objectsChannel chan []ObjectRecord, log logr.Logger) error {
 	var rec reconciler.Reconciler
 	var err error
 	switch kind {
 	case v2beta1.HelmReleaseKind:
-		rec, err = reconciler.NewHelmWatcherReconciler(watcherManager.GetClient(), store, log)
+		rec, err = reconciler.NewHelmWatcherReconciler(watcherManager.GetClient(), objectsChannel, log)
 	case v1beta2.KustomizationKind:
-		rec, err = reconciler.NewKustomizeWatcherReconciler(watcherManager.GetClient(), store, log)
+		rec, err = reconciler.NewKustomizeWatcherReconciler(watcherManager.GetClient(), objectsChannel, log)
 	default:
 		return fmt.Errorf("not supported: %s", kind)
 	}

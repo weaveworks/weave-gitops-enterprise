@@ -103,9 +103,8 @@ func aCollector(ctx context.Context) (context.Context, error) {
 	ctx = context.WithValue(ctx, collectorKey{}, collector)
 	log.Info("collector created")
 
-	start, err := collector.Start(ctx)
+	err = collector.Start(ctx)
 	g.Expect(err).To(BeNil())
-	g.Expect(start).ToNot(BeNil())
 
 	log.Info("collector created")
 	return ctx, nil
@@ -119,7 +118,6 @@ func aKubernetesClusterToWatch(ctx context.Context) (context.Context, error) {
 	if err != nil {
 		return ctx, fmt.Errorf("could not start kube environment: %w", err)
 	}
-	ctx = context.WithValue(ctx, configRefKey{}, cfg)
 	log.Info(fmt.Sprintf("kube environment created: %s", cfg.Host))
 	clusterRef := types.NamespacedName{
 		Name:      cfg.Host,
@@ -153,8 +151,6 @@ func aKindToWatch(ctx context.Context, kind string) (context.Context, error) {
 }
 
 type clusterRefKey struct{}
-
-type configRefKey struct{}
 
 type numItemsKey struct{}
 
@@ -197,13 +193,6 @@ func getNumItemsByKind(ctx context.Context, client client.Client, kind string) (
 func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
 	c := ctx.Value(collectorKey{}).(collector.ClusterWatcher)
 	clusterRef := ctx.Value(clusterRefKey{}).(types.NamespacedName)
-	cfg := ctx.Value(configRefKey{}).(*rest.Config)
-	err := c.Watch(clusterRef, cfg, ctx, log)
-	if err != nil {
-		log.Info("could not add cluster:", err)
-		return ctx, err
-	}
-	log.Info("watcher added to cluster:", clusterRef)
 
 	isTrue := g.Eventually(func() bool {
 		status, err := c.Status(clusterRef)
