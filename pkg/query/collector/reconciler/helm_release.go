@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -13,12 +13,12 @@ import (
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type HelmWatcherReconciler struct {
-	objectsChannel chan []collector.ObjectRecord
+	objectsChannel chan []models.Object
 	client         client.Client
 }
 
 func NewHelmWatcherReconciler(
-	client client.Client, objectsChannel chan []collector.ObjectRecord, log logr.Logger) (*HelmWatcherReconciler, error) {
+	client client.Client, objectsChannel chan []models.Object, log logr.Logger) (*HelmWatcherReconciler, error) {
 
 	if client == nil {
 		return nil, fmt.Errorf("invalid client")
@@ -68,34 +68,25 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return r.notify(ctx, helmRelease, "update")
 }
 
-func (r *HelmReleaseRecord) ClusterName() string {
-	return r.clusterName
-
-}
-func (r *HelmReleaseRecord) Object() client.Object {
-	return &r.helmRelease
-}
-
-type HelmReleaseRecord struct {
-	clusterName string
-	helmRelease v2beta1.HelmRelease
-	operation   string
-}
-
 // TODO add unit
 func (r *HelmWatcherReconciler) notify(ctx context.Context, helmRelease v2beta1.HelmRelease, operation string) (ctrl.Result, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues(
 		"helmRelease", helmRelease)
 
-	//TODO review
-	objectRecord := HelmReleaseRecord{
-		clusterName: "dontexits",
-		helmRelease: helmRelease,
-		operation:   operation,
+	//TODO add operation
+	objectRecord := models.Object{
+		Cluster:   "change",
+		Name:      helmRelease.Name,
+		Namespace: helmRelease.Namespace,
+		Kind:      helmRelease.Kind,
+		Operation: operation,
+		//TODO conditions are multiple
+		Status:  helmRelease.Status.Conditions[0].String(),
+		Message: helmRelease.Status.Conditions[0].Message,
 	}
 
-	r.objectsChannel <- []collector.ObjectRecord{&objectRecord}
+	r.objectsChannel <- []models.Object{objectRecord}
 
-	log.Info("delete helm release document from store")
+	log.Info("notified operation")
 	return ctrl.Result{}, nil
 }

@@ -7,8 +7,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -21,13 +20,13 @@ import (
 func TestNewWatcher(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := storefakes.NewStore(log)
+	fakeObjectsChannel := make(chan []models.Object)
 
 	tests := []struct {
 		name                      string
 		options                   WatcherOptions
 		managerFunc               newWatcherManagerFunc
-		store                     store.Store
+		objectsChannel            chan []models.Object
 		expectedRegisteredVersion schema.GroupVersion
 		errPattern                string
 	}{
@@ -79,7 +78,7 @@ func TestNewWatcher(t *testing.T) {
 			errPattern: "at least one kind is required",
 		},
 		{
-			name: "cannot create watcher for empty store",
+			name: "cannot create watcher for empty objectsChannel",
 			options: WatcherOptions{
 				ClientConfig: &rest.Config{
 					Host: "http://idontexist",
@@ -92,7 +91,7 @@ func TestNewWatcher(t *testing.T) {
 					v2beta1.HelmReleaseKind,
 				},
 			},
-			errPattern: "invalid store",
+			errPattern: "invalid objectsChannel",
 		},
 		{
 			name: "can create watcher with default func",
@@ -109,7 +108,7 @@ func TestNewWatcher(t *testing.T) {
 				},
 			},
 			expectedRegisteredVersion: v2beta1.GroupVersion,
-			store:                     fakeStore,
+			objectsChannel:            fakeObjectsChannel,
 			errPattern:                "",
 		},
 		{
@@ -126,13 +125,13 @@ func TestNewWatcher(t *testing.T) {
 					v2beta1.HelmReleaseKind,
 				},
 			},
-			store:      fakeStore,
-			errPattern: "",
+			objectsChannel: fakeObjectsChannel,
+			errPattern:     "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			watcher, err := NewWatcher(tt.options, tt.managerFunc, tt.store, log)
+			watcher, err := NewWatcher(tt.options, tt.managerFunc, tt.objectsChannel, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -152,7 +151,7 @@ func TestNewWatcher(t *testing.T) {
 
 }
 
-func newFakeWatcherManagerFunc(config *rest.Config, kinds []string, store store.Store, options manager.Options) (manager.Manager, error) {
+func newFakeWatcherManagerFunc(config *rest.Config, kinds []string, objectsChannel chan []models.Object, options manager.Options) (manager.Manager, error) {
 	options.Logger.Info("created fake watcher manager")
 	return kubefakes.NewControllerManager(config, options)
 }
@@ -174,12 +173,12 @@ func TestStartWatcher(t *testing.T) {
 	}
 
 	log := testr.New(t)
-	fakeStore := storefakes.NewStore(log)
+	fakeObjectsChannel := make(chan []models.Object)
 	//setup a valid watcher
-	watcher, err := NewWatcher(options, newFakeWatcherManagerFunc, fakeStore, log)
+	watcher, err := NewWatcher(options, newFakeWatcherManagerFunc, fakeObjectsChannel, log)
 	g.Expect(err).To(BeNil())
 	g.Expect(watcher).NotTo(BeNil())
-	g.Expect(watcher.store).NotTo(BeNil())
+	g.Expect(watcher.objectsChannel).NotTo(BeNil())
 
 	tests := []struct {
 		name       string

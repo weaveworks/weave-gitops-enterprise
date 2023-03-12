@@ -7,7 +7,7 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/reconciler"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -48,14 +48,14 @@ type DefaultWatcher struct {
 	status            ClusterWatchingStatus
 	newWatcherManager newWatcherManagerFunc
 	watcherManager    manager.Manager
-	objectsChannel    chan []ObjectRecord
+	objectsChannel    chan []models.Object
 	// useProxy is a flag to indicate if the helm watcher should use the proxy
 	useProxy bool
 }
 
-type newWatcherManagerFunc = func(config *rest.Config, kinds []string, objectsChannel chan []ObjectRecord, options manager.Options) (manager.Manager, error)
+type newWatcherManagerFunc = func(config *rest.Config, kinds []string, objectsChannel chan []models.Object, options manager.Options) (manager.Manager, error)
 
-func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChannel chan []ObjectRecord, options manager.Options) (manager.Manager, error) {
+func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChannel chan []models.Object, options manager.Options) (manager.Manager, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -95,7 +95,7 @@ func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChanne
 	return mgr, nil
 }
 
-func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, objectsChannel chan []ObjectRecord, log logr.Logger) (*DefaultWatcher, error) {
+func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, objectsChannel chan []models.Object, log logr.Logger) (*DefaultWatcher, error) {
 
 	if opts.ClientConfig == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -206,14 +206,14 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 }
 
 // TODO add unit
-func addReconcilerByKind(kind string, watcherManager manager.Manager, objectsChannel chan []ObjectRecord, log logr.Logger) error {
+func addReconcilerByKind(kind string, watcherManager manager.Manager, objectsChannel chan []models.Object, log logr.Logger) error {
 	var rec reconciler.Reconciler
 	var err error
 	switch kind {
 	case v2beta1.HelmReleaseKind:
 		rec, err = reconciler.NewHelmWatcherReconciler(watcherManager.GetClient(), objectsChannel, log)
 	case v1beta2.KustomizationKind:
-		rec, err = reconciler.NewKustomizeWatcherReconciler(watcherManager.GetClient(), objectsChannel, log)
+		rec, err = reconciler.NewKustomizationReconciler(watcherManager.GetClient(), objectsChannel, log)
 	default:
 		return fmt.Errorf("not supported: %s", kind)
 	}

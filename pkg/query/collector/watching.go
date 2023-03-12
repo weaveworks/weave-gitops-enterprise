@@ -15,7 +15,7 @@ import (
 
 func (c *watchingCollector) Start(ctx context.Context) error {
 	c.log.Info("starting collector")
-	c.objectsChannel = make(chan []ObjectRecord)
+	c.objectsChannel = make(chan []models.Object)
 
 	for _, cluster := range c.clusters {
 		clusterName := types.NamespacedName{
@@ -27,7 +27,7 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 		if err != nil {
 			return err
 		}
-		err = c.Watch(clusterName, config, ctx, c.log)
+		err = c.Watch(clusterName, config, c.objectsChannel, ctx, c.log)
 		if err != nil {
 			return err
 		}
@@ -41,40 +41,15 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 		for {
 			select {
 			case objects := <-c.objectsChannel:
-				converted := convertToObject(objects, c.log)
-				if err := c.store.StoreObjects(ctx, converted); err != nil {
+				if err := c.store.StoreObjects(ctx, objects); err != nil {
 					c.log.Error(err, "failed to store objects")
 					continue
 				}
 			}
 		}
 	}()
-
 	c.log.Info("collector started")
 	return nil
-}
-
-func convertToObject(objs []ObjectRecord, log logr.Logger) []models.Object {
-	objects := make([]models.Object, 0, len(objs))
-	for _, obj := range objs {
-		o := obj.Object()
-
-		v, k := o.GetObjectKind().GroupVersionKind().ToAPIVersionAndKind()
-
-		fullKind := fmt.Sprintf("%s/%s", v, k)
-
-		object := models.Object{
-			Kind:      fullKind,
-			Name:      o.GetName(),
-			Namespace: o.GetNamespace(),
-			Cluster:   obj.ClusterName(),
-		}
-
-		objects = append(objects, object)
-		log.Info("converted object", "kind", object.Kind, "name", object.Name, "namespaces", object.Namespace)
-	}
-
-	return objects
 }
 
 func (c *watchingCollector) Stop(ctx context.Context) error {
@@ -99,7 +74,7 @@ func (c *watchingCollector) Stop(ctx context.Context) error {
 // Interface for watching clusters via kuberentes api
 // https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
-	Watch(cluster types.NamespacedName, config *rest.Config, objectsChannel chan []ObjectRecord, ctx context.Context, log logr.Logger) error
+	Watch(cluster types.NamespacedName, config *rest.Config, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error
 	Unwatch(cluster types.NamespacedName) error
 	Status(cluster types.NamespacedName) (string, error)
 }
@@ -110,10 +85,10 @@ type watchingCollector struct {
 	clusterWatchers map[string]Watcher
 	newWatcherFunc  NewWatcherFunc
 	kinds           []string
-	msg             chan []ObjectRecord
+	msg             chan []models.Object
 	log             logr.Logger
 	clusters        []cluster.Cluster
-	objectsChannel  chan []ObjectRecord
+	objectsChannel  chan []models.Object
 }
 
 // Collector factory method. It creates a collection with cluster watching strategy by default.
@@ -146,12 +121,12 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []ObjectRecord, kind []string, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []models.Object, kind []string, log logr.Logger) (Watcher, error)
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []ObjectRecord, kinds []string, log logr.Logger) (Watcher, error) {
-	if store == nil {
-		return nil, fmt.Errorf("invalid store")
+func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
+	if objectsChannel == nil {
+		return nil, fmt.Errorf("invalid objects channel")
 	}
 
 	if len(kinds) == 0 {
@@ -171,7 +146,7 @@ func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, object
 	return w, nil
 }
 
-func (w *watchingCollector) Watch(cluster types.NamespacedName, config *rest.Config, objectsChannel chan []ObjectRecord, ctx context.Context, log logr.Logger) error {
+func (w *watchingCollector) Watch(cluster types.NamespacedName, config *rest.Config, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error {
 	if config == nil {
 		return fmt.Errorf("config not found")
 	}
@@ -181,7 +156,7 @@ func (w *watchingCollector) Watch(cluster types.NamespacedName, config *rest.Con
 	}
 
 	log.Info("adding cluster", cluster)
-	watcher, err := w.newWatcherFunc(config, cluster, w.store, w.kinds, log)
+	watcher, err := w.newWatcherFunc(config, cluster, w.objectsChannel, w.kinds, log)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.String(), err)
 	}

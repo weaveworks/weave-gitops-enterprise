@@ -6,7 +6,7 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
@@ -49,7 +49,7 @@ func TestStart(t *testing.T) {
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(objectRecordsChannel).NotTo(BeNil())
+			g.Expect(fakeStore).NotTo(BeNil())
 		})
 	}
 }
@@ -156,7 +156,7 @@ func TestAddCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Watch(tt.cluster, tt.config, ctx, log)
+			err := collector.Watch(tt.cluster, tt.config, collector.objectsChannel, ctx, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -179,10 +179,10 @@ func TestStatusCluster(t *testing.T) {
 			v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
 		},
 	}
-	clustersWatcher, err := newWatchingCollector(options, fakeStore, newFakeWatcher)
+	collector, err := newWatchingCollector(options, fakeStore, newFakeWatcher)
 	g.Expect(err).To(BeNil())
-	g.Expect(clustersWatcher).NotTo(BeNil())
-	g.Expect(len(clustersWatcher.clusterWatchers)).To(Equal(0))
+	g.Expect(collector).NotTo(BeNil())
+	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
 	cluster := types.NamespacedName{
 		Name:      "test",
 		Namespace: "test",
@@ -190,7 +190,7 @@ func TestStatusCluster(t *testing.T) {
 	config := &rest.Config{
 		Host: "http://idontexist",
 	}
-	err = clustersWatcher.Watch(cluster, config, ctx, log)
+	err = collector.Watch(cluster, config, collector.objectsChannel, ctx, log)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -232,7 +232,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			status, err := clustersWatcher.Status(tt.cluster)
+			status, err := collector.Status(tt.cluster)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -242,7 +242,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, store store.Store, kinds []string, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }
