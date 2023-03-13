@@ -36,7 +36,7 @@ function PolicyConfigHeaderSection({
     switch (type) {
       case 'apps':
         return (
-          <li key={`${item.name}`}>
+          <li key={item.name}>
             {item.namespace === '' ? (
               <span data-testid={`matchItem${item.name}`}>*/{item.name}</span>
             ) : (
@@ -62,7 +62,7 @@ function PolicyConfigHeaderSection({
         );
       case 'resources':
         return (
-          <li key={`${item.name}`}>
+          <li key={item.name}>
             <span data-testid={`matchItem${item.name}`}>
               {item.namespace === '' ? '*' : item.namespace}/{item.name}
             </span>

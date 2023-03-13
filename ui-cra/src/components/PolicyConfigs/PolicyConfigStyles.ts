@@ -74,7 +74,7 @@ export const WarningIcon = styled(ReportProblem)`
 `;
 export const WarningWrapper = styled(Alert)`
   background: ${feedbackLight} !important;
-  margin: ${none} ${small} ${small};
+  margin-bottom: ${small};
   height: 50px;
   border-radius: ${xs} !important;
   color: ${black} !important;

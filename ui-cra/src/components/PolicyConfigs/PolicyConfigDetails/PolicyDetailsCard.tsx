@@ -1,27 +1,33 @@
 import { Card, CardContent } from '@material-ui/core';
 import { formatURL, Link } from '@weaveworks/weave-gitops';
-import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
+import {
+  GetPolicyConfigResponse,
+  PolicyConfigPolicy
+} from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
 import {
   PolicyDetailsCardWrapper,
   usePolicyConfigStyle,
-  WarningIcon,
+  WarningIcon
 } from '../PolicyConfigStyles';
+
+interface GetCardTitleProps {
+  policy: PolicyConfigPolicy;
+  clusterName: string;
+}
 
 export const renderParameterValue = (param: any) => {
   if (Array.isArray(param)) return param.join(', ');
-  else {
-    const paramType = typeof param;
-    switch (paramType) {
-      case 'boolean':
-        return paramType ? 'True' : 'False';
-      default:
-        return param;
-    }
+  const paramType = typeof param;
+  switch (paramType) {
+    case 'boolean':
+      return paramType ? 'True' : 'False';
+    default:
+      return param;
   }
 };
 
-function PolicyDetailsCard({
+export default function PolicyDetailsCard({
   policies,
   totalPolicies,
   clusterName,
@@ -38,43 +44,18 @@ function PolicyDetailsCard({
           <li key={policy.id} data-testid="list-item">
             <Card>
               <CardContent>
-                {policy.status === 'OK' ? (
-                  <Link
-                    to={formatURL(Routes.PolicyDetails, {
-                      clusterName: clusterName,
-                      id: policy.id,
-                    })}
-                    className={classes.link}
-                    data-policy-name={policy.name}
-                  >
-                    <span data-testid={`policyId-${policy.name}`}>
-                      {policy.name}
-                    </span>
-                  </Link>
-                ) : (
-                  <div className={classes.policyTitle}>
-                    <span
-                      title={`One or more policies are not found in cluster ${clusterName}.`}
-                      data-testid={`warning-icon-${policy.id}`}
-                    >
-                      <WarningIcon />
-                    </span>
-                    <span data-testid={`policyId-${policy.id}`}>
-                      {policy.id}
-                    </span>
-                  </div>
-                )}
+                <CardTitle clusterName={clusterName || ''} policy={policy} />
                 <label className="cardLbl">Parameters</label>
-                {Object.entries(policy.parameters || {}).map(param => (
-                  <div className="parameterItem" key={param[0]}>
-                    <label data-testid={param[0]} className={classes.upperCase}>
-                      {param[0]}{' '}
+                {Object.entries(policy.parameters || {}).map(([key, value]) => (
+                  <div className="parameterItem" key={key}>
+                    <label data-testid={key} className={classes.upperCase}>
+                      {key}{' '}
                     </label>
                     <div
-                      data-testid={`${param[0]}Value`}
+                      data-testid={`${key}Value`}
                       className={`parameterItemValue ${classes.upperCase}`}
                     >
-                      {renderParameterValue(param[1])}
+                      {renderParameterValue(value)}
                     </div>
                   </div>
                 ))}
@@ -86,5 +67,30 @@ function PolicyDetailsCard({
     </div>
   );
 }
-
-export default PolicyDetailsCard;
+export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
+  const classes = usePolicyConfigStyle();
+  const { status, id, name } = policy;
+  
+  return status === 'OK' ? (
+    <Link
+      to={formatURL(Routes.PolicyDetails, {
+        clusterName: clusterName,
+        id: id,
+      })}
+      className={classes.link}
+      data-policy-name={name}
+    >
+      <span data-testid={`policyId-${name}`}>{name}</span>
+    </Link>
+  ) : (
+    <div className={classes.policyTitle}>
+      <span
+        title={`One or more policies are not found in cluster ${clusterName}.`}
+        data-testid={`warning-icon-${id}`}
+      >
+        <WarningIcon />
+      </span>
+      <span data-testid={`policyId-${id}`}>{id}</span>
+    </div>
+  );
+}
