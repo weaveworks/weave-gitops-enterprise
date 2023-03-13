@@ -1,36 +1,27 @@
-import { MenuItem, Select } from '@material-ui/core';
-import { Input } from '@weaveworks/weave-gitops';
+import {
+  Box,
+  CircularProgress,
+  FormControl,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from '@material-ui/core';
+import { ChipGroup, Flex, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import * as React from 'react';
 import styled from 'styled-components';
-import MultiSelectDropdown from '../MultiSelectDropdown';
-
-const SearchInput = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  flex: 3;
-  width: 100%;
-`;
-
-const TermsContainer = styled.ul<{ disabled: boolean }>`
-  list-style: none;
-  display: flex;
-  margin: 0;
-  padding: 0;
-  flex-wrap: wrap;
-
-  ${props => props.disabled && 'opacity: 0.75;'};
-`;
 
 class SearchTerm extends React.PureComponent<any> {
   handleRemove = () => {
+    console.log('clicked');
     this.props.onRemove(this.props.term, this.props.label);
   };
 
   render() {
     const { className, term, label } = this.props;
     return (
-      <li className={`${className} search-term`}>
+      <li className={`search-term`}>
         <div className="search-term-text">{label || term}</div>
         <i onClick={this.handleRemove} className="fa fa-times remove-term" />
       </li>
@@ -51,6 +42,7 @@ type Props = {
   onFilterSelect: (val: string) => void;
   onPin: (val: string[]) => void;
   onBlur?: () => void;
+  busy?: boolean;
 };
 
 function QueryBuilder({
@@ -64,7 +56,9 @@ function QueryBuilder({
   onPin,
   onBlur = noOp,
   onFilterSelect,
+  busy,
 }: Props) {
+  const [selectedFilter, setSelectedFilter] = React.useState('');
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleAddSearchTerm = (value: string) => {
@@ -77,9 +71,13 @@ function QueryBuilder({
     onChange('', nextPinnedTerms);
   };
 
-  const handleRemoveSearchTerm = (value: string) => {
-    const nextPinnedTerms = _.without(pinnedTerms, value);
+  const handleRemoveSearchTerm = (value: string[]) => {
+    const nextPinnedTerms = _.without(pinnedTerms, value[0]);
     onChange(query, nextPinnedTerms);
+  };
+
+  const handleRemoveAll = () => {
+    onChange('', []);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,7 +93,7 @@ function QueryBuilder({
       const term = _.last(pinnedTerms);
       if (term) {
         // Allow the user to edit the text of the last term instead of removing the whole thing.
-        handleRemoveSearchTerm(term);
+        handleRemoveSearchTerm([term]);
       }
     }
   };
@@ -109,75 +107,73 @@ function QueryBuilder({
       inputRef.current.focus();
     }
 
+    setSelectedFilter(ev.target.value);
     onFilterSelect(ev.target.value);
   };
 
   return (
     <div className={className}>
-      <SearchInput>
-        <TermsContainer disabled={disabled}>
-          {_.map(pinnedTerms, term => (
-            <SearchTerm
-              key={term}
-              term={term}
-              onRemove={handleRemoveSearchTerm}
-            />
-          ))}
-        </TermsContainer>
-        <Input
-          onChange={handleInputChange}
-          value={query}
-          onKeyDown={handleInputKeyPress}
-          onBlur={onBlur}
-          onFocus={handleFocus}
-          inputRef={inputRef}
-          // placeholder={pinnedTerms.length === 0 ? placeholder : null}
-          disabled={disabled}
+      <Box marginBottom={1}>
+        <ChipGroup
+          chips={pinnedTerms}
+          onChipRemove={handleRemoveSearchTerm}
+          onClearAll={handleRemoveAll}
         />
-      </SearchInput>
+      </Box>
 
-      {!_.isEmpty(filters) && (
-        <Select placeholder="Filters" onChange={handleFilterChange}>
-          {_.map(filters, filter => (
-            <MenuItem key={filter.label} value={filter.value}>
-              {filter.label}
-            </MenuItem>
-          ))}
-        </Select>
-      )}
+      <Flex align>
+        <Box marginRight={1}>
+          <TextField
+            placeholder={placeholder}
+            style={{ minWidth: 360 }}
+            variant="outlined"
+            onChange={handleInputChange}
+            value={query}
+            onKeyDown={handleInputKeyPress}
+            onBlur={onBlur}
+            onFocus={handleFocus}
+            inputRef={inputRef}
+            disabled={disabled}
+          />
+        </Box>
+        {!_.isEmpty(filters) && (
+          <Box>
+            <FormControl variant="outlined" style={{ minWidth: 124 }}>
+              <InputLabel id="demo-simple-select-label">Filters</InputLabel>
+              <Select
+                label="Filters"
+                placeholder="Filters"
+                onChange={handleFilterChange}
+                value={selectedFilter}
+              >
+                <MenuItem value="">
+                  <em>None</em>
+                </MenuItem>
+                {_.map(filters, filter => (
+                  <MenuItem key={filter.label} value={filter.value}>
+                    {filter.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Box>
+        )}
+        {busy && <CircularProgress size={32} />}
+      </Flex>
     </div>
   );
 }
 
 export default styled(QueryBuilder).attrs({ className: QueryBuilder.name })`
   position: relative;
-  display: flex;
-
-  align-items: center;
-
-  div,
-  input {
-    border: 0;
-  }
-
-  ${MultiSelectDropdown} {
-    flex: 1;
-    line-height: 36px;
-
-    .dropdown-popover {
-      width: auto;
-    }
-  }
 
   ${Input} {
     flex: 2;
     width: 100%;
-
     input {
       padding: 0 8px;
       width: 100%;
     }
-
     input:focus {
       outline: none;
     }

@@ -1,9 +1,13 @@
 import _ from 'lodash';
+import { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
-import { Query, QueryOpts } from '../api/query/query.pb';
+import { Query, QueryOpts, QueryResponse } from '../api/query/query.pb';
 
-function convertToOpts(terms: string[]): QueryOpts[] {
-  const opts = _.map(terms, term => {
+function convertToOpts(query: string): QueryOpts[] {
+  if (!query) {
+    return [{ key: '', value: '' }];
+  }
+  const opts = _.map(query.split(','), term => {
     const [key, value] = term.split(':');
     return {
       key,
@@ -14,42 +18,43 @@ function convertToOpts(terms: string[]): QueryOpts[] {
   return opts;
 }
 
-export function useQueryService(terms?: string[]) {
+export function useQueryService(query: string) {
   const api = Query;
 
-  const val = convertToOpts(terms);
-  // const val = useDebounce(, 500);
+  return useQuery<QueryResponse, Error>(
+    ['query', query],
+    () => {
+      const opts = convertToOpts(query);
 
-  return useQuery(['query', val], () => {
-    if (!val) {
-      return Promise.resolve(null);
-    }
-
-    return api.DoQuery({
-      query: val,
-    });
-  });
+      return api.DoQuery({
+        query: opts,
+      });
+    },
+    {
+      cacheTime: Infinity,
+      staleTime: Infinity,
+      retry: false,
+      keepPreviousData: true,
+    },
+  );
 }
 
 // Copied and TS-ified from https://usehooks.com/useDebounce/
-// export function useDebounce<T>(value: T, delay: number) {
-//   if (process.env.NODE_ENV === 'test') {
-//     return value;
-//   }
+export function useDebounce<T>(value: T, delay: number) {
+  const [debouncedValue, setDebouncedValue] = useState(value);
 
-//   const [debouncedValue, setDebouncedValue] = useState(value);
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedValue(value);
+    }, delay);
 
-//   useEffect(() => {
-//     const handler = setTimeout(() => {
-//       setDebouncedValue(value);
-//     }, delay);
-//     return () => {
-//       clearTimeout(handler);
-//     };
-//   }, [value, delay]);
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [value, delay]);
 
-//   return debouncedValue;
-// }
+  return debouncedValue;
+}
 
 export function useListAccessRules() {
   const api = Query;

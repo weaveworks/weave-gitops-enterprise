@@ -12,7 +12,7 @@ import (
 
 // QueryService is an all-in-one service that handles managing a collector, writing to the store, and responding to queries
 type QueryService interface {
-	RunQuery(ctx context.Context, q Query) ([]models.Object, error)
+	RunQuery(ctx context.Context, q []Query) ([]models.Object, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
@@ -47,7 +47,7 @@ type qs struct {
 
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object
 
-func (q *qs) RunQuery(ctx context.Context, opts Query) ([]models.Object, error) {
+func (q *qs) RunQuery(ctx context.Context, opts []Query) ([]models.Object, error) {
 	// principal := auth.Principal(ctx)
 
 	allObjects, err := q.r.GetObjects()

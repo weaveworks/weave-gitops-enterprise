@@ -1,4 +1,4 @@
-import { DataTable } from '@weaveworks/weave-gitops';
+import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -34,7 +34,9 @@ function Explorer({ className }: Props) {
       { label: 'Not Ready', value: 'status:unready' },
     ],
   });
-  const { data, error, isLoading } = useQueryService(queryState.pinnedTerms);
+  const { data, error, isFetching } = useQueryService(
+    queryState.pinnedTerms.join(','),
+  );
   const { data: rules } = useListAccessRules();
 
   React.useEffect(() => {
@@ -49,26 +51,32 @@ function Explorer({ className }: Props) {
 
   return (
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
-      <ContentWrapper>
+      <ContentWrapper
+        errors={error ? [{ message: error?.message }] : undefined}
+      >
         <div className={className}>
-          <QueryBuilder
-            disabled={false}
-            query={queryState.query}
-            filters={queryState.filters}
-            pinnedTerms={queryState.pinnedTerms}
-            onChange={(query, pinnedTerms) => {
-              setQueryState({ ...queryState, query, pinnedTerms });
-            }}
-            onPin={pinnedTerms => {
-              setQueryState({ ...queryState, pinnedTerms });
-            }}
-            onFilterSelect={val => {
-              setQueryState({
-                ...queryState,
-                pinnedTerms: [val],
-              });
-            }}
-          />
+          <Flex align>
+            <QueryBuilder
+              busy={isFetching}
+              disabled={false}
+              query={queryState.query}
+              filters={queryState.filters}
+              pinnedTerms={queryState.pinnedTerms}
+              onChange={(query, pinnedTerms) => {
+                setQueryState({ ...queryState, query, pinnedTerms });
+              }}
+              onPin={pinnedTerms => {
+                setQueryState({ ...queryState, pinnedTerms });
+              }}
+              onFilterSelect={val => {
+                setQueryState({
+                  ...queryState,
+                  pinnedTerms: [val],
+                });
+              }}
+            />
+          </Flex>
+
           <DataTable
             fields={[
               { label: 'Name', value: 'name' },
