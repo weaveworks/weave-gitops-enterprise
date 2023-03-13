@@ -10688,8 +10688,8 @@ webpack-sources@^3.2.3:
   integrity sha512-/DyMEOrDgLKKIG0fmvtz+4dUX/3Ghozwgm6iPp8KRhvn+eQf9+Q7GWxVNMk3+uCPWfdXYC4ExGBckIXdFEfH1w==
 
 webpack@^5.64.4:
-  version "5.76.0"
-  resolved "https://registry.npmjs.org/webpack/-/webpack-5.76.0.tgz"
+  version "5.69.1"
+  resolved "https://registry.npmjs.org/webpack/-/webpack-5.69.1.tgz"
   integrity sha512-+VyvOSJXZMT2V5vLzOnDuMz5GxEqLk7hKWQ56YxPW/PQRUuKimPqmEIJOx8jHYeyo65pKbapbW464mvsKbaj4A==
   dependencies:
     "@types/eslint-scope" "^3.7.3"
