@@ -18,20 +18,12 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 	c.objectsChannel = make(chan []models.Object)
 
 	for _, cluster := range c.clusters {
-		clusterName := types.NamespacedName{
-			Name:      cluster.GetName(),
-			Namespace: "default",
-		}
-		c.log.Info("cluster adding", "name", clusterName.Name)
-		config, err := cluster.GetServerConfig()
+		c.log.Info("clusterName adding", "name", cluster.GetName())
+		err := c.Watch(cluster, c.objectsChannel, ctx, c.log)
 		if err != nil {
-			return err
+			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
-		err = c.Watch(clusterName, config, c.objectsChannel, ctx, c.log)
-		if err != nil {
-			return err
-		}
-		c.log.Info("cluster added", "name", clusterName.Name)
+		c.log.Info("clusterName added", "name", cluster.GetName())
 	}
 
 	c.log.Info("watchers created")
@@ -56,16 +48,12 @@ func (c *watchingCollector) Stop(ctx context.Context) error {
 	c.log.Info("stopping collector")
 
 	for _, cluster := range c.clusters {
-		clusterName := types.NamespacedName{
-			Name:      cluster.GetName(),
-			Namespace: "default",
-		}
-		c.log.Info("cluster stopping", "name", clusterName.Name)
-		err := c.Unwatch(clusterName)
+		c.log.Info("clusterName stopping", "name", cluster.GetName())
+		err := c.Unwatch(cluster)
 		if err != nil {
 			return err
 		}
-		c.log.Info("cluster stopped", "name", clusterName.Name)
+		c.log.Info("clusterName stopped", "name", cluster.GetName())
 	}
 	c.log.Info("collector stopped")
 	return nil
@@ -74,9 +62,9 @@ func (c *watchingCollector) Stop(ctx context.Context) error {
 // Interface for watching clusters via kuberentes api
 // https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
-	Watch(cluster types.NamespacedName, config *rest.Config, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error
-	Unwatch(cluster types.NamespacedName) error
-	Status(cluster types.NamespacedName) (string, error)
+	Watch(cluster cluster.Cluster, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error
+	Unwatch(cluster cluster.Cluster) error
+	Status(cluster cluster.Cluster) (string, error)
 }
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
@@ -91,7 +79,7 @@ type watchingCollector struct {
 	objectsChannel  chan []models.Object
 }
 
-// Collector factory method. It creates a collection with cluster watching strategy by default.
+// Collector factory method. It creates a collection with clusterName watching strategy by default.
 func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc NewWatcherFunc) (*watchingCollector, error) {
 	if opts.Log.GetSink() == nil {
 		return &watchingCollector{}, fmt.Errorf("invalid log")
@@ -121,10 +109,10 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []models.Object, kind []string, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.Object, kind []string, log logr.Logger) (Watcher, error)
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
+func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
 	if objectsChannel == nil {
 		return nil, fmt.Errorf("invalid objects channel")
 	}
@@ -134,7 +122,10 @@ func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, object
 	}
 
 	w, err := NewWatcher(WatcherOptions{
-		ClusterRef:   cluster,
+		ClusterRef: types.NamespacedName{
+			Name:      clusterName,
+			Namespace: "default",
+		},
 		ClientConfig: config,
 		Kinds:        kinds,
 	}, nil, objectsChannel, log)
@@ -146,38 +137,49 @@ func defaultNewWatcher(config *rest.Config, cluster types.NamespacedName, object
 	return w, nil
 }
 
-func (w *watchingCollector) Watch(cluster types.NamespacedName, config *rest.Config, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error {
-	if config == nil {
-		return fmt.Errorf("config not found")
+func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error {
+	if cluster == nil {
+		return fmt.Errorf("invalid clusterName")
 	}
-
-	if cluster.Name == "" || cluster.Namespace == "" {
-		return fmt.Errorf("cluster name or namespace is empty")
-	}
-
-	log.Info("adding cluster", cluster)
-	watcher, err := w.newWatcherFunc(config, cluster, w.objectsChannel, w.kinds, log)
+	config, err := cluster.GetServerConfig()
 	if err != nil {
-		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.String(), err)
+		return fmt.Errorf("cannot get config: %w", err)
 	}
-	w.clusterWatchers[cluster.String()] = watcher
+	if config == nil {
+		return fmt.Errorf("invalid config")
+	}
+	clusterName := cluster.GetName()
+	if clusterName == "" {
+		return fmt.Errorf("cluster name is empty")
+	}
+
+	log.Info("watching cluster", "cluster", clusterName)
+	watcher, err := w.newWatcherFunc(config, clusterName, w.objectsChannel, w.kinds, log)
+	if err != nil {
+		return fmt.Errorf("failed to create watcher for clusterName %s: %w", cluster.GetName(), err)
+	}
+	//TODO it might not be enough to avoid clashes
+	w.clusterWatchers[cluster.GetName()] = watcher
 	log.Info("watcher created")
 	go func() {
 		err = watcher.Start(ctx, log)
 		if err != nil {
-			log.Error(err, "failed to start watcher", "cluster", cluster.Name)
+			log.Error(err, "failed to start watcher", "cluster", cluster.GetName())
 		}
 		log.Info("watcher started")
 	}()
 	return nil
 }
 
-func (w *watchingCollector) Unwatch(cluster types.NamespacedName) error {
-	if cluster.Name == "" || cluster.Namespace == "" {
-		return fmt.Errorf("cluster name or namespace is empty")
+func (w *watchingCollector) Unwatch(cluster cluster.Cluster) error {
+	if cluster == nil {
+		return fmt.Errorf("invalid clusterName")
 	}
-	w.log.Info("stopping cluster", "cluster", cluster.String())
-	clusterWatcher := w.clusterWatchers[cluster.String()]
+	if cluster.GetName() == "" {
+		return fmt.Errorf("cluster name is empty")
+	}
+	w.log.Info("stopping cluster", "cluster", cluster.GetName())
+	clusterWatcher := w.clusterWatchers[cluster.GetName()]
 	if clusterWatcher == nil {
 		return fmt.Errorf("cluster watcher not found")
 	}
@@ -185,20 +187,23 @@ func (w *watchingCollector) Unwatch(cluster types.NamespacedName) error {
 	if err != nil {
 		return err
 	}
+	w.clusterWatchers[cluster.GetName()] = nil
 	w.log.Info("cluster stopped")
 	return nil
 }
 
-func (w *watchingCollector) Status(cluster types.NamespacedName) (string, error) {
-	if cluster.Name == "" || cluster.Namespace == "" {
-		return "", fmt.Errorf("cluster name or namespace is empty")
+func (w *watchingCollector) Status(cluster cluster.Cluster) (string, error) {
+	if cluster == nil {
+		return "", fmt.Errorf("invalid clusterName")
+	}
+	if cluster.GetName() == "" {
+		return "", fmt.Errorf("cluster name is empty")
 	}
 
-	watcher := w.clusterWatchers[cluster.String()]
+	watcher := w.clusterWatchers[cluster.GetName()]
 	if watcher == nil {
-		return "", fmt.Errorf("cluster not found")
+		return "", fmt.Errorf("clusterName not found: %s", cluster.GetName())
 	}
-
 	//TODO review whether we need a new layer here
 	return watcher.Status()
 }

@@ -102,7 +102,7 @@ func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, objec
 	}
 
 	if opts.ClusterRef.Name == "" || opts.ClusterRef.Namespace == "" {
-		return nil, fmt.Errorf("cluster name or namespace is empty")
+		return nil, fmt.Errorf("clusterName name or namespace is empty")
 	}
 
 	if len(opts.Kinds) == 0 {
@@ -181,7 +181,7 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 
 	cfg, err := w.cluster.GetServerConfig()
 	if err != nil {
-		return fmt.Errorf("invalid cluster config")
+		return fmt.Errorf("invalid clusterName config")
 	}
 
 	w.watcherManager, err = w.newWatcherManager(cfg, w.kinds, w.objectsChannel, ctrl.Options{

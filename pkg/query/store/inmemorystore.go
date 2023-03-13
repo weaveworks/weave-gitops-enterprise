@@ -41,7 +41,37 @@ func (i InMemoryStore) StoreAccessRules(roles []models.AccessRule) error {
 }
 
 func (i InMemoryStore) StoreObjects(ctx context.Context, objects []models.Object) error {
-	return fmt.Errorf("not implemented yet")
+
+	for _, object := range objects {
+		_, err := i.StoreObject(ctx, object)
+		//TODO capture error
+		if err != nil {
+			i.log.Error(err, "could not store object")
+			return err
+		}
+
+	}
+
+	return nil
+}
+
+func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (int64, error) {
+	if ctx == nil {
+		return -1, fmt.Errorf("invalid context")
+	}
+
+	if object.Namespace == "" || object.Name == "" || object.Kind == "" {
+		return -1, fmt.Errorf("invalid object")
+	}
+
+	sqlStatement := `INSERT INTO documents (name, namespace, kind) VALUES ($1, $2,$3)`
+	result, err := i.db.ExecContext(
+		ctx,
+		sqlStatement, object.Name, object.Namespace, object.Kind)
+	if err != nil {
+		return -1, err
+	}
+	return result.LastInsertId()
 }
 
 func (i InMemoryStore) GetObjects() ([]models.Object, error) {
@@ -69,25 +99,6 @@ func (i InMemoryStore) CountObjects(ctx context.Context, kind string) (int64, er
 		count += n
 	}
 	return count, nil
-}
-
-func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (int64, error) {
-	if ctx == nil {
-		return -1, fmt.Errorf("invalid context")
-	}
-
-	if object.Namespace == "" || object.Name == "" || object.Kind == "" {
-		return -1, fmt.Errorf("invalid object")
-	}
-
-	sqlStatement := `INSERT INTO documents (name, namespace, kind) VALUES ($1, $2,$3)`
-	result, err := i.db.ExecContext(
-		ctx,
-		sqlStatement, object.Name, object.Namespace, object.Kind)
-	if err != nil {
-		return -1, err
-	}
-	return result.LastInsertId()
 }
 
 func (i InMemoryStore) DeleteObject(ctx context.Context, object models.Object) error {

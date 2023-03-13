@@ -6,6 +6,7 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -100,7 +101,7 @@ func TestStop(t *testing.T) {
 	}
 }
 
-func TestAddCluster(t *testing.T) {
+func TestWatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
@@ -113,41 +114,28 @@ func TestAddCluster(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 
 	tests := []struct {
-		name       string
-		cluster    types.NamespacedName
-		config     *rest.Config
-		errPattern string
+		name        string
+		clusterName types.NamespacedName
+		config      *rest.Config
+		errPattern  string
 	}{
 		{
-			name:       "cannot add cluster without config",
+			name:       "cannot watch clusterName without config",
 			config:     nil,
-			errPattern: "config not found",
+			errPattern: "invalid config",
 		},
 		{
-			name: "cannot add cluster without name",
+			name: "cannot watch clusterName without name",
 			config: &rest.Config{
 				Host: "http://idontexist",
 			},
-			cluster: types.NamespacedName{
-				Namespace: "test",
-			},
-			errPattern: "cluster name or namespace is empty",
+			clusterName: types.NamespacedName{},
+			errPattern:  "cluster name is empty",
 		},
 		{
-			name: "cannot add cluster without namespace",
-			config: &rest.Config{
-				Host: "http://idontexist",
-			},
-			cluster: types.NamespacedName{
+			name: "could watch clusterName with valid argument",
+			clusterName: types.NamespacedName{
 				Name: "test",
-			},
-			errPattern: "cluster name or namespace is empty",
-		},
-		{
-			name: "could add cluster with cluster and config",
-			cluster: types.NamespacedName{
-				Name:      "test",
-				Namespace: "test",
 			},
 			config: &rest.Config{
 				Host: "http://idontexist",
@@ -156,13 +144,16 @@ func TestAddCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Watch(tt.cluster, tt.config, collector.objectsChannel, ctx, log)
+			//TODO move me as part of arguments
+			cluster, err := kubefakes.NewCluster(tt.clusterName, tt.config, nil, log)
+			g.Expect(err).To(BeNil())
+			err = collector.Watch(cluster, collector.objectsChannel, ctx, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(collector.clusterWatchers[tt.cluster.String()]).NotTo(BeNil())
+			g.Expect(collector.clusterWatchers[tt.clusterName.Name]).NotTo(BeNil())
 		})
 	}
 }
@@ -183,56 +174,48 @@ func TestStatusCluster(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
-	cluster := types.NamespacedName{
-		Name:      "test",
-		Namespace: "test",
+	clusterName := types.NamespacedName{
+		Name: "test",
 	}
 	config := &rest.Config{
 		Host: "http://idontexist",
 	}
-	err = collector.Watch(cluster, config, collector.objectsChannel, ctx, log)
+
+	c, err := kubefakes.NewCluster(clusterName, config, nil, log)
+	err = collector.Watch(c, collector.objectsChannel, ctx, log)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
 		name           string
-		cluster        types.NamespacedName
+		clusterName    types.NamespacedName
 		errPattern     string
 		expectedStatus string
 	}{
 		{
-			name: "cannot get status for cluster without name",
-			cluster: types.NamespacedName{
-				Namespace: "test",
-			},
-			errPattern: "cluster name or namespace is empty",
-		},
-		{
-			name: "cannot get status for cluster without namespace",
-			cluster: types.NamespacedName{
-				Name: "test",
-			},
-			errPattern: "cluster name or namespace is empty",
+			name:        "cannot get status for cluster without name",
+			clusterName: types.NamespacedName{},
+			errPattern:  "cluster name is empty",
 		},
 		{
 			name: "could get status for existing cluster",
-			cluster: types.NamespacedName{
-				Name:      "test",
-				Namespace: "test",
+			clusterName: types.NamespacedName{
+				Name: "test",
 			},
 			expectedStatus: string(ClusterWatchingStopped),
 		},
 		{
-			name: "could not get status for non existing cluster",
-			cluster: types.NamespacedName{
+			name: "could not get status for non existing clusterName",
+			clusterName: types.NamespacedName{
 				Name:      "dontexist",
 				Namespace: "dontexist",
 			},
-			errPattern: "cluster not found",
+			errPattern: "clusterName not found",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			status, err := collector.Status(tt.cluster)
+			c, err := kubefakes.NewCluster(tt.clusterName, nil, nil, log)
+			status, err := collector.Status(c)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -242,7 +225,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, cluster types.NamespacedName, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }

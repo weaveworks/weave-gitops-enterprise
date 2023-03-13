@@ -43,17 +43,17 @@ func TestNewWatcher(t *testing.T) {
 			errPattern: "invalid config",
 		},
 		{
-			name: "cannot create watcher for empty cluster",
+			name: "cannot create watcher for empty clusterName",
 			options: WatcherOptions{
 				ClientConfig: &rest.Config{
 					Host: "http://idontexist",
 				},
 				ClusterRef: types.NamespacedName{},
 			},
-			errPattern: "cluster name or namespace is empty",
+			errPattern: "clusterName name or namespace is empty",
 		},
 		{
-			name: "cannot create watcher for empty cluster",
+			name: "cannot create watcher for empty clusterName",
 			options: WatcherOptions{
 				ClientConfig: &rest.Config{
 					Host: "http://idontexist",
@@ -62,7 +62,7 @@ func TestNewWatcher(t *testing.T) {
 					Name: "clusterName",
 				},
 			},
-			errPattern: "cluster name or namespace is empty",
+			errPattern: "clusterName name or namespace is empty",
 		},
 		{
 			name: "cannot create watcher for empty kinds",

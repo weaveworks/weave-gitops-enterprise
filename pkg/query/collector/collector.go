@@ -27,7 +27,7 @@ type CollectorOpts struct {
 	PollInterval   time.Duration
 }
 
-// Collector factory method. It creates a collection with cluster watching strategy by default.
+// Collector factory method. It creates a collection with clusterName watching strategy by default.
 func NewCollector(opts CollectorOpts, store store.Store, newWatcherFunc NewWatcherFunc) (Collector, error) {
 	return newWatchingCollector(opts, store, newWatcherFunc)
 }
