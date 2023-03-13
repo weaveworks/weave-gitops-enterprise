@@ -1,7 +1,13 @@
-import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  filterConfig,
+  Link,
+  formatURL,
+} from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
 import { PolicyConfigListItem } from '../../../cluster-services/cluster_services.pb';
+import { Routes } from '../../../utils/nav';
 import {
   PolicyConfigsTableWrapper,
   usePolicyConfigStyle,
@@ -42,7 +48,17 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
           },
           {
             label: 'Name',
-            value: 'name',
+            value: (s: PolicyConfigListItem) => (
+              <Link
+                to={formatURL(Routes.PolicyConfigsDetails, {
+                  clusterName: s.clusterName,
+                  name: s.name,
+                })}
+                data-policyconfig-name={s.name}
+              >
+                {s.name}
+              </Link>
+            ),
             textSearchable: true,
             defaultSort: true,
             sortValue: ({ name }) => name,
@@ -63,7 +79,9 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
           {
             label: 'Applied To',
             sortValue: ({ match }) => match,
-            value:({ match})=> <span className={classes.capitlize}>{match}</span>,
+            value: ({ match }) => (
+              <span className={classes.capitlize}>{match}</span>
+            ),
           },
           {
             label: 'Age',

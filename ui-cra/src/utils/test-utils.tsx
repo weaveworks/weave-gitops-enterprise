@@ -43,6 +43,7 @@ import {
 import {
   GetConfigResponse,
   GetExternalSecretResponse,
+  GetPolicyConfigResponse,
   GetPolicyResponse,
   GetPolicyValidationResponse,
   GetWorkspacePoliciesResponse,
@@ -307,9 +308,14 @@ export class PolicyClientMock {
 
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
+  GetPolicyConfigReturns: GetPolicyConfigResponse = {};
 
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
+  }
+
+  GetPolicyConfig() {
+    return promisify(this.GetPolicyConfigReturns);
   }
 
 }
