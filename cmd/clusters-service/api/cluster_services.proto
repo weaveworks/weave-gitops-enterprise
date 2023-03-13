@@ -1117,9 +1117,10 @@ message GetPolicyConfigResponse{
   string clusterName = 2;
   string age = 3;
   string status = 4;
-  PolicyConfigMatch match = 5;
-  repeated PolicyConfigPolicy policies = 6;
-  int32 totalPolicies = 7;
+  string matchType = 5;
+  PolicyConfigMatch match = 6;
+  repeated PolicyConfigPolicy policies = 7;
+  int32 totalPolicies = 8;
 }
 
 message PolicyConfigApplicationMatch {
