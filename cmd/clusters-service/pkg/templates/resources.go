@@ -3,6 +3,7 @@ package templates
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	kyaml "sigs.k8s.io/kustomize/kyaml/yaml"
 )
@@ -47,8 +48,8 @@ func InjectJSONAnnotation(resources [][]byte, annotation string, value interface
 		}
 
 		// If the kind and apiVersion are not empty, add the annotation
-		trimmedKind := kind[:len(kind)-1]
-		trimmedAPIVersion := apiVersion[:len(apiVersion)-1]
+		trimmedKind := strings.TrimSpace(kind)
+		trimmedAPIVersion := strings.TrimSpace(apiVersion)
 
 		if trimmedKind != "" && trimmedAPIVersion != "" {
 			metadataNode, err := obj.Pipe(kyaml.Get("metadata"))
