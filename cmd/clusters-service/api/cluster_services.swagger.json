@@ -3226,6 +3226,9 @@
       "properties": {
         "encryptedSecret": {
           "type": "object"
+        },
+        "path": {
+          "type": "string"
         }
       }
     },

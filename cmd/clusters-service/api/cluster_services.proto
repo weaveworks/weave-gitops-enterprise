@@ -1206,4 +1206,5 @@ message SopsEncryptSecretRequest {
 
 message SopsEncryptSecretResponse {
   google.protobuf.Value encrypted_secret = 1;
+  string path = 2;
 }
