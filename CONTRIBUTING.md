@@ -151,7 +151,9 @@ match the file name pattern `*.sh` after creating the cluster and installing
 all components.
 
 #### Customizing Tilt
+
 If you create a `Tiltfile.local` in the local directory, Tilt will detect and include any calls there, allowing you to add a bit of customization to your local environment. That's useful if you want to point to another external cluster, by default Tilt only allows local clusters like kind or use a different registry:
+
 ```
 allow_k8s_contexts('another-cluster')
 
@@ -539,6 +541,18 @@ server at it with:
 PROXY_HOST=http://localhost:8000 yarn start
 ```
 
+**Recommended UI Development environment variables**:
+
+```bash
+# This will point your local FE dev server to the local cluster backend
+export WEGO_EE_PROXY_HOST=http://localhost:8000
+# This will skip building the UI docker container, which we don't need because we have a dev server.
+export SKIP_UI_BUILD=true
+# This will use your local Go compiler to build the binary, rather than building in a docker container via Tilt.
+# You may need to install things like gcc to make this work, since we are using CGO=true.
+export NATIVE_BUILD=true
+```
+
 ### Testing changes to an unreleased weave-gitops locally
 
 It is possible to test against local files from gitops OSS during
@@ -550,26 +564,12 @@ development against the `yarn start` method.
 For another method that has fewer caveats, look at "How to update
 `weave-gitops` to a non-released version during development".
 
-```bash
-# build the weave-gitops ui-library
-cd weave-gitops
-git checkout cool-new-ui-feature
-make ui-lib
-
-# use it in wge
-cd weave-gitops-enterprise/ui-cra
-
-# optionally clean up node_modules a bit if changes don't seem to be coming through
-rm -rf node_modules/@weaveworks/weave-gitops/
-
-# install local copy of weave-gitops ui-lib
-yarn add ../../weave-gitops/dist
-```
-
 One magical command to "reload" core (assumes the project directories are located in the same directory):
 
-```sh
-weave-gitops-enterprise/ui-cra$ cd ../../weave-gitops && make ui-lib && cd ../weave-gitops-enterprise/ui-cra && make core-lib
+```bash
+# In the weave-gitops-enterprise repo, navigate to ./ui-cra.
+# Note, this assumes you have core and EE at the same level in the file system
+make core-ui && make core-lib
 ```
 
 ## How to update `weave-gitops` to a released version
