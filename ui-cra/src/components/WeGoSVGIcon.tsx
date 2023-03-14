@@ -112,8 +112,8 @@ function getType(t?: IconType) {
   }
 }
 
-function SVGIcon({ icon, className }: Props) {
+function WeGoSVGIcon({ icon, className }: Props) {
   return <img src={getType(icon)} className={className} />;
 }
 
-export default styled(SVGIcon).attrs({ className: SVGIcon.name })``;
+export default styled(WeGoSVGIcon).attrs({ className: WeGoSVGIcon.name })``;

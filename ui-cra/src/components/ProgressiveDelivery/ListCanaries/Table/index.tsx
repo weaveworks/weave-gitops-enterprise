@@ -18,7 +18,7 @@ import React, { FC } from 'react';
 import { Routes } from '../../../../utils/nav';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import { TableWrapper } from '../../../Shared';
-import SVGIcon, { IconType } from '../../../SVGIcon';
+import SVGIcon, { IconType } from '../../../WeGoSVGIcon';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {
   canaries: Canary[];

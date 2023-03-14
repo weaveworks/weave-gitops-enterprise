@@ -34,7 +34,7 @@ import { resolver } from '../utils/link-resolver';
 import ErrorBoundary from './ErrorBoundary';
 import { Navigation } from './Navigation';
 import Compose from './ProvidersCompose';
-import SVGIcon, { IconType } from './SVGIcon';
+import SVGIcon, { IconType } from './WeGoSVGIcon';
 
 const drawerWidth = 220;
 
