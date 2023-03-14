@@ -179,6 +179,7 @@ func (s *server) SopsEncryptSecret(ctx context.Context, msg *capiv1_proto.SopsEn
 
 	return &capiv1_proto.SopsEncryptSecretResponse{
 		EncryptedSecret: &result,
+		Path:            kustomization.Spec.Path,
 	}, nil
 }
 
