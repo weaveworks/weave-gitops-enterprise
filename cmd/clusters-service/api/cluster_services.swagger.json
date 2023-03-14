@@ -3252,7 +3252,13 @@
       "properties": {
         "encryptedSecret": {
           "type": "object"
+<<<<<<< HEAD
 >>>>>>> 1237948f (add encrypt sops secrets API)
+=======
+        },
+        "path": {
+          "type": "string"
+>>>>>>> 34c1a5b3 (add kustomization path to the response)
         }
       }
     },

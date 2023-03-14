@@ -916,6 +916,7 @@ export type SopsEncryptSecretRequest = {
 
 export type SopsEncryptSecretResponse = {
   encryptedSecret?: GoogleProtobufStruct.Value
+  path?: string
 }
 
 export class ClustersService {
