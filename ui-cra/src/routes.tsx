@@ -55,6 +55,7 @@ import { Routes } from './utils/nav';
 
 import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
+import CreateSOPS from './components/Secrets/SOPS';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -290,7 +291,7 @@ const AppRoutes = () => {
         path={Routes.WorkspaceDetails}
         component={withSearchParams(WorkspaceDetails)}
       />
-      <Route exact path={Routes.Secrets} component={SecretsList} />
+      <Route exact path={Routes.Secrets} component={CreateSOPS} />
       <Route
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
