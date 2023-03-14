@@ -53,6 +53,7 @@ import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails
 import GitopsSets from './components/GitopsSets';
 import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import WGUserInfo from './components/UserInfo';
+import CreateSOPS from './components/Secrets/SOPS';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -288,7 +289,7 @@ const AppRoutes = () => {
         path={Routes.WorkspaceDetails}
         component={withSearchParams(WorkspaceDetails)}
       />
-      <Route exact path={Routes.Secrets} component={SecretsList} />
+      <Route exact path={Routes.Secrets} component={CreateSOPS} />
       <Route
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
