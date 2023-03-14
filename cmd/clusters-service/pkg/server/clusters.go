@@ -556,14 +556,19 @@ func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*g
 			Namespace: "flux-system",
 		},
 		Spec: &capiv1_proto.KustomizationSpec{
-			Path: msg.ParameterValues["SOPS_KUSTOMIZATION_PATH_IN_GIT_REPO"],
+			Path: filepath.Join(
+				viper.GetString("capi-repository-clusters-path"),
+				cluster.Namespace,
+				cluster.Name,
+				"sops",
+			),
 			SourceRef: &capiv1_proto.SourceRef{
-				Name: msg.ParameterValues["SOPS_KUSTOMIZATION_GIT_REPO_NAME"],
+				Name: "flux-system",
 			},
 			Decryption: &capiv1_proto.Decryption{
 				Provider: "sops",
 				SecretRef: &capiv1_proto.GitopsClusterRef{
-					Name: "sops-gpg",
+					Name: msg.ParameterValues["SOPS_SECRET_REF"],
 				},
 			},
 		},
@@ -907,7 +912,6 @@ func getCommonKustomizationPath(cluster types.NamespacedName) string {
 func getSopsKustomizationPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		getClusterDirPath(cluster),
-		"sops",
 		"sops-kustomization.yaml",
 	)
 }
