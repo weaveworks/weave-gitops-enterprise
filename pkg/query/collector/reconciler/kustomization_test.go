@@ -3,16 +3,18 @@ package reconciler
 import (
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"testing"
 )
 
 func TestNewKustomizationReconciler(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeClient := kubefakes.NewClient(log)
+	s := runtime.NewScheme()
+	fakeClient := fake.NewClientBuilder().WithScheme(s).Build()
 	tests := []struct {
 		name           string
 		client         client.Client

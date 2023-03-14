@@ -6,7 +6,6 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -144,8 +143,7 @@ func TestWatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//TODO move me as part of arguments
-			cluster, err := kubefakes.NewCluster(tt.clusterName, tt.config, nil, log)
+			cluster := makeCluster(tt.clusterName.Name, tt.config, log)
 			g.Expect(err).To(BeNil())
 			err = collector.Watch(cluster, collector.objectsChannel, ctx, log)
 			if tt.errPattern != "" {
@@ -156,6 +154,14 @@ func TestWatch(t *testing.T) {
 			g.Expect(collector.clusterWatchers[tt.clusterName.Name]).NotTo(BeNil())
 		})
 	}
+}
+
+func makeCluster(name string, config *rest.Config, log logr.Logger) cluster.Cluster {
+	cluster := clusterfakes.FakeCluster{}
+	cluster.GetNameReturns(name)
+	cluster.GetServerConfigReturns(config, nil)
+	log.Info("fake cluster created", "cluster", cluster.GetName())
+	return &cluster
 }
 
 func TestStatusCluster(t *testing.T) {
@@ -181,7 +187,7 @@ func TestStatusCluster(t *testing.T) {
 		Host: "http://idontexist",
 	}
 
-	c, err := kubefakes.NewCluster(clusterName, config, nil, log)
+	c := makeCluster(clusterName.Name, config, log)
 	err = collector.Watch(c, collector.objectsChannel, ctx, log)
 	g.Expect(err).To(BeNil())
 
@@ -214,7 +220,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c, err := kubefakes.NewCluster(tt.clusterName, nil, nil, log)
+			c := makeCluster(tt.clusterName.Name, nil, log)
 			status, err := collector.Status(c)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))

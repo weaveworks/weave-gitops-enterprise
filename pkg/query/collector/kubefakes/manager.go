@@ -11,6 +11,7 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -37,8 +38,8 @@ func (f fakeControllerManager) GetScheme() *runtime.Scheme {
 }
 
 func (f fakeControllerManager) GetClient() client.Client {
-	f.log.Info("faked")
-	return NewClient(f.log)
+	s := runtime.NewScheme()
+	return fake.NewClientBuilder().WithScheme(s).Build()
 }
 
 func (f fakeControllerManager) GetFieldIndexer() client.FieldIndexer {
