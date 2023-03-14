@@ -8,13 +8,15 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-//counterfeiter:generate . StoreWriter
+//counterfeiter:generate . Store
 type Store interface {
 	StoreWriter
 	StoreReader
 }
 
 // StoreWriter is an interface for storing access rules and objects
+//
+//counterfeiter:generate . StoreWriter
 type StoreWriter interface {
 	StoreAccessRules(roles []models.AccessRule) error
 	StoreObjects(ctx context.Context, objects []models.Object) error
