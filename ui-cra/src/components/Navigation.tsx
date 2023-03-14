@@ -12,7 +12,7 @@ import styled from 'styled-components';
 import WeaveGitOps from '../assets/img/weave-logo.svg';
 import { useListConfigContext } from '../contexts/ListConfig';
 import { Routes } from '../utils/nav';
-import SVGIcon, { IconType } from './WeGoSVGIcon';
+import SVGIcon, { IconType } from './WeGOSVGIcon';
 
 const { xxs, xs, small, medium } = theme.spacing;
 const { neutral10, neutral30, neutral40, primary } = theme.colors;

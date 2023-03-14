@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import SVGIcon, { IconType } from './WeGoSVGIcon';
+import SVGIcon, { IconType } from './WeGOSVGIcon';
 
 type Props = {
   className?: string;
