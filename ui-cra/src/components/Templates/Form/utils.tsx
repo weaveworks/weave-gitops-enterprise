@@ -3,13 +3,12 @@ import {
   GitRepository,
   Source,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Pipeline } from '../../../api/pipelines/types.pb';
-import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import GitUrlParse from 'git-url-parse';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
-import GitUrlParse from 'git-url-parse';
 
-const yamlConverter = require('js-yaml');
+import yamlConverter from 'js-yaml';
+import _ from 'lodash';
 
 export const maybeParseJSON = (data: string) => {
   try {
@@ -40,8 +39,13 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
       case 'Terraform':
       case 'Pipeline':
         return yamlConverter.load(
-          (resource as GetTerraformObjectResponse | Pipeline)?.yaml,
-        )?.metadata?.annotations?.['templates.weave.works/create-request'];
+          _.get(resource, [
+            'yaml',
+            'metadata',
+            'annotations',
+            'templates.weave.works/create-request',
+          ]),
+        );
       default:
         return '';
     }

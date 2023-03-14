@@ -18,9 +18,9 @@ import { ChangeEvent, FC, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
 import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
-  GetConfigResponse,
   ClusterNamespacedName,
   GetChartsJobResponse,
+  GetConfigResponse,
   GetValuesForChartResponse,
   RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';

@@ -20,6 +20,7 @@ import {
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
+import YAML from 'yaml';
 import { getInventory } from '.';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
@@ -29,15 +30,13 @@ import {
   useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
-import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
+import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
-
-const YAML = require('yaml');
 
 export interface routeTab {
   name: string;
@@ -255,7 +254,9 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
-              yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
+              yaml={
+                gs?.yaml ? YAML.stringify(JSON.parse(gs?.yaml as string)) : ''
+              }
               object={{
                 kind: gs?.type,
                 name: gs?.name,

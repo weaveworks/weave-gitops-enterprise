@@ -1,21 +1,21 @@
-import { FC, useEffect, useState } from 'react';
-import { ListError } from '../../cluster-services/cluster_services.pb';
-import { theme } from '@weaveworks/weave-gitops';
 import {
+  Box,
   Button,
+  Collapse,
   createStyles,
   makeStyles,
-  Box,
-  Collapse,
 } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
 import {
   ArrowBackIosOutlined,
   ArrowForwardIosOutlined,
 } from '@material-ui/icons';
-import { uniqBy, sortBy } from 'lodash';
+import Alert from '@material-ui/lab/Alert';
+import { theme } from '@weaveworks/weave-gitops';
+import { sortBy, uniqBy } from 'lodash';
+import { FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
+import ErrorIcon from '../../assets/img/error.svg';
+import { ListError } from '../../cluster-services/cluster_services.pb';
 
 const { base, xs, xxs } = theme.spacing;
 const { neutral00, alertLight, alertMedium } = theme.colors;

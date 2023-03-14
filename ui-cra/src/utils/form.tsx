@@ -2,21 +2,22 @@ import {
   Button,
   Divider as MuiDivider,
   FormControl as MuiFormControl,
-  InputLabel as MuiInputLabel,
-  MenuItem,
-  Typography,
-  Select as MuiSelect,
-  SelectProps as MuiSelectProps,
-  InputBase as MuiInputBase,
   FormHelperText as MuiFormHelperText,
   InputAdornment,
+  InputBase as MuiInputBase,
+  InputLabel as MuiInputLabel,
+  MenuItem,
+  Select as MuiSelect,
+  SelectProps as MuiSelectProps,
+  Typography,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
-import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
-import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { debounce } from 'lodash';
+import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
+import SVGIcon from '../components/StatusIcon';
+import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -142,7 +143,7 @@ export const Input: FC<InputProps> = ({
             position="end"
             style={{ paddingRight: weaveTheme.spacing.small }}
           >
-            {error ? <ErrorIcon /> : <></>}
+            {error && <SVGIcon icon="error" />}
           </InputAdornment>
         }
         required={required}

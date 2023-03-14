@@ -1,15 +1,23 @@
-import React, { FC, Dispatch, useState } from 'react';
-import styled from 'styled-components';
-import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
+  Box,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Tab,
   Tabs,
   Typography,
-  DialogContent,
-  DialogTitle,
-  Dialog,
-  Box,
 } from '@material-ui/core';
+import { Button } from '@weaveworks/weave-gitops';
+import JSZip from 'jszip';
+import React, { Dispatch, FC, useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import styled from 'styled-components';
+import { CloseIconButton } from '../../../../assets/img/close-icon-button';
+import {
+  CommitFile,
+  RenderTemplateResponse,
+} from '../../../../cluster-services/cluster_services.pb';
 import {
   AppPRPreview,
   ClusterPRPreview,
@@ -17,14 +25,6 @@ import {
   SecretPRPreview,
   SOPSSecretPRPreview,
 } from '../../../../types/custom';
-import {
-  CommitFile,
-  RenderTemplateResponse,
-} from '../../../../cluster-services/cluster_services.pb';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Button } from '@weaveworks/weave-gitops';
-import JSZip from 'jszip';
 import { Tooltip } from '../../../Shared';
 
 const DialogWrapper = styled(Dialog)`

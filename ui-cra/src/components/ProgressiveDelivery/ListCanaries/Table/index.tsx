@@ -14,13 +14,11 @@ import {
 import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
-import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
-import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
-import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
-import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
+
 import { Routes } from '../../../../utils/nav';
 import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import { TableWrapper } from '../../../Shared';
+import SVGIcon, { IconType } from '../../../SVGIcon';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {
   canaries: Canary[];
@@ -36,13 +34,13 @@ enum DeploymentStrategy {
 export const getDeploymentStrategyIcon = (strategy: string) => {
   switch (strategy.toLocaleLowerCase()) {
     case DeploymentStrategy.AB:
-      return <ABIcon title="A/B Testing" />;
+      return <SVGIcon icon={IconType.AB} title="A/B Testing" />;
     case DeploymentStrategy.BlueGreen:
-      return <BlueGreenIcon title="Blue/Green" />;
+      return <SVGIcon icon={IconType.BlueGreen} title="Blue/Green" />;
     case DeploymentStrategy.Mirroring:
-      return <MirroringIcon title="Blue/Green Mirroring" />;
+      return <SVGIcon icon={IconType.Mirroring} title="Blue/Green Mirroring" />;
     case DeploymentStrategy.Canary:
-      return <CanaryIcon title="Canary Release" />;
+      return <SVGIcon icon={IconType.Canary} title="Canary Release" />;
     default:
       return;
   }

@@ -305,7 +305,6 @@ export class PolicyClientMock {
   }
 }
 
-
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
@@ -317,7 +316,6 @@ export class PolicyConfigsClientMock {
   GetPolicyConfig() {
     return promisify(this.GetPolicyConfigReturns);
   }
-
 }
 export class PipelinesClientMock implements Pipelines {
   constructor() {

@@ -2,15 +2,15 @@ import { Link, theme } from '@weaveworks/weave-gitops';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Tooltip } from '../Shared';
 import styled from 'styled-components';
+import { Tooltip } from '../Shared';
 
-import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
+import React from 'react';
 import {
   useListConfigContext,
   useVersionContext,
 } from '../../contexts/ListConfig';
-import React from 'react';
 
 const { xxs, xs, medium } = theme.spacing;
 
@@ -45,7 +45,7 @@ const Footer = ({ version }: { version: string }) => {
 
   const versions = {
     capiServer: version,
-    ui: process.env.REACT_APP_VERSION || 'no version specified',
+    ui: import.meta.env.REACT_APP_VERSION || 'no version specified',
   };
 
   return (
@@ -74,7 +74,7 @@ const Footer = ({ version }: { version: string }) => {
           title={`Server Version ${versions?.capiServer}`}
           placement="top"
         >
-          <div>Weave GitOps Enterprise {process.env.REACT_APP_VERSION}</div>
+          <div>Weave GitOps Enterprise {import.meta.env.REACT_APP_VERSION}</div>
         </Tooltip>
       ) : null}
     </HelpLink>

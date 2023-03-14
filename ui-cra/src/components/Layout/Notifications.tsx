@@ -1,14 +1,13 @@
-import React, { FC } from 'react';
-import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
+import { Box, Collapse } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
+import { theme } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import styled from 'styled-components';
+
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
-import { Box, Collapse } from '@material-ui/core';
-import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
-import { ReactComponent as SuccessIcon } from '../../assets/img/success.svg';
-import { ReactComponent as WarningIcon } from '../../assets/img/warning.svg';
+import SVGIcon from '../StatusIcon';
 
 const { xs, base } = theme.spacing;
 const {
@@ -81,25 +80,12 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
       ),
     );
 
-  const getIcon = (severity?: string) => {
-    switch (severity) {
-      case 'error':
-        return <ErrorIcon />;
-      case 'success':
-        return <SuccessIcon />;
-      case 'warning':
-        return <WarningIcon />;
-      default:
-        return;
-    }
-  };
-
   const notificationAlert = (n: NotificationData, index: number) => {
     return (
       <BoxWrapper key={index} severity={n?.severity || ''}>
         <Collapse in={true}>
           <Alert severity={n?.severity} onClose={() => handleDelete(n)}>
-            {getIcon(n?.severity)}
+            <SVGIcon icon={n?.severity} />
             {n?.message.text} {n?.message.component}
           </Alert>
         </Collapse>

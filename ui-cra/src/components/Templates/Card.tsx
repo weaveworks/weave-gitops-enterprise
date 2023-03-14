@@ -1,22 +1,22 @@
-import React, { FC } from 'react';
+import { createStyles, makeStyles } from '@material-ui/core';
 import Card from '@material-ui/core/Card';
 import CardActions from '@material-ui/core/CardActions';
 import CardContent from '@material-ui/core/CardContent';
 import CardMedia from '@material-ui/core/CardMedia';
 import Typography from '@material-ui/core/Typography';
-import { useHistory } from 'react-router-dom';
-import { createStyles, makeStyles } from '@material-ui/core';
-import { ReactComponent as EKS } from '../../assets/img/templates/eks.svg';
-import { ReactComponent as GKE } from '../../assets/img/templates/gke.svg';
-import { ReactComponent as Generic } from '../../assets/img/templates/generic.svg';
-import { ReactComponent as Azure } from '../../assets/img/templates/azure.svg';
-import { ReactComponent as DigitalOcean } from '../../assets/img/templates/digitalocean.svg';
-import { ReactComponent as Docker } from '../../assets/img/templates/docker.svg';
-import { ReactComponent as OpenStack } from '../../assets/img/templates/openstack.svg';
-import { ReactComponent as Packet } from '../../assets/img/templates/packet.svg';
-import { ReactComponent as VSphere } from '../../assets/img/templates/vsphere.svg';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { useHistory } from 'react-router-dom';
 import { Template } from '../../cluster-services/cluster_services.pb';
+import { ReactComponent as Azure } from '.././assets/img/templates/azure.svg';
+import { ReactComponent as DigitalOcean } from '.././assets/img/templates/digitalocean.svg';
+import { ReactComponent as Docker } from '.././assets/img/templates/docker.svg';
+import { ReactComponent as EKS } from '.././assets/img/templates/eks.svg';
+import { ReactComponent as Generic } from '.././assets/img/templates/generic.svg';
+import { ReactComponent as GKE } from '.././assets/img/templates/gke.svg';
+import { ReactComponent as OpenStack } from '.././assets/img/templates/openstack.svg';
+import { ReactComponent as Packet } from '.././assets/img/templates/packet.svg';
+import { ReactComponent as VSphere } from '.././assets/img/templates/vsphere.svg';
 
 const useStyles = makeStyles(() =>
   createStyles({
