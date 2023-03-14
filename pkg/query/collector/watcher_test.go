@@ -20,13 +20,13 @@ import (
 func TestNewWatcher(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeObjectsChannel := make(chan []models.Object)
+	fakeObjectsChannel := make(chan []models.ObjectRecord)
 
 	tests := []struct {
 		name                      string
 		options                   WatcherOptions
 		managerFunc               newWatcherManagerFunc
-		objectsChannel            chan []models.Object
+		objectsChannel            chan []models.ObjectRecord
 		expectedRegisteredVersion schema.GroupVersion
 		errPattern                string
 	}{
@@ -151,7 +151,7 @@ func TestNewWatcher(t *testing.T) {
 
 }
 
-func newFakeWatcherManagerFunc(config *rest.Config, kinds []string, objectsChannel chan []models.Object, options manager.Options) (manager.Manager, error) {
+func newFakeWatcherManagerFunc(config *rest.Config, kinds []string, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
 	options.Logger.Info("created fake watcher manager")
 	return kubefakes.NewControllerManager(config, options)
 }
@@ -173,7 +173,7 @@ func TestStartWatcher(t *testing.T) {
 	}
 
 	log := testr.New(t)
-	fakeObjectsChannel := make(chan []models.Object)
+	fakeObjectsChannel := make(chan []models.ObjectRecord)
 	//setup a valid watcher
 	watcher, err := NewWatcher(options, newFakeWatcherManagerFunc, fakeObjectsChannel, log)
 	g.Expect(err).To(BeNil())

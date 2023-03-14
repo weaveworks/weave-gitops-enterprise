@@ -19,7 +19,8 @@ import (
 )
 
 type fakeControllerManager struct {
-	log logr.Logger
+	log    logr.Logger
+	scheme *runtime.Scheme
 }
 
 func (f fakeControllerManager) SetFields(i interface{}) error {
@@ -33,8 +34,8 @@ func (f fakeControllerManager) GetConfig() *rest.Config {
 }
 
 func (f fakeControllerManager) GetScheme() *runtime.Scheme {
-	f.log.Info("faked")
-	return nil
+	f.log.Info("faked get scheme")
+	return f.scheme
 }
 
 func (f fakeControllerManager) GetClient() client.Client {
@@ -114,5 +115,6 @@ func (f fakeControllerManager) GetControllerOptions() v1alpha1.ControllerConfigu
 
 func NewControllerManager(config *rest.Config, options ctrl.Options) (ctrl.Manager, error) {
 	options.Logger.Info("created fake watcher")
-	return fakeControllerManager{log: options.Logger}, nil
+
+	return fakeControllerManager{log: options.Logger, scheme: options.Scheme}, nil
 }

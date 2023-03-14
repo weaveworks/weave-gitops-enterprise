@@ -15,7 +15,7 @@ import (
 
 func (c *watchingCollector) Start(ctx context.Context) error {
 	c.log.Info("starting collector")
-	c.objectsChannel = make(chan []models.Object)
+	c.objectsChannel = make(chan []models.ObjectRecord)
 
 	for _, cluster := range c.clusters {
 		c.log.Info("clusterName adding", "name", cluster.GetName())
@@ -32,7 +32,12 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 		c.log.Info("starting process to watch for records")
 		for {
 			select {
-			case objects := <-c.objectsChannel:
+			case objectRecords := <-c.objectsChannel:
+				objects, err := adaptObjects(objectRecords)
+				if err != nil {
+					c.log.Error(err, "cannot adapt objects")
+					continue
+				}
 				if err := c.store.StoreObjects(ctx, objects); err != nil {
 					c.log.Error(err, "failed to store objects")
 					continue
@@ -42,6 +47,29 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 	}()
 	c.log.Info("collector started")
 	return nil
+}
+
+// TODO: allow to overwrite the function
+// default adapt function
+func adaptObjects(objectRecords []models.ObjectRecord) ([]models.Object, error) {
+
+	objects := []models.Object{}
+
+	for _, objectRecord := range objectRecords {
+		object := models.Object{
+			Cluster:   objectRecord.ClusterName(),
+			Name:      objectRecord.Object().GetName(),
+			Namespace: objectRecord.Object().GetNamespace(),
+			Kind:      objectRecord.Object().GetObjectKind().GroupVersionKind().Kind,
+			Operation: "not available",
+			Status:    "not available",
+			Message:   "not available",
+		}
+		objects = append(objects, object)
+	}
+
+	return objects, nil
+
 }
 
 func (c *watchingCollector) Stop(ctx context.Context) error {
@@ -62,21 +90,20 @@ func (c *watchingCollector) Stop(ctx context.Context) error {
 // Interface for watching clusters via kuberentes api
 // https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
-	Watch(cluster cluster.Cluster, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error
+	Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectRecord, ctx context.Context, log logr.Logger) error
 	Unwatch(cluster cluster.Cluster) error
 	Status(cluster cluster.Cluster) (string, error)
 }
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
-	store           store.Store
-	clusterWatchers map[string]Watcher
-	newWatcherFunc  NewWatcherFunc
-	kinds           []string
-	msg             chan []models.Object
-	log             logr.Logger
 	clusters        []cluster.Cluster
-	objectsChannel  chan []models.Object
+	clusterWatchers map[string]Watcher
+	kinds           []string
+	store           store.Store
+	objectsChannel  chan []models.ObjectRecord
+	newWatcherFunc  NewWatcherFunc
+	log             logr.Logger
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
@@ -99,20 +126,20 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 		v1beta2.KustomizationKind,
 	}
 	return &watchingCollector{
+		clusters:        opts.Clusters,
 		clusterWatchers: make(map[string]Watcher),
 		newWatcherFunc:  newWatcherFunc,
 		store:           store,
 		kinds:           kinds,
 		log:             log,
-		clusters:        opts.Clusters,
 	}, nil
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.Object, kind []string, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []string, log logr.Logger) (Watcher, error)
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
+func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []string, log logr.Logger) (Watcher, error) {
 	if objectsChannel == nil {
 		return nil, fmt.Errorf("invalid objects channel")
 	}
@@ -137,7 +164,7 @@ func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel c
 	return w, nil
 }
 
-func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.Object, ctx context.Context, log logr.Logger) error {
+func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectRecord, ctx context.Context, log logr.Logger) error {
 	if cluster == nil {
 		return fmt.Errorf("invalid clusterName")
 	}

@@ -25,7 +25,7 @@ func TestNewCollector(t *testing.T) {
 		v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
 	}
 
-	fakeStore := storefakes.NewStore(log)
+	fakeStore := &storefakes.FakeStore{}
 
 	tests := []struct {
 		name           string

@@ -40,6 +40,7 @@ type Watcher interface {
 
 type DefaultWatcher struct {
 	kinds             []string
+	watcherManager    manager.Manager
 	scheme            *runtime.Scheme
 	clusterRef        types.NamespacedName
 	cluster           cluster.Cluster
@@ -47,15 +48,14 @@ type DefaultWatcher struct {
 	log               logr.Logger
 	status            ClusterWatchingStatus
 	newWatcherManager newWatcherManagerFunc
-	watcherManager    manager.Manager
-	objectsChannel    chan []models.Object
+	objectsChannel    chan []models.ObjectRecord
 	// useProxy is a flag to indicate if the helm watcher should use the proxy
 	useProxy bool
 }
 
-type newWatcherManagerFunc = func(config *rest.Config, kinds []string, objectsChannel chan []models.Object, options manager.Options) (manager.Manager, error)
+type newWatcherManagerFunc = func(config *rest.Config, kinds []string, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error)
 
-func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChannel chan []models.Object, options manager.Options) (manager.Manager, error) {
+func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -77,25 +77,32 @@ func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChanne
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot create controller manager: %v", err)
 	}
 
+	//create reconcilers for kinds
 	for _, kind := range kinds {
-		err := addReconcilerByKind(kind, mgr, objectsChannel, log)
+		rec, err := reconciler.NewReconciler(kind, mgr.GetClient(), objectsChannel, log)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("cannot create reconciler: %v", err)
 		}
-		log.Info(fmt.Sprintf("reconciler added for kind: %s", kind))
+		err = rec.Setup(mgr)
+		if err != nil {
+			return nil, fmt.Errorf("cannot setup reconciler: %v", err)
+		}
+
 	}
 
-	log.Info("default controller manager created")
-
+	if err != nil {
+		return nil, fmt.Errorf("cannot setup reconciler: %v", err)
+	}
+	log.Info("controller manager created")
 	return mgr, nil
 }
 
-func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc, objectsChannel chan []models.Object, log logr.Logger) (*DefaultWatcher, error) {
+func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc,
+	objectsChannel chan []models.ObjectRecord, log logr.Logger) (*DefaultWatcher, error) {
 
 	if opts.ClientConfig == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -202,31 +209,6 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 
 	w.status = ClusterWatchingStarted
 	w.log.Info("watcher with helm reconciler started")
-	return nil
-}
-
-// TODO add unit
-func addReconcilerByKind(kind string, watcherManager manager.Manager, objectsChannel chan []models.Object, log logr.Logger) error {
-	var rec reconciler.Reconciler
-	var err error
-	switch kind {
-	case v2beta1.HelmReleaseKind:
-		rec, err = reconciler.NewHelmWatcherReconciler(watcherManager.GetClient(), objectsChannel, log)
-	case v1beta2.KustomizationKind:
-		rec, err = reconciler.NewKustomizationReconciler(watcherManager.GetClient(), objectsChannel, log)
-	default:
-		return fmt.Errorf("not supported: %s", kind)
-	}
-	if err != nil {
-		return fmt.Errorf("cannot create helm reconciler: %v", err)
-	}
-	//add helm reconciler
-	log.Info(fmt.Sprintf("created reconciler %s", kind))
-	err = rec.Setup(watcherManager)
-	if err != nil {
-		return fmt.Errorf("cannot setup helm reconciler: %v", err)
-	}
-	log.Info(fmt.Sprintf("setup with manager for reconciler %s", kind))
 	return nil
 }
 

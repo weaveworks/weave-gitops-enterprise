@@ -22,7 +22,7 @@ func TestStart(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
-	fakeStore := storefakes.NewStore(log)
+	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
 		Log:      log,
 		Clusters: []cluster.Cluster{},
@@ -59,7 +59,7 @@ func TestStop(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
-	fakeStore := storefakes.NewStore(log)
+	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
 		Log: log,
 		Clusters: []cluster.Cluster{
@@ -104,7 +104,7 @@ func TestWatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
-	fakeStore := storefakes.NewStore(log)
+	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
 		Log: log,
 	}
@@ -168,7 +168,7 @@ func TestStatusCluster(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
-	fakeStore := storefakes.NewStore(log)
+	fakeStore := &storefakes.FakeStore{}
 	options := CollectorOpts{
 		Log: log,
 		ObjectKinds: []schema.GroupVersionKind{
@@ -231,7 +231,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.Object, kinds []string, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []string, log logr.Logger) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }

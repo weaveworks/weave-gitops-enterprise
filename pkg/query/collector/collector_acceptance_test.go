@@ -12,9 +12,9 @@ import (
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -25,7 +25,6 @@ import (
 	"time"
 )
 
-//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 const (
 	defaultTimeout  = time.Second * 10
 	defaultInterval = time.Second
@@ -115,12 +114,18 @@ func aKubernetesClusterToWatch(ctx context.Context) (context.Context, error) {
 		Name:      cfg.Host,
 		Namespace: "default",
 	}
-	newCluster, err := kubefakes.NewCluster(clusterRef, cfg, runtimeClient, log)
-	if err != nil {
-		return ctx, fmt.Errorf("cannot create clusterName: %w", err)
-	}
+	newCluster := makeCluster(clusterRef.Name, cfg, runtimeClient, log)
 	ctx = context.WithValue(ctx, clusterKey{}, newCluster)
 	return ctx, nil
+}
+
+func makeCluster(name string, config *rest.Config, client client.Client, log logr.Logger) cluster.Cluster {
+	cluster := clusterfakes.FakeCluster{}
+	cluster.GetNameReturns(name)
+	cluster.GetServerConfigReturns(config, nil)
+	cluster.GetServerClientReturns(client, nil)
+	log.Info("fake cluster created", "cluster", cluster.GetName())
+	return &cluster
 }
 
 func aCollector(ctx context.Context) (context.Context, error) {
@@ -216,7 +221,7 @@ func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
 			log.Error(err, "cannot get clusterName watcher status")
 			return false
 		}
-		log.Info("waiting for started status:", status)
+		log.Info("waiting for started status", "cluster", cluster.GetName(), "status", status)
 		//TODO move me to clusterName status instead of watcher
 		return status == string(collector.ClusterWatchingStarted)
 	}).Should(BeTrue())
