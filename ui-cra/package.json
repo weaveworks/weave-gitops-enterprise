@@ -77,22 +77,6 @@
     "test": "yarn node --experimental-vm-modules $(yarn bin jest)",
     "lint": "tsc"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ],
-    "overrides": [
-      {
-        "files": [
-          "**/*.ts?(x)"
-        ],
-        "rules": {
-          "import/no-anonymous-default-export": "off"
-        }
-      }
-    ]
-  },
   "devDependencies": {
     "@testing-library/react": "^12.1.5",
     "@types/jest": "^29.4.1",
