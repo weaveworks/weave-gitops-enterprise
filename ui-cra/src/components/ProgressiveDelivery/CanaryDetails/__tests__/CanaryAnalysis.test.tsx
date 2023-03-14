@@ -1,13 +1,15 @@
 import { act, render, screen } from '@testing-library/react';
-import { CanaryMetricsTable } from '../Analysis/CanaryMetricsTable';
+import { GetCanaryResponse } from '@weaveworks/progressive-delivery';
+import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import _ from 'lodash';
 import { ProgressiveDeliveryProvider } from '../../../../contexts/ProgressiveDelivery';
 import {
   defaultContexts,
+  findTextByHeading,
   ProgressiveDeliveryMock,
   withContext,
-  findTextByHeading,
 } from '../../../../utils/test-utils';
-import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { CanaryMetricsTable } from '../Analysis/CanaryMetricsTable';
 
 describe('CanaryMetricsTable', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -62,11 +64,26 @@ describe('CanaryMetricsTable', () => {
     const tbl = document.querySelector('#canary-analysis-metrics table');
     const rows = tbl?.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(1);
-    assertCanaryMetric(
-      tbl,
-      rows.item(0),
-      api.GetCanaryReturns.canary?.analysis?.metrics[0],
-    );
+    const metric: CanaryMetric | null = _.get(api.GetCanaryReturns, [
+      'canary',
+      'analysis',
+      'metrics',
+      0,
+    ]);
+
+    if (!tbl) {
+      throw new Error('Table not found');
+    }
+
+    if (!rows) {
+      throw new Error('Rows not found');
+    }
+
+    if (!metric) {
+      throw new Error('Metric not found');
+    }
+
+    assertCanaryMetric(tbl, rows?.item(0), metric);
   });
   it('renders metrics table for a canary with metrics with metric templates', async () => {
     const canaryAsJson = `
@@ -115,14 +132,12 @@ describe('CanaryMetricsTable', () => {
     });
 
     expect(await screen.findByText('404s percentage')).toBeTruthy();
-    const tbl = document.querySelector('#canary-analysis-metrics table');
-    const rows = tbl?.querySelectorAll('tbody tr');
+    const [tbl, rows] = getTableAndRows('#canary-analysis-metrics table');
+
     expect(rows).toHaveLength(1);
-    assertCanaryMetric(
-      tbl,
-      rows.item(0),
-      api.GetCanaryReturns.canary?.analysis?.metrics[0],
-    );
+    const metric = getCanaryMetric(api.GetCanaryReturns);
+
+    assertCanaryMetric(tbl, rows.item(0), metric);
   });
 });
 
@@ -168,4 +183,22 @@ function assertCanaryMetric(
   //assert interval
   const intervalText = findTextByHeading(table, metricAsElement, 'Interval');
   expect(intervalText).toEqual(metric.interval);
+}
+
+function getCanaryMetric(res: GetCanaryResponse) {
+  return _.get(res, ['canary', 'analysis', 'metrics', 0]);
+}
+
+function getTableAndRows(selector: string): [Element, NodeListOf<Element>] {
+  const tbl = document.querySelector(selector);
+  const rows = tbl?.querySelectorAll('tbody tr');
+  if (!tbl) {
+    throw new Error('Table not found');
+  }
+
+  if (!rows) {
+    throw new Error('Rows not found');
+  }
+
+  return [tbl, rows];
 }
