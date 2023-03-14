@@ -17,6 +17,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/rand"
 
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/azure"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/bitbucket"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
@@ -34,11 +35,12 @@ var (
 type applicationServer struct {
 	pb.UnimplementedGitAuthServer
 
-	jwtClient    auth.JWTClient
-	log          logr.Logger
-	ghAuthClient auth.GithubAuthClient
-	glAuthClient auth.GitlabAuthClient
-	bbAuthClient bitbucket.AuthClient
+	jwtClient         auth.JWTClient
+	log               logr.Logger
+	ghAuthClient      auth.GithubAuthClient
+	glAuthClient      auth.GitlabAuthClient
+	bbAuthClient      bitbucket.AuthClient
+	azureDevOpsClient azure.AuthClient
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -49,6 +51,7 @@ type ApplicationsConfig struct {
 	GithubAuthClient      auth.GithubAuthClient
 	GitlabAuthClient      auth.GitlabAuthClient
 	BitBucketServerClient bitbucket.AuthClient
+	AzureDevOpsClient     azure.AuthClient
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -60,11 +63,12 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 	}
 
 	return &applicationServer{
-		jwtClient:    cfg.JwtClient,
-		log:          cfg.Logger,
-		ghAuthClient: cfg.GithubAuthClient,
-		glAuthClient: cfg.GitlabAuthClient,
-		bbAuthClient: cfg.BitBucketServerClient,
+		jwtClient:         cfg.JwtClient,
+		log:               cfg.Logger,
+		ghAuthClient:      cfg.GithubAuthClient,
+		glAuthClient:      cfg.GitlabAuthClient,
+		bbAuthClient:      cfg.BitBucketServerClient,
+		azureDevOpsClient: cfg.AzureDevOpsClient,
 	}
 }
 
@@ -86,6 +90,7 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 		GithubAuthClient:      auth.NewGithubAuthClient(http.DefaultClient),
 		GitlabAuthClient:      auth.NewGitlabAuthClient(http.DefaultClient),
 		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
+		AzureDevOpsClient:     azure.NewAuthClient(http.DefaultClient),
 	}, nil
 }
 
@@ -195,7 +200,29 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 	}
 
 	return &pb.AuthorizeBitbucketServerResponse{Token: token}, nil
+}
 
+func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.GetAzureDevOpsAuthURLRequest) (*pb.GetAzureDevOpsAuthURLResponse, error) {
+	u, err := s.azureDevOpsClient.AuthURL(ctx, msg.RedirectUri)
+	if err != nil {
+		return nil, fmt.Errorf("could not get azure auth url: %w", err)
+	}
+
+	return &pb.GetAzureDevOpsAuthURLResponse{Url: u.String()}, nil
+}
+
+func (s *applicationServer) AuthorizeAzureDevOps(ctx context.Context, msg *pb.AuthorizeAzureDevOpsRequest) (*pb.AuthorizeAzureDevOpsResponse, error) {
+	tokenState, err := s.azureDevOpsClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
+	if err != nil {
+		return nil, fmt.Errorf("could not exchange code: %w", err)
+	}
+
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderName("azure-devops"), tokenState.AccessToken)
+	if err != nil {
+		return nil, fmt.Errorf("could not generate token: %w", err)
+	}
+
+	return &pb.AuthorizeAzureDevOpsResponse{Token: token}, nil
 }
 
 func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.ValidateProviderTokenRequest) (*pb.ValidateProviderTokenResponse, error) {
@@ -226,6 +253,8 @@ func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
 		return pb.GitProvider_GitLab
 	case gitproviders.GitProviderBitBucketServer:
 		return pb.GitProvider_BitBucketServer
+	case gitproviders.GitProviderName("azure-devops"):
+		return pb.GitProvider_AzureDevOps
 	}
 
 	return pb.GitProvider_Unknown
@@ -239,6 +268,8 @@ func findValidator(provider pb.GitProvider, s *applicationServer) (auth.Provider
 		return s.glAuthClient, nil
 	case pb.GitProvider_BitBucketServer:
 		return s.bbAuthClient, nil
+	case pb.GitProvider_AzureDevOps:
+		return s.azureDevOpsClient, nil
 	}
 
 	return nil, fmt.Errorf("unknown git provider %s", provider)
