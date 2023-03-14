@@ -2,10 +2,8 @@
 package collectorfakes
 
 import (
-	"sync"
-
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sync"
 )
 
 type FakeObjectRecord struct {
@@ -164,5 +162,3 @@ func (fake *FakeObjectRecord) recordInvocation(key string, args []interface{}) {
 	}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
-
-var _ collector.ObjectRecord = new(FakeObjectRecord)

@@ -7,4 +7,5 @@ type Object struct {
 	Name      string
 	Status    string
 	Message   string
+	Operation string
 }

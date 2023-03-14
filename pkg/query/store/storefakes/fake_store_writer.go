@@ -2,6 +2,7 @@
 package storefakes
 
 import (
+	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -237,7 +238,7 @@ func (fake *FakeStoreWriter) StoreAccessRulesReturnsOnCall(i int, result1 error)
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreObjects(arg1 []models.Object) error {
+func (fake *FakeStoreWriter) StoreObjects(ctx context.Context, arg1 []models.Object) error {
 	var arg1Copy []models.Object
 	if arg1 != nil {
 		arg1Copy = make([]models.Object, len(arg1))
@@ -334,3 +335,13 @@ func (fake *FakeStoreWriter) recordInvocation(key string, args []interface{}) {
 }
 
 var _ store.StoreWriter = new(FakeStoreWriter)
+
+func (fake *FakeStoreWriter) StoreObject(ctx context.Context, object models.Object) (int64, error) {
+	return -1, nil
+
+}
+
+func (fake *FakeStoreWriter) DeleteObject(ctx context.Context, object models.Object) error {
+	return nil
+
+}

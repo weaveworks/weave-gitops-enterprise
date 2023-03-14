@@ -2,22 +2,21 @@
 package collectorfakes
 
 import (
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"sync"
-
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 )
 
 type FakeCollector struct {
-	StartStub        func() (<-chan []collector.ObjectRecord, error)
+	StartStub        func() (<-chan []models.Object, error)
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
 	}
 	startReturns struct {
-		result1 <-chan []collector.ObjectRecord
+		result1 <-chan []models.Object
 		result2 error
 	}
 	startReturnsOnCall map[int]struct {
-		result1 <-chan []collector.ObjectRecord
+		result1 <-chan []models.Object
 		result2 error
 	}
 	StopStub        func() error
@@ -34,7 +33,7 @@ type FakeCollector struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeCollector) Start() (<-chan []collector.ObjectRecord, error) {
+func (fake *FakeCollector) Start() (<-chan []models.Object, error) {
 	fake.startMutex.Lock()
 	ret, specificReturn := fake.startReturnsOnCall[len(fake.startArgsForCall)]
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
@@ -58,34 +57,34 @@ func (fake *FakeCollector) StartCallCount() int {
 	return len(fake.startArgsForCall)
 }
 
-func (fake *FakeCollector) StartCalls(stub func() (<-chan []collector.ObjectRecord, error)) {
+func (fake *FakeCollector) StartCalls(stub func() (<-chan []models.Object, error)) {
 	fake.startMutex.Lock()
 	defer fake.startMutex.Unlock()
 	fake.StartStub = stub
 }
 
-func (fake *FakeCollector) StartReturns(result1 <-chan []collector.ObjectRecord, result2 error) {
+func (fake *FakeCollector) StartReturns(result1 <-chan []models.Object, result2 error) {
 	fake.startMutex.Lock()
 	defer fake.startMutex.Unlock()
 	fake.StartStub = nil
 	fake.startReturns = struct {
-		result1 <-chan []collector.ObjectRecord
+		result1 <-chan []models.Object
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeCollector) StartReturnsOnCall(i int, result1 <-chan []collector.ObjectRecord, result2 error) {
+func (fake *FakeCollector) StartReturnsOnCall(i int, result1 <-chan []models.Object, result2 error) {
 	fake.startMutex.Lock()
 	defer fake.startMutex.Unlock()
 	fake.StartStub = nil
 	if fake.startReturnsOnCall == nil {
 		fake.startReturnsOnCall = make(map[int]struct {
-			result1 <-chan []collector.ObjectRecord
+			result1 <-chan []models.Object
 			result2 error
 		})
 	}
 	fake.startReturnsOnCall[i] = struct {
-		result1 <-chan []collector.ObjectRecord
+		result1 <-chan []models.Object
 		result2 error
 	}{result1, result2}
 }
@@ -168,5 +167,3 @@ func (fake *FakeCollector) recordInvocation(key string, args []interface{}) {
 	}
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
-
-var _ collector.Collector = new(FakeCollector)
