@@ -19,6 +19,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/azure"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/bitbucket"
+	gp "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -144,7 +145,7 @@ func (s *applicationServer) Authenticate(_ context.Context, msg *pb.Authenticate
 }
 
 func (s *applicationServer) ParseRepoURL(ctx context.Context, msg *pb.ParseRepoURLRequest) (*pb.ParseRepoURLResponse, error) {
-	u, err := gitproviders.NewRepoURL(msg.Url)
+	u, err := gp.NewRepoURL(msg.Url)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "could not parse url: %s", err.Error())
 	}
@@ -245,15 +246,15 @@ func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.V
 	}, nil
 }
 
-func toProtoProvider(p gitproviders.GitProviderName) pb.GitProvider {
+func toProtoProvider(p gp.GitProviderName) pb.GitProvider {
 	switch p {
-	case gitproviders.GitProviderGitHub:
+	case gp.GitProviderGitHub:
 		return pb.GitProvider_GitHub
-	case gitproviders.GitProviderGitLab:
+	case gp.GitProviderGitLab:
 		return pb.GitProvider_GitLab
-	case gitproviders.GitProviderBitBucketServer:
+	case gp.GitProviderBitBucketServer:
 		return pb.GitProvider_BitBucketServer
-	case gitproviders.GitProviderName("azure-devops"):
+	case gp.GitProviderAzureDevOps:
 		return pb.GitProvider_AzureDevOps
 	}
 
