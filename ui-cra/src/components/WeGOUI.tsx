@@ -170,7 +170,7 @@ const App = () => {
   );
 };
 
-const ResponsiveDrawer = () => {
+const WeGOUI = () => {
   return (
     <AuthContextProvider>
       <EnterpriseClientProvider api={ClustersService}>
@@ -212,4 +212,4 @@ const ResponsiveDrawer = () => {
   );
 };
 
-export default ResponsiveDrawer;
+export default WeGOUI;
