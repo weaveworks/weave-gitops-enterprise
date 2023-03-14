@@ -157,12 +157,12 @@ const ChartValuesDialog: FC<{
         </DialogContent>
         <DialogActions>
           <Button
-            id="discard-yaml"
+            id="reset-yaml"
             startIcon={<Icon type={IconType.ClearIcon} size="base" />}
             onClick={handleModalDiscard}
             disabled={profile.required && profile.editable !== true}
           >
-            DISCARD CHANGES
+            RESET TO DEFAULT
           </Button>
           <Button
             id="edit-yaml"
