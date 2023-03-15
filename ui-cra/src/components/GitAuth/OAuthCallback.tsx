@@ -16,6 +16,7 @@ import {
 import { GitAuth } from '../../contexts/GitAuth';
 import useNotifications from '../../contexts/Notifications';
 import {
+  azureDevOpsOAuthRedirectURI,
   bitbucketServerOAuthRedirectURI,
   gitlabOAuthRedirectURI,
 } from '../../utils/formatters';
@@ -69,6 +70,15 @@ function OAuthCallback({
         gitAuthClient.AuthorizeBitbucketServer({
           code,
           redirectUri: bitbucketServerOAuthRedirectURI(),
+        }),
+      );
+    }
+
+    if (provider === GitProvider.AzureDevOps) {
+      req(
+        gitAuthClient.AuthorizeAzureDevOps({
+          code,
+          redirectUri: azureDevOpsOAuthRedirectURI(),
         }),
       );
     }
