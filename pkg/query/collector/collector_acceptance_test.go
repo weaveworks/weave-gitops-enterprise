@@ -20,7 +20,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	"testing"
@@ -154,8 +153,8 @@ func aCollector(ctx context.Context) (context.Context, error) {
 	g.Expect(c).NotTo(BeNil())
 
 	//create store
-	dbDir, err := os.MkdirTemp("", "db")
-	store, err := store.NewStore(dbDir, log)
+	//dbDir, err := os.MkdirTemp("", "db")
+	store, err := store.NewStore("http://meilisearch.meilisearch.svc.cluster.local:7700/", log)
 	g.Expect(err).To(BeNil())
 	ctx = context.WithValue(ctx, storeKey{}, store)
 	log.Info("created inmemory store")

@@ -61,6 +61,7 @@ require (
 	github.com/loft-sh/vcluster v0.12.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
+	github.com/meilisearch/meilisearch-go v0.23.0
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.6.0
 	github.com/spf13/pflag v1.0.5
@@ -81,7 +82,6 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.26.1
-	k8s.io/kubernetes v1.26.2
 	sigs.k8s.io/cluster-api v1.1.3
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
@@ -92,6 +92,7 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.6 // indirect
 	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
+	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aws/aws-sdk-go-v2/credentials v1.12.21 // indirect
 	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.17 // indirect
@@ -120,6 +121,7 @@ require (
 	github.com/inconshreveable/go-update v0.0.0-20160112193335-8152e7eb6ccf // indirect
 	github.com/jonboulle/clockwork v0.2.2 // indirect
 	github.com/k0kubun/go-ansi v0.0.0-20180517002512-3bf9e2903213 // indirect
+	github.com/karrick/godirwalk v1.17.0 // indirect
 	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/loft-sh/loft-util v0.0.9-alpha // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
@@ -127,6 +129,7 @@ require (
 	github.com/mattn/go-tty v0.0.4 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/mitchellh/go-ps v1.0.0 // indirect
+	github.com/moby/sys/mountinfo v0.6.2 // indirect
 	github.com/muesli/ansi v0.0.0-20211018074035-2e021307bc4b // indirect
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
@@ -136,6 +139,8 @@ require (
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
 	github.com/tcnksm/go-gitconfig v0.1.2 // indirect
 	github.com/ulikunitz/xz v0.5.9 // indirect
+	github.com/valyala/bytebufferpool v1.0.0 // indirect
+	github.com/valyala/fasthttp v1.37.1-0.20220607072126-8a320890c08d // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
 	golang.org/x/tools v0.2.0 // indirect
 	k8s.io/klog v1.0.0 // indirect
@@ -239,7 +244,7 @@ require (
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect

@@ -3,6 +3,7 @@ package models
 import "sigs.k8s.io/controller-runtime/pkg/client"
 
 type Object struct {
+	Id        string
 	Cluster   string
 	Namespace string
 	Kind      string
