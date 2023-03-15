@@ -1,15 +1,22 @@
-import { MenuItem } from '@material-ui/core';
 import {
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  MenuItem,
+  Radio,
+  RadioGroup,
+} from '@material-ui/core';
+import {
+  Button,
+  Icon,
+  IconType,
   Kind,
   Kustomization,
   theme,
-  useListAutomations,
 } from '@weaveworks/weave-gitops';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { useListImageObjects } from '../../../contexts/ImageAutomation';
 import { useListCluster } from '../../../hooks/clusters';
 import { useListObjects } from '../../../hooks/listObjects';
 import { Select, Input, validateFormData } from '../../../utils/form';
@@ -17,13 +24,15 @@ import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
+
 interface SOPS {
   clusterName: string;
   secretName: string;
   secretNamespace: string;
   encryptionType: string;
   kustomization: string;
-  secretData: { [key: string]: string } | string;
+  secretData: { key: string; value: string }[];
+  secretValue: string;
   repo: string;
   provider: string;
   branchName: string;
@@ -33,7 +42,7 @@ interface SOPS {
 }
 
 const { medium } = theme.spacing;
-const { neutral20, neutral10 } = theme.colors;
+const { neutral20, neutral10, primary10 } = theme.colors;
 
 const FormWrapper = styled.form`
   .group-section {
@@ -53,6 +62,22 @@ const FormWrapper = styled.form`
         margin-right: ${medium};
       }
     }
+    .MuiRadio-colorSecondary.Mui-checked {
+      color: ${primary10};
+    }
+    h2 {
+      font-size: 20px;
+    }
+  }
+  .MuiInputBase-input {
+    padding-left: 8px;
+  }
+  .form-section {
+    width: calc(40% - 24px);
+    margin-right: 24px;
+  }
+  .auth-message {
+    padding-right: 0;
   }
 `;
 
@@ -65,7 +90,6 @@ const CreateSOPS = () => {
     '',
     { retry: false },
   );
-  const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
@@ -82,7 +106,8 @@ const CreateSOPS = () => {
     secretNamespace: '',
     encryptionType: '',
     kustomization: '',
-    secretData: '',
+    secretData: [],
+    secretValue: '',
   });
   const handleCreateSecret = useCallback(() => {}, []);
   const handleFormData = (event: React.ChangeEvent<any>, key: string) => {
@@ -152,7 +177,7 @@ const CreateSOPS = () => {
                 </div>
               </div>
               <div className="group-section">
-                <h4>Encryption</h4>
+                <h2>Encryption</h2>
                 <div className="form-group">
                   <Select
                     className="form-section"
@@ -184,6 +209,8 @@ const CreateSOPS = () => {
                   </Select>
                 </div>
               </div>
+
+              <SecretData formData={formData} handleFormData={handleFormData} />
               <GitOps
                 formData={formData}
                 setFormData={setFormData}
@@ -193,20 +220,6 @@ const CreateSOPS = () => {
                 formError={formError}
                 enableGitRepoSelection={true}
               />
-              {/* {loading ? (
-                      <LoadingPage className="create-loading" />
-                    ) : (
-                      <div className="create-cta">
-                        <Button
-                          type="submit"
-                          onClick={() => setSubmitType('Create app')}
-                          disabled={!enableCreatePR}
-                        >
-                          CREATE PULL REQUEST
-                        </Button>
-                      </div>
-                    )}
-                  </Grid> */}
               <p>{JSON.stringify(formData)}</p>
               {console.count('Form change')}
             </FormWrapper>
@@ -217,4 +230,148 @@ const CreateSOPS = () => {
   );
 };
 
+const SecretData = ({
+  formData,
+  handleFormData,
+}: {
+  formData: SOPS;
+  handleFormData: (event: React.ChangeEvent<any>, key: string) => void;
+}) => {
+  const [type, setType] = useState('stringData');
+  const [secretData, setSecretData] = useState<
+    { key: string; value: string }[]
+  >([{ key: '', value: '' }]);
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setType((event.target as HTMLInputElement).value);
+  };
+  const handleSecretChange = (index: number, isKey: boolean, value: string) => {
+    const mappedData = secretData.map((e, i) => {
+      if (i === index) {
+        if (isKey) e.key = value;
+        else e.value = value;
+        return e;
+      }
+      return e;
+    });
+    setSecretData(mappedData);
+  };
+  return (
+    <div className="group-section">
+      <h2>Secret Data</h2>
+      <div className="form-group">
+        <FormControl>
+          <RadioGroup
+            row
+            aria-labelledby="demo-controlled-radio-buttons-group"
+            name="controlled-radio-buttons-group"
+            value={type}
+            onChange={handleChange}
+          >
+            <FormControlLabel
+              value="stringData"
+              control={<Radio />}
+              label="String Data"
+            />
+            <FormControlLabel value="Data" control={<Radio />} label="Data" />
+          </RadioGroup>
+        </FormControl>
+      </div>
+      {type === 'stringData' ? (
+        <Input
+          className="form-section"
+          required
+          name="secretValue"
+          label="SECRET VALUE"
+          value={formData.secretValue}
+          onChange={event => handleFormData(event, 'secretValue')}
+        />
+      ) : (
+        <>
+          {secretData.map((obj, index) => (
+            <div key={index}>
+              <Input
+                className="form-section"
+                required
+                name="dataSecretKey"
+                label="KEY"
+                placeholder="secret key"
+                value={obj.key}
+                onChange={event =>
+                  handleSecretChange(
+                    index,
+                    true,
+                    (event.target as HTMLInputElement).value,
+                  )
+                }
+              />
+              <Input
+                className="form-section"
+                required
+                name="dataSecretKey"
+                label="VALUE"
+                placeholder="secret value"
+                value={obj.value}
+                onChange={event =>
+                  handleSecretChange(
+                    index,
+                    false,
+                    (event.target as HTMLInputElement).value,
+                  )
+                }
+              />
+            </div>
+          ))}
+          <Button
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={() =>
+              setSecretData(secretData => {
+                return [...secretData, { key: '', value: '' }];
+              })
+            }
+          >
+            Add
+          </Button>
+        </>
+      )}
+    </div>
+  );
+};
+
+const FormKeyValue = ({ handleSecretChange, index, obj }: any) => {
+  return (
+    <div>
+      <Input
+        className="form-section"
+        required
+        name="dataSecretKey"
+        label="KEY"
+        placeholder="secret key"
+        value={obj.key}
+        onChange={event =>
+          handleSecretChange(
+            index,
+            true,
+            (event.target as HTMLInputElement).value,
+          )
+        }
+      />
+      <Input
+        className="form-section"
+        required
+        name="dataSecretKey"
+        label="VALUE"
+        placeholder="secret value"
+        value={obj.value}
+        onChange={event =>
+          handleSecretChange(
+            index,
+            false,
+            (event.target as HTMLInputElement).value,
+          )
+        }
+      />
+    </div>
+  );
+};
 export default CreateSOPS;
