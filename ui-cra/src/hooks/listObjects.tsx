@@ -22,6 +22,8 @@ export function useListObjects<T>(
     refetchInterval: 30000,
   },
 ) {
+  console.log(opts);
+  
   const { api } = useCoreClientContext();
 
   return useQuery<
