@@ -53,7 +53,7 @@ type DefaultWatcher struct {
 	newWatcherManager newWatcherManagerFunc
 	objectsChannel    chan []models.ObjectRecord
 	// useProxy is a flag to indicate if the helm watcher should use the proxy
-	useProxy bool
+	// useProxy bool
 }
 
 type newWatcherManagerFunc = func(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error)

@@ -28,12 +28,10 @@ func (c *watchingCollector) Start() error {
 	go func() {
 		c.log.Info("starting process to watch for records")
 		for {
-			select {
-			case objectRecords := <-c.objectsChannel:
-				err := c.processRecordsFunc(context.Background(), objectRecords, c.store, c.log)
-				if err != nil {
-					c.log.Error(err, "cannot process records")
-				}
+			objectRecords := <-c.objectsChannel
+			err := c.processRecordsFunc(context.Background(), objectRecords, c.store, c.log)
+			if err != nil {
+				c.log.Error(err, "cannot process records")
 			}
 		}
 	}()
