@@ -224,7 +224,7 @@ func encryptSecret(raw []byte, decryptSecret v1.Secret) ([]byte, error) {
 		case DecryptionAgeExt:
 			return encryptor.EncryptWithAGE(raw, strings.TrimRight(string(value), "\n"))
 		default:
-			return nil, errors.New("invalid secret")
+			return nil, errors.New("invalid decryption secret")
 		}
 	}
 	return nil, nil
