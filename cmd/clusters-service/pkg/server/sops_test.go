@@ -2,9 +2,11 @@ package server
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	goage "filippo.io/age"
+	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/stretchr/testify/assert"
@@ -16,10 +18,11 @@ import (
 )
 
 func TestEncryptSecret(t *testing.T) {
-	ageSecret, err := goage.GenerateX25519Identity()
-	if err != nil {
-		t.Fatal(err)
-	}
+	ageKey, err := goage.GenerateX25519Identity()
+	assert.Nil(t, err)
+
+	pgpKey, err := generatePGPKey()
+	assert.Nil(t, err)
 
 	clusters := []struct {
 		name  string
@@ -56,7 +59,7 @@ func TestEncryptSecret(t *testing.T) {
 						Namespace: "flux-system",
 					},
 					Data: map[string][]byte{
-						"age.agekey": []byte(ageSecret.String()),
+						"age.agekey": []byte(ageKey.String()),
 					},
 				},
 				&v1.Secret{
@@ -69,7 +72,7 @@ func TestEncryptSecret(t *testing.T) {
 						Namespace: "flux-system",
 					},
 					Data: map[string][]byte{
-						"gpg.asc": []byte(""),
+						"gpg.asc": []byte(pgpKey),
 					},
 				},
 				&kustomizev1beta2.Kustomization{
@@ -112,16 +115,70 @@ func TestEncryptSecret(t *testing.T) {
 				},
 			},
 		},
-		{
-			name:  "leaf",
-			state: []runtime.Object{},
-		},
 	}
 
 	tests := []struct {
 		request *capiv1_proto.SopsEncryptSecretRequest
+		path    string
 		err     error
-	}{}
+	}{
+		{
+			request: &capiv1_proto.SopsEncryptSecretRequest{
+				ClusterName:            "management",
+				Name:                   "my-secret",
+				Namespace:              "default",
+				KustomizationName:      "my-sops-age-secrets",
+				KustomizationNamespace: "flux-system",
+				Data: map[string]string{
+					"username": "admin",
+					"password": "password",
+				},
+			},
+			path: "./secrets/age",
+		},
+		{
+			request: &capiv1_proto.SopsEncryptSecretRequest{
+				ClusterName:            "management",
+				Name:                   "my-secret",
+				Namespace:              "default",
+				KustomizationName:      "my-sops-gpg-secrets",
+				KustomizationNamespace: "flux-system",
+				Data: map[string]string{
+					"username": "admin",
+					"password": "password",
+				},
+			},
+			path: "./secrets/gpg",
+		},
+		{
+			request: &capiv1_proto.SopsEncryptSecretRequest{
+				ClusterName:            "management",
+				Name:                   "my-secret",
+				Namespace:              "default",
+				KustomizationName:      "my-sops-age-secrets",
+				KustomizationNamespace: "flux-system",
+				StringData: map[string]string{
+					"username": "admin",
+					"password": "password",
+				},
+			},
+			path: "./secrets/age",
+		},
+		{
+			request: &capiv1_proto.SopsEncryptSecretRequest{
+				ClusterName:            "management",
+				Name:                   "my-secret",
+				Namespace:              "default",
+				KustomizationName:      "my-sops-gpg-secrets",
+				KustomizationNamespace: "flux-system",
+				StringData: map[string]string{
+					"username": "admin",
+					"password": "password",
+				},
+			},
+			path: "./secrets/gpg",
+		},
+	}
 
 	clustersClients := map[string]client.Client{}
 	for _, cluster := range clusters {
@@ -133,18 +190,44 @@ func TestEncryptSecret(t *testing.T) {
 			v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "default"}},
 			v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
 		},
-		"leaf": {
-			v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "default"}},
-			v1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "flux-system"}},
-		},
 	}
 
 	ctx := context.Background()
 	s := getServer(t, clustersClients, namespaces)
 
 	for _, tt := range tests {
-		_, err := s.SopsEncryptSecret(ctx, tt.request)
-		assert.Equal(t, err, tt.err, "unexpected error")
-	}
+		res, err := s.SopsEncryptSecret(ctx, tt.request)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+		if tt.err != nil {
+			continue
+		}
 
+		encryptedSecret := res.EncryptedSecret.GetStructValue().AsMap()
+		if data, ok := encryptedSecret["data"].(map[string]interface{}); ok {
+			for _, value := range data {
+				if !strings.HasPrefix(value.(string), "ENC[") {
+					t.Error("secret is not encrypted")
+				}
+			}
+		}
+		if data, ok := encryptedSecret["stringData"].(map[string]interface{}); ok {
+			for _, value := range data {
+				if !strings.HasPrefix(value.(string), "ENC[") {
+					t.Error("secret is not encrypted")
+				}
+			}
+		}
+
+		assert.Equal(t, tt.path, res.Path)
+	}
+}
+
+func generatePGPKey() (string, error) {
+	k, err := crypto.GenerateKey("test", "test@test.com", "", 4096)
+	if err != nil {
+		panic(err)
+	}
+	return k.Armor()
 }
