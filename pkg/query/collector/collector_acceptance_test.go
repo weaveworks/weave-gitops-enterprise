@@ -61,13 +61,17 @@ func TestCollectorAcceptance(t *testing.T) {
 			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("ClusterRole"),
 		},
 		{
-			name: "can watch cluster roles",
+			name: "can watch roles",
 			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("Role"),
 		},
-
-		//rbac.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
-		//rbac.SchemeGroupVersion.WithKind("RoleBinding"),
-
+		{
+			name: "can watch cluster role bindings",
+			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("ClusterRoleBinding"),
+		},
+		{
+			name: "can watch role bindings",
+			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("RoleBinding"),
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
