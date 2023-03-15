@@ -843,6 +843,7 @@ export type GetPolicyConfigResponse = {
   clusterName?: string
   age?: string
   status?: string
+  matchType?: string
   match?: PolicyConfigMatch
   policies?: PolicyConfigPolicy[]
   totalPolicies?: number

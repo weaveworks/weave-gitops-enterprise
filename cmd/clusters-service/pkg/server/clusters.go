@@ -190,7 +190,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		msg.PreviousValues = nil
 	}
 
-	git_files, err := GetFiles(
+	gitFiles, err := GetFiles(
 		ctx,
 		client,
 		s.log,
@@ -215,12 +215,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	files := []gitprovider.CommitFile{}
-	files = append(files, git_files.RenderedTemplate...)
-	files = append(files, git_files.ProfileFiles...)
-	files = append(files, git_files.KustomizationFiles...)
-	files = append(files, git_files.ExternalSecretsFiles...)
 
-	deletedFiles := getDeletedFiles(prevFiles, git_files)
+	files = append(files, gitFiles.RenderedTemplate...)
+	files = append(files, gitFiles.ProfileFiles...)
+	files = append(files, gitFiles.KustomizationFiles...)
+	files = append(files, gitFiles.ExternalSecretsFiles...)
+
+	deletedFiles := getDeletedFiles(prevFiles, gitFiles)
 	files = append(files, deletedFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
