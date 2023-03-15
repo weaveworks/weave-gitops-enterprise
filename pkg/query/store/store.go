@@ -32,5 +32,5 @@ type StoreReader interface {
 
 // factory method that by default creates a in memory store
 func NewStore(location string, log logr.Logger) (Store, error) {
-	return newInMemoryStore(location, log)
+	return newIndexerStore(location, log)
 }

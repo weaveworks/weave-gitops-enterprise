@@ -1,6 +1,7 @@
 package models
 
 type Object struct {
+	Id        string
 	Cluster   string
 	Namespace string
 	Kind      string
