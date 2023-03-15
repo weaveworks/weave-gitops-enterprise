@@ -3,6 +3,7 @@ package reconciler
 import (
 	"context"
 	"fmt"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -85,7 +86,6 @@ func getClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 	default:
 		return nil, fmt.Errorf("gvk not supported: %s", gvk.Kind)
 	}
-	return nil, fmt.Errorf("invalid gvk")
 }
 
 // TODO add unit
