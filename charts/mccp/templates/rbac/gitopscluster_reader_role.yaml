@@ -3,10 +3,6 @@ kind: ClusterRole
 metadata:
   name: gitopscluster-reader
 rules:
-  - apiGroups: ["gitops.weave.works"]
-    resources: ["gitopsclusters"]
-    verbs: ["get", "watch", "list"]
-
-  - apiGroups: ["rbac.authorization.k8s.io"]
-    resources: ["roles", "clusterroles", "clusterrolebindings", "rolebindings"]
-    verbs: ["get", "watch", "list"]
+- apiGroups: ["gitops.weave.works"]
+  resources: ["gitopsclusters"]
+  verbs: ["get", "watch", "list"]
