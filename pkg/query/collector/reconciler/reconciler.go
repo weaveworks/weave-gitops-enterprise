@@ -72,6 +72,9 @@ func GetClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 		return &v1beta2.Kustomization{}, nil
 	case "ClusterRole":
 		return &rbacv1.ClusterRole{}, nil
+	case "Role":
+		return &rbacv1.Role{}, nil
+
 	default:
 		return nil, fmt.Errorf("gvk not supported: %s", gvk.Kind)
 	}

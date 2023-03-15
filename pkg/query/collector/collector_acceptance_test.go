@@ -60,9 +60,11 @@ func TestCollectorAcceptance(t *testing.T) {
 			name: "can watch cluster roles",
 			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("ClusterRole"),
 		},
+		{
+			name: "can watch cluster roles",
+			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("Role"),
+		},
 
-		//rbac.SchemeGroupVersion.WithKind("ClusterRole"),
-		//rbac.SchemeGroupVersion.WithKind("Role"),
 		//rbac.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
 		//rbac.SchemeGroupVersion.WithKind("RoleBinding"),
 
