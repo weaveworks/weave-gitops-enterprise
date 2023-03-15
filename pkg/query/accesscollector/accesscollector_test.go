@@ -1,6 +1,9 @@
 package accesscollector
 
 import (
+	"github.com/go-logr/logr/testr"
+	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -16,54 +19,43 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func TestAccessRulesCollector(t *testing.T) {
+var log logr.Logger
+var g *WithT
 
-	t.Run("Start", func(t *testing.T) {
-		store := &storefakes.FakeStoreWriter{}
+func TestNewAccessRulesCollector(t *testing.T) {
+	g = NewWithT(t)
+	log = testr.New(t)
 
-		cr := &v1.ClusterRole{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: "test",
+	fakeStore := &storefakes.FakeStore{}
+
+	tests := []struct {
+		name       string
+		store      store.Store
+		options    collector.CollectorOpts
+		errPattern string
+	}{
+		{
+			name: "can create access collector with valid arguments",
+			options: collector.CollectorOpts{
+				Log: log,
 			},
-			Rules: []v1.PolicyRule{{
-				APIGroups: []string{"somegroup"},
-				Verbs:     []string{"get", "list", "watch"},
-				Resources: []string{"somekind"},
-			}},
-		}
+			store:      fakeStore,
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
 
-		col := &collectorfakes.FakeCollector{}
-		ch := make(chan []collector.ObjectRecord)
-		col.StartReturns(ch, nil)
-		arc := &AccessRulesCollector{
-			log:       logr.Discard(),
-			col:       col,
-			w:         store,
-			converter: runtime.DefaultUnstructuredConverter,
-			verbs:     DefaultVerbsRequiredForAccess,
-		}
-		t.Run("stores access rules", func(t *testing.T) {
-			arc.Start()
-
-			fc := &collectorfakes.FakeObjectRecord{}
-			fc.ClusterNameReturns("test-cluster")
-
-			fc.ObjectReturns(cr)
-
-			objs := []collector.ObjectRecord{fc}
-
-			ch <- objs
-
-			expected := models.AccessRule{
-				Cluster:         "test-cluster",
-				Principal:       "test",
-				AccessibleKinds: []string{"somegroup/somekind"},
+			accessRulesCollector, err := NewAccessRulesCollector(tt.store, tt.options)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
 			}
-
-			assert.Equal(t, store.StoreAccessRulesCallCount(), 1)
-			assert.Equal(t, expected, store.StoreAccessRulesArgsForCall(0)[0])
+			g.Expect(err).To(BeNil())
+			g.Expect(accessRulesCollector).NotTo(BeNil())
 		})
-	})
+	}
+
 }
 
 func TestAccessLogic(t *testing.T) {
@@ -234,9 +226,9 @@ func TestAccessLogic(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			arc, _, _ := createAccessRulesCollector(t)
+			//arc, _, _ := createAccessRulesCollector(t)
 
-			objs := []collector.ObjectRecord{}
+			objs := []models.ObjectRecord{}
 
 			for _, o := range tt.objs {
 				fc := &collectorfakes.FakeObjectRecord{}
@@ -246,7 +238,7 @@ func TestAccessLogic(t *testing.T) {
 				objs = append(objs, fc)
 			}
 
-			result, err := arc.handleRulesReceived(objs)
+			result, err := handleRulesReceived(objs)
 			assert.NoError(t, err)
 
 			assert.Equal(t, tt.expected, result)
@@ -255,12 +247,12 @@ func TestAccessLogic(t *testing.T) {
 	}
 }
 
-func createAccessRulesCollector(t *testing.T) (*AccessRulesCollector, chan []collector.ObjectRecord, *storefakes.FakeStoreWriter) {
+func createAccessRulesCollector(t *testing.T) (*AccessRulesCollector, chan []models.ObjectRecord, *storefakes.FakeStoreWriter) {
 	store := &storefakes.FakeStoreWriter{}
 
 	col := &collectorfakes.FakeCollector{}
-	ch := make(chan []collector.ObjectRecord)
-	col.StartReturns(ch, nil)
+	ch := make(chan []models.ObjectRecord)
+	col.StartReturns(nil)
 
 	arc := &AccessRulesCollector{
 		log:       logr.Discard(),

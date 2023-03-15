@@ -1,7 +1,10 @@
 package accesscollector
 
 import (
+	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
@@ -10,7 +13,6 @@ import (
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/kubernetes/pkg/apis/rbac"
 	"k8s.io/kubernetes/pkg/util/slice"
 )
 
@@ -28,60 +30,59 @@ type AccessRulesCollector struct {
 	quit      chan struct{}
 }
 
-func (a *AccessRulesCollector) Start() {
-	go func() {
-		ch, error := a.col.Start()
-		if error != nil {
-			a.log.Error(error, "failed to start collector")
-			return
-		}
-		for {
-			select {
-			case objects := <-ch:
-				rules, err := a.handleRulesReceived(objects)
-				if err != nil {
-					a.log.Error(err, "failed to handle rules received")
-					continue
-				}
-
-				a.log.Info(fmt.Sprintf("received %d access rules", len(rules)))
-
-				if err := a.w.StoreAccessRules(rules); err != nil {
-					a.log.Error(err, "failed to store access rules")
-					continue
-				}
-			case <-a.quit:
-				return
-			}
-		}
-	}()
+func (a *AccessRulesCollector) Start(ctx context.Context) error {
+	err := a.col.Start(ctx)
+	if err != nil {
+		return fmt.Errorf("could not start access collector: %w", err)
+	}
+	return nil
 }
 
-func (a *AccessRulesCollector) Stop() error {
+func (a *AccessRulesCollector) Stop(ctx context.Context) error {
 	a.quit <- struct{}{}
-	return a.col.Stop()
+	return a.col.Stop(ctx)
 }
 
-func NewAccessRulesCollector(w store.StoreWriter, opts collector.CollectorOpts) *AccessRulesCollector {
+func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*AccessRulesCollector, error) {
 
 	opts.ObjectKinds = []schema.GroupVersionKind{
-		rbac.SchemeGroupVersion.WithKind("ClusterRole"),
-		rbac.SchemeGroupVersion.WithKind("Role"),
-		rbac.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
-		rbac.SchemeGroupVersion.WithKind("RoleBinding"),
+		rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
+		rbacv1.SchemeGroupVersion.WithKind("Role"),
+		rbacv1.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
+		rbacv1.SchemeGroupVersion.WithKind("RoleBinding"),
 	}
-	col := collector.NewCollector(opts)
+	col, err := collector.NewCollector(opts, w, defaultProcessRecords, nil)
 
+	if err != nil {
+		return nil, fmt.Errorf("cannot create collector: %w", err)
+	}
 	return &AccessRulesCollector{
 		col:       col,
 		log:       opts.Log,
 		converter: runtime.DefaultUnstructuredConverter,
 		w:         w,
 		verbs:     DefaultVerbsRequiredForAccess,
-	}
+	}, nil
 }
 
-func (a *AccessRulesCollector) handleRulesReceived(objects []collector.ObjectRecord) ([]models.AccessRule, error) {
+func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectRecord, store store.Store, log logr.Logger) error {
+
+	rules, err := handleRulesReceived(objectRecords)
+	if err != nil {
+		return fmt.Errorf("cannot handleRulesReceivedt: %w", err)
+
+	}
+
+	log.Info(fmt.Sprintf("received %d access rules", len(rules)))
+
+	if err := store.StoreAccessRules(ctx, rules); err != nil {
+		return fmt.Errorf("cannot store access rules: %w", err)
+	}
+
+	return nil
+}
+
+func handleRulesReceived(objects []models.ObjectRecord) ([]models.AccessRule, error) {
 	result := []models.AccessRule{}
 
 	roles := []adapters.RoleLike{}
@@ -112,13 +113,25 @@ func (a *AccessRulesCollector) handleRulesReceived(objects []collector.ObjectRec
 	for _, binding := range bindings {
 		for _, role := range roles {
 			if bindingRoleMatch(binding, role) {
-				result = append(result, convertToAccessRule(role.GetClusterName(), role, a.verbs))
+				result = append(result, convertToAccessRule(role.GetClusterName(), role, DefaultVerbsRequiredForAccess))
 			}
 		}
 
 	}
 
 	return result, nil
+}
+
+func (a *AccessRulesCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectRecord, ctx context.Context, log logr.Logger) error {
+	return a.col.Watch(cluster, objectsChannel, ctx, log)
+}
+
+func (a *AccessRulesCollector) Unwatch(cluster cluster.Cluster) error {
+	return a.Unwatch(cluster)
+}
+
+func (a *AccessRulesCollector) Status(cluster cluster.Cluster) (string, error) {
+	return a.col.Status(cluster)
 }
 
 func convertToAccessRule(clusterName string, obj adapters.RoleLike, requiredVerbs []string) models.AccessRule {
