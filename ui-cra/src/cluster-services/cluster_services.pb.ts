@@ -899,6 +899,20 @@ export type SopsEncryptSecretResponse = {
   path?: string
 }
 
+export type ListSOPSKustomizationsRequest = {
+  clusterName?: string
+}
+
+export type ListSOPSKustomizationsResponse = {
+  kustomizations?: SOPSKustomizations[]
+  total?: number
+}
+
+export type SOPSKustomizations = {
+  name?: string
+  namespace?: string
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -1004,5 +1018,8 @@ export class ClustersService {
   }
   static SopsEncryptSecret(req: SopsEncryptSecretRequest, initReq?: fm.InitReq): Promise<SopsEncryptSecretResponse> {
     return fm.fetchReq<SopsEncryptSecretRequest, SopsEncryptSecretResponse>(`/v1/sops-encrypt-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListSOPSKustomizations(req: ListSOPSKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSOPSKustomizationsResponse> {
+    return fm.fetchReq<ListSOPSKustomizationsRequest, ListSOPSKustomizationsResponse>(`/v1/sops-kustomizations/${req["clusterName"]}?${fm.renderURLSearchParams(req, ["clusterName"])}`, {...initReq, method: "GET"})
   }
 }

@@ -266,6 +266,13 @@ service ClustersService {
       body : "*"
     };
   }
+
+  // ListSOPSKustomizations list SOPS kustomizations
+  rpc ListSOPSKustomizations(ListSOPSKustomizationsRequest) returns (ListSOPSKustomizationsResponse) {
+    option (google.api.http) = {
+      get : "/v1/sops-kustomizations/{clusterName}"
+    };
+  }
 }
 
 
@@ -1190,4 +1197,18 @@ message SopsEncryptSecretRequest {
 message SopsEncryptSecretResponse {
   google.protobuf.Value encrypted_secret = 1;
   string path = 2;
+}
+
+message ListSOPSKustomizationsRequest {
+  string clusterName = 1;
+}
+
+message ListSOPSKustomizationsResponse {
+  repeated SOPSKustomizations kustomizations = 1;
+  int32 total = 2;
+}
+
+message SOPSKustomizations {
+  string name = 1;
+  string namespace = 2;
 }
