@@ -148,3 +148,187 @@ func TestEncryptSecret(t *testing.T) {
 	}
 
 }
+
+func TestListKustomizations(t *testing.T) {
+
+	//create clusters manager struct and add a cluster with kustomizations
+	clusters := []struct {
+		name  string
+		state []runtime.Object
+	}{
+		{
+			name: "management",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-1",
+					},
+				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-2",
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-1",
+						Namespace: "namespace-a-1",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-2",
+						Namespace: "namespace-a-2",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-3",
+						Namespace: "namespace-a-1",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "decryption-provider-a-2",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-4",
+						Namespace: "namespace-a-2",
+					},
+				},
+			},
+		},
+		{
+			name: "leaf-1",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-1",
+					},
+				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-2",
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-b-1",
+						Namespace: "namespace-b-1",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-b-2",
+						Namespace: "namespace-a-2",
+					},
+				},
+			},
+		},
+		{
+			name: "leaf-2",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-1",
+					},
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		request  *capiv1_proto.ListSOPSKustomizationsRequest
+		response *capiv1_proto.ListSOPSKustomizationsResponse
+		err      bool
+	}{
+		{
+			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+				ClusterName: "management",
+			},
+			response: &capiv1_proto.ListSOPSKustomizationsResponse{
+				Kustomizations: []*capiv1_proto.SOPSKustomizations{
+					{
+						Name:      "kustomization-a-1",
+						Namespace: "namespace-a-1",
+					},
+					{
+						Name:      "kustomization-a-2",
+						Namespace: "namespace-a-2",
+					},
+				},
+				Total: 2,
+			},
+		},
+		{
+			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+				ClusterName: "leaf-1",
+			},
+			response: &capiv1_proto.ListSOPSKustomizationsResponse{
+				Kustomizations: []*capiv1_proto.SOPSKustomizations{
+					{
+						Name:      "kustomization-b-1",
+						Namespace: "namespace-b-1",
+					},
+				},
+				Total: 1,
+			},
+		},
+		{
+			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+				ClusterName: "leaf-2",
+			},
+			response: &capiv1_proto.ListSOPSKustomizationsResponse{
+				Kustomizations: nil,
+				Total:          0,
+			},
+		},
+		{
+			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+				ClusterName: "leaf-3",
+			},
+			err: true,
+		},
+	}
+
+	clustersClients := map[string]client.Client{}
+	for _, cluster := range clusters {
+		clustersClients[cluster.name] = createClient(t, cluster.state...)
+	}
+
+	s := getServer(t, clustersClients, nil)
+
+	for _, tt := range tests {
+		res, err := s.ListSOPSKustomizations(context.Background(), tt.request)
+		if tt.err {
+			assert.NotNil(t, err)
+			continue
+		}
+		assert.Nil(t, err)
+
+		assert.Equal(t, tt.response.Total, res.Total, "total number of kustomizations not equal")
+		for i, kustomization := range tt.response.Kustomizations {
+			assert.Equal(t, kustomization.Name, res.Kustomizations[i].Name, "kustomization name not equal")
+			assert.Equal(t, kustomization.Namespace, res.Kustomizations[i].Namespace, "kustomization namespace not equal")
+		}
+
+	}
+
+}
