@@ -33,12 +33,5 @@ type ObjectRecord interface {
 }
 
 func NewCollector(opts CollectorOpts) Collector {
-	return &pollingCollector{
-		mgr:    opts.ClusterManager,
-		log:    opts.Log,
-		kinds:  opts.ObjectKinds,
-		ticker: time.NewTicker(opts.PollInterval),
-		quit:   make(chan bool, 1),
-		msg:    make(chan []ObjectRecord, 1),
-	}
+	return nil
 }
