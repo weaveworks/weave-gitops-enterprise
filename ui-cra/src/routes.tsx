@@ -291,12 +291,12 @@ const AppRoutes = () => {
         path={Routes.WorkspaceDetails}
         component={withSearchParams(WorkspaceDetails)}
       />
-      <Route exact path={Routes.Secrets} component={CreateSOPS} />
+      <Route exact path={Routes.Secrets} component={SecretsList} />
       <Route
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
-      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route exact path={Routes.CreateSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
       <Route
         exact

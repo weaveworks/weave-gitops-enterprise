@@ -5,8 +5,10 @@ import {
   theme,
   useListAutomations,
 } from '@weaveworks/weave-gitops';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { useListImageObjects } from '../../../contexts/ImageAutomation';
 import { useListCluster } from '../../../hooks/clusters';
 import { useListObjects } from '../../../hooks/listObjects';
@@ -14,6 +16,7 @@ import { Select, Input, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
+import GitOps from '../../Templates/Form/Partials/GitOps';
 interface SOPS {
   clusterName: string;
   secretName: string;
@@ -59,7 +62,12 @@ const CreateSOPS = () => {
   const { data: kustomizations } = useListObjects(
     Kustomization,
     Kind.Kustomization,
+    '',
+    { retry: false },
   );
+  const [loading, setLoading] = useState<boolean>(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const [formError, setFormError] = useState<string>('');
   const [formData, setFormData] = useState<SOPS>({
@@ -81,6 +89,7 @@ const CreateSOPS = () => {
     const value = event.target.value;
     setFormData(f => (f = { ...f, [key]: value }));
   };
+  const authRedirectPage = `/secrets/create`;
 
   return (
     <PageTemplate
@@ -90,88 +99,120 @@ const CreateSOPS = () => {
         { label: 'Create new SOPS' },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
-        {data?.gitopsClusters && (
-          <FormWrapper
-            noValidate
-            onSubmit={event =>
-              validateFormData(event, handleCreateSecret, setFormError)
-            }
-          >
-            <div className="group-section">
-              <div className="form-group">
-                <Select
-                  className="form-section"
-                  name="clusterName"
-                  required
-                  label="TARGET CLUSTER"
-                  onChange={event => handleFormData(event, 'clusterName')}
-                  value={formData.clusterName}
-                >
-                  {data?.gitopsClusters?.map((option, index: number) => {
-                    return (
-                      <MenuItem key={index} value={option.name}>
-                        {option.name}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
-                <Input
-                  className="form-section"
-                  required
-                  name="secretName"
-                  label="EXTERNAL SECRET NAME"
-                  value={formData.secretName}
-                  onChange={event => handleFormData(event, 'secretName')}
-                />
-                <Input
-                  className="form-section"
-                  required
-                  name="dataSecretKey"
-                  label="TARGET K8s SECRET NAME"
-                  value={formData.secretNamespace}
-                  onChange={event => handleFormData(event, 'secretNamespace')}
-                />
+      <CallbackStateContextProvider
+        callbackState={{
+          page: authRedirectPage,
+          state: {
+            formData,
+          },
+        }}
+      >
+        <ContentWrapper loading={isLoading}>
+          {data?.gitopsClusters && (
+            <FormWrapper
+              noValidate
+              onSubmit={event =>
+                validateFormData(event, handleCreateSecret, setFormError)
+              }
+            >
+              <div className="group-section">
+                <div className="form-group">
+                  <Select
+                    className="form-section"
+                    name="clusterName"
+                    required
+                    label="TARGET CLUSTER"
+                    onChange={event => handleFormData(event, 'clusterName')}
+                    value={formData.clusterName}
+                  >
+                    {data?.gitopsClusters?.map((option, index: number) => {
+                      return (
+                        <MenuItem key={index} value={option.name}>
+                          {option.name}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                  <Input
+                    className="form-section"
+                    required
+                    name="secretName"
+                    label="EXTERNAL SECRET NAME"
+                    value={formData.secretName}
+                    onChange={event => handleFormData(event, 'secretName')}
+                  />
+                  <Input
+                    className="form-section"
+                    required
+                    name="dataSecretKey"
+                    label="TARGET K8s SECRET NAME"
+                    value={formData.secretNamespace}
+                    onChange={event => handleFormData(event, 'secretNamespace')}
+                  />
+                </div>
               </div>
-            </div>
-            <div className="group-section">
-              <h4>Encryption</h4>
-              <div className="form-group">
-                <Select
-                  className="form-section"
-                  required
-                  name="encryptionType"
-                  label="Encrypt using"
-                  value={formData.encryptionType}
-                  onChange={event => handleFormData(event, 'encryptionType')}
-                >
-                  <MenuItem value="GPG">GPG</MenuItem>
-                </Select>
+              <div className="group-section">
+                <h4>Encryption</h4>
+                <div className="form-group">
+                  <Select
+                    className="form-section"
+                    required
+                    name="encryptionType"
+                    label="Encrypt using"
+                    value={formData.encryptionType}
+                    onChange={event => handleFormData(event, 'encryptionType')}
+                  >
+                    <MenuItem value="GPG">GPG</MenuItem>
+                  </Select>
 
-                <Select
-                  className="form-section"
-                  required
-                  name="kustomization"
-                  label="kustomization"
-                  value={formData.kustomization}
-                  description="Choose the kustomization that will be used by SOPS to decrypt the secret."
-                  onChange={event => handleFormData(event, 'kustomization')}
-                >
-                  {kustomizations?.objects?.map((k, index: number) => {
-                    return (
-                      <MenuItem key={index} value={k.name}>
-                        {k.name}
-                      </MenuItem>
-                    );
-                  })}
-                </Select>
+                  <Select
+                    className="form-section"
+                    required
+                    name="kustomization"
+                    label="kustomization"
+                    value={formData.kustomization}
+                    description="Choose the kustomization that will be used by SOPS to decrypt the secret."
+                    onChange={event => handleFormData(event, 'kustomization')}
+                  >
+                    {kustomizations?.objects?.map((k, index: number) => {
+                      return (
+                        <MenuItem key={index} value={k.name}>
+                          {k.name}
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </div>
               </div>
-            </div>
-            <p>{JSON.stringify(formData)}</p>
-            {console.count('Form change')}
-          </FormWrapper>
-        )}
-      </ContentWrapper>
+              <GitOps
+                formData={formData}
+                setFormData={setFormData}
+                showAuthDialog={showAuthDialog}
+                setShowAuthDialog={setShowAuthDialog}
+                setEnableCreatePR={setEnableCreatePR}
+                formError={formError}
+                enableGitRepoSelection={true}
+              />
+              {/* {loading ? (
+                      <LoadingPage className="create-loading" />
+                    ) : (
+                      <div className="create-cta">
+                        <Button
+                          type="submit"
+                          onClick={() => setSubmitType('Create app')}
+                          disabled={!enableCreatePR}
+                        >
+                          CREATE PULL REQUEST
+                        </Button>
+                      </div>
+                    )}
+                  </Grid> */}
+              <p>{JSON.stringify(formData)}</p>
+              {console.count('Form change')}
+            </FormWrapper>
+          )}
+        </ContentWrapper>
+      </CallbackStateContextProvider>
     </PageTemplate>
   );
 };
