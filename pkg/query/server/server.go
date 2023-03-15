@@ -123,6 +123,9 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		}
 
 		appCollector, err := applicationscollector.NewApplicationsCollector(s, optsCollector)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
+		}
 
 		if err = appCollector.Start(ctx); err != nil {
 			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)

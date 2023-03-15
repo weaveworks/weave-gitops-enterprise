@@ -127,10 +127,6 @@ func (a *AccessRulesCollector) Watch(cluster cluster.Cluster, objectsChannel cha
 	return a.col.Watch(cluster, objectsChannel, ctx, log)
 }
 
-func (a *AccessRulesCollector) Unwatch(cluster cluster.Cluster) error {
-	return a.Unwatch(cluster)
-}
-
 func (a *AccessRulesCollector) Status(cluster cluster.Cluster) (string, error) {
 	return a.col.Status(cluster)
 }

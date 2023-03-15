@@ -1,6 +1,8 @@
 package reconciler
 
 import (
+	"testing"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
@@ -12,7 +14,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"testing"
 )
 
 func TestNewReconciler(t *testing.T) {
@@ -65,7 +66,9 @@ func TestNewReconciler(t *testing.T) {
 func TestSetup(t *testing.T) {
 	g := NewGomegaWithT(t)
 	s := runtime.NewScheme()
-	v2beta1.AddToScheme(s)
+	if err := v2beta1.AddToScheme(s); err != nil {
+		t.Fatalf("could not add v2beta1 to scheme: %v", err)
+	}
 	logger := testr.New(t)
 	fakeClient := fake.NewClientBuilder().WithScheme(s).Build()
 	fakeManager, err := kubefakes.NewControllerManager(&rest.Config{
