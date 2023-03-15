@@ -57,13 +57,7 @@ func (s *MemoryStore) GetAccessRules() ([]models.AccessRule, error) {
 	s.m.Lock()
 	defer s.m.Unlock()
 
-	list := []models.AccessRule{}
-
-	for _, v := range s.accessRules {
-		list = append(list, v)
-	}
-
-	return list, nil
+	return s.accessRules, nil
 }
 
 func toKey(o models.Object) string {

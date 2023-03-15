@@ -171,9 +171,7 @@ func convertToPbAccessRule(rules []models.AccessRule) []*pb.AccessRule {
 			AccessibleKinds: []string{},
 		}
 
-		for _, k := range r.AccessibleKinds {
-			rule.AccessibleKinds = append(rule.AccessibleKinds, k)
-		}
+		rule.AccessibleKinds = append(rule.AccessibleKinds, r.AccessibleKinds...)
 
 		pbRules = append(pbRules, rule)
 
