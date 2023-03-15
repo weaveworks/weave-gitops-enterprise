@@ -267,7 +267,7 @@ service ClustersService {
     };
   }
 
-  // SopsEncryptSecret get policy config details
+  // EncryptSopsSecret encrypts a sops secret
   rpc SopsEncryptSecret(SopsEncryptSecretRequest) returns (SopsEncryptSecretResponse) {
     option (google.api.http) = {
       post : "/v1/sops-encrypt-secret",

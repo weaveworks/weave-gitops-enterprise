@@ -813,7 +813,7 @@
     },
     "/v1/sops-encrypt-secret": {
       "post": {
-        "summary": "SopsEncryptSecret get policy config details",
+        "summary": "SopsEncryptSecret encrypts a sops secret",
         "operationId": "ClustersService_SopsEncryptSecret",
         "responses": {
           "200": {
