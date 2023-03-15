@@ -231,7 +231,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []string, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }

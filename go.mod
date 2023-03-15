@@ -46,8 +46,6 @@ require (
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.14.0
 	github.com/fluxcd/helm-controller/api v0.27.0
-	github.com/fluxcd/image-automation-controller/api v0.27.0
-	github.com/fluxcd/image-reflector-controller/api v0.23.0
 	github.com/fluxcd/kustomize-controller/api v0.31.0
 	github.com/fluxcd/pkg/apis/meta v0.18.0
 	github.com/fluxcd/pkg/runtime v0.24.0
@@ -112,6 +110,8 @@ require (
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fatih/camelcase v1.0.0 // indirect
+	github.com/fluxcd/image-automation-controller/api v0.27.0 // indirect
+	github.com/fluxcd/image-reflector-controller/api v0.23.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.29.1 // indirect
 	github.com/fvbommel/sortorder v1.0.1 // indirect
 	github.com/gobuffalo/flect v0.3.0 // indirect

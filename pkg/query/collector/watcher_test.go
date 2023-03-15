@@ -87,8 +87,8 @@ func TestNewWatcher(t *testing.T) {
 					Name:      "clusterName",
 					Namespace: "clusterNamespace",
 				},
-				Kinds: []string{
-					v2beta1.HelmReleaseKind,
+				Kinds: []schema.GroupVersionKind{
+					v2beta1.GroupVersion.WithKind("HelmRelease"),
 				},
 			},
 			errPattern: "invalid objects channel",
@@ -103,8 +103,8 @@ func TestNewWatcher(t *testing.T) {
 					Name:      "clusterName",
 					Namespace: "clusterNamespace",
 				},
-				Kinds: []string{
-					v2beta1.HelmReleaseKind,
+				Kinds: []schema.GroupVersionKind{
+					v2beta1.GroupVersion.WithKind("HelmRelease"),
 				},
 			},
 			expectedRegisteredVersion: v2beta1.GroupVersion,
@@ -121,8 +121,8 @@ func TestNewWatcher(t *testing.T) {
 					Name:      "clusterName",
 					Namespace: "clusterNamespace",
 				},
-				Kinds: []string{
-					v2beta1.HelmReleaseKind,
+				Kinds: []schema.GroupVersionKind{
+					v2beta1.GroupVersion.WithKind("HelmRelease"),
 				},
 			},
 			objectsChannel: fakeObjectsChannel,
@@ -151,7 +151,7 @@ func TestNewWatcher(t *testing.T) {
 
 }
 
-func newFakeWatcherManagerFunc(config *rest.Config, kinds []string, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
+func newFakeWatcherManagerFunc(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
 	options.Logger.Info("created fake watcher manager")
 	return kubefakes.NewControllerManager(config, options)
 }
@@ -167,8 +167,8 @@ func TestStartWatcher(t *testing.T) {
 			Name:      "clusterName",
 			Namespace: "clusterNamespace",
 		},
-		Kinds: []string{
-			v2beta1.HelmReleaseKind,
+		Kinds: []schema.GroupVersionKind{
+			v2beta1.GroupVersion.WithKind("HelmRelease"),
 		},
 	}
 
@@ -225,7 +225,7 @@ func Test_newScheme(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		kinds      []string
+		kinds      []schema.GroupVersionKind
 		errPattern string
 	}{
 		{
@@ -233,13 +233,20 @@ func Test_newScheme(t *testing.T) {
 			errPattern: "at least one kind is required",
 		},
 		{
-			name:       "cannot create scheme with unsupported kind",
-			kinds:      []string{"InvalidKind"},
+			name: "cannot create scheme with unsupported kind",
+			kinds: []schema.GroupVersionKind{{
+				Group:   "group",
+				Kind:    "kind",
+				Version: "version",
+			}},
 			errPattern: "kind not supported: InvalidKind",
 		},
 		{
-			name:       "could create scheme for supported kinds",
-			kinds:      []string{v2beta1.HelmReleaseKind, v1beta2.KustomizationKind},
+			name: "could create scheme for supported kinds",
+			kinds: []schema.GroupVersionKind{
+				v2beta1.GroupVersion.WithKind("HelmRelease"),
+				v1beta2.GroupVersion.WithKind("Kustomization"),
+			},
 			errPattern: "",
 		},
 	}

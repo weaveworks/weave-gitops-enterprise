@@ -15,6 +15,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
@@ -43,17 +45,27 @@ func TestCollectorAcceptance(t *testing.T) {
 	log = testr.New(t)
 	tests := []struct {
 		name       string
-		kind       string
+		gvk        schema.GroupVersionKind
 		errPattern string
 	}{
 		{
 			name: "can watch helm releases",
-			kind: v2beta1.HelmReleaseKind,
+			gvk:  v2beta1.GroupVersion.WithKind("HelmRelease"),
 		},
 		{
 			name: "can watch kustomizations",
-			kind: v1beta2.KustomizationKind,
+			gvk:  v1beta2.GroupVersion.WithKind("Kustomization"),
 		},
+		{
+			name: "can watch cluster roles",
+			gvk:  schema.GroupVersion{Group: "rbac.authorization.k8s.io", Version: "v1"}.WithKind("ClusterRole"),
+		},
+
+		//rbac.SchemeGroupVersion.WithKind("ClusterRole"),
+		//rbac.SchemeGroupVersion.WithKind("Role"),
+		//rbac.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
+		//rbac.SchemeGroupVersion.WithKind("RoleBinding"),
+
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -62,11 +74,11 @@ func TestCollectorAcceptance(t *testing.T) {
 			if err != nil {
 				t.Fatalf(err.Error())
 			}
-			ctx, err = aCollector(ctx)
+			ctx, err = aGvkToWatch(ctx, tt.gvk)
 			if err != nil {
 				t.Fatalf(err.Error())
 			}
-			ctx, err = aKindToWatch(ctx, tt.kind)
+			ctx, err = aCollector(ctx)
 			if err != nil {
 				t.Fatalf(err.Error())
 			}
@@ -129,6 +141,8 @@ func makeCluster(name string, config *rest.Config, client client.Client, log log
 }
 
 func aCollector(ctx context.Context) (context.Context, error) {
+	watchGvk := ctx.Value(watchGvkKey{}).(schema.GroupVersionKind)
+	g.Expect(watchGvk).NotTo(BeNil())
 	//retrieve clusterName to watch
 	c := ctx.Value(clusterKey{}).(cluster.Cluster)
 	g.Expect(c).NotTo(BeNil())
@@ -143,6 +157,9 @@ func aCollector(ctx context.Context) (context.Context, error) {
 		Log: log,
 		Clusters: []cluster.Cluster{
 			c,
+		},
+		ObjectKinds: []schema.GroupVersionKind{
+			watchGvk,
 		},
 	}
 
@@ -159,11 +176,11 @@ func aCollector(ctx context.Context) (context.Context, error) {
 	return ctx, nil
 }
 
-type watchKindKey struct{}
+type watchGvkKey struct{}
 
-func aKindToWatch(ctx context.Context, kind string) (context.Context, error) {
-	log.Info(fmt.Sprintf("kind to watch: %s", kind))
-	return context.WithValue(ctx, watchKindKey{}, kind), nil
+func aGvkToWatch(ctx context.Context, gvk schema.GroupVersionKind) (context.Context, error) {
+	log.Info(fmt.Sprintf("gvk to watch: %s", gvk))
+	return context.WithValue(ctx, watchGvkKey{}, gvk), nil
 }
 
 type clusterKey struct{}
@@ -177,8 +194,8 @@ func aKubernetesClusterWithResourcesOfThatKind(ctx context.Context) (context.Con
 		return ctx, fmt.Errorf("could not retrieve clusterName client: %w", err)
 	}
 
-	watchKind := ctx.Value(watchKindKey{}).(string)
-	numItems, err := getNumItemsByKind(ctx, runtimeClient, watchKind)
+	watchGvk := ctx.Value(watchGvkKey{}).(schema.GroupVersionKind)
+	numItems, err := getNumItemsByGvk(ctx, runtimeClient, watchGvk)
 	if err != nil {
 		return ctx, err
 	}
@@ -190,25 +207,17 @@ func aKubernetesClusterWithResourcesOfThatKind(ctx context.Context) (context.Con
 	return ctx, nil
 }
 
-func getNumItemsByKind(ctx context.Context, client client.Client, kind string) (int, error) {
-	switch kind {
-	case v2beta1.HelmReleaseKind:
-		list := v2beta1.HelmReleaseList{}
-		err := client.List(ctx, &list)
-		if err != nil {
-			return 0, err
-		}
-		return len(list.Items), nil
-	case v1beta2.KustomizationKind:
-		list := v1beta2.KustomizationList{}
-		err := client.List(ctx, &list)
-		if err != nil {
-			return 0, err
-		}
-		return len(list.Items), nil
-	default:
-		return 0, fmt.Errorf("not supported: %s", kind)
+func getNumItemsByGvk(ctx context.Context, client client.Client, gvk schema.GroupVersionKind) (int, error) {
+
+	list := unstructured.UnstructuredList{}
+
+	list.SetGroupVersionKind(gvk)
+
+	err := client.List(ctx, &list)
+	if err != nil {
+		return 0, err
 	}
+	return len(list.Items), nil
 }
 
 func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
@@ -238,12 +247,12 @@ type storeKey struct{}
 
 func iGotAllTheResults(ctx context.Context) (context.Context, error) {
 	store := ctx.Value(storeKey{}).(store.Store)
-	kind := ctx.Value(watchKindKey{}).(string)
+	gvk := ctx.Value(watchGvkKey{}).(schema.GroupVersionKind)
 	numDocsExpected := ctx.Value(numItemsKey{}).(int64)
 	log.Info(fmt.Sprintf("expected num docs: '%d'", numDocsExpected))
 
 	isTrue := g.Eventually(func() bool {
-		numDocuments, err := store.CountObjects(ctx, kind)
+		numDocuments, err := store.CountObjects(ctx, gvk.Kind)
 		if err != nil {
 			log.Error(err, "error counting")
 			return false

@@ -3,12 +3,11 @@ package collector
 import (
 	"context"
 	"fmt"
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
@@ -99,7 +98,7 @@ type ClusterWatcher interface {
 type watchingCollector struct {
 	clusters        []cluster.Cluster
 	clusterWatchers map[string]Watcher
-	kinds           []string
+	kinds           []schema.GroupVersionKind
 	store           store.Store
 	objectsChannel  chan []models.ObjectRecord
 	newWatcherFunc  NewWatcherFunc
@@ -113,6 +112,10 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 	}
 	log := opts.Log
 
+	if len(opts.ObjectKinds) == 0 {
+		return &watchingCollector{}, fmt.Errorf("invalid object kinds")
+	}
+
 	if store == nil {
 		return nil, fmt.Errorf("invalid store")
 	}
@@ -121,25 +124,22 @@ func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc 
 		newWatcherFunc = defaultNewWatcher
 		log.Info("using default watcher function")
 	}
-	kinds := []string{
-		v2beta1.HelmReleaseKind,
-		v1beta2.KustomizationKind,
-	}
+
 	return &watchingCollector{
 		clusters:        opts.Clusters,
 		clusterWatchers: make(map[string]Watcher),
 		newWatcherFunc:  newWatcherFunc,
 		store:           store,
-		kinds:           kinds,
+		kinds:           opts.ObjectKinds,
 		log:             log,
 	}, nil
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []string, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error)
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []string, log logr.Logger) (Watcher, error) {
+func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
 	if objectsChannel == nil {
 		return nil, fmt.Errorf("invalid objects channel")
 	}

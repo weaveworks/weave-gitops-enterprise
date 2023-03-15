@@ -7,6 +7,8 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
@@ -20,14 +22,10 @@ type Reconciler interface {
 	Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error)
 }
 
-func NewReconciler(kind string, client client.Client, objectsChannel chan []models.ObjectRecord, logger logr.Logger) (Reconciler, error) {
+func NewReconciler(kind schema.GroupVersionKind, client client.Client, objectsChannel chan []models.ObjectRecord, logger logr.Logger) (Reconciler, error) {
 
 	if client == nil {
 		return nil, fmt.Errorf("invalid client")
-	}
-
-	if kind == "" {
-		return nil, fmt.Errorf("invalid kind")
 	}
 
 	if objectsChannel == nil {
@@ -46,12 +44,11 @@ func NewReconciler(kind string, client client.Client, objectsChannel chan []mode
 type GenericReconciler struct {
 	objectsChannel chan []models.ObjectRecord
 	client         client.Client
-	kind           string
+	kind           schema.GroupVersionKind
 	log            logr.Logger
 }
 
 func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
-
 	clientObject, err := GetClientObjectByKind(g.kind)
 	if err != nil {
 		return fmt.Errorf("could not get object client: %w", err)
@@ -67,16 +64,18 @@ func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
 	return nil
 }
 
-func GetClientObjectByKind(kind string) (client.Object, error) {
-	switch kind {
+func GetClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
+	switch gvk.Kind {
 	case v2beta1.HelmReleaseKind:
 		return &v2beta1.HelmRelease{}, nil
 	case v1beta2.KustomizationKind:
 		return &v1beta2.Kustomization{}, nil
+	case "ClusterRole":
+		return &rbacv1.ClusterRole{}, nil
 	default:
-		return nil, fmt.Errorf("kind not supported: %s", kind)
+		return nil, fmt.Errorf("gvk not supported: %s", gvk.Kind)
 	}
-	return nil, fmt.Errorf("invalid")
+	return nil, fmt.Errorf("invalid gvk")
 }
 
 // TODO add unit

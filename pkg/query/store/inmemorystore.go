@@ -13,7 +13,7 @@ import (
 )
 
 // dbFile is the name of the sqlite3 database file
-const dbFile = "charts.db"
+const dbFile = "resources.db"
 
 type InMemoryStore struct {
 	location string
@@ -60,7 +60,7 @@ func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (i
 		return -1, fmt.Errorf("invalid context")
 	}
 
-	if object.Namespace == "" || object.Name == "" || object.Kind == "" {
+	if object.Name == "" || object.Kind == "" {
 		return -1, fmt.Errorf("invalid object")
 	}
 

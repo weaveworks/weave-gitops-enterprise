@@ -9,7 +9,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/reconciler"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -29,7 +31,7 @@ const (
 type WatcherOptions struct {
 	ClusterRef   types.NamespacedName
 	ClientConfig *rest.Config
-	Kinds        []string
+	Kinds        []schema.GroupVersionKind
 }
 
 type Watcher interface {
@@ -39,7 +41,7 @@ type Watcher interface {
 }
 
 type DefaultWatcher struct {
-	kinds             []string
+	kinds             []schema.GroupVersionKind
 	watcherManager    manager.Manager
 	scheme            *runtime.Scheme
 	clusterRef        types.NamespacedName
@@ -53,9 +55,9 @@ type DefaultWatcher struct {
 	useProxy bool
 }
 
-type newWatcherManagerFunc = func(config *rest.Config, kinds []string, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error)
+type newWatcherManagerFunc = func(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error)
 
-func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
+func defaultNewWatcherManager(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
 
 	if config == nil {
 		return nil, fmt.Errorf("invalid config")
@@ -93,7 +95,6 @@ func defaultNewWatcherManager(config *rest.Config, kinds []string, objectsChanne
 		}
 
 	}
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot setup reconciler: %v", err)
 	}
@@ -146,31 +147,21 @@ func NewWatcher(opts WatcherOptions, newManagerFunc newWatcherManagerFunc,
 }
 
 // creates a controller
-func newScheme(kinds []string) (*runtime.Scheme, error) {
-	if len(kinds) == 0 {
-		return &runtime.Scheme{}, fmt.Errorf("at least one kind is required")
+func newScheme(gvks []schema.GroupVersionKind) (*runtime.Scheme, error) {
+	if len(gvks) == 0 {
+		return &runtime.Scheme{}, fmt.Errorf("at least one gvk is required")
 	}
 
-	scheme := runtime.NewScheme()
-	if err := clientgoscheme.AddToScheme(scheme); err != nil {
+	sc := runtime.NewScheme()
+	if err := clientgoscheme.AddToScheme(sc); err != nil {
 		return &runtime.Scheme{}, err
 	}
 
-	for _, kind := range kinds {
-		switch kind {
-		case v2beta1.HelmReleaseKind:
-			if err := v2beta1.AddToScheme(scheme); err != nil {
-				return &runtime.Scheme{}, err
-			}
-		case v1beta2.KustomizationKind:
-			if err := v1beta2.AddToScheme(scheme); err != nil {
-				return &runtime.Scheme{}, err
-			}
-		default:
-			return &runtime.Scheme{}, fmt.Errorf("kind not supported: %s", kind)
-		}
-	}
-	return scheme, nil
+	v2beta1.AddToScheme(sc)
+	v1beta2.AddToScheme(sc)
+	rbacv1.AddToScheme(sc)
+
+	return sc, nil
 }
 
 func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
