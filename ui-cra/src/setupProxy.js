@@ -1,6 +1,6 @@
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
-const proxyHost = process.env.PROXY_HOST ||  'http://localhost:8000/';
+const proxyHost = process.env.WEGO_EE_PROXY_HOST || 'http://localhost:8000/';
 // Accept self-signed certificates etc (for local development).
 // If you are using demo-01 etc you can set PROXY_SECURE=true and it should work.
 const secure = process.env.PROXY_SECURE === 'true';
