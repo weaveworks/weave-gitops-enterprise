@@ -3,19 +3,17 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/applicationscollector"
+	"os"
 	"time"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesscollector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/memorystore"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectcollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -26,30 +24,25 @@ type server struct {
 
 	qs   query.QueryService
 	arc  *accesscollector.AccessRulesCollector
-	objs *objectcollector.ObjectCollector
+	apps *applicationscollector.ApplicationsCollector
 }
 
-func (s *server) StopCollection() error {
+func (s *server) StopCollection(ctx context.Context) error {
 	// These collectors can be nil if we are doing collection elsewhere.
 	// Controlled by the opts.SkipCollection flag.
 	if s.arc != nil {
-		if err := s.arc.Stop(); err != nil {
+		if err := s.arc.Stop(ctx); err != nil {
 			return fmt.Errorf("failed to stop access rules collection: %w", err)
 		}
 	}
 
-	if s.objs != nil {
-		if err := s.objs.Stop(); err != nil {
+	if s.apps != nil {
+		if err := s.apps.Stop(ctx); err != nil {
 			return fmt.Errorf("failed to stop object collection: %w", err)
 		}
 	}
 
 	return nil
-}
-
-var DefaultKinds = []schema.GroupVersionKind{
-	kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind),
-	helmv2.GroupVersion.WithKind(helmv2.HelmReleaseKind),
 }
 
 type ServerOpts struct {
@@ -90,26 +83,24 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 	}, nil
 }
 
-func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
-	if opts.ObjectKinds == nil {
-		opts.ObjectKinds = DefaultKinds
+func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(context.Context) error, error) {
+
+	log := opts.Logger
+
+	dbDir, err := os.MkdirTemp("", "db")
+	if err != nil {
+		return nil, nil, err
 	}
 
-	var w store.StoreWriter
-	var r store.StoreReader
+	s, err := store.NewStore(dbDir, opts.Logger)
 
-	switch opts.StoreType {
-	case "memory":
-		s := memorystore.NewInMemoryStore()
-		w = s
-		r = s
-	default:
-		return nil, nil, fmt.Errorf("unknown store type: %s", opts.StoreType)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create store:%w", s)
 	}
 
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
 		Log:         opts.Logger,
-		StoreReader: r,
+		StoreReader: s,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
@@ -118,24 +109,36 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	serv := &server{qs: qs}
 
 	if !opts.SkipCollection {
-		arc := accesscollector.NewAccessRulesCollector(w, collector.CollectorOpts{
-			Log:            opts.Logger,
-			ClusterManager: opts.ClustersManager,
-			PollInterval:   opts.CollectionInterval,
-		})
-		arc.Start()
 
-		objCollector := objectcollector.NewObjectCollector(opts.Logger, opts.ClustersManager, w, nil)
-		objCollector.Start()
+		optsCollector := collector.CollectorOpts{}
+		// create collectors
+		rulesCollector, err := accesscollector.NewAccessRulesCollector(s, optsCollector)
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
+		}
+		log.Info("access rules collector created")
 
-		serv.arc = arc
-		serv.objs = objCollector
+		if err = rulesCollector.Start(ctx); err != nil {
+			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
+		}
+		log.Info("access rules collector started")
+
+		appCollector, err := applicationscollector.NewApplicationsCollector(s, optsCollector)
+		log.Info("application collector created")
+
+		if err = appCollector.Start(ctx); err != nil {
+			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
+		}
+		log.Info("application collector started")
+
+		serv.arc = rulesCollector
+		serv.apps = appCollector
 	}
 
 	return serv, serv.StopCollection, nil
 }
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func(ctx2 context.Context) error, error) {
 	s, stop, err := NewServer(ctx, opts)
 	if err != nil {
 		return nil, err

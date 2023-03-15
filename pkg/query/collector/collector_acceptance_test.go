@@ -218,7 +218,7 @@ func aCollector(ctx context.Context) (context.Context, error) {
 		},
 	}
 
-	collector, err := collector.NewCollector(opts, nil, nil)
+	collector, err := collector.NewCollector(opts, nil, nil, nil)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).ToNot(BeNil())
 	ctx = context.WithValue(ctx, collectorKey{}, collector)
