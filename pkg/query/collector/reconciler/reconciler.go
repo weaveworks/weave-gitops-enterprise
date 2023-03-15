@@ -49,7 +49,7 @@ type GenericReconciler struct {
 }
 
 func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
-	clientObject, err := GetClientObjectByKind(g.kind)
+	clientObject, err := getClientObjectByKind(g.kind)
 	if err != nil {
 		return fmt.Errorf("could not get object client: %w", err)
 	}
@@ -64,7 +64,7 @@ func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
 	return nil
 }
 
-func GetClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
+func getClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 	switch gvk.Kind {
 	case v2beta1.HelmReleaseKind:
 		return &v2beta1.HelmRelease{}, nil
@@ -78,7 +78,6 @@ func GetClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 		return &rbacv1.ClusterRoleBinding{}, nil
 	case "RoleBinding":
 		return &rbacv1.RoleBinding{}, nil
-
 	default:
 		return nil, fmt.Errorf("gvk not supported: %s", gvk.Kind)
 	}
@@ -90,7 +89,7 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	log := logr.FromContextOrDiscard(ctx).WithValues(
 		"resource", req.NamespacedName)
 
-	clientObject, err := GetClientObjectByKind(r.kind)
+	clientObject, err := getClientObjectByKind(r.kind)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("could not get client object: %w", err)
 	}
