@@ -63,19 +63,14 @@ func TestStop(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
+
+	fc := &clusterfakes.FakeCluster{}
+	fc.GetNameReturns("faked")
+	fc.GetServerConfigReturns(&rest.Config{}, nil)
+
 	opts := CollectorOpts{
-		Log: log,
-		Clusters: []cluster.Cluster{
-			&clusterfakes.FakeCluster{
-				GetHostStub: nil,
-				GetNameStub: func() string {
-					return "faked"
-				},
-				GetServerConfigStub: func() (*rest.Config, error) {
-					return &rest.Config{}, nil
-				},
-			},
-		},
+		Log:      log,
+		Clusters: []cluster.Cluster{fc},
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
