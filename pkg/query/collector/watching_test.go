@@ -31,8 +31,10 @@ func TestStart(t *testing.T) {
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
+		ProcessRecordsFunc: fakeProcessRecordFunc,
+		NewWatcherFunc:     newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher, fakeProcessRecordFunc)
+	collector, err := newWatchingCollector(opts, fakeStore)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
@@ -74,8 +76,10 @@ func TestStop(t *testing.T) {
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
+		ProcessRecordsFunc: fakeProcessRecordFunc,
+		NewWatcherFunc:     newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher, fakeProcessRecordFunc)
+	collector, err := newWatchingCollector(opts, fakeStore)
 	g.Expect(err).To(BeNil())
 	err = collector.Start()
 	g.Expect(err).To(BeNil())
@@ -111,8 +115,10 @@ func TestWatch(t *testing.T) {
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
+		ProcessRecordsFunc: fakeProcessRecordFunc,
+		NewWatcherFunc:     newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore, newFakeWatcher, fakeProcessRecordFunc)
+	collector, err := newWatchingCollector(opts, fakeStore)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
@@ -166,8 +172,10 @@ func TestStatusCluster(t *testing.T) {
 			v2beta1.GroupVersion.WithKind(v2beta1.HelmReleaseKind),
 			v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
 		},
+		ProcessRecordsFunc: fakeProcessRecordFunc,
+		NewWatcherFunc:     newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(options, fakeStore, newFakeWatcher, fakeProcessRecordFunc)
+	collector, err := newWatchingCollector(options, fakeStore)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))

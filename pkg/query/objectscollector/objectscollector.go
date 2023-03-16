@@ -43,7 +43,9 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 		v1beta2.GroupVersion.WithKind("Kustomization"),
 	}
 
-	col, err := collector.NewCollector(opts, w, defaultProcessRecords, nil)
+	opts.ProcessRecordsFunc = defaultProcessRecords
+
+	col, err := collector.NewCollector(opts, w)
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %store", err)
@@ -78,7 +80,6 @@ func adaptObjects(objectRecords []models.ObjectRecord) ([]models.Object, error) 
 			Name:      objectRecord.Object().GetName(),
 			Namespace: objectRecord.Object().GetNamespace(),
 			Kind:      objectRecord.Object().GetObjectKind().GroupVersionKind().Kind,
-			Operation: "not available",
 			Status:    "not available",
 			Message:   "not available",
 		}

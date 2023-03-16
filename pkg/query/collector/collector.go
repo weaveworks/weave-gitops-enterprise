@@ -33,10 +33,12 @@ type CollectorOpts struct {
 	// JP - commenting this out for now, because we don't currently use it but I think we will need to in the future.
 	// ClusterManager clustersmngr.ClustersManager
 	// TODO - his static list of clusters means that we don't poll new clusters that get added.
-	Clusters []cluster.Cluster
+	Clusters           []cluster.Cluster
+	ProcessRecordsFunc ProcessRecordsFunc
+	NewWatcherFunc     NewWatcherFunc
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
-func NewCollector(opts CollectorOpts, store store.Store, processRecordsFunc ProcessRecordsFunc, newWatcherFunc NewWatcherFunc) (Collector, error) {
-	return newWatchingCollector(opts, store, newWatcherFunc, processRecordsFunc)
+func NewCollector(opts CollectorOpts, store store.Store) (Collector, error) {
+	return newWatchingCollector(opts, store)
 }
