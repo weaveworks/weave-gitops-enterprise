@@ -8,7 +8,7 @@
 /user-guide/templated-config.toml
 /user-guide/public
 /user-guide/resources/_gen
-vendor
+
 # Recovery files from vim
 *.swp
 
