@@ -2,14 +2,15 @@ package store
 
 import (
 	"context"
+	"os"
+	"testing"
+
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"os"
-	"testing"
 )
 
-func TestNewInMemoryStore(t *testing.T) {
+func TestNewSQLiteStore(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	dbDir, err := os.MkdirTemp("", "db")
@@ -32,7 +33,7 @@ func TestNewInMemoryStore(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			store, err := newInMemoryStore(tt.location, log)
+			store, err := newSQLiteStore(tt.location, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -48,7 +49,7 @@ func TestStoreObject(t *testing.T) {
 	log := testr.New(t)
 	dbDir, err := os.MkdirTemp("", "db")
 	g.Expect(err).To(BeNil())
-	store, _ := newInMemoryStore(dbDir, log)
+	store, _ := newSQLiteStore(dbDir, log)
 	ctx := context.Background()
 
 	tests := []struct {
@@ -113,7 +114,7 @@ func TestGetObjects(t *testing.T) {
 	log := testr.New(t)
 	dbDir, err := os.MkdirTemp("", "db")
 	g.Expect(err).To(BeNil())
-	store, _ := newInMemoryStore(dbDir, log)
+	store, _ := newSQLiteStore(dbDir, log)
 	ctx := context.Background()
 
 	object := models.Object{
@@ -137,7 +138,7 @@ func TestGetObjects(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			objects, err := store.GetObjects()
+			objects, err := store.GetObjects(context.Background())
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
