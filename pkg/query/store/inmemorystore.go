@@ -102,21 +102,8 @@ func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (i
 
 // TODO add ctx
 func (i InMemoryStore) GetObjects() ([]models.Object, error) {
-
 	//TODO remove
 	background := context.Background()
-	addObject := models.Object{
-		Name:      "podinfo",
-		Namespace: "default",
-		Kind:      "HelmRelease",
-	}
-
-	id, err := i.StoreObject(background, addObject)
-	if err != nil {
-		return []models.Object{}, fmt.Errorf("failed to query database: %w", err)
-	}
-	i.log.Info("object added", "id", id)
-
 	sqlStatement := `SELECT name,namespace,kind FROM documents`
 
 	rows, err := i.db.QueryContext(background, sqlStatement)
@@ -134,7 +121,6 @@ func (i InMemoryStore) GetObjects() ([]models.Object, error) {
 		objects = append(objects, object)
 	}
 	i.log.Info("get objects", "objects", objects)
-
 	return objects, nil
 }
 
