@@ -9,12 +9,12 @@ import (
 
 type Object struct {
 	gorm.Model
-	Cluster   string
-	Namespace string
-	Kind      string
-	Name      string
-	Status    string
-	Message   string
+	Cluster   string `gorm:"type:text"`
+	Namespace string `gorm:"type:text"`
+	Kind      string `gorm:"type:text"`
+	Name      string `gorm:"type:text"`
+	Status    string `gorm:"type:text"`
+	Message   string `gorm:"type:text"`
 }
 
 func (o Object) Validate() error {
