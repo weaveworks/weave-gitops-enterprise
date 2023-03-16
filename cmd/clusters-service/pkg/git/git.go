@@ -171,7 +171,7 @@ func getGitProviderClient(log logr.Logger, gpi GitProvider) (git.Provider, error
 		providerOpts = append(providerOpts, git.WithToken(gpi.TokenType, gpi.Token))
 		providerOpts = append(providerOpts, git.WithDomain(hostname))
 		providerOpts = append(providerOpts, git.WithConditionalRequests())
-	case git.AzureGitOpsProviderName:
+	case git.AzureDevOpsProviderName:
 		providerOpts = append(providerOpts, git.WithToken(gpi.TokenType, gpi.Token))
 	default:
 		return nil, fmt.Errorf("the Git provider %q is not supported", gpi.Type)

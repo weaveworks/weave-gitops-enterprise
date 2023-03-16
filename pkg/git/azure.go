@@ -6,29 +6,29 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/drone/go-scm/scm/driver/azure"
 	"github.com/go-logr/logr"
 	"github.com/jenkins-x/go-scm/scm"
+	"github.com/jenkins-x/go-scm/scm/driver/azure"
 	"github.com/jenkins-x/go-scm/scm/factory"
 )
 
 const (
-	AzureGitOpsProviderName string = "azure-gitops"
+	AzureDevOpsProviderName string = "azure-devops"
 )
 
-// AzureGitOpsProvider is used to interact with the AzureGitOps API.
-type AzureGitOpsProvider struct {
+// AzureDevOpsProvider is used to interact with the Azure DevOps API.
+type AzureDevOpsProvider struct {
 	log    logr.Logger
 	client *scm.Client
 }
 
-func NewAzureGitOpsProvider(log logr.Logger) (Provider, error) {
-	return &AzureGitOpsProvider{
+func NewAzureDevOpsProvider(log logr.Logger) (Provider, error) {
+	return &AzureDevOpsProvider{
 		log: log,
 	}, nil
 }
 
-func (p *AzureGitOpsProvider) Setup(opts ProviderOption) error {
+func (p *AzureDevOpsProvider) Setup(opts ProviderOption) error {
 	if opts.Token == "" {
 		return fmt.Errorf("missing required option: Token")
 	}
@@ -48,7 +48,7 @@ func (p *AzureGitOpsProvider) Setup(opts ProviderOption) error {
 	return err
 }
 
-func (p *AzureGitOpsProvider) GetRepository(ctx context.Context, repoURL string) (*Repository, error) {
+func (p *AzureDevOpsProvider) GetRepository(ctx context.Context, repoURL string) (*Repository, error) {
 	u, err := url.Parse(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("unbale to parse url %q: %w", repoURL, err)
@@ -68,7 +68,7 @@ func (p *AzureGitOpsProvider) GetRepository(ctx context.Context, repoURL string)
 	}, nil
 }
 
-func (p *AzureGitOpsProvider) CreatePullRequest(ctx context.Context, input PullRequestInput) (*PullRequest, error) {
+func (p *AzureDevOpsProvider) CreatePullRequest(ctx context.Context, input PullRequestInput) (*PullRequest, error) {
 	jsmc := jenkinsSCM{}
 
 	u, err := url.Parse(input.RepositoryURL)
@@ -127,7 +127,7 @@ func (p *AzureGitOpsProvider) CreatePullRequest(ctx context.Context, input PullR
 	return &PullRequest{Link: pr.Link}, nil
 }
 
-func (p *AzureGitOpsProvider) GetTreeList(ctx context.Context, repoUrl string, sha string, path string) ([]*TreeEntry, error) {
+func (p *AzureDevOpsProvider) GetTreeList(ctx context.Context, repoUrl string, sha string, path string) ([]*TreeEntry, error) {
 	url, err := GetGitProviderUrl(repoUrl)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get git provider url: %w", err)
@@ -154,7 +154,7 @@ func (p *AzureGitOpsProvider) GetTreeList(ctx context.Context, repoUrl string, s
 	return files, nil
 }
 
-func (p *AzureGitOpsProvider) ListPullRequests(ctx context.Context, repoURL string) ([]*PullRequest, error) {
+func (p *AzureDevOpsProvider) ListPullRequests(ctx context.Context, repoURL string) ([]*PullRequest, error) {
 	url, err := GetGitProviderUrl(repoURL)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get git provider url: %w", err)
@@ -178,7 +178,7 @@ func (p *AzureGitOpsProvider) ListPullRequests(ctx context.Context, repoURL stri
 	return prs, nil
 }
 
-func (p *AzureGitOpsProvider) sendRawRequest(ctx context.Context, request *scm.Request) (*scm.Response, error) {
+func (p *AzureDevOpsProvider) sendRawRequest(ctx context.Context, request *scm.Request) (*scm.Response, error) {
 	resp, err := p.client.Do(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to commit files: %w", err)

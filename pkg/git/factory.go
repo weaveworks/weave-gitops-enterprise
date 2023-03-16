@@ -2,6 +2,7 @@ package git
 
 import (
 	"fmt"
+
 	"github.com/go-logr/logr"
 )
 
@@ -32,8 +33,8 @@ func (f *ProviderFactory) Create(providerName string, opts ...ProviderWithFn) (P
 		provider, err = NewGitLabProvider(f.log)
 	case BitBucketServerProviderName:
 		provider, err = NewBitBucketServerProvider(f.log)
-	case AzureGitOpsProviderName:
-		provider, err = NewAzureGitOpsProvider(f.log)
+	case AzureDevOpsProviderName:
+		provider, err = NewAzureDevOpsProvider(f.log)
 	default:
 		return nil, fmt.Errorf("provider %q is not supported", providerName)
 	}
