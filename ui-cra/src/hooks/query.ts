@@ -1,5 +1,4 @@
 import _ from 'lodash';
-import { useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { Query, QueryOpts, QueryResponse } from '../api/query/query.pb';
 
@@ -37,23 +36,6 @@ export function useQueryService(query: string) {
       keepPreviousData: true,
     },
   );
-}
-
-// Copied and TS-ified from https://usehooks.com/useDebounce/
-export function useDebounce<T>(value: T, delay: number) {
-  const [debouncedValue, setDebouncedValue] = useState(value);
-
-  useEffect(() => {
-    const handler = setTimeout(() => {
-      setDebouncedValue(value);
-    }, delay);
-
-    return () => {
-      clearTimeout(handler);
-    };
-  }, [value, delay]);
-
-  return debouncedValue;
 }
 
 export function useListAccessRules() {
