@@ -567,7 +567,7 @@ func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*g
 			},
 			Decryption: &capiv1_proto.Decryption{
 				Provider: "sops",
-				SecretRef: &capiv1_proto.GitopsClusterRef{
+				SecretRef: &capiv1_proto.SecretRef{
 					Name: msg.ParameterValues["SOPS_SECRET_REF"],
 				},
 			},

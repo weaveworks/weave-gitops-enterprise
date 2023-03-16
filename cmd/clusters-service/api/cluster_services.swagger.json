@@ -1783,7 +1783,7 @@
           "type": "string"
         },
         "secretRef": {
-          "$ref": "#/definitions/v1GitopsClusterRef"
+          "$ref": "#/definitions/v1SecretRef"
         }
       }
     },
@@ -3154,6 +3154,14 @@
           "type": "string"
         },
         "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SecretRef": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         }
       }

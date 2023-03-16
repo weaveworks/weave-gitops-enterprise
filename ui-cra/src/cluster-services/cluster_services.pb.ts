@@ -464,7 +464,11 @@ export type KustomizationSpec = {
 
 export type Decryption = {
   provider?: string
-  secretRef?: GitopsClusterRef
+  secretRef?: SecretRef
+}
+
+export type SecretRef = {
+  name?: string
 }
 
 export type HelmRelease = {
