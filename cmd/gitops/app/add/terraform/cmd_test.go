@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
-	"github.com/weaveworks/weave-gitops/pkg/testutils"
 )
 
 func TestEndpointNotSet(t *testing.T) {
@@ -31,7 +30,7 @@ func TestEndpointNotSet(t *testing.T) {
 }
 
 func TestGitProviderToken(t *testing.T) {
-	t.Cleanup(testutils.Setenv("GITHUB_TOKEN", "test-token"))
+	t.Setenv("GITHUB_TOKEN", "test-token")
 
 	client := adapters.NewHTTPClient()
 
