@@ -25,7 +25,7 @@ const PolicyConfigsList = () => {
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={handleCreateSecret}
         >
-          CREATE A POLICY CONFIG
+          CREATE A PolicyConfig
         </Button>
         {data?.policyConfigs && (
           <PolicyConfigsTable PolicyConfigs={data.policyConfigs} />

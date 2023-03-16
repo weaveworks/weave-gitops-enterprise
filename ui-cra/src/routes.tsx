@@ -298,9 +298,9 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-
       <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
       <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
+
 
       <Route
         path={Routes.TerraformDetail}

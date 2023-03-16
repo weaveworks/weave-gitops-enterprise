@@ -14,73 +14,54 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
-  PolicyConfigApplicationMatch,
+  GitopsCluster,
+  PolicyConfigMatch,
+  PolicyConfigPolicy,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
-import { useGetClustersList } from '../../../contexts/PolicyConfigs';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import { CreateDeploymentObjects } from '../../Applications/utils';
+import {
+  CreateDeploymentObjects,
+  useClustersWithSources,
+} from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
+import { SelectSecretStore } from '../../Secrets/Create/Form/Partials/SelectSecretStore';
+import { PreviewPRModal } from '../../Secrets/Create/PreviewPRModal';
 import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
-import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-import { SelectMatchType } from './Form/Partials/SelectTargetList';
-import { PreviewPRModal } from './PreviewPRModal';
 
-const { large, xs, base, medium, small } = theme.spacing;
+const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
-const { large: largeFontSize } = theme.fontSizes;
 
 const FormWrapper = styled.form`
   width: 80%;
   padding-bottom: ${large} !important;
-
   .group-section {
     border-bottom: 1px dotted ${neutral20};
-    padding-right: ${medium};
-    padding-bottom: ${medium};
-    .form-field {
-      width: 50%;
-      label {
-        margin-top: ${xs} !important;
-        margin-bottom: ${base} !important;
-        font-size: ${largeFontSize};
-      }
-      &.policyField {
-        label {
-          margin-bottom: ${small} !important;
-        }
-        div[class*='MuiAutocomplete-tag'] {
-          display: none;
-        }
-      }
-      .form-section {
-        label {
-          display: none !important;
-        }
-      }
-    }
-
     .form-section {
-      display: flex;
-      div[class*='MuiInputBase-root'] {
-        margin-right: ${small};
-      }
+      width: 100%;
+
       .Mui-disabled {
         background: ${neutral10} !important;
         border-color: ${neutral20} !important;
+      }
+      .MuiInputBase-root {
+        width: 50%;
+      }
+      .MuiFormControl-root {
+        width: 50%;
       }
     }
   }
@@ -93,16 +74,16 @@ interface FormData {
   pullRequestTitle: string;
   commitMessage: string;
   pullRequestDescription: string;
-  policyConfigName: string;
-  matchType: string;
-  match: any;
-  appMatch: any;
-  wsMatch: any;
-  policies: any;
-  isControlPlane: boolean;
-  clusterName: string;
-  clusterNamespace: string;
-  selectedCluster: any;
+  clusterAutomations: {
+    policyConfigName: string;
+    matchType: string;
+    match?: PolicyConfigMatch;
+    policies: PolicyConfigPolicy[];
+    isControlPlane: boolean;
+    clusterName: string;
+    clusterNamespace: string;
+    selectedCluster: any;
+  }[];
 }
 
 function getInitialData(
@@ -116,14 +97,16 @@ function getInitialData(
     pullRequestTitle: 'Add PolicyConfig',
     commitMessage: 'Add PolicyConfig',
     pullRequestDescription: 'This PR adds a new PolicyConfig',
-    clusterName: '',
-    clusterNamespace: '',
-    isControlPlane: false,
-    policyConfigName: '',
-    matchType: '',
-    policies: {},
-    wsMatch: [],
-    appMatch: [],
+    clusterAutomations: [
+      {
+        clusterName: '',
+        clusterNamespace: '',
+        isControlPlane: false,
+        policyConfigName: '',
+        secretNamespace: '',
+        matchType: '',
+      },
+    ],
   };
 
   const initialFormData = {
@@ -136,15 +119,8 @@ function getInitialData(
 const CreatePolicyConfig = () => {
   const history = useHistory();
 
-  let { data: allClusters } = useGetClustersList({});
-  const clusters = allClusters?.gitopsClusters
-    ?.filter(s => s.conditions![0].status === 'True')
-    .sort();
-
+  let clusters: GitopsCluster[] | undefined = useClustersWithSources(true);
   const { setNotifications } = useNotifications();
-  const [selectedWorkspacesList, setSelectedWorkspacesList] = useState<any[]>();
-  const [selectedAppsList, setSelectedAppsList] =
-    useState<PolicyConfigApplicationMatch[]>();
 
   const callbackState = useCallbackState();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
@@ -152,13 +128,16 @@ const CreatePolicyConfig = () => {
   const authRedirectPage = `/policyConfigs/create`;
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [isclusterSelected, setIsclusterSelected] = useState<boolean>(false);
 
   const [showAuthDialog, setShowAuthDialog] = useState<boolean>(false);
   const [formData, setFormData] = useState<any>(initialFormData);
-
+  const [policiesList, setPoliciesList] = useState<PolicyConfigPolicy[]>();
+  const [selectedPolicies, setSelectedPolicies] =
+    useState<PolicyConfigPolicy[]>();
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
-  const { data } = useListSources('', '', { retry: false });
+  const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
   const initialGitRepo = getInitialGitRepo(
     null,
@@ -166,6 +145,7 @@ const CreatePolicyConfig = () => {
   ) as GitRepositoryEnriched;
 
   const [formError, setFormError] = useState<string>('');
+  const automation = formData.clusterAutomations[0];
 
   const {
     clusterName,
@@ -173,9 +153,8 @@ const CreatePolicyConfig = () => {
     clusterNamespace,
     isControlPlane,
     matchType,
-    selectedCluster,
-    policies,
-  } = formData;
+    match,
+  } = automation;
 
   useEffect(() => clearCallbackState(), []);
 
@@ -186,43 +165,53 @@ const CreatePolicyConfig = () => {
         repo: initialGitRepo,
       }));
     }
+    if (clusterName) {
+      setIsclusterSelected(true);
+    }
   }, [initialGitRepo, formData.repo, clusterName]);
 
   const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
-    const clusterDetails = {
-      clusterName: value.name,
-      clusterNamespace: value.namespace,
-      selectedCluster: cluster,
+    let currentAutomation = [...formData.clusterAutomations];
+    setSelectedPolicies([]);
+    currentAutomation[0] = {
+      ...automation,
       isControlPlane: value.name === 'management' ? true : false,
+      clusterName: value,
+      clusterNamespace: value.namespace,
     };
-    setFormData(
-      (f: any) =>
-        (f = {
-          ...f,
-          ...clusterDetails,
-        }),
-    );
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
+    setIsclusterSelected(true);
   };
+
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add PolicyConfig ${formData.policyConfigName}`,
+      pullRequestTitle: `Add PolicyConfig ${formData.clusterAutomations[0].policyConfigName}`,
     }));
-  }, [formData.policyConfigName]);
+  }, [formData.clusterAutomations]);
 
-  const handleFormData = (fieldName?: string, value?: any) => {
-    setFormData((f: any) => (f = { ...f, [fieldName as string]: value }));
+  const handleFormData = (
+    event: React.ChangeEvent<{ name?: string; value: unknown }>,
+    fieldName?: string,
+  ) => {
+    const { value } = event?.target;
+    let currentAutomation = [...formData.clusterAutomations];
+
+    currentAutomation[0] = {
+      ...automation,
+      [fieldName as string]: value,
+    };
+
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
   };
-  const getTargetList = useCallback(() => {
-    switch (matchType) {
-      case 'workspaces':
-        return selectedWorkspacesList;
-      case 'apps':
-        return selectedAppsList;
-    }
-  }, [selectedWorkspacesList, selectedAppsList, matchType]);
 
   const getClusterAutomations = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
@@ -231,18 +220,18 @@ const CreatePolicyConfig = () => {
         name: clusterName,
         namespace: clusterNamespace,
       },
+      isControlPlane: isControlPlane,
       policyConfig: {
         metadata: {
           name: policyConfigName,
         },
         spec: {
           match: {
-            [matchType]: getTargetList(),
+            [matchType]: match[matchType],
           },
-          config: policies,
+          config: {},
         },
       },
-      isControlPlane: isControlPlane,
     });
     return clusterAutomations;
   }, [
@@ -250,9 +239,8 @@ const CreatePolicyConfig = () => {
     clusterNamespace,
     isControlPlane,
     policyConfigName,
-    policies,
-    getTargetList,
     matchType,
+    match,
   ]);
 
   const handleCreatePolicyConfig = useCallback(() => {
@@ -264,37 +252,43 @@ const CreatePolicyConfig = () => {
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
+    console.log(payload);
     setLoading(true);
-    return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
-      .then(response => {
-        history.push(Routes.PolicyConfigs);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
-      })
-      .finally(() => setLoading(false));
+    setLoading(false);
+
+    return CreateDeploymentObjects(
+      payload,
+      getProviderToken(formData.provider),
+    );
+    //   .then(response => {
+    //     history.push(Routes.Secrets);
+    //     setNotifications([
+    //       {
+    //         message: {
+    //           component: (
+    //             <Link href={response.webUrl} newTab>
+    //               PR created successfully, please review and merge the pull
+    //               request to apply the changes to the cluster.
+    //             </Link>
+    //           ),
+    //         },
+    //         severity: 'success',
+    //       },
+    //     ]);
+    //   })
+    //   .catch(error => {
+    //     setNotifications([
+    //       {
+    //         message: { text: error.message },
+    //         severity: 'error',
+    //         display: 'bottom',
+    //       },
+    //     ]);
+    //     if (isUnauthenticated(error.code)) {
+    //       removeToken(formData.provider);
+    //     }
+    //   })
+    //   .finally(() => setLoading(false));
   }, [formData, getClusterAutomations, history, setNotifications]);
 
   return (
@@ -303,7 +297,7 @@ const CreatePolicyConfig = () => {
         documentTitle="Secrets"
         path={[
           { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
-          { label: 'Create New PolicyConfig' },
+          { label: 'Create new PolicyConfig' },
         ]}
       >
         <CallbackStateContextProvider
@@ -322,58 +316,81 @@ const CreatePolicyConfig = () => {
               }
             >
               <div className="group-section">
+                <div className="form-group">
+                  <Input
+                    className="form-section"
+                    required
+                    name="policyConfigName"
+                    label="NAME"
+                    value={policyConfigName}
+                    onChange={event =>
+                      handleFormData(event, 'policyConfigName')
+                    }
+                    error={
+                      formError === 'policyConfigName' && !policyConfigName
+                    }
+                  />
+                  <Select
+                    className="form-section"
+                    name="clusterName"
+                    required={true}
+                    label="CLUSTER"
+                    value={clusterName || ''}
+                    onChange={HandleSelectCluster}
+                    error={formError === 'clusterName' && !clusterName}
+                  >
+                    {!clusters?.length ? (
+                      <MenuItem disabled={true}>Loading...</MenuItem>
+                    ) : (
+                      clusters?.map((option, index: number) => {
+                        return (
+                          <MenuItem key={index} value={JSON.stringify(option)}>
+                            {option.name}
+                          </MenuItem>
+                        );
+                      })
+                    )}
+                  </Select>
+                </div>
+                {/* {isclusterSelected && (
+                  <SelectSecretStore
+                    cluster={
+                      clusterNamespace
+                        ? `${clusterNamespace}/${clusterName}`
+                        : clusterName
+                    }
+                    formError={formError}
+                    handleFormData={handleFormData}
+                    selectedSecretStore={selectedSecretStore || {}}
+                    setSelectedSecretStore={setSelectedSecretStore}
+                    formData={formData}
+                    setFormData={setFormData}
+                    automation={automation}
+                  />
+                )}
                 <Input
                   className="form-section"
-                  name="policyConfigName"
-                  description="The name of your policy config"
-                  label="NAME"
-                  value={policyConfigName}
-                  onChange={e =>
-                    handleFormData('policyConfigName', e.target.value)
-                  }
-                  error={formError === 'policyConfigName' && !policyConfigName}
-                />
-                <Select
+                  required
+                  name="dataRemoteRefKey"
+                  label="SECRET PATH"
+                  value={dataRemoteRefKey}
+                  onChange={event => handleFormData(event, 'dataRemoteRefKey')}
+                  error={formError === 'dataRemoteRefKey' && !dataRemoteRefKey}
+                /> */}
+                {/* <Input
                   className="form-section"
-                  name="clusterName"
-                  label="CLUSTER"
-                  value={selectedCluster || ''}
-                  description="Select your cluster"
-                  onChange={HandleSelectCluster}
-                  error={formError === 'clusterName' && !clusterName}
-                >
-                  {!clusters?.length ? (
-                    <MenuItem disabled={true}>Loading...</MenuItem>
-                  ) : (
-                    clusters?.map((option, index: number) => {
-                      return (
-                        <MenuItem
-                          key={option.name}
-                          value={JSON.stringify(option)}
-                        >
-                          {option.name}
-                        </MenuItem>
-                      );
-                    })
-                  )}
-                </Select>
-                <SelectMatchType
-                  formError={formError}
-                  formData={formData}
-                  cluster={clusterName}
-                  handleFormData={handleFormData}
-                  selectedWorkspacesList={selectedWorkspacesList || []}
-                  setSelectedWorkspacesList={setSelectedWorkspacesList}
-                  setFormData={setFormData}
-                  selectedAppsList={selectedAppsList || []}
-                  setSelectedAppsList={setSelectedAppsList}
-                />
-
-                <SelectedPolicies
-                  cluster={clusterName}
-                  setFormData={setFormData}
-                  formData={formData}
-                />
+                  required
+                  name="dataRemoteRef_property"
+                  label="PROPERTY"
+                  value={dataRemoteRef_property}
+                  onChange={event =>
+                    handleFormData(event, 'dataRemoteRef_property')
+                  }
+                  error={
+                    formError === 'dataRemoteRef_property' &&
+                    !dataRemoteRef_property
+                  }
+                /> */}
               </div>
               <PreviewPRModal
                 formData={formData}
