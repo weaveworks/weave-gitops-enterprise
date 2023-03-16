@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"testing"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -9,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"testing"
 )
 
 var log logr.Logger
@@ -27,29 +28,27 @@ func TestNewCollector(t *testing.T) {
 	fakeStore := &storefakes.FakeStore{}
 
 	tests := []struct {
-		name              string
-		options           CollectorOpts
-		store             store.Store
-		processRecordFunc ProcessRecordsFunc
-		newWatcherFunc    NewWatcherFunc
-		errPattern        string
+		name       string
+		options    CollectorOpts
+		store      store.Store
+		errPattern string
 	}{
 		{
 			name: "can create collector with valid arguments",
 			options: CollectorOpts{
-				Log:         log,
-				ObjectKinds: kinds,
+				Log:                log,
+				ObjectKinds:        kinds,
+				ProcessRecordsFunc: fakeProcessRecordFunc,
+				NewWatcherFunc:     newFakeWatcher,
 			},
-			store:             fakeStore,
-			processRecordFunc: fakeProcessRecordFunc,
-			newWatcherFunc:    newFakeWatcher,
-			errPattern:        "",
+			store:      fakeStore,
+			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			collector, err := NewCollector(tt.options, tt.store, tt.processRecordFunc, tt.newWatcherFunc)
+			collector, err := NewCollector(tt.options, tt.store)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

@@ -14,19 +14,16 @@ import (
 )
 
 func (c *watchingCollector) Start() error {
-	c.log.Info("starting collector")
 	c.objectsChannel = make(chan []models.ObjectRecord)
+
 	for _, cluster := range c.clusters {
-		c.log.Info("clusterName adding", "name", cluster.GetName())
 		err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
-		c.log.Info("clusterName added", "name", cluster.GetName())
 	}
-	c.log.Info("watchers created")
+
 	go func() {
-		c.log.Info("starting process to watch for records")
 		for {
 			objectRecords := <-c.objectsChannel
 			err := c.processRecordsFunc(context.Background(), objectRecords, c.store, c.log)
@@ -35,7 +32,7 @@ func (c *watchingCollector) Start() error {
 			}
 		}
 	}()
-	c.log.Info("collector started")
+
 	return nil
 }
 
@@ -67,34 +64,19 @@ type watchingCollector struct {
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
-func newWatchingCollector(opts CollectorOpts, store store.Store, newWatcherFunc NewWatcherFunc, recordsFunc ProcessRecordsFunc) (*watchingCollector, error) {
-	log := opts.Log
-
-	if len(opts.ObjectKinds) == 0 {
-		return nil, fmt.Errorf("invalid object kinds")
-	}
-
-	if store == nil {
-		return nil, fmt.Errorf("invalid store")
-	}
-
-	if newWatcherFunc == nil {
-		newWatcherFunc = defaultNewWatcher
-		log.Info("using default watcher function")
-	}
-
-	if recordsFunc == nil {
-		return nil, fmt.Errorf("invalid process records function")
+func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingCollector, error) {
+	if opts.NewWatcherFunc == nil {
+		opts.NewWatcherFunc = defaultNewWatcher
 	}
 
 	return &watchingCollector{
 		clusters:           opts.Clusters,
 		clusterWatchers:    make(map[string]Watcher),
-		newWatcherFunc:     newWatcherFunc,
+		newWatcherFunc:     opts.NewWatcherFunc,
 		store:              store,
 		kinds:              opts.ObjectKinds,
-		log:                log,
-		processRecordsFunc: recordsFunc,
+		log:                opts.Log,
+		processRecordsFunc: opts.ProcessRecordsFunc,
 	}, nil
 }
 
@@ -105,22 +87,17 @@ type ProcessRecordsFunc = func(ctx context.Context, objectRecords []models.Objec
 
 // TODO add unit tests
 func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
-	if objectsChannel == nil {
-		return nil, fmt.Errorf("invalid objects channel")
-	}
-
-	if len(kinds) == 0 {
-		return nil, fmt.Errorf("at least one kind to watch is required")
-	}
-
 	w, err := NewWatcher(WatcherOptions{
 		ClusterRef: types.NamespacedName{
 			Name:      clusterName,
 			Namespace: "default",
 		},
-		ClientConfig: config,
-		Kinds:        kinds,
-	}, nil, objectsChannel, log)
+		ClientConfig:  config,
+		Kinds:         kinds,
+		ObjectChannel: objectsChannel,
+		Log:           log,
+		ManagerFunc:   defaultNewWatcherManager,
+	})
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to create watcher: %w", err)
@@ -130,36 +107,30 @@ func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel c
 }
 
 func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectRecord, ctx context.Context, log logr.Logger) error {
-	if cluster == nil {
-		return fmt.Errorf("invalid clusterName")
-	}
 	config, err := cluster.GetServerConfig()
 	if err != nil {
 		return fmt.Errorf("cannot get config: %w", err)
 	}
-	if config == nil {
-		return fmt.Errorf("invalid config")
-	}
+
 	clusterName := cluster.GetName()
 	if clusterName == "" {
 		return fmt.Errorf("cluster name is empty")
 	}
 
-	log.Info("watching cluster", "cluster", clusterName)
 	watcher, err := w.newWatcherFunc(config, clusterName, w.objectsChannel, w.kinds, log)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for clusterName %s: %w", cluster.GetName(), err)
 	}
 	//TODO it might not be enough to avoid clashes
 	w.clusterWatchers[cluster.GetName()] = watcher
-	log.Info("watcher created")
+
 	go func() {
 		err = watcher.Start(ctx, log)
 		if err != nil {
 			log.Error(err, "failed to start watcher", "cluster", cluster.GetName())
 		}
-		log.Info("watcher started")
 	}()
+
 	return nil
 }
 

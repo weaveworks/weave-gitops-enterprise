@@ -162,7 +162,6 @@ func aKubernetesClusterToWatch(ctx context.Context) (context.Context, error) {
 	if err != nil {
 		return ctx, fmt.Errorf("could not start kube environment: %w", err)
 	}
-	log.Info(fmt.Sprintf("kube environment created: %s", cfg.Host))
 
 	//create runtime client with application schemes
 	v2beta1.AddToScheme(scheme.Scheme)
@@ -176,7 +175,6 @@ func aKubernetesClusterToWatch(ctx context.Context) (context.Context, error) {
 	if err != nil {
 		return ctx, err
 	}
-	log.Info("kube client created")
 
 	clusterRef := types.NamespacedName{
 		Name:      cfg.Host,
@@ -192,7 +190,7 @@ func makeCluster(name string, config *rest.Config, client client.Client, log log
 	cluster.GetNameReturns(name)
 	cluster.GetServerConfigReturns(config, nil)
 	cluster.GetServerClientReturns(client, nil)
-	log.Info("fake cluster created", "cluster", cluster.GetName())
+
 	return &cluster
 }
 
@@ -205,10 +203,10 @@ func aCollector(ctx context.Context) (context.Context, error) {
 
 	//create store
 	dbDir, err := os.MkdirTemp("", "db")
-	store, err := store.NewStore(dbDir, log)
+	s, err := store.NewStore(dbDir, log)
 	g.Expect(err).To(BeNil())
-	ctx = context.WithValue(ctx, storeKey{}, store)
-	log.Info("created inmemory store")
+	ctx = context.WithValue(ctx, storeKey{}, s)
+
 	opts := collector.CollectorOpts{
 		Log: log,
 		Clusters: []cluster.Cluster{
@@ -217,18 +215,18 @@ func aCollector(ctx context.Context) (context.Context, error) {
 		ObjectKinds: []schema.GroupVersionKind{
 			watchGvk,
 		},
+		NewWatcherFunc:     nil,
+		ProcessRecordsFunc: nil,
 	}
 
-	collector, err := collector.NewCollector(opts, nil, nil, nil)
+	collector, err := collector.NewCollector(opts, s)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).ToNot(BeNil())
 	ctx = context.WithValue(ctx, collectorKey{}, collector)
-	log.Info("collector created")
 
 	err = collector.Start()
 	g.Expect(err).To(BeNil())
 
-	log.Info("collector created")
 	return ctx, nil
 }
 
@@ -245,7 +243,7 @@ func anAccessCollector(ctx context.Context) (context.Context, error) {
 	g.Expect(c).NotTo(BeNil())
 
 	//create access collector
-	log.Info("created inmemory store")
+
 	opts := collector.CollectorOpts{
 		Log: log,
 		Clusters: []cluster.Cluster{
@@ -257,19 +255,17 @@ func anAccessCollector(ctx context.Context) (context.Context, error) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).ToNot(BeNil())
 	ctx = context.WithValue(ctx, collectorKey{}, collector)
-	log.Info("collector created")
 
 	err = collector.Start(ctx)
 	g.Expect(err).To(BeNil())
 
-	log.Info("collector created")
 	return ctx, nil
 }
 
 type watchGvkKey struct{}
 
 func aGvkToWatch(ctx context.Context, gvk schema.GroupVersionKind) (context.Context, error) {
-	log.Info(fmt.Sprintf("gvk to watch: %s", gvk))
+
 	return context.WithValue(ctx, watchGvkKey{}, gvk), nil
 }
 
@@ -288,7 +284,6 @@ func aKubernetesClusterWithResourcesOfThatKind(ctx context.Context) (context.Con
 	if err != nil {
 		return ctx, err
 	}
-	log.Info(fmt.Sprintf("number of resources found: %d", numItems))
 	if numItems < 1 {
 		return ctx, fmt.Errorf("not found elements in the clusterName")
 	}
@@ -319,7 +314,7 @@ func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
 			log.Error(err, "cannot get clusterName watcher status")
 			return false
 		}
-		log.Info("waiting for started status", "cluster", cluster.GetName(), "status", status)
+
 		//TODO move me to clusterName status instead of watcher
 		return status == string(collector.ClusterWatchingStarted)
 	}).Should(BeTrue())
@@ -328,7 +323,6 @@ func watchedTheKindInTheCluster(ctx context.Context) (context.Context, error) {
 		return ctx, errors.New("watcher not started")
 	}
 
-	log.Info("watcher has started")
 	return ctx, nil
 }
 
@@ -336,19 +330,15 @@ type storeKey struct{}
 
 func iGotAllTheResults(ctx context.Context) (context.Context, error) {
 	store := ctx.Value(storeKey{}).(store.Store)
-	gvk := ctx.Value(watchGvkKey{}).(schema.GroupVersionKind)
-	numDocsExpected := ctx.Value(numItemsKey{}).(int64)
-	log.Info(fmt.Sprintf("expected num docs: '%d'", numDocsExpected))
+	numDocsExpected := ctx.Value(numItemsKey{}).(int)
 
 	isTrue := g.Eventually(func() bool {
-		numDocuments, err := store.CountObjects(ctx, gvk.Kind)
+		objs, err := store.GetObjects(ctx)
 		if err != nil {
-			log.Error(err, "error counting")
 			return false
 		}
-		log.Info(fmt.Sprintf("found num docs: '%d' ", numDocuments))
 
-		return numDocuments == numDocsExpected
+		return len(objs) == numDocsExpected
 	}).Should(BeTrue())
 
 	if !isTrue {
@@ -369,7 +359,6 @@ func kubeEnvironment() (*rest.Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error on starting environment:%e", err)
 	}
-	log.Info("environment started")
 
 	return cfg, err
 }

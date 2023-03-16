@@ -29,7 +29,6 @@ type StoreWriter interface {
 //counterfeiter:generate . StoreReader
 type StoreReader interface {
 	GetObjects(ctx context.Context) ([]models.Object, error)
-	CountObjects(ctx context.Context, kind string) (int64, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 

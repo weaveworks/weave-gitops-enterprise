@@ -52,7 +52,9 @@ func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*Acce
 		rbacv1.SchemeGroupVersion.WithKind("RoleBinding"),
 	}
 
-	col, err := collector.NewCollector(opts, w, defaultProcessRecords, nil)
+	opts.ProcessRecordsFunc = defaultProcessRecords
+
+	col, err := collector.NewCollector(opts, w)
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %w", err)

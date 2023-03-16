@@ -106,6 +106,8 @@ require (
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/google/go-github/v49 v49.1.0 // indirect
 	github.com/google/pprof v0.0.0-20220829040838-70bd9ae97f40 // indirect
+	github.com/jinzhu/inflection v1.0.0 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-tty v0.0.4 // indirect
@@ -120,6 +122,7 @@ require (
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
+	gorm.io/gorm v1.24.0
 )
 
 require (
@@ -302,6 +305,7 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
+	gorm.io/driver/sqlite v1.4.4
 	k8s.io/apiserver v0.26.2 // indirect
 	k8s.io/component-base v0.26.2 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
