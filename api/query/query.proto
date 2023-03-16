@@ -7,8 +7,6 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/query/api";
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
-// import "api/query/types.proto";
-
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "Weave GitOps Query Service API",
