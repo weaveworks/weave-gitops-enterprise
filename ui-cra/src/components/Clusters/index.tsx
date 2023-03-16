@@ -303,7 +303,10 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(
-    () => history.push(`/templates`),
+    () =>
+      history.push(
+        `/templates?filters=templateType%3A%20_templateType%3A%20cluster_`,
+      ),
     [history],
   );
 
