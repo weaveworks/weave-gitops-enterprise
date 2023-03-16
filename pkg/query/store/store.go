@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 )
@@ -27,12 +28,12 @@ type StoreWriter interface {
 //
 //counterfeiter:generate . StoreReader
 type StoreReader interface {
-	GetObjects() ([]models.Object, error)
+	GetObjects(ctx context.Context) ([]models.Object, error)
 	CountObjects(ctx context.Context, kind string) (int64, error)
-	GetAccessRules() ([]models.AccessRule, error)
+	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
 // factory method that by default creates a in memory store
 func NewStore(location string, log logr.Logger) (Store, error) {
-	return newInMemoryStore(location, log)
+	return newSQLiteStore(location, log)
 }

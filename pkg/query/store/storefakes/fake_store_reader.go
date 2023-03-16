@@ -24,9 +24,10 @@ type FakeStoreReader struct {
 		result1 int64
 		result2 error
 	}
-	GetAccessRulesStub        func() ([]models.AccessRule, error)
+	GetAccessRulesStub        func(context.Context) ([]models.AccessRule, error)
 	getAccessRulesMutex       sync.RWMutex
 	getAccessRulesArgsForCall []struct {
+		arg1 context.Context
 	}
 	getAccessRulesReturns struct {
 		result1 []models.AccessRule
@@ -36,9 +37,10 @@ type FakeStoreReader struct {
 		result1 []models.AccessRule
 		result2 error
 	}
-	GetObjectsStub        func() ([]models.Object, error)
+	GetObjectsStub        func(context.Context) ([]models.Object, error)
 	getObjectsMutex       sync.RWMutex
 	getObjectsArgsForCall []struct {
+		arg1 context.Context
 	}
 	getObjectsReturns struct {
 		result1 []models.Object
@@ -117,17 +119,18 @@ func (fake *FakeStoreReader) CountObjectsReturnsOnCall(i int, result1 int64, res
 	}{result1, result2}
 }
 
-func (fake *FakeStoreReader) GetAccessRules() ([]models.AccessRule, error) {
+func (fake *FakeStoreReader) GetAccessRules(arg1 context.Context) ([]models.AccessRule, error) {
 	fake.getAccessRulesMutex.Lock()
 	ret, specificReturn := fake.getAccessRulesReturnsOnCall[len(fake.getAccessRulesArgsForCall)]
 	fake.getAccessRulesArgsForCall = append(fake.getAccessRulesArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.GetAccessRulesStub
 	fakeReturns := fake.getAccessRulesReturns
-	fake.recordInvocation("GetAccessRules", []interface{}{})
+	fake.recordInvocation("GetAccessRules", []interface{}{arg1})
 	fake.getAccessRulesMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -141,10 +144,17 @@ func (fake *FakeStoreReader) GetAccessRulesCallCount() int {
 	return len(fake.getAccessRulesArgsForCall)
 }
 
-func (fake *FakeStoreReader) GetAccessRulesCalls(stub func() ([]models.AccessRule, error)) {
+func (fake *FakeStoreReader) GetAccessRulesCalls(stub func(context.Context) ([]models.AccessRule, error)) {
 	fake.getAccessRulesMutex.Lock()
 	defer fake.getAccessRulesMutex.Unlock()
 	fake.GetAccessRulesStub = stub
+}
+
+func (fake *FakeStoreReader) GetAccessRulesArgsForCall(i int) context.Context {
+	fake.getAccessRulesMutex.RLock()
+	defer fake.getAccessRulesMutex.RUnlock()
+	argsForCall := fake.getAccessRulesArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeStoreReader) GetAccessRulesReturns(result1 []models.AccessRule, result2 error) {
@@ -173,17 +183,18 @@ func (fake *FakeStoreReader) GetAccessRulesReturnsOnCall(i int, result1 []models
 	}{result1, result2}
 }
 
-func (fake *FakeStoreReader) GetObjects() ([]models.Object, error) {
+func (fake *FakeStoreReader) GetObjects(arg1 context.Context) ([]models.Object, error) {
 	fake.getObjectsMutex.Lock()
 	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
 	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
-	}{})
+		arg1 context.Context
+	}{arg1})
 	stub := fake.GetObjectsStub
 	fakeReturns := fake.getObjectsReturns
-	fake.recordInvocation("GetObjects", []interface{}{})
+	fake.recordInvocation("GetObjects", []interface{}{arg1})
 	fake.getObjectsMutex.Unlock()
 	if stub != nil {
-		return stub()
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -197,10 +208,17 @@ func (fake *FakeStoreReader) GetObjectsCallCount() int {
 	return len(fake.getObjectsArgsForCall)
 }
 
-func (fake *FakeStoreReader) GetObjectsCalls(stub func() ([]models.Object, error)) {
+func (fake *FakeStoreReader) GetObjectsCalls(stub func(context.Context) ([]models.Object, error)) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = stub
+}
+
+func (fake *FakeStoreReader) GetObjectsArgsForCall(i int) context.Context {
+	fake.getObjectsMutex.RLock()
+	defer fake.getObjectsMutex.RUnlock()
+	argsForCall := fake.getObjectsArgsForCall[i]
+	return argsForCall.arg1
 }
 
 func (fake *FakeStoreReader) GetObjectsReturns(result1 []models.Object, result2 error) {

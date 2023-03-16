@@ -50,13 +50,13 @@ type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule,
 func (q *qs) RunQuery(ctx context.Context, opts []Query) ([]models.Object, error) {
 	principal := auth.Principal(ctx)
 
-	allObjects, err := q.r.GetObjects()
+	allObjects, err := q.r.GetObjects(ctx)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting objects from store: %w", err)
 	}
 
-	rules, err := q.r.GetAccessRules()
+	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
@@ -67,7 +67,7 @@ func (q *qs) RunQuery(ctx context.Context, opts []Query) ([]models.Object, error
 }
 
 func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
-	return q.r.GetAccessRules()
+	return q.r.GetAccessRules(ctx)
 }
 
 func defaultAccessFilter(user *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object {

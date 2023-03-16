@@ -3,12 +3,14 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"os"
 	"path/filepath"
 
+	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+
 	"database/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -21,13 +23,13 @@ type InMemoryStore struct {
 	log      logr.Logger
 }
 
-func newInMemoryStore(location string, log logr.Logger) (*InMemoryStore, error) {
+func newSQLiteStore(location string, log logr.Logger) (*InMemoryStore, error) {
 	if location == "" {
 		return nil, fmt.Errorf("invalid location")
 	}
 	dbLocation, db, err := createDB(location, log)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create cache database: %w", err)
+		return nil, fmt.Errorf("failed to create database: %w", err)
 	}
 	return &InMemoryStore{
 		location: dbLocation,
@@ -50,10 +52,6 @@ func (i InMemoryStore) StoreAccessRules(ctx context.Context, roles []models.Acce
 }
 
 func (i InMemoryStore) StoreAccessRule(ctx context.Context, roles models.AccessRule) (int64, error) {
-	if ctx == nil {
-		return -1, fmt.Errorf("invalid context")
-	}
-
 	sqlStatement := `INSERT INTO documents (name, namespace, kind) VALUES ($1, $2,$3)`
 	result, err := i.db.ExecContext(
 		ctx,
@@ -100,13 +98,10 @@ func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (i
 	return result.LastInsertId()
 }
 
-// TODO add ctx
-func (i InMemoryStore) GetObjects() ([]models.Object, error) {
-	//TODO remove
-	background := context.Background()
+func (i InMemoryStore) GetObjects(ctx context.Context) ([]models.Object, error) {
 	sqlStatement := `SELECT name,namespace,kind FROM documents`
 
-	rows, err := i.db.QueryContext(background, sqlStatement)
+	rows, err := i.db.QueryContext(ctx, sqlStatement)
 	if err != nil {
 		return []models.Object{}, fmt.Errorf("failed to query database: %w", err)
 	}
@@ -120,11 +115,11 @@ func (i InMemoryStore) GetObjects() ([]models.Object, error) {
 		}
 		objects = append(objects, object)
 	}
-	i.log.Info("get objects", "objects", objects)
+
 	return objects, nil
 }
 
-func (i InMemoryStore) GetAccessRules() ([]models.AccessRule, error) {
+func (i InMemoryStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	return []models.AccessRule{}, nil
 }
 
@@ -158,16 +153,20 @@ func (i InMemoryStore) GetLocation() string {
 
 func applySchema(db *sql.DB) error {
 	_, err := db.Exec(`
-CREATE TABLE IF NOT EXISTS documents (
+CREATE TABLE IF NOT EXISTS objects (
 	name text,
 	namespace text,
 	kind text);`)
+
+	if err != nil {
+		return fmt.Errorf("failed to create documents table: %w", err)
+	}
+
 	return err
 }
 
 func createDB(cacheLocation string, log logr.Logger) (string, *sql.DB, error) {
 	dbFileLocation := filepath.Join(cacheLocation, dbFile)
-	log.Info("db path", dbFileLocation)
 	// make sure the directory exists
 	if err := os.MkdirAll(cacheLocation, os.ModePerm); err != nil {
 		return "", nil, fmt.Errorf("failed to create cache directory: %w", err)
@@ -176,12 +175,11 @@ func createDB(cacheLocation string, log logr.Logger) (string, *sql.DB, error) {
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to open database: %q, %w", cacheLocation, err)
 	}
-	log.Info("db created")
 	// From the readme: https://github.com/mattn/go-sqlite3
 	db.SetMaxOpenConns(1)
 	if err := applySchema(db); err != nil {
 		return "", db, err
 	}
-	log.Info("schema created")
+
 	return dbFileLocation, db, nil
 }
