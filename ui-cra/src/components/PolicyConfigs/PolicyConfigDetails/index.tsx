@@ -19,31 +19,34 @@ const PolicyConfigDetails = ({
     });
 
   return (
-      <PageTemplate
-        documentTitle="PolicyConfigs"
-        path={[
-          { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
-          { label: PolicyConfig?.name || '' },
-        ]}
+    <PageTemplate
+      documentTitle="PolicyConfigs"
+      path={[
+        { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
+        { label: PolicyConfig?.name || '' },
+      ]}
+    >
+      <ContentWrapper
+        loading={isPolicyConfigLoading}
+        warningMsg={
+          PolicyConfig?.status === 'Warning'
+            ? 'One or more than a policy isn’t found in the cluster.'
+            : ''
+        }
       >
-
-        <ContentWrapper
-          loading={isPolicyConfigLoading}
-          warningMsg='One or more than a policy isn’t found in the cluster.'
-        >
-          <PolicyConfigHeaderSection
-            clusterName={PolicyConfig?.clusterName}
-            age={PolicyConfig?.age}
-            match={PolicyConfig?.match}
-            matchType={PolicyConfig?.matchType}
-          />
-          <PolicyDetailsCard
-            policies={PolicyConfig?.policies}
-            totalPolicies={PolicyConfig?.totalPolicies}
-            clusterName={clusterName}
-          />
-        </ContentWrapper>
-      </PageTemplate>
+        <PolicyConfigHeaderSection
+          clusterName={PolicyConfig?.clusterName}
+          age={PolicyConfig?.age}
+          match={PolicyConfig?.match}
+          matchType={PolicyConfig?.matchType}
+        />
+        <PolicyDetailsCard
+          policies={PolicyConfig?.policies}
+          totalPolicies={PolicyConfig?.totalPolicies}
+          clusterName={clusterName}
+        />
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 
