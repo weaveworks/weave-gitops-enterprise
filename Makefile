@@ -1,4 +1,4 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags update-weave-gitops
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags update-weave-gitops tools
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
