@@ -751,6 +751,16 @@ message KustomizationSpec {
   SourceRef source_ref = 2;
   string target_namespace = 3;
   bool create_namespace = 4;
+  Decryption decryption = 5;
+}
+
+message Decryption{
+  string provider = 1;
+  SecretRef secretRef = 2;
+}
+
+message SecretRef{
+  string name = 1;
 }
 
 message HelmRelease {
