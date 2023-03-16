@@ -172,7 +172,6 @@ func TestStartWatcher(t *testing.T) {
 		},
 	}
 
-	log := testr.New(t)
 	fakeObjectsChannel := make(chan []models.ObjectRecord)
 	//setup a valid watcher
 	watcher, err := NewWatcher(options, newFakeWatcherManagerFunc, fakeObjectsChannel, log)
@@ -183,19 +182,17 @@ func TestStartWatcher(t *testing.T) {
 	tests := []struct {
 		name       string
 		ctx        context.Context
-		log        logr.Logger
 		errPattern string
 	}{
 		{
 			name:       "could start watcher with valid arguments",
 			ctx:        context.Background(),
-			log:        log,
 			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := watcher.Start(tt.ctx, tt.log)
+			err := watcher.Start(tt.ctx, logr.Discard())
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
