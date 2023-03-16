@@ -344,7 +344,7 @@ jobs:
           xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
       - name: Install Ginkgo
         run: |
-          go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.5.1
+          go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.9.0
           ginkgo version
       - name: Setup management cluster
         run: |
