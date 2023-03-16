@@ -61,6 +61,7 @@ import {
 } from '../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../Templates/Form';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import OpenedPullRequest from './OpenedPullRequest';
 
 interface Size {
   size?: 'small';
@@ -241,6 +242,11 @@ const MCCP: FC<{
   const listConfigContext = useListConfigContext();
   const repoLink = listConfigContext?.repoLink || '';
   const provider = listConfigContext?.provider;
+
+  const gitReposUrl = useMemo(
+    () => gitRepos.map(repo => repo.obj.spec.url),
+    [gitRepos],
+  );
 
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
@@ -453,14 +459,15 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Button onClick={openLinkHandler(repoLink)}>
+              {/* <Button onClick={openLinkHandler(repoLink)}>
                 <Icon
                   className={classes.externalIcon}
                   type={IconType.ExternalTab}
                   size="base"
                 />
                 GO TO OPEN PULL REQUESTS
-              </Button>
+              </Button> */}
+              <OpenedPullRequest></OpenedPullRequest>
             </ActionsWrapper>
           </div>
           {!isLoading ? (
