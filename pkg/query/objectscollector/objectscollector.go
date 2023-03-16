@@ -1,4 +1,4 @@
-package applicationscollector
+package objectscollector
 
 import (
 	"context"
@@ -13,19 +13,17 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
-var DefaultVerbsRequiredForAccess = []string{"list"}
-
-// ApplicationsCollector is responsible for collecting flux application resources from all clusters
+// ObjectsCollector is responsible for collecting flux application resources from all clusters
 // It is a wrapper around a generic collector that adapts the records and writes them to
 // an store
-type ApplicationsCollector struct {
+type ObjectsCollector struct {
 	col   collector.Collector
 	log   logr.Logger
 	store store.StoreWriter
 	quit  chan struct{}
 }
 
-func (a *ApplicationsCollector) Start(ctx context.Context) error {
+func (a *ObjectsCollector) Start(ctx context.Context) error {
 	err := a.col.Start()
 	if err != nil {
 		return fmt.Errorf("could not start access collector: %store", err)
@@ -33,12 +31,12 @@ func (a *ApplicationsCollector) Start(ctx context.Context) error {
 	return nil
 }
 
-func (a *ApplicationsCollector) Stop() error {
+func (a *ObjectsCollector) Stop() error {
 	a.quit <- struct{}{}
 	return a.col.Stop()
 }
 
-func NewApplicationsCollector(w store.Store, opts collector.CollectorOpts) (*ApplicationsCollector, error) {
+func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
 
 	opts.ObjectKinds = []schema.GroupVersionKind{
 		v2beta1.GroupVersion.WithKind("HelmRelease"),
@@ -50,7 +48,7 @@ func NewApplicationsCollector(w store.Store, opts collector.CollectorOpts) (*App
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %store", err)
 	}
-	return &ApplicationsCollector{
+	return &ObjectsCollector{
 		col:   col,
 		log:   opts.Log,
 		store: w,

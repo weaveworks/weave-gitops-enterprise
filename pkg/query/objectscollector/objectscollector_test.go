@@ -1,10 +1,11 @@
-package applicationscollector
+package objectscollector
 
 import (
+	"testing"
+
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"testing"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
@@ -37,7 +38,7 @@ func TestNewApplicationsCollector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			applicationsCollector, err := NewApplicationsCollector(tt.store, tt.options)
+			applicationsCollector, err := NewObjectsCollector(tt.store, tt.options)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
