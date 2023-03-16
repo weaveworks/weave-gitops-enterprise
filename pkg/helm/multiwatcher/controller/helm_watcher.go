@@ -88,7 +88,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	return ctrl.Result{}, nil
 }
 
-func (r *HelmWatcherReconciler) Setup(mgr ctrl.Manager) error {
+func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&sourcev1.HelmRepository{}).
 		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).

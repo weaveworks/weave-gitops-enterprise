@@ -94,7 +94,7 @@ func (w *Watcher) StartWatcher(ctx context.Context, log logr.Logger) error {
 		UseProxy:      w.UseProxy,
 		Client:        mgr.GetClient(),
 		Scheme:        w.scheme,
-	}).Setup(mgr); err != nil {
+	}).SetupWithManager(mgr); err != nil {
 		w.log.Error(err, "unable to create controller", "controller", "HelmWatcherReconciler")
 		return err
 	}
