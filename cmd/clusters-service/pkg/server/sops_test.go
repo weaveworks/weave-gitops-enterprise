@@ -118,12 +118,12 @@ func TestEncryptSecret(t *testing.T) {
 	}
 
 	tests := []struct {
-		request *capiv1_proto.SopsEncryptSecretRequest
+		request *capiv1_proto.EncryptSopsSecretRequest
 		path    string
 		err     error
 	}{
 		{
-			request: &capiv1_proto.SopsEncryptSecretRequest{
+			request: &capiv1_proto.EncryptSopsSecretRequest{
 				ClusterName:            "management",
 				Name:                   "my-secret",
 				Namespace:              "default",
@@ -137,7 +137,7 @@ func TestEncryptSecret(t *testing.T) {
 			path: "./secrets/age",
 		},
 		{
-			request: &capiv1_proto.SopsEncryptSecretRequest{
+			request: &capiv1_proto.EncryptSopsSecretRequest{
 				ClusterName:            "management",
 				Name:                   "my-secret",
 				Namespace:              "default",
@@ -151,7 +151,7 @@ func TestEncryptSecret(t *testing.T) {
 			path: "./secrets/gpg",
 		},
 		{
-			request: &capiv1_proto.SopsEncryptSecretRequest{
+			request: &capiv1_proto.EncryptSopsSecretRequest{
 				ClusterName:            "management",
 				Name:                   "my-secret",
 				Namespace:              "default",
@@ -165,7 +165,7 @@ func TestEncryptSecret(t *testing.T) {
 			path: "./secrets/age",
 		},
 		{
-			request: &capiv1_proto.SopsEncryptSecretRequest{
+			request: &capiv1_proto.EncryptSopsSecretRequest{
 				ClusterName:            "management",
 				Name:                   "my-secret",
 				Namespace:              "default",
