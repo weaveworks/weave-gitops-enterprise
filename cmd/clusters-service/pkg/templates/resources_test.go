@@ -167,7 +167,6 @@ metadata:
   name: testing-md-0
   annotations:
     example.com/test: "{\"name\":\"testing\",\"namespace\":\"test-ns\"}"
-    kustomize.toolkit.fluxcd.io/prune: disabled
 `
 	if diff := cmp.Diff(want, writeMultiDoc(t, updated)); diff != "" {
 		t.Fatalf("rendering with option failed:\n%s", diff)
