@@ -74,6 +74,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_PIPELINES
               value: "true"
             {{- end }}
+            {{- if .Values.enableExplorer }}
+            - name: WEAVE_GITOPS_FEATURE_EXPLORER
+              value: "true"
+            {{- end }}
             {{- if .Values.enableTerraformUI }}
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
               value: "true"

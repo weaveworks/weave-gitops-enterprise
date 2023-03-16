@@ -27,6 +27,9 @@ listOCIRepositories: false
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: true
 
+# Turns on explorer to true
+enableExplorer: true
+
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
 

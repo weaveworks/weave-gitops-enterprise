@@ -3,10 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
-	"os"
-	"time"
-
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/applicationscollector"
+	"os"
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -47,12 +45,11 @@ func (s *server) StopCollection() error {
 }
 
 type ServerOpts struct {
-	Logger             logr.Logger
-	StoreType          string
-	ClustersManager    clustersmngr.ClustersManager
-	CollectionInterval time.Duration
-	ObjectKinds        []schema.GroupVersionKind
-	SkipCollection     bool
+	Logger          logr.Logger
+	ClustersManager clustersmngr.ClustersManager
+	ObjectKinds     []schema.GroupVersionKind
+	SkipCollection  bool
+	StoreType       string
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
