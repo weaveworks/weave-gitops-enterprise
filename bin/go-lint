@@ -3,7 +3,7 @@
 set -e
 
 GOPATH=$(go env GOPATH)
-GOLANGCI_LINT_VERSION="v1.46.1"
+GOLANGCI_LINT_VERSION="v1.51.2"
 
 if [ ! -x "${GOPATH}/bin/golangci-lint" ]; then
     curl -sfL \

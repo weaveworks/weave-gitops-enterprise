@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	rand.Seed(time.Now().UnixNano())
+	rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	tempDir, err := os.MkdirTemp("", "*")
 	if err != nil {

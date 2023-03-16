@@ -12,7 +12,8 @@ func TestNewNamespaceCache(t *testing.T) {
 	cli := fake.NewSimpleClientset()
 	factory := informers.NewSharedInformerFactory(cli, 0)
 	want := NamespacesInformerCache{namespacesInformer: factory.Core().V1().Namespaces()}
-	got := NewNamespacesInformerCache(factory)
+	got, err := NewNamespacesInformerCache(factory)
+	assert.NoError(t, err)
 	assert.Equal(t, want.namespacesInformer.Informer(), got.namespacesInformer.Informer())
 }
 
