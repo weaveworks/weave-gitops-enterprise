@@ -196,7 +196,7 @@ func TestEncryptSecret(t *testing.T) {
 	s := getServer(t, clustersClients, namespaces)
 
 	for _, tt := range tests {
-		res, err := s.SopsEncryptSecret(ctx, tt.request)
+		res, err := s.EncryptSopsSecret(ctx, tt.request)
 		if err != nil {
 			t.Errorf(err.Error())
 		}
