@@ -5,6 +5,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqlite"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -33,6 +34,6 @@ type StoreReader interface {
 }
 
 // factory method that by default creates a in memory store
-func NewStore(location string, log logr.Logger) (Store, error) {
-	return newSQLiteStore(location, log)
+func NewStore(location string, log logr.Logger) (Store, string, error) {
+	return sqlite.NewStore(location, log)
 }
