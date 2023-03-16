@@ -13,7 +13,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -551,7 +550,7 @@ func getCommonKustomization(cluster types.NamespacedName) (*git.CommitFile, erro
 	return file, nil
 }
 
-func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*gitprovider.CommitFile, error) {
+func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*git.CommitFile, error) {
 	sopsKustomizationPath := getSopsKustomizationPath(cluster)
 	sopsKustomization := createSopsKustomizationObject(&capiv1_proto.Kustomization{
 		Metadata: &capiv1_proto.Metadata{
@@ -582,8 +581,8 @@ func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*g
 		return nil, fmt.Errorf("error marshalling sops kustomization, %w", err)
 	}
 	sopsKustomizationString := string(b)
-	file := &gitprovider.CommitFile{
-		Path:    &sopsKustomizationPath,
+	file := &git.CommitFile{
+		Path:    sopsKustomizationPath,
 		Content: &sopsKustomizationString,
 	}
 	return file, nil
