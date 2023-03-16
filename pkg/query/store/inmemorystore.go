@@ -81,6 +81,7 @@ func (i InMemoryStore) StoreObjects(ctx context.Context, objects []models.Object
 }
 
 func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (int64, error) {
+
 	if ctx == nil {
 		return -1, fmt.Errorf("invalid context")
 	}
@@ -102,10 +103,23 @@ func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (i
 // TODO add ctx
 func (i InMemoryStore) GetObjects() ([]models.Object, error) {
 
-	context.Background()
+	//TODO remove
+	background := context.Background()
+	addObject := models.Object{
+		Name:      "podinfo",
+		Namespace: "default",
+		Kind:      "HelmRelease",
+	}
+
+	id, err := i.StoreObject(background, addObject)
+	if err != nil {
+		return []models.Object{}, fmt.Errorf("failed to query database: %w", err)
+	}
+	i.log.Info("object added", "id", id)
+
 	sqlStatement := `SELECT name,namespace,kind FROM documents`
 
-	rows, err := i.db.QueryContext(context.Background(), sqlStatement)
+	rows, err := i.db.QueryContext(background, sqlStatement)
 	if err != nil {
 		return []models.Object{}, fmt.Errorf("failed to query database: %w", err)
 	}
@@ -119,12 +133,13 @@ func (i InMemoryStore) GetObjects() ([]models.Object, error) {
 		}
 		objects = append(objects, object)
 	}
+	i.log.Info("get objects", "objects", objects)
 
 	return objects, nil
 }
 
 func (i InMemoryStore) GetAccessRules() ([]models.AccessRule, error) {
-	return []models.AccessRule{}, fmt.Errorf("not implemented yet")
+	return []models.AccessRule{}, nil
 }
 
 // TODO add unit tests

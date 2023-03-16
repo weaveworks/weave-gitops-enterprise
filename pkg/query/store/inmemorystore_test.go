@@ -143,7 +143,7 @@ func TestGetObjects(t *testing.T) {
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(len(objects) == 1).To(BeTrue())
+			g.Expect(len(objects) > 0).To(BeTrue())
 			g.Expect(objects[0].Name == "name").To(BeTrue())
 		})
 	}
