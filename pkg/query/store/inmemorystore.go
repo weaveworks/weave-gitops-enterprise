@@ -99,8 +99,28 @@ func (i InMemoryStore) StoreObject(ctx context.Context, object models.Object) (i
 	return result.LastInsertId()
 }
 
+// TODO add ctx
 func (i InMemoryStore) GetObjects() ([]models.Object, error) {
-	return []models.Object{}, fmt.Errorf("not implemented yet")
+
+	context.Background()
+	sqlStatement := `SELECT name,namespace,kind FROM documents`
+
+	rows, err := i.db.QueryContext(context.Background(), sqlStatement)
+	if err != nil {
+		return []models.Object{}, fmt.Errorf("failed to query database: %w", err)
+	}
+	defer rows.Close()
+
+	var objects []models.Object
+	for rows.Next() {
+		var object models.Object
+		if err := rows.Scan(&object.Name, &object.Namespace, &object.Kind); err != nil {
+			return nil, fmt.Errorf("failed to scan database: %w", err)
+		}
+		objects = append(objects, object)
+	}
+
+	return objects, nil
 }
 
 func (i InMemoryStore) GetAccessRules() ([]models.AccessRule, error) {

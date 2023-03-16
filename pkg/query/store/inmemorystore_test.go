@@ -43,7 +43,7 @@ func TestNewInMemoryStore(t *testing.T) {
 	}
 }
 
-func TestAdd(t *testing.T) {
+func TestStoreObject(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	dbDir, err := os.MkdirTemp("", "db")
@@ -104,6 +104,47 @@ func TestAdd(t *testing.T) {
 			}
 			g.Expect(err).To(BeNil())
 			g.Expect(id > 0).To(BeTrue())
+		})
+	}
+}
+
+func TestGetObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	log := testr.New(t)
+	dbDir, err := os.MkdirTemp("", "db")
+	g.Expect(err).To(BeNil())
+	store, _ := newInMemoryStore(dbDir, log)
+	ctx := context.Background()
+
+	object := models.Object{
+		Name:      "name",
+		Namespace: "namespace",
+		Kind:      "ValidKind",
+	}
+
+	_, err = store.StoreObject(ctx, object)
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name       string
+		object     models.Object
+		errPattern string
+	}{
+		{
+			name:       "can get objects",
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			objects, err := store.GetObjects()
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			g.Expect(len(objects) == 1).To(BeTrue())
+			g.Expect(objects[0].Name == "name").To(BeTrue())
 		})
 	}
 
