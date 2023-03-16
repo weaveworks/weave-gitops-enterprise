@@ -61,9 +61,9 @@ func (q *qs) RunQuery(ctx context.Context, opts []Query) ([]models.Object, error
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
 
-	_ = q.filter(principal, rules, allObjects)
+	result := q.filter(principal, rules, allObjects)
 
-	return allObjects, nil
+	return result, nil
 }
 
 func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
