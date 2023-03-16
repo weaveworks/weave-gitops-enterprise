@@ -6,6 +6,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	rbacv1 "k8s.io/api/rbac/v1"
+	"k8s.io/kubectl/pkg/util/slice"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
@@ -14,7 +15,6 @@ import (
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/kubernetes/pkg/util/slice"
 )
 
 var DefaultVerbsRequiredForAccess = []string{"list"}
