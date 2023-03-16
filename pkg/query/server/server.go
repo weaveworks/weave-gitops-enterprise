@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/applicationscollector"
 	"os"
 
 	"github.com/go-logr/logr"
@@ -13,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesscollector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -23,7 +23,7 @@ type server struct {
 
 	qs   query.QueryService
 	arc  *accesscollector.AccessRulesCollector
-	apps *applicationscollector.ApplicationsCollector
+	objs *objectscollector.ObjectsCollector
 }
 
 func (s *server) StopCollection() error {
@@ -35,8 +35,8 @@ func (s *server) StopCollection() error {
 		}
 	}
 
-	if s.apps != nil {
-		if err := s.apps.Stop(); err != nil {
+	if s.objs != nil {
+		if err := s.objs.Stop(); err != nil {
 			return fmt.Errorf("failed to stop object collection: %w", err)
 		}
 	}
@@ -119,17 +119,17 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		appCollector, err := applicationscollector.NewApplicationsCollector(s, optsCollector)
+		objsCollector, err := objectscollector.NewObjectsCollector(s, optsCollector)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
-		if err = appCollector.Start(ctx); err != nil {
+		if err = objsCollector.Start(ctx); err != nil {
 			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
 		}
 
 		serv.arc = rulesCollector
-		serv.apps = appCollector
+		serv.objs = objsCollector
 	}
 
 	return serv, serv.StopCollection, nil
