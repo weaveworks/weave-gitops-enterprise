@@ -12,7 +12,6 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -59,7 +58,6 @@ func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
 		return fmt.Errorf("could not get object client: %w", err)
 	}
 	err = ctrl.NewControllerManagedBy(mgr).For(clientObject).
-		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).
 		Complete(&g)
 	if err != nil {
 		return err
