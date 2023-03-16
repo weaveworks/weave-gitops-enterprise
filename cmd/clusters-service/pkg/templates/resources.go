@@ -77,14 +77,6 @@ func InjectJSONAnnotation(resources [][]byte, annotation string, value interface
 				return nil, fmt.Errorf("failed to add annotation: %v", err)
 			}
 
-			// If the resource is a Cluster or GitopsCluster, we don't want to prune it
-			if trimmedKind != "Cluster" && trimmedKind != "GitopsCluster" {
-				err = annotationsNode.PipeE(kyaml.SetField("kustomize.toolkit.fluxcd.io/prune", kyaml.NewScalarRNode("disabled")))
-				if err != nil {
-					return nil, fmt.Errorf("failed to add annotation: %v", err)
-				}
-			}
-
 			updated[i] = []byte(obj.MustString())
 		} else {
 			updated[i] = resources[i]
