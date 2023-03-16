@@ -21,6 +21,7 @@ const _ = grpc.SupportPackageIsVersion7
 type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
+	//
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
@@ -88,6 +89,8 @@ type ClustersServiceClient interface {
 	GetExternalSecret(ctx context.Context, in *GetExternalSecretRequest, opts ...grpc.CallOption) (*GetExternalSecretResponse, error)
 	// ListExternalSecretStores list external secrets stores
 	ListExternalSecretStores(ctx context.Context, in *ListExternalSecretStoresRequest, opts ...grpc.CallOption) (*ListExternalSecretStoresResponse, error)
+	// SyncExternalSecrets sync externalSecret Operator secrets
+	SyncExternalSecrets(ctx context.Context, in *SyncExternalSecretsRequest, opts ...grpc.CallOption) (*SyncExternalSecretsResponse, error)
 	// ListPolicyConfigs list policy configs
 	ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error)
 	// GetPolicyConfig get policy config details
@@ -390,6 +393,15 @@ func (c *clustersServiceClient) ListExternalSecretStores(ctx context.Context, in
 	return out, nil
 }
 
+func (c *clustersServiceClient) SyncExternalSecrets(ctx context.Context, in *SyncExternalSecretsRequest, opts ...grpc.CallOption) (*SyncExternalSecretsResponse, error) {
+	out := new(SyncExternalSecretsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/SyncExternalSecrets", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clustersServiceClient) ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error) {
 	out := new(ListPolicyConfigsResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListPolicyConfigs", in, out, opts...)
@@ -414,6 +426,7 @@ func (c *clustersServiceClient) GetPolicyConfig(ctx context.Context, in *GetPoli
 type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
+	//
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
@@ -481,6 +494,8 @@ type ClustersServiceServer interface {
 	GetExternalSecret(context.Context, *GetExternalSecretRequest) (*GetExternalSecretResponse, error)
 	// ListExternalSecretStores list external secrets stores
 	ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error)
+	// SyncExternalSecrets sync externalSecret Operator secrets
+	SyncExternalSecrets(context.Context, *SyncExternalSecretsRequest) (*SyncExternalSecretsResponse, error)
 	// ListPolicyConfigs list policy configs
 	ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error)
 	// GetPolicyConfig get policy config details
@@ -587,6 +602,9 @@ func (UnimplementedClustersServiceServer) GetExternalSecret(context.Context, *Ge
 }
 func (UnimplementedClustersServiceServer) ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListExternalSecretStores not implemented")
+}
+func (UnimplementedClustersServiceServer) SyncExternalSecrets(context.Context, *SyncExternalSecretsRequest) (*SyncExternalSecretsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncExternalSecrets not implemented")
 }
 func (UnimplementedClustersServiceServer) ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyConfigs not implemented")
@@ -1183,6 +1201,24 @@ func _ClustersService_ListExternalSecretStores_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_SyncExternalSecrets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncExternalSecretsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).SyncExternalSecrets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/SyncExternalSecrets",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).SyncExternalSecrets(ctx, req.(*SyncExternalSecretsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ClustersService_ListPolicyConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListPolicyConfigsRequest)
 	if err := dec(in); err != nil {
@@ -1353,6 +1389,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListExternalSecretStores",
 			Handler:    _ClustersService_ListExternalSecretStores_Handler,
+		},
+		{
+			MethodName: "SyncExternalSecrets",
+			Handler:    _ClustersService_SyncExternalSecrets_Handler,
 		},
 		{
 			MethodName: "ListPolicyConfigs",

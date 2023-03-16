@@ -13,6 +13,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 // creating test for list external secrets
@@ -514,4 +515,159 @@ func TestListSecretStores(t *testing.T) {
 		assert.Equal(t, tt.response.Total, res.Total, "total items number is not correct")
 
 	}
+}
+
+// TestSyncExternalSecret exectue unitTest for SyncExternalSecret
+func TestSyncExternalSecret(t *testing.T) {
+	clusters := []struct {
+		name  string
+		state []runtime.Object
+	}{
+		{
+			name: "management",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a",
+					},
+				},
+				&esv1beta1.SecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "aws-secret-store",
+						Namespace: "namespace-a",
+					},
+					Spec: esv1beta1.SecretStoreSpec{
+						Provider: &esv1beta1.SecretStoreProvider{
+							AWS: &esv1beta1.AWSProvider{
+								Region: "eu-north-1",
+							},
+						},
+					},
+				},
+				&esv1beta1.ClusterSecretStore{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "valt-secret-store",
+					},
+					Spec: esv1beta1.SecretStoreSpec{
+						Provider: &esv1beta1.SecretStoreProvider{
+							Vault: &esv1beta1.VaultProvider{},
+						},
+					},
+				},
+				&esv1beta1.ExternalSecret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "external-secret-a",
+						Namespace: "namespace-a",
+					},
+					Spec: esv1beta1.ExternalSecretSpec{
+						SecretStoreRef: esv1beta1.SecretStoreRef{
+							Name: "aws-secret-store",
+						},
+						Target: esv1beta1.ExternalSecretTarget{
+							Name: "secret-a",
+						},
+						Data: []esv1beta1.ExternalSecretData{
+							{
+								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+									Key:      "Data/key-a",
+									Property: "property-a",
+									Version:  "1.0.0",
+								},
+							},
+						},
+					},
+				},
+				&esv1beta1.ExternalSecret{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "external-secret-b",
+						Namespace: "namespace-a",
+						Annotations: map[string]string{
+							"force-sync": "2020-01-01T00:00:00Z",
+						},
+					},
+					Spec: esv1beta1.ExternalSecretSpec{
+						SecretStoreRef: esv1beta1.SecretStoreRef{
+							Name: "aws-secret-store",
+						},
+						Target: esv1beta1.ExternalSecretTarget{
+							Name: "secret-b",
+						},
+						Data: []esv1beta1.ExternalSecretData{
+							{
+								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+									Key:      "Data/key-b",
+									Property: "property-b",
+									Version:  "1.0.0",
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		request  *capiv1_proto.SyncExternalSecretsRequest
+		response *capiv1_proto.SyncExternalSecretsResponse
+		err      bool
+	}{
+		{
+			request: &capiv1_proto.SyncExternalSecretsRequest{
+				ClusterName:        "management",
+				Namespace:          "namespace-a",
+				ExternalSecretName: "external-secret-a",
+			},
+			response: nil,
+		},
+		{
+			request: &capiv1_proto.SyncExternalSecretsRequest{
+				ClusterName:        "management",
+				Namespace:          "namespace-a",
+				ExternalSecretName: "external-secret-b",
+			},
+			response: nil,
+		},
+		{
+			request: &capiv1_proto.SyncExternalSecretsRequest{
+				ClusterName:        "management",
+				Namespace:          "namespace-a",
+				ExternalSecretName: "external-secret-c",
+			},
+			err: true,
+		},
+	}
+
+	clustersClients := map[string]client.Client{}
+	for _, cluster := range clusters {
+		clustersClients[cluster.name] = createClient(t, cluster.state...)
+	}
+
+	s := getServer(t, clustersClients, nil)
+
+	for _, tt := range tests {
+		res, err := s.SyncExternalSecrets(context.Background(), tt.request)
+		if tt.err {
+			assert.NotNil(t, err)
+			continue
+		}
+		assert.Nil(t, err)
+
+		//get the CR from the cluster and check if the annotation has been added/updated
+		externalSecret := &esv1beta1.ExternalSecret{}
+		err = clustersClients[tt.request.ClusterName].Get(context.Background(), types.NamespacedName{
+			Namespace: tt.request.Namespace,
+			Name:      tt.request.ExternalSecretName,
+		}, externalSecret)
+		if err != nil {
+			t.Fatalf("got unexpected error when getting external secret, error: %v", err)
+		}
+		_, ok := externalSecret.Annotations["force-sync"]
+		if !ok {
+			t.Fatalf("external secret has not been updated")
+		}
+
+		assert.Equal(t, tt.response, res, "stores do not match expected stores")
+	}
+
 }
