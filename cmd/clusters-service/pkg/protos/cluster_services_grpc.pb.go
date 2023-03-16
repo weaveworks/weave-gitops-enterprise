@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion7
 type ClustersServiceClient interface {
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
-	//
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
@@ -437,7 +436,6 @@ func (c *clustersServiceClient) EncryptSopsSecret(ctx context.Context, in *Encry
 type ClustersServiceServer interface {
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
-	//
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
 	// Returns a list of profiles within that template
