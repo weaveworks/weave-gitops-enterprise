@@ -333,6 +333,39 @@
         ]
       }
     },
+    "/v1/encrypt-sops-secret": {
+      "post": {
+        "summary": "EncryptSopsSecret encrypts a sops secret",
+        "operationId": "ClustersService_EncryptSopsSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EncryptSopsSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1EncryptSopsSecretRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/automations": {
       "post": {
         "summary": "Creates a pull request for the given list of Kustomizations.",
@@ -804,39 +837,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/sops-encrypt-secret": {
-      "post": {
-        "summary": "SopsEncryptSecret encrypts a sops secret",
-        "operationId": "ClustersService_SopsEncryptSecret",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SopsEncryptSecretResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SopsEncryptSecretRequest"
-            }
           }
         ],
         "tags": [
@@ -1876,6 +1876,61 @@
         "webUrl": {
           "type": "string",
           "description": "The url of the new pull request."
+        }
+      }
+    },
+    "v1EncryptSopsSecretRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "immutable": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stringData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "kustomizationName": {
+          "type": "string"
+        },
+        "kustomizationNamespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1EncryptSopsSecretResponse": {
+      "type": "object",
+      "properties": {
+        "encryptedSecret": {
+          "type": "object"
+        },
+        "path": {
+          "type": "string"
         }
       }
     },
@@ -3192,6 +3247,7 @@
       }
     },
 <<<<<<< HEAD
+<<<<<<< HEAD
     "v1SecretRef": {
 =======
     "v1SopsEncryptSecretRequest": {
@@ -3256,6 +3312,8 @@
         }
       }
     },
+=======
+>>>>>>> 055647a1 (address remarks)
     "v1SourceRef": {
       "type": "object",
       "properties": {

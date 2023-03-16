@@ -268,9 +268,9 @@ service ClustersService {
   }
 
   // EncryptSopsSecret encrypts a sops secret
-  rpc SopsEncryptSecret(SopsEncryptSecretRequest) returns (SopsEncryptSecretResponse) {
+  rpc EncryptSopsSecret(EncryptSopsSecretRequest) returns (EncryptSopsSecretResponse) {
     option (google.api.http) = {
-      post : "/v1/sops-encrypt-secret",
+      post : "/v1/encrypt-sops-secret",
       body : "*"
     };
   }
@@ -1201,7 +1201,7 @@ message PolicyConfigObject {
 }
 
 
-message SopsEncryptSecretRequest {
+message EncryptSopsSecretRequest {
   string name = 1;
   string namespace = 2;
   map<string, string> labels = 3;
@@ -1214,7 +1214,7 @@ message SopsEncryptSecretRequest {
   string clusterName = 10;
 }
 
-message SopsEncryptSecretResponse {
+message EncryptSopsSecretResponse {
   google.protobuf.Value encrypted_secret = 1;
   string path = 2;
 }

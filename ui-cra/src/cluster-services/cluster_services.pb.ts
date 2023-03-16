@@ -900,7 +900,7 @@ export type PolicyConfigObject = {
   spec?: PolicyConfigObjectSpec
 }
 
-export type SopsEncryptSecretRequest = {
+export type EncryptSopsSecretRequest = {
   name?: string
   namespace?: string
   labels?: {[key: string]: string}
@@ -913,7 +913,7 @@ export type SopsEncryptSecretRequest = {
   clusterName?: string
 }
 
-export type SopsEncryptSecretResponse = {
+export type EncryptSopsSecretResponse = {
   encryptedSecret?: GoogleProtobufStruct.Value
   path?: string
 }
@@ -1024,7 +1024,7 @@ export class ClustersService {
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
     return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
-  static SopsEncryptSecret(req: SopsEncryptSecretRequest, initReq?: fm.InitReq): Promise<SopsEncryptSecretResponse> {
-    return fm.fetchReq<SopsEncryptSecretRequest, SopsEncryptSecretResponse>(`/v1/sops-encrypt-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
+    return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }
