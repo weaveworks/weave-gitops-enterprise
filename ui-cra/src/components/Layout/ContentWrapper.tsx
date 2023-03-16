@@ -112,7 +112,7 @@ export const ContentWrapper: FC<Props> = ({
           errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
         />
       )}
-      {warningMsg && warningMsg !== '' && (
+      {!!warningMsg && (
         <WarningWrapper
           severity="warning"
           iconMapping={{
