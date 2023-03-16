@@ -12,8 +12,6 @@ type Object struct {
 	Operation string
 }
 
-// TODO review pacckage
-//
 //counterfeiter:generate . ObjectRecord
 type ObjectRecord interface {
 	ClusterName() string
