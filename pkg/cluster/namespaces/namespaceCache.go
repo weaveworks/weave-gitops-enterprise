@@ -15,13 +15,16 @@ type NamespacesInformerCache struct {
 }
 
 // NewNamespaceCache registers a namespace cache in the given shared informer
-func NewNamespacesInformerCache(factory informers.SharedInformerFactory) *NamespacesInformerCache {
+func NewNamespacesInformerCache(factory informers.SharedInformerFactory) (*NamespacesInformerCache, error) {
 	namespacesInformer := factory.Core().V1().Namespaces()
-	namespacesInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{})
+	_, err := namespacesInformer.Informer().AddEventHandler(cache.ResourceEventHandlerFuncs{})
+	if err != nil {
+		return nil, fmt.Errorf("failed to add event handler for namespaces: %w", err)
+	}
 
 	return &NamespacesInformerCache{
 		namespacesInformer: namespacesInformer,
-	}
+	}, nil
 }
 
 // List lists all namespaces in cache
