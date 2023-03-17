@@ -13,6 +13,7 @@ import (
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 // dbFile is the name of the sqlite3 database file
@@ -24,22 +25,14 @@ type SQLiteStore struct {
 	log      logr.Logger
 }
 
-func NewStore(location string, log logr.Logger) (*SQLiteStore, string, error) {
-	if location == "" {
-		return nil, "", fmt.Errorf("invalid location")
-	}
-	dbLocation, db, err := createDB(location, log)
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to create database: %w", err)
-	}
+func NewStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
-		location: dbLocation,
-		db:       db,
-		log:      log,
-	}, dbLocation, nil
+		db:  db,
+		log: log,
+	}, nil
 }
 
-func (i SQLiteStore) StoreAccessRules(ctx context.Context, rules []models.AccessRule) error {
+func (i *SQLiteStore) StoreAccessRules(ctx context.Context, rules []models.AccessRule) error {
 	for _, rule := range rules {
 		if err := rule.Validate(); err != nil {
 			return fmt.Errorf("invalid access rule: %w", err)
@@ -51,14 +44,27 @@ func (i SQLiteStore) StoreAccessRules(ctx context.Context, rules []models.Access
 	return result.Error
 }
 
-func (i SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
+func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
+	// Gotta copy the objects because we need to set the ID
+	rows := []models.Object{}
+
 	for _, object := range objects {
 		if err := object.Validate(); err != nil {
 			return fmt.Errorf("invalid object: %w", err)
 		}
+
+		object.ID = object.GetID()
+		rows = append(rows, object)
 	}
 
-	result := i.db.Create(objects)
+	clauses := i.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "id"},
+		},
+		UpdateAll: true,
+	})
+
+	result := clauses.Create(rows)
 	if result.Error != nil {
 		return fmt.Errorf("failed to store object: %w", result.Error)
 	}
@@ -66,56 +72,63 @@ func (i SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) 
 	return nil
 }
 
-func (i SQLiteStore) GetObjects(ctx context.Context) ([]models.Object, error) {
+func (i *SQLiteStore) GetObjects(ctx context.Context) ([]models.Object, error) {
 	objects := []models.Object{}
 	result := i.db.Find(&objects)
 
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to query database: %w", result.Error)
-	}
-
-	return objects, nil
+	return objects, result.Error
 }
 
-func (i SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
+func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	rules := []models.AccessRule{}
 
 	result := i.db.Find(&rules)
-	if result.Error != nil {
-		return nil, fmt.Errorf("failed to query database: %w", result.Error)
+
+	return rules, result.Error
+}
+
+func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object) error {
+	for _, object := range objects {
+		if err := object.Validate(); err != nil {
+			return fmt.Errorf("invalid object: %w", err)
+		}
+
+		where := i.db.Where(
+			"cluster = ? and namespace = ? and kind = ? and name = ? ",
+			object.Cluster, object.Namespace, object.Kind, object.Name,
+		)
+		result := i.db.Unscoped().Delete(&models.Object{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete object: %w", result.Error)
+		}
 	}
 
-	return rules, nil
+	return nil
 }
 
-func (i SQLiteStore) DeleteObject(ctx context.Context, object models.Object) error {
-	//TODO implement me
-	panic("implement me")
-}
-
-func createDB(cacheLocation string, log logr.Logger) (string, *gorm.DB, error) {
-	dbFileLocation := filepath.Join(cacheLocation, dbFile)
+func CreateDB(path string) (*gorm.DB, error) {
+	dbFileLocation := filepath.Join(path, dbFile)
 	// make sure the directory exists
-	if err := os.MkdirAll(cacheLocation, os.ModePerm); err != nil {
-		return "", nil, fmt.Errorf("failed to create cache directory: %w", err)
+	if err := os.MkdirAll(path, os.ModePerm); err != nil {
+		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
 	db, err := gorm.Open(sqlite.Open(dbFileLocation), &gorm.Config{})
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to open database: %w", err)
+		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
 
 	goDB, err := db.DB()
 	if err != nil {
-		return "", nil, fmt.Errorf("failed to golang sql database: %w", err)
+		return nil, fmt.Errorf("failed to golang sql database: %w", err)
 	}
 
 	// From the readme: https://github.com/mattn/go-sqlite3
 	goDB.SetMaxOpenConns(1)
 
 	if err := db.AutoMigrate(&models.Object{}, &models.AccessRule{}); err != nil {
-		return "", nil, fmt.Errorf("failed to migrate database: %w", err)
+		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 
-	return dbFileLocation, db, nil
+	return db, nil
 }

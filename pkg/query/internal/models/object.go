@@ -3,12 +3,11 @@ package models
 import (
 	"fmt"
 
-	"gorm.io/gorm"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Object struct {
-	gorm.Model
+	ID        string `gorm:"primaryKey;autoIncrement:false"`
 	Cluster   string `gorm:"type:text"`
 	Namespace string `gorm:"type:text"`
 	Kind      string `gorm:"type:text"`
@@ -31,6 +30,10 @@ func (o Object) Validate() error {
 		return fmt.Errorf("missing kind field")
 	}
 	return nil
+}
+
+func (o *Object) GetID() string {
+	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.Kind, o.Name)
 }
 
 //counterfeiter:generate . ObjectRecord

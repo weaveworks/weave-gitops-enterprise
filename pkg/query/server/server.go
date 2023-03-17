@@ -12,6 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesscollector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqlite"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -87,8 +88,12 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, err
 	}
 
-	s, _, err := store.NewStore(dbDir, opts.Logger)
+	db, err := sqlite.CreateDB(dbDir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create db:%w", err)
+	}
 
+	s, err := store.NewStore(db, opts.Logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)
 	}
