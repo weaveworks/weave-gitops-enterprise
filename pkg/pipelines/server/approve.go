@@ -6,7 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -104,7 +104,7 @@ func (s *server) postApproveRequest(controllerAddress string, p ctrl.Pipeline, e
 	defer resp.Body.Close()
 
 	if !(resp.StatusCode >= 200 && resp.StatusCode < 300) {
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		if err != nil {
 			return "", fmt.Errorf("failed to read response body: %w", err)
 		}
