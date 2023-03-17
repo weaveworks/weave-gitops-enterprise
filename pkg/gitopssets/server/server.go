@@ -78,6 +78,7 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
 		return &ctrl.GitOpsSetList{}
 	})
+	
 	if err != nil {
 		return nil, fmt.Errorf("failed to query gitopssets: %w", err)
 	}
@@ -91,7 +92,13 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 		}
 		gsList := namespacedList.List.(*ctrl.GitOpsSetList)
 		for _, gs := range gsList.Items {
-			gitopsSets = append(gitopsSets, convert.GitOpsToProto(s.cluster, gs))
+			gitOpsSet, err := convert.GitOpsToProto(s.cluster, gs)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert gitopsset: %w", err)
+			}
+			fmt.Println("all")
+			fmt.Println(gitOpsSet)
+			gitopsSets = append(gitopsSets, gitOpsSet)
 		}
 	}
 
@@ -109,12 +116,21 @@ func (s *server) GetGitOpsSet(ctx context.Context, msg *pb.GetGitOpsSetRequest) 
 
 	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
 
-	result := &ctrl.GitOpsSet{}
-	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+	result := ctrl.GitOpsSet{}
+	if err := c.Get(ctx, msg.ClusterName, n, &result); err != nil {
 		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
 	}
 
-	gitOpsSet := convert.GitOpsToProto(msg.ClusterName, *result)
+	fmt.Println("GITOPSSET")
+	fmt.Println(result)
+
+	gitOpsSet, err := convert.GitOpsToProto(msg.ClusterName, result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert gitopsset: %w", err)
+	}
+
+	fmt.Println("detail")
+	fmt.Println(gitOpsSet)
 
 	return &pb.GetGitOpsSetResponse{
 		GitopsSet: gitOpsSet,

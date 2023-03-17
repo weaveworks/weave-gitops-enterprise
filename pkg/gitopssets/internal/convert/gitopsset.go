@@ -1,14 +1,15 @@
 package convert
 
 import (
-	"encoding/json"
+	"bytes"
 	"fmt"
 
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
+	k8s_json "k8s.io/apimachinery/pkg/runtime/serializer/json"
 )
 
-func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
+func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) (*pb.GitOpsSet, error) {
 	inv := []*pb.ResourceRef{}
 	if gs.Status.Inventory != nil {
 		for _, r := range gs.Status.Inventory.Entries {
@@ -31,8 +32,15 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 			})
 		}
 	}
+	var buf bytes.Buffer
 
-	gsYaml, _ := json.Marshal(gs)
+	serializer := k8s_json.NewSerializer(k8s_json.DefaultMetaFactory, nil, nil, false)
+	if err := serializer.Encode(&gs, &buf); err != nil {
+		return nil, err
+	}
+
+	fmt.Println("GITOPSSETTOPROTO")
+	fmt.Println(buf.String())
 
 	return &pb.GitOpsSet{
 		Name:               gs.Name,
@@ -45,12 +53,12 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) *pb.GitOpsSet {
 		Type:               gs.GetObjectKind().GroupVersionKind().Kind,
 		Suspended:          gs.Spec.Suspend,
 		ObservedGeneration: gs.Status.ObservedGeneration,
-		Yaml:               string(gsYaml),
+		Yaml:               buf.String(),
 		ObjectRef: &pb.ObjectRef{
 			Kind:        gs.GetObjectKind().GroupVersionKind().Kind,
 			Name:        gs.Name,
 			Namespace:   gs.Namespace,
 			ClusterName: clusterName,
 		},
-	}
+	}, nil
 }
