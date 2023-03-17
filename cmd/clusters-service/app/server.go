@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 	stdlog "log"
 	"math/big"
 	"net"
@@ -23,6 +22,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 
 	"github.com/NYTimes/gziphandler"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
