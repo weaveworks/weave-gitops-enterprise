@@ -33,13 +33,15 @@ service Query {
 }
 
 message QueryRequest {
-    repeated QueryOpts query = 1;
+    QueryOpts query = 1;
 }
 
 message QueryOpts {
-    string Key = 1;
-    string Value = 2;
+    string Key     = 1;
+    string Value   = 2;
     string Operand = 3;
+    int64 Offset  = 4;
+    int64 Limit   = 5;
 }
 
 message QueryResponse {

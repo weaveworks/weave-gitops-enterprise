@@ -162,6 +162,14 @@
         },
         "Operand": {
           "type": "string"
+        },
+        "Offset": {
+          "type": "string",
+          "format": "int64"
+        },
+        "Limit": {
+          "type": "string",
+          "format": "int64"
         }
       }
     },
@@ -169,10 +177,7 @@
       "type": "object",
       "properties": {
         "query": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1QueryOpts"
-          }
+          "$ref": "#/definitions/v1QueryOpts"
         }
       }
     },

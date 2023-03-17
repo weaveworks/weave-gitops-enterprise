@@ -35,10 +35,11 @@ type FakeStore struct {
 		result1 []models.AccessRule
 		result2 error
 	}
-	GetObjectsStub        func(context.Context) ([]models.Object, error)
+	GetObjectsStub        func(context.Context, store.Query) ([]models.Object, error)
 	getObjectsMutex       sync.RWMutex
 	getObjectsArgsForCall []struct {
 		arg1 context.Context
+		arg2 store.Query
 	}
 	getObjectsReturns struct {
 		result1 []models.Object
@@ -207,18 +208,19 @@ func (fake *FakeStore) GetAccessRulesReturnsOnCall(i int, result1 []models.Acces
 	}{result1, result2}
 }
 
-func (fake *FakeStore) GetObjects(arg1 context.Context) ([]models.Object, error) {
+func (fake *FakeStore) GetObjects(arg1 context.Context, arg2 store.Query) ([]models.Object, error) {
 	fake.getObjectsMutex.Lock()
 	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
 	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 store.Query
+	}{arg1, arg2})
 	stub := fake.GetObjectsStub
 	fakeReturns := fake.getObjectsReturns
-	fake.recordInvocation("GetObjects", []interface{}{arg1})
+	fake.recordInvocation("GetObjects", []interface{}{arg1, arg2})
 	fake.getObjectsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -232,17 +234,17 @@ func (fake *FakeStore) GetObjectsCallCount() int {
 	return len(fake.getObjectsArgsForCall)
 }
 
-func (fake *FakeStore) GetObjectsCalls(stub func(context.Context) ([]models.Object, error)) {
+func (fake *FakeStore) GetObjectsCalls(stub func(context.Context, store.Query) ([]models.Object, error)) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = stub
 }
 
-func (fake *FakeStore) GetObjectsArgsForCall(i int) context.Context {
+func (fake *FakeStore) GetObjectsArgsForCall(i int) (context.Context, store.Query) {
 	fake.getObjectsMutex.RLock()
 	defer fake.getObjectsMutex.RUnlock()
 	argsForCall := fake.getObjectsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeStore) GetObjectsReturns(result1 []models.Object, result2 error) {
