@@ -5,9 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	. "github.com/onsi/gomega"
 
-	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -15,9 +13,6 @@ import (
 	v1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-var log logr.Logger
-var g *WithT
 
 func TestAccessRuleCollector(t *testing.T) {
 	// TODO: we need to test upserting and deleting access rules
