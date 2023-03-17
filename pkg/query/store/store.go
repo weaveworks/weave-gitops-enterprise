@@ -55,7 +55,7 @@ func NewStore(backend StorageBackend, uri string, log logr.Logger) (Store, error
 		if err != nil {
 			return nil, fmt.Errorf("error creating sqlite db: %w", err)
 		}
-		return NewSQLiteStore(db, log)
+		return NewSQLiteStore(db)
 	default:
 		return nil, fmt.Errorf("unknown storage backend: %s", backend)
 	}
