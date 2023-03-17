@@ -99,7 +99,8 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	if !opts.SkipCollection {
 
 		optsCollector := collector.CollectorOpts{
-			Log: opts.Logger,
+			Log:      opts.Logger,
+			Clusters: opts.ClustersManager.GetClusters(),
 			// ClusterManager: opts.ClustersManager,
 		}
 		// create collectors

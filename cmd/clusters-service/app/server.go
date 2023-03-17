@@ -644,9 +644,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
 	}
 
-	//Feature flag add
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_EXPLORER") != "" {
-		//TODO stop
 		_, err := queryserver.Hydrate(ctx, grpcMux, queryserver.ServerOpts{
 			Logger:          args.Log,
 			ClustersManager: args.ClustersManager,
