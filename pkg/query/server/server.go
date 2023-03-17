@@ -87,7 +87,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, err
 	}
 
-	s, err := store.NewStore(dbDir, opts.Logger)
+	s, _, err := store.NewStore(dbDir, opts.Logger)
 
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)

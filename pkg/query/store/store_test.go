@@ -17,6 +17,8 @@ func TestGetObjects(t *testing.T) {
 	dbDir, err := os.MkdirTemp("", "db")
 	g.Expect(err).To(BeNil())
 	store, _, err := sqlite.NewStore(dbDir, log)
+	g.Expect(err).To(BeNil())
+
 	ctx := context.Background()
 
 	object := models.Object{

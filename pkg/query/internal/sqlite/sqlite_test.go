@@ -24,8 +24,9 @@ func TestNewSQLiteStore(t *testing.T) {
 	defer db.Close()
 
 	rows, err := db.Query("SELECT name FROM sqlite_master;")
-	defer rows.Close()
 	g.Expect(err).To(BeNil())
+
+	defer rows.Close()
 
 	result := []string{}
 
