@@ -8,6 +8,7 @@ import (
 
 type AccessRule struct {
 	gorm.Model
+	ID              string   `gorm:"primaryKey;autoIncrement:false"`
 	Cluster         string   `gorm:"type:text"`
 	Principal       string   `gorm:"type:text"`
 	Namespace       string   `gorm:"type:text"`
@@ -28,4 +29,8 @@ func (a AccessRule) Validate() error {
 		return fmt.Errorf("accessible kinds is empty")
 	}
 	return nil
+}
+
+func (a AccessRule) GetID() string {
+	return fmt.Sprintf("%s/%s/%s", a.Cluster, a.Namespace, a.Principal)
 }

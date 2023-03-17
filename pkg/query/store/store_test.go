@@ -181,6 +181,56 @@ func TestStoreObjects(t *testing.T) {
 
 }
 
+func TestStoreAccessRules(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	t.Run("stores access rules", func(t *testing.T) {
+		store, db := createStore(t)
+
+		accessRule := models.AccessRule{
+			Cluster:         "test-cluster",
+			Namespace:       "namespace",
+			Principal:       "someuser",
+			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
+		}
+
+		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+
+		sqlDB, err := db.DB()
+		g.Expect(err).To(BeNil())
+
+		var storedAccessRule models.AccessRule
+		g.Expect(sqlDB.QueryRow("SELECT id FROM access_rules").Scan(&storedAccessRule.ID)).To(Succeed())
+
+		g.Expect(storedAccessRule.ID).To(Equal(accessRule.GetID()))
+	})
+	t.Run("upserts access rules", func(t *testing.T) {
+		store, db := createStore(t)
+
+		accessRule := models.AccessRule{
+			Cluster:         "test-cluster",
+			Namespace:       "namespace",
+			Principal:       "someuser",
+			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
+		}
+
+		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+
+		sqlDB, err := db.DB()
+		g.Expect(err).To(BeNil())
+
+		var count int64
+		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
+		g.Expect(count).To(Equal(int64(1)))
+
+		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+
+		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
+		g.Expect(count).To(Equal(int64(1)))
+	})
+
+}
+
 func createStore(t *testing.T) (Store, *gorm.DB) {
 	g := NewGomegaWithT(t)
 	dbDir, err := os.MkdirTemp("", "db")
@@ -196,7 +246,13 @@ func createStore(t *testing.T) (Store, *gorm.DB) {
 }
 
 func seed(db *gorm.DB, rows []models.Object) error {
-	result := db.Create(&rows)
+	withID := []models.Object{}
+
+	for _, o := range rows {
+		o.ID = o.GetID()
+		withID = append(withID, o)
+	}
+	result := db.Create(&withID)
 
 	return result.Error
 }
