@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -38,7 +39,24 @@ type CollectorOpts struct {
 	NewWatcherFunc     NewWatcherFunc
 }
 
+func (o *CollectorOpts) Validate() error {
+	if o.ObjectKinds == nil || len(o.ObjectKinds) == 0 {
+		return fmt.Errorf("invalid object kinds")
+	}
+	if o.Clusters == nil || len(o.Clusters) == 0 {
+		return fmt.Errorf("invalid clusters")
+	}
+	if o.ProcessRecordsFunc == nil {
+		return fmt.Errorf("process records func is nil")
+	}
+
+	return nil
+}
+
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
 func NewCollector(opts CollectorOpts, store store.Store) (Collector, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid collector options: %w", err)
+	}
 	return newWatchingCollector(opts, store)
 }

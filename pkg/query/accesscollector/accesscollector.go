@@ -69,11 +69,9 @@ func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*Acce
 }
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectRecord, store store.Store, log logr.Logger) error {
-
 	rules, err := handleRulesReceived(objectRecords)
 	if err != nil {
-		return fmt.Errorf("cannot handleRulesReceivedt: %w", err)
-
+		return fmt.Errorf("unable to receive rules: %w", err)
 	}
 
 	log.Info(fmt.Sprintf("received %d access rules", len(rules)))

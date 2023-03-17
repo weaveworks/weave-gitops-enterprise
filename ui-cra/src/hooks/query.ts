@@ -1,20 +1,13 @@
-import _ from 'lodash';
 import { useQuery } from 'react-query';
 import { Query, QueryOpts, QueryResponse } from '../api/query/query.pb';
 
-function convertToOpts(query: string): QueryOpts[] {
+// query looks like "key:value,key:value"
+function convertToOpts(query: string): QueryOpts {
   if (!query) {
-    return [{ key: '', value: '' }];
+    return { key: '', value: '' };
   }
-  const opts = _.map(query.split(','), term => {
-    const [key, value] = term.split(':');
-    return {
-      key,
-      value,
-    };
-  });
 
-  return opts;
+  return { key: '', value: '' };
 }
 
 export function useQueryService(query: string) {
