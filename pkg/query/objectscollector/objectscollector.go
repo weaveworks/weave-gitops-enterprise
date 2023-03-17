@@ -57,35 +57,33 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectRecord, store store.Store, log logr.Logger) error {
-	objects, err := adaptObjects(objectRecords)
-	if err != nil {
-		return fmt.Errorf("cannot adapt object: %store", err)
-	}
-	if err := store.StoreObjects(ctx, objects); err != nil {
-		return fmt.Errorf("cannot store object: %store", err)
-	}
-	return nil
-}
+func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	upsert := []models.Object{}
+	delete := []models.Object{}
 
-// TODO: allow to overwrite the function
-// default adapt function
-func adaptObjects(objectRecords []models.ObjectRecord) ([]models.Object, error) {
-
-	objects := []models.Object{}
-
-	for _, objectRecord := range objectRecords {
+	for _, obj := range objectRecords {
 		object := models.Object{
-			Cluster:   objectRecord.ClusterName(),
-			Name:      objectRecord.Object().GetName(),
-			Namespace: objectRecord.Object().GetNamespace(),
-			Kind:      objectRecord.Object().GetObjectKind().GroupVersionKind().Kind,
+			Cluster:   obj.ClusterName(),
+			Name:      obj.Object().GetName(),
+			Namespace: obj.Object().GetNamespace(),
+			Kind:      obj.Object().GetObjectKind().GroupVersionKind().Kind,
 			Status:    "not available",
 			Message:   "not available",
 		}
-		objects = append(objects, object)
+		if obj.TransactionType() == models.TransactionTypeDelete {
+			delete = append(delete, object)
+		} else {
+			upsert = append(upsert, object)
+		}
 	}
 
-	return objects, nil
+	if err := store.StoreObjects(ctx, upsert); err != nil {
+		return fmt.Errorf("failed to store objects: %w", err)
+	}
 
+	if err := store.DeleteObjects(ctx, delete); err != nil {
+		return fmt.Errorf("failed to delete objects: %w", err)
+	}
+
+	return nil
 }

@@ -10,6 +10,8 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -40,6 +42,7 @@ func TestNewCollector(t *testing.T) {
 				ObjectKinds:        kinds,
 				ProcessRecordsFunc: fakeProcessRecordFunc,
 				NewWatcherFunc:     newFakeWatcher,
+				Clusters:           []cluster.Cluster{&clusterfakes.FakeCluster{}},
 			},
 			store:      fakeStore,
 			errPattern: "",

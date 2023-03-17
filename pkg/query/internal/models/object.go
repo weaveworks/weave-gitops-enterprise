@@ -38,8 +38,16 @@ func (o *Object) GetID() string {
 	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.Kind, o.Name)
 }
 
-//counterfeiter:generate . ObjectRecord
-type ObjectRecord interface {
+type TransactionType string
+
+const (
+	TransactionTypeUpsert TransactionType = "upsert"
+	TransactionTypeDelete TransactionType = "delete"
+)
+
+//counterfeiter:generate . ObjectTransaction
+type ObjectTransaction interface {
 	ClusterName() string
 	Object() client.Object
+	TransactionType() TransactionType
 }

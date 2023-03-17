@@ -68,34 +68,35 @@ func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*Acce
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectRecord, store store.Store, log logr.Logger) error {
-	rules, err := handleRulesReceived(objectRecords)
+func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	upsert, _, err := handleRulesReceived(objectRecords)
 	if err != nil {
 		return fmt.Errorf("unable to receive rules: %w", err)
 	}
 
-	log.Info(fmt.Sprintf("received %d access rules", len(rules)))
-
-	if err := store.StoreAccessRules(ctx, rules); err != nil {
+	if err := store.StoreAccessRules(ctx, upsert); err != nil {
 		return fmt.Errorf("cannot store access rules: %w", err)
 	}
 
 	return nil
 }
 
-func handleRulesReceived(objects []models.ObjectRecord) ([]models.AccessRule, error) {
-	result := []models.AccessRule{}
+func handleRulesReceived(objects []models.ObjectTransaction) ([]models.AccessRule, []models.AccessRule, error) {
+	upsert := []models.AccessRule{}
+	// TODO; we will need to figure out how to calculate the removal of an access rule.
+	// If a Role gets removed, the RoleBinding might still be there and vice versa.
+	// We will need to remove an access rule when EITHER the Role or the Binding is removed.
+	remove := []models.AccessRule{}
 
 	roles := []adapters.RoleLike{}
 	bindings := []adapters.BindingLike{}
 
 	for _, obj := range objects {
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
-
 		if kind == "ClusterRole" || kind == "Role" {
 			adapter, err := adapters.NewRoleAdapter(obj.ClusterName(), obj.Object())
 			if err != nil {
-				return result, fmt.Errorf("failed to create adapter for object: %w", err)
+				return nil, nil, fmt.Errorf("failed to create adapter for object: %w", err)
 			}
 			roles = append(roles, adapter)
 		}
@@ -103,7 +104,7 @@ func handleRulesReceived(objects []models.ObjectRecord) ([]models.AccessRule, er
 		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
 			adapter, err := adapters.NewBindingAdapter(obj.ClusterName(), obj.Object())
 			if err != nil {
-				return result, fmt.Errorf("failed to create binding adapter: %w", err)
+				return nil, nil, fmt.Errorf("failed to create binding adapter: %w", err)
 			}
 
 			bindings = append(bindings, adapter)
@@ -114,16 +115,16 @@ func handleRulesReceived(objects []models.ObjectRecord) ([]models.AccessRule, er
 	for _, binding := range bindings {
 		for _, role := range roles {
 			if bindingRoleMatch(binding, role) {
-				result = append(result, convertToAccessRule(role.GetClusterName(), role, DefaultVerbsRequiredForAccess))
+				upsert = append(upsert, convertToAccessRule(role.GetClusterName(), role, DefaultVerbsRequiredForAccess))
 			}
 		}
 
 	}
 
-	return result, nil
+	return upsert, remove, nil
 }
 
-func (a *AccessRulesCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectRecord, ctx context.Context, log logr.Logger) error {
+func (a *AccessRulesCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
 	return a.col.Watch(cluster, objectsChannel, ctx, log)
 }
 

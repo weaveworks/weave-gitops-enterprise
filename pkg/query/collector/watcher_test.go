@@ -16,14 +16,14 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func newFakeWatcherManagerFunc(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
-	return kubefakes.NewControllerManager(config, options)
+func newFakeWatcherManagerFunc(opts WatcherManagerOptions) (manager.Manager, error) {
+	return kubefakes.NewControllerManager(opts.Rest, opts.ManagerOptions)
 }
 
 func TestStartWatcher(t *testing.T) {
 	g := NewGomegaWithT(t)
 	//setup watcher
-	fakeObjectsChannel := make(chan []models.ObjectRecord)
+	fakeObjectsChannel := make(chan []models.ObjectTransaction)
 	options := WatcherOptions{
 		ClientConfig: &rest.Config{
 			Host: "http://idontexist",

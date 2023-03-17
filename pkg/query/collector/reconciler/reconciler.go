@@ -22,7 +22,7 @@ type Reconciler interface {
 	Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error)
 }
 
-func NewReconciler(gvk schema.GroupVersionKind, client client.Client, objectsChannel chan []models.ObjectRecord, logger logr.Logger) (Reconciler, error) {
+func NewReconciler(clusterName string, gvk schema.GroupVersionKind, client client.Client, objectsChannel chan []models.ObjectTransaction, logger logr.Logger) (Reconciler, error) {
 
 	if client == nil {
 		return nil, fmt.Errorf("invalid client")
@@ -41,15 +41,17 @@ func NewReconciler(gvk schema.GroupVersionKind, client client.Client, objectsCha
 		client:         client,
 		objectsChannel: objectsChannel,
 		log:            logger,
+		clusterName:    clusterName,
 	}, nil
 }
 
 // HelmWatcherReconciler runs the `reconcile` loop for the watcher.
 type GenericReconciler struct {
-	objectsChannel chan []models.ObjectRecord
+	objectsChannel chan []models.ObjectTransaction
 	client         client.Client
 	gvk            schema.GroupVersionKind
 	log            logr.Logger
+	clusterName    string
 }
 
 func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
@@ -98,9 +100,9 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	if err := r.client.Get(ctx, req.NamespacedName, clientObject); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
-	log.Info("resource retrieved")
+
 	//TODO manage error
-	r.objectsChannel <- []models.ObjectRecord{record{
+	r.objectsChannel <- []models.ObjectTransaction{transaction{
 		clusterName: "change",
 		object:      clientObject,
 	}}
@@ -108,15 +110,20 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 	return ctrl.Result{}, nil
 }
 
-type record struct {
-	clusterName string
-	object      client.Object
+type transaction struct {
+	clusterName     string
+	object          client.Object
+	transactionType models.TransactionType
 }
 
-func (r record) ClusterName() string {
+func (r transaction) ClusterName() string {
 	return r.clusterName
 }
 
-func (r record) Object() client.Object {
+func (r transaction) Object() client.Object {
 	return r.object
+}
+
+func (r transaction) TransactionType() models.TransactionType {
+	return r.transactionType
 }

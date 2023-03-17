@@ -230,12 +230,12 @@ func TestStatusCluster(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }
 
-func fakeProcessRecordFunc(ctx context.Context, records []models.ObjectRecord, s store.Store, logger logr.Logger) error {
+func fakeProcessRecordFunc(ctx context.Context, records []models.ObjectTransaction, s store.Store, logger logr.Logger) error {
 	log.Info("fake process record")
 	return nil
 }
