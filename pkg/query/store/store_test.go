@@ -5,7 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
@@ -24,7 +23,7 @@ func TestGetObjects(t *testing.T) {
 		Kind:      "ValidKind",
 	}
 
-	seed(db, []models.Object{obj})
+	g.Expect(seed(db, []models.Object{obj})).To(Succeed())
 
 	objects, err := store.GetObjects(context.Background(), nil)
 	g.Expect(err).To(BeNil())
@@ -239,7 +238,7 @@ func createStore(t *testing.T) (Store, *gorm.DB) {
 	db, err := CreateSQLiteDB(dbDir)
 	g.Expect(err).To(BeNil())
 
-	store, err := NewSQLiteStore(db, logr.Discard())
+	store, err := NewSQLiteStore(db)
 	g.Expect(err).To(BeNil())
 
 	return store, db

@@ -6,7 +6,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
 	"gorm.io/driver/sqlite"
@@ -18,15 +17,12 @@ import (
 const dbFile = "resources.db"
 
 type SQLiteStore struct {
-	location string
-	db       *gorm.DB
-	log      logr.Logger
+	db *gorm.DB
 }
 
-func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
+func NewSQLiteStore(db *gorm.DB) (*SQLiteStore, error) {
 	return &SQLiteStore{
-		db:  db,
-		log: log,
+		db: db,
 	}, nil
 }
 
