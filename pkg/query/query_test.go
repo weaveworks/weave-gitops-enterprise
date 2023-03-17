@@ -8,6 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -16,7 +17,7 @@ func TestRunQuery(t *testing.T) {
 	tests := []struct {
 		name      string
 		namespace string
-		q         Query
+		q         store.Query
 		objects   []models.Object
 		rules     []models.AccessRule
 		userRoles []string
@@ -78,7 +79,7 @@ func TestRunQuery(t *testing.T) {
 				Groups: tt.userRoles,
 			})
 
-			actual, err := qs.RunQuery(ctx, []Query{tt.q})
+			actual, err := qs.RunQuery(ctx, &query{})
 			assert.NoError(t, err)
 
 			diff := cmp.Diff(tt.expected, actual)
@@ -107,4 +108,12 @@ func (q *query) GetOperand() string {
 
 func (q *query) GetValue() string {
 	return q.value
+}
+
+func (q *query) GetOffset() int64 {
+	return 0
+}
+
+func (q *query) GetLimit() int64 {
+	return 0
 }

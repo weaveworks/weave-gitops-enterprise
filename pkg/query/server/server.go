@@ -12,7 +12,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesscollector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqlite"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -54,14 +54,7 @@ type ServerOpts struct {
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
-	// Go complains about using msq.Query directly, so we have to copy it into a slice.
-	// query.Query is specifically designed to fit msg.Query.
-	q := []query.Query{}
-	for _, qm := range msg.Query {
-		q = append(q, qm)
-	}
-
-	objs, err := s.qs.RunQuery(ctx, q)
+	objs, err := s.qs.RunQuery(ctx, msg.Query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}
@@ -88,12 +81,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, err
 	}
 
-	db, err := sqlite.CreateDB(dbDir)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create db:%w", err)
-	}
-
-	s, err := store.NewStore(db, opts.Logger)
+	s, err := store.NewStore(store.StorageBackendSQLite, dbDir, opts.Logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)
 	}

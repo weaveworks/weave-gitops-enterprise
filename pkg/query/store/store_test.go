@@ -8,7 +8,7 @@ import (
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqlite"
+
 	"gorm.io/gorm"
 )
 
@@ -26,7 +26,7 @@ func TestGetObjects(t *testing.T) {
 
 	seed(db, []models.Object{obj})
 
-	objects, err := store.GetObjects(context.Background())
+	objects, err := store.GetObjects(context.Background(), nil)
 	g.Expect(err).To(BeNil())
 	g.Expect(len(objects) > 0).To(BeTrue())
 	g.Expect(objects[0].Name).To(Equal(obj.Name))
@@ -236,10 +236,10 @@ func createStore(t *testing.T) (Store, *gorm.DB) {
 	dbDir, err := os.MkdirTemp("", "db")
 	g.Expect(err).To(BeNil())
 
-	db, err := sqlite.CreateDB(dbDir)
+	db, err := CreateSQLiteDB(dbDir)
 	g.Expect(err).To(BeNil())
 
-	store, err := sqlite.NewStore(db, logr.Discard())
+	store, err := NewSQLiteStore(db, logr.Discard())
 	g.Expect(err).To(BeNil())
 
 	return store, db

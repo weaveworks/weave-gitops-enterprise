@@ -1,4 +1,4 @@
-package sqlite
+package store
 
 import (
 	"context"
@@ -8,8 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-
-	_ "github.com/mattn/go-sqlite3"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -25,7 +23,7 @@ type SQLiteStore struct {
 	log      logr.Logger
 }
 
-func NewStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
+func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
 		db:  db,
 		log: log,
@@ -84,7 +82,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 	return nil
 }
 
-func (i *SQLiteStore) GetObjects(ctx context.Context) ([]models.Object, error) {
+func (i *SQLiteStore) GetObjects(ctx context.Context, q Query) ([]models.Object, error) {
 	objects := []models.Object{}
 	result := i.db.Find(&objects)
 
@@ -118,7 +116,7 @@ func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object
 	return nil
 }
 
-func CreateDB(path string) (*gorm.DB, error) {
+func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	dbFileLocation := filepath.Join(path, dbFile)
 	// make sure the directory exists
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {

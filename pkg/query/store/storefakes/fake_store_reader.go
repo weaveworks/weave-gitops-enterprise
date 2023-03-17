@@ -23,10 +23,11 @@ type FakeStoreReader struct {
 		result1 []models.AccessRule
 		result2 error
 	}
-	GetObjectsStub        func(context.Context) ([]models.Object, error)
+	GetObjectsStub        func(context.Context, store.Query) ([]models.Object, error)
 	getObjectsMutex       sync.RWMutex
 	getObjectsArgsForCall []struct {
 		arg1 context.Context
+		arg2 store.Query
 	}
 	getObjectsReturns struct {
 		result1 []models.Object
@@ -104,18 +105,19 @@ func (fake *FakeStoreReader) GetAccessRulesReturnsOnCall(i int, result1 []models
 	}{result1, result2}
 }
 
-func (fake *FakeStoreReader) GetObjects(arg1 context.Context) ([]models.Object, error) {
+func (fake *FakeStoreReader) GetObjects(arg1 context.Context, arg2 store.Query) ([]models.Object, error) {
 	fake.getObjectsMutex.Lock()
 	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
 	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
 		arg1 context.Context
-	}{arg1})
+		arg2 store.Query
+	}{arg1, arg2})
 	stub := fake.GetObjectsStub
 	fakeReturns := fake.getObjectsReturns
-	fake.recordInvocation("GetObjects", []interface{}{arg1})
+	fake.recordInvocation("GetObjects", []interface{}{arg1, arg2})
 	fake.getObjectsMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -129,17 +131,17 @@ func (fake *FakeStoreReader) GetObjectsCallCount() int {
 	return len(fake.getObjectsArgsForCall)
 }
 
-func (fake *FakeStoreReader) GetObjectsCalls(stub func(context.Context) ([]models.Object, error)) {
+func (fake *FakeStoreReader) GetObjectsCalls(stub func(context.Context, store.Query) ([]models.Object, error)) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = stub
 }
 
-func (fake *FakeStoreReader) GetObjectsArgsForCall(i int) context.Context {
+func (fake *FakeStoreReader) GetObjectsArgsForCall(i int) (context.Context, store.Query) {
 	fake.getObjectsMutex.RLock()
 	defer fake.getObjectsMutex.RUnlock()
 	argsForCall := fake.getObjectsArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeStoreReader) GetObjectsReturns(result1 []models.Object, result2 error) {

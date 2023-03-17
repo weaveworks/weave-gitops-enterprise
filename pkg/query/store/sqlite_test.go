@@ -1,4 +1,4 @@
-package sqlite
+package store
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ func TestNewSQLiteStore(t *testing.T) {
 	dbDir, err := os.MkdirTemp("", "db")
 	g.Expect(err).To(BeNil())
 
-	db, err := CreateDB(dbDir)
+	db, err := CreateSQLiteDB(dbDir)
 	g.Expect(err).To(BeNil())
 
 	sqlDB, err := db.DB()
