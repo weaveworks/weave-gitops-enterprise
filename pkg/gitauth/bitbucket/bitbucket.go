@@ -13,10 +13,10 @@ import (
 	"time"
 )
 
-var bitbucketScopes = []string{"REPO_WRITE", "REPO_READ", "PUBLIC_REPOS"}
+var scopes = []string{"REPO_WRITE", "REPO_READ", "PUBLIC_REPOS"}
 
 type AuthClient interface {
-	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
+	AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error)
 	ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error)
 	ValidateToken(ctx context.Context, token string) error
 }
@@ -29,11 +29,13 @@ type defaultAuthClient struct {
 	http *http.Client
 }
 
-func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (url.URL, error) {
+// AuthURL is used to construct the authorization URL.
+// https://confluence.atlassian.com/bitbucketserver/bitbucket-oauth-2-0-provider-api-1108483661.html
+func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error) {
 	u, err := buildBitbucketURL()
 
 	if err != nil {
-		return u, fmt.Errorf("building bitbucket server url: %w", err)
+		return u, fmt.Errorf("cannot build bitbucket server base url: %w", err)
 	}
 
 	u.Path = "/rest/oauth2/latest/authorize"
@@ -41,16 +43,15 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 	cid := getClientID()
 
 	if cid == "" {
-		return u, errors.New("env var BITBUCKET_SERVER_CLIENT_ID not set")
+		return u, errors.New("env var BITBUCKET_SERVER_CLIENT_ID is not set")
 	}
 
 	params := u.Query()
 	params.Set("client_id", cid)
 	params.Set("redirect_uri", redirectURI)
 	params.Set("response_type", "code")
-	params.Set("grant_type", "authorization_code")
-
-	params.Set("scope", strings.Join(bitbucketScopes, " "))
+	params.Set("state", state)
+	params.Set("scope", strings.Join(scopes, " "))
 	u.RawQuery = params.Encode()
 	return u, nil
 }
@@ -59,17 +60,17 @@ func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code 
 	u, err := buildBitbucketURL()
 
 	if err != nil {
-		return nil, fmt.Errorf("building bitbucket server url: %w", err)
+		return nil, fmt.Errorf("cannot build bitbucket server base url: %w", err)
 	}
 
 	cid := getClientID()
 	if cid == "" {
-		return nil, errors.New("env var BITBUCKET_SERVER_CLIENT_ID not set")
+		return nil, errors.New("env var BITBUCKET_SERVER_CLIENT_ID is not set")
 	}
 
 	secret := getClientSecret()
 	if secret == "" {
-		return nil, errors.New("env var BITBUCKET_SERVER_CLIENT_SECRET not set")
+		return nil, errors.New("env var BITBUCKET_SERVER_CLIENT_SECRET is not set")
 	}
 	// https://atlassian.example.com/rest/oauth2/latest/token?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&code=CODE&grant_type=authorization_code&redirect_uri=REDIRECT_URI
 	u.Path = "/rest/oauth2/latest/token"

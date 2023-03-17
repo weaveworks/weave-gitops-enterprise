@@ -23,17 +23,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/NYTimes/gziphandler"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/pricing"
-	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
-	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -75,6 +64,19 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
+
+	"github.com/NYTimes/gziphandler"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
+	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -507,6 +509,7 @@ func StartServer(ctx context.Context, p Params) error {
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
+				grpc_runtime.WithForwardResponseOption(IssueGitProviderCSRFToken),
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
@@ -956,4 +959,20 @@ func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimati
 	log.Info("Parsed default cost estimation filters", "filters", filters)
 
 	return estimation.NewAWSClusterEstimator(pricer, filters), nil
+}
+
+func IssueGitProviderCSRFToken(ctx context.Context, w http.ResponseWriter, p protoreflect.ProtoMessage) error {
+	md, ok := grpc_runtime.ServerMetadataFromContext(ctx)
+	if !ok {
+		return nil
+	}
+
+	if vals := md.HeaderMD.Get(gitauth_server.GitProviderCSRFHeaderName); len(vals) > 0 {
+		state := vals[0]
+		md.HeaderMD.Delete(gitauth_server.GitProviderCSRFHeaderName)
+		w.Header().Del(grpc_runtime.MetadataHeaderPrefix + gitauth_server.GitProviderCSRFHeaderName)
+		http.SetCookie(w, &http.Cookie{Name: gitauth_server.GitProviderCSRFCookieName, Value: state, Secure: true, Path: "/", HttpOnly: true, Expires: time.Now().UTC().Add(5 * time.Minute)})
+	}
+
+	return nil
 }

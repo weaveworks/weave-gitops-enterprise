@@ -12,7 +12,11 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/go-logr/logr"
+	"github.com/google/uuid"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 	grpcStatus "google.golang.org/grpc/status"
 	"k8s.io/apimachinery/pkg/util/rand"
 
@@ -27,21 +31,41 @@ import (
 
 const DefaultHost = "0.0.0.0"
 const DefaultPort = "9001"
+const (
+	GitProviderCSRFHeaderName = "x-git-provider-csrf"
+	GitProviderCSRFCookieName = "_git_provider_csrf"
+)
 
 var (
 	ErrEmptyAccessToken = errors.New("access token is empty")
 	ErrBadProvider      = errors.New("wrong provider name")
 )
 
+// RandomTokenGenerator is used to generate random (CSRF) tokens for the OAuth flow.
+// The default implementation uses `uuid.NewString()` to generate a random token.
+type RandomTokenGenerator interface {
+	New() string
+}
+
+type tokenGenerator struct {
+}
+
+func (g tokenGenerator) New() string {
+	return uuid.NewString()
+}
+
+var _ RandomTokenGenerator = tokenGenerator{}
+
 type applicationServer struct {
 	pb.UnimplementedGitAuthServer
 
-	jwtClient         auth.JWTClient
-	log               logr.Logger
-	ghAuthClient      auth.GithubAuthClient
-	glAuthClient      auth.GitlabAuthClient
-	bbAuthClient      bitbucket.AuthClient
-	azureDevOpsClient azure.AuthClient
+	jwtClient            auth.JWTClient
+	log                  logr.Logger
+	ghAuthClient         auth.GithubAuthClient
+	glAuthClient         auth.GitlabAuthClient
+	bbAuthClient         bitbucket.AuthClient
+	azureDevOpsClient    azure.AuthClient
+	randomTokenGenerator RandomTokenGenerator
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -53,6 +77,7 @@ type ApplicationsConfig struct {
 	GitlabAuthClient      auth.GitlabAuthClient
 	BitBucketServerClient bitbucket.AuthClient
 	AzureDevOpsClient     azure.AuthClient
+	RandomTokenGenerator  RandomTokenGenerator
 }
 
 // NewApplicationsServer creates a grpc Applications server
@@ -64,12 +89,13 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 	}
 
 	return &applicationServer{
-		jwtClient:         cfg.JwtClient,
-		log:               cfg.Logger,
-		ghAuthClient:      cfg.GithubAuthClient,
-		glAuthClient:      cfg.GitlabAuthClient,
-		bbAuthClient:      cfg.BitBucketServerClient,
-		azureDevOpsClient: cfg.AzureDevOpsClient,
+		jwtClient:            cfg.JwtClient,
+		log:                  cfg.Logger,
+		ghAuthClient:         cfg.GithubAuthClient,
+		glAuthClient:         cfg.GitlabAuthClient,
+		bbAuthClient:         cfg.BitBucketServerClient,
+		azureDevOpsClient:    cfg.AzureDevOpsClient,
+		randomTokenGenerator: cfg.RandomTokenGenerator,
 	}
 }
 
@@ -92,6 +118,7 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 		GitlabAuthClient:      auth.NewGitlabAuthClient(http.DefaultClient),
 		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
 		AzureDevOpsClient:     azure.NewAuthClient(http.DefaultClient),
+		RandomTokenGenerator:  tokenGenerator{},
 	}, nil
 }
 
@@ -181,15 +208,30 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 }
 
 func (s *applicationServer) GetBitbucketServerAuthURL(ctx context.Context, msg *pb.GetBitbucketServerAuthURLRequest) (*pb.GetBitbucketServerAuthURLResponse, error) {
-	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri)
+	// Generate a random state value
+	state := s.randomTokenGenerator.New()
+	// Set a gRPC header so that middleware can inspect it and issue a cookie with this value in the HTTP response
+	err := grpc.SetHeader(ctx, metadata.Pairs(GitProviderCSRFHeaderName, state))
 	if err != nil {
-		return nil, fmt.Errorf("could not get gitlab auth url: %w", err)
+		s.log.Error(err, "Failed to set gRPC header for CSRF token")
+		return nil, fmt.Errorf("failed to set state parameter for OAuth flow")
+	}
+
+	u, err := s.bbAuthClient.AuthURL(ctx, msg.RedirectUri, state)
+	if err != nil {
+		return nil, fmt.Errorf("failed to construct bitbucket server auth url: %w", err)
 	}
 
 	return &pb.GetBitbucketServerAuthURLResponse{Url: u.String()}, nil
 }
 
 func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *pb.AuthorizeBitbucketServerRequest) (*pb.AuthorizeBitbucketServerResponse, error) {
+	err := checkCSRFToken(ctx, msg.State)
+	if err != nil {
+		s.log.Error(err, "Failed CSRF token check")
+		return nil, fmt.Errorf("failed CSRF token check")
+	}
+
 	tokenState, err := s.bbAuthClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange code: %w", err)
@@ -204,7 +246,16 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 }
 
 func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.GetAzureDevOpsAuthURLRequest) (*pb.GetAzureDevOpsAuthURLResponse, error) {
-	u, err := s.azureDevOpsClient.AuthURL(ctx, msg.RedirectUri)
+	// Generate a random state value
+	state := s.randomTokenGenerator.New()
+	// Set a gRPC header so that middleware can inspect it and issue a cookie with this value in the HTTP response
+	err := grpc.SetHeader(ctx, metadata.Pairs(GitProviderCSRFHeaderName, state))
+	if err != nil {
+		s.log.Error(err, "Failed to set gRPC header for CSRF token")
+		return nil, fmt.Errorf("failed to set state parameter for OAuth flow")
+	}
+
+	u, err := s.azureDevOpsClient.AuthURL(ctx, msg.RedirectUri, state)
 	if err != nil {
 		return nil, fmt.Errorf("could not get azure auth url: %w", err)
 	}
@@ -213,12 +264,18 @@ func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.G
 }
 
 func (s *applicationServer) AuthorizeAzureDevOps(ctx context.Context, msg *pb.AuthorizeAzureDevOpsRequest) (*pb.AuthorizeAzureDevOpsResponse, error) {
+	err := checkCSRFToken(ctx, msg.State)
+	if err != nil {
+		s.log.Error(err, "Failed CSRF token check")
+		return nil, fmt.Errorf("failed CSRF token check")
+	}
+
 	tokenState, err := s.azureDevOpsClient.ExchangeCode(ctx, msg.RedirectUri, msg.Code)
 	if err != nil {
 		return nil, fmt.Errorf("could not exchange code: %w", err)
 	}
 
-	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderName("azure-devops"), tokenState.AccessToken)
+	token, err := s.jwtClient.GenerateJWT(tokenState.ExpiresIn, gitproviders.GitProviderAzureDevOps, tokenState.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("could not generate token: %w", err)
 	}
@@ -274,4 +331,30 @@ func findValidator(provider pb.GitProvider, s *applicationServer) (auth.Provider
 	}
 
 	return nil, fmt.Errorf("unknown git provider %s", provider)
+}
+
+func checkCSRFToken(ctx context.Context, state string) error {
+	if md, ok := metadata.FromIncomingContext(ctx); ok {
+		values := md.Get(runtime.MetadataPrefix + "cookie")
+		if len(values) > 0 {
+			cookieState := getStateFromCookie(values[0])
+			if cookieState != state {
+				return fmt.Errorf("CSRF token check has failed, state parameter mismatch: %s %s", cookieState, state)
+			}
+		}
+	}
+	return nil
+}
+
+func getStateFromCookie(cookie string) string {
+	header := http.Header{}
+	header.Add("Cookie", cookie)
+	req := http.Request{Header: header}
+	state := ""
+	for _, c := range req.Cookies() {
+		if c.Name == GitProviderCSRFCookieName {
+			state = c.Value
+		}
+	}
+	return state
 }

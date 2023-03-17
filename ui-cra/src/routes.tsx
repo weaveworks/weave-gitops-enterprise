@@ -319,6 +319,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
+              state=''
             />
           );
         }}
@@ -341,6 +342,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.BitBucketServer}
               code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />
@@ -365,6 +367,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.AzureDevOps}
               code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />

@@ -26,6 +26,7 @@ import { getCallbackState, storeProviderToken } from './utils';
 
 type Props = {
   code: string;
+  state: string;
   provider: GitProvider;
   error?: string | null;
   errorDescription?: string | null;
@@ -42,6 +43,7 @@ const ErrorMessage = ({ title, message }: any) => {
 
 function OAuthCallback({
   code,
+  state,
   provider,
   error: paramsError,
   errorDescription,
@@ -69,6 +71,7 @@ function OAuthCallback({
       req(
         gitAuthClient.AuthorizeBitbucketServer({
           code,
+          state,
           redirectUri: bitbucketServerOAuthRedirectURI(),
         }),
       );
@@ -78,6 +81,7 @@ function OAuthCallback({
       req(
         gitAuthClient.AuthorizeAzureDevOps({
           code,
+          state,
           redirectUri: azureDevOpsOAuthRedirectURI(),
         }),
       );

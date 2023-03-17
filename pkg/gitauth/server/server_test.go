@@ -5,11 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
+	"testing"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -17,6 +20,8 @@ import (
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitauth"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/azure"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/bitbucket"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -27,9 +32,12 @@ import (
 	authtypes "github.com/weaveworks/weave-gitops/pkg/services/auth/types"
 	"github.com/weaveworks/weave-gitops/pkg/testutils"
 	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakelogr"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
+	"google.golang.org/grpc/test/bufconn"
 	"k8s.io/apimachinery/pkg/util/rand"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
@@ -445,3 +453,166 @@ func contextWithAuth(ctx context.Context) context.Context {
 
 	return ctx
 }
+
+func TestGetBitbucketServerAuthURL(t *testing.T) {
+	lis = bufconn.Listen(bufSize)
+	s = grpc.NewServer()
+
+	rand.Seed(time.Now().UnixNano())
+	secretKey = rand.String(20)
+	jwtClient = auth.NewJwtClient(secretKey)
+
+	cfg := server.ApplicationsConfig{
+		JwtClient:             jwtClient,
+		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
+		RandomTokenGenerator:  fakeTokenGenerator{fake: "abc"},
+	}
+	apps = server.NewApplicationsServer(&cfg)
+	pb.RegisterGitAuthServer(s, apps)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			log.Fatalf(err.Error())
+		}
+	}()
+
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fail()
+	}
+	appsClient = pb.NewGitAuthClient(conn)
+
+	t.Run("missing hostname env var", func(t *testing.T) {
+		res, err := appsClient.GetBitbucketServerAuthURL(ctx, &pb.GetBitbucketServerAuthURLRequest{
+			RedirectUri: "http://localhost/oauth/bitbucket",
+		})
+
+		if err == nil {
+			t.Error("expected non-nil error")
+		}
+		if !strings.Contains(err.Error(), "env var BITBUCKET_SERVER_HOSTNAME is not set") {
+			t.Errorf("expected error for hostname env var but got instead: %v", err)
+		}
+		if res != nil {
+			t.Errorf("expected a nil response but got a non-nil response instead: %v", res)
+		}
+	})
+
+	t.Setenv("BITBUCKET_SERVER_HOSTNAME", "stash.stashtestserver.link:7990")
+	t.Run("missing client id env var", func(t *testing.T) {
+
+		res, err := appsClient.GetBitbucketServerAuthURL(ctx, &pb.GetBitbucketServerAuthURLRequest{
+			RedirectUri: "http://localhost/oauth/bitbucket",
+		})
+
+		if err == nil {
+			t.Error("expected non-nil error")
+		}
+		if !strings.Contains(err.Error(), "env var BITBUCKET_SERVER_CLIENT_ID is not set") {
+			t.Errorf("expected error for client id env var but got instead: %v", err)
+		}
+		if res != nil {
+			t.Errorf("expected a nil response but got a non-nil response instead: %v", res)
+		}
+
+	})
+
+	t.Setenv("BITBUCKET_SERVER_CLIENT_ID", "74c9e0fb-b1d2-45c9-b5b8-624f3d96025c")
+	t.Run("success", func(t *testing.T) {
+		redirectURI := "http://localhost/oauth/bitbucket"
+		res, err := appsClient.GetBitbucketServerAuthURL(ctx, &pb.GetBitbucketServerAuthURLRequest{
+			RedirectUri: redirectURI,
+		})
+
+		if err != nil {
+			t.Errorf("expected no error but got an error instead: %v", err)
+		}
+		if res == nil {
+			t.Errorf("expected a non-nil response but got a nil response instead")
+		}
+		expected := fmt.Sprintf("https://%s/rest/oauth2/latest/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=%s&state=%s",
+			os.Getenv("BITBUCKET_SERVER_HOSTNAME"), os.Getenv("BITBUCKET_SERVER_CLIENT_ID"), url.QueryEscape(redirectURI), "REPO_WRITE+REPO_READ+PUBLIC_REPOS", "abc")
+		if res != nil && res.Url != expected {
+			t.Errorf("expected %q to be equal to %q", res.Url, expected)
+		}
+	})
+}
+
+func TestGetAzureDevopsAuthURL(t *testing.T) {
+	lis = bufconn.Listen(bufSize)
+	s = grpc.NewServer()
+
+	rand.Seed(time.Now().UnixNano())
+	secretKey = rand.String(20)
+	jwtClient = auth.NewJwtClient(secretKey)
+
+	cfg := server.ApplicationsConfig{
+		JwtClient:            jwtClient,
+		AzureDevOpsClient:    azure.NewAuthClient(http.DefaultClient),
+		RandomTokenGenerator: fakeTokenGenerator{fake: "abc"},
+	}
+	apps = server.NewApplicationsServer(&cfg)
+	pb.RegisterGitAuthServer(s, apps)
+
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			log.Fatalf(err.Error())
+		}
+	}()
+
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "bufnet", grpc.WithContextDialer(bufDialer), grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		t.Fail()
+	}
+	appsClient = pb.NewGitAuthClient(conn)
+
+	t.Run("missing client id env var", func(t *testing.T) {
+
+		res, err := appsClient.GetAzureDevOpsAuthURL(ctx, &pb.GetAzureDevOpsAuthURLRequest{
+			RedirectUri: "http://localhost/oauth/azure",
+		})
+
+		if err == nil {
+			t.Error("expected non-nil error")
+		}
+		if !strings.Contains(err.Error(), "env var AZURE_DEVOPS_CLIENT_ID is not set") {
+			t.Errorf("expected error for client id env var but got instead: %v", err)
+		}
+		if res != nil {
+			t.Errorf("expected a nil response but got a non-nil response instead: %v", res)
+		}
+
+	})
+
+	t.Setenv("AZURE_DEVOPS_CLIENT_ID", "74c9e0fb-b1d2-45c9-b5b8-624f3d96025c")
+	t.Run("success", func(t *testing.T) {
+		redirectURI := "http://localhost/oauth/azure"
+		res, err := appsClient.GetAzureDevOpsAuthURL(ctx, &pb.GetAzureDevOpsAuthURLRequest{
+			RedirectUri: redirectURI,
+		})
+
+		if err != nil {
+			t.Errorf("expected no error but got an error instead: %v", err)
+		}
+		if res == nil {
+			t.Errorf("expected a non-nil response but got a nil response instead")
+		}
+		expected := fmt.Sprintf("https://app.vssps.visualstudio.com/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=Assertion&scope=%s&state=%s",
+			os.Getenv("AZURE_DEVOPS_CLIENT_ID"), url.QueryEscape(redirectURI), "vso.code_write", "abc")
+		if res != nil && res.Url != expected {
+			t.Errorf("expected %q to be equal to %q", res.Url, expected)
+		}
+	})
+}
+
+type fakeTokenGenerator struct {
+	fake string
+}
+
+func (g fakeTokenGenerator) New() string {
+	return g.fake
+}
+
+var _ server.RandomTokenGenerator = fakeTokenGenerator{}

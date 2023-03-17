@@ -13,10 +13,10 @@ import (
 	"time"
 )
 
-var azureScopes = []string{"vso.code_write"}
+var scopes = []string{"vso.code_write"}
 
 type AuthClient interface {
-	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
+	AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error)
 	ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error)
 	ValidateToken(ctx context.Context, token string) error
 }
@@ -30,7 +30,8 @@ type defaultAuthClient struct {
 }
 
 // AuthURL is used to construct the authorization URL.
-func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (url.URL, error) {
+// https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#2-authorize-your-app
+func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error) {
 	u := buildAzureURL()
 
 	u.Path = "/oauth2/authorize"
@@ -38,13 +39,14 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 	cid := getClientID()
 
 	if cid == "" {
-		return u, errors.New("env var AZURE_DEVOPS_CLIENT_ID not set")
+		return u, errors.New("env var AZURE_DEVOPS_CLIENT_ID is not set")
 	}
 
 	params := u.Query()
 	params.Set("client_id", cid)
 	params.Set("response_type", "Assertion")
-	params.Set("scope", strings.Join(azureScopes, " "))
+	params.Set("state", state)
+	params.Set("scope", strings.Join(scopes, " "))
 	params.Set("redirect_uri", redirectURI)
 
 	u.RawQuery = params.Encode()
@@ -52,6 +54,7 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (ur
 }
 
 // ExchangeCode is called after the user authorizes the OAuth app to exchange a code for a token.
+// https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#3-get-an-access-and-refresh-token-for-the-user
 func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error) {
 	u := buildAzureURL()
 
