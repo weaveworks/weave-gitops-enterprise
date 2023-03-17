@@ -10,20 +10,6 @@ import (
 )
 
 type FakeStoreReader struct {
-	CountObjectsStub        func(context.Context, string) (int64, error)
-	countObjectsMutex       sync.RWMutex
-	countObjectsArgsForCall []struct {
-		arg1 context.Context
-		arg2 string
-	}
-	countObjectsReturns struct {
-		result1 int64
-		result2 error
-	}
-	countObjectsReturnsOnCall map[int]struct {
-		result1 int64
-		result2 error
-	}
 	GetAccessRulesStub        func(context.Context) ([]models.AccessRule, error)
 	getAccessRulesMutex       sync.RWMutex
 	getAccessRulesArgsForCall []struct {
@@ -52,71 +38,6 @@ type FakeStoreReader struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
-}
-
-func (fake *FakeStoreReader) CountObjects(arg1 context.Context, arg2 string) (int64, error) {
-	fake.countObjectsMutex.Lock()
-	ret, specificReturn := fake.countObjectsReturnsOnCall[len(fake.countObjectsArgsForCall)]
-	fake.countObjectsArgsForCall = append(fake.countObjectsArgsForCall, struct {
-		arg1 context.Context
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.CountObjectsStub
-	fakeReturns := fake.countObjectsReturns
-	fake.recordInvocation("CountObjects", []interface{}{arg1, arg2})
-	fake.countObjectsMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStoreReader) CountObjectsCallCount() int {
-	fake.countObjectsMutex.RLock()
-	defer fake.countObjectsMutex.RUnlock()
-	return len(fake.countObjectsArgsForCall)
-}
-
-func (fake *FakeStoreReader) CountObjectsCalls(stub func(context.Context, string) (int64, error)) {
-	fake.countObjectsMutex.Lock()
-	defer fake.countObjectsMutex.Unlock()
-	fake.CountObjectsStub = stub
-}
-
-func (fake *FakeStoreReader) CountObjectsArgsForCall(i int) (context.Context, string) {
-	fake.countObjectsMutex.RLock()
-	defer fake.countObjectsMutex.RUnlock()
-	argsForCall := fake.countObjectsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeStoreReader) CountObjectsReturns(result1 int64, result2 error) {
-	fake.countObjectsMutex.Lock()
-	defer fake.countObjectsMutex.Unlock()
-	fake.CountObjectsStub = nil
-	fake.countObjectsReturns = struct {
-		result1 int64
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStoreReader) CountObjectsReturnsOnCall(i int, result1 int64, result2 error) {
-	fake.countObjectsMutex.Lock()
-	defer fake.countObjectsMutex.Unlock()
-	fake.CountObjectsStub = nil
-	if fake.countObjectsReturnsOnCall == nil {
-		fake.countObjectsReturnsOnCall = make(map[int]struct {
-			result1 int64
-			result2 error
-		})
-	}
-	fake.countObjectsReturnsOnCall[i] = struct {
-		result1 int64
-		result2 error
-	}{result1, result2}
 }
 
 func (fake *FakeStoreReader) GetAccessRules(arg1 context.Context) ([]models.AccessRule, error) {
@@ -250,8 +171,6 @@ func (fake *FakeStoreReader) GetObjectsReturnsOnCall(i int, result1 []models.Obj
 func (fake *FakeStoreReader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.countObjectsMutex.RLock()
-	defer fake.countObjectsMutex.RUnlock()
 	fake.getAccessRulesMutex.RLock()
 	defer fake.getAccessRulesMutex.RUnlock()
 	fake.getObjectsMutex.RLock()

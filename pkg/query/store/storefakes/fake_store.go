@@ -10,30 +10,16 @@ import (
 )
 
 type FakeStore struct {
-	CountObjectsStub        func(context.Context, string) (int64, error)
-	countObjectsMutex       sync.RWMutex
-	countObjectsArgsForCall []struct {
+	DeleteObjectsStub        func(context.Context, []models.Object) error
+	deleteObjectsMutex       sync.RWMutex
+	deleteObjectsArgsForCall []struct {
 		arg1 context.Context
-		arg2 string
+		arg2 []models.Object
 	}
-	countObjectsReturns struct {
-		result1 int64
-		result2 error
-	}
-	countObjectsReturnsOnCall map[int]struct {
-		result1 int64
-		result2 error
-	}
-	DeleteObjectStub        func(context.Context, models.Object) error
-	deleteObjectMutex       sync.RWMutex
-	deleteObjectArgsForCall []struct {
-		arg1 context.Context
-		arg2 models.Object
-	}
-	deleteObjectReturns struct {
+	deleteObjectsReturns struct {
 		result1 error
 	}
-	deleteObjectReturnsOnCall map[int]struct {
+	deleteObjectsReturnsOnCall map[int]struct {
 		result1 error
 	}
 	GetAccessRulesStub        func(context.Context) ([]models.AccessRule, error)
@@ -90,82 +76,22 @@ type FakeStore struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStore) CountObjects(arg1 context.Context, arg2 string) (int64, error) {
-	fake.countObjectsMutex.Lock()
-	ret, specificReturn := fake.countObjectsReturnsOnCall[len(fake.countObjectsArgsForCall)]
-	fake.countObjectsArgsForCall = append(fake.countObjectsArgsForCall, struct {
+func (fake *FakeStore) DeleteObjects(arg1 context.Context, arg2 []models.Object) error {
+	var arg2Copy []models.Object
+	if arg2 != nil {
+		arg2Copy = make([]models.Object, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.deleteObjectsMutex.Lock()
+	ret, specificReturn := fake.deleteObjectsReturnsOnCall[len(fake.deleteObjectsArgsForCall)]
+	fake.deleteObjectsArgsForCall = append(fake.deleteObjectsArgsForCall, struct {
 		arg1 context.Context
-		arg2 string
-	}{arg1, arg2})
-	stub := fake.CountObjectsStub
-	fakeReturns := fake.countObjectsReturns
-	fake.recordInvocation("CountObjects", []interface{}{arg1, arg2})
-	fake.countObjectsMutex.Unlock()
-	if stub != nil {
-		return stub(arg1, arg2)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2
-	}
-	return fakeReturns.result1, fakeReturns.result2
-}
-
-func (fake *FakeStore) CountObjectsCallCount() int {
-	fake.countObjectsMutex.RLock()
-	defer fake.countObjectsMutex.RUnlock()
-	return len(fake.countObjectsArgsForCall)
-}
-
-func (fake *FakeStore) CountObjectsCalls(stub func(context.Context, string) (int64, error)) {
-	fake.countObjectsMutex.Lock()
-	defer fake.countObjectsMutex.Unlock()
-	fake.CountObjectsStub = stub
-}
-
-func (fake *FakeStore) CountObjectsArgsForCall(i int) (context.Context, string) {
-	fake.countObjectsMutex.RLock()
-	defer fake.countObjectsMutex.RUnlock()
-	argsForCall := fake.countObjectsArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
-}
-
-func (fake *FakeStore) CountObjectsReturns(result1 int64, result2 error) {
-	fake.countObjectsMutex.Lock()
-	defer fake.countObjectsMutex.Unlock()
-	fake.CountObjectsStub = nil
-	fake.countObjectsReturns = struct {
-		result1 int64
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStore) CountObjectsReturnsOnCall(i int, result1 int64, result2 error) {
-	fake.countObjectsMutex.Lock()
-	defer fake.countObjectsMutex.Unlock()
-	fake.CountObjectsStub = nil
-	if fake.countObjectsReturnsOnCall == nil {
-		fake.countObjectsReturnsOnCall = make(map[int]struct {
-			result1 int64
-			result2 error
-		})
-	}
-	fake.countObjectsReturnsOnCall[i] = struct {
-		result1 int64
-		result2 error
-	}{result1, result2}
-}
-
-func (fake *FakeStore) DeleteObject(arg1 context.Context, arg2 models.Object) error {
-	fake.deleteObjectMutex.Lock()
-	ret, specificReturn := fake.deleteObjectReturnsOnCall[len(fake.deleteObjectArgsForCall)]
-	fake.deleteObjectArgsForCall = append(fake.deleteObjectArgsForCall, struct {
-		arg1 context.Context
-		arg2 models.Object
-	}{arg1, arg2})
-	stub := fake.DeleteObjectStub
-	fakeReturns := fake.deleteObjectReturns
-	fake.recordInvocation("DeleteObject", []interface{}{arg1, arg2})
-	fake.deleteObjectMutex.Unlock()
+		arg2 []models.Object
+	}{arg1, arg2Copy})
+	stub := fake.DeleteObjectsStub
+	fakeReturns := fake.deleteObjectsReturns
+	fake.recordInvocation("DeleteObjects", []interface{}{arg1, arg2Copy})
+	fake.deleteObjectsMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2)
 	}
@@ -175,44 +101,44 @@ func (fake *FakeStore) DeleteObject(arg1 context.Context, arg2 models.Object) er
 	return fakeReturns.result1
 }
 
-func (fake *FakeStore) DeleteObjectCallCount() int {
-	fake.deleteObjectMutex.RLock()
-	defer fake.deleteObjectMutex.RUnlock()
-	return len(fake.deleteObjectArgsForCall)
+func (fake *FakeStore) DeleteObjectsCallCount() int {
+	fake.deleteObjectsMutex.RLock()
+	defer fake.deleteObjectsMutex.RUnlock()
+	return len(fake.deleteObjectsArgsForCall)
 }
 
-func (fake *FakeStore) DeleteObjectCalls(stub func(context.Context, models.Object) error) {
-	fake.deleteObjectMutex.Lock()
-	defer fake.deleteObjectMutex.Unlock()
-	fake.DeleteObjectStub = stub
+func (fake *FakeStore) DeleteObjectsCalls(stub func(context.Context, []models.Object) error) {
+	fake.deleteObjectsMutex.Lock()
+	defer fake.deleteObjectsMutex.Unlock()
+	fake.DeleteObjectsStub = stub
 }
 
-func (fake *FakeStore) DeleteObjectArgsForCall(i int) (context.Context, models.Object) {
-	fake.deleteObjectMutex.RLock()
-	defer fake.deleteObjectMutex.RUnlock()
-	argsForCall := fake.deleteObjectArgsForCall[i]
+func (fake *FakeStore) DeleteObjectsArgsForCall(i int) (context.Context, []models.Object) {
+	fake.deleteObjectsMutex.RLock()
+	defer fake.deleteObjectsMutex.RUnlock()
+	argsForCall := fake.deleteObjectsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStore) DeleteObjectReturns(result1 error) {
-	fake.deleteObjectMutex.Lock()
-	defer fake.deleteObjectMutex.Unlock()
-	fake.DeleteObjectStub = nil
-	fake.deleteObjectReturns = struct {
+func (fake *FakeStore) DeleteObjectsReturns(result1 error) {
+	fake.deleteObjectsMutex.Lock()
+	defer fake.deleteObjectsMutex.Unlock()
+	fake.DeleteObjectsStub = nil
+	fake.deleteObjectsReturns = struct {
 		result1 error
 	}{result1}
 }
 
-func (fake *FakeStore) DeleteObjectReturnsOnCall(i int, result1 error) {
-	fake.deleteObjectMutex.Lock()
-	defer fake.deleteObjectMutex.Unlock()
-	fake.DeleteObjectStub = nil
-	if fake.deleteObjectReturnsOnCall == nil {
-		fake.deleteObjectReturnsOnCall = make(map[int]struct {
+func (fake *FakeStore) DeleteObjectsReturnsOnCall(i int, result1 error) {
+	fake.deleteObjectsMutex.Lock()
+	defer fake.deleteObjectsMutex.Unlock()
+	fake.DeleteObjectsStub = nil
+	if fake.deleteObjectsReturnsOnCall == nil {
+		fake.deleteObjectsReturnsOnCall = make(map[int]struct {
 			result1 error
 		})
 	}
-	fake.deleteObjectReturnsOnCall[i] = struct {
+	fake.deleteObjectsReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -482,10 +408,8 @@ func (fake *FakeStore) StoreObjectsReturnsOnCall(i int, result1 error) {
 func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.countObjectsMutex.RLock()
-	defer fake.countObjectsMutex.RUnlock()
-	fake.deleteObjectMutex.RLock()
-	defer fake.deleteObjectMutex.RUnlock()
+	fake.deleteObjectsMutex.RLock()
+	defer fake.deleteObjectsMutex.RUnlock()
 	fake.getAccessRulesMutex.RLock()
 	defer fake.getAccessRulesMutex.RUnlock()
 	fake.getObjectsMutex.RLock()

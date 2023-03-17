@@ -6,6 +6,7 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqlite"
+	"gorm.io/gorm"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -22,7 +23,7 @@ type Store interface {
 type StoreWriter interface {
 	StoreAccessRules(ctx context.Context, roles []models.AccessRule) error
 	StoreObjects(ctx context.Context, objects []models.Object) error
-	DeleteObject(ctx context.Context, object models.Object) error
+	DeleteObjects(ctx context.Context, object []models.Object) error
 }
 
 // StoreReader is an interface for querying objects
@@ -34,6 +35,6 @@ type StoreReader interface {
 }
 
 // factory method that by default creates a in memory store
-func NewStore(location string, log logr.Logger) (Store, string, error) {
-	return sqlite.NewStore(location, log)
+func NewStore(db *gorm.DB, log logr.Logger) (Store, error) {
+	return sqlite.NewStore(db, log)
 }
