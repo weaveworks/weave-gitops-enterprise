@@ -3,10 +3,12 @@ package models
 import (
 	"fmt"
 
+	"gorm.io/gorm"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 type Object struct {
+	gorm.Model
 	ID        string `gorm:"primaryKey;autoIncrement:false"`
 	Cluster   string `gorm:"type:text"`
 	Namespace string `gorm:"type:text"`

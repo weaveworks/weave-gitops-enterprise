@@ -33,13 +33,25 @@ func NewStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 }
 
 func (i *SQLiteStore) StoreAccessRules(ctx context.Context, rules []models.AccessRule) error {
+	rows := []models.AccessRule{}
+
 	for _, rule := range rules {
 		if err := rule.Validate(); err != nil {
 			return fmt.Errorf("invalid access rule: %w", err)
 		}
+
+		rule.ID = rule.GetID()
+		rows = append(rows, rule)
 	}
 
-	result := i.db.Create(&rules)
+	clauses := i.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "id"},
+		},
+		UpdateAll: true,
+	})
+
+	result := clauses.Create(&rows)
 
 	return result.Error
 }
@@ -94,8 +106,8 @@ func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object
 		}
 
 		where := i.db.Where(
-			"cluster = ? and namespace = ? and kind = ? and name = ? ",
-			object.Cluster, object.Namespace, object.Kind, object.Name,
+			"id = ? ",
+			object.GetID(),
 		)
 		result := i.db.Unscoped().Delete(&models.Object{}, where)
 		if result.Error != nil {
