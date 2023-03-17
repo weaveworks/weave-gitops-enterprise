@@ -56,11 +56,11 @@ type FakeCollector struct {
 	unwatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	WatchStub        func(cluster.Cluster, chan []models.ObjectRecord, context.Context, logr.Logger) error
+	WatchStub        func(cluster.Cluster, chan []models.ObjectTransaction, context.Context, logr.Logger) error
 	watchMutex       sync.RWMutex
 	watchArgsForCall []struct {
 		arg1 cluster.Cluster
-		arg2 chan []models.ObjectRecord
+		arg2 chan []models.ObjectTransaction
 		arg3 context.Context
 		arg4 logr.Logger
 	}
@@ -305,12 +305,12 @@ func (fake *FakeCollector) UnwatchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Watch(arg1 cluster.Cluster, arg2 chan []models.ObjectRecord, arg3 context.Context, arg4 logr.Logger) error {
+func (fake *FakeCollector) Watch(arg1 cluster.Cluster, arg2 chan []models.ObjectTransaction, arg3 context.Context, arg4 logr.Logger) error {
 	fake.watchMutex.Lock()
 	ret, specificReturn := fake.watchReturnsOnCall[len(fake.watchArgsForCall)]
 	fake.watchArgsForCall = append(fake.watchArgsForCall, struct {
 		arg1 cluster.Cluster
-		arg2 chan []models.ObjectRecord
+		arg2 chan []models.ObjectTransaction
 		arg3 context.Context
 		arg4 logr.Logger
 	}{arg1, arg2, arg3, arg4})
@@ -333,13 +333,13 @@ func (fake *FakeCollector) WatchCallCount() int {
 	return len(fake.watchArgsForCall)
 }
 
-func (fake *FakeCollector) WatchCalls(stub func(cluster.Cluster, chan []models.ObjectRecord, context.Context, logr.Logger) error) {
+func (fake *FakeCollector) WatchCalls(stub func(cluster.Cluster, chan []models.ObjectTransaction, context.Context, logr.Logger) error) {
 	fake.watchMutex.Lock()
 	defer fake.watchMutex.Unlock()
 	fake.WatchStub = stub
 }
 
-func (fake *FakeCollector) WatchArgsForCall(i int) (cluster.Cluster, chan []models.ObjectRecord, context.Context, logr.Logger) {
+func (fake *FakeCollector) WatchArgsForCall(i int) (cluster.Cluster, chan []models.ObjectTransaction, context.Context, logr.Logger) {
 	fake.watchMutex.RLock()
 	defer fake.watchMutex.RUnlock()
 	argsForCall := fake.watchArgsForCall[i]

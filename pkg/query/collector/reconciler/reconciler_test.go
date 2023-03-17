@@ -25,7 +25,7 @@ func TestNewReconciler(t *testing.T) {
 		name           string
 		gvk            schema.GroupVersionKind
 		client         client.Client
-		objectsChannel chan []models.ObjectRecord
+		objectsChannel chan []models.ObjectTransaction
 		errPattern     string
 	}{
 		{
@@ -47,13 +47,13 @@ func TestNewReconciler(t *testing.T) {
 			name:           "could create reconciler with valid arguments",
 			client:         fakeClient,
 			gvk:            v2beta1.GroupVersion.WithKind("HelmRelease"),
-			objectsChannel: make(chan []models.ObjectRecord),
+			objectsChannel: make(chan []models.ObjectTransaction),
 			errPattern:     "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reconciler, err := NewReconciler(tt.gvk, tt.client, tt.objectsChannel, log)
+			reconciler, err := NewReconciler("test-cluster", tt.gvk, tt.client, tt.objectsChannel, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -79,9 +79,9 @@ func TestSetup(t *testing.T) {
 	})
 	g.Expect(err).To(BeNil())
 	g.Expect(fakeManager).NotTo(BeNil())
-	objectsChannel := make(chan []models.ObjectRecord)
+	objectsChannel := make(chan []models.ObjectTransaction)
 	gvk := v2beta1.GroupVersion.WithKind("HelmRelease")
-	reconciler, err := NewReconciler(gvk, fakeClient, objectsChannel, logger)
+	reconciler, err := NewReconciler("test-cluster", gvk, fakeClient, objectsChannel, logger)
 	g.Expect(err).To(BeNil())
 	g.Expect(reconciler).NotTo(BeNil())
 

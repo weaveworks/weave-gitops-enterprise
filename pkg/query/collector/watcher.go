@@ -30,7 +30,7 @@ const (
 
 type WatcherOptions struct {
 	Log           logr.Logger
-	ObjectChannel chan []models.ObjectRecord
+	ObjectChannel chan []models.ObjectTransaction
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
 	Kinds         []schema.GroupVersionKind
@@ -69,28 +69,42 @@ type DefaultWatcher struct {
 	log               logr.Logger
 	status            ClusterWatchingStatus
 	newWatcherManager WatcherManagerFunc
-	objectsChannel    chan []models.ObjectRecord
+	objectsChannel    chan []models.ObjectTransaction
 	// useProxy is a flag to indicate if the helm watcher should use the proxy
 	// useProxy bool
 }
 
-type WatcherManagerFunc = func(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error)
+type WatcherManagerFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
 
-func defaultNewWatcherManager(config *rest.Config, kinds []schema.GroupVersionKind, objectsChannel chan []models.ObjectRecord, options manager.Options) (manager.Manager, error) {
+type WatcherManagerOptions struct {
+	Log            logr.Logger
+	Rest           *rest.Config
+	Kinds          []schema.GroupVersionKind
+	ObjectsChannel chan []models.ObjectTransaction
+	ManagerOptions manager.Options
+	ClusterName    string
+}
 
-	if config == nil {
-		return nil, fmt.Errorf("invalid config")
+func (o WatcherManagerOptions) Validate() error {
+	if o.Rest == nil {
+		return fmt.Errorf("invalid config")
 	}
 
-	if options.Scheme == nil {
-		return nil, fmt.Errorf("invalid scheme")
+	if o.ManagerOptions.Scheme == nil {
+		return fmt.Errorf("invalid scheme")
 	}
 
-	log := options.Logger
+	return nil
+}
 
-	mgr, err := ctrl.NewManager(config, ctrl.Options{
-		Scheme:             options.Scheme,
-		Logger:             options.Logger,
+func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
+	mgr, err := ctrl.NewManager(opts.Rest, ctrl.Options{
+		Scheme:             opts.ManagerOptions.Scheme,
+		Logger:             opts.Log,
 		LeaderElection:     false,
 		MetricsBindAddress: "0",
 	})
@@ -99,8 +113,8 @@ func defaultNewWatcherManager(config *rest.Config, kinds []schema.GroupVersionKi
 	}
 
 	//create reconcilers for kinds
-	for _, kind := range kinds {
-		rec, err := reconciler.NewReconciler(kind, mgr.GetClient(), objectsChannel, log)
+	for _, kind := range opts.Kinds {
+		rec, err := reconciler.NewReconciler(opts.ClusterName, kind, mgr.GetClient(), opts.ObjectsChannel, opts.Log)
 		if err != nil {
 			return nil, fmt.Errorf("cannot create reconciler: %v", err)
 		}
@@ -174,12 +188,20 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 		return fmt.Errorf("invalid clusterName config")
 	}
 
-	w.watcherManager, err = w.newWatcherManager(cfg, w.kinds, w.objectsChannel, ctrl.Options{
-		Scheme:             w.scheme,
-		Logger:             w.log,
-		LeaderElection:     false,
-		MetricsBindAddress: "0",
-	})
+	opts := WatcherManagerOptions{
+		Log:            w.log,
+		Rest:           cfg,
+		Kinds:          w.kinds,
+		ObjectsChannel: w.objectsChannel,
+		ManagerOptions: ctrl.Options{
+			Scheme:             w.scheme,
+			Logger:             w.log,
+			LeaderElection:     false,
+			MetricsBindAddress: "0",
+		},
+	}
+
+	w.watcherManager, err = w.newWatcherManager(opts)
 	if err != nil {
 		return fmt.Errorf("cannot create watcher manager: %v", err)
 	}

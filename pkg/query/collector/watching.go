@@ -14,7 +14,7 @@ import (
 )
 
 func (c *watchingCollector) Start() error {
-	c.objectsChannel = make(chan []models.ObjectRecord)
+	c.objectsChannel = make(chan []models.ObjectTransaction)
 
 	for _, cluster := range c.clusters {
 		err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
@@ -57,7 +57,7 @@ type watchingCollector struct {
 	clusterWatchers    map[string]Watcher
 	kinds              []schema.GroupVersionKind
 	store              store.Store
-	objectsChannel     chan []models.ObjectRecord
+	objectsChannel     chan []models.ObjectTransaction
 	newWatcherFunc     NewWatcherFunc
 	log                logr.Logger
 	processRecordsFunc ProcessRecordsFunc
@@ -81,12 +81,12 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error)
 
-type ProcessRecordsFunc = func(ctx context.Context, objectRecords []models.ObjectRecord, store store.Store, log logr.Logger) error
+type ProcessRecordsFunc = func(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectRecord, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
+func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
 	w, err := NewWatcher(WatcherOptions{
 		ClusterRef: types.NamespacedName{
 			Name:      clusterName,
@@ -106,7 +106,7 @@ func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel c
 	return w, nil
 }
 
-func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectRecord, ctx context.Context, log logr.Logger) error {
+func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
 	config, err := cluster.GetServerConfig()
 	if err != nil {
 		return fmt.Errorf("cannot get config: %w", err)

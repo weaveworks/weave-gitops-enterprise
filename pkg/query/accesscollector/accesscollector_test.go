@@ -4,16 +4,12 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/go-logr/logr/testr"
 	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1 "k8s.io/api/rbac/v1"
@@ -23,40 +19,8 @@ import (
 var log logr.Logger
 var g *WithT
 
-func TestNewAccessRulesCollector(t *testing.T) {
-	g = NewWithT(t)
-	log = testr.New(t)
-
-	fakeStore := &storefakes.FakeStore{}
-
-	tests := []struct {
-		name       string
-		store      store.Store
-		options    collector.CollectorOpts
-		errPattern string
-	}{
-		{
-			name: "can create access collector with valid arguments",
-			options: collector.CollectorOpts{
-				Log: log,
-			},
-			store:      fakeStore,
-			errPattern: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			accessRulesCollector, err := NewAccessRulesCollector(tt.store, tt.options)
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
-			}
-			g.Expect(err).To(BeNil())
-			g.Expect(accessRulesCollector).NotTo(BeNil())
-		})
-	}
-
+func TestAccessRuleCollector(t *testing.T) {
+	// TODO: we need to test upserting and deleting access rules
 }
 
 func TestAccessLogic(t *testing.T) {
@@ -227,10 +191,10 @@ func TestAccessLogic(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			objs := []models.ObjectRecord{}
+			objs := []models.ObjectTransaction{}
 
 			for _, o := range tt.objs {
-				fc := &fakeObjRecord{clusterName: tt.clusterName, obj: o}
+				fc := &fakeObjTranaction{clusterName: tt.clusterName, obj: o}
 
 				objs = append(objs, fc)
 			}
@@ -245,7 +209,7 @@ func TestAccessLogic(t *testing.T) {
 				return out
 			})
 
-			result, err := handleRulesReceived(objs)
+			result, _, err := handleRulesReceived(objs)
 			assert.NoError(t, err)
 
 			diff := cmp.Diff(tt.expected, result, opt)
@@ -258,17 +222,22 @@ func TestAccessLogic(t *testing.T) {
 	}
 }
 
-type fakeObjRecord struct {
-	obj         client.Object
-	clusterName string
+type fakeObjTranaction struct {
+	obj             client.Object
+	clusterName     string
+	transactionType models.TransactionType
 }
 
-func (f *fakeObjRecord) Object() client.Object {
+func (f *fakeObjTranaction) Object() client.Object {
 	return f.obj
 }
 
-func (f *fakeObjRecord) ClusterName() string {
+func (f *fakeObjTranaction) ClusterName() string {
 	return f.clusterName
+}
+
+func (f *fakeObjTranaction) TransactionType() models.TransactionType {
+	return f.transactionType
 }
 
 func makeClusterRolePair(name string, rules []v1.PolicyRule) []client.Object {
