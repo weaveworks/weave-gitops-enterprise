@@ -39,9 +39,6 @@ func GitOpsToProto(clusterName string, gs ctrl.GitOpsSet) (*pb.GitOpsSet, error)
 		return nil, err
 	}
 
-	fmt.Println("GITOPSSETTOPROTO")
-	fmt.Println(buf.String())
-
 	return &pb.GitOpsSet{
 		Name:               gs.Name,
 		Namespace:          gs.Namespace,

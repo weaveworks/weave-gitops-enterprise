@@ -78,7 +78,7 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
 		return &ctrl.GitOpsSetList{}
 	})
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to query gitopssets: %w", err)
 	}
@@ -121,16 +121,12 @@ func (s *server) GetGitOpsSet(ctx context.Context, msg *pb.GetGitOpsSetRequest) 
 		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
 	}
 
-	fmt.Println("GITOPSSET")
-	fmt.Println(result)
+	result.GetObjectKind().SetGroupVersionKind(ctrl.GroupVersion.WithKind("GitOpsSet"))
 
 	gitOpsSet, err := convert.GitOpsToProto(msg.ClusterName, result)
 	if err != nil {
 		return nil, fmt.Errorf("failed to convert gitopsset: %w", err)
 	}
-
-	fmt.Println("detail")
-	fmt.Println(gitOpsSet)
 
 	return &pb.GetGitOpsSetResponse{
 		GitopsSet: gitOpsSet,
