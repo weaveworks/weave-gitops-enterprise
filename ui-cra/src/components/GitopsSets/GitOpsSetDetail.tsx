@@ -7,6 +7,7 @@ import {
   Metadata,
   PageStatus,
   ReconciledObjectsAutomation,
+  ReconciledObjectsTable,
   ReconciliationGraph,
   RouterTab,
   SubRouterTabs,
@@ -30,7 +31,6 @@ import {
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import { getInventory } from '.';
-import ReconciledObjectsTable from './ReconciledObjectsTable';
 
 const YAML = require('yaml');
 
@@ -120,8 +120,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     namespace,
     clusterName,
   });
-
-  console.log(gitOpsSet);
 
   const gs = gitOpsSet?.gitopsSet;
 
