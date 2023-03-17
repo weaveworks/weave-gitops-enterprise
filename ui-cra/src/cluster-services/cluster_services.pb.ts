@@ -459,6 +459,16 @@ export type KustomizationSpec = {
   sourceRef?: SourceRef
   targetNamespace?: string
   createNamespace?: boolean
+  decryption?: Decryption
+}
+
+export type Decryption = {
+  provider?: string
+  secretRef?: SecretRef
+}
+
+export type SecretRef = {
+  name?: string
 }
 
 export type HelmRelease = {

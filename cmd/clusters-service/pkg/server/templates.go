@@ -330,6 +330,18 @@ func GetFiles(
 	var kustomizationFiles []gitprovider.CommitFile
 	var externalSecretFiles []gitprovider.CommitFile
 
+	if shouldAddSopsKustomization(tmpl) {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
+		sopsKustomization, err := getSopsKustomization(cluster, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get sops kustomization for %s: %s", msg.ParameterValues, err)
+		}
+		kustomizationFiles = append(kustomizationFiles, *sopsKustomization)
+	}
+
 	if shouldAddCommonBases(tmpl) {
 		cluster, err := getCluster(resourcesNamespace, msg)
 		if err != nil {
@@ -464,6 +476,14 @@ func shouldAddCommonBases(t templatesv1.Template) bool {
 
 	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
 	return viper.GetString("add-bases-kustomization") != "disabled" && isCAPITemplate(t)
+}
+
+func shouldAddSopsKustomization(t templatesv1.Template) bool {
+	anno := t.GetAnnotations()[templates.SopsKustomizationAnnotation]
+	if anno != "" {
+		return anno == "true"
+	}
+	return false
 }
 
 func getCostEstimate(ctx context.Context, estimator estimation.Estimator, renderedTemplates []templates.RenderedTemplate) *capiv1_proto.CostEstimate {
