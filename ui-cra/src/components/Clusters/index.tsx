@@ -240,7 +240,7 @@ const MCCP: FC<{
   );
 
   const listConfigContext = useListConfigContext();
-  const repoLink = listConfigContext?.repoLink || '';
+  // const repoLink = listConfigContext?.repoLink || '';
   const provider = listConfigContext?.provider;
 
   const gitReposUrl = useMemo(
@@ -467,7 +467,7 @@ const MCCP: FC<{
                 />
                 GO TO OPEN PULL REQUESTS
               </Button> */}
-              <OpenedPullRequest></OpenedPullRequest>
+              <OpenedPullRequest options={gitReposUrl}></OpenedPullRequest>
             </ActionsWrapper>
           </div>
           {!isLoading ? (
