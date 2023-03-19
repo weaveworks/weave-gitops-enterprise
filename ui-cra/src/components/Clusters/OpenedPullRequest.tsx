@@ -25,11 +25,6 @@ export default function OpenedPullRequest({ options }: Props) {
   const [OpenPrUrl, setOpenPrUrl] = React.useState('');
   const [OpenPrButtonDisabled, setOpenPrButtonDisabled] = React.useState(false);
 
-  const handleClick = () => {
-    console.log({ OpenPrUrl });
-    window.open(OpenPrUrl, '_blank', 'noopener,noreferrer');
-  };
-
   const handleMenuItemClick = (
     event: React.MouseEvent<HTMLLIElement, MouseEvent>,
     index: number,
@@ -81,7 +76,7 @@ export default function OpenedPullRequest({ options }: Props) {
         <Button
           className={Classes.optionsButton}
           color="primary"
-          onClick={handleClick}
+          onClick={openLinkHandler(OpenPrUrl)}
           disabled={OpenPrButtonDisabled}
         >
           GO TO OPEN PULL REQUESTS ({options[selectedIndex]})

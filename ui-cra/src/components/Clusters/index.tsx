@@ -111,9 +111,6 @@ const useStyles = makeStyles(() =>
       marginRight: theme.spacing.small,
       color: theme.colors.neutral30,
     },
-    externalIcon: {
-      marginRight: theme.spacing.small,
-    },
   }),
 );
 
@@ -238,11 +235,8 @@ const MCCP: FC<{
     () => getGitRepos(sources?.result),
     [sources?.result],
   );
-
   const listConfigContext = useListConfigContext();
-  // const repoLink = listConfigContext?.repoLink || '';
   const provider = listConfigContext?.provider;
-
   const gitReposUrl = useMemo(
     () => gitRepos.map(repo => repo.obj.spec.url),
     [gitRepos],
@@ -264,7 +258,6 @@ const MCCP: FC<{
   const [random, setRandom] = useState<string>(
     Math.random().toString(36).substring(7),
   );
-  const classes = useStyles();
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -459,14 +452,6 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              {/* <Button onClick={openLinkHandler(repoLink)}>
-                <Icon
-                  className={classes.externalIcon}
-                  type={IconType.ExternalTab}
-                  size="base"
-                />
-                GO TO OPEN PULL REQUESTS
-              </Button> */}
               <OpenedPullRequest options={gitReposUrl}></OpenedPullRequest>
             </ActionsWrapper>
           </div>
