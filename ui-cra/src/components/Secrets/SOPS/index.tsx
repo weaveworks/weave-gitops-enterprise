@@ -12,11 +12,16 @@ import SecretData from './SecretData';
 import { FormWrapper } from './styles';
 import ListClusters from './ListClusters';
 import ListKustomizations from './ListKustomizations';
+
+export enum EncryptionType {
+  value,
+  KeyValue,
+}
 export interface SOPS {
   clusterName: string;
   secretName: string;
   secretNamespace: string;
-  encryptionType: string;
+  encryptionType: EncryptionType;
   kustomization: string;
   secretData: { key: string; value: string }[];
   secretValue: string;
@@ -41,9 +46,9 @@ function getInitialData(
     clusterName: '',
     secretName: '',
     secretNamespace: '',
-    encryptionType: '',
+    encryptionType: EncryptionType.value,
     kustomization: '',
-    secretData: [],
+    secretData: [{ key: '', value: '' }],
     secretValue: '',
   };
 
@@ -126,7 +131,7 @@ const CreateSOPS = () => {
                   required
                   name="encryptionType"
                   label="ENCRYPT USING"
-                  value={formData.encryptionType}
+                  value={EncryptionType[formData.encryptionType]}
                   onChange={event =>
                     handleFormData(event.target.value, 'encryptionType')
                   }
