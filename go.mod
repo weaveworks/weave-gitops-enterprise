@@ -44,6 +44,7 @@ require (
 >>>>>>> bf68369e (add encrypt sops secrets API)
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
+<<<<<<< HEAD
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 <<<<<<< HEAD
 	k8s.io/api v0.26.2
@@ -52,6 +53,8 @@ require (
 	k8s.io/cli-runtime v0.26.2
 =======
 =======
+=======
+>>>>>>> 0f5aecb6 (fix snyk issues)
 	k8s.io/api v0.26.1
 	k8s.io/apimachinery v0.26.1
 >>>>>>> 19db1fc0 (fix go mod)
@@ -284,9 +287,10 @@ require (
 	golang.org/x/tools v0.7.0 // indirect
 =======
 	go.mozilla.org/gopgagent v0.0.0-20170926210634-4d7ea76ff71a // indirect
-	golang.org/x/tools v0.2.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/api v0.102.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog v1.0.0 // indirect
 	mvdan.cc/sh/v3 v3.5.1 // indirect
 >>>>>>> 1237948f (add encrypt sops secrets API)
@@ -324,6 +328,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.10.0 // indirect
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
 	golang.org/x/mod v0.9.0 // indirect
 )
 
@@ -334,6 +339,9 @@ require (
 =======
 	golang.org/x/mod v0.6.0 // indirect
 >>>>>>> 19db1fc0 (fix go mod)
+=======
+	golang.org/x/mod v0.8.0 // indirect
+>>>>>>> 0f5aecb6 (fix snyk issues)
 )
 
 require (
@@ -505,7 +513,7 @@ require (
 	golang.org/x/sync v0.1.0
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
-	golang.org/x/text v0.7.0
+	golang.org/x/text v0.8.0
 	golang.org/x/time v0.3.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
