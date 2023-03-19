@@ -6,7 +6,7 @@ import {
 } from '@material-ui/core';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
-import { SOPS } from '.';
+import { EncryptionType, SOPS } from '.';
 import InputDebounced from './InputDebounced';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 
@@ -51,11 +51,15 @@ const SecretData = ({
             }
           >
             <FormControlLabel
-              value="stringData"
+              value={EncryptionType.value}
               control={<Radio />}
               label="String Data"
             />
-            <FormControlLabel value="Data" control={<Radio />} label="Data" />
+            <FormControlLabel
+              value={EncryptionType.KeyValue}
+              control={<Radio />}
+              label="Data"
+            />
           </RadioGroup>
         </FormControl>
       </div>

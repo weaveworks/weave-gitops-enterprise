@@ -38,6 +38,7 @@ export const FormWrapper = styled.form`
   }
   .auth-message {
     padding-right: 0;
+    margin-left: 24px;
   }
   .secret-data-list {
     display: flex;
