@@ -46,7 +46,6 @@ import { TableWrapper, Tooltip } from '../Shared';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
-import { openLinkHandler } from '../../utils/link-checker';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
