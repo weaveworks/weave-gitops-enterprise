@@ -17,6 +17,7 @@ const (
 	AddCommonBasesAnnotation        = "templates.weave.works/add-common-bases"
 	InjectPruneAnnotationAnnotation = "templates.weave.works/inject-prune-annotation"
 	ProfilesAnnotation              = "capi.weave.works/profile-"
+	SopsKustomizationAnnotation     = "templates.weave.works/sops-enabled"
 )
 
 // ParseTemplateMeta parses a byte slice into a TemplateMeta struct which

@@ -16,6 +16,7 @@ import (
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
@@ -547,6 +548,44 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 	return file, nil
 }
 
+func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*gitprovider.CommitFile, error) {
+	sopsKustomizationPath := getSopsKustomizationPath(cluster)
+	sopsKustomization := createSopsKustomizationObject(&capiv1_proto.Kustomization{
+		Metadata: &capiv1_proto.Metadata{
+			Name:      msg.ParameterValues["SOPS_KUSTOMIZATION_NAME"],
+			Namespace: "flux-system",
+		},
+		Spec: &capiv1_proto.KustomizationSpec{
+			Path: filepath.Join(
+				viper.GetString("capi-repository-clusters-path"),
+				cluster.Namespace,
+				cluster.Name,
+				"sops",
+			),
+			SourceRef: &capiv1_proto.SourceRef{
+				Name: "flux-system",
+			},
+			Decryption: &capiv1_proto.Decryption{
+				Provider: "sops",
+				SecretRef: &capiv1_proto.SecretRef{
+					Name: msg.ParameterValues["SOPS_SECRET_REF"],
+				},
+			},
+		},
+	})
+
+	b, err := yaml.Marshal(sopsKustomization)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling sops kustomization, %w", err)
+	}
+	sopsKustomizationString := string(b)
+	file := &gitprovider.CommitFile{
+		Path:    &sopsKustomizationPath,
+		Content: &sopsKustomizationString,
+	}
+	return file, nil
+}
+
 func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
@@ -870,6 +909,13 @@ func getCommonKustomizationPath(cluster types.NamespacedName) string {
 	)
 }
 
+func getSopsKustomizationPath(cluster types.NamespacedName) string {
+	return filepath.Join(
+		getClusterDirPath(cluster),
+		"sops-kustomization.yaml",
+	)
+}
+
 func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		getClusterDirPath(cluster),
@@ -1057,6 +1103,38 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 				Kind:      kustomizationKind,
 				Name:      kustomization.Spec.SourceRef.Name,
 				Namespace: kustomization.Spec.SourceRef.Namespace,
+			},
+			Interval:        metav1.Duration{Duration: time.Minute * 10},
+			Prune:           true,
+			Path:            kustomization.Spec.Path,
+			TargetNamespace: kustomization.Spec.TargetNamespace,
+		},
+	}
+
+	return generatedKustomization
+}
+
+func createSopsKustomizationObject(kustomization *capiv1_proto.Kustomization) *kustomizev1.Kustomization {
+	generatedKustomization := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      kustomization.Metadata.Name,
+			Namespace: kustomization.Metadata.Namespace,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      kustomizationKind,
+				Name:      kustomization.Spec.SourceRef.Name,
+				Namespace: kustomization.Spec.SourceRef.Namespace,
+			},
+			Decryption: &kustomizev1.Decryption{
+				Provider: kustomization.Spec.Decryption.Provider,
+				SecretRef: &meta.LocalObjectReference{
+					Name: kustomization.Spec.Decryption.SecretRef.Name,
+				},
 			},
 			Interval:        metav1.Duration{Duration: time.Minute * 10},
 			Prune:           true,
