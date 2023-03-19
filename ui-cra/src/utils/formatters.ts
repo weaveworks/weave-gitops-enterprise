@@ -72,6 +72,10 @@ export function bitbucketServerOAuthRedirectURI(): string {
   return `${window.location.origin}${Routes.BitBucketOauthCallback}`;
 }
 
+export function azureDevOpsOAuthRedirectURI(): string {
+  return `${window.location.origin}${Routes.AzureDevOpsOauthCallback}`;
+}
+
 export const getLabels = (
   obj: TerraformObject | GitOpsSet | undefined,
 ): [string, string][] => {

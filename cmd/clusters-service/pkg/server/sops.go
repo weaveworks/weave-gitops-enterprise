@@ -130,7 +130,7 @@ func (e *Encryptor) EncryptWithAGE(raw []byte, secret string) ([]byte, error) {
 	return e.Encrypt(raw, keys[0])
 }
 
-func (s *server) SopsEncryptSecret(ctx context.Context, msg *capiv1_proto.SopsEncryptSecretRequest) (*capiv1_proto.SopsEncryptSecretResponse, error) {
+func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.EncryptSopsSecretRequest) (*capiv1_proto.EncryptSopsSecretResponse, error) {
 	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), msg.ClusterName)
 	if err != nil {
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
@@ -178,13 +178,13 @@ func (s *server) SopsEncryptSecret(ctx context.Context, msg *capiv1_proto.SopsEn
 		return nil, fmt.Errorf("failed to unmarshal secret: %w", err)
 	}
 
-	return &capiv1_proto.SopsEncryptSecretResponse{
+	return &capiv1_proto.EncryptSopsSecretResponse{
 		EncryptedSecret: &result,
 		Path:            kustomization.Spec.Path,
 	}, nil
 }
 
-func generateSecret(msg *capiv1_proto.SopsEncryptSecretRequest) ([]byte, error) {
+func generateSecret(msg *capiv1_proto.EncryptSopsSecretRequest) ([]byte, error) {
 	data := map[string][]byte{}
 	for key := range msg.Data {
 		value := msg.Data[key]
@@ -210,7 +210,7 @@ func generateSecret(msg *capiv1_proto.SopsEncryptSecretRequest) ([]byte, error) 
 	var buf bytes.Buffer
 	serializer := json.NewSerializer(json.DefaultMetaFactory, nil, nil, false)
 	if err := serializer.Encode(&secret, &buf); err != nil {
-		return nil, fmt.Errorf("failed to serialize object, error: %w", err)
+		return nil, fmt.Errorf("failed to serialize object: %w", err)
 	}
 
 	return buf.Bytes(), nil
@@ -225,7 +225,7 @@ func encryptSecret(raw []byte, decryptSecret v1.Secret) ([]byte, error) {
 		case DecryptionAgeExt:
 			return encryptor.EncryptWithAGE(raw, strings.TrimRight(string(value), "\n"))
 		default:
-			return nil, errors.New("invalid secret")
+			return nil, errors.New("invalid decryption secret")
 		}
 	}
 	return nil, nil

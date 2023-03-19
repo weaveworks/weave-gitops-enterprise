@@ -48,6 +48,13 @@ type GitAuthClient interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlabRequest, opts ...grpc.CallOption) (*AuthorizeGitlabResponse, error)
 	//
+	// GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL used to initiate the OAuth flow.
+	GetAzureDevOpsAuthURL(ctx context.Context, in *GetAzureDevOpsAuthURLRequest, opts ...grpc.CallOption) (*GetAzureDevOpsAuthURLResponse, error)
+	//
+	// AuthorizeAzureDevOps returns a token after a user authorizes Azure DevOps to grant access to their
+	// account on behalf of Weave GitOps Enterprise.
+	AuthorizeAzureDevOps(ctx context.Context, in *AuthorizeAzureDevOpsRequest, opts ...grpc.CallOption) (*AuthorizeAzureDevOpsResponse, error)
+	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error)
 	//
@@ -126,6 +133,24 @@ func (c *gitAuthClient) AuthorizeGitlab(ctx context.Context, in *AuthorizeGitlab
 	return out, nil
 }
 
+func (c *gitAuthClient) GetAzureDevOpsAuthURL(ctx context.Context, in *GetAzureDevOpsAuthURLRequest, opts ...grpc.CallOption) (*GetAzureDevOpsAuthURLResponse, error) {
+	out := new(GetAzureDevOpsAuthURLResponse)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *gitAuthClient) AuthorizeAzureDevOps(ctx context.Context, in *AuthorizeAzureDevOpsRequest, opts ...grpc.CallOption) (*AuthorizeAzureDevOpsResponse, error) {
+	out := new(AuthorizeAzureDevOpsResponse)
+	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/AuthorizeAzureDevOps", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *gitAuthClient) ParseRepoURL(ctx context.Context, in *ParseRepoURLRequest, opts ...grpc.CallOption) (*ParseRepoURLResponse, error) {
 	out := new(ParseRepoURLResponse)
 	err := c.cc.Invoke(ctx, "/gitauth.v1.GitAuth/ParseRepoURL", in, out, opts...)
@@ -178,6 +203,13 @@ type GitAuthServer interface {
 	// https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
 	AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error)
 	//
+	// GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL used to initiate the OAuth flow.
+	GetAzureDevOpsAuthURL(context.Context, *GetAzureDevOpsAuthURLRequest) (*GetAzureDevOpsAuthURLResponse, error)
+	//
+	// AuthorizeAzureDevOps returns a token after a user authorizes Azure DevOps to grant access to their
+	// account on behalf of Weave GitOps Enterprise.
+	AuthorizeAzureDevOps(context.Context, *AuthorizeAzureDevOpsRequest) (*AuthorizeAzureDevOpsResponse, error)
+	//
 	// ParseRepoURL returns structured data about a git repository URL
 	ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error)
 	//
@@ -210,6 +242,12 @@ func (UnimplementedGitAuthServer) AuthorizeBitbucketServer(context.Context, *Aut
 }
 func (UnimplementedGitAuthServer) AuthorizeGitlab(context.Context, *AuthorizeGitlabRequest) (*AuthorizeGitlabResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeGitlab not implemented")
+}
+func (UnimplementedGitAuthServer) GetAzureDevOpsAuthURL(context.Context, *GetAzureDevOpsAuthURLRequest) (*GetAzureDevOpsAuthURLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAzureDevOpsAuthURL not implemented")
+}
+func (UnimplementedGitAuthServer) AuthorizeAzureDevOps(context.Context, *AuthorizeAzureDevOpsRequest) (*AuthorizeAzureDevOpsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method AuthorizeAzureDevOps not implemented")
 }
 func (UnimplementedGitAuthServer) ParseRepoURL(context.Context, *ParseRepoURLRequest) (*ParseRepoURLResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ParseRepoURL not implemented")
@@ -356,6 +394,42 @@ func _GitAuth_AuthorizeGitlab_Handler(srv interface{}, ctx context.Context, dec 
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GitAuth_GetAzureDevOpsAuthURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAzureDevOpsAuthURLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitAuthServer).GetAzureDevOpsAuthURL(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitAuthServer).GetAzureDevOpsAuthURL(ctx, req.(*GetAzureDevOpsAuthURLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _GitAuth_AuthorizeAzureDevOps_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AuthorizeAzureDevOpsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GitAuthServer).AuthorizeAzureDevOps(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/gitauth.v1.GitAuth/AuthorizeAzureDevOps",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GitAuthServer).AuthorizeAzureDevOps(ctx, req.(*AuthorizeAzureDevOpsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _GitAuth_ParseRepoURL_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ParseRepoURLRequest)
 	if err := dec(in); err != nil {
@@ -426,6 +500,14 @@ var GitAuth_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "AuthorizeGitlab",
 			Handler:    _GitAuth_AuthorizeGitlab_Handler,
+		},
+		{
+			MethodName: "GetAzureDevOpsAuthURL",
+			Handler:    _GitAuth_GetAzureDevOpsAuthURL_Handler,
+		},
+		{
+			MethodName: "AuthorizeAzureDevOps",
+			Handler:    _GitAuth_AuthorizeAzureDevOps_Handler,
 		},
 		{
 			MethodName: "ParseRepoURL",

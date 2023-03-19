@@ -50,7 +50,6 @@ export type SyncGitOpsSetResponse = {
 export type GetGitOpsSetRequest = {
   name?: string
   namespace?: string
-  kind?: string
   clusterName?: string
 }
 

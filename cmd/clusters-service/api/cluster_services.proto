@@ -246,6 +246,14 @@ service ClustersService {
       get : "/v1/external-secrets-stores"
     };
   }
+  // SyncExternalSecrets sync externalSecret Operator secrets
+  rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
+    option (google.api.http) = {
+      post : "/v1/external-secrets/sync"
+      body : "*"
+    };
+  }
+
   // ListPolicyConfigs list policy configs
   rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
     option (google.api.http) = {
@@ -259,10 +267,10 @@ service ClustersService {
     };
   }
 
-  // SopsEncryptSecret get policy config details
-  rpc SopsEncryptSecret(SopsEncryptSecretRequest) returns (SopsEncryptSecretResponse) {
+  // EncryptSopsSecret encrypts a sops secret
+  rpc EncryptSopsSecret(EncryptSopsSecretRequest) returns (EncryptSopsSecretResponse) {
     option (google.api.http) = {
-      post : "/v1/sops-encrypt-secret",
+      post : "/v1/encrypt-sops-secret",
       body : "*"
     };
   }
@@ -1104,6 +1112,15 @@ message ListExternalSecretStoresResponse{
   int32 total = 2;
 }
 
+message SyncExternalSecretsRequest{
+  string clusterName = 1;
+  string namespace = 2;
+  string externalSecretName = 3;
+}
+
+message SyncExternalSecretsResponse{
+}
+
 message PolicyConfigListItem {
   string name = 1;
   string clusterName = 2;
@@ -1181,7 +1198,7 @@ message PolicyConfigObject {
 }
 
 
-message SopsEncryptSecretRequest {
+message EncryptSopsSecretRequest {
   string name = 1;
   string namespace = 2;
   map<string, string> labels = 3;
@@ -1194,7 +1211,7 @@ message SopsEncryptSecretRequest {
   string clusterName = 10;
 }
 
-message SopsEncryptSecretResponse {
+message EncryptSopsSecretResponse {
   google.protobuf.Value encrypted_secret = 1;
   string path = 2;
 }
@@ -1212,3 +1229,4 @@ message SOPSKustomizations {
   string name = 1;
   string namespace = 2;
 }
+

@@ -806,6 +806,15 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
+export type SyncExternalSecretsRequest = {
+  clusterName?: string
+  namespace?: string
+  externalSecretName?: string
+}
+
+export type SyncExternalSecretsResponse = {
+}
+
 export type PolicyConfigListItem = {
   name?: string
   clusterName?: string
@@ -881,7 +890,7 @@ export type PolicyConfigObject = {
   spec?: PolicyConfigObjectSpec
 }
 
-export type SopsEncryptSecretRequest = {
+export type EncryptSopsSecretRequest = {
   name?: string
   namespace?: string
   labels?: {[key: string]: string}
@@ -894,7 +903,7 @@ export type SopsEncryptSecretRequest = {
   clusterName?: string
 }
 
-export type SopsEncryptSecretResponse = {
+export type EncryptSopsSecretResponse = {
   encryptedSecret?: GoogleProtobufStruct.Value
   path?: string
 }
@@ -1010,14 +1019,17 @@ export class ClustersService {
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
+  static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
+    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
     return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
-  static SopsEncryptSecret(req: SopsEncryptSecretRequest, initReq?: fm.InitReq): Promise<SopsEncryptSecretResponse> {
-    return fm.fetchReq<SopsEncryptSecretRequest, SopsEncryptSecretResponse>(`/v1/sops-encrypt-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
+    return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListSOPSKustomizations(req: ListSOPSKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSOPSKustomizationsResponse> {
     return fm.fetchReq<ListSOPSKustomizationsRequest, ListSOPSKustomizationsResponse>(`/v1/sops-kustomizations/${req["clusterName"]}?${fm.renderURLSearchParams(req, ["clusterName"])}`, {...initReq, method: "GET"})
