@@ -2,7 +2,9 @@ package server
 
 import (
 	"context"
-	"strings"
+	"encoding/base64"
+	"encoding/json"
+	"os"
 	"testing"
 
 	goage "filippo.io/age"
@@ -11,6 +13,10 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/stretchr/testify/assert"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"go.mozilla.org/sops/v3/aes"
+	"go.mozilla.org/sops/v3/cmd/sops/common"
+	"go.mozilla.org/sops/v3/cmd/sops/formats"
+	"go.mozilla.org/sops/v3/keyservice"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -119,6 +125,8 @@ func TestEncryptSecret(t *testing.T) {
 
 	tests := []struct {
 		request *capiv1_proto.EncryptSopsSecretRequest
+		key     string
+		method  string
 		path    string
 		err     error
 	}{
@@ -134,7 +142,9 @@ func TestEncryptSecret(t *testing.T) {
 					"password": "password",
 				},
 			},
-			path: "./secrets/age",
+			path:   "./secrets/age",
+			key:    ageKey.String(),
+			method: "age",
 		},
 		{
 			request: &capiv1_proto.EncryptSopsSecretRequest{
@@ -148,7 +158,9 @@ func TestEncryptSecret(t *testing.T) {
 					"password": "password",
 				},
 			},
-			path: "./secrets/gpg",
+			path:   "./secrets/gpg",
+			key:    pgpKey,
+			method: "gpg",
 		},
 		{
 			request: &capiv1_proto.EncryptSopsSecretRequest{
@@ -162,7 +174,9 @@ func TestEncryptSecret(t *testing.T) {
 					"password": "password",
 				},
 			},
-			path: "./secrets/age",
+			path:   "./secrets/age",
+			key:    ageKey.String(),
+			method: "age",
 		},
 		{
 			request: &capiv1_proto.EncryptSopsSecretRequest{
@@ -176,7 +190,9 @@ func TestEncryptSecret(t *testing.T) {
 					"password": "password",
 				},
 			},
-			path: "./secrets/gpg",
+			path:   "./secrets/gpg",
+			key:    pgpKey,
+			method: "gpg",
 		},
 	}
 
@@ -204,20 +220,22 @@ func TestEncryptSecret(t *testing.T) {
 			continue
 		}
 
-		encryptedSecret := res.EncryptedSecret.GetStructValue().AsMap()
-		if data, ok := encryptedSecret["data"].(map[string]interface{}); ok {
-			for _, value := range data {
-				if !strings.HasPrefix(value.(string), "ENC[") {
-					t.Error("secret is not encrypted")
-				}
-			}
+		rawSecret, err := res.EncryptedSecret.MarshalJSON()
+		if err != nil {
+			t.Errorf(err.Error())
 		}
-		if data, ok := encryptedSecret["stringData"].(map[string]interface{}); ok {
-			for _, value := range data {
-				if !strings.HasPrefix(value.(string), "ENC[") {
-					t.Error("secret is not encrypted")
-				}
-			}
+
+		decryptedValues, err := decryptSecretValues(rawSecret, tt.method, tt.key)
+		if err != nil {
+			t.Errorf(err.Error())
+		}
+
+		if tt.request.Data != nil {
+			assert.EqualValues(t, tt.request.Data, decryptedValues)
+		}
+
+		if tt.request.StringData != nil {
+			assert.EqualValues(t, tt.request.StringData, decryptedValues)
 		}
 
 		assert.Equal(t, tt.path, res.Path)
@@ -230,4 +248,61 @@ func generatePGPKey() (string, error) {
 		panic(err)
 	}
 	return k.Armor()
+}
+
+func decryptSecretValues(raw []byte, method, key string) (map[string]string, error) {
+	store := common.StoreForFormat(formats.Json)
+	tree, err := store.LoadEncryptedFile(raw)
+	if err != nil {
+		return nil, err
+	}
+
+	switch method {
+	case "age":
+		os.Setenv("SOPS_AGE_KEY", key)
+	case "gpg":
+		if err := importPGPKey(key); err != nil {
+			return nil, err
+		}
+	}
+
+	metadataKey, err := tree.Metadata.GetDataKeyWithKeyServices([]keyservice.KeyServiceClient{
+		keyservice.NewLocalClient(),
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	cipher := aes.NewCipher()
+	_, err = tree.Decrypt(metadataKey, cipher)
+	if err != nil {
+		return nil, err
+	}
+
+	out, err := store.EmitPlainFile(tree.Branches)
+	if err != nil {
+		return nil, err
+	}
+
+	var secretAsMap map[string]interface{}
+	if err := json.Unmarshal(out, &secretAsMap); err != nil {
+		return nil, err
+	}
+
+	secrets := map[string]string{}
+	if data, ok := secretAsMap["data"].(map[string]interface{}); ok {
+		for k, v := range data {
+			val, err := base64.StdEncoding.DecodeString(v.(string))
+			if err != nil {
+				return nil, err
+			}
+			secrets[k] = string(val)
+		}
+	} else if data, ok := secretAsMap["stringData"].(map[string]interface{}); ok {
+		for k, v := range data {
+			secrets[k] = v.(string)
+		}
+	}
+	return secrets, nil
 }
