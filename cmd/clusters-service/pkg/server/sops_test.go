@@ -341,16 +341,16 @@ func TestListKustomizations(t *testing.T) {
 	}
 
 	tests := []struct {
-		request  *capiv1_proto.ListSOPSKustomizationsRequest
-		response *capiv1_proto.ListSOPSKustomizationsResponse
+		request  *capiv1_proto.ListSopsKustomizationsRequest
+		response *capiv1_proto.ListSopsKustomizationsResponse
 		err      bool
 	}{
 		{
-			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
 				ClusterName: "management",
 			},
-			response: &capiv1_proto.ListSOPSKustomizationsResponse{
-				Kustomizations: []*capiv1_proto.SOPSKustomizations{
+			response: &capiv1_proto.ListSopsKustomizationsResponse{
+				Kustomizations: []*capiv1_proto.SopsKustomizations{
 					{
 						Name:      "kustomization-a-1",
 						Namespace: "namespace-a-1",
@@ -364,11 +364,11 @@ func TestListKustomizations(t *testing.T) {
 			},
 		},
 		{
-			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
 				ClusterName: "leaf-1",
 			},
-			response: &capiv1_proto.ListSOPSKustomizationsResponse{
-				Kustomizations: []*capiv1_proto.SOPSKustomizations{
+			response: &capiv1_proto.ListSopsKustomizationsResponse{
+				Kustomizations: []*capiv1_proto.SopsKustomizations{
 					{
 						Name:      "kustomization-b-1",
 						Namespace: "namespace-b-1",
@@ -378,16 +378,16 @@ func TestListKustomizations(t *testing.T) {
 			},
 		},
 		{
-			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
 				ClusterName: "leaf-2",
 			},
-			response: &capiv1_proto.ListSOPSKustomizationsResponse{
+			response: &capiv1_proto.ListSopsKustomizationsResponse{
 				Kustomizations: nil,
 				Total:          0,
 			},
 		},
 		{
-			request: &capiv1_proto.ListSOPSKustomizationsRequest{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
 				ClusterName: "leaf-3",
 			},
 			err: true,
@@ -402,7 +402,7 @@ func TestListKustomizations(t *testing.T) {
 	s := getServer(t, clustersClients, nil)
 
 	for _, tt := range tests {
-		res, err := s.ListSOPSKustomizations(context.Background(), tt.request)
+		res, err := s.ListSopsKustomizations(context.Background(), tt.request)
 		if tt.err {
 			assert.NotNil(t, err)
 			continue

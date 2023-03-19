@@ -275,10 +275,10 @@ service ClustersService {
     };
   }
 
-  // ListSOPSKustomizations list SOPS kustomizations
-  rpc ListSOPSKustomizations(ListSOPSKustomizationsRequest) returns (ListSOPSKustomizationsResponse) {
+  // ListSopsKustomizations list Sops kustomizations
+  rpc ListSopsKustomizations(ListSopsKustomizationsRequest) returns (ListSopsKustomizationsResponse) {
     option (google.api.http) = {
-      get : "/v1/sops-kustomizations/{clusterName}"
+      get : "/v1/sops-kustomizations"
     };
   }
 }
@@ -1216,16 +1216,16 @@ message EncryptSopsSecretResponse {
   string path = 2;
 }
 
-message ListSOPSKustomizationsRequest {
+message ListSopsKustomizationsRequest {
   string clusterName = 1;
 }
 
-message ListSOPSKustomizationsResponse {
-  repeated SOPSKustomizations kustomizations = 1;
+message ListSopsKustomizationsResponse {
+  repeated SopsKustomizations kustomizations = 1;
   int32 total = 2;
 }
 
-message SOPSKustomizations {
+message SopsKustomizations {
   string name = 1;
   string namespace = 2;
 }

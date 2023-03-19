@@ -245,7 +245,7 @@ func importPGPKey(pk string) error {
 	return cmd.Run()
 }
 
-func (s *server) ListSOPSKustomizations(ctx context.Context, req *capiv1_proto.ListSOPSKustomizationsRequest) (*capiv1_proto.ListSOPSKustomizationsResponse, error) {
+func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.ListSopsKustomizationsRequest) (*capiv1_proto.ListSopsKustomizationsResponse, error) {
 
 	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
 	if err != nil {
@@ -261,7 +261,7 @@ func (s *server) ListSOPSKustomizations(ctx context.Context, req *capiv1_proto.L
 		return nil, err
 	}
 
-	response := capiv1_proto.ListSOPSKustomizationsResponse{
+	response := capiv1_proto.ListSopsKustomizationsResponse{
 		Kustomizations: kustomizations,
 		Total:          int32(len(kustomizations)),
 	}
@@ -269,9 +269,9 @@ func (s *server) ListSOPSKustomizations(ctx context.Context, req *capiv1_proto.L
 	return &response, nil
 }
 
-func (s *server) listSOPSKustomizations(ctx context.Context, cl clustersmngr.Client, req *capiv1_proto.ListSOPSKustomizationsRequest) ([]*capiv1_proto.SOPSKustomizations, error) {
+func (s *server) listSOPSKustomizations(ctx context.Context, cl clustersmngr.Client, req *capiv1_proto.ListSopsKustomizationsRequest) ([]*capiv1_proto.SopsKustomizations, error) {
 
-	kustomizations := []*capiv1_proto.SOPSKustomizations{}
+	kustomizations := []*capiv1_proto.SopsKustomizations{}
 
 	kustomizationList := &kustomizev1beta2.KustomizationList{}
 	err := cl.List(ctx, req.ClusterName, kustomizationList)
@@ -281,7 +281,7 @@ func (s *server) listSOPSKustomizations(ctx context.Context, cl clustersmngr.Cli
 
 	for _, kustomization := range kustomizationList.Items {
 		if kustomization.Spec.Decryption != nil && strings.EqualFold(kustomization.Spec.Decryption.Provider, "sops") {
-			kustomizations = append(kustomizations, &capiv1_proto.SOPSKustomizations{
+			kustomizations = append(kustomizations, &capiv1_proto.SopsKustomizations{
 				Name:      kustomization.Name,
 				Namespace: kustomization.Namespace,
 			})

@@ -908,16 +908,16 @@ export type EncryptSopsSecretResponse = {
   path?: string
 }
 
-export type ListSOPSKustomizationsRequest = {
+export type ListSopsKustomizationsRequest = {
   clusterName?: string
 }
 
-export type ListSOPSKustomizationsResponse = {
-  kustomizations?: SOPSKustomizations[]
+export type ListSopsKustomizationsResponse = {
+  kustomizations?: SopsKustomizations[]
   total?: number
 }
 
-export type SOPSKustomizations = {
+export type SopsKustomizations = {
   name?: string
   namespace?: string
 }
@@ -1031,7 +1031,7 @@ export class ClustersService {
   static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
     return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static ListSOPSKustomizations(req: ListSOPSKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSOPSKustomizationsResponse> {
-    return fm.fetchReq<ListSOPSKustomizationsRequest, ListSOPSKustomizationsResponse>(`/v1/sops-kustomizations/${req["clusterName"]}?${fm.renderURLSearchParams(req, ["clusterName"])}`, {...initReq, method: "GET"})
+  static ListSopsKustomizations(req: ListSopsKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSopsKustomizationsResponse> {
+    return fm.fetchReq<ListSopsKustomizationsRequest, ListSopsKustomizationsResponse>(`/v1/sops-kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

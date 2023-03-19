@@ -844,15 +844,15 @@
         ]
       }
     },
-    "/v1/sops-kustomizations/{clusterName}": {
+    "/v1/sops-kustomizations": {
       "get": {
-        "summary": "ListSOPSKustomizations list SOPS kustomizations",
-        "operationId": "ClustersService_ListSOPSKustomizations",
+        "summary": "ListSopsKustomizations list Sops kustomizations",
+        "operationId": "ClustersService_ListSopsKustomizations",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ListSOPSKustomizationsResponse"
+              "$ref": "#/definitions/v1ListSopsKustomizationsResponse"
             }
           },
           "default": {
@@ -865,8 +865,8 @@
         "parameters": [
           {
             "name": "clusterName",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
           }
         ],
@@ -2591,13 +2591,13 @@
         }
       }
     },
-    "v1ListSOPSKustomizationsResponse": {
+    "v1ListSopsKustomizationsResponse": {
       "type": "object",
       "properties": {
         "kustomizations": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/v1SOPSKustomizations"
+            "$ref": "#/definitions/v1SopsKustomizations"
           }
         },
         "total": {
@@ -3278,7 +3278,7 @@
         }
       }
     },
-    "v1SOPSKustomizations": {
+    "v1SopsKustomizations": {
       "type": "object",
       "properties": {
         "name": {
