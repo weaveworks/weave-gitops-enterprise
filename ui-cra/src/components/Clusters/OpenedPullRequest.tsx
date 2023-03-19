@@ -20,7 +20,7 @@ type Props = {
 export default function OpenedPullRequest({ options }: Props) {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLDivElement>(null);
-  const [selectedIndex, setSelectedIndex] = React.useState(1);
+  const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const { gitAuthClient } = useContext(GitAuth);
   const [OpenPrUrl, setOpenPrUrl] = React.useState('');
   const [OpenPrButtonDisabled, setOpenPrButtonDisabled] = React.useState(false);
@@ -43,7 +43,6 @@ export default function OpenedPullRequest({ options }: Props) {
       if (provider === 'GitLab') {
         setOpenPrUrl(`${protocol}://${resource}/${full_name}/-/merge_requests`);
       }
-      console.log({ OpenPrUrl });
     });
   };
 
@@ -67,6 +66,9 @@ export default function OpenedPullRequest({ options }: Props) {
       optionsButton: {
         marginRight: '0px',
       },
+      externalLink: {
+        marginRight: '5px',
+      },
     }),
   );
   const Classes = useStyles();
@@ -77,10 +79,20 @@ export default function OpenedPullRequest({ options }: Props) {
           className={Classes.optionsButton}
           color="primary"
           onClick={openLinkHandler(OpenPrUrl)}
-          disabled={OpenPrButtonDisabled}
+          disabled={OpenPrButtonDisabled || options.length === 0}
         >
-          GO TO OPEN PULL REQUESTS ({options[selectedIndex]})
-          <Icon type={IconType.ExternalTab} size="base" />
+          {selectedIndex === -1 ? (
+            'SELECT GIT REPOSIOTORY'
+          ) : (
+            <>
+              <Icon
+                className={Classes.externalLink}
+                type={IconType.ExternalTab}
+                size="base"
+              />
+              GO TO OPEN PULL REQUESTS ON {options[selectedIndex]}
+            </>
+          )}
         </Button>
         <Button
           size="small"
@@ -89,6 +101,7 @@ export default function OpenedPullRequest({ options }: Props) {
           aria-haspopup="menu"
           onClick={handleToggle}
           color="primary"
+          disabled={options.length === 0}
         >
           <ArrowDropDownIcon />
         </Button>
