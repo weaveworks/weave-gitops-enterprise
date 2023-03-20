@@ -12,6 +12,7 @@ import SecretData from './SecretData';
 import { FormWrapper } from './styles';
 import ListClusters from './ListClusters';
 import ListKustomizations from './ListKustomizations';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 
 export enum SecretDataType {
   value,
@@ -40,10 +41,10 @@ function getInitialData(
   let defaultFormData = {
     repo: null,
     provider: '',
-    branchName: `add-external-secret-branch-${random}`,
-    pullRequestTitle: 'Add External Secret',
-    commitMessage: 'Add External Secret',
-    pullRequestDescription: 'This PR adds a new External Secret',
+    branchName: `add-SOPS-secret-branch-${random}`,
+    pullRequestTitle: 'Add SOPS Secret',
+    commitMessage: 'Add SOPS Secret',
+    pullRequestDescription: 'This PR adds a new SOPS Secret',
     clusterName: '',
     secretName: '',
     secretNamespace: '',
@@ -76,6 +77,9 @@ const CreateSOPS = () => {
   const handleFormData = (value: any, key: string) => {
     setFormData(f => (f = { ...f, [key]: value }));
   };
+
+  const [loading, setLoading] = useState<boolean>(false);
+
   const authRedirectPage = `/secrets/create`;
 
   return (
@@ -162,6 +166,16 @@ const CreateSOPS = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
+
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <div className="create-cta">
+                <Button type="submit" disabled={!enableCreatePR}>
+                  CREATE PULL REQUEST
+                </Button>
+              </div>
+            )}
           </FormWrapper>
         </ContentWrapper>
       </CallbackStateContextProvider>

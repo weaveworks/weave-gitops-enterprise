@@ -28,6 +28,7 @@ const InputDebounced = ({
       }, 500);
     };
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const handleOnChange = useCallback(debounce(), []);
 
   return (
