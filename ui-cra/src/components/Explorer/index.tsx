@@ -1,8 +1,10 @@
 import { DataTable, Flex } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { AccessRule } from '../../api/query/query.pb';
 import { useListAccessRules, useQueryService } from '../../hooks/query';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
@@ -37,6 +39,7 @@ function Explorer({ className }: Props) {
   const { data, error, isFetching } = useQueryService(
     queryState.pinnedTerms.join(','),
   );
+  console.log(data);
   const { data: rules } = useListAccessRules();
 
   React.useEffect(() => {
@@ -91,8 +94,15 @@ function Explorer({ className }: Props) {
         <DataTable
           fields={[
             { label: 'Cluster', value: 'cluster' },
-            { label: 'Principal', value: 'principal' },
-            { label: 'Accessible Kinds', value: 'accessibleKinds' },
+            {
+              label: 'Subjects',
+              value: (r: AccessRule) =>
+                _.map(r.subjects, 'name').join(', ') || null,
+            },
+            {
+              label: 'Accessible Kinds',
+              value: (r: AccessRule) => r?.accessibleKinds?.join(', ') || null,
+            },
           ]}
           rows={rules?.rules}
         />

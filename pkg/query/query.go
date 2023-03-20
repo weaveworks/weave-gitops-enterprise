@@ -45,7 +45,6 @@ func (q *qs) RunQuery(ctx context.Context, opts store.Query) ([]models.Object, e
 	principal := auth.Principal(ctx)
 
 	allObjects, err := q.r.GetObjects(ctx, opts)
-
 	if err != nil {
 		return nil, fmt.Errorf("error getting objects from store: %w", err)
 	}
@@ -55,7 +54,12 @@ func (q *qs) RunQuery(ctx context.Context, opts store.Query) ([]models.Object, e
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
 
+	fmt.Printf("principal: %v\n", principal.ID)
+
 	result := q.filter(principal, rules, allObjects)
+
+	fmt.Printf("allObjects: %v\n", len(allObjects))
+	fmt.Printf("result: %v\n", len(result))
 
 	return result, nil
 }
@@ -70,9 +74,12 @@ func defaultAccessFilter(user *auth.UserPrincipal, rules []models.AccessRule, ob
 	result := []models.Object{}
 
 	for _, rule := range rules {
-		for _, kind := range rule.AccessibleKinds {
-			key := toKey(rule.Cluster, rule.Namespace, kind, rule.Principal)
-			ruleLookup[key] = true
+		for _, s := range rule.Subjects {
+			for _, kind := range rule.AccessibleKinds {
+				fmt.Println(rule.Namespace)
+				key := toKey(rule.Cluster, rule.Namespace, kind, s.Name)
+				ruleLookup[key] = true
+			}
 		}
 	}
 
@@ -98,6 +105,7 @@ func defaultAccessFilter(user *auth.UserPrincipal, rules []models.AccessRule, ob
 
 	}
 
+	fmt.Printf("objects: %v\n", len(result))
 	return result
 }
 

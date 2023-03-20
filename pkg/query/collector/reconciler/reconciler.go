@@ -90,8 +90,6 @@ func getClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 
 // TODO add unit
 func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := logr.FromContextOrDiscard(ctx).WithValues(
-		"resource", req.NamespacedName)
 
 	clientObject, err := getClientObjectByKind(r.gvk)
 	if err != nil {
@@ -103,10 +101,10 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	//TODO manage error
 	r.objectsChannel <- []models.ObjectTransaction{transaction{
-		clusterName: "change",
+		clusterName: r.clusterName,
 		object:      clientObject,
 	}}
-	log.Info("resource notified")
+
 	return ctrl.Result{}, nil
 }
 

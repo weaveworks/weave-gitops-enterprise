@@ -86,6 +86,10 @@ type WatcherManagerOptions struct {
 }
 
 func (o WatcherManagerOptions) Validate() error {
+	if o.ClusterName == "" {
+		return fmt.Errorf("invalid cluster name")
+	}
+
 	if o.Rest == nil {
 		return fmt.Errorf("invalid config")
 	}
@@ -193,6 +197,7 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 		Rest:           cfg,
 		Kinds:          w.kinds,
 		ObjectsChannel: w.objectsChannel,
+		ClusterName:    w.cluster.GetName(),
 		ManagerOptions: ctrl.Options{
 			Scheme:             w.scheme,
 			Logger:             w.log,

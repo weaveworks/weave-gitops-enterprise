@@ -41,6 +41,12 @@ export type AccessRule = {
   principal?: string
   namespace?: string
   accessibleKinds?: string[]
+  subjects?: Subject[]
+}
+
+export type Subject = {
+  kind?: string
+  name?: string
 }
 
 export class Query {

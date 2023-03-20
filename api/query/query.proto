@@ -70,4 +70,10 @@ message AccessRule {
     string   principal              = 2;
     string   namespace              = 3;
     repeated string accessibleKinds = 4;
+    repeated Subject subjects       = 5;
+}
+
+message Subject {
+    string kind = 1;
+    string name = 2;
 }

@@ -40,14 +40,13 @@ func (c *watchingCollector) Stop() error {
 	c.log.Info("stopping collector")
 
 	for _, cluster := range c.clusters {
-		c.log.Info("clusterName stopping", "name", cluster.GetName())
 		err := c.Unwatch(cluster)
 		if err != nil {
 			return err
 		}
-		c.log.Info("clusterName stopped", "name", cluster.GetName())
+
 	}
-	c.log.Info("collector stopped")
+
 	return nil
 }
 
@@ -141,7 +140,7 @@ func (w *watchingCollector) Unwatch(cluster cluster.Cluster) error {
 	if cluster.GetName() == "" {
 		return fmt.Errorf("cluster name is empty")
 	}
-	w.log.Info("stopping cluster", "cluster", cluster.GetName())
+
 	clusterWatcher := w.clusterWatchers[cluster.GetName()]
 	if clusterWatcher == nil {
 		return fmt.Errorf("cluster watcher not found")
@@ -151,7 +150,7 @@ func (w *watchingCollector) Unwatch(cluster cluster.Cluster) error {
 		return err
 	}
 	w.clusterWatchers[cluster.GetName()] = nil
-	w.log.Info("cluster stopped")
+
 	return nil
 }
 

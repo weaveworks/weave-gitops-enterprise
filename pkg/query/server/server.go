@@ -159,10 +159,16 @@ func convertToPbAccessRule(rules []models.AccessRule) []*pb.AccessRule {
 
 	for _, r := range rules {
 		rule := &pb.AccessRule{
-			Principal:       r.Principal,
 			Namespace:       r.Namespace,
 			Cluster:         r.Cluster,
 			AccessibleKinds: []string{},
+		}
+
+		for _, s := range r.Subjects {
+			rule.Subjects = append(rule.Subjects, &pb.Subject{
+				Kind: s.Kind,
+				Name: s.Name,
+			})
 		}
 
 		rule.AccessibleKinds = append(rule.AccessibleKinds, r.AccessibleKinds...)
