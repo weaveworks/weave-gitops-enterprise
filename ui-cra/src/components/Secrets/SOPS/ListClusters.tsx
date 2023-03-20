@@ -24,7 +24,14 @@ const ListClusters = ({
       >
         {data?.gitopsClusters?.map((option, index: number) => {
           return (
-            <MenuItem key={index} value={option.name}>
+            <MenuItem
+              key={index}
+              value={
+                option.namespace
+                  ? `${option.namespace}/${option.name}`
+                  : option.name
+              }
+            >
               {option.name}
             </MenuItem>
           );

@@ -13,7 +13,7 @@ import { FormWrapper } from './styles';
 import ListClusters from './ListClusters';
 import ListKustomizations from './ListKustomizations';
 
-export enum EncryptionType {
+export enum SecretDataType {
   value,
   KeyValue,
 }
@@ -21,7 +21,7 @@ export interface SOPS {
   clusterName: string;
   secretName: string;
   secretNamespace: string;
-  encryptionType: EncryptionType;
+  encryptionType: string;
   kustomization: string;
   secretData: { key: string; value: string }[];
   secretValue: string;
@@ -31,6 +31,7 @@ export interface SOPS {
   pullRequestTitle: string;
   commitMessage: string;
   pullRequestDescription: string;
+  secretType: SecretDataType;
 }
 function getInitialData(
   callbackState: { state: { formData: SOPS } } | null,
@@ -46,10 +47,11 @@ function getInitialData(
     clusterName: '',
     secretName: '',
     secretNamespace: '',
-    encryptionType: EncryptionType.value,
+    encryptionType: 'GPG/AGE',
     kustomization: '',
     secretData: [{ key: '', value: '' }],
     secretValue: '',
+    secretType: SecretDataType.value,
   };
 
   const initialFormData = {
@@ -131,19 +133,22 @@ const CreateSOPS = () => {
                   required
                   name="encryptionType"
                   label="ENCRYPT USING"
-                  value={EncryptionType[formData.encryptionType]}
+                  value={formData.encryptionType}
                   onChange={event =>
                     handleFormData(event.target.value, 'encryptionType')
                   }
                 >
-                  <MenuItem value="GPG / AGE">GPG / AGE</MenuItem>
+                  <MenuItem value="GPG/AGE">GPG / AGE</MenuItem>
                 </Select>
-                <ListKustomizations
-                  value={formData.kustomization}
-                  handleFormData={(val: any) =>
-                    handleFormData(val, 'kustomization')
-                  }
-                />
+                {!!formData.clusterName && (
+                  <ListKustomizations
+                    value={formData.kustomization}
+                    handleFormData={(val: any) =>
+                      handleFormData(val, 'kustomization')
+                    }
+                    clusterName={formData.clusterName}
+                  />
+                )}
               </div>
             </div>
 

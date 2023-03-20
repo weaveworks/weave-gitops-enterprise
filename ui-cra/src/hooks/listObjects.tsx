@@ -1,5 +1,6 @@
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { CoreClientContext } from '@weaveworks/weave-gitops';
+import { ListObjectsRequest } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
 import React from 'react';
 import { useQuery } from 'react-query';
@@ -9,8 +10,7 @@ export const useCoreClientContext = () => React.useContext(CoreClientContext);
 
 export function useListObjects<T>(
   type: { new (obj: Object): T },
-  kind: string,
-  namespace: string = '',
+  req: ListObjectsRequest,
   opts: ReactQueryOptions<
     {
       objects?: T[] | undefined;
@@ -22,10 +22,7 @@ export function useListObjects<T>(
     refetchInterval: 30000,
   },
 ) {
-  console.log(opts);
-  
   const { api } = useCoreClientContext();
-
   return useQuery<
     {
       objects?: T[] | undefined;
@@ -33,9 +30,9 @@ export function useListObjects<T>(
     },
     RequestError
   >(
-    ['list_object', namespace, kind],
+    ['list_object', req.namespace || '', req.clusterName || '', req.kind],
     () =>
-      api.ListObjects({ namespace, kind }).then(res => {
+      api.ListObjects(req).then(res => {
         const providers = res.objects?.map(obj => new type(obj));
         return { objects: providers, errors: res.errors };
       }),

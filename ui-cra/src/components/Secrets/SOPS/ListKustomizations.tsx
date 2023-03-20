@@ -8,15 +8,24 @@ import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabs
 const ListKustomizations = ({
   value,
   handleFormData,
+  clusterName,
 }: {
   value: string;
   handleFormData: (value: any) => void;
+  clusterName: string;
 }) => {
   const {
     isLoading,
     error,
     data: kustomizations,
-  } = useListObjects(Kustomization, Kind.Kustomization, '', { retry: false });
+  } = useListObjects(
+    Kustomization,
+    { kind: Kind.Kustomization, clusterName, namespace: '' },
+    {
+      retry: false,
+    },
+  );
+
   return (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       <Select
@@ -27,6 +36,7 @@ const ListKustomizations = ({
         description="Choose the kustomization that will be used by SOPS to decrypt the secret."
         onChange={event => handleFormData(event.target.value)}
         value={value}
+        disabled={!clusterName}
       >
         {kustomizations?.objects?.map((k, index: number) => {
           return (
