@@ -36,7 +36,6 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
@@ -76,7 +75,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
-	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -509,7 +507,6 @@ func StartServer(ctx context.Context, p Params) error {
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
-				grpc_runtime.WithMetadata(TrackEvents(log)),
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
@@ -912,69 +909,9 @@ func CustomIncomingHeaderMatcher(key string) (string, bool) {
 	}
 }
 
-// TrackEvents tracks data for specific operations.
-func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) metadata.MD {
-	return func(ctx context.Context, r *http.Request) metadata.MD {
-		var handler string
-		md := make(map[string]string)
-		if method, ok := grpc_runtime.RPCMethod(ctx); ok {
-			md["method"] = method
-			handler = method
-		}
-		if pattern, ok := grpc_runtime.HTTPPathPattern(ctx); ok {
-			md["pattern"] = pattern
-		}
-
-		track(log, handler)
-
-		return metadata.New(md)
-	}
-}
-
 func defaultOptions() *Options {
 	return &Options{
 		Log: logr.Discard(),
-	}
-}
-
-func track(log logr.Logger, handler string) {
-	handlers := make(map[string]map[string]string)
-	handlers["ListTemplates"] = map[string]string{
-		"object":  "templates",
-		"command": "list",
-	}
-	handlers["CreatePullRequest"] = map[string]string{
-		"object":  "clusters",
-		"command": "create",
-	}
-	handlers["DeleteClustersPullRequest"] = map[string]string{
-		"object":  "clusters",
-		"command": "delete",
-	}
-
-	for h, m := range handlers {
-		if strings.HasSuffix(handler, h) {
-			go checkVersionWithFlags(log, m)
-		}
-	}
-}
-
-func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
-	p := &checkpoint.CheckParams{
-		Product: "weave-gitops-enterprise",
-		Version: version.Version,
-		Flags:   flags,
-	}
-	checkResponse, err := checkpoint.Check(p)
-	if err != nil {
-		log.Error(err, "Failed to check version")
-		return
-	}
-	if checkResponse.Outdated {
-		log.Info("There is a newer version of weave-gitops-enterprise available",
-			"latest", checkResponse.CurrentVersion, "url", checkResponse.CurrentDownloadURL)
-	} else {
-		log.Info("The current weave-gitops-enterprise version is up to date", "current", version.Version)
 	}
 }
 
