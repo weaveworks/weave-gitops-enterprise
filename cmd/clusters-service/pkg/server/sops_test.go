@@ -74,7 +74,7 @@ func TestEncryptSecret(t *testing.T) {
 						APIVersion: v1.SchemeGroupVersion.Identifier(),
 					},
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "sops-age.pub",
+						Name:      "sops-age-public-key",
 						Namespace: "flux-system",
 					},
 					Data: map[string][]byte{
@@ -100,7 +100,7 @@ func TestEncryptSecret(t *testing.T) {
 						APIVersion: v1.SchemeGroupVersion.Identifier(),
 					},
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "sops-gpg.pub",
+						Name:      "sops-gpg-public-key",
 						Namespace: "flux-system",
 					},
 					Data: map[string][]byte{
@@ -115,6 +115,10 @@ func TestEncryptSecret(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "my-sops-age-secrets",
 						Namespace: "flux-system",
+						Labels: map[string]string{
+							SopsPublicKeyNameLabel:      "sops-age-public-key",
+							SopsPublicKeyNamespaceLabel: "flux-system",
+						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{
 						Path: "./secrets/age",
@@ -134,6 +138,10 @@ func TestEncryptSecret(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "my-sops-gpg-secrets",
 						Namespace: "flux-system",
+						Labels: map[string]string{
+							SopsPublicKeyNameLabel:      "sops-gpg-public-key",
+							SopsPublicKeyNamespaceLabel: "flux-system",
+						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{
 						Path: "./secrets/gpg",
