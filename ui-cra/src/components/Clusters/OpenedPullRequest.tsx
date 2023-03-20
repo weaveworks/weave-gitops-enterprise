@@ -35,13 +35,13 @@ export default function OpenedPullRequest({ options }: Props) {
     setOpenPrButtonDisabled(true);
     gitAuthClient.ParseRepoURL({ url: repoUrl }).then(res => {
       setOpenPrButtonDisabled(false);
-      const { resource, full_name, protocol } = GitUrlParse(repoUrl);
+      const { resource, full_name } = GitUrlParse(repoUrl);
       const provider = res.provider || '';
       if (provider === 'GitHub') {
-        setOpenPrUrl(`${protocol}://${resource}/${full_name}/pulls`);
+        setOpenPrUrl(`https://${resource}/${full_name}/pulls`);
       }
       if (provider === 'GitLab') {
-        setOpenPrUrl(`${protocol}://${resource}/${full_name}/-/merge_requests`);
+        setOpenPrUrl(`https://${resource}/${full_name}/-/merge_requests`);
       }
     });
   };
