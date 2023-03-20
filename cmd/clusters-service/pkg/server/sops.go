@@ -13,7 +13,6 @@ import (
 	gopgp "github.com/ProtonMail/gopenpgp/v2/crypto"
 	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"go.mozilla.org/sops/v3"
 	"go.mozilla.org/sops/v3/aes"
@@ -256,26 +255,10 @@ func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.L
 		return nil, fmt.Errorf("cluster %s not found", req.ClusterName)
 	}
 
-	kustomizations, err := s.listSOPSKustomizations(ctx, clustersClient, req)
-	if err != nil {
-		return nil, err
-	}
-
-	response := capiv1_proto.ListSopsKustomizationsResponse{
-		Kustomizations: kustomizations,
-		Total:          int32(len(kustomizations)),
-	}
-
-	return &response, nil
-}
-
-func (s *server) listSOPSKustomizations(ctx context.Context, cl clustersmngr.Client, req *capiv1_proto.ListSopsKustomizationsRequest) ([]*capiv1_proto.SopsKustomizations, error) {
-
 	kustomizations := []*capiv1_proto.SopsKustomizations{}
-
 	kustomizationList := &kustomizev1beta2.KustomizationList{}
-	err := cl.List(ctx, req.ClusterName, kustomizationList)
-	if err != nil {
+
+	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList); err != nil {
 		return nil, fmt.Errorf("failed to list kustomizations, error: %w", err)
 	}
 
@@ -288,5 +271,10 @@ func (s *server) listSOPSKustomizations(ctx context.Context, cl clustersmngr.Cli
 		}
 	}
 
-	return kustomizations, nil
+	response := capiv1_proto.ListSopsKustomizationsResponse{
+		Kustomizations: kustomizations,
+		Total:          int32(len(kustomizations)),
+	}
+
+	return &response, nil
 }
