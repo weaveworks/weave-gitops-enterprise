@@ -82,7 +82,7 @@ export default function OpenedPullRequest({ options }: Props) {
           disabled={OpenPrButtonDisabled || options.length === 0}
         >
           {selectedIndex === -1 ? (
-            'SELECT GIT REPOSIOTORY'
+            'SELECT GIT REPOSITORY'
           ) : (
             <>
               <Icon
