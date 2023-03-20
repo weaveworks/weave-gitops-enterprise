@@ -97,6 +97,7 @@ export type RenderTemplateResponse = {
   costEstimate?: CostEstimate
   externalSecretsFiles?: CommitFile[]
   policyConfigFiles?: CommitFile[]
+  sopsSecretFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -108,6 +109,7 @@ export type RenderAutomationResponse = {
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
   policyConfigFiles?: CommitFile[]
+  sopsSecertFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -219,6 +221,7 @@ export type CreatePullRequestRequest = {
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
   policyConfigs?: PolicyConfigObject[]
+  sopsSecrets?: SopsSecret[]
 }
 
 export type PreviousValues = {
@@ -228,6 +231,7 @@ export type PreviousValues = {
   kustomizations?: Kustomization[]
   externalSecrets?: ExternalSecret[]
   policyConfigs?: PolicyConfigObject[]
+  sopsSecrets?: SopsSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -416,6 +420,7 @@ export type ClusterAutomation = {
   filePath?: string
   externalSecret?: ExternalSecret
   policyConfig?: PolicyConfigObject
+  sopsSecret?: SopsSecret
 }
 
 export type ExternalSecret = {
@@ -901,6 +906,7 @@ export type PolicyConfigObject = {
   spec?: PolicyConfigObjectSpec
 }
 
+<<<<<<< HEAD
 export type EncryptSopsSecretRequest = {
   name?: string
   namespace?: string
@@ -931,6 +937,23 @@ export type ListSopsKustomizationsResponse = {
 export type SopsKustomizations = {
   name?: string
   namespace?: string
+=======
+export type SopsSecretMetadata = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+}
+
+export type SopsSecret = {
+  apiVersion?: string
+  kind?: string
+  metadata?: SopsSecretMetadata
+  data?: {[key: string]: string}
+  stringData?: {[key: string]: string}
+  type?: string
+  immutable?: boolean
+  sops?: GoogleProtobufStruct.Value
+>>>>>>> 1369be9b (update automation API to support sops secrets)
 }
 
 export class ClustersService {

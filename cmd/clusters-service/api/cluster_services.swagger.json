@@ -1561,6 +1561,9 @@
         },
         "policyConfig": {
           "$ref": "#/definitions/v1PolicyConfigObject"
+        },
+        "sopsSecret": {
+          "$ref": "#/definitions/v1SopsSecret"
         }
       }
     },
@@ -1751,6 +1754,12 @@
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1PolicyConfigObject"
+          }
+        },
+        "sopsSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SopsSecret"
           }
         }
       }
@@ -3161,6 +3170,12 @@
           "items": {
             "$ref": "#/definitions/v1PolicyConfigObject"
           }
+        },
+        "sopsSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SopsSecret"
+          }
         }
       },
       "description": "Previous values for a CreatePullRequestRequest."
@@ -3222,6 +3237,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "sopsSecertFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -3256,6 +3277,12 @@
           }
         },
         "policyConfigFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "sopsSecretFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"
@@ -3306,7 +3333,46 @@
         }
       }
     },
+<<<<<<< HEAD
     "v1SopsKustomizations": {
+=======
+    "v1SopsSecret": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/v1SopsSecretMetadata"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stringData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "immutable": {
+          "type": "boolean"
+        },
+        "sops": {
+          "type": "object"
+        }
+      }
+    },
+    "v1SopsSecretMetadata": {
+>>>>>>> 1369be9b (update automation API to support sops secrets)
       "type": "object",
       "properties": {
         "name": {
@@ -3314,6 +3380,15 @@
         },
         "namespace": {
           "type": "string"
+<<<<<<< HEAD
+=======
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+>>>>>>> 1369be9b (update automation API to support sops secrets)
         }
       }
     },
