@@ -1,4 +1,4 @@
-import { FC } from 'react';
+import { FC, useMemo } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
@@ -8,14 +8,13 @@ import {
   IconType,
   LoadingPage,
   useListAutomations,
-  theme,
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
-import { makeStyles, createStyles } from '@material-ui/core';
-import { openLinkHandler } from '../../utils/link-checker';
 import { Routes } from '../../utils/nav';
-import { useListConfigContext } from '../../contexts/ListConfig';
+import OpenedPullRequest from '../Clusters/OpenedPullRequest';
+import { getGitRepos } from '../Clusters';
 
 interface Size {
   size?: 'small';
@@ -27,20 +26,19 @@ const ActionsWrapper = styled.div<Size>`
   }
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    externalIcon: {
-      marginRight: theme.spacing.small,
-    },
-  }),
-);
-
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const history = useHistory();
-  const listConfigContext = useListConfigContext();
-  const repoLink = listConfigContext?.repoLink || '';
-  const classes = useStyles();
+  const { data: sources } = useListSources();
+
+  const gitRepos = useMemo(
+    () => getGitRepos(sources?.result),
+    [sources?.result],
+  );
+  const gitReposUrl = useMemo(
+    () => gitRepos.map(repo => repo.obj.spec.url),
+    [gitRepos],
+  );
 
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
@@ -70,14 +68,7 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <Button onClick={openLinkHandler(repoLink)}>
-              <Icon
-                className={classes.externalIcon}
-                type={IconType.ExternalTab}
-                size="base"
-              />
-              GO TO OPEN PULL REQUESTS
-            </Button>
+            <OpenedPullRequest options={gitReposUrl}></OpenedPullRequest>
           </ActionsWrapper>
         </div>
         {isLoading ? (

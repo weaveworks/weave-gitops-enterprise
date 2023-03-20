@@ -3,7 +3,6 @@ import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
-import GitUrlParse from 'git-url-parse';
 import { GitAuth } from '../contexts/GitAuth';
 
 export function useListVersion() {
@@ -14,14 +13,12 @@ export function useListVersion() {
   );
 }
 export interface ListConfigResponse extends GetConfigResponse {
-  repoLink: string;
   uiConfig: any;
   [key: string]: any;
 }
 
 export function useListConfig() {
   const { api } = useContext(EnterpriseClientContext);
-  const [repoLink, setRepoLink] = useState<string>('');
   const [provider, setProvider] = useState<string>('');
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
@@ -33,21 +30,12 @@ export function useListConfig() {
   useEffect(() => {
     repositoryURL &&
       gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
-        const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         setProvider(res.provider || '');
-        if (res.provider === 'GitHub') {
-          setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
-        } else if (res.provider === 'GitLab') {
-          setRepoLink(
-            `${protocol}://${resource}/${full_name}/-/merge_requests`,
-          );
-        }
       });
   }, [repositoryURL, gitAuthClient]);
 
   return {
     ...queryResponse,
-    repoLink,
     uiConfig,
     provider,
   };
