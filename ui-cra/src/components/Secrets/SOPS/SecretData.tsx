@@ -5,8 +5,7 @@ import {
   RadioGroup,
 } from '@material-ui/core';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { useState } from 'react';
-import { EncryptionType, SOPS } from '.';
+import { SecretDataType, SOPS } from '.';
 import InputDebounced from './InputDebounced';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 
@@ -17,10 +16,6 @@ const SecretData = ({
   formData: SOPS;
   handleFormData: (value: any, key: string) => void;
 }) => {
-  const [type, setType] = useState('stringData');
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setType((event.target as HTMLInputElement).value);
-  };
   const handleSecretChange = (index: number, isKey: boolean, value: string) => {
     const mappedData = formData.secretData.map((e, i) => {
       if (i === index) {
@@ -32,6 +27,7 @@ const SecretData = ({
     });
     return mappedData;
   };
+
   return (
     <div className="group-section">
       <h2>Secret Data</h2>
@@ -45,25 +41,23 @@ const SecretData = ({
             row
             aria-labelledby="demo-controlled-radio-buttons-group"
             name="controlled-radio-buttons-group"
-            value={formData.encryptionType}
-            onChange={event =>
-              handleFormData(event.target.value, 'encryptionType')
-            }
+            value={formData.secretType}
+            onChange={event => handleFormData(event.target.value, 'secretType')}
           >
             <FormControlLabel
-              value={EncryptionType.value}
+              value={SecretDataType.value}
               control={<Radio />}
               label="String Data"
             />
             <FormControlLabel
-              value={EncryptionType.KeyValue}
+              value={SecretDataType.KeyValue}
               control={<Radio />}
               label="Data"
             />
           </RadioGroup>
         </FormControl>
       </div>
-      {type === 'stringData' ? (
+      {formData.secretType === SecretDataType.value ? (
         <InputDebounced
           required
           name="secretValue"
