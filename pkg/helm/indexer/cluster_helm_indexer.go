@@ -81,30 +81,31 @@ func (i *ClusterHelmIndexerTracker) Start(ctx context.Context, cm clustersmngr.C
 
 func (i *ClusterHelmIndexerTracker) addClusters(ctx context.Context, clusters []cluster.Cluster, log logr.Logger) error {
 	for _, cl := range clusters {
-		_, ok := i.ClusterWatchers[cl.GetName()]
+		clusterName := cl.GetName()
+		_, ok := i.ClusterWatchers[clusterName]
 		if !ok {
-			log.Info("adding indexer for cluster", "cluster", cl.GetName())
+			log.Info("adding indexer for cluster", "cluster", clusterName)
 			clientConfig, err := cl.GetServerConfig()
 			if err != nil {
-				return fmt.Errorf("failed to get client config for cluster %s: %w", cl.GetName(), err)
+				return fmt.Errorf("failed to get client config for cluster %s: %w", clusterName, err)
 			}
 
-			cluster := fetcher.FromClusterName(cl.GetName())
+			cluster := fetcher.FromClusterName(clusterName)
 			isManagementCluster := fetcher.IsManagementCluster(i.ManagementClusterName, cluster)
 			watcher, err := i.newWatcherFunc(clientConfig, cluster, isManagementCluster, i.Cache)
 			if err != nil {
-				return fmt.Errorf("failed to create indexer for cluster %s: %w", cl.GetName(), err)
+				return fmt.Errorf("failed to create indexer for cluster %s: %w", clusterName, err)
 			}
-			i.ClusterWatchers[cl.GetName()] = watcher
+			i.ClusterWatchers[clusterName] = watcher
 
 			go func() {
 				err = watcher.StartWatcher(ctx, log)
 				if err != nil {
-					log.Error(err, "failed to start indexer", "cluster", cl.GetName())
+					log.Error(err, "failed to start indexer", "cluster", clusterName)
 				}
 			}()
 		} else {
-			log.Info("indexer already exists for cluster", "cluster", cl.GetName())
+			log.Info("indexer already exists for cluster", "cluster", clusterName)
 		}
 	}
 
