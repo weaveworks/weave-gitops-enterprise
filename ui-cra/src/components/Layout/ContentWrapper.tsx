@@ -104,7 +104,7 @@ export const ContentWrapper: FC<Props> = ({
         maxHeight: 'calc(100vh - 60px)',
         overflowWrap: 'normal',
         overflowX: 'scroll',
-        paddingRight: '12px',
+        paddingRight: '24px',
         margin: '0 auto',
       }}
     >

@@ -18,6 +18,7 @@ function getParentNavRouteValueExtended(
   }
   switch (route) {
     //Clusters
+    case Routes.Clusters:
     case Routes.ClusterDashboard:
     case Routes.PolicyViolations:
     case Routes.PolicyViolationDetails:
