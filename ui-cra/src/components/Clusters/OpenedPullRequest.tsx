@@ -79,7 +79,7 @@ export default function OpenedPullRequest({ options }: Props) {
           className={Classes.optionsButton}
           color="primary"
           onClick={openLinkHandler(OpenPrUrl)}
-          disabled={OpenPrButtonDisabled || options.length === 0}
+          disabled={OpenPrButtonDisabled || !options.length}
         >
           {selectedIndex === -1 ? (
             'SELECT GIT REPOSITORY'
