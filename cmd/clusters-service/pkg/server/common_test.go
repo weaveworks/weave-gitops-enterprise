@@ -66,6 +66,10 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
+		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.Type}
+		})).
 		Build()
 
 	return c

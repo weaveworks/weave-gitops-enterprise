@@ -2,7 +2,7 @@ module github.com/weaveworks/weave-gitops-enterprise
 
 go 1.20
 
-replace k8s.io/client-go => k8s.io/client-go v0.26.2
+replace k8s.io/client-go => k8s.io/client-go v0.26.3
 
 require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect
@@ -21,9 +21,9 @@ require (
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.26.2
-	k8s.io/apimachinery v0.26.2
-	k8s.io/cli-runtime v0.26.2
+	k8s.io/api v0.26.3
+	k8s.io/apimachinery v0.26.3
+	k8s.io/cli-runtime v0.26.3
 	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.14.5
 )
@@ -73,7 +73,7 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.26.2
-	sigs.k8s.io/cluster-api v1.4.0-beta.2
+	sigs.k8s.io/cluster-api v1.4.0-rc.0
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -193,7 +193,7 @@ require (
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/evanphx/json-patch v5.6.0+incompatible // indirect
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
-	github.com/fatih/color v1.14.1 // indirect
+	github.com/fatih/color v1.15.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v0.8.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.23.1 // indirect
@@ -301,8 +301,8 @@ require (
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
-	k8s.io/apiserver v0.26.2 // indirect
-	k8s.io/component-base v0.26.2 // indirect
+	k8s.io/apiserver v0.26.3 // indirect
+	k8s.io/component-base v0.26.3 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230109183929-3758b55a6596 // indirect
 	k8s.io/kubectl v0.26.2 // indirect
