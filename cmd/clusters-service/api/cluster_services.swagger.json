@@ -3252,74 +3252,14 @@
         }
       }
     },
-<<<<<<< HEAD
-<<<<<<< HEAD
     "v1SecretRef": {
-=======
-    "v1SopsEncryptSecretRequest": {
->>>>>>> 1237948f (add encrypt sops secrets API)
       "type": "object",
       "properties": {
         "name": {
           "type": "string"
-<<<<<<< HEAD
-=======
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "labels": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "type": {
-          "type": "string"
-        },
-        "immutable": {
-          "type": "boolean"
-        },
-        "data": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "stringData": {
-          "type": "object",
-          "additionalProperties": {
-            "type": "string"
-          }
-        },
-        "kustomizationName": {
-          "type": "string"
-        },
-        "kustomizationNamespace": {
-          "type": "string"
-        },
-        "clusterName": {
-          "type": "string"
         }
       }
     },
-    "v1SopsEncryptSecretResponse": {
-      "type": "object",
-      "properties": {
-        "encryptedSecret": {
-          "type": "object"
-<<<<<<< HEAD
->>>>>>> 1237948f (add encrypt sops secrets API)
-=======
-        },
-        "path": {
-          "type": "string"
->>>>>>> 34c1a5b3 (add kustomization path to the response)
-        }
-      }
-    },
-=======
->>>>>>> 055647a1 (address remarks)
     "v1SourceRef": {
       "type": "object",
       "properties": {
