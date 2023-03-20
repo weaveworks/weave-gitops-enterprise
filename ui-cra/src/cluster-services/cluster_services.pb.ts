@@ -906,7 +906,6 @@ export type PolicyConfigObject = {
   spec?: PolicyConfigObjectSpec
 }
 
-<<<<<<< HEAD
 export type EncryptSopsSecretRequest = {
   name?: string
   namespace?: string
@@ -937,7 +936,8 @@ export type ListSopsKustomizationsResponse = {
 export type SopsKustomizations = {
   name?: string
   namespace?: string
-=======
+}
+
 export type SopsSecretMetadata = {
   name?: string
   namespace?: string
@@ -953,7 +953,6 @@ export type SopsSecret = {
   type?: string
   immutable?: boolean
   sops?: GoogleProtobufStruct.Value
->>>>>>> 1369be9b (update automation API to support sops secrets)
 }
 
 export class ClustersService {

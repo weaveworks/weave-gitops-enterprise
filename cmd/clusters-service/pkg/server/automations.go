@@ -819,7 +819,7 @@ func generateSopsSecret(
 	content := string(raw)
 
 	return gitprovider.CommitFile{
-		Path:    &kustomizationPath,
+		Path:    &path,
 		Content: &content,
 	}, nil
 }
