@@ -27,7 +27,7 @@ func TestEncryptSecret(t *testing.T) {
 	ageKey, err := goage.GenerateX25519Identity()
 	assert.Nil(t, err)
 
-	pgpKey, err := generatePGPKey()
+	gpgPrivateKey, gpgPublicKey, err := generatePGPKeyPairs()
 	assert.Nil(t, err)
 
 	clusters := []struct {
@@ -74,11 +74,37 @@ func TestEncryptSecret(t *testing.T) {
 						APIVersion: v1.SchemeGroupVersion.Identifier(),
 					},
 					ObjectMeta: metav1.ObjectMeta{
+						Name:      "sops-age.pub",
+						Namespace: "flux-system",
+					},
+					Data: map[string][]byte{
+						"age.agekey": []byte(ageKey.Recipient().String()),
+					},
+				},
+				&v1.Secret{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Secret",
+						APIVersion: v1.SchemeGroupVersion.Identifier(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
 						Name:      "sops-gpg",
 						Namespace: "flux-system",
 					},
 					Data: map[string][]byte{
-						"gpg.asc": []byte(pgpKey),
+						"gpg.asc": []byte(gpgPrivateKey),
+					},
+				},
+				&v1.Secret{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "Secret",
+						APIVersion: v1.SchemeGroupVersion.Identifier(),
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "sops-gpg.pub",
+						Namespace: "flux-system",
+					},
+					Data: map[string][]byte{
+						"gpg.asc": []byte(gpgPublicKey),
 					},
 				},
 				&kustomizev1beta2.Kustomization{
@@ -159,7 +185,7 @@ func TestEncryptSecret(t *testing.T) {
 				},
 			},
 			path:   "./secrets/gpg",
-			key:    pgpKey,
+			key:    gpgPrivateKey,
 			method: "gpg",
 		},
 		{
@@ -191,7 +217,7 @@ func TestEncryptSecret(t *testing.T) {
 				},
 			},
 			path:   "./secrets/gpg",
-			key:    pgpKey,
+			key:    gpgPrivateKey,
 			method: "gpg",
 		},
 	}
@@ -242,12 +268,23 @@ func TestEncryptSecret(t *testing.T) {
 	}
 }
 
-func generatePGPKey() (string, error) {
+func generatePGPKeyPairs() (string, string, error) {
 	k, err := crypto.GenerateKey("test", "test@test.com", "", 4096)
 	if err != nil {
 		panic(err)
 	}
-	return k.Armor()
+
+	privateKey, err := k.Armor()
+	if err != nil {
+		return "", "", err
+	}
+
+	publicKey, err := k.GetArmoredPublicKey()
+	if err != nil {
+		return "", "", err
+	}
+
+	return privateKey, publicKey, nil
 }
 
 func decryptSecretValues(raw []byte, method, key string) (map[string]string, error) {

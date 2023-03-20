@@ -26,8 +26,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	goage "filippo.io/age"
 )
 
 const (
@@ -106,18 +104,8 @@ func (e *Encryptor) EncryptWithPGP(raw []byte, secret string) ([]byte, error) {
 	return e.Encrypt(raw, masterKey)
 }
 
-func (e *Encryptor) EncryptWithAGE(raw []byte, secret string) ([]byte, error) {
-	identities, err := goage.ParseIdentities(strings.NewReader(secret))
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse age identity: %w", err)
-	}
-
-	var recipients = []string{}
-	for i := range identities {
-		recipients = append(recipients, identities[i].(*goage.X25519Identity).Recipient().String())
-	}
-
-	keys, err := age.MasterKeysFromRecipients(strings.Join(recipients, ","))
+func (e *Encryptor) EncryptWithAGE(raw []byte, recipient string) ([]byte, error) {
+	keys, err := age.MasterKeysFromRecipients(recipient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the master key: %w", err)
 	}
@@ -153,12 +141,13 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 	}
 
 	var decryptionSecret v1.Secret
-	decryptionSecretKey := client.ObjectKey{
-		Name:      kustomization.Spec.Decryption.SecretRef.Name,
+	encryptionSecretName := fmt.Sprintf("%s.pub", kustomization.Spec.Decryption.SecretRef.Name)
+	encryptionSecret := client.ObjectKey{
+		Name:      encryptionSecretName,
 		Namespace: msg.KustomizationNamespace,
 	}
-	if err := clustersClient.Get(ctx, msg.ClusterName, decryptionSecretKey, &decryptionSecret); err != nil {
-		return nil, fmt.Errorf("failed to get decryption key: %w", err)
+	if err := clustersClient.Get(ctx, msg.ClusterName, encryptionSecret, &decryptionSecret); err != nil {
+		return nil, fmt.Errorf("failed to get encryption key, expected to find secret %s.pub: %w", encryptionSecretName, err)
 	}
 
 	rawSecret, err := generateSecret(msg)
