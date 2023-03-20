@@ -29,9 +29,11 @@ import (
 )
 
 const (
-	EncryptedRegex   = "^(data|stringData)$"
-	DecryptionPGPExt = ".asc"
-	DecryptionAgeExt = ".agekey"
+	EncryptedRegex              = "^(data|stringData)$"
+	DecryptionPGPExt            = ".asc"
+	DecryptionAgeExt            = ".agekey"
+	SopsPublicKeyNameLabel      = "sops-public-key/name"
+	SopsPublicKeyNamespaceLabel = "sops-public-key/namespace"
 )
 
 type Encryptor struct {
@@ -140,14 +142,24 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 		return nil, errors.New("kustomization doesn't have decryption secret")
 	}
 
-	var decryptionSecret v1.Secret
-	encryptionSecretName := fmt.Sprintf("%s.pub", kustomization.Spec.Decryption.SecretRef.Name)
+	encryptionSecretName, ok := kustomization.Labels[SopsPublicKeyNameLabel]
+	if !ok {
+		return nil, errors.New("kustomization is missing encryption key information")
+	}
+
+	encryptionSecretNamespace, ok := kustomization.Labels[SopsPublicKeyNamespaceLabel]
+	if !ok {
+		return nil, errors.New("kustomization is missing encryption key information")
+	}
+
 	encryptionSecret := client.ObjectKey{
 		Name:      encryptionSecretName,
-		Namespace: msg.KustomizationNamespace,
+		Namespace: encryptionSecretNamespace,
 	}
+
+	var decryptionSecret v1.Secret
 	if err := clustersClient.Get(ctx, msg.ClusterName, encryptionSecret, &decryptionSecret); err != nil {
-		return nil, fmt.Errorf("failed to get encryption key, expected to find secret %s.pub: %w", encryptionSecretName, err)
+		return nil, fmt.Errorf("failed to get encryption key: %w", err)
 	}
 
 	rawSecret, err := generateSecret(msg)
