@@ -26,16 +26,48 @@ func NewSQLiteStore(db *gorm.DB) (*SQLiteStore, error) {
 	}, nil
 }
 
-func (i *SQLiteStore) StoreAccessRules(ctx context.Context, rules []models.AccessRule) error {
-	rows := []models.AccessRule{}
+func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
+	if len(roles) == 0 {
+		return fmt.Errorf("empty role list")
+	}
 
-	for _, rule := range rules {
-		if err := rule.Validate(); err != nil {
-			return fmt.Errorf("invalid access rule: %w", err)
+	rows := []models.Role{}
+
+	for _, role := range roles {
+		if err := role.Validate(); err != nil {
+			return fmt.Errorf("invalid role: %w", err)
 		}
 
-		rule.ID = rule.GetID()
-		rows = append(rows, rule)
+		role.ID = role.GetID()
+		rows = append(rows, role)
+	}
+
+	clauses := i.db.Clauses(clause.OnConflict{
+		Columns: []clause.Column{
+			{Name: "id"},
+		},
+		UpdateAll: true,
+	})
+
+	result := clauses.Create(&rows)
+
+	return result.Error
+}
+
+func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	if len(roleBindings) == 0 {
+		return fmt.Errorf("empty role binding list")
+	}
+
+	rows := []models.RoleBinding{}
+
+	for _, roleBinding := range roleBindings {
+		if err := roleBinding.Validate(); err != nil {
+			return fmt.Errorf("invalid role binding: %w", err)
+		}
+
+		roleBinding.ID = roleBinding.GetID()
+		rows = append(rows, roleBinding)
 	}
 
 	clauses := i.db.Clauses(clause.OnConflict{
@@ -86,9 +118,21 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query) ([]models.Object,
 }
 
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
-	rules := []models.AccessRule{}
+	roles := []models.Role{}
+	bindings := []models.RoleBinding{}
 
-	result := i.db.Find(&rules)
+	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get roles: %w", result.Error)
+	}
+
+	result = i.db.Model(&models.RoleBinding{}).Preload("Subjects").Find(&bindings)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get role bindings: %w", result.Error)
+	}
+
+	rules := DeriveAccessRules(roles, bindings)
+	fmt.Printf("roles: %v, bindings: %v, rules: %v\n", len(roles), len(bindings), len(rules))
 
 	return rules, result.Error
 }
@@ -132,7 +176,7 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	// From the readme: https://github.com/mattn/go-sqlite3
 	goDB.SetMaxOpenConns(1)
 
-	if err := db.AutoMigrate(&models.Object{}, &models.AccessRule{}); err != nil {
+	if err := db.AutoMigrate(&models.Object{}, &models.Role{}, &models.Subject{}, &models.RoleBinding{}, &models.PolicyRule{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 

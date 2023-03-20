@@ -2,7 +2,9 @@ package adapters
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	v1 "k8s.io/api/rbac/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -14,6 +16,8 @@ type RoleLike interface {
 
 	GetRules() []v1.PolicyRule
 	GetClusterName() string
+	GetSubjects() []v1.Subject
+	ToModel() models.Role
 }
 
 type cRoleAdapter struct {
@@ -29,6 +33,33 @@ func (c *cRoleAdapter) GetClusterName() string {
 	return c.ClusterName
 }
 
+func (c *cRoleAdapter) ToModel() models.Role {
+	rules := []models.PolicyRule{}
+
+	for _, r := range c.Rules {
+		rules = append(rules, models.PolicyRule{
+			Verbs:     strings.Join(r.Verbs, "/"),
+			APIGroups: strings.Join(r.APIGroups, "/"),
+			Resources: strings.Join(r.Resources, "/"),
+		})
+	}
+
+	return models.Role{
+		Cluster:     c.ClusterName,
+		Namespace:   c.GetNamespace(),
+		Kind:        c.Kind,
+		Name:        c.Name,
+		PolicyRules: rules,
+	}
+}
+
+func (c *cRoleAdapter) GetSubjects() []v1.Subject {
+	return []v1.Subject{{
+		Kind: "ClusterRole",
+		Name: c.Name,
+	}}
+}
+
 type roleAdapter struct {
 	*v1.Role
 	ClusterName string
@@ -40,6 +71,34 @@ func (r *roleAdapter) GetRules() []v1.PolicyRule {
 
 func (r *roleAdapter) GetClusterName() string {
 	return r.ClusterName
+}
+
+func (r *roleAdapter) ToModel() models.Role {
+	rules := []models.PolicyRule{}
+
+	for _, r := range r.Rules {
+		rules = append(rules, models.PolicyRule{
+			Verbs:     strings.Join(r.Verbs, "/"),
+			APIGroups: strings.Join(r.APIGroups, "/"),
+			Resources: strings.Join(r.Resources, "/"),
+		})
+	}
+
+	return models.Role{
+		Cluster:     r.ClusterName,
+		Namespace:   r.Namespace,
+		Kind:        r.Kind,
+		Name:        r.Name,
+		PolicyRules: rules,
+	}
+}
+
+func (r *roleAdapter) GetSubjects() []v1.Subject {
+	return []v1.Subject{{
+		Kind:      "Role",
+		Name:      r.Name,
+		Namespace: r.Namespace,
+	}}
 }
 
 func NewRoleAdapter(clusterName string, obj client.Object) (RoleLike, error) {
@@ -61,6 +120,7 @@ type BindingLike interface {
 	GetSubjects() []v1.Subject
 	GetClusterName() string
 	GetRoleRef() v1.RoleRef
+	ToModel() models.RoleBinding
 }
 
 type cRoleBindingAdapter struct {
@@ -80,6 +140,29 @@ func (c *cRoleBindingAdapter) GetRoleRef() v1.RoleRef {
 	return c.RoleRef
 }
 
+func (c *cRoleBindingAdapter) ToModel() models.RoleBinding {
+	subjects := []models.Subject{}
+
+	for _, s := range c.Subjects {
+		subjects = append(subjects, models.Subject{
+			Kind:      s.Kind,
+			Name:      s.Name,
+			Namespace: s.Namespace,
+			APIGroup:  s.APIGroup,
+		})
+	}
+
+	return models.RoleBinding{
+		Cluster:     c.ClusterName,
+		Namespace:   c.Namespace,
+		Kind:        c.Kind,
+		Name:        c.Name,
+		RoleRefName: c.RoleRef.Name,
+		RoleRefKind: c.RoleRef.Kind,
+		Subjects:    subjects,
+	}
+}
+
 type roleBindingAdapter struct {
 	*v1.RoleBinding
 	ClusterName string
@@ -95,6 +178,31 @@ func (r *roleBindingAdapter) GetClusterName() string {
 
 func (r *roleBindingAdapter) GetRoleRef() v1.RoleRef {
 	return r.RoleRef
+}
+
+func (r *roleBindingAdapter) ToModel() models.RoleBinding {
+	subjects := []models.Subject{}
+
+	for _, s := range r.Subjects {
+		subjects = append(subjects, models.Subject{
+			Kind:      s.Kind,
+			Name:      s.Name,
+			Namespace: s.Namespace,
+			APIGroup:  s.APIGroup,
+		})
+	}
+
+	rb := models.RoleBinding{
+		Cluster:     r.ClusterName,
+		Namespace:   r.Namespace,
+		Kind:        r.Kind,
+		Name:        r.Name,
+		Subjects:    subjects,
+		RoleRefName: r.RoleRef.Name,
+		RoleRefKind: r.RoleRef.Kind,
+	}
+
+	return rb
 }
 
 func NewBindingAdapter(clusterName string, obj client.Object) (BindingLike, error) {

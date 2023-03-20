@@ -3,8 +3,11 @@ package store
 import (
 	"context"
 	"os"
+	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
@@ -180,55 +183,118 @@ func TestStoreObjects(t *testing.T) {
 
 }
 
-func TestStoreAccessRules(t *testing.T) {
+func TestGetAccessRules(t *testing.T) {
 	g := NewGomegaWithT(t)
+	ctx := context.Background()
 
-	t.Run("stores access rules", func(t *testing.T) {
-		store, db := createStore(t)
+	store, _ := createStore(t)
 
-		accessRule := models.AccessRule{
-			Cluster:         "test-cluster",
-			Namespace:       "namespace",
-			Principal:       "someuser",
-			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
-		}
+	role := models.Role{
+		Cluster:   "test-cluster",
+		Namespace: "namespace",
+		Name:      "someName",
+		Kind:      "Role",
+		PolicyRules: []models.PolicyRule{
+			{
+				APIGroups: strings.Join([]string{"example.com"}, ","),
+				Resources: strings.Join([]string{"SomeKind"}, ","),
+				Verbs:     strings.Join([]string{"get", "list"}, ","),
+			},
+		},
+	}
 
-		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+	rb := models.RoleBinding{
+		Cluster:   "test-cluster",
+		Namespace: "namespace",
+		Name:      "someName",
+		Kind:      "RoleBinding",
+		Subjects: []models.Subject{
+			{
+				APIGroup: "rbac.authorization.k8s.io",
+				Kind:     role.Kind,
+				Name:     role.Name,
+			},
+		},
+		RoleRefName: role.Name,
+		RoleRefKind: role.Kind,
+	}
 
-		sqlDB, err := db.DB()
-		g.Expect(err).To(BeNil())
+	g.Expect(store.StoreRoles(ctx, []models.Role{role})).To(Succeed())
+	g.Expect(store.StoreRoleBindings(ctx, []models.RoleBinding{rb})).To(Succeed())
 
-		var storedAccessRule models.AccessRule
-		g.Expect(sqlDB.QueryRow("SELECT id FROM access_rules").Scan(&storedAccessRule.ID)).To(Succeed())
+	r, err := store.GetAccessRules(ctx)
+	g.Expect(err).To(BeNil())
 
-		g.Expect(storedAccessRule.ID).To(Equal(accessRule.GetID()))
-	})
-	t.Run("upserts access rules", func(t *testing.T) {
-		store, db := createStore(t)
+	g.Expect(r).To(HaveLen(1))
 
-		accessRule := models.AccessRule{
-			Cluster:         "test-cluster",
-			Namespace:       "namespace",
-			Principal:       "someuser",
-			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
-		}
+	expected := models.AccessRule{
+		Cluster:   "test-cluster",
+		Namespace: "namespace",
+		Subjects: []models.Subject{{
+			APIGroup:      "rbac.authorization.k8s.io",
+			Kind:          "Role",
+			Name:          "someName",
+			RoleBindingID: rb.GetID(),
+		}},
+		AccessibleKinds: []string{"example.com/SomeKind"},
+	}
 
-		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+	diff := cmp.Diff(expected, r[0], cmpopts.IgnoreFields(models.Subject{}, "ID", "CreatedAt", "UpdatedAt"))
 
-		sqlDB, err := db.DB()
-		g.Expect(err).To(BeNil())
-
-		var count int64
-		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
-		g.Expect(count).To(Equal(int64(1)))
-
-		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
-
-		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
-		g.Expect(count).To(Equal(int64(1)))
-	})
-
+	if diff != "" {
+		t.Errorf("GetAccessRules() mismatch (-want +got):\n%s", diff)
+	}
 }
+
+// func TestStoreAccessRules(t *testing.T) {
+// 	g := NewGomegaWithT(t)
+
+// 	t.Run("stores access rules", func(t *testing.T) {
+// 		store, db := createStore(t)
+
+// 		accessRule := models.AccessRule{
+// 			Cluster:         "test-cluster",
+// 			Namespace:       "namespace",
+// 			Principal:       "someuser",
+// 			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
+// 		}
+
+// 		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+
+// 		sqlDB, err := db.DB()
+// 		g.Expect(err).To(BeNil())
+
+// 		var storedAccessRule models.AccessRule
+// 		g.Expect(sqlDB.QueryRow("SELECT id FROM access_rules").Scan(&storedAccessRule.ID)).To(Succeed())
+
+// 		g.Expect(storedAccessRule.ID).To(Equal(accessRule.GetID()))
+// 	})
+// 	t.Run("upserts access rules", func(t *testing.T) {
+// 		store, db := createStore(t)
+
+// 		accessRule := models.AccessRule{
+// 			Cluster:         "test-cluster",
+// 			Namespace:       "namespace",
+// 			Principal:       "someuser",
+// 			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
+// 		}
+
+// 		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+
+// 		sqlDB, err := db.DB()
+// 		g.Expect(err).To(BeNil())
+
+// 		var count int64
+// 		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
+// 		g.Expect(count).To(Equal(int64(1)))
+
+// 		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
+
+// 		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
+// 		g.Expect(count).To(Equal(int64(1)))
+// 	})
+
+// }
 
 func createStore(t *testing.T) (Store, *gorm.DB) {
 	g := NewGomegaWithT(t)

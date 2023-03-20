@@ -69,59 +69,42 @@ func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*Acce
 }
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
-	upsert, _, err := handleRulesReceived(objectRecords)
-	if err != nil {
-		return fmt.Errorf("unable to receive rules: %w", err)
-	}
+	roles := []models.Role{}
+	bindings := []models.RoleBinding{}
 
-	if err := store.StoreAccessRules(ctx, upsert); err != nil {
-		return fmt.Errorf("cannot store access rules: %w", err)
-	}
-
-	return nil
-}
-
-func handleRulesReceived(objects []models.ObjectTransaction) ([]models.AccessRule, []models.AccessRule, error) {
-	upsert := []models.AccessRule{}
-	// TODO; we will need to figure out how to calculate the removal of an access rule.
-	// If a Role gets removed, the RoleBinding might still be there and vice versa.
-	// We will need to remove an access rule when EITHER the Role or the Binding is removed.
-	remove := []models.AccessRule{}
-
-	roles := []adapters.RoleLike{}
-	bindings := []adapters.BindingLike{}
-
-	for _, obj := range objects {
+	for _, obj := range objectRecords {
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
+
 		if kind == "ClusterRole" || kind == "Role" {
-			adapter, err := adapters.NewRoleAdapter(obj.ClusterName(), obj.Object())
+			role, err := adapters.NewRoleAdapter(obj.ClusterName(), obj.Object())
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to create adapter for object: %w", err)
+				return fmt.Errorf("cannot create role: %w", err)
 			}
-			roles = append(roles, adapter)
+			roles = append(roles, role.ToModel())
 		}
 
 		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
-			adapter, err := adapters.NewBindingAdapter(obj.ClusterName(), obj.Object())
+			binding, err := adapters.NewBindingAdapter(obj.ClusterName(), obj.Object())
 			if err != nil {
-				return nil, nil, fmt.Errorf("failed to create binding adapter: %w", err)
+				return fmt.Errorf("cannot create binding: %w", err)
 			}
-
-			bindings = append(bindings, adapter)
+			bindings = append(bindings, binding.ToModel())
 		}
 	}
 
-	// Figure out the binding/role pairs
-	for _, binding := range bindings {
-		for _, role := range roles {
-			if bindingRoleMatch(binding, role) {
-				upsert = append(upsert, convertToAccessRule(role.GetClusterName(), role, DefaultVerbsRequiredForAccess))
-			}
+	if len(roles) > 0 {
+		if err := store.StoreRoles(ctx, roles); err != nil {
+			return fmt.Errorf("cannot store roles: %w", err)
 		}
-
 	}
 
-	return upsert, remove, nil
+	if len(bindings) > 0 {
+		if err := store.StoreRoleBindings(ctx, bindings); err != nil {
+			return fmt.Errorf("cannot store role bindings: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (a *AccessRulesCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
@@ -165,12 +148,22 @@ func convertToAccessRule(clusterName string, obj adapters.RoleLike, requiredVerb
 		}
 	}
 
-	return models.AccessRule{
+	ar := models.AccessRule{
 		Cluster:         clusterName,
-		Principal:       obj.GetName(),
 		Namespace:       obj.GetNamespace(),
 		AccessibleKinds: accessibleKinds,
+		Subjects:        []models.Subject{},
 	}
+
+	for _, subject := range obj.GetSubjects() {
+		ar.Subjects = append(ar.Subjects, models.Subject{
+			Kind:      subject.Kind,
+			Name:      subject.Name,
+			Namespace: subject.Namespace,
+		})
+	}
+
+	return ar
 }
 
 func hasVerbs(a, b []string) bool {
@@ -197,10 +190,21 @@ func containsWildcard(permissions []string) bool {
 }
 
 func bindingRoleMatch(binding adapters.BindingLike, role adapters.RoleLike) bool {
-	ref := binding.GetRoleRef()
-	roleGroup := role.GetObjectKind().GroupVersionKind().Group
-	roleKind := role.GetObjectKind().GroupVersionKind().Kind
+	if binding.GetClusterName() != role.GetClusterName() {
+		return false
+	}
 
-	match := ref.APIGroup == roleGroup && binding.GetNamespace() == role.GetNamespace() && ref.Kind == roleKind && ref.Name == role.GetName()
-	return match
+	if binding.GetNamespace() != role.GetNamespace() {
+		return false
+	}
+
+	if binding.GetRoleRef().Kind != role.GetObjectKind().GroupVersionKind().Kind {
+		return false
+	}
+
+	if binding.GetRoleRef().Name != role.GetName() {
+		return false
+	}
+
+	return true
 }

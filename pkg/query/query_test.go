@@ -15,16 +15,17 @@ import (
 
 func TestRunQuery(t *testing.T) {
 	tests := []struct {
-		name      string
-		namespace string
-		q         store.Query
-		objects   []models.Object
-		rules     []models.AccessRule
-		userRoles []string
-		expected  []models.Object
+		name       string
+		namespace  string
+		q          store.Query
+		objects    []models.Object
+		rules      []models.AccessRule
+		userGroups []string
+		userID     string
+		expected   []models.Object
 	}{
 		{
-			name: "single accessible namespace",
+			name: "single accessible namespace + groups",
 			q: &query{
 				key:     "",
 				value:   "",
@@ -45,16 +46,57 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			rules: []models.AccessRule{{
-				Cluster:         "somecluster",
-				Namespace:       "ns-a",
-				Principal:       "some-role",
+				Cluster:   "somecluster",
+				Namespace: "ns-a",
+				Subjects: []models.Subject{{
+					Kind: "Role",
+					Name: "some-role",
+				}},
 				AccessibleKinds: []string{"somekind"},
 			}},
-			userRoles: []string{"some-role"},
+			userGroups: []string{"some-role"},
 			expected: []models.Object{
 				{
 					Cluster:   "somecluster",
 					Namespace: "ns-a",
+					Kind:      "somekind",
+					Name:      "somename",
+				},
+			},
+		},
+		{
+			name: "single accessible namespace + user",
+			q: &query{
+				key:     "",
+				value:   "",
+				operand: OperandIncludes,
+			},
+			userID: "some-user",
+			rules: []models.AccessRule{{
+				Cluster:   "somecluster",
+				Namespace: "ns-a",
+				Subjects: []models.Subject{{
+					Kind: "Role",
+					Name: "some-user",
+				}},
+				AccessibleKinds: []string{"somekind"},
+			}},
+			expected: []models.Object{{
+				Cluster:   "somecluster",
+				Namespace: "ns-a",
+				Kind:      "somekind",
+				Name:      "somename",
+			}},
+			objects: []models.Object{
+				{
+					Cluster:   "somecluster",
+					Namespace: "ns-a",
+					Kind:      "somekind",
+					Name:      "somename",
+				},
+				{
+					Cluster:   "somecluster",
+					Namespace: "ns-b",
 					Kind:      "somekind",
 					Name:      "somename",
 				},
@@ -76,7 +118,8 @@ func TestRunQuery(t *testing.T) {
 			assert.NoError(t, err)
 
 			ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
-				Groups: tt.userRoles,
+				ID:     tt.userID,
+				Groups: tt.userGroups,
 			})
 
 			actual, err := qs.RunQuery(ctx, &query{})
