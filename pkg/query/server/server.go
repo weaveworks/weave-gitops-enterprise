@@ -23,7 +23,7 @@ type server struct {
 	pb.UnimplementedQueryServer
 
 	qs   query.QueryService
-	arc  *accesscollector.AccessRulesCollector
+	arc  *accesscollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
 }
 
@@ -104,7 +104,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 			// ClusterManager: opts.ClustersManager,
 		}
 		// create collectors
-		rulesCollector, err := accesscollector.NewAccessRulesCollector(s, optsCollector)
+		rulesCollector, err := accesscollector.NewRoleCollector(s, optsCollector)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}

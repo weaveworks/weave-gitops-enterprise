@@ -1,4 +1,4 @@
-package accesscollector
+package rolecollector
 
 import (
 	"context"
@@ -19,10 +19,10 @@ import (
 
 var DefaultVerbsRequiredForAccess = []string{"list"}
 
-// AccessRulesCollector is responsible for collecting access rules from all clusters.
+// RoleCollector is responsible for collecting access rules from all clusters.
 // It is a wrapper around a Collector that converts the received objects to AccessRules.
 // It writes the received rules to a StoreWriter.
-type AccessRulesCollector struct {
+type RoleCollector struct {
 	col       collector.Collector
 	log       logr.Logger
 	converter runtime.UnstructuredConverter
@@ -31,7 +31,7 @@ type AccessRulesCollector struct {
 	quit      chan struct{}
 }
 
-func (a *AccessRulesCollector) Start(ctx context.Context) error {
+func (a *RoleCollector) Start(ctx context.Context) error {
 	err := a.col.Start()
 	if err != nil {
 		return fmt.Errorf("could not start access collector: %w", err)
@@ -39,12 +39,12 @@ func (a *AccessRulesCollector) Start(ctx context.Context) error {
 	return nil
 }
 
-func (a *AccessRulesCollector) Stop() error {
+func (a *RoleCollector) Stop() error {
 	a.quit <- struct{}{}
 	return a.col.Stop()
 }
 
-func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*AccessRulesCollector, error) {
+func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
 	opts.ObjectKinds = []schema.GroupVersionKind{
 		rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		rbacv1.SchemeGroupVersion.WithKind("Role"),
@@ -59,7 +59,7 @@ func NewAccessRulesCollector(w store.Store, opts collector.CollectorOpts) (*Acce
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %w", err)
 	}
-	return &AccessRulesCollector{
+	return &RoleCollector{
 		col:       col,
 		log:       opts.Log,
 		converter: runtime.DefaultUnstructuredConverter,
@@ -107,11 +107,11 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	return nil
 }
 
-func (a *AccessRulesCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
+func (a *RoleCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
 	return a.col.Watch(cluster, objectsChannel, ctx, log)
 }
 
-func (a *AccessRulesCollector) Status(cluster cluster.Cluster) (string, error) {
+func (a *RoleCollector) Status(cluster cluster.Cluster) (string, error) {
 	return a.col.Status(cluster)
 }
 
