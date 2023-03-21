@@ -786,6 +786,7 @@ message ChartSpec {
 message Metadata {
   string name = 1;
   string namespace = 2;
+  map<string, string> labels = 3;
 }
 
 message SourceRef {

@@ -554,6 +554,10 @@ func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*g
 		Metadata: &capiv1_proto.Metadata{
 			Name:      msg.ParameterValues["SOPS_KUSTOMIZATION_NAME"],
 			Namespace: "flux-system",
+			Labels: map[string]string{
+				"sops-public-key/name":      fmt.Sprintf("%s%s", msg.ParameterValues["SOPS_SECRET_REF"], "-pub"),
+				"sops-public-key/namespace": msg.ParameterValues["SOPS_SECRET_REF_NAMESPACE"],
+			},
 		},
 		Spec: &capiv1_proto.KustomizationSpec{
 			Path: filepath.Join(
@@ -1123,6 +1127,7 @@ func createSopsKustomizationObject(kustomization *capiv1_proto.Kustomization) *k
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      kustomization.Metadata.Name,
 			Namespace: kustomization.Metadata.Namespace,
+			Labels:    kustomization.Metadata.Labels,
 		},
 		Spec: kustomizev1.KustomizationSpec{
 			SourceRef: kustomizev1.CrossNamespaceSourceReference{
