@@ -21,6 +21,9 @@ spec:
     - name: SOPS_SECRET_REF
       required: true
       description: Define sops secret reference name - should be added to cluster bootstrap job aswell. (sops-gpg)
+    - name: SOPS_SECRET_REF_NAMESPACE
+      required: true
+      description: Define sops secret reference namespace - should be added to cluster bootstrap job aswell. (flux-system)
   resourcetemplates:
     - raw: |
         apiVersion: controlplane.cluster.x-k8s.io/v1beta1

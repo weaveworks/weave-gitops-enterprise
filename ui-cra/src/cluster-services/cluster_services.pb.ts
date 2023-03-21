@@ -494,6 +494,7 @@ export type ChartSpec = {
 export type Metadata = {
   name?: string
   namespace?: string
+  labels?: {[key: string]: string}
 }
 
 export type SourceRef = {
