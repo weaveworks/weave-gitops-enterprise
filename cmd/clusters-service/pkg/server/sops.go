@@ -85,24 +85,18 @@ func (e *Encryptor) Encrypt(raw []byte, keys ...keys.MasterKey) ([]byte, error) 
 	return encrypted, nil
 }
 
-func (e *Encryptor) EncryptWithPGP(raw []byte, secret string) ([]byte, error) {
-	privateKey, err := gopgp.NewKeyFromArmored(secret)
+func (e *Encryptor) EncryptWithPGP(raw []byte, publicKey string) ([]byte, error) {
+	err := importPGPKey(publicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	// return only the valid private key
-	privateKeyStr, err := privateKey.Armor()
+	key, err := gopgp.NewKeyFromArmoredReader(strings.NewReader(publicKey))
 	if err != nil {
 		return nil, err
 	}
 
-	err = importPGPKey(privateKeyStr)
-	if err != nil {
-		return nil, err
-	}
-
-	masterKey := pgp.NewMasterKeyFromFingerprint(privateKey.GetFingerprint())
+	masterKey := pgp.NewMasterKeyFromFingerprint(key.GetFingerprint())
 	return e.Encrypt(raw, masterKey)
 }
 
