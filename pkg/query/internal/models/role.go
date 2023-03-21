@@ -43,5 +43,9 @@ func (o Role) Validate() error {
 		return fmt.Errorf("missing kind field")
 	}
 
+	if o.PolicyRules == nil || len(o.PolicyRules) == 0 {
+		return fmt.Errorf("missing policy rules")
+	}
+
 	return nil
 }

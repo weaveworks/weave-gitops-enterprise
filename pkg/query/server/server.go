@@ -10,6 +10,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rolecollector"
@@ -17,6 +18,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -71,8 +73,12 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 		return nil, fmt.Errorf("failed to get access rules: %w", err)
 	}
 
+	user := auth.Principal(ctx)
+
+	matching := accesschecker.NewAccessChecker().RelevantRulesForUser(user, rules)
+
 	return &pb.DebugGetAccessRulesResponse{
-		Rules: convertToPbAccessRule(rules),
+		Rules: convertToPbAccessRule(matching),
 	}, nil
 }
 

@@ -1,13 +1,18 @@
-import { DataTable, Flex } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
+import {
+  DataTable,
+  Flex,
+  RouterTab,
+  SubRouterTabs,
+} from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { AccessRule } from '../../api/query/query.pb';
-import { useListAccessRules, useQueryService } from '../../hooks/query';
+import { useQueryService } from '../../hooks/query';
+import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
+import AccessRulesDebugger from './AccessRulesDebugger';
 import QueryBuilder from './QueryBuilder';
 
 type Props = {
@@ -39,8 +44,6 @@ function Explorer({ className }: Props) {
   const { data, error, isFetching } = useQueryService(
     queryState.pinnedTerms.join(','),
   );
-  console.log(data);
-  const { data: rules } = useListAccessRules();
 
   React.useEffect(() => {
     if (queryState.pinnedTerms.length === 0) {
@@ -58,54 +61,47 @@ function Explorer({ className }: Props) {
         errors={error ? [{ message: error?.message }] : undefined}
       >
         <div className={className}>
-          <Flex align>
-            <QueryBuilder
-              busy={isFetching}
-              disabled={false}
-              query={queryState.query}
-              filters={queryState.filters}
-              pinnedTerms={queryState.pinnedTerms}
-              onChange={(query, pinnedTerms) => {
-                setQueryState({ ...queryState, query, pinnedTerms });
-              }}
-              onPin={pinnedTerms => {
-                setQueryState({ ...queryState, pinnedTerms });
-              }}
-              onFilterSelect={val => {
-                setQueryState({
-                  ...queryState,
-                  pinnedTerms: [val],
-                });
-              }}
-            />
-          </Flex>
+          <SubRouterTabs rootPath={`${Routes.Explorer}/query`}>
+            <RouterTab name="Query" path={`${Routes.Explorer}/query`}>
+              <>
+                <Flex align>
+                  <QueryBuilder
+                    busy={isFetching}
+                    disabled={false}
+                    query={queryState.query}
+                    filters={queryState.filters}
+                    pinnedTerms={queryState.pinnedTerms}
+                    onChange={(query, pinnedTerms) => {
+                      setQueryState({ ...queryState, query, pinnedTerms });
+                    }}
+                    onPin={pinnedTerms => {
+                      setQueryState({ ...queryState, pinnedTerms });
+                    }}
+                    onFilterSelect={val => {
+                      setQueryState({
+                        ...queryState,
+                        pinnedTerms: [val],
+                      });
+                    }}
+                  />
+                </Flex>
 
-          <DataTable
-            fields={[
-              { label: 'Name', value: 'name' },
-              { label: 'Kind', value: 'kind' },
-              { label: 'Namespace', value: 'namespace' },
-              { label: 'Cluster', value: 'cluster' },
-            ]}
-            rows={data?.objects}
-          />
+                <DataTable
+                  fields={[
+                    { label: 'Name', value: 'name' },
+                    { label: 'Kind', value: 'kind' },
+                    { label: 'Namespace', value: 'namespace' },
+                    { label: 'Cluster', value: 'cluster' },
+                  ]}
+                  rows={data?.objects}
+                />
+              </>
+            </RouterTab>
+            <RouterTab name="Access Rules" path={`${Routes.Explorer}/access`}>
+              <AccessRulesDebugger />
+            </RouterTab>
+          </SubRouterTabs>
         </div>
-        <br />
-        <DataTable
-          fields={[
-            { label: 'Cluster', value: 'cluster' },
-            {
-              label: 'Subjects',
-              value: (r: AccessRule) =>
-                _.map(r.subjects, 'name').join(', ') || null,
-            },
-            {
-              label: 'Accessible Kinds',
-              value: (r: AccessRule) => r?.accessibleKinds?.join(', ') || null,
-            },
-          ]}
-          rows={rules?.rules}
-        />
       </ContentWrapper>
     </PageTemplate>
   );
