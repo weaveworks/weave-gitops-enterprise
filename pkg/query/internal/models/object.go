@@ -43,7 +43,7 @@ func (o Object) Validate() error {
 }
 
 func (o *Object) GetID() string {
-	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.Kind, o.Name)
+	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.GroupVersionKind(), o.Name)
 }
 
 func (o Object) GroupVersionKind() string {
