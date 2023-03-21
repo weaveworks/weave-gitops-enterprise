@@ -421,6 +421,17 @@ func TestListKustomizations(t *testing.T) {
 						Namespace: "namespace-a-2",
 					},
 				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-5",
+						Namespace: "namespace-a-1",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
 			},
 		},
 		{
