@@ -741,12 +741,18 @@ message externalSecretRemoteRef {
   string property = 2;
 }
 
-message Kustomization {
-  Metadata metadata = 1;
-  KustomizationSpec spec = 2;
+message SopsKustomization {
+  SopsKustomizationMetadata metadata = 1;
+  SopsKustomizationSpec spec = 2;
 }
 
-message KustomizationSpec {
+message SopsKustomizationMetadata {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+}
+
+message SopsKustomizationSpec {
   string path = 1;
   SourceRef source_ref = 2;
   string target_namespace = 3;
@@ -761,6 +767,18 @@ message Decryption{
 
 message SecretRef{
   string name = 1;
+}
+
+message Kustomization {
+  Metadata metadata = 1;
+  KustomizationSpec spec = 2;
+}
+
+message KustomizationSpec {
+  string path = 1;
+  SourceRef source_ref = 2;
+  string target_namespace = 3;
+  bool create_namespace = 4;
 }
 
 message HelmRelease {

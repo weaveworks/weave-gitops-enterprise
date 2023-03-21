@@ -1776,17 +1776,6 @@
         }
       }
     },
-    "v1Decryption": {
-      "type": "object",
-      "properties": {
-        "provider": {
-          "type": "string"
-        },
-        "secretRef": {
-          "$ref": "#/definitions/v1SecretRef"
-        }
-      }
-    },
     "v1DeleteClustersPullRequestRequest": {
       "type": "object",
       "properties": {
@@ -2283,9 +2272,6 @@
         },
         "createNamespace": {
           "type": "boolean"
-        },
-        "decryption": {
-          "$ref": "#/definitions/v1Decryption"
         }
       }
     },
@@ -3154,14 +3140,6 @@
           "type": "string"
         },
         "kind": {
-          "type": "string"
-        }
-      }
-    },
-    "v1SecretRef": {
-      "type": "object",
-      "properties": {
-        "name": {
           "type": "string"
         }
       }

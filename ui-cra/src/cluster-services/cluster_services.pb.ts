@@ -449,12 +449,18 @@ export type externalSecretRemoteRef = {
   property?: string
 }
 
-export type Kustomization = {
-  metadata?: Metadata
-  spec?: KustomizationSpec
+export type SopsKustomization = {
+  metadata?: SopsKustomizationMetadata
+  spec?: SopsKustomizationSpec
 }
 
-export type KustomizationSpec = {
+export type SopsKustomizationMetadata = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+}
+
+export type SopsKustomizationSpec = {
   path?: string
   sourceRef?: SourceRef
   targetNamespace?: string
@@ -469,6 +475,18 @@ export type Decryption = {
 
 export type SecretRef = {
   name?: string
+}
+
+export type Kustomization = {
+  metadata?: Metadata
+  spec?: KustomizationSpec
+}
+
+export type KustomizationSpec = {
+  path?: string
+  sourceRef?: SourceRef
+  targetNamespace?: string
+  createNamespace?: boolean
 }
 
 export type HelmRelease = {
