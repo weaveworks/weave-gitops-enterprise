@@ -115,57 +115,6 @@ func (a *RoleCollector) Status(cluster cluster.Cluster) (string, error) {
 	return a.col.Status(cluster)
 }
 
-func convertToAccessRule(clusterName string, obj adapters.RoleLike, requiredVerbs []string) models.AccessRule {
-	rules := obj.GetRules()
-
-	derivedAccess := map[string]map[string]bool{}
-
-	// {wego.weave.works: {Application: true, Source: true}}
-	for _, rule := range rules {
-		for _, apiGroup := range rule.APIGroups {
-			if _, ok := derivedAccess[apiGroup]; !ok {
-				derivedAccess[apiGroup] = map[string]bool{}
-			}
-
-			if containsWildcard(rule.Resources) {
-				derivedAccess[apiGroup]["*"] = true
-			}
-
-			if containsWildcard(rule.Verbs) || hasVerbs(rule.Verbs, requiredVerbs) {
-				for _, resource := range rule.Resources {
-					derivedAccess[apiGroup][resource] = true
-				}
-			}
-		}
-	}
-
-	accessibleKinds := []string{}
-	for group, resources := range derivedAccess {
-		for k, v := range resources {
-			if v {
-				accessibleKinds = append(accessibleKinds, fmt.Sprintf("%s/%s", group, k))
-			}
-		}
-	}
-
-	ar := models.AccessRule{
-		Cluster:         clusterName,
-		Namespace:       obj.GetNamespace(),
-		AccessibleKinds: accessibleKinds,
-		Subjects:        []models.Subject{},
-	}
-
-	for _, subject := range obj.GetSubjects() {
-		ar.Subjects = append(ar.Subjects, models.Subject{
-			Kind:      subject.Kind,
-			Name:      subject.Name,
-			Namespace: subject.Namespace,
-		})
-	}
-
-	return ar
-}
-
 func hasVerbs(a, b []string) bool {
 	for _, v := range b {
 		if containsWildcard(a) {
