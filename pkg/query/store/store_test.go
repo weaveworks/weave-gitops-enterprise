@@ -47,61 +47,77 @@ func TestDeleteObjects(t *testing.T) {
 			name: "remove one object",
 			seed: []models.Object{
 				{
-					Cluster:   "test-cluster",
-					Name:      "someName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "someName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 				{
-					Cluster:   "test-cluster",
-					Name:      "otherName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "otherName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 			},
 			toRemove: []models.Object{
 				{
-					Cluster:   "test-cluster",
-					Name:      "someName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "someName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 			},
 			want: []models.Object{{
-				Cluster:   "test-cluster",
-				Name:      "otherName",
-				Namespace: "namespace",
-				Kind:      "ValidKind",
+				Cluster:    "test-cluster",
+				Name:       "otherName",
+				Namespace:  "namespace",
+				Kind:       "ValidKind",
+				APIGroup:   "example.com",
+				APIVersion: "v1",
 			}},
 		},
 		{
 			name: "remove multiple objects",
 			seed: []models.Object{
 				{
-					Cluster:   "test-cluster",
-					Name:      "someName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "someName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 				{
-					Cluster:   "test-cluster",
-					Name:      "otherName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "otherName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 			},
 			toRemove: []models.Object{
 				{
-					Cluster:   "test-cluster",
-					Name:      "someName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "someName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 				{
-					Cluster:   "test-cluster",
-					Name:      "otherName",
-					Namespace: "namespace",
-					Kind:      "ValidKind",
+					Cluster:    "test-cluster",
+					Name:       "otherName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
 				},
 			},
 			want: []models.Object{},
@@ -140,10 +156,12 @@ func TestStoreObjects(t *testing.T) {
 		store, db := createStore(t)
 
 		obj := models.Object{
-			Cluster:   "test-cluster",
-			Name:      "someName",
-			Namespace: "namespace",
-			Kind:      "ValidKind",
+			Cluster:    "test-cluster",
+			Name:       "someName",
+			Namespace:  "namespace",
+			Kind:       "ValidKind",
+			APIGroup:   "example.com",
+			APIVersion: "v1",
 		}
 
 		g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
@@ -160,10 +178,12 @@ func TestStoreObjects(t *testing.T) {
 		store, db := createStore(t)
 
 		obj := models.Object{
-			Cluster:   "test-cluster",
-			Name:      "someName",
-			Namespace: "namespace",
-			Kind:      "ValidKind",
+			Cluster:    "test-cluster",
+			Name:       "someName",
+			Namespace:  "namespace",
+			Kind:       "ValidKind",
+			APIGroup:   "example.com",
+			APIVersion: "v1",
 		}
 
 		g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
@@ -245,56 +265,6 @@ func TestGetAccessRules(t *testing.T) {
 		t.Errorf("GetAccessRules() mismatch (-want +got):\n%s", diff)
 	}
 }
-
-// func TestStoreAccessRules(t *testing.T) {
-// 	g := NewGomegaWithT(t)
-
-// 	t.Run("stores access rules", func(t *testing.T) {
-// 		store, db := createStore(t)
-
-// 		accessRule := models.AccessRule{
-// 			Cluster:         "test-cluster",
-// 			Namespace:       "namespace",
-// 			Principal:       "someuser",
-// 			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
-// 		}
-
-// 		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
-
-// 		sqlDB, err := db.DB()
-// 		g.Expect(err).To(BeNil())
-
-// 		var storedAccessRule models.AccessRule
-// 		g.Expect(sqlDB.QueryRow("SELECT id FROM access_rules").Scan(&storedAccessRule.ID)).To(Succeed())
-
-// 		g.Expect(storedAccessRule.ID).To(Equal(accessRule.GetID()))
-// 	})
-// 	t.Run("upserts access rules", func(t *testing.T) {
-// 		store, db := createStore(t)
-
-// 		accessRule := models.AccessRule{
-// 			Cluster:         "test-cluster",
-// 			Namespace:       "namespace",
-// 			Principal:       "someuser",
-// 			AccessibleKinds: []string{"example.com/v1beta2/SomeKind"},
-// 		}
-
-// 		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
-
-// 		sqlDB, err := db.DB()
-// 		g.Expect(err).To(BeNil())
-
-// 		var count int64
-// 		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
-// 		g.Expect(count).To(Equal(int64(1)))
-
-// 		g.Expect(store.StoreAccessRules(context.Background(), []models.AccessRule{accessRule})).To(Succeed())
-
-// 		g.Expect(sqlDB.QueryRow("SELECT COUNT(*) FROM access_rules").Scan(&count)).To(Succeed())
-// 		g.Expect(count).To(Equal(int64(1)))
-// 	})
-
-// }
 
 func createStore(t *testing.T) (Store, *gorm.DB) {
 	g := NewGomegaWithT(t)
