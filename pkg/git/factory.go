@@ -47,12 +47,12 @@ func (f *ProviderFactory) Create(providerName string, opts ...ProviderWithFn) (P
 
 	for _, opt := range opts {
 		if err = opt(&option); err != nil {
-			return nil, fmt.Errorf("unable to gather options on provider %q: %w", provider, err)
+			return nil, fmt.Errorf("unable to gather options on provider %q: %w", providerName, err)
 		}
 	}
 
 	if err := provider.Setup(option); err != nil {
-		return nil, fmt.Errorf("unable to apply options on provider %q: %w", provider, err)
+		return nil, fmt.Errorf("unable to apply options on provider %q: %w", providerName, err)
 	}
 
 	return provider, nil

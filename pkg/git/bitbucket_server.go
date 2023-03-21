@@ -41,10 +41,6 @@ func (p *BitBucketServerProvider) Setup(opts ProviderOption) error {
 		gitprovider.WithConditionalRequests(opts.ConditionalRequests),
 	}
 
-	if opts.Hostname != "" {
-		ggpOpts = append(ggpOpts, gitprovider.WithDomain(opts.Hostname))
-	}
-
 	var err error
 
 	p.client, err = stash.NewStashClient(opts.Username, opts.Token, ggpOpts...)
