@@ -36,7 +36,6 @@ import (
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	"github.com/weaveworks/go-checkpoint"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
@@ -76,7 +75,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
-	"google.golang.org/grpc/metadata"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -509,7 +507,6 @@ func StartServer(ctx context.Context, p Params) error {
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
-				grpc_runtime.WithMetadata(TrackEvents(log)),
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
@@ -571,7 +568,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	grpcMux := grpc_runtime.NewServeMux(args.GrpcRuntimeOptions...)
 
 	factory := informers.NewSharedInformerFactory(args.KubernetesClientSet, sharedFactoryResync)
-	namespacesCache := namespaces.NewNamespacesInformerCache(factory)
+	namespacesCache, err := namespaces.NewNamespacesInformerCache(factory)
+	if err != nil {
+		return fmt.Errorf("failed to create informer cache for namespaces: %w", err)
+	}
+
 	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
 	if err != nil {
 		return fmt.Errorf("failed to set up auth client getter")
@@ -789,12 +790,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 func TLSConfig(hosts []string) (*tls.Config, error) {
 	certPEMBlock, keyPEMBlock, err := generateKeyPair(hosts)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate TLS keys %w", err)
+		return nil, fmt.Errorf("failed to generate TLS keys %w", err)
 	}
 
 	cert, err := tls.X509KeyPair(certPEMBlock, keyPEMBlock)
 	if err != nil {
-		return nil, fmt.Errorf("Failed to generate X509 key pair %w", err)
+		return nil, fmt.Errorf("failed to generate X509 key pair %w", err)
 	}
 
 	tlsConfig := &tls.Config{
@@ -808,7 +809,7 @@ func TLSConfig(hosts []string) (*tls.Config, error) {
 func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 	priv, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failing to generate new ecdsa key: %w", err)
+		return nil, nil, fmt.Errorf("failing to generate new ecdsa key: %w", err)
 	}
 
 	// A CA is supposed to choose unique serial numbers, that is, unique for the CA.
@@ -816,7 +817,7 @@ func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 	serialNumber, err := rand.Int(rand.Reader, maxSerialNumber)
 
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to generate a random serial number: %w", err)
+		return nil, nil, fmt.Errorf("failed to generate a random serial number: %w", err)
 	}
 
 	template := x509.Certificate{
@@ -842,26 +843,26 @@ func generateKeyPair(hosts []string) ([]byte, []byte, error) {
 
 	derBytes, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to create certificate: %w", err)
+		return nil, nil, fmt.Errorf("failed to create certificate: %w", err)
 	}
 
 	certPEMBlock := &bytes.Buffer{}
 
 	err = pem.Encode(certPEMBlock, &pem.Block{Type: "CERTIFICATE", Bytes: derBytes})
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to encode cert pem: %w", err)
+		return nil, nil, fmt.Errorf("failed to encode cert pem: %w", err)
 	}
 
 	keyPEMBlock := &bytes.Buffer{}
 
 	b, err := x509.MarshalECPrivateKey(priv)
 	if err != nil {
-		return nil, nil, fmt.Errorf("Unable to marshal ECDSA private key: %v", err)
+		return nil, nil, fmt.Errorf("unable to marshal ECDSA private key: %v", err)
 	}
 
 	err = pem.Encode(keyPEMBlock, &pem.Block{Type: "EC PRIVATE KEY", Bytes: b})
 	if err != nil {
-		return nil, nil, fmt.Errorf("Failed to encode key pem: %w", err)
+		return nil, nil, fmt.Errorf("failed to encode key pem: %w", err)
 	}
 
 	return certPEMBlock.Bytes(), keyPEMBlock.Bytes(), nil
@@ -908,69 +909,9 @@ func CustomIncomingHeaderMatcher(key string) (string, bool) {
 	}
 }
 
-// TrackEvents tracks data for specific operations.
-func TrackEvents(log logr.Logger) func(ctx context.Context, r *http.Request) metadata.MD {
-	return func(ctx context.Context, r *http.Request) metadata.MD {
-		var handler string
-		md := make(map[string]string)
-		if method, ok := grpc_runtime.RPCMethod(ctx); ok {
-			md["method"] = method
-			handler = method
-		}
-		if pattern, ok := grpc_runtime.HTTPPathPattern(ctx); ok {
-			md["pattern"] = pattern
-		}
-
-		track(log, handler)
-
-		return metadata.New(md)
-	}
-}
-
 func defaultOptions() *Options {
 	return &Options{
 		Log: logr.Discard(),
-	}
-}
-
-func track(log logr.Logger, handler string) {
-	handlers := make(map[string]map[string]string)
-	handlers["ListTemplates"] = map[string]string{
-		"object":  "templates",
-		"command": "list",
-	}
-	handlers["CreatePullRequest"] = map[string]string{
-		"object":  "clusters",
-		"command": "create",
-	}
-	handlers["DeleteClustersPullRequest"] = map[string]string{
-		"object":  "clusters",
-		"command": "delete",
-	}
-
-	for h, m := range handlers {
-		if strings.HasSuffix(handler, h) {
-			go checkVersionWithFlags(log, m)
-		}
-	}
-}
-
-func checkVersionWithFlags(log logr.Logger, flags map[string]string) {
-	p := &checkpoint.CheckParams{
-		Product: "weave-gitops-enterprise",
-		Version: version.Version,
-		Flags:   flags,
-	}
-	checkResponse, err := checkpoint.Check(p)
-	if err != nil {
-		log.Error(err, "Failed to check version")
-		return
-	}
-	if checkResponse.Outdated {
-		log.Info("There is a newer version of weave-gitops-enterprise available",
-			"latest", checkResponse.CurrentVersion, "url", checkResponse.CurrentDownloadURL)
-	} else {
-		log.Info("The current weave-gitops-enterprise version is up to date", "current", version.Version)
 	}
 }
 

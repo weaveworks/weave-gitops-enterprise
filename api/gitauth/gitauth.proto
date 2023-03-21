@@ -95,6 +95,26 @@ service GitAuth {
     }
 
     /**
+    * GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL used to initiate the OAuth flow.
+    */
+    rpc GetAzureDevOpsAuthURL(GetAzureDevOpsAuthURLRequest) returns (GetAzureDevOpsAuthURLResponse) {
+        option (google.api.http) = {
+            get : "/v1/gitauth/auth_providers/azuredevops"
+        };
+    }
+
+    /**
+    * AuthorizeAzureDevOps returns a token after a user authorizes Azure DevOps to grant access to their
+    * account on behalf of Weave GitOps Enterprise.
+    */
+    rpc AuthorizeAzureDevOps (AuthorizeAzureDevOpsRequest) returns (AuthorizeAzureDevOpsResponse) {
+        option (google.api.http) = {
+            post : "/v1/gitauth/auth_providers/azuredevops/authorize"
+            body: "*"
+        };
+    }
+
+    /**
     * ParseRepoURL returns structured data about a git repository URL
     */
     rpc ParseRepoURL(ParseRepoURLRequest) returns(ParseRepoURLResponse) {
@@ -148,6 +168,7 @@ enum GitProvider {
     GitHub          = 1;
     GitLab          = 2;
     BitBucketServer = 3;
+    AzureDevOps     = 4;
 }
 
 message ParseRepoURLRequest {
@@ -199,5 +220,22 @@ message AuthorizeBitbucketServerRequest {
 }
 
 message AuthorizeBitbucketServerResponse {
+    string token = 1; // A token that can be used to authenticate the GitOps API server. 
+}
+
+message GetAzureDevOpsAuthURLRequest {
+    string redirectUri = 1; // The URI that Azure DevOps will use to send users back to GitOps.
+}
+
+message GetAzureDevOpsAuthURLResponse {
+    string url = 1; // The URL that users must visit to initiate the Azure DevOps OAuth flow.
+}
+
+message AuthorizeAzureDevOpsRequest {
+    string code        = 1; // The challenge code obtained from the OAuth callback
+    string redirectUri = 2; // The redirect URI that originated the OAuth flow
+}
+
+message AuthorizeAzureDevOpsResponse {
     string token = 1; // A token that can be used to authenticate the GitOps API server. 
 }

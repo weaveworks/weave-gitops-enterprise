@@ -94,20 +94,21 @@ const ProfilesListItem: FC<{
     handleUpdateProfile(profile);
   };
 
-  const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
-    setYaml(event.target.value);
+  const handleUpdateProfiles = useCallback(
+    value => {
+      setYaml(value);
+      profile.values.forEach(item => {
+        if (item.version === version) {
+          item.yaml = value;
+        }
+      });
 
-  const handleUpdateProfiles = useCallback(() => {
-    profile.values.forEach(item => {
-      if (item.version === version) {
-        item.yaml = yaml;
-      }
-    });
+      handleUpdateProfile(profile);
 
-    handleUpdateProfile(profile);
-
-    setOpenYamlPreview(false);
-  }, [profile, handleUpdateProfile, version, yaml]);
+      setOpenYamlPreview(false);
+    },
+    [profile, handleUpdateProfile, version],
+  );
 
   useEffect(() => {
     const [selectedValue] = profile.values.filter(
@@ -164,10 +165,10 @@ const ProfilesListItem: FC<{
           cluster={cluster}
           profile={profile}
           version={version}
-          onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}
           helmRepo={helmRepo}
+          onDiscard={() => setOpenYamlPreview(false)}
         />
       )}
     </>

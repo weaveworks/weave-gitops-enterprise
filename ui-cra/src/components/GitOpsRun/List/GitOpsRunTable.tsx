@@ -137,7 +137,10 @@ const GitOpsRunTable: FC<Props> = ({ sessions }) => {
           value: ({ obj }) => {
             const ports: string =
               obj.metadata.annotations['run.weave.works/port-forward'];
-            return <PortLinks ports={ports} />;
+            if (ports?.length) {
+                return <PortLinks ports={ports} />;
+            }
+            return null;
           },
           sortValue: ({ obj }) =>
             obj.metadata.annotations['run.weave.works/port-forward'],

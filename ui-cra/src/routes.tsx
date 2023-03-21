@@ -49,6 +49,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import PolicyConfigsList from './components/PolicyConfigs';
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails'
 import GitopsSets from './components/GitopsSets';
 import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import WGUserInfo from './components/UserInfo';
@@ -294,6 +295,7 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
+      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
 
       <Route
         path={Routes.TerraformDetail}
@@ -338,6 +340,30 @@ const AppRoutes = () => {
           return (
             <OAuthCallback
               provider={GitProvider.BitBucketServer}
+              code={params.code as string}
+              error={error}
+              errorDescription={desc}
+            />
+          );
+        }}
+      />
+      <Route
+        exact
+        path={Routes.AzureDevOpsOauthCallback}
+        component={({ location }: any) => {
+          const params = qs.parse(location.search);
+
+          const error = Array.isArray(params?.error)
+            ? params?.error.join(', ')
+            : params?.error;
+
+          const desc = Array.isArray(params.error_description)
+            ? params.error_description?.join('\n')
+            : params?.error_description;
+
+          return (
+            <OAuthCallback
+              provider={GitProvider.AzureDevOps}
               code={params.code as string}
               error={error}
               errorDescription={desc}

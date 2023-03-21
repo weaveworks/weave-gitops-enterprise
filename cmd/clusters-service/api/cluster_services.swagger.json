@@ -524,6 +524,39 @@
         ]
       }
     },
+    "/v1/external-secrets/sync": {
+      "post": {
+        "summary": "SyncExternalSecrets sync externalSecret Operator secrets",
+        "operationId": "ClustersService_SyncExternalSecrets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncExternalSecretsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1SyncExternalSecretsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/external-secrets/{externalSecretName}": {
       "get": {
         "summary": "GetExternalSecret get secret details",
@@ -1743,6 +1776,17 @@
         }
       }
     },
+    "v1Decryption": {
+      "type": "object",
+      "properties": {
+        "provider": {
+          "type": "string"
+        },
+        "secretRef": {
+          "$ref": "#/definitions/v1SecretRef"
+        }
+      }
+    },
     "v1DeleteClustersPullRequestRequest": {
       "type": "object",
       "properties": {
@@ -1986,6 +2030,9 @@
           "type": "string"
         },
         "status": {
+          "type": "string"
+        },
+        "matchType": {
           "type": "string"
         },
         "match": {
@@ -2236,6 +2283,9 @@
         },
         "createNamespace": {
           "type": "boolean"
+        },
+        "decryption": {
+          "$ref": "#/definitions/v1Decryption"
         }
       }
     },
@@ -3108,6 +3158,14 @@
         }
       }
     },
+    "v1SecretRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      }
+    },
     "v1SourceRef": {
       "type": "object",
       "properties": {
@@ -3118,6 +3176,23 @@
           "type": "string"
         }
       }
+    },
+    "v1SyncExternalSecretsRequest": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "externalSecretName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SyncExternalSecretsResponse": {
+      "type": "object"
     },
     "v1Template": {
       "type": "object",
