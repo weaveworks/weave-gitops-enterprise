@@ -1,0 +1,38 @@
+apiVersion: capi.weave.works/v1alpha2
+kind: CAPITemplate
+metadata:
+  name: cluster-template-sops
+  namespace: default
+  annotations:
+    templates.weave.works/sops-enabled: "true"
+spec:
+  description: this is test template sops
+  renderType: templating
+  params:
+    - name: CLUSTER_NAME
+      description: This is used for the cluster naming.
+      required: true
+    - name: NAMESPACE
+      description: Namespace to create Cluster in.
+      required: true
+    - name: SOPS_KUSTOMIZATION_NAME
+      required: true
+      description: Define sops kustomization name - default directory in sops in cluster root path. (my-secrets)
+    - name: SOPS_SECRET_REF
+      required: true
+      description: Define sops secret reference name - should be added to cluster bootstrap job aswell. (sops-gpg)
+  resourcetemplates:
+    - raw: |
+        apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+        kind: KubeadmControlPlane
+        metadata:
+          name: "{{ .params.CLUSTER_NAME }}-control-plane"
+          namespace: "{{ .params.NAMESPACE }}"
+        spec:
+          machineTemplate:
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+              kind: DockerMachineTemplate # {"testing": "field"}
+              name: "{{ .params.CLUSTER_NAME }}-control-plane"
+              namespace: "{{ .params.NAMESPACE }}"
+          version: "1.26.1"
