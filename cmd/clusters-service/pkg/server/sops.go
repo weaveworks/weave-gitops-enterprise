@@ -259,7 +259,7 @@ func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.L
 	kustomizations := []*capiv1_proto.SopsKustomizations{}
 	kustomizationList := &kustomizev1beta2.KustomizationList{}
 
-	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList); err != nil {
+	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList, client.HasLabels{SopsPublicKeyNameLabel, SopsPublicKeyNamespaceLabel}); err != nil {
 		return nil, fmt.Errorf("failed to list kustomizations, error: %w", err)
 	}
 

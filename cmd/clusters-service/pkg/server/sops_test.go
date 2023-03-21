@@ -378,6 +378,10 @@ func TestListKustomizations(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-1",
 						Namespace: "namespace-a-1",
+						Labels: map[string]string{
+							"sops-public-key/name":      "sops-pgp",
+							"sops-public-key/namespace": "flux-system",
+						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{
 						Decryption: &kustomizev1beta2.Decryption{
@@ -389,6 +393,10 @@ func TestListKustomizations(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-2",
 						Namespace: "namespace-a-2",
+						Labels: map[string]string{
+							"sops-public-key/name":      "sops-pgp",
+							"sops-public-key/namespace": "flux-system",
+						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{
 						Decryption: &kustomizev1beta2.Decryption{
@@ -432,6 +440,10 @@ func TestListKustomizations(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-b-1",
 						Namespace: "namespace-b-1",
+						Labels: map[string]string{
+							"sops-public-key/name":      "sops-pgp",
+							"sops-public-key/namespace": "flux-system",
+						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{
 						Decryption: &kustomizev1beta2.Decryption{
