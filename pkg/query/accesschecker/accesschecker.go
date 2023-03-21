@@ -1,20 +1,25 @@
 package accesschecker
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-// AccessChecker is responsible for checking if a subject has access to a resource.
-type AccessChecker interface {
+// Checker is responsible for checking if a subject has access to a resource.
+type Checker interface {
 	// HasAccess checks if a subject has access to a resource.
 	HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error)
 }
 
 type defaultAccessChecker struct{}
 
+// HasAccess checks if a principal has access to a resource.
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
-
+	// Contains all the rules that are relevant to this user.
+	// This is based on their ID and the groups they belong to.
 	matchingRules := []models.AccessRule{}
 
 	for _, rule := range rules {
@@ -32,12 +37,39 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 	}
 
 	for _, rule := range matchingRules {
-		if rule.Cluster != object.Cluster || rule.Namespace != object.Namespace {
+		if rule.Cluster != object.Cluster {
+			// Not the same cluster, so not relevant.
 			continue
 		}
 
-		for _, kind := range rule.AccessibleKinds {
-			if kind == object.Kind && rule.Namespace == object.Namespace {
+		if rule.Namespace != "" && rule.Namespace != object.Namespace {
+			// ClusterRoles and ClusterRoleBindings are not namespaced, so we only check if the field is
+			continue
+		}
+
+		for _, gvk := range rule.AccessibleKinds {
+
+			var kind string
+			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
+			// Sometimes the version is not present, so we need to handle that case.
+			parts := strings.Split(gvk, "/")
+			if len(parts) == 3 {
+				kind = parts[2]
+			} else if len(parts) == 2 {
+				kind = parts[1]
+			} else {
+				return false, fmt.Errorf("invalid GVK: %s", gvk)
+			}
+
+			fmt.Printf("kind: %s, object: %s\n", gvk, object.GroupVersionKind())
+
+			if strings.Contains(kind, "*") {
+				// If the rule contains a wildcard, then the user has access to all kinds.
+				return true, nil
+			}
+
+			// Check for an exact group/version/kind match.
+			if gvk == object.GroupVersionKind() {
 				return true, nil
 			}
 		}
@@ -47,6 +79,6 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 }
 
 // NewAccessChecker returns a new AccessChecker.
-func NewAccessChecker() AccessChecker {
+func NewAccessChecker() Checker {
 	return &defaultAccessChecker{}
 }

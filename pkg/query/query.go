@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -27,22 +28,26 @@ const (
 
 func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, error) {
 	return &qs{
-		log:    opts.Log,
-		r:      opts.StoreReader,
-		filter: defaultAccessFilter,
+		log:     opts.Log,
+		r:       opts.StoreReader,
+		checker: accesschecker.NewAccessChecker(),
 	}, nil
 }
 
 type qs struct {
-	log    logr.Logger
-	r      store.StoreReader
-	filter AccessFilter
+	log     logr.Logger
+	r       store.StoreReader
+	checker accesschecker.Checker
 }
 
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object
 
 func (q *qs) RunQuery(ctx context.Context, opts store.Query) ([]models.Object, error) {
 	principal := auth.Principal(ctx)
+
+	if principal == nil {
+		return nil, fmt.Errorf("principal not found")
+	}
 
 	allObjects, err := q.r.GetObjects(ctx, opts)
 	if err != nil {
@@ -56,7 +61,18 @@ func (q *qs) RunQuery(ctx context.Context, opts store.Query) ([]models.Object, e
 
 	fmt.Printf("principal: %v\n", principal.ID)
 
-	result := q.filter(principal, rules, allObjects)
+	result := []models.Object{}
+	for _, obj := range allObjects {
+		ok, err := q.checker.HasAccess(principal, obj, rules)
+		if err != nil {
+			q.log.Error(err, "error checking access")
+			continue
+		}
+
+		if ok {
+			result = append(result, obj)
+		}
+	}
 
 	fmt.Printf("allObjects: %v\n", len(allObjects))
 	fmt.Printf("result: %v\n", len(result))

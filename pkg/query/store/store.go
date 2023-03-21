@@ -128,12 +128,12 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 			}
 
 			rList := strings.Split(rule.Resources, ",")
-			if containsWildcard(rList) {
+			if models.ContainsWildcard(rList) {
 				derivedAccess[apiGroup]["*"] = true
 			}
 
 			vList := strings.Split(rule.Verbs, ",")
-			if containsWildcard(vList) || hasVerbs(vList, requiredVerbs) {
+			if models.ContainsWildcard(vList) || hasVerbs(vList, requiredVerbs) {
 				for _, resource := range rList {
 					derivedAccess[apiGroup][resource] = true
 				}
@@ -158,19 +158,9 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 	}
 }
 
-func containsWildcard(permissions []string) bool {
-	for _, p := range permissions {
-		if p == "*" {
-			return true
-		}
-	}
-
-	return false
-}
-
 func hasVerbs(a, b []string) bool {
 	for _, v := range b {
-		if containsWildcard(a) {
+		if models.ContainsWildcard(a) {
 			return true
 		}
 		if slice.ContainsString(a, v, nil) {

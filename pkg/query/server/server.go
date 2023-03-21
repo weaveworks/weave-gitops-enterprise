@@ -9,9 +9,10 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesscollector"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rolecollector"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
@@ -23,7 +24,7 @@ type server struct {
 	pb.UnimplementedQueryServer
 
 	qs   query.QueryService
-	arc  *accesscollector.RoleCollector
+	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
 }
 
@@ -103,8 +104,8 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 			Clusters: opts.ClustersManager.GetClusters(),
 			// ClusterManager: opts.ClustersManager,
 		}
-		// create collectors
-		rulesCollector, err := accesscollector.NewRoleCollector(s, optsCollector)
+
+		rulesCollector, err := rolecollector.NewRoleCollector(s, optsCollector)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
