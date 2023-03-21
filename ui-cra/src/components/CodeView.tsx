@@ -90,6 +90,8 @@ export default styled(CodeView).attrs({
   font-size: ${props => props.theme.fontSizes.small};
   border: 1px solid ${props => props.theme.colors.neutral20};
   border-radius: 8px;
+  height: 100%;
+  overflow: auto;
   pre {
     padding: ${props => props.theme.spacing.small};
     white-space: pre-wrap;
