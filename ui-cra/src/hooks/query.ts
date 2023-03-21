@@ -23,9 +23,6 @@ export function useQueryService(query: string) {
       });
     },
     {
-      cacheTime: Infinity,
-      staleTime: Infinity,
-      retry: false,
       keepPreviousData: true,
     },
   );
