@@ -570,10 +570,11 @@ spec:
 			req: &capiv1_protos.CreatePullRequestRequest{
 				TemplateName: "cluster-template-sops",
 				ParameterValues: map[string]string{
-					"CLUSTER_NAME":            "foo",
-					"NAMESPACE":               "default",
-					"SOPS_KUSTOMIZATION_NAME": "my-secrets",
-					"SOPS_SECRET_REF":         "sops-gpg",
+					"CLUSTER_NAME":              "foo",
+					"NAMESPACE":                 "default",
+					"SOPS_KUSTOMIZATION_NAME":   "my-secrets",
+					"SOPS_SECRET_REF":           "sops-gpg",
+					"SOPS_SECRET_REF_NAMESPACE": "flux-system",
 				},
 				RepositoryUrl:     "https://github.com/org/repo.git",
 				HeadBranch:        "feature-01",
@@ -591,6 +592,9 @@ spec:
 kind: Kustomization
 metadata:
   creationTimestamp: null
+  labels:
+    sops-public-key/name: sops-gpg-pub
+    sops-public-key/namespace: flux-system
   name: my-secrets
   namespace: flux-system
 spec:
@@ -632,7 +636,7 @@ metadata:
   name: "foo-control-plane"
   namespace: "default"
   annotations:
-    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-sops\",\"parameter_values\":{\"CLUSTER_NAME\":\"foo\",\"NAMESPACE\":\"default\",\"SOPS_KUSTOMIZATION_NAME\":\"my-secrets\",\"SOPS_SECRET_REF\":\"sops-gpg\"},\"commit_message\":\"Add cluster manifest\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-sops\",\"parameter_values\":{\"CLUSTER_NAME\":\"foo\",\"NAMESPACE\":\"default\",\"SOPS_KUSTOMIZATION_NAME\":\"my-secrets\",\"SOPS_SECRET_REF\":\"sops-gpg\",\"SOPS_SECRET_REF_NAMESPACE\":\"flux-system\"},\"commit_message\":\"Add cluster manifest\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
 spec:
   machineTemplate:
     infrastructureRef:
