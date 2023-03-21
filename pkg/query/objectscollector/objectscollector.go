@@ -62,13 +62,16 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	delete := []models.Object{}
 
 	for _, obj := range objectRecords {
+		gvk := obj.Object().GetObjectKind().GroupVersionKind()
 		object := models.Object{
-			Cluster:   obj.ClusterName(),
-			Name:      obj.Object().GetName(),
-			Namespace: obj.Object().GetNamespace(),
-			Kind:      obj.Object().GetObjectKind().GroupVersionKind().Kind,
-			Status:    "not available",
-			Message:   "not available",
+			Cluster:    obj.ClusterName(),
+			Name:       obj.Object().GetName(),
+			Namespace:  obj.Object().GetNamespace(),
+			APIGroup:   gvk.Group,
+			APIVersion: gvk.Version,
+			Kind:       gvk.Kind,
+			Status:     "not available",
+			Message:    "not available",
 		}
 		if obj.TransactionType() == models.TransactionTypeDelete {
 			delete = append(delete, object)

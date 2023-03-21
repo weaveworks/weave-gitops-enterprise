@@ -9,13 +9,15 @@ import (
 
 type Object struct {
 	gorm.Model
-	ID        string `gorm:"primaryKey;autoIncrement:false"`
-	Cluster   string `gorm:"type:text"`
-	Namespace string `gorm:"type:text"`
-	Kind      string `gorm:"type:text"`
-	Name      string `gorm:"type:text"`
-	Status    string `gorm:"type:text"`
-	Message   string `gorm:"type:text"`
+	ID         string `gorm:"primaryKey;autoIncrement:false"`
+	Cluster    string `gorm:"type:text"`
+	Namespace  string `gorm:"type:text"`
+	APIGroup   string `gorm:"type:text"`
+	APIVersion string `gorm:"type:text"`
+	Kind       string `gorm:"type:text"`
+	Name       string `gorm:"type:text"`
+	Status     string `gorm:"type:text"`
+	Message    string `gorm:"type:text"`
 }
 
 func (o Object) Validate() error {
@@ -28,6 +30,12 @@ func (o Object) Validate() error {
 	if o.Namespace == "" {
 		return fmt.Errorf("missing namespace field")
 	}
+	if o.APIGroup == "" {
+		return fmt.Errorf("missing api group field")
+	}
+	if o.APIVersion == "" {
+		return fmt.Errorf("missing api version field")
+	}
 	if o.Kind == "" {
 		return fmt.Errorf("missing kind field")
 	}
@@ -36,6 +44,10 @@ func (o Object) Validate() error {
 
 func (o *Object) GetID() string {
 	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.Kind, o.Name)
+}
+
+func (o Object) GroupVersionKind() string {
+	return fmt.Sprintf("%s/%s/%s", o.APIGroup, o.APIVersion, o.Kind)
 }
 
 type TransactionType string
