@@ -59,8 +59,6 @@ func (q *qs) RunQuery(ctx context.Context, opts store.Query) ([]models.Object, e
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
 
-	fmt.Printf("principal: %v\n", principal.ID)
-
 	result := []models.Object{}
 	for _, obj := range allObjects {
 		ok, err := q.checker.HasAccess(principal, obj, rules)
@@ -73,9 +71,6 @@ func (q *qs) RunQuery(ctx context.Context, opts store.Query) ([]models.Object, e
 			result = append(result, obj)
 		}
 	}
-
-	fmt.Printf("allObjects: %v\n", len(allObjects))
-	fmt.Printf("result: %v\n", len(result))
 
 	return result, nil
 }

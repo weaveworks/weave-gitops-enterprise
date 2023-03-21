@@ -73,8 +73,8 @@ func DeriveAccessRules(roles []models.Role, bindings []models.RoleBinding) []mod
 	accessRules := []models.AccessRule{}
 
 	// Figure out the binding/role pairs
-	for _, binding := range bindings {
-		for _, role := range roles {
+	for _, role := range roles {
+		for _, binding := range bindings {
 			if bindingRoleMatch(binding, role) {
 				rule := convertToAccessRule(role.Cluster, role, binding, DefaultVerbsRequiredForAccess)
 				accessRules = append(accessRules, rule)
