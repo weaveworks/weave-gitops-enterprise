@@ -37,10 +37,6 @@ func (p *AzureDevOpsProvider) Setup(opts ProviderOption) error {
 		opts.Hostname = "dev.azure.com"
 	}
 
-	// ggpOpts := []gitprovider.ClientOption{
-	// 	gitprovider.WithDomain(opts.Hostname),
-	// }
-
 	var err error
 
 	p.client, err = factory.NewClient("azure", fmt.Sprintf("https://%s", opts.Hostname), opts.Token)
@@ -73,7 +69,7 @@ func (p *AzureDevOpsProvider) CreatePullRequest(ctx context.Context, input PullR
 
 	u, err := url.Parse(input.RepositoryURL)
 	if err != nil {
-		return nil, fmt.Errorf("unbale to parse url %q: %w", input.RepositoryURL, err)
+		return nil, fmt.Errorf("unable to parse url %q: %w", input.RepositoryURL, err)
 	}
 
 	repo, err := jsmc.GetRepository(ctx, p.log, p.client, u)

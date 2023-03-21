@@ -137,7 +137,7 @@ func (g goGitProvider) GetTreeList(ctx context.Context, client gitprovider.Clien
 func (g goGitProvider) GetRepository(ctx context.Context, log logr.Logger, client gitprovider.Client, url string) (gitprovider.OrgRepository, error) {
 	ref, err := gitprovider.ParseOrgRepositoryURL(url)
 	if err != nil {
-		return nil, fmt.Errorf("unbale to parse url %q: %w", url, err)
+		return nil, fmt.Errorf("unable to parse url %q: %w", url, err)
 	}
 
 	ref.Domain = addSchemeToDomain(ref.Domain)
