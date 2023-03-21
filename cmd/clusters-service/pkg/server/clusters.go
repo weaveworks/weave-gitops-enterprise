@@ -550,8 +550,8 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 
 func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*gitprovider.CommitFile, error) {
 	sopsKustomizationPath := getSopsKustomizationPath(cluster)
-	sopsKustomization := createSopsKustomizationObject(&capiv1_proto.SopsKustomization{
-		Metadata: &capiv1_proto.SopsKustomizationMetadata{
+	sopsKustomization := createSopsKustomizationObject(&capiv1_proto.Kustomization{
+		Metadata: &capiv1_proto.Metadata{
 			Name:      msg.ParameterValues["SOPS_KUSTOMIZATION_NAME"],
 			Namespace: "flux-system",
 			Labels: map[string]string{
@@ -559,7 +559,7 @@ func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*g
 				"sops-public-key/namespace": msg.ParameterValues["SOPS_SECRET_REF_NAMESPACE"],
 			},
 		},
-		Spec: &capiv1_proto.SopsKustomizationSpec{
+		Spec: &capiv1_proto.KustomizationSpec{
 			Path: filepath.Join(
 				viper.GetString("capi-repository-clusters-path"),
 				cluster.Namespace,
@@ -1118,7 +1118,7 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 	return generatedKustomization
 }
 
-func createSopsKustomizationObject(kustomization *capiv1_proto.SopsKustomization) *kustomizev1.Kustomization {
+func createSopsKustomizationObject(kustomization *capiv1_proto.Kustomization) *kustomizev1.Kustomization {
 	generatedKustomization := &kustomizev1.Kustomization{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       kustomizev1.KustomizationKind,
