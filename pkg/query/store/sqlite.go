@@ -110,9 +110,53 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 	return nil
 }
 
+func toSQLOperand(op QueryOperand) (string, error) {
+	switch op {
+	case OperandEqual:
+		return "=", nil
+	case OperandNotEqual:
+		return "!=", nil
+	default:
+		return "", fmt.Errorf("unsupported operand: %s", op)
+	}
+}
+
 func (i *SQLiteStore) GetObjects(ctx context.Context, q Query) ([]models.Object, error) {
 	objects := []models.Object{}
-	result := i.db.Find(&objects)
+
+	col := q.GetKey()
+
+	var limit int
+	var offset int
+	// If limit or offset are zero, they were not set.
+	// -1 tells GORM to ignore the limit/offset
+	if q.GetLimit() == 0 {
+		limit = -1
+	} else {
+		limit = int(q.GetLimit())
+	}
+
+	if q.GetOffset() == 0 {
+		offset = -1
+	} else {
+		offset = int(q.GetOffset())
+	}
+
+	tx := i.db.Limit(limit)
+	tx = tx.Offset(offset)
+
+	if col != "" {
+		val := q.GetValue()
+		op, err := toSQLOperand(QueryOperand(q.GetOperand()))
+		if err != nil {
+			return nil, err
+		}
+
+		queryString := fmt.Sprintf("%s %s ?", col, op)
+		tx = tx.Where(queryString, val)
+	}
+
+	result := tx.Find(&objects)
 
 	return objects, result.Error
 }
@@ -132,7 +176,6 @@ func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, 
 	}
 
 	rules := DeriveAccessRules(roles, bindings)
-	fmt.Printf("roles: %v, bindings: %v, rules: %v\n", len(roles), len(bindings), len(rules))
 
 	return rules, result.Error
 }

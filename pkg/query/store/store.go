@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"gorm.io/gorm"
 	"k8s.io/kubectl/pkg/util/slice"
 )
 
@@ -27,6 +28,13 @@ type StoreWriter interface {
 	StoreObjects(ctx context.Context, objects []models.Object) error
 	DeleteObjects(ctx context.Context, object []models.Object) error
 }
+
+type QueryOperand string
+
+const (
+	OperandEqual    QueryOperand = "equal"
+	OperandNotEqual QueryOperand = "not_equal"
+)
 
 type Query interface {
 	GetKey() string
@@ -169,4 +177,16 @@ func hasVerbs(a, b []string) bool {
 	}
 
 	return false
+}
+
+func SeedObjects(db *gorm.DB, rows []models.Object) error {
+	withID := []models.Object{}
+
+	for _, o := range rows {
+		o.ID = o.GetID()
+		withID = append(withID, o)
+	}
+	result := db.Create(&withID)
+
+	return result.Error
 }
