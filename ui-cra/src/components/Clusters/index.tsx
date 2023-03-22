@@ -302,13 +302,13 @@ const MCCP: FC<{
     (getInitialGitRepo(initialUrl, gitRepos) as GitRepositoryEnriched);
   const history = useHistory();
 
-  const handleAddCluster = useCallback(
-    () =>
-      history.push(
-        `/templates?filters=templateType%3A%20_templateType%3A%20cluster_`,
-      ),
-    [history],
-  );
+  const handleAddCluster = useCallback(() => {
+    const filtersValues = encodeURIComponent(
+      `templateType: cluster_templateType: _`,
+    );
+    // history.push(`/applications?filters=${filtersValues}`);}
+    return history.push(`/templates?filters=${filtersValues}`);
+  }, [history]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
