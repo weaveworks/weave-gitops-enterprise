@@ -20,6 +20,7 @@ type Props = {
   className?: string;
   query: string;
   filters: { label: string; value: any }[];
+  selectedFilter: string;
   disabled: boolean;
   placeholder?: string;
   pinnedTerms: string[];
@@ -34,6 +35,7 @@ function QueryBuilder({
   query,
   pinnedTerms,
   filters,
+  selectedFilter,
   disabled,
   className,
   placeholder,
@@ -43,7 +45,6 @@ function QueryBuilder({
   onFilterSelect,
   busy,
 }: Props) {
-  const [selectedFilter, setSelectedFilter] = React.useState('');
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleAddSearchTerm = (value: string) => {
@@ -63,6 +64,7 @@ function QueryBuilder({
 
   const handleRemoveAll = () => {
     onChange('', []);
+    onFilterSelect('');
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,7 +94,6 @@ function QueryBuilder({
       inputRef.current.focus();
     }
 
-    setSelectedFilter(ev.target.value);
     onFilterSelect(ev.target.value);
   };
 

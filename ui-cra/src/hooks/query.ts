@@ -34,13 +34,13 @@ function convertToOpts(query: string): QueryClause[] {
 
 export function useQueryService(
   query: string,
-  limit: number = 50,
+  limit: number = 2,
   offset: number = 0,
 ) {
   const api = Query;
 
   return useQuery<QueryResponse, Error>(
-    ['query', query],
+    ['query', { query, limit, offset }],
     () => {
       const opts = convertToOpts(query);
 

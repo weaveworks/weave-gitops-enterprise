@@ -1,6 +1,9 @@
+import { Box, IconButton } from '@material-ui/core';
 import {
   DataTable,
   Flex,
+  Icon,
+  IconType,
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
@@ -23,6 +26,9 @@ type QueryState = {
   query: string;
   pinnedTerms: string[];
   filters: { label: string; value: any }[];
+  limit: number;
+  offset: number;
+  selectedFilter: string;
 };
 
 function initialTerms(search: string) {
@@ -31,29 +37,81 @@ function initialTerms(search: string) {
   return parsed.q ? parsed.q.split(',') : [];
 }
 
+const DEFAULT_LIMIT = 2;
+
 function Explorer({ className }: Props) {
   const history = useHistory();
   const [queryState, setQueryState] = React.useState<QueryState>({
     query: '',
     pinnedTerms: initialTerms(history.location.search),
+    limit: DEFAULT_LIMIT,
+    offset: 0,
     filters: [
       { label: 'Kustomizations', value: 'kind:Kustomization' },
       { label: 'Helm Releases', value: 'kind:HelmRelease' },
     ],
+    selectedFilter: '',
   });
   const { data, error, isFetching } = useQueryService(
     queryState.pinnedTerms.join(','),
+    queryState.limit,
+    queryState.offset,
   );
 
   React.useEffect(() => {
-    if (queryState.pinnedTerms.length === 0) {
+    if (queryState.pinnedTerms.length === 0 && queryState.offset === 0) {
       history.replace(history.location.pathname);
       return;
     }
-    const q = qs.stringify({ q: queryState.pinnedTerms.join(',') });
+
+    let offset: any = queryState.offset;
+    let limit: any = queryState.limit;
+
+    if (queryState.offset === 0) {
+      offset = null;
+      limit = null;
+    }
+
+    const q = qs.stringify(
+      {
+        q: queryState.pinnedTerms.join(','),
+        limit,
+        offset,
+      },
+      { skipNull: true },
+    );
 
     history.replace(`?${q}`);
-  }, [history, queryState.pinnedTerms]);
+  }, [history, queryState.offset, queryState.limit, queryState.pinnedTerms]);
+
+  const handlePageForward = () => {
+    setQueryState({
+      ...queryState,
+      offset: queryState.offset + queryState.limit,
+    });
+  };
+
+  const handlePageBack = () => {
+    setQueryState({
+      ...queryState,
+      offset: Math.max(0, queryState.offset - queryState.limit),
+    });
+  };
+
+  const handleFilterChange = (val: string) => {
+    let nextVal = [val];
+
+    if (val === '') {
+      nextVal = [];
+    }
+
+    setQueryState({
+      ...queryState,
+      offset: 0,
+      pinnedTerms: nextVal,
+      selectedFilter: val,
+    });
+  };
 
   return (
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
@@ -70,6 +128,7 @@ function Explorer({ className }: Props) {
                     disabled={false}
                     query={queryState.query}
                     filters={queryState.filters}
+                    selectedFilter={queryState.selectedFilter}
                     pinnedTerms={queryState.pinnedTerms}
                     onChange={(query, pinnedTerms) => {
                       setQueryState({ ...queryState, query, pinnedTerms });
@@ -77,12 +136,7 @@ function Explorer({ className }: Props) {
                     onPin={pinnedTerms => {
                       setQueryState({ ...queryState, pinnedTerms });
                     }}
-                    onFilterSelect={val => {
-                      setQueryState({
-                        ...queryState,
-                        pinnedTerms: [val],
-                      });
-                    }}
+                    onFilterSelect={handleFilterChange}
                   />
                 </Flex>
 
@@ -95,6 +149,25 @@ function Explorer({ className }: Props) {
                   ]}
                   rows={data?.objects}
                 />
+                <Flex wide center>
+                  <Box p={2}>
+                    <IconButton
+                      disabled={queryState.offset === 0}
+                      onClick={handlePageBack}
+                    >
+                      <Icon size={24} type={IconType.NavigateBeforeIcon} />
+                    </IconButton>
+                    <IconButton
+                      disabled={
+                        data?.objects &&
+                        data?.objects?.length < queryState.limit
+                      }
+                      onClick={handlePageForward}
+                    >
+                      <Icon size={24} type={IconType.NavigateNextIcon} />
+                    </IconButton>
+                  </Box>
+                </Flex>
               </>
             </RouterTab>
             <RouterTab name="Access Rules" path={`${Routes.Explorer}/access`}>
