@@ -43,11 +43,31 @@ export type AccessRule = {
   accessibleKinds?: string[]
 }
 
+export type StoreAccessRulesRequest = {
+  rules?: AccessRule[]
+}
+
+export type StoreAccessRulesResponse = {
+}
+
+export type StoreObjectsRequest = {
+  objects?: Object[]
+}
+
+export type StoreObjectsResponse = {
+}
+
 export class Query {
   static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
     return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static DebugGetAccessRules(req: DebugGetAccessRulesRequest, initReq?: fm.InitReq): Promise<DebugGetAccessRulesResponse> {
     return fm.fetchReq<DebugGetAccessRulesRequest, DebugGetAccessRulesResponse>(`/v1/debug/access-rules?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static StoreAccessRules(req: StoreAccessRulesRequest, initReq?: fm.InitReq): Promise<StoreAccessRulesResponse> {
+    return fm.fetchReq<StoreAccessRulesRequest, StoreAccessRulesResponse>(`/v1/query/access-rules`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static StoreObjects(req: StoreObjectsRequest, initReq?: fm.InitReq): Promise<StoreObjectsResponse> {
+    return fm.fetchReq<StoreObjectsRequest, StoreObjectsResponse>(`/v1/query/objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

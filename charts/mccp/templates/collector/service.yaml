@@ -1,0 +1,19 @@
+{{- if .Values.collector.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/name: mccp
+    app.kubernetes.io/component: collector
+  name: collector-metrics-service
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  ports:
+  - name: https
+    port: 8443
+    protocol: TCP
+    targetPort: https
+  selector:
+    app.kubernetes.io/name: mccp
+    app.kubernetes.io/component: collector
+{{- end }}

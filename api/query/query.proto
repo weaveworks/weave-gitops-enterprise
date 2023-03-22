@@ -24,10 +24,21 @@ service Query {
             body: "*"
         };
     }
-
     rpc DebugGetAccessRules(DebugGetAccessRulesRequest) returns (DebugGetAccessRulesResponse) {
         option (google.api.http) = {
             get: "/v1/debug/access-rules"
+        };
+    }
+    rpc StoreAccessRules(StoreAccessRulesRequest) returns (StoreAccessRulesResponse) {
+        option (google.api.http) = {
+            post: "/v1/query/access-rules"
+            body: "*"
+        };
+    }
+    rpc StoreObjects(StoreObjectsRequest) returns (StoreObjectsResponse) {
+        option (google.api.http) = {
+            post: "/v1/query/objects"
+            body: "*"
         };
     }
 }
@@ -70,4 +81,18 @@ message AccessRule {
     string   principal              = 2;
     string   namespace              = 3;
     repeated string accessibleKinds = 4;
+}
+
+message StoreAccessRulesRequest {
+    repeated AccessRule rules = 1;
+}
+
+message StoreAccessRulesResponse {
+}
+
+message StoreObjectsRequest {
+    repeated Object objects = 1;
+}
+
+message StoreObjectsResponse {
 }

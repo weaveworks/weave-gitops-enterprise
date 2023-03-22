@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 
@@ -48,6 +48,11 @@ type FakeStoreWriter struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeStoreWriter) GetUrl() string {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (fake *FakeStoreWriter) DeleteObjects(arg1 context.Context, arg2 []models.Object) error {

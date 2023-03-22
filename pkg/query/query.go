@@ -3,9 +3,9 @@ package query
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -16,9 +16,19 @@ type QueryService interface {
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
+type StoreService interface {
+	StoreAccessRules(ctx context.Context, rules []models.AccessRule) error
+	StoreObjects(ctx context.Context, objs []models.Object) error
+}
+
 type QueryServiceOpts struct {
 	Log         logr.Logger
 	StoreReader store.StoreReader
+}
+
+type StoreServiceOpts struct {
+	Log         logr.Logger
+	StoreWriter store.StoreWriter
 }
 
 const (
@@ -33,10 +43,38 @@ func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, 
 	}, nil
 }
 
+func NewStoreService(ctx context.Context, opts StoreServiceOpts) (StoreService, error) {
+	return &ss{
+		log: opts.Log,
+		w:   opts.StoreWriter,
+	}, nil
+}
+
 type qs struct {
 	log    logr.Logger
 	r      store.StoreReader
 	filter AccessFilter
+}
+
+type ss struct {
+	log logr.Logger
+	w   store.StoreWriter
+}
+
+func (s ss) StoreObjects(ctx context.Context, objs []models.Object) error {
+	err := s.w.StoreObjects(ctx, objs)
+	if err != nil {
+		return fmt.Errorf("error writting objects to store: %w", err)
+	}
+	return nil
+}
+
+func (s ss) StoreAccessRules(ctx context.Context, rules []models.AccessRule) error {
+	err := s.w.StoreAccessRules(ctx, rules)
+	if err != nil {
+		return fmt.Errorf("cannot store acess rules: %w", err)
+	}
+	return nil
 }
 
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object

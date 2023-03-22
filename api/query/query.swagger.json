@@ -70,6 +70,70 @@
           "Query"
         ]
       }
+    },
+    "/v1/query/access-rules": {
+      "post": {
+        "operationId": "Query_StoreAccessRules",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StoreAccessRulesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1StoreAccessRulesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      }
+    },
+    "/v1/query/objects": {
+      "post": {
+        "operationId": "Query_StoreObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StoreObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1StoreObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      }
     }
   },
   "definitions": {
@@ -191,6 +255,34 @@
           }
         }
       }
+    },
+    "v1StoreAccessRulesRequest": {
+      "type": "object",
+      "properties": {
+        "rules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1AccessRule"
+          }
+        }
+      }
+    },
+    "v1StoreAccessRulesResponse": {
+      "type": "object"
+    },
+    "v1StoreObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Object"
+          }
+        }
+      }
+    },
+    "v1StoreObjectsResponse": {
+      "type": "object"
     }
   }
 }

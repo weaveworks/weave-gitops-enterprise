@@ -7,7 +7,7 @@ import (
 	"github.com/alecthomas/assert"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"

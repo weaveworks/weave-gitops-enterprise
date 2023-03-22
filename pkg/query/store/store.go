@@ -3,9 +3,8 @@ package store
 import (
 	"context"
 	"fmt"
-
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

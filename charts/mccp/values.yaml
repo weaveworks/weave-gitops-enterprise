@@ -10,6 +10,7 @@ images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
   clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.5.0
+  collector: docker.io/weaveworks/weave-gitops-enterprise-collector #fixme
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -28,7 +29,7 @@ listOCIRepositories: false
 enablePipelines: true
 
 # Turns on explorer to true
-enableExplorer: true
+enableExplorer: false
 
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
@@ -188,3 +189,7 @@ gitopssets-controller:
     manager:
       image:
         tag: v0.6.0
+
+collector:
+  enabled: true
+  fullnameOverride: collector

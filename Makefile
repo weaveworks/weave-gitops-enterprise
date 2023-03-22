@@ -54,6 +54,19 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
 	touch $@
 
+cmd/collector/$(UPTODATE): cmd/collector/Dockerfile cmd/collector/*
+	$(SUDO) docker build \
+		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
+		--build-arg=image_tag=$(IMAGE_TAG) \
+		--build-arg=revision=$(GIT_REVISION) \
+		--build-arg=GITHUB_BUILD_TOKEN=$(GITHUB_BUILD_TOKEN) \
+		--build-arg=now=$(TIME_NOW) \
+		--tag $(IMAGE_PREFIX)$(shell basename $(@D)) \
+		--file cmd/collector/Dockerfile \
+		.
+	$(SUDO) docker tag $(IMAGE_PREFIX)$(shell basename $(@D)) $(IMAGE_PREFIX)$(shell basename $(@D)):$(IMAGE_TAG)
+	touch $@
+
 
 cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
 	CGO_ENABLED=0 go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
@@ -138,6 +151,9 @@ lint:
 
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
+
+cmd/collector/collector: $(cmd find cmd/collector -name '*.go') common/** pkg/**
+	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/collector/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/collector
 
 BRANCH?=main
 update-weave-gitops:

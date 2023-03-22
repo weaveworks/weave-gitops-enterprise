@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 
 	"gorm.io/gorm"
 )

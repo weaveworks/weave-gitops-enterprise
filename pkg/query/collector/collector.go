@@ -3,9 +3,10 @@ package collector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -29,11 +30,10 @@ type Collector interface {
 }
 
 type CollectorOpts struct {
-	Log         logr.Logger
-	ObjectKinds []schema.GroupVersionKind
-	// JP - commenting this out for now, because we don't currently use it but I think we will need to in the future.
-	// ClusterManager clustersmngr.ClustersManager
-	// TODO - his static list of clusters means that we don't poll new clusters that get added.
+	Log            logr.Logger
+	ObjectKinds    []schema.GroupVersionKind
+	ClusterManager clustersmngr.ClustersManager
+	// TODO - remove me
 	Clusters           []cluster.Cluster
 	ProcessRecordsFunc ProcessRecordsFunc
 	NewWatcherFunc     NewWatcherFunc
@@ -43,8 +43,8 @@ func (o *CollectorOpts) Validate() error {
 	if o.ObjectKinds == nil || len(o.ObjectKinds) == 0 {
 		return fmt.Errorf("invalid object kinds")
 	}
-	if o.Clusters == nil || len(o.Clusters) == 0 {
-		return fmt.Errorf("invalid clusters")
+	if o.ClusterManager == nil {
+		return fmt.Errorf("invalid cluster manager")
 	}
 	if o.ProcessRecordsFunc == nil {
 		return fmt.Errorf("process records func is nil")

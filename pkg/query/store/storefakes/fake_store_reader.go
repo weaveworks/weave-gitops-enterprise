@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 

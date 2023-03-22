@@ -3,10 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"os"
 	"path/filepath"
-
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
