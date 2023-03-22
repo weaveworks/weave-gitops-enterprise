@@ -38,7 +38,7 @@ export const ListApplications = ({
         appMatch.map((i: PolicyConfigApplicationMatch) => `${i.name}${i.kind}`),
       );
     }
-  }, [formData.appMatch, setSelectedApplytList]);
+  }, [formData.appMatch, setSelectedApplytList, appMatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, app: any) => {
     setSelectedApplytList([]);
