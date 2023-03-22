@@ -96,8 +96,6 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 			if err != nil {
 				return nil, fmt.Errorf("failed to convert gitopsset: %w", err)
 			}
-			fmt.Println("all")
-			fmt.Println(gitOpsSet)
 			gitopsSets = append(gitopsSets, gitOpsSet)
 		}
 	}
