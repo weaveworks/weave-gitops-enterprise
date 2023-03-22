@@ -149,7 +149,7 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		return nil, fmt.Errorf("cannot crete default scheme: %w", err)
 	}
 
-	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.String(), opts.ClientConfig, scheme)
+	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.Name, opts.ClientConfig, scheme)
 	if err != nil {
 		return nil, err
 	}

@@ -2,8 +2,10 @@ import { Box, IconButton } from '@material-ui/core';
 import {
   DataTable,
   Flex,
+  formatURL,
   Icon,
   IconType,
+  Link,
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
@@ -11,8 +13,9 @@ import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { Object } from '../../api/query/query.pb';
 import { useQueryService } from '../../hooks/query';
-import { Routes } from '../../utils/nav';
+import { getKindRoute, Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import AccessRulesDebugger from './AccessRulesDebugger';
@@ -37,7 +40,9 @@ function initialTerms(search: string) {
   return parsed.q ? parsed.q.split(',') : [];
 }
 
-const DEFAULT_LIMIT = 2;
+const DEFAULT_LIMIT = 25;
+
+// ?clusterName=management&name=flux-system&namespace=flux-system
 
 function Explorer({ className }: Props) {
   const history = useHistory();
@@ -142,7 +147,20 @@ function Explorer({ className }: Props) {
 
                 <DataTable
                   fields={[
-                    { label: 'Name', value: 'name' },
+                    {
+                      label: 'Name',
+                      value: (o: Object) => {
+                        const page = getKindRoute(o?.kind as string);
+
+                        const url = formatURL(page, {
+                          name: o.name,
+                          namespace: o.namespace,
+                          clusterName: o.cluster,
+                        });
+
+                        return <Link to={url}>{o.name}</Link>;
+                      },
+                    },
                     { label: 'Kind', value: 'kind' },
                     { label: 'Namespace', value: 'namespace' },
                     { label: 'Cluster', value: 'cluster' },
