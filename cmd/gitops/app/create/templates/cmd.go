@@ -11,7 +11,6 @@ import (
 	"time"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
@@ -22,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	clitemplates "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"helm.sh/helm/v3/pkg/cli"
@@ -109,7 +109,7 @@ func initializeConfig(cmd *cobra.Command) error {
 }
 
 func templatesCmdRunE() func(*cobra.Command, []string) error {
-	return func(cmd *cobra.Command, args []string) error {
+	return func(_ *cobra.Command, args []string) error {
 		log, err := logger.New(logger.DefaultLogLevel, true)
 		if err != nil {
 			return fmt.Errorf("failed to create logger: %w", err)
@@ -162,7 +162,7 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 		if config.Export {
 			renderedTemplate := ""
 			for _, file := range files {
-				renderedTemplate += fmt.Sprintf("# path: %s\n---\n%s\n\n", *file.Path, *file.Content)
+				renderedTemplate += fmt.Sprintf("# path: %s\n---\n%s\n\n", file.Path, *file.Content)
 			}
 
 			err := export(renderedTemplate, os.Stdout)
@@ -175,9 +175,9 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 
 		if config.OutputDir != "" {
 			for _, res := range files {
-				filePath, err := securejoin.SecureJoin(config.OutputDir, *res.Path)
+				filePath, err := securejoin.SecureJoin(config.OutputDir, res.Path)
 				if err != nil {
-					return fmt.Errorf("failed to join %s to %s: %w", config.OutputDir, *res.Path, err)
+					return fmt.Errorf("failed to join %s to %s: %w", config.OutputDir, res.Path, err)
 				}
 				directoryPath := filepath.Dir(filePath)
 
@@ -239,7 +239,7 @@ func export(template string, out io.Writer) error {
 	return nil
 }
 
-func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]gitprovider.CommitFile, error) {
+func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]git.CommitFile, error) {
 	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
