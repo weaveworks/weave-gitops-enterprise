@@ -3,242 +3,124 @@ package query
 import (
 	"context"
 	"os"
-	"strings"
 	"testing"
 
-	"github.com/alecthomas/assert"
 	"github.com/go-logr/logr"
-	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker/accesscheckerfakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 func TestRunQuery(t *testing.T) {
 	tests := []struct {
-		name      string
-		namespace string
-		q         store.Query
-		objects   []models.Object
-		roles     []models.Role
-		bindings  []models.RoleBinding
-		user      *auth.UserPrincipal
-		expected  []models.Object
+		name    string
+		objects []models.Object
+		query   store.Query
+		want    []string
 	}{
 		{
-			name: "namespaced roles + groups",
-			q: &query{
-				key:     "",
-				value:   "",
-				operand: OperandIncludes,
-			},
-			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			name:  "get all objects",
+			query: &query{},
 			objects: []models.Object{
 				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster",
+					Name:       "someName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
 				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-b",
+					Cluster:    "test-cluster",
+					Name:       "otherName",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
 			},
-			roles: []models.Role{{
-				Name:      "role-a",
-				Cluster:   "cluster-a",
-				Namespace: "ns-a",
-				Kind:      "Role",
-				PolicyRules: []models.PolicyRule{{
-					APIGroups: strings.Join([]string{"example.com/v1"}, ","),
-					Resources: strings.Join([]string{"somekind"}, ","),
-					Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
-				}},
-			}},
-			bindings: []models.RoleBinding{{
-				Cluster:   "cluster-a",
-				Name:      "binding-a",
-				Namespace: "ns-a",
-				Kind:      "RoleBinding",
-				Subjects: []models.Subject{{
-					Kind: "Group",
-					Name: "group-a",
-				}},
-				RoleRefName: "role-a",
-				RoleRefKind: "Role",
-			}},
-			expected: []models.Object{
-				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
-				},
-			},
+			want: []string{"someName", "otherName"},
 		},
 		{
-			name: "non-namespaced roles + users",
-			q: &query{
-				key:     "",
-				value:   "",
-				operand: OperandIncludes,
+			name: "get objects by cluster",
+			query: &query{
+				key:     "cluster",
+				value:   "test-cluster",
+				operand: string(store.OperandEqual),
 			},
-			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
 			objects: []models.Object{
 				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
-			},
-			roles: []models.Role{{
-				Name:      "role-a",
-				Cluster:   "cluster-a",
-				Namespace: "",
-				Kind:      "ClusterRole",
-				PolicyRules: []models.PolicyRule{{
-					APIGroups: strings.Join([]string{"example.com/v1"}, ","),
-					Resources: strings.Join([]string{"somekind"}, ","),
-					Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
-				}},
-			}},
-			bindings: []models.RoleBinding{{
-				Cluster:   "cluster-a",
-				Name:      "binding-a",
-				Namespace: "",
-				Kind:      "ClusterRoleBinding",
-				Subjects: []models.Subject{{
-					Kind: "User",
-					Name: "some-user",
-				}},
-				RoleRefName: "role-a",
-				RoleRefKind: "ClusterRole",
-			}},
-			expected: []models.Object{
 				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster-2",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
 			},
+			want: []string{"obj-cluster-1"},
 		},
 		{
-			name: "cluster roles with wildcard",
-			q:    &query{},
-			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			name: "pagination - no offset",
+			query: &query{
+				limit:  1,
+				offset: 0,
+			},
 			objects: []models.Object{
 				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
-			},
-			roles: []models.Role{
 				{
-					Name:      "role-a",
-					Cluster:   "cluster-a",
-					Namespace: "",
-					Kind:      "ClusterRole",
-					PolicyRules: []models.PolicyRule{{
-						APIGroups: strings.Join([]string{"example.com/v1"}, ","),
-						Resources: strings.Join([]string{"*"}, ","),
-						Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
-					}},
-				},
-			},
-			bindings: []models.RoleBinding{{
-				Cluster:   "cluster-a",
-				Name:      "binding-a",
-				Namespace: "",
-				Kind:      "ClusterRoleBinding",
-				Subjects: []models.Subject{{
-					Kind: "User",
-					Name: "some-user",
-				}},
-				RoleRefName: "role-a",
-				RoleRefKind: "ClusterRole",
-			}},
-			expected: []models.Object{
-				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster-2",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
 			},
+			want: []string{"obj-cluster-1"},
 		},
 		{
-			name: "cluster roles with unspecified api version",
-
-			q:    &query{},
-			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			name: "pagination - with offset",
+			query: &query{
+				limit:  1,
+				offset: 1,
+			},
 			objects: []models.Object{
 				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
-			},
-			roles: []models.Role{
 				{
-					Name:      "role-a",
-					Cluster:   "cluster-a",
-					Namespace: "",
-					Kind:      "ClusterRole",
-					PolicyRules: []models.PolicyRule{{
-						APIGroups: strings.Join([]string{"example.com"}, ","),
-						Resources: strings.Join([]string{"*"}, ","),
-						Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
-					}},
-				},
-			},
-			bindings: []models.RoleBinding{{
-				Cluster:   "cluster-a",
-				Name:      "binding-a",
-				Namespace: "",
-				Kind:      "ClusterRoleBinding",
-				Subjects: []models.Subject{{
-					Kind: "User",
-					Name: "some-user",
-				}},
-				RoleRefName: "role-a",
-				RoleRefKind: "ClusterRole",
-			}},
-			expected: []models.Object{
-				{
-					Cluster:    "cluster-a",
-					Namespace:  "ns-a",
+					Cluster:    "test-cluster-2",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Kind:       "somekind",
-					Name:       "somename",
 				},
 			},
+			want: []string{"obj-cluster-2"},
 		},
 	}
 
@@ -246,43 +128,52 @@ func TestRunQuery(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			ctx := auth.WithPrincipal(context.Background(), tt.user)
+			checker := &accesscheckerfakes.FakeChecker{}
+			checker.HasAccessReturns(true, nil)
 
 			dir, err := os.MkdirTemp("", "test")
+			db, err := store.CreateSQLiteDB(dir)
 			g.Expect(err).NotTo(HaveOccurred())
 
-			store, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
+			s, err := store.NewSQLiteStore(db)
 			g.Expect(err).NotTo(HaveOccurred())
 
-			g.Expect(store.StoreObjects(context.Background(), tt.objects)).To(Succeed())
-			g.Expect(store.StoreRoles(context.Background(), tt.roles)).To(Succeed())
-			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
+			q := &qs{
+				log:     logr.Discard(),
+				r:       s,
+				checker: checker,
+			}
 
-			qs, err := NewQueryService(ctx, QueryServiceOpts{
-				Log:         logr.Discard(),
-				StoreReader: store,
+			g.Expect(store.SeedObjects(db, tt.objects)).To(Succeed())
+
+			ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+				ID: "test",
+				Groups: []string{
+					"group-a",
+				},
 			})
 
-			assert.NoError(t, err)
+			got, err := q.RunQuery(ctx, tt.query)
+			g.Expect(err).NotTo(HaveOccurred())
 
-			actual, err := qs.RunQuery(ctx, &query{})
-			assert.NoError(t, err)
+			names := []string{}
 
-			opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt")
-
-			diff := cmp.Diff(tt.expected, actual, opt)
-
-			if diff != "" {
-				t.Errorf("RunQuery() mismatch (-want +got):\n%s", diff)
+			for _, o := range got {
+				names = append(names, o.Name)
 			}
+
+			g.Expect(names).To(Equal(tt.want))
 		})
 	}
+
 }
 
 type query struct {
 	key     string
 	value   string
 	operand string
+	offset  int64
+	limit   int64
 }
 
 func (q *query) GetKey() string {
@@ -298,9 +189,9 @@ func (q *query) GetValue() string {
 }
 
 func (q *query) GetOffset() int64 {
-	return 0
+	return q.offset
 }
 
 func (q *query) GetLimit() int64 {
-	return 0
+	return q.limit
 }

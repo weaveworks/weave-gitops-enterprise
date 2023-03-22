@@ -8,7 +8,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
+
 // Checker is responsible for checking if a subject has access to a resource.
+//
+//counterfeiter:generate . Checker
 type Checker interface {
 	// HasAccess checks if a subject has access to a resource.
 	HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error)

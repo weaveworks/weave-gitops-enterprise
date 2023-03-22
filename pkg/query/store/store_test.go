@@ -26,7 +26,7 @@ func TestGetObjects(t *testing.T) {
 		Kind:      "ValidKind",
 	}
 
-	g.Expect(seed(db, []models.Object{obj})).To(Succeed())
+	g.Expect(SeedObjects(db, []models.Object{obj})).To(Succeed())
 
 	objects, err := store.GetObjects(context.Background(), nil)
 	g.Expect(err).To(BeNil())
@@ -129,7 +129,7 @@ func TestDeleteObjects(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			store, db := createStore(t)
 
-			g.Expect(seed(db, tt.seed)).To(Succeed())
+			g.Expect(SeedObjects(db, tt.seed)).To(Succeed())
 
 			sqlDB, err := db.DB()
 			g.Expect(err).To(BeNil())
@@ -278,16 +278,4 @@ func createStore(t *testing.T) (Store, *gorm.DB) {
 	g.Expect(err).To(BeNil())
 
 	return store, db
-}
-
-func seed(db *gorm.DB, rows []models.Object) error {
-	withID := []models.Object{}
-
-	for _, o := range rows {
-		o.ID = o.GetID()
-		withID = append(withID, o)
-	}
-	result := db.Create(&withID)
-
-	return result.Error
 }

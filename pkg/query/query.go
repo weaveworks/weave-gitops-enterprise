@@ -116,7 +116,6 @@ func defaultAccessFilter(user *auth.UserPrincipal, rules []models.AccessRule, ob
 
 	}
 
-	fmt.Printf("objects: %v\n", len(result))
 	return result
 }
 
