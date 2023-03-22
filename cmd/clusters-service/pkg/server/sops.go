@@ -29,11 +29,11 @@ import (
 )
 
 const (
-	EncryptedRegex              = "^(data|stringData)$"
-	DecryptionPGPExt            = ".asc"
-	DecryptionAgeExt            = ".agekey"
-	SopsPublicKeyNameLabel      = "sops-public-key/name"
-	SopsPublicKeyNamespaceLabel = "sops-public-key/namespace"
+	EncryptedRegex                   = "^(data|stringData)$"
+	DecryptionPGPExt                 = ".asc"
+	DecryptionAgeExt                 = ".agekey"
+	SopsPublicKeyNameAnnotation      = "sops-public-key/name"
+	SopsPublicKeyNamespaceAnnotation = "sops-public-key/namespace"
 )
 
 type Encryptor struct {
@@ -85,24 +85,18 @@ func (e *Encryptor) Encrypt(raw []byte, keys ...keys.MasterKey) ([]byte, error) 
 	return encrypted, nil
 }
 
-func (e *Encryptor) EncryptWithPGP(raw []byte, secret string) ([]byte, error) {
-	privateKey, err := gopgp.NewKeyFromArmored(secret)
+func (e *Encryptor) EncryptWithPGP(raw []byte, publicKey string) ([]byte, error) {
+	err := importPGPKey(publicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	// return only the valid private key
-	privateKeyStr, err := privateKey.Armor()
+	key, err := gopgp.NewKeyFromArmoredReader(strings.NewReader(publicKey))
 	if err != nil {
 		return nil, err
 	}
 
-	err = importPGPKey(privateKeyStr)
-	if err != nil {
-		return nil, err
-	}
-
-	masterKey := pgp.NewMasterKeyFromFingerprint(privateKey.GetFingerprint())
+	masterKey := pgp.NewMasterKeyFromFingerprint(key.GetFingerprint())
 	return e.Encrypt(raw, masterKey)
 }
 
@@ -142,12 +136,12 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 		return nil, errors.New("kustomization doesn't have decryption secret")
 	}
 
-	encryptionSecretName, ok := kustomization.Labels[SopsPublicKeyNameLabel]
+	encryptionSecretName, ok := kustomization.Annotations[SopsPublicKeyNameAnnotation]
 	if !ok {
 		return nil, errors.New("kustomization is missing encryption key information")
 	}
 
-	encryptionSecretNamespace, ok := kustomization.Labels[SopsPublicKeyNamespaceLabel]
+	encryptionSecretNamespace, ok := kustomization.Annotations[SopsPublicKeyNamespaceAnnotation]
 	if !ok {
 		return nil, errors.New("kustomization is missing encryption key information")
 	}
@@ -265,7 +259,7 @@ func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.L
 
 	for _, kustomization := range kustomizationList.Items {
 		if kustomization.Spec.Decryption != nil && strings.EqualFold(kustomization.Spec.Decryption.Provider, "sops") {
-			if kustomization.Annotations[SopsPublicKeyNameLabel] != "" && kustomization.Annotations[SopsPublicKeyNamespaceLabel] != "" {
+			if kustomization.Annotations[SopsPublicKeyNameAnnotation] != "" && kustomization.Annotations[SopsPublicKeyNamespaceAnnotation] != "" {
 				kustomizations = append(kustomizations, &capiv1_proto.SopsKustomizations{
 					Name:      kustomization.Name,
 					Namespace: kustomization.Namespace,

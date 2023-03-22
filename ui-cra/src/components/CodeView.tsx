@@ -2,7 +2,7 @@ import {
   Canary,
   CanaryMetricTemplate,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { CopyToClipboard } from '@weaveworks/weave-gitops';
+import { CopyToClipboard, createYamlCommand } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 type Props = {
@@ -28,13 +28,11 @@ const deletionColor = '#814a1c';
 const updateColor = '#787118';
 
 function CodeView({ code, object, className, kind, colorizeChanges }: Props) {
-  let headerText = '';
-
-  if (kind && object) {
-    headerText = `kubectl get ${kind.toLowerCase()} ${object.name} -n ${
-      object.namespace
-    } -o yaml `;
-  }
+  let headerText = createYamlCommand(
+    kind || '',
+    object?.name || '',
+    object?.namespace || '',
+  );
 
   return (
     <div className={className}>
@@ -90,6 +88,8 @@ export default styled(CodeView).attrs({
   font-size: ${props => props.theme.fontSizes.small};
   border: 1px solid ${props => props.theme.colors.neutral20};
   border-radius: 8px;
+  height: 100%;
+  overflow: auto;
   pre {
     padding: ${props => props.theme.spacing.small};
     white-space: pre-wrap;
