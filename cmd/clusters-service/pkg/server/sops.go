@@ -259,16 +259,18 @@ func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.L
 	kustomizations := []*capiv1_proto.SopsKustomizations{}
 	kustomizationList := &kustomizev1beta2.KustomizationList{}
 
-	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList, client.HasLabels{SopsPublicKeyNameLabel, SopsPublicKeyNamespaceLabel}); err != nil {
+	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList); err != nil {
 		return nil, fmt.Errorf("failed to list kustomizations, error: %w", err)
 	}
 
 	for _, kustomization := range kustomizationList.Items {
 		if kustomization.Spec.Decryption != nil && strings.EqualFold(kustomization.Spec.Decryption.Provider, "sops") {
-			kustomizations = append(kustomizations, &capiv1_proto.SopsKustomizations{
-				Name:      kustomization.Name,
-				Namespace: kustomization.Namespace,
-			})
+			if kustomization.Annotations[SopsPublicKeyNameLabel] != "" && kustomization.Annotations[SopsPublicKeyNamespaceLabel] != "" {
+				kustomizations = append(kustomizations, &capiv1_proto.SopsKustomizations{
+					Name:      kustomization.Name,
+					Namespace: kustomization.Namespace,
+				})
+			}
 		}
 	}
 
