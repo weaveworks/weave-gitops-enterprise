@@ -1,4 +1,6 @@
-import { MenuItem } from '@material-ui/core';
+import {
+    MenuItem
+} from '@material-ui/core';
 import { Dispatch, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
@@ -11,10 +13,8 @@ interface SelectSecretStoreProps {
   formError: string;
   formData: any;
   selectedWorkspacesList: string[];
-
   setSelectedWorkspacesList: Dispatch<React.SetStateAction<any>>;
   selectedAppsList: PolicyConfigApplicationMatch[];
-
   setSelectedAppsList: Dispatch<React.SetStateAction<any>>;
   handleFormData: (fieldName: string, value: any) => void;
   setFormData: Dispatch<React.SetStateAction<any>>;
@@ -25,7 +25,6 @@ export const SelectMatchType = ({
   formData,
   formError,
   selectedWorkspacesList,
-
   setSelectedWorkspacesList,
   selectedAppsList,
   setSelectedAppsList,
@@ -35,7 +34,10 @@ export const SelectMatchType = ({
   const classes = usePolicyConfigStyle();
   const { matchType } = formData;
 
-  const [matchTypeList] = useState<string[]>(['workspaces', 'apps']);
+  const [matchTypeList, setMatchTypeList] = useState<string[]>([
+    'workspaces',
+    'apps',
+  ]);
 
   const getCheckList = (matchType: string) => {
     switch (matchType) {
@@ -45,8 +47,8 @@ export const SelectMatchType = ({
             cluster={cluster}
             formData={formData}
             formError={formError}
-            setSelectedAppsList={setSelectedAppsList}
-            SelectedAppsList={selectedAppsList}
+            selectedApplytList={selectedAppsList}
+            setSelectedApplytList={setSelectedAppsList}
             setFormData={setFormData}
           />
         );
@@ -56,8 +58,8 @@ export const SelectMatchType = ({
             cluster={cluster}
             formData={formData}
             formError={formError}
-            selectedWorkspacesList={selectedWorkspacesList}
-            setSelectedWorkspacesList={setSelectedWorkspacesList}
+            selectedApplytList={selectedWorkspacesList}
+            setSelectedApplytList={setSelectedWorkspacesList}
             setFormData={setFormData}
           />
         );
@@ -65,6 +67,19 @@ export const SelectMatchType = ({
         <></>;
     }
   };
+
+  // const HandleSelectTarget = (event: React.ChangeEvent<any>) => {
+  //   const { value } = event.target;
+  //   let currentAutomation = [...formData.clusterAutomations];
+  //   currentAutomation[0] = {
+  //     ...automation,
+  //     matchType: value,
+  //   };
+  //   setFormData({
+  //     ...formData,
+  //     clusterAutomations: currentAutomation,
+  //   });
+  // };
 
   return (
     <>
