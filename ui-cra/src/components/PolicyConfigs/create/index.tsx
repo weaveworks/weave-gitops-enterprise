@@ -253,7 +253,6 @@ const CreatePolicyConfig = () => {
     clusterNamespace,
     isControlPlane,
     policyConfigName,
-    getTargetList,
     policies,
     matchType,
   ]);
