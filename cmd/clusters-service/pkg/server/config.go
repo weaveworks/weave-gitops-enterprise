@@ -12,7 +12,7 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
 	mngtClusterName := viper.GetString("cluster-name")
-	gitHostTypes := gitproviders.ViperGetStringMapString("git-host-types")
+	gitHostTypes := gitproviders.GitHostTypes(gitproviders.ViperGetStringMapString("git-host-types"))
 
 	return &capiv1_proto.GetConfigResponse{
 		RepositoryURL:         repositoryURL,

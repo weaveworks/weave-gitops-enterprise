@@ -21,15 +21,24 @@ func TestGetConfig(t *testing.T) {
 		{
 			name:            "value set",
 			repoUrl:         "https://github.com/user/blog",
-			gitHostTypesEnv: "github.com=github",
+			gitHostTypesEnv: "example.com=github",
 			expectedGitHostTypes: map[string]string{
-				"github.com": "github",
+				"example.com":       "github",
+				"dev.azure.com":     "azure-devops",
+				"github.com":        "github",
+				"gitlab.com":        "gitlab",
+				"ssh.dev.azure.com": "azure-devops",
 			},
 		},
 		{
-			name:                 " not set",
-			repoUrl:              "",
-			expectedGitHostTypes: map[string]string{},
+			name:    " not set",
+			repoUrl: "",
+			expectedGitHostTypes: map[string]string{
+				"dev.azure.com":     "azure-devops",
+				"github.com":        "github",
+				"gitlab.com":        "gitlab",
+				"ssh.dev.azure.com": "azure-devops",
+			},
 		},
 	}
 
