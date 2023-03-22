@@ -465,7 +465,7 @@ func TestGetBitbucketServerAuthURL(t *testing.T) {
 	cfg := server.ApplicationsConfig{
 		JwtClient:             jwtClient,
 		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
-		RandomTokenGenerator:  fakeTokenGenerator{fake: "abc"},
+		RandomTokenGenerator:  func() string { return "abc" },
 	}
 	apps = server.NewApplicationsServer(&cfg)
 	pb.RegisterGitAuthServer(s, apps)
@@ -491,7 +491,7 @@ func TestGetBitbucketServerAuthURL(t *testing.T) {
 		if err == nil {
 			t.Error("expected non-nil error")
 		}
-		if !strings.Contains(err.Error(), "env var BITBUCKET_SERVER_HOSTNAME is not set") {
+		if !strings.Contains(err.Error(), "environment variable BITBUCKET_SERVER_HOSTNAME is not set") {
 			t.Errorf("expected error for hostname env var but got instead: %v", err)
 		}
 		if res != nil {
@@ -499,8 +499,8 @@ func TestGetBitbucketServerAuthURL(t *testing.T) {
 		}
 	})
 
-	t.Setenv("BITBUCKET_SERVER_HOSTNAME", "stash.stashtestserver.link:7990")
 	t.Run("missing client id env var", func(t *testing.T) {
+		t.Setenv("BITBUCKET_SERVER_HOSTNAME", "stash.stashtestserver.link:7990")
 
 		res, err := appsClient.GetBitbucketServerAuthURL(ctx, &pb.GetBitbucketServerAuthURLRequest{
 			RedirectUri: "http://localhost/oauth/bitbucket",
@@ -509,7 +509,7 @@ func TestGetBitbucketServerAuthURL(t *testing.T) {
 		if err == nil {
 			t.Error("expected non-nil error")
 		}
-		if !strings.Contains(err.Error(), "env var BITBUCKET_SERVER_CLIENT_ID is not set") {
+		if !strings.Contains(err.Error(), "environment variable BITBUCKET_SERVER_CLIENT_ID is not set") {
 			t.Errorf("expected error for client id env var but got instead: %v", err)
 		}
 		if res != nil {
@@ -518,8 +518,10 @@ func TestGetBitbucketServerAuthURL(t *testing.T) {
 
 	})
 
-	t.Setenv("BITBUCKET_SERVER_CLIENT_ID", "74c9e0fb-b1d2-45c9-b5b8-624f3d96025c")
 	t.Run("success", func(t *testing.T) {
+		t.Setenv("BITBUCKET_SERVER_HOSTNAME", "stash.stashtestserver.link:7990")
+		t.Setenv("BITBUCKET_SERVER_CLIENT_ID", "74c9e0fb-b1d2-45c9-b5b8-624f3d96025c")
+
 		redirectURI := "http://localhost/oauth/bitbucket"
 		res, err := appsClient.GetBitbucketServerAuthURL(ctx, &pb.GetBitbucketServerAuthURLRequest{
 			RedirectUri: redirectURI,
@@ -550,7 +552,7 @@ func TestGetAzureDevopsAuthURL(t *testing.T) {
 	cfg := server.ApplicationsConfig{
 		JwtClient:            jwtClient,
 		AzureDevOpsClient:    azure.NewAuthClient(http.DefaultClient),
-		RandomTokenGenerator: fakeTokenGenerator{fake: "abc"},
+		RandomTokenGenerator: func() string { return "abc" },
 	}
 	apps = server.NewApplicationsServer(&cfg)
 	pb.RegisterGitAuthServer(s, apps)
@@ -577,7 +579,7 @@ func TestGetAzureDevopsAuthURL(t *testing.T) {
 		if err == nil {
 			t.Error("expected non-nil error")
 		}
-		if !strings.Contains(err.Error(), "env var AZURE_DEVOPS_CLIENT_ID is not set") {
+		if !strings.Contains(err.Error(), "environment variable AZURE_DEVOPS_CLIENT_ID is not set") {
 			t.Errorf("expected error for client id env var but got instead: %v", err)
 		}
 		if res != nil {
@@ -606,13 +608,3 @@ func TestGetAzureDevopsAuthURL(t *testing.T) {
 		}
 	})
 }
-
-type fakeTokenGenerator struct {
-	fake string
-}
-
-func (g fakeTokenGenerator) New() string {
-	return g.fake
-}
-
-var _ server.RandomTokenGenerator = fakeTokenGenerator{}

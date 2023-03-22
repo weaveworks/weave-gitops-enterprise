@@ -43,29 +43,18 @@ var (
 
 // RandomTokenGenerator is used to generate random (CSRF) tokens for the OAuth flow.
 // The default implementation uses `uuid.NewString()` to generate a random token.
-type RandomTokenGenerator interface {
-	New() string
-}
-
-type tokenGenerator struct {
-}
-
-func (g tokenGenerator) New() string {
-	return uuid.NewString()
-}
-
-var _ RandomTokenGenerator = tokenGenerator{}
+type RandomTokenGenerator func() string
 
 type applicationServer struct {
 	pb.UnimplementedGitAuthServer
 
-	jwtClient            auth.JWTClient
-	log                  logr.Logger
-	ghAuthClient         auth.GithubAuthClient
-	glAuthClient         auth.GitlabAuthClient
-	bbAuthClient         bitbucket.AuthClient
-	azureDevOpsClient    azure.AuthClient
-	randomTokenGenerator RandomTokenGenerator
+	jwtClient           auth.JWTClient
+	log                 logr.Logger
+	ghAuthClient        auth.GithubAuthClient
+	glAuthClient        auth.GitlabAuthClient
+	bbAuthClient        bitbucket.AuthClient
+	azureDevOpsClient   azure.AuthClient
+	generateRandomToken RandomTokenGenerator
 }
 
 // An ApplicationsConfig allows for the customization of an ApplicationsServer.
@@ -89,13 +78,13 @@ func NewApplicationsServer(cfg *ApplicationsConfig, setters ...ApplicationsOptio
 	}
 
 	return &applicationServer{
-		jwtClient:            cfg.JwtClient,
-		log:                  cfg.Logger,
-		ghAuthClient:         cfg.GithubAuthClient,
-		glAuthClient:         cfg.GitlabAuthClient,
-		bbAuthClient:         cfg.BitBucketServerClient,
-		azureDevOpsClient:    cfg.AzureDevOpsClient,
-		randomTokenGenerator: cfg.RandomTokenGenerator,
+		jwtClient:           cfg.JwtClient,
+		log:                 cfg.Logger,
+		ghAuthClient:        cfg.GithubAuthClient,
+		glAuthClient:        cfg.GitlabAuthClient,
+		bbAuthClient:        cfg.BitBucketServerClient,
+		azureDevOpsClient:   cfg.AzureDevOpsClient,
+		generateRandomToken: cfg.RandomTokenGenerator,
 	}
 }
 
@@ -118,7 +107,7 @@ func DefaultApplicationsConfig(log logr.Logger) (*ApplicationsConfig, error) {
 		GitlabAuthClient:      auth.NewGitlabAuthClient(http.DefaultClient),
 		BitBucketServerClient: bitbucket.NewAuthClient(http.DefaultClient),
 		AzureDevOpsClient:     azure.NewAuthClient(http.DefaultClient),
-		RandomTokenGenerator:  tokenGenerator{},
+		RandomTokenGenerator:  uuid.NewString,
 	}, nil
 }
 
@@ -209,7 +198,7 @@ func (s *applicationServer) AuthorizeGitlab(ctx context.Context, msg *pb.Authori
 
 func (s *applicationServer) GetBitbucketServerAuthURL(ctx context.Context, msg *pb.GetBitbucketServerAuthURLRequest) (*pb.GetBitbucketServerAuthURLResponse, error) {
 	// Generate a random state value
-	state := s.randomTokenGenerator.New()
+	state := s.generateRandomToken()
 	// Set a gRPC header so that middleware can inspect it and issue a cookie with this value in the HTTP response
 	err := grpc.SetHeader(ctx, metadata.Pairs(GitProviderCSRFHeaderName, state))
 	if err != nil {
@@ -247,7 +236,7 @@ func (s *applicationServer) AuthorizeBitbucketServer(ctx context.Context, msg *p
 
 func (s *applicationServer) GetAzureDevOpsAuthURL(ctx context.Context, msg *pb.GetAzureDevOpsAuthURLRequest) (*pb.GetAzureDevOpsAuthURLResponse, error) {
 	// Generate a random state value
-	state := s.randomTokenGenerator.New()
+	state := s.generateRandomToken()
 	// Set a gRPC header so that middleware can inspect it and issue a cookie with this value in the HTTP response
 	err := grpc.SetHeader(ctx, metadata.Pairs(GitProviderCSRFHeaderName, state))
 	if err != nil {
@@ -333,6 +322,8 @@ func findValidator(provider pb.GitProvider, s *applicationServer) (auth.Provider
 	return nil, fmt.Errorf("unknown git provider %s", provider)
 }
 
+// checkCSRFToken inspects the incoming context for a cookie, reads the CSRF value
+// and compares it to the `state` value coming back from the OAuth provider.
 func checkCSRFToken(ctx context.Context, state string) error {
 	if md, ok := metadata.FromIncomingContext(ctx); ok {
 		values := md.Get(runtime.MetadataPrefix + "cookie")
@@ -346,6 +337,9 @@ func checkCSRFToken(ctx context.Context, state string) error {
 	return nil
 }
 
+// getStateFromCookie takes a raw value of the Cookie header from the incoming request and
+// constructs from that an array of cookies that can be easily inspected. If the CSRF cookie
+// is found in the array, then its value gets returned. Otherwise an empty string is returned.
 func getStateFromCookie(cookie string) string {
 	header := http.Header{}
 	header.Add("Cookie", cookie)

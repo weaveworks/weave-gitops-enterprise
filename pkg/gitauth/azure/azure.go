@@ -33,17 +33,15 @@ type defaultAuthClient struct {
 // https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#2-authorize-your-app
 func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error) {
 	u := buildAzureURL()
-
 	u.Path = "/oauth2/authorize"
 
-	cid := getClientID()
-
-	if cid == "" {
-		return u, errors.New("env var AZURE_DEVOPS_CLIENT_ID is not set")
+	id, err := getClientID()
+	if err != nil {
+		return u, err
 	}
 
 	params := u.Query()
-	params.Set("client_id", cid)
+	params.Set("client_id", id)
 	params.Set("response_type", "Assertion")
 	params.Set("state", state)
 	params.Set("scope", strings.Join(scopes, " "))
@@ -57,17 +55,12 @@ func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string, sta
 // https://learn.microsoft.com/en-us/azure/devops/integrate/get-started/authentication/oauth?view=azure-devops#3-get-an-access-and-refresh-token-for-the-user
 func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error) {
 	u := buildAzureURL()
-
-	cid := getClientID()
-	if cid == "" {
-		return nil, errors.New("env var AZURE_DEVOPS_CLIENT_ID not set")
-	}
-
-	secret := getClientSecret()
-	if secret == "" {
-		return nil, errors.New("env var AZURE_DEVOPS_CLIENT_SECRET not set")
-	}
 	u.Path = "/oauth2/token"
+
+	secret, err := getClientSecret()
+	if err != nil {
+		return nil, err
+	}
 
 	params := url.Values{}
 	params.Add("client_assertion_type", "urn:ietf:params:oauth:client-assertion-type:jwt-bearer")
@@ -92,12 +85,22 @@ func buildAzureURL() url.URL {
 	return u
 }
 
-func getClientID() string {
-	return os.Getenv("AZURE_DEVOPS_CLIENT_ID")
+func getClientID() (string, error) {
+	id := os.Getenv("AZURE_DEVOPS_CLIENT_ID")
+	if id == "" {
+		return "", errors.New("environment variable AZURE_DEVOPS_CLIENT_ID is not set")
+	}
+
+	return id, nil
 }
 
-func getClientSecret() string {
-	return os.Getenv("AZURE_DEVOPS_CLIENT_SECRET")
+func getClientSecret() (string, error) {
+	secret := os.Getenv("AZURE_DEVOPS_CLIENT_SECRET")
+	if secret == "" {
+		return "", errors.New("environment variable AZURE_DEVOPS_CLIENT_SECRET not set")
+	}
+
+	return secret, nil
 }
 
 func doCodeExchangeRequest(ctx context.Context, tURL url.URL, c *http.Client, body io.Reader) (*TokenResponseState, error) {

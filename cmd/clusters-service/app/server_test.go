@@ -343,21 +343,27 @@ func TestNoRedirectURL(t *testing.T) {
 }
 
 func TestIssueGitProviderCSRFToken_HeaderExists(t *testing.T) {
-	value := "foobar"
+	expectedValue := "foobar"
+	expectedDomain := "sub.domain.com"
+	expectedPath := "/foo/bar"
 	ctx := grpc_runtime.NewServerMetadataContext(context.Background(), grpc_runtime.ServerMetadata{
-		HeaderMD: metadata.Pairs(gitauth_server.GitProviderCSRFHeaderName, value),
+		HeaderMD: metadata.Pairs(gitauth_server.GitProviderCSRFHeaderName, expectedValue),
 	})
 	w := httptest.NewRecorder()
-	err := app.IssueGitProviderCSRFToken(ctx, w, nil)
+	middleware := app.IssueGitProviderCSRFCookie(expectedDomain, expectedPath, time.Minute)
+	err := middleware(ctx, w, nil)
 	assert.NoError(t, err)
 	assert.Contains(t, w.Result().Header, "Set-Cookie")
 	// Parse header in order to inspect it
 	header := http.Header{}
 	header.Add("Set-Cookie", w.Result().Header["Set-Cookie"][0])
 	req := http.Response{Header: header}
-	expected := req.Cookies()[0]
-	assert.Equal(t, gitauth_server.GitProviderCSRFCookieName, expected.Name)
-	assert.Equal(t, value, expected.Value)
+	actual := req.Cookies()[0]
+	assert.Equal(t, gitauth_server.GitProviderCSRFCookieName, actual.Name)
+	assert.Equal(t, expectedValue, actual.Value)
+	assert.Equal(t, expectedDomain, actual.Domain)
+	assert.Equal(t, expectedPath, actual.Path)
+	assert.WithinDuration(t, time.Now().UTC().Add(time.Minute), actual.Expires, time.Second)
 }
 
 func TestIssueGitProviderCSRFToken_HeaderMissing(t *testing.T) {
@@ -365,7 +371,8 @@ func TestIssueGitProviderCSRFToken_HeaderMissing(t *testing.T) {
 		HeaderMD: metadata.Pairs("foo", "bar"),
 	})
 	w := httptest.NewRecorder()
-	err := app.IssueGitProviderCSRFToken(ctx, w, nil)
+	middleware := app.IssueGitProviderCSRFCookie("", "/", 5*time.Minute)
+	err := middleware(ctx, w, nil)
 	assert.NoError(t, err)
 	assert.NotContains(t, w.Result().Header, "Set-Cookie")
 }
