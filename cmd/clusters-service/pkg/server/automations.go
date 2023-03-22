@@ -167,6 +167,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		HelmReleaseFiles:     automations.HelmReleaseFiles,
 		ExternalSecretsFiles: automations.ExternalSecretsFiles,
 		PolicyConfigFiles:    automations.PolicyConfigsFiles,
+		SopsSecertFiles:      automations.SopsSecretsFiles,
 	}, err
 }
 
