@@ -1352,6 +1352,8 @@ github.com/weaveworks/gitopssets-controller v0.6.0 h1:o1U/StVVCs5JTFP62AIl0JXQn6
 github.com/weaveworks/gitopssets-controller v0.6.0/go.mod h1:FF4+ie44tnxSgFv+juV3b4f8ScGRxMckJGqwbYU7mfk=
 github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322122859-792067ba2cf6 h1:piB4DK4+ZEr2Err01GftAuzpFiWTnzTEytNjdV92gPo=
 github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322122859-792067ba2cf6/go.mod h1:mF1D5uoRqPU+2MxHAR6tcW84zw4gdsPccHM2VNVFroY=
+github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322130726-f42a281e68fb h1:eTKFLNuPr+P56h4k4UPFBghY0aICk3iPY09LBQGHSBg=
+github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322130726-f42a281e68fb/go.mod h1:mF1D5uoRqPU+2MxHAR6tcW84zw4gdsPccHM2VNVFroY=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d h1:HhH19ygpcDDadUMNIc8PtSCqpQ49gpY7je7P/Ow4ZAc=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d/go.mod h1:EMw4dkvNuR0GBKVbDFjZMUIma1sZhyS6heAZXM59s0Y=
 github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/CDoU7zdCw5A0=

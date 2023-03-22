@@ -60,7 +60,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
-	github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322122859-792067ba2cf6
+	github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322130726-f42a281e68fb
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/weaveworks/templates-controller v0.1.4
