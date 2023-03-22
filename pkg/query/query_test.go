@@ -18,11 +18,12 @@ func TestRunQuery(t *testing.T) {
 		name    string
 		objects []models.Object
 		query   store.Query
+		opts    store.QueryOption
 		want    []string
 	}{
 		{
 			name:  "get all objects",
-			query: &query{},
+			query: []store.QueryClause{},
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -45,11 +46,13 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name: "get objects by cluster",
-			query: &query{
+
+			query: []store.QueryClause{&clause{
 				key:     "cluster",
 				value:   "test-cluster",
 				operand: string(store.OperandEqual),
-			},
+			}},
+
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -71,11 +74,9 @@ func TestRunQuery(t *testing.T) {
 			want: []string{"obj-cluster-1"},
 		},
 		{
-			name: "pagination - no offset",
-			query: &query{
-				limit:  1,
-				offset: 0,
-			},
+			name:  "pagination - no offset",
+			opts:  &query{limit: 1, offset: 0},
+			query: []store.QueryClause{},
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -98,7 +99,7 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name: "pagination - with offset",
-			query: &query{
+			opts: &query{
 				limit:  1,
 				offset: 1,
 			},
@@ -121,6 +122,56 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			want: []string{"obj-cluster-2"},
+		},
+		{
+			name: "composite query",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster-1",
+					Name:       "obj-a",
+					Namespace:  "namespace-b",
+					Kind:       "Kind1",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "obj-b",
+					Namespace:  "namespace-b",
+					Kind:       "Kind1",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-3",
+					Name:       "obj-c",
+					Namespace:  "namespace-b",
+					Kind:       "Kind2",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-3",
+					Name:       "obj-d",
+					Namespace:  "namespace-c",
+					Kind:       "Kind1",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "kind",
+					value:   "Kind1",
+					operand: string(store.OperandEqual),
+				},
+				&clause{
+					key:     "namespace",
+					value:   "namespace-b",
+					operand: string(store.OperandEqual),
+				},
+			},
+			want: []string{"obj-a", "obj-b"},
 		},
 	}
 
@@ -153,7 +204,7 @@ func TestRunQuery(t *testing.T) {
 				},
 			})
 
-			got, err := q.RunQuery(ctx, tt.query)
+			got, err := q.RunQuery(ctx, tt.query, tt.opts)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			names := []string{}
@@ -169,29 +220,43 @@ func TestRunQuery(t *testing.T) {
 }
 
 type query struct {
-	key     string
-	value   string
-	operand string
-	offset  int64
-	limit   int64
+	clauses []clause
+	offset  int32
+	limit   int32
 }
 
-func (q *query) GetKey() string {
-	return q.key
+func (q *query) GetQuery() []store.QueryClause {
+	clauses := []store.QueryClause{}
+
+	for _, c := range q.clauses {
+		clauses = append(clauses, &c)
+	}
+
+	return clauses
 }
 
-func (q *query) GetOperand() string {
-	return q.operand
-}
-
-func (q *query) GetValue() string {
-	return q.value
-}
-
-func (q *query) GetOffset() int64 {
+func (q *query) GetOffset() int32 {
 	return q.offset
 }
 
-func (q *query) GetLimit() int64 {
+func (q *query) GetLimit() int32 {
 	return q.limit
+}
+
+type clause struct {
+	key     string
+	operand string
+	value   string
+}
+
+func (c *clause) GetKey() string {
+	return c.key
+}
+
+func (c *clause) GetOperand() string {
+	return c.operand
+}
+
+func (c *clause) GetValue() string {
+	return c.value
 }

@@ -157,25 +157,17 @@
         }
       }
     },
-    "v1QueryOpts": {
+    "v1QueryClause": {
       "type": "object",
       "properties": {
-        "Key": {
+        "key": {
           "type": "string"
         },
-        "Value": {
+        "value": {
           "type": "string"
         },
-        "Operand": {
+        "operand": {
           "type": "string"
-        },
-        "Offset": {
-          "type": "string",
-          "format": "int64"
-        },
-        "Limit": {
-          "type": "string",
-          "format": "int64"
         }
       }
     },
@@ -183,7 +175,18 @@
       "type": "object",
       "properties": {
         "query": {
-          "$ref": "#/definitions/v1QueryOpts"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1QueryClause"
+          }
+        },
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
         }
       }
     },

@@ -121,39 +121,42 @@ func toSQLOperand(op QueryOperand) (string, error) {
 	}
 }
 
-func (i *SQLiteStore) GetObjects(ctx context.Context, q Query) ([]models.Object, error) {
+func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error) {
 	objects := []models.Object{}
 
-	col := q.GetKey()
-
-	var limit int
-	var offset int
 	// If limit or offset are zero, they were not set.
 	// -1 tells GORM to ignore the limit/offset
-	if q.GetLimit() == 0 {
-		limit = -1
-	} else {
-		limit = int(q.GetLimit())
-	}
+	var limit int = -1
+	var offset int = -1
 
-	if q.GetOffset() == 0 {
-		offset = -1
-	} else {
-		offset = int(q.GetOffset())
+	if opts != nil {
+		if opts.GetLimit() != 0 {
+			limit = int(opts.GetLimit())
+		}
+		if opts.GetOffset() != 0 {
+			offset = int(opts.GetOffset())
+		}
 	}
 
 	tx := i.db.Limit(limit)
 	tx = tx.Offset(offset)
 
-	if col != "" {
-		val := q.GetValue()
-		op, err := toSQLOperand(QueryOperand(q.GetOperand()))
-		if err != nil {
-			return nil, err
-		}
+	if q != nil && len(q) > 0 {
+		for _, c := range q {
 
-		queryString := fmt.Sprintf("%s %s ?", col, op)
-		tx = tx.Where(queryString, val)
+			if c.GetKey() == "" {
+				continue
+			}
+
+			val := c.GetValue()
+			op, err := toSQLOperand(QueryOperand(c.GetOperand()))
+			if err != nil {
+				return nil, err
+			}
+
+			queryString := fmt.Sprintf("%s %s ?", c.GetKey(), op)
+			tx = tx.Where(queryString, val)
+		}
 	}
 
 	result := tx.Find(&objects)

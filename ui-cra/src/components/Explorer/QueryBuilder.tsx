@@ -143,7 +143,11 @@ function QueryBuilder({
             </FormControl>
           </Box>
         )}
-        {busy && <CircularProgress size={32} />}
+        {busy && (
+          <Box marginLeft={2}>
+            <CircularProgress size={24} />
+          </Box>
+        )}
       </Flex>
     </div>
   );

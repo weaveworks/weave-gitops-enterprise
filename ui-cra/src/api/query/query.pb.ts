@@ -6,15 +6,15 @@
 
 import * as fm from "../../fetch.pb"
 export type QueryRequest = {
-  query?: QueryOpts
+  query?: QueryClause[]
+  offset?: number
+  limit?: number
 }
 
-export type QueryOpts = {
+export type QueryClause = {
   key?: string
   value?: string
   operand?: string
-  offset?: string
-  limit?: string
 }
 
 export type QueryResponse = {

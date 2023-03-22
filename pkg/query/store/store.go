@@ -36,19 +36,24 @@ const (
 	OperandNotEqual QueryOperand = "not_equal"
 )
 
-type Query interface {
+type Query []QueryClause
+
+type QueryOption interface {
+	GetLimit() int32
+	GetOffset() int32
+}
+
+type QueryClause interface {
 	GetKey() string
 	GetOperand() string
 	GetValue() string
-	GetLimit() int64
-	GetOffset() int64
 }
 
 // StoreReader is an interface for querying objects
 //
 //counterfeiter:generate . StoreReader
 type StoreReader interface {
-	GetObjects(ctx context.Context, q Query) ([]models.Object, error)
+	GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 

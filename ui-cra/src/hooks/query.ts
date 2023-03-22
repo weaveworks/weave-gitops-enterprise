@@ -1,16 +1,42 @@
+import _ from 'lodash';
 import { useQuery } from 'react-query';
-import { Query, QueryOpts, QueryResponse } from '../api/query/query.pb';
+import { Query, QueryClause, QueryResponse } from '../api/query/query.pb';
 
-// query looks like "key:value,key:value"
-function convertToOpts(query: string): QueryOpts {
-  if (!query) {
-    return { key: '', value: '' };
-  }
-
-  return { key: '', value: '' };
+enum QueryOperands {
+  equal = 'equal',
+  notEqual = 'not_equal',
 }
 
-export function useQueryService(query: string) {
+function convertToOpts(query: string): QueryClause[] {
+  if (!query) {
+    return [{ key: '', value: '' }];
+  }
+
+  const clauses = query.split(',');
+
+  const out = _.map(clauses, clause => {
+    const queryRe = /(.+?):(.+)/g;
+    const matches = queryRe.exec(clause);
+
+    if (!matches) {
+      throw new Error('Invalid query');
+    }
+
+    return {
+      key: matches[1],
+      value: matches[2],
+      operand: QueryOperands.equal,
+    };
+  });
+
+  return out;
+}
+
+export function useQueryService(
+  query: string,
+  limit: number = 50,
+  offset: number = 0,
+) {
   const api = Query;
 
   return useQuery<QueryResponse, Error>(
@@ -20,10 +46,13 @@ export function useQueryService(query: string) {
 
       return api.DoQuery({
         query: opts,
+        limit,
+        offset,
       });
     },
     {
       keepPreviousData: true,
+      retry: false,
     },
   );
 }
