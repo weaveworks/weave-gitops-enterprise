@@ -92,6 +92,10 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 						Path:    "management/cluster-01.yaml",
 						Content: &content,
 					},
+					{
+						Path:    "management/cluster-02.yaml",
+						Content: &content,
+					},
 				},
 			},
 		},
@@ -103,6 +107,7 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 	assert.Equal(t, pr.WebURL, res.Link)
 	assert.Equal(t, pr.Title, "New cluster")
 	assert.Equal(t, pr.Description, "Creates a cluster through a CAPI template")
+	assert.Equal(t, pr.ChangesCount, "2")
 }
 
 func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
