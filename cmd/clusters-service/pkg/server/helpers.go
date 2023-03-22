@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/spf13/viper"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	apitemplates "github.com/weaveworks/templates-controller/apis/core"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 )
 
 func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([]templates.RenderedTemplate, error) {
@@ -97,25 +97,25 @@ func isCAPITemplate(t apitemplates.Template) bool {
 	return t.GetObjectKind().GroupVersionKind().Kind == capiv1.Kind
 }
 
-func filePaths(files []gitprovider.CommitFile) []string {
+func filePaths(files []git.CommitFile) []string {
 	names := []string{}
 	for _, f := range files {
-		names = append(names, *f.Path)
+		names = append(names, f.Path)
 	}
 	return names
 }
 
 // Check if there are files in originalFiles that are missing from extraFiles and returns them
-func getMissingFiles(originalFiles []gitprovider.CommitFile, extraFiles []gitprovider.CommitFile) []gitprovider.CommitFile {
+func getMissingFiles(originalFiles []git.CommitFile, extraFiles []git.CommitFile) []git.CommitFile {
 	originalFilePaths := filePaths(originalFiles)
 	extraFilePaths := filePaths(extraFiles)
 
 	diffPaths := sets.NewString(originalFilePaths...).Difference(sets.NewString(extraFilePaths...)).List()
 
-	removedFilenames := []gitprovider.CommitFile{}
+	removedFilenames := []git.CommitFile{}
 	for i := range diffPaths {
-		removedFilenames = append(removedFilenames, gitprovider.CommitFile{
-			Path:    &diffPaths[i],
+		removedFilenames = append(removedFilenames, git.CommitFile{
+			Path:    diffPaths[i],
 			Content: nil,
 		})
 	}

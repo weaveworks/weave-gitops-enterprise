@@ -8,7 +8,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
@@ -25,6 +24,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -1439,9 +1439,9 @@ status: {}
 	expectedContent := simpleTemplate(t, expectedTemplateContent, struct{ URL string }{URL: ts.URL})
 	expected := &GetFilesReturn{
 		RenderedTemplate: nil,
-		ProfileFiles: []gitprovider.CommitFile{
+		ProfileFiles: []git.CommitFile{
 			{
-				Path:    &expectedPath,
+				Path:    expectedPath,
 				Content: &expectedContent,
 			},
 		},
