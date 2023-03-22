@@ -121,6 +121,9 @@ func (s *server) GetGitOpsSet(ctx context.Context, msg *pb.GetGitOpsSetRequest) 
 		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
 	}
 
+	// client.Get does not always populate TypeMeta field, without this `kind` and
+	// `apiVersion` are not returned in YAML representation.
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
 	result.GetObjectKind().SetGroupVersionKind(ctrl.GroupVersion.WithKind("GitOpsSet"))
 
 	gitOpsSet, err := convert.GitOpsToProto(msg.ClusterName, result)
