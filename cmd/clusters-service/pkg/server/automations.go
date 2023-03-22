@@ -23,8 +23,9 @@ import (
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 )
 
@@ -36,9 +37,9 @@ type GetAutomations struct {
 	PolicyConfigsFiles   []*capiv1_proto.CommitFile
 }
 
-func toGitCommitFile(file *capiv1_proto.CommitFile) gitprovider.CommitFile {
-	return gitprovider.CommitFile{
-		Path:    &file.Path,
+func toGitCommitFile(file *capiv1_proto.CommitFile) git.CommitFile {
+	return git.CommitFile{
+		Path:    file.Path,
 		Content: &file.Content,
 	}
 }
@@ -67,7 +68,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		baseBranch = msg.BaseBranch
 	}
 
-	var files []gitprovider.CommitFile
+	var files []git.CommitFile
 
 	if len(automations.KustomizationFiles) > 0 {
 		for _, f := range automations.KustomizationFiles {
@@ -117,7 +118,7 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
 		ReposistoryAPIURL: msg.RepositoryApiUrl,
@@ -193,7 +194,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 				}
 
 				kustomizationFiles = append(kustomizationFiles, &capiv1_proto.CommitFile{
-					Path:    *kustomization.Path,
+					Path:    kustomization.Path,
 					Content: *kustomization.Content,
 				})
 			}
