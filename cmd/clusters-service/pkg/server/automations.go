@@ -153,7 +153,12 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		return nil, err
 	}
 
-	return &capiv1_proto.RenderAutomationResponse{KustomizationFiles: automations.KustomizationFiles, HelmReleaseFiles: automations.HelmReleaseFiles, ExternalSecretsFiles: automations.ExternalSecretsFiles}, err
+	return &capiv1_proto.RenderAutomationResponse{
+		KustomizationFiles:   automations.KustomizationFiles,
+		HelmReleaseFiles:     automations.HelmReleaseFiles,
+		ExternalSecretsFiles: automations.ExternalSecretsFiles,
+		PolicyConfigFiles:    automations.PolicyConfigsFiles,
+	}, err
 }
 
 func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_proto.ClusterAutomation) (*GetAutomations, error) {
