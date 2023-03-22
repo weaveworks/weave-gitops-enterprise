@@ -184,7 +184,7 @@ const NavItems = () => {
       link: Routes.GitOpsSets,
       icon: <GitOpsSetsIcon />,
     },
-    { name: 'OBJECT EXPLORER', link: Routes.Explorer, icon: null },
+    { name: 'EXPLORER', link: Routes.Explorer, icon: null },
     {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,

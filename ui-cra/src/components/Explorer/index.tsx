@@ -37,8 +37,8 @@ function Explorer({ className }: Props) {
     query: '',
     pinnedTerms: initialTerms(history.location.search),
     filters: [
-      { label: 'Ready', value: 'status:ready' },
-      { label: 'Not Ready', value: 'status:unready' },
+      { label: 'Kustomizations', value: 'kind:Kustomization' },
+      { label: 'Helm Releases', value: 'kind:HelmRelease' },
     ],
   });
   const { data, error, isFetching } = useQueryService(

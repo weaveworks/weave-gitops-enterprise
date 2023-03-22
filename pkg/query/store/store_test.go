@@ -28,7 +28,7 @@ func TestGetObjects(t *testing.T) {
 
 	g.Expect(SeedObjects(db, []models.Object{obj})).To(Succeed())
 
-	objects, err := store.GetObjects(context.Background(), nil)
+	objects, err := store.GetObjects(context.Background(), nil, nil)
 	g.Expect(err).To(BeNil())
 	g.Expect(len(objects) > 0).To(BeTrue())
 	g.Expect(objects[0].Name).To(Equal(obj.Name))

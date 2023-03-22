@@ -57,7 +57,13 @@ type ServerOpts struct {
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
-	objs, err := s.qs.RunQuery(ctx, msg.Query)
+	clauses := []store.QueryClause{}
+	for _, c := range msg.Query {
+		clauses = append(clauses, c)
+	}
+
+	objs, err := s.qs.RunQuery(ctx, clauses, msg)
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}
