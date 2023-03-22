@@ -336,10 +336,9 @@ func (s *server) SyncGitOpsSet(ctx context.Context, msg *pb.SyncGitOpsSetRequest
 		return nil, fmt.Errorf("requesting reconciliation: %w", err)
 	}
 
-	// FIX ME: gitopssets controller needs to implement lastHandledReconcileRequest for this to be used
-	// if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
-	// 	return nil, fmt.Errorf("waiting for sync: %w", err)
-	// }
+	if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
+		return nil, fmt.Errorf("waiting for sync: %w", err)
+	}
 
 	return &pb.SyncGitOpsSetResponse{Success: true}, nil
 }
