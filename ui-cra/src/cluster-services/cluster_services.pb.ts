@@ -459,6 +459,16 @@ export type KustomizationSpec = {
   sourceRef?: SourceRef
   targetNamespace?: string
   createNamespace?: boolean
+  decryption?: Decryption
+}
+
+export type Decryption = {
+  provider?: string
+  secretRef?: SecretRef
+}
+
+export type SecretRef = {
+  name?: string
 }
 
 export type HelmRelease = {
@@ -484,6 +494,7 @@ export type ChartSpec = {
 export type Metadata = {
   name?: string
   namespace?: string
+  annotations?: {[key: string]: string}
 }
 
 export type SourceRef = {

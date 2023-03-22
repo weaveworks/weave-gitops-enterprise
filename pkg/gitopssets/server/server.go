@@ -78,6 +78,7 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
 		return &ctrl.GitOpsSetList{}
 	})
+
 	if err != nil {
 		return nil, fmt.Errorf("failed to query gitopssets: %w", err)
 	}
@@ -91,7 +92,11 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 		}
 		gsList := namespacedList.List.(*ctrl.GitOpsSetList)
 		for _, gs := range gsList.Items {
-			gitopsSets = append(gitopsSets, convert.GitOpsToProto(s.cluster, gs))
+			gitOpsSet, err := convert.GitOpsToProto(s.cluster, gs)
+			if err != nil {
+				return nil, fmt.Errorf("failed to convert gitopsset: %w", err)
+			}
+			gitopsSets = append(gitopsSets, gitOpsSet)
 		}
 	}
 
@@ -109,12 +114,20 @@ func (s *server) GetGitOpsSet(ctx context.Context, msg *pb.GetGitOpsSetRequest) 
 
 	n := types.NamespacedName{Name: msg.Name, Namespace: msg.Namespace}
 
-	result := &ctrl.GitOpsSet{}
-	if err := c.Get(ctx, msg.ClusterName, n, result); err != nil {
+	result := ctrl.GitOpsSet{}
+	if err := c.Get(ctx, msg.ClusterName, n, &result); err != nil {
 		return nil, fmt.Errorf("getting object with name %s in namespace %s: %w", msg.Name, msg.Namespace, err)
 	}
 
-	gitOpsSet := convert.GitOpsToProto(msg.ClusterName, *result)
+	// client.Get does not always populate TypeMeta field, without this `kind` and
+	// `apiVersion` are not returned in YAML representation.
+	// https://github.com/kubernetes-sigs/controller-runtime/issues/1517#issuecomment-844703142
+	result.GetObjectKind().SetGroupVersionKind(ctrl.GroupVersion.WithKind("GitOpsSet"))
+
+	gitOpsSet, err := convert.GitOpsToProto(msg.ClusterName, result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to convert gitopsset: %w", err)
+	}
 
 	return &pb.GetGitOpsSetResponse{
 		GitopsSet: gitOpsSet,
