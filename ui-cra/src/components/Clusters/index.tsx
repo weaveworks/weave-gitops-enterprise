@@ -304,10 +304,9 @@ const MCCP: FC<{
 
   const handleAddCluster = useCallback(() => {
     const filtersValues = encodeURIComponent(
-      `templateType: cluster_templateType: _`,
+      `templateType: cluster_templateType: `,
     );
-    // history.push(`/applications?filters=${filtersValues}`);}
-    return history.push(`/templates?filters=${filtersValues}`);
+    history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
   const initialFilterState = {

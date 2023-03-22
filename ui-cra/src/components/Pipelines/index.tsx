@@ -39,9 +39,10 @@ const Pipelines = ({ className }: any) => {
         <Button
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={() =>
-            history.push(`/templates?filters=templateType%3A%20pipeline`)
-          }
+          onClick={() => {
+            const filtersValues = encodeURIComponent(`templateType: pipeline`);
+            history.push(`/templates?filters=${filtersValues}`);
+          }}
         >
           CREATE A PIPELINE
         </Button>

@@ -23,9 +23,10 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
     <>
       <Button
         onClick={() => {
-          history.push(
-            `/applications?filters=tenant%3A%20${name}_clusterName%3A%20${clusterName}_`,
+          const filtersValues = encodeURIComponent(
+            `tenant: ${name}_clusterName: ${clusterName}`,
           );
+          history.push(`/applications?filters=${filtersValues}`);
         }}
         className={classes.navigateBtn}
       >

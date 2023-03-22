@@ -30,6 +30,8 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
       refetchInterval: 30000,
     },
   );
+
+  const filtersValues = encodeURIComponent(`imageRepositoryRef: ${name}`);
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <PageTemplate
@@ -60,9 +62,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
             rootPath={rootPath}
           >
             <Button>
-              <Link
-                to={`/image_automation/policies?filters=imageRepositoryRef%3A%20${name}_`}
-              >
+              <Link to={`/image_automation/policies?filters=${filtersValues}`}>
                 Go To Image Policy
               </Link>
             </Button>
