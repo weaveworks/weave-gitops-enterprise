@@ -70,7 +70,10 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
 	roles := []models.Role{}
+	rolesToDelete := []models.Role{}
+
 	bindings := []models.RoleBinding{}
+	bindingsToDelete := []models.RoleBinding{}
 
 	for _, obj := range objectRecords {
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
@@ -80,6 +83,12 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			if err != nil {
 				return fmt.Errorf("cannot create role: %w", err)
 			}
+
+			if obj.TransactionType() == models.TransactionTypeDelete {
+				rolesToDelete = append(rolesToDelete, role.ToModel())
+				continue
+			}
+
 			roles = append(roles, role.ToModel())
 		}
 
@@ -88,6 +97,12 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			if err != nil {
 				return fmt.Errorf("cannot create binding: %w", err)
 			}
+
+			if obj.TransactionType() == models.TransactionTypeDelete {
+				bindingsToDelete = append(bindingsToDelete, binding.ToModel())
+				continue
+			}
+
 			bindings = append(bindings, binding.ToModel())
 		}
 	}
@@ -98,9 +113,21 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 		}
 	}
 
+	if len(rolesToDelete) > 0 {
+		if err := store.DeleteRoles(ctx, rolesToDelete); err != nil {
+			return fmt.Errorf("cannot delete roles: %w", err)
+		}
+	}
+
 	if len(bindings) > 0 {
 		if err := store.StoreRoleBindings(ctx, bindings); err != nil {
 			return fmt.Errorf("cannot store role bindings: %w", err)
+		}
+	}
+
+	if len(bindingsToDelete) > 0 {
+		if err := store.DeleteRoleBindings(ctx, bindingsToDelete); err != nil {
+			return fmt.Errorf("cannot delete role bindings: %w", err)
 		}
 	}
 

@@ -202,6 +202,44 @@ func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object
 	return nil
 }
 
+func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) error {
+	for _, role := range roles {
+		if err := role.Validate(); err != nil {
+			return fmt.Errorf("invalid role: %w", err)
+		}
+
+		where := i.db.Where(
+			"id = ? ",
+			role.GetID(),
+		)
+		result := i.db.Unscoped().Delete(&models.Role{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete role: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
+func (i *SQLiteStore) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	for _, roleBinding := range roleBindings {
+		if err := roleBinding.Validate(); err != nil {
+			return fmt.Errorf("invalid role binding: %w", err)
+		}
+
+		where := i.db.Where(
+			"id = ? ",
+			roleBinding.GetID(),
+		)
+		result := i.db.Unscoped().Delete(&models.RoleBinding{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete role binding: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
 func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	dbFileLocation := filepath.Join(path, dbFile)
 	// make sure the directory exists
