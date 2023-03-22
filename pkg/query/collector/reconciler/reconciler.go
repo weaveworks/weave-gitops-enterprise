@@ -59,7 +59,8 @@ func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
 	if err != nil {
 		return fmt.Errorf("could not get object client: %w", err)
 	}
-	err = ctrl.NewControllerManagedBy(mgr).For(clientObject).
+	err = ctrl.NewControllerManagedBy(mgr).
+		For(clientObject).
 		Complete(&g)
 	if err != nil {
 		return err
@@ -99,10 +100,17 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	txType := models.TransactionTypeUpsert
+
+	if !clientObject.GetDeletionTimestamp().IsZero() {
+		txType = models.TransactionTypeDelete
+	}
+
 	//TODO manage error
 	r.objectsChannel <- []models.ObjectTransaction{transaction{
-		clusterName: r.clusterName,
-		object:      clientObject,
+		clusterName:     r.clusterName,
+		object:          clientObject,
+		transactionType: txType,
 	}}
 
 	return ctrl.Result{}, nil
