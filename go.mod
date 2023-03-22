@@ -50,6 +50,7 @@ require (
 	github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts v1.1.1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/jarcoal/httpmock v1.0.8
+	github.com/jenkins-x/go-scm v1.13.7
 	github.com/loft-sh/vcluster v0.12.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
@@ -79,6 +80,7 @@ require (
 )
 
 require (
+	code.gitea.io/sdk/gitea v0.14.0 // indirect
 	github.com/alecthomas/colour v0.0.0-20160524082231-60882d9e2721 // indirect
 	github.com/alecthomas/repr v0.0.0-20180818092828-117648cd9897 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
@@ -92,6 +94,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.13.6 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.16.19 // indirect
 	github.com/aws/smithy-go v1.13.3 // indirect
+	github.com/bluekeyes/go-gitdiff v0.7.0 // indirect
 	github.com/charmbracelet/bubbles v0.14.0 // indirect
 	github.com/charmbracelet/bubbletea v0.22.1 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
@@ -105,6 +108,7 @@ require (
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/google/go-github/v49 v49.1.0 // indirect
 	github.com/google/pprof v0.0.0-20220829040838-70bd9ae97f40 // indirect
+	github.com/hashicorp/go-version v1.6.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-localereader v0.0.1 // indirect
 	github.com/mattn/go-tty v0.0.4 // indirect
@@ -116,6 +120,8 @@ require (
 	github.com/pjbgf/sha1cd v0.3.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/sabhiram/go-gitignore v0.0.0-20210923224102-525f6e181f06 // indirect
+	github.com/shurcooL/githubv4 v0.0.0-20190718010115-4ba037080260 // indirect
+	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
@@ -238,7 +244,7 @@ require (
 	github.com/klauspost/compress v1.15.11 // indirect
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0 // indirect
 	github.com/lann/ps v0.0.0-20150810152359-62de8c46ede0 // indirect
-	github.com/lib/pq v1.10.6 // indirect
+	github.com/lib/pq v1.10.7 // indirect
 	github.com/liggitt/tabwriter v0.0.0-20181228230101-89fcab3d43de // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect

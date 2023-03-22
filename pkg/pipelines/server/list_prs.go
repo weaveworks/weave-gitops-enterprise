@@ -74,15 +74,13 @@ func (s *server) ListPullRequests(ctx context.Context, msg *pb.ListPullRequestsR
 			return nil, fmt.Errorf("failed listing pull requests: %w", err)
 		}
 
-		for _, pr := range allPrs {
-			prInfo := pr.Get()
-
+		for _, prInfo := range allPrs {
 			if prInfo.Merged {
 				continue
 			}
 
 			if strings.Contains(prInfo.Description, fmt.Sprintf("%s/%s/%s", p.Namespace, p.Name, e.Name)) {
-				openPrs[e.Name] = prInfo.WebURL
+				openPrs[e.Name] = prInfo.Link
 			}
 		}
 	}
