@@ -22,6 +22,30 @@ type FakeStore struct {
 	deleteObjectsReturnsOnCall map[int]struct {
 		result1 error
 	}
+	DeleteRoleBindingsStub        func(context.Context, []models.RoleBinding) error
+	deleteRoleBindingsMutex       sync.RWMutex
+	deleteRoleBindingsArgsForCall []struct {
+		arg1 context.Context
+		arg2 []models.RoleBinding
+	}
+	deleteRoleBindingsReturns struct {
+		result1 error
+	}
+	deleteRoleBindingsReturnsOnCall map[int]struct {
+		result1 error
+	}
+	DeleteRolesStub        func(context.Context, []models.Role) error
+	deleteRolesMutex       sync.RWMutex
+	deleteRolesArgsForCall []struct {
+		arg1 context.Context
+		arg2 []models.Role
+	}
+	deleteRolesReturns struct {
+		result1 error
+	}
+	deleteRolesReturnsOnCall map[int]struct {
+		result1 error
+	}
 	GetAccessRulesStub        func(context.Context) ([]models.AccessRule, error)
 	getAccessRulesMutex       sync.RWMutex
 	getAccessRulesArgsForCall []struct {
@@ -153,6 +177,140 @@ func (fake *FakeStore) DeleteObjectsReturnsOnCall(i int, result1 error) {
 		})
 	}
 	fake.deleteObjectsReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStore) DeleteRoleBindings(arg1 context.Context, arg2 []models.RoleBinding) error {
+	var arg2Copy []models.RoleBinding
+	if arg2 != nil {
+		arg2Copy = make([]models.RoleBinding, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.deleteRoleBindingsMutex.Lock()
+	ret, specificReturn := fake.deleteRoleBindingsReturnsOnCall[len(fake.deleteRoleBindingsArgsForCall)]
+	fake.deleteRoleBindingsArgsForCall = append(fake.deleteRoleBindingsArgsForCall, struct {
+		arg1 context.Context
+		arg2 []models.RoleBinding
+	}{arg1, arg2Copy})
+	stub := fake.DeleteRoleBindingsStub
+	fakeReturns := fake.deleteRoleBindingsReturns
+	fake.recordInvocation("DeleteRoleBindings", []interface{}{arg1, arg2Copy})
+	fake.deleteRoleBindingsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStore) DeleteRoleBindingsCallCount() int {
+	fake.deleteRoleBindingsMutex.RLock()
+	defer fake.deleteRoleBindingsMutex.RUnlock()
+	return len(fake.deleteRoleBindingsArgsForCall)
+}
+
+func (fake *FakeStore) DeleteRoleBindingsCalls(stub func(context.Context, []models.RoleBinding) error) {
+	fake.deleteRoleBindingsMutex.Lock()
+	defer fake.deleteRoleBindingsMutex.Unlock()
+	fake.DeleteRoleBindingsStub = stub
+}
+
+func (fake *FakeStore) DeleteRoleBindingsArgsForCall(i int) (context.Context, []models.RoleBinding) {
+	fake.deleteRoleBindingsMutex.RLock()
+	defer fake.deleteRoleBindingsMutex.RUnlock()
+	argsForCall := fake.deleteRoleBindingsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStore) DeleteRoleBindingsReturns(result1 error) {
+	fake.deleteRoleBindingsMutex.Lock()
+	defer fake.deleteRoleBindingsMutex.Unlock()
+	fake.DeleteRoleBindingsStub = nil
+	fake.deleteRoleBindingsReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStore) DeleteRoleBindingsReturnsOnCall(i int, result1 error) {
+	fake.deleteRoleBindingsMutex.Lock()
+	defer fake.deleteRoleBindingsMutex.Unlock()
+	fake.DeleteRoleBindingsStub = nil
+	if fake.deleteRoleBindingsReturnsOnCall == nil {
+		fake.deleteRoleBindingsReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteRoleBindingsReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStore) DeleteRoles(arg1 context.Context, arg2 []models.Role) error {
+	var arg2Copy []models.Role
+	if arg2 != nil {
+		arg2Copy = make([]models.Role, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.deleteRolesMutex.Lock()
+	ret, specificReturn := fake.deleteRolesReturnsOnCall[len(fake.deleteRolesArgsForCall)]
+	fake.deleteRolesArgsForCall = append(fake.deleteRolesArgsForCall, struct {
+		arg1 context.Context
+		arg2 []models.Role
+	}{arg1, arg2Copy})
+	stub := fake.DeleteRolesStub
+	fakeReturns := fake.deleteRolesReturns
+	fake.recordInvocation("DeleteRoles", []interface{}{arg1, arg2Copy})
+	fake.deleteRolesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStore) DeleteRolesCallCount() int {
+	fake.deleteRolesMutex.RLock()
+	defer fake.deleteRolesMutex.RUnlock()
+	return len(fake.deleteRolesArgsForCall)
+}
+
+func (fake *FakeStore) DeleteRolesCalls(stub func(context.Context, []models.Role) error) {
+	fake.deleteRolesMutex.Lock()
+	defer fake.deleteRolesMutex.Unlock()
+	fake.DeleteRolesStub = stub
+}
+
+func (fake *FakeStore) DeleteRolesArgsForCall(i int) (context.Context, []models.Role) {
+	fake.deleteRolesMutex.RLock()
+	defer fake.deleteRolesMutex.RUnlock()
+	argsForCall := fake.deleteRolesArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStore) DeleteRolesReturns(result1 error) {
+	fake.deleteRolesMutex.Lock()
+	defer fake.deleteRolesMutex.Unlock()
+	fake.DeleteRolesStub = nil
+	fake.deleteRolesReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStore) DeleteRolesReturnsOnCall(i int, result1 error) {
+	fake.deleteRolesMutex.Lock()
+	defer fake.deleteRolesMutex.Unlock()
+	fake.DeleteRolesStub = nil
+	if fake.deleteRolesReturnsOnCall == nil {
+		fake.deleteRolesReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteRolesReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
 }
@@ -493,6 +651,10 @@ func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.deleteObjectsMutex.RLock()
 	defer fake.deleteObjectsMutex.RUnlock()
+	fake.deleteRoleBindingsMutex.RLock()
+	defer fake.deleteRoleBindingsMutex.RUnlock()
+	fake.deleteRolesMutex.RLock()
+	defer fake.deleteRolesMutex.RUnlock()
 	fake.getAccessRulesMutex.RLock()
 	defer fake.getAccessRulesMutex.RUnlock()
 	fake.getObjectsMutex.RLock()
