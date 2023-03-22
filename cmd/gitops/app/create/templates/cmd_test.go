@@ -156,7 +156,7 @@ func TestGenerateFilesLocally(t *testing.T) {
 
 	actualFilenames := []string{}
 	for _, file := range files {
-		actualFilenames = append(actualFilenames, *file.Path)
+		actualFilenames = append(actualFilenames, file.Path)
 	}
 
 	if diff := cmp.Diff(expectedFiles, actualFilenames); diff != "" {
@@ -186,7 +186,7 @@ func TestGenerateFilesLocallyWithCharts(t *testing.T) {
 
 	actualFilenames := []string{}
 	for _, file := range files {
-		actualFilenames = append(actualFilenames, *file.Path)
+		actualFilenames = append(actualFilenames, file.Path)
 	}
 
 	assert.Contains(t, *files[1].Content, "version: 0.0.8")

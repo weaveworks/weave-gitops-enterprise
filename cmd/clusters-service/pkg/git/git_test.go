@@ -17,7 +17,8 @@ import (
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/xanzy/go-gitlab"
 	"golang.org/x/oauth2"
 )
@@ -58,13 +59,13 @@ func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := git.NewGitProviderService(logr.Discard())
+	s := csgit.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n"
-	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: csgit.GitProvider{
 			Token:    os.Getenv("GITHUB_TOKEN"),
-			Type:     "github",
+			Type:     git.GitHubProviderName,
 			Hostname: "github.com",
 		},
 		RepositoryURL: repo.GetCloneURL(),
@@ -73,9 +74,9 @@ func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 		Title:         "New cluster",
 		Description:   "Creates a cluster through a CAPI template",
 		CommitMessage: "Add cluster manifest",
-		Files: []gitprovider.CommitFile{
+		Files: []git.CommitFile{
 			{
-				Path:    &path,
+				Path:    path,
 				Content: &content,
 			},
 		},
@@ -118,13 +119,13 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	s := git.NewGitProviderService(logr.Discard())
+	s := csgit.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n"
-	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: csgit.GitProvider{
 			Token:    os.Getenv("GITHUB_TOKEN"),
-			Type:     "github",
+			Type:     git.GitHubProviderName,
 			Hostname: "github.com",
 		},
 		RepositoryURL: repo.GetCloneURL(),
@@ -133,9 +134,9 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 		Title:         "New cluster",
 		Description:   "Creates a cluster through a CAPI template",
 		CommitMessage: "Add cluster manifest",
-		Files: []gitprovider.CommitFile{
+		Files: []git.CommitFile{
 			{
-				Path:    &path,
+				Path:    path,
 				Content: &content,
 			},
 		},
@@ -149,10 +150,10 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 	assert.Equal(t, pr.GetBody(), "Creates a cluster through a CAPI template")
 	assert.Equal(t, pr.GetAdditions(), 1)
 
-	res, err = s.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
+	res, err = s.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: csgit.GitProvider{
 			Token:    os.Getenv("GITHUB_TOKEN"),
-			Type:     "github",
+			Type:     git.GitHubProviderName,
 			Hostname: "github.com",
 		},
 		RepositoryURL: repo.GetCloneURL(),
@@ -161,9 +162,9 @@ func TestCreatePullRequestInGitHubUser(t *testing.T) {
 		Title:         "Delete cluster",
 		Description:   "Deletes a cluster via gitops",
 		CommitMessage: "Remove cluster manifest",
-		Files: []gitprovider.CommitFile{
+		Files: []git.CommitFile{
 			{
-				Path:    &path,
+				Path:    path,
 				Content: nil,
 			},
 		},
@@ -230,13 +231,13 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 		require.NoError(t, err)
 	})
 
-	s := git.NewGitProviderService(logr.Discard())
+	s := csgit.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n"
-	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), csgit.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: csgit.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
-			Type:     "gitlab",
+			Type:     git.GitLabProviderName,
 			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 		},
 		RepositoryURL: repo.HTTPURLToRepo,
@@ -245,9 +246,9 @@ func TestCreatePullRequestInGitLab(t *testing.T) {
 		Title:         "New cluster",
 		Description:   "Creates a cluster through a CAPI template",
 		CommitMessage: "Add cluster manifest",
-		Files: []gitprovider.CommitFile{
+		Files: []git.CommitFile{
 			{
-				Path:    &path,
+				Path:    path,
 				Content: &content,
 			},
 		},
@@ -294,13 +295,13 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := git.NewGitProviderService(logr.Discard())
+	s := csgit.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
 	content := "---\n\n"
-	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), csgit.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: csgit.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
-			Type:     "gitlab",
+			Type:     git.GitLabProviderName,
 			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 		},
 		RepositoryURL: repo.HTTPURLToRepo,
@@ -309,9 +310,9 @@ func TestCreatePullRequestInGitLab_UpdateFiles(t *testing.T) {
 		Title:         "Update cluster",
 		Description:   "Updates a cluster through a CAPI template",
 		CommitMessage: "Update cluster manifest",
-		Files: []gitprovider.CommitFile{
+		Files: []git.CommitFile{
 			{
-				Path:    &path,
+				Path:    path,
 				Content: &content,
 			},
 		},
@@ -358,12 +359,12 @@ func TestCreatePullRequestInGitLab_DeleteFiles(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	s := git.NewGitProviderService(logr.Discard())
+	s := csgit.NewGitProviderService(logr.Discard())
 	path := "management/cluster-01.yaml"
-	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), git.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider: git.GitProvider{
+	res, err := s.WriteFilesToBranchAndCreatePullRequest(context.Background(), csgit.WriteFilesToBranchAndCreatePullRequestRequest{
+		GitProvider: csgit.GitProvider{
 			Token:    os.Getenv("GITLAB_TOKEN"),
-			Type:     "gitlab",
+			Type:     git.GitLabProviderName,
 			Hostname: os.Getenv("GIT_PROVIDER_HOSTNAME"),
 		},
 		RepositoryURL: repo.HTTPURLToRepo,
@@ -372,9 +373,9 @@ func TestCreatePullRequestInGitLab_DeleteFiles(t *testing.T) {
 		Title:         "Delete cluster",
 		Description:   "Deletes a cluster",
 		CommitMessage: "Delete cluster manifest",
-		Files: []gitprovider.CommitFile{
+		Files: []git.CommitFile{
 			{
-				Path:    &path,
+				Path:    path,
 				Content: nil,
 			},
 		},
@@ -393,19 +394,19 @@ func TestGetGitProviderUrl(t *testing.T) {
 
 	viper.SetDefault("capi-templates-repository-api-url", "https://github.com/user/repo.git")
 	dummyUrl := "example.com"
-	repoURL, err := git.GetGitProviderUrl(dummyUrl)
+	repoURL, err := csgit.GetGitProviderUrl(dummyUrl)
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 
 	viper.Reset()
 
 	gitUrl := "git@github.com:user/repo.git"
-	repoURL, err = git.GetGitProviderUrl(gitUrl)
+	repoURL, err = csgit.GetGitProviderUrl(gitUrl)
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 
 	httpsUrl := "https://github.com/user/repo.git"
-	repoURL, err = git.GetGitProviderUrl(httpsUrl)
+	repoURL, err = csgit.GetGitProviderUrl(httpsUrl)
 	require.NoError(t, err)
 	assert.Equal(t, expected, repoURL)
 }
@@ -413,7 +414,7 @@ func TestGetGitProviderUrl(t *testing.T) {
 func TestWithCombinedSubOrg(t *testing.T) {
 	ref, err := gitprovider.ParseOrgRepositoryURL("https://gitlab.com/org/sub1/sub2/sub3/repo")
 	assert.NoError(t, err)
-	newRef := git.WithCombinedSubOrgs(*ref)
+	newRef := csgit.WithCombinedSubOrgs(*ref)
 
 	// Where they are the still the same
 	assert.Equal(t, "repo", ref.RepositoryName)
