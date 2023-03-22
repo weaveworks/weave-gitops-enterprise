@@ -54,6 +54,7 @@ export enum Routes {
 
   GitlabOauthCallback = '/oauth/gitlab',
   BitBucketOauthCallback = '/oauth/bitbucketserver',
+  AzureDevOpsOauthCallback = '/oauth/azuredevops',
   Policies = '/policies',
   PolicyDetails = '/policies/details',
 

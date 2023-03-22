@@ -8,7 +8,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
@@ -19,6 +18,7 @@ import (
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -37,11 +37,11 @@ type GetFilesRequest struct {
 }
 
 type GetFilesReturn struct {
-	RenderedTemplate     []gitprovider.CommitFile
-	ProfileFiles         []gitprovider.CommitFile
-	KustomizationFiles   []gitprovider.CommitFile
+	RenderedTemplate     []git.CommitFile
+	ProfileFiles         []git.CommitFile
+	KustomizationFiles   []git.CommitFile
 	CostEstimate         *capiv1_proto.CostEstimate
-	ExternalSecretsFiles []gitprovider.CommitFile
+	ExternalSecretsFiles []git.CommitFile
 }
 
 func (s *server) getTemplate(ctx context.Context, name, namespace, templateKind string) (templatesv1.Template, error) {
@@ -205,11 +205,11 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
 }
 
-func toCommitFileProtos(file []gitprovider.CommitFile) []*capiv1_proto.CommitFile {
+func toCommitFileProtos(file []git.CommitFile) []*capiv1_proto.CommitFile {
 	var files []*capiv1_proto.CommitFile
 	for _, f := range file {
 		files = append(files, &capiv1_proto.CommitFile{
-			Path:    *f.Path,
+			Path:    f.Path,
 			Content: *f.Content,
 		})
 	}
@@ -284,7 +284,7 @@ func GetFiles(
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
-	var files []gitprovider.CommitFile
+	var files []git.CommitFile
 	for _, renderedTemplate := range renderedTemplates {
 		tmplWithValues := renderedTemplate.Data
 		if createRequestMessage != nil {
@@ -317,8 +317,8 @@ func GetFiles(
 		}
 
 		content := string(bytes.Join(tmplWithValues, []byte("\n---\n")))
-		files = append(files, gitprovider.CommitFile{
-			Path:    &path,
+		files = append(files, git.CommitFile{
+			Path:    path,
 			Content: &content,
 		})
 	}
@@ -326,9 +326,21 @@ func GetFiles(
 	// if this feature is not enabled the Nil estimator will be invoked returning a nil estimate
 	costEstimate := getCostEstimate(ctx, estimator, renderedTemplates)
 
-	var profileFiles []gitprovider.CommitFile
-	var kustomizationFiles []gitprovider.CommitFile
-	var externalSecretFiles []gitprovider.CommitFile
+	var profileFiles []git.CommitFile
+	var kustomizationFiles []git.CommitFile
+	var externalSecretFiles []git.CommitFile
+
+	if shouldAddSopsKustomization(tmpl) {
+		cluster, err := getCluster(resourcesNamespace, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
+		}
+		sopsKustomization, err := getSopsKustomization(cluster, msg)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get sops kustomization for %s: %s", msg.ParameterValues, err)
+		}
+		kustomizationFiles = append(kustomizationFiles, *sopsKustomization)
+	}
 
 	if shouldAddCommonBases(tmpl) {
 		cluster, err := getCluster(resourcesNamespace, msg)
@@ -395,8 +407,8 @@ func GetFiles(
 				if err != nil {
 					return nil, err
 				}
-				kustomizationFiles = append(kustomizationFiles, gitprovider.CommitFile{
-					Path:    namespace.Path,
+				kustomizationFiles = append(kustomizationFiles, git.CommitFile{
+					Path:    *namespace.Path,
 					Content: namespace.Content,
 				})
 			}
@@ -464,6 +476,14 @@ func shouldAddCommonBases(t templatesv1.Template) bool {
 
 	// FIXME: want to phase configuration option out. You can enable per template by adding the annotation
 	return viper.GetString("add-bases-kustomization") != "disabled" && isCAPITemplate(t)
+}
+
+func shouldAddSopsKustomization(t templatesv1.Template) bool {
+	anno := t.GetAnnotations()[templates.SopsKustomizationAnnotation]
+	if anno != "" {
+		return anno == "true"
+	}
+	return false
 }
 
 func getCostEstimate(ctx context.Context, estimator estimation.Estimator, renderedTemplates []templates.RenderedTemplate) *capiv1_proto.CostEstimate {
