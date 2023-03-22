@@ -35,11 +35,6 @@ const WGApplicationsDashboard: FC = () => {
     () => getGitRepos(sources?.result),
     [sources?.result],
   );
-  const gitReposUrl = useMemo(
-    () => gitRepos.map(repo => repo.obj.spec.url),
-    [gitRepos],
-  );
-
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (
@@ -68,7 +63,7 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <OpenedPullRequest options={gitReposUrl}></OpenedPullRequest>
+            <OpenedPullRequest gitRepos={gitRepos}></OpenedPullRequest>
           </ActionsWrapper>
         </div>
         {isLoading ? (

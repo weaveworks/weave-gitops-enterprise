@@ -236,10 +236,6 @@ const MCCP: FC<{
   );
   const listConfigContext = useListConfigContext();
   const provider = listConfigContext?.provider;
-  const gitReposUrl = useMemo(
-    () => gitRepos.map(repo => repo.obj.spec.url),
-    [gitRepos],
-  );
 
   const capiClusters = useMemo(
     () => clusters.filter(cls => cls.capiCluster),
@@ -451,7 +447,7 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <OpenedPullRequest options={gitReposUrl}></OpenedPullRequest>
+              <OpenedPullRequest gitRepos={gitRepos}></OpenedPullRequest>
             </ActionsWrapper>
           </div>
           {!isLoading ? (

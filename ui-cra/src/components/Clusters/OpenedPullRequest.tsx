@@ -1,5 +1,10 @@
-import React, { useContext } from 'react';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import React, { useContext, useMemo } from 'react';
+import {
+  Button,
+  GitRepository,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -14,16 +19,26 @@ import GitUrlParse from 'git-url-parse';
 import { openLinkHandler } from '../../utils/link-checker';
 
 type Props = {
-  options: string[];
+  gitRepos: GitRepository[];
 };
 
-export default function OpenedPullRequest({ options }: Props) {
+export default function OpenedPullRequest({ gitRepos }: Props) {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLDivElement>(null);
   const [selectedIndex, setSelectedIndex] = React.useState(-1);
   const { gitAuthClient } = useContext(GitAuth);
   const [OpenPrUrl, setOpenPrUrl] = React.useState('');
   const [OpenPrButtonDisabled, setOpenPrButtonDisabled] = React.useState(false);
+
+  const options = useMemo(
+    () =>
+      gitRepos.map(
+        repo =>
+          repo?.obj?.metadata?.annotations?.['weave.works/repo-https-url'] ||
+          repo.obj.spec.url,
+      ),
+    [gitRepos],
+  );
 
   const handleMenuItemClick = (
     event: React.MouseEvent<HTMLLIElement, MouseEvent>,
@@ -35,13 +50,17 @@ export default function OpenedPullRequest({ options }: Props) {
     setOpenPrButtonDisabled(true);
     gitAuthClient.ParseRepoURL({ url: repoUrl }).then(res => {
       setOpenPrButtonDisabled(false);
-      const { resource, full_name } = GitUrlParse(repoUrl);
+      const { protocol, href } = GitUrlParse(repoUrl);
+      let parsedUrl = '';
+      if (protocol === 'ssh') {
+        parsedUrl = href.replace('ssh://git@', 'https://');
+      }
       const provider = res.provider || '';
       if (provider === 'GitHub') {
-        setOpenPrUrl(`https://${resource}/${full_name}/pulls`);
+        setOpenPrUrl(`${parsedUrl}/pulls`);
       }
       if (provider === 'GitLab') {
-        setOpenPrUrl(`https://${resource}/${full_name}/-/merge_requests`);
+        setOpenPrUrl(`${parsedUrl}/-/merge_requests`);
       }
     });
   };
@@ -90,7 +109,7 @@ export default function OpenedPullRequest({ options }: Props) {
                 type={IconType.ExternalTab}
                 size="base"
               />
-              GO TO OPEN PULL REQUESTS ON {options[selectedIndex]}
+              GO TO OPEN PULL REQUESTS AT {options[selectedIndex]}
             </>
           )}
         </Button>
