@@ -96,6 +96,8 @@ type ClustersServiceClient interface {
 	GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error)
 	// EncryptSopsSecret encrypts a sops secret
 	EncryptSopsSecret(ctx context.Context, in *EncryptSopsSecretRequest, opts ...grpc.CallOption) (*EncryptSopsSecretResponse, error)
+	// ListSopsKustomizations list Sops kustomizations
+	ListSopsKustomizations(ctx context.Context, in *ListSopsKustomizationsRequest, opts ...grpc.CallOption) (*ListSopsKustomizationsResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -430,6 +432,15 @@ func (c *clustersServiceClient) EncryptSopsSecret(ctx context.Context, in *Encry
 	return out, nil
 }
 
+func (c *clustersServiceClient) ListSopsKustomizations(ctx context.Context, in *ListSopsKustomizationsRequest, opts ...grpc.CallOption) (*ListSopsKustomizationsResponse, error) {
+	out := new(ListSopsKustomizationsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListSopsKustomizations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -511,6 +522,8 @@ type ClustersServiceServer interface {
 	GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error)
 	// EncryptSopsSecret encrypts a sops secret
 	EncryptSopsSecret(context.Context, *EncryptSopsSecretRequest) (*EncryptSopsSecretResponse, error)
+	// ListSopsKustomizations list Sops kustomizations
+	ListSopsKustomizations(context.Context, *ListSopsKustomizationsRequest) (*ListSopsKustomizationsResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -625,6 +638,9 @@ func (UnimplementedClustersServiceServer) GetPolicyConfig(context.Context, *GetP
 }
 func (UnimplementedClustersServiceServer) EncryptSopsSecret(context.Context, *EncryptSopsSecretRequest) (*EncryptSopsSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EncryptSopsSecret not implemented")
+}
+func (UnimplementedClustersServiceServer) ListSopsKustomizations(context.Context, *ListSopsKustomizationsRequest) (*ListSopsKustomizationsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListSopsKustomizations not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -1287,6 +1303,24 @@ func _ClustersService_EncryptSopsSecret_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_ListSopsKustomizations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListSopsKustomizationsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListSopsKustomizations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListSopsKustomizations",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListSopsKustomizations(ctx, req.(*ListSopsKustomizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1437,6 +1471,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EncryptSopsSecret",
 			Handler:    _ClustersService_EncryptSopsSecret_Handler,
+		},
+		{
+			MethodName: "ListSopsKustomizations",
+			Handler:    _ClustersService_ListSopsKustomizations_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -238,3 +238,40 @@ func importPGPKey(pk string) error {
 	cmd.Stderr = &stderr
 	return cmd.Run()
 }
+
+func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.ListSopsKustomizationsRequest) (*capiv1_proto.ListSopsKustomizationsResponse, error) {
+
+	clustersClient, err := s.clustersManager.GetImpersonatedClientForCluster(ctx, auth.Principal(ctx), req.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	if clustersClient == nil {
+		return nil, fmt.Errorf("cluster %s not found", req.ClusterName)
+	}
+
+	kustomizations := []*capiv1_proto.SopsKustomizations{}
+	kustomizationList := &kustomizev1beta2.KustomizationList{}
+
+	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList); err != nil {
+		return nil, fmt.Errorf("failed to list kustomizations, error: %w", err)
+	}
+
+	for _, kustomization := range kustomizationList.Items {
+		if kustomization.Spec.Decryption != nil && strings.EqualFold(kustomization.Spec.Decryption.Provider, "sops") {
+			if kustomization.Annotations[SopsPublicKeyNameAnnotation] != "" && kustomization.Annotations[SopsPublicKeyNamespaceAnnotation] != "" {
+				kustomizations = append(kustomizations, &capiv1_proto.SopsKustomizations{
+					Name:      kustomization.Name,
+					Namespace: kustomization.Namespace,
+				})
+			}
+		}
+	}
+
+	response := capiv1_proto.ListSopsKustomizationsResponse{
+		Kustomizations: kustomizations,
+		Total:          int32(len(kustomizations)),
+	}
+
+	return &response, nil
+}

@@ -2,12 +2,14 @@ package server
 
 import (
 	"context"
+
 	"encoding/base64"
 	"encoding/json"
 	"os"
 	"testing"
 
 	goage "filippo.io/age"
+
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
 	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -350,4 +352,210 @@ func decryptSecretValues(raw []byte, method, key string) (map[string]string, err
 		}
 	}
 	return secrets, nil
+}
+
+func TestListKustomizations(t *testing.T) {
+
+	//create clusters manager struct and add a cluster with kustomizations
+	clusters := []struct {
+		name  string
+		state []runtime.Object
+	}{
+		{
+			name: "management",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-1",
+					},
+				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-2",
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-1",
+						Namespace: "namespace-a-1",
+						Annotations: map[string]string{
+							"sops-public-key/name":      "sops-pgp",
+							"sops-public-key/namespace": "flux-system",
+						},
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-2",
+						Namespace: "namespace-a-2",
+						Annotations: map[string]string{
+							"sops-public-key/name":      "sops-pgp",
+							"sops-public-key/namespace": "flux-system",
+						},
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-3",
+						Namespace: "namespace-a-1",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "decryption-provider-a-2",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-4",
+						Namespace: "namespace-a-2",
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-a-5",
+						Namespace: "namespace-a-1",
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "leaf-1",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-1",
+					},
+				},
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-2",
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-b-1",
+						Namespace: "namespace-b-1",
+						Annotations: map[string]string{
+							"sops-public-key/name":      "sops-pgp",
+							"sops-public-key/namespace": "flux-system",
+						},
+					},
+					Spec: kustomizev1beta2.KustomizationSpec{
+						Decryption: &kustomizev1beta2.Decryption{
+							Provider: "sops",
+						},
+					},
+				},
+				&kustomizev1beta2.Kustomization{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "kustomization-b-2",
+						Namespace: "namespace-a-2",
+					},
+				},
+			},
+		},
+		{
+			name: "leaf-2",
+			state: []runtime.Object{
+				&v1.Namespace{
+					ObjectMeta: metav1.ObjectMeta{
+						Name: "namespace-a-1",
+					},
+				},
+			},
+		},
+	}
+
+	tests := []struct {
+		request  *capiv1_proto.ListSopsKustomizationsRequest
+		response *capiv1_proto.ListSopsKustomizationsResponse
+		err      bool
+	}{
+		{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
+				ClusterName: "management",
+			},
+			response: &capiv1_proto.ListSopsKustomizationsResponse{
+				Kustomizations: []*capiv1_proto.SopsKustomizations{
+					{
+						Name:      "kustomization-a-1",
+						Namespace: "namespace-a-1",
+					},
+					{
+						Name:      "kustomization-a-2",
+						Namespace: "namespace-a-2",
+					},
+				},
+				Total: 2,
+			},
+		},
+		{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
+				ClusterName: "leaf-1",
+			},
+			response: &capiv1_proto.ListSopsKustomizationsResponse{
+				Kustomizations: []*capiv1_proto.SopsKustomizations{
+					{
+						Name:      "kustomization-b-1",
+						Namespace: "namespace-b-1",
+					},
+				},
+				Total: 1,
+			},
+		},
+		{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
+				ClusterName: "leaf-2",
+			},
+			response: &capiv1_proto.ListSopsKustomizationsResponse{
+				Kustomizations: nil,
+				Total:          0,
+			},
+		},
+		{
+			request: &capiv1_proto.ListSopsKustomizationsRequest{
+				ClusterName: "leaf-3",
+			},
+			err: true,
+		},
+	}
+
+	clustersClients := map[string]client.Client{}
+	for _, cluster := range clusters {
+		clustersClients[cluster.name] = createClient(t, cluster.state...)
+	}
+
+	s := getServer(t, clustersClients, nil)
+
+	for _, tt := range tests {
+		res, err := s.ListSopsKustomizations(context.Background(), tt.request)
+		if tt.err {
+			assert.NotNil(t, err)
+			continue
+		}
+		assert.Nil(t, err)
+
+		assert.Equal(t, tt.response.Total, res.Total, "total number of kustomizations not equal")
+		for i, kustomization := range tt.response.Kustomizations {
+			assert.Equal(t, kustomization.Name, res.Kustomizations[i].Name, "kustomization name not equal")
+			assert.Equal(t, kustomization.Namespace, res.Kustomizations[i].Namespace, "kustomization namespace not equal")
+		}
+
+	}
 }
