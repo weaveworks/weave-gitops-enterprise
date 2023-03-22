@@ -2574,7 +2574,7 @@
         "namespace": {
           "type": "string"
         },
-        "labels": {
+        "annotations": {
           "type": "object",
           "additionalProperties": {
             "type": "string"

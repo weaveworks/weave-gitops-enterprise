@@ -591,10 +591,10 @@ spec:
 					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
 kind: Kustomization
 metadata:
-  creationTimestamp: null
-  labels:
+  annotations:
     sops-public-key/name: sops-gpg-pub
     sops-public-key/namespace: flux-system
+  creationTimestamp: null
   name: my-secrets
   namespace: flux-system
 spec:
