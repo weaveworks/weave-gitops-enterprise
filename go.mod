@@ -10,45 +10,14 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0 // indirect
-<<<<<<< HEAD
-<<<<<<< HEAD
-	github.com/onsi/gomega v1.27.2
-=======
-<<<<<<< HEAD
-<<<<<<< HEAD
 	github.com/onsi/gomega v1.27.4
-=======
-	github.com/onsi/gomega v1.27.2
->>>>>>> 1237948f (add encrypt sops secrets API)
-=======
-	github.com/onsi/gomega v1.24.1
->>>>>>> 19db1fc0 (fix go mod)
->>>>>>> fc736d3d (fix go mod)
-=======
-	github.com/onsi/gomega v1.27.4
->>>>>>> ade2a1f2 (resolve conflic)
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/sclevine/agouti v3.0.0+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
-<<<<<<< HEAD
-<<<<<<< HEAD
 	github.com/weaveworks/weave-gitops v0.19.1-0.20230320180007-c3bdb387f664
-=======
-<<<<<<< HEAD
-	github.com/weaveworks/weave-gitops v0.19.1-0.20230316090717-efdd1e1fe2a6
-=======
-=======
-	github.com/stretchr/testify v1.8.1
->>>>>>> 19db1fc0 (fix go mod)
-	github.com/weaveworks/weave-gitops v0.18.0
->>>>>>> 1237948f (add encrypt sops secrets API)
->>>>>>> bf68369e (add encrypt sops secrets API)
-=======
-	github.com/weaveworks/weave-gitops v0.19.1-0.20230316090717-efdd1e1fe2a6
->>>>>>> ade2a1f2 (resolve conflic)
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -115,9 +115,9 @@ func TestEncryptSecret(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "my-sops-age-secrets",
 						Namespace: "flux-system",
-						Labels: map[string]string{
-							SopsPublicKeyNameLabel:      "sops-age-public-key",
-							SopsPublicKeyNamespaceLabel: "flux-system",
+						Annotations: map[string]string{
+							SopsPublicKeyNameAnnotation:      "sops-age-public-key",
+							SopsPublicKeyNamespaceAnnotation: "flux-system",
 						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{
@@ -138,9 +138,9 @@ func TestEncryptSecret(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "my-sops-gpg-secrets",
 						Namespace: "flux-system",
-						Labels: map[string]string{
-							SopsPublicKeyNameLabel:      "sops-gpg-public-key",
-							SopsPublicKeyNamespaceLabel: "flux-system",
+						Annotations: map[string]string{
+							SopsPublicKeyNameAnnotation:      "sops-gpg-public-key",
+							SopsPublicKeyNamespaceAnnotation: "flux-system",
 						},
 					},
 					Spec: kustomizev1beta2.KustomizationSpec{

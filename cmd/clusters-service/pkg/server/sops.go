@@ -29,11 +29,11 @@ import (
 )
 
 const (
-	EncryptedRegex              = "^(data|stringData)$"
-	DecryptionPGPExt            = ".asc"
-	DecryptionAgeExt            = ".agekey"
-	SopsPublicKeyNameLabel      = "sops-public-key/name"
-	SopsPublicKeyNamespaceLabel = "sops-public-key/namespace"
+	EncryptedRegex                   = "^(data|stringData)$"
+	DecryptionPGPExt                 = ".asc"
+	DecryptionAgeExt                 = ".agekey"
+	SopsPublicKeyNameAnnotation      = "sops-public-key/name"
+	SopsPublicKeyNamespaceAnnotation = "sops-public-key/namespace"
 )
 
 type Encryptor struct {
@@ -136,12 +136,12 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 		return nil, errors.New("kustomization doesn't have decryption secret")
 	}
 
-	encryptionSecretName, ok := kustomization.Labels[SopsPublicKeyNameLabel]
+	encryptionSecretName, ok := kustomization.Annotations[SopsPublicKeyNameAnnotation]
 	if !ok {
 		return nil, errors.New("kustomization is missing encryption key information")
 	}
 
-	encryptionSecretNamespace, ok := kustomization.Labels[SopsPublicKeyNamespaceLabel]
+	encryptionSecretNamespace, ok := kustomization.Annotations[SopsPublicKeyNamespaceAnnotation]
 	if !ok {
 		return nil, errors.New("kustomization is missing encryption key information")
 	}
