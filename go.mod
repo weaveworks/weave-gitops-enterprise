@@ -60,7 +60,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
-	github.com/weaveworks/gitopssets-controller v0.6.0
+	github.com/weaveworks/gitopssets-controller v0.6.2-0.20230322122859-792067ba2cf6
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
 	github.com/weaveworks/templates-controller v0.1.4
@@ -104,6 +104,9 @@ require (
 	github.com/fluxcd/image-automation-controller/api v0.30.0 // indirect
 	github.com/fluxcd/image-reflector-controller/api v0.25.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.32.1 // indirect
+	github.com/fluxcd/pkg/http/fetch v0.3.0 // indirect
+	github.com/fluxcd/pkg/tar v0.2.0 // indirect
+	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/google/go-github/v49 v49.1.0 // indirect
@@ -124,6 +127,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	golang.org/x/tools v0.7.0 // indirect
 )
 
