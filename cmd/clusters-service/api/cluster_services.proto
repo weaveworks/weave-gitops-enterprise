@@ -369,6 +369,8 @@ message RenderTemplateResponse {
   CostEstimate costEstimate = 4;
   repeated CommitFile external_secrets_files = 5;
   repeated CommitFile policy_config_files = 6;
+  repeated CommitFile sops_secret_files = 7;
+
 }
 
 message RenderAutomationRequest {
@@ -380,6 +382,7 @@ message RenderAutomationResponse {
   repeated CommitFile helm_release_files = 2;
   repeated CommitFile external_secrets_files = 3;
   repeated CommitFile policy_config_files = 4;
+  repeated CommitFile sops_secert_files = 5;
 }
 
 message ListGitopsClustersRequest {
@@ -497,6 +500,8 @@ message CreatePullRequestRequest {
   PreviousValues previous_values = 16;
   repeated ExternalSecret external_secrets = 17;
   repeated PolicyConfigObject policy_configs = 18;
+  repeated SopsSecret sops_secrets = 19;
+
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -507,6 +512,7 @@ message PreviousValues {
   repeated Kustomization kustomizations = 4;
   repeated ExternalSecret external_secrets = 5;
   repeated PolicyConfigObject policy_configs = 6;
+  repeated SopsSecret sops_secrets = 7;
  }
 
 message CreatePullRequestResponse {
@@ -722,6 +728,7 @@ message ClusterAutomation {
   string file_path = 5;
   ExternalSecret external_secret = 6;
   PolicyConfigObject policy_config = 7;
+  SopsSecret sops_secret = 8;
 }
 
 // External Secrets template
@@ -1241,3 +1248,19 @@ message SopsKustomizations {
   string namespace = 2;
 }
 
+message SopsSecretMetadata {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+}
+
+message SopsSecret {
+  string apiVersion = 1;
+  string kind = 2;
+  SopsSecretMetadata metadata = 3;
+  map<string,string> data = 4;
+  map<string,string> stringData = 5;
+  string type = 6;
+  bool immutable = 7;
+  google.protobuf.Value sops = 8; 
+}
