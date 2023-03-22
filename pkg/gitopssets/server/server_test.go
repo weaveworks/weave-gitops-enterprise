@@ -6,28 +6,27 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
@@ -50,14 +49,14 @@ const (
 func TestListGitOpsSets(t *testing.T) {
 	ctx := context.Background()
 
-	// setup a fake cluster with fake objects and give us a fake client so we can query it.
-	client, k8s := setup(t)
-
 	obj := &ctrl.GitOpsSet{}
 	obj.Name = "my-obj"
-	obj.Namespace = "default"
+	obj.Namespace = "namespace-a-1"
 
-	assert.NoError(t, k8s.Create(ctx, obj))
+	clusterClients := map[string]client.Client{
+		"management": createClient(t, obj),
+	}
+	client := setup(t, clusterClients)
 
 	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
 	assert.NoError(t, err)
@@ -66,29 +65,31 @@ func TestListGitOpsSets(t *testing.T) {
 
 	o := res.Gitopssets[0]
 
-	assert.Equal(t, o.ClusterName, "Default")
+	assert.Equal(t, o.ClusterName, "management")
 	assert.Equal(t, o.Name, obj.Name)
 	assert.Equal(t, o.Namespace, obj.Namespace)
 }
 
 func TestSuspendGitOpsSet(t *testing.T) {
 	ctx := context.Background()
-	client, k8s := setup(t)
 
 	obj := &ctrl.GitOpsSet{}
 	obj.Name = "my-obj"
-	obj.Namespace = "default"
+	obj.Namespace = "namespace-a-1"
 	obj.Spec = ctrl.GitOpsSetSpec{
 		Suspend: false,
 	}
-
-	assert.NoError(t, k8s.Create(ctx, obj))
+	k8s := createClient(t, obj)
+	clusterClients := map[string]client.Client{
+		"management": k8s,
+	}
+	client := setup(t, clusterClients)
 
 	// no kind is registered for the type v1alpha1.GitOpsSet in scheme "pkg/runtime/scheme.go:100" - how do we create objects in the absence of k8s?
 	_, err := client.ToggleSuspendGitOpsSet(ctx, &pb.ToggleSuspendGitOpsSetRequest{
 		Name:        obj.Name,
 		Namespace:   obj.Namespace,
-		ClusterName: "Default",
+		ClusterName: "management",
 		Suspend:     true,
 	})
 	assert.NoError(t, err)
@@ -106,12 +107,15 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, k := setup(t)
-
 	gsName := "my-gs"
-	ns1 := newNamespace(ctx, k, g)
+	ns1 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "namespace-a-1",
+		},
+	}
 
-	reconciledObjs := []client.Object{
+	reconciledObjs := []runtime.Object{
+		ns1,
 		&appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				UID:       "abc",
@@ -161,9 +165,11 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 	}
 
-	for _, obj := range reconciledObjs {
-		g.Expect(k.Create(ctx, obj)).Should(Succeed())
+	k8s := createClient(t, reconciledObjs...)
+	clusterClients := map[string]client.Client{
+		"management": k8s,
 	}
+	c := setup(t, clusterClients)
 
 	type objectAssertion struct {
 		kind string
@@ -185,11 +191,11 @@ func TestGetReconciledObjects(t *testing.T) {
 			expectedObjects: []objectAssertion{
 				{
 					kind: "Deployment",
-					name: reconciledObjs[0].GetName(),
+					name: "my-deployment",
 				},
 				{
 					kind: "ConfigMap",
-					name: reconciledObjs[1].GetName(),
+					name: "my-configmap",
 				},
 			},
 		},
@@ -208,7 +214,7 @@ func TestGetReconciledObjects(t *testing.T) {
 					{Group: appsv1.SchemeGroupVersion.Group, Version: appsv1.SchemeGroupVersion.Version, Kind: "Deployment"},
 					{Group: corev1.SchemeGroupVersion.Group, Version: corev1.SchemeGroupVersion.Version, Kind: "ConfigMap"},
 				},
-				ClusterName: cluster.DefaultCluster,
+				ClusterName: "management",
 			})
 
 			fmt.Println(res.Objects)
@@ -234,57 +240,53 @@ func TestGetReconciledObjects(t *testing.T) {
 	}
 }
 
-func setup(t *testing.T) (pb.GitOpsSetsClient, client.Client) {
-	k8s, factory := grpctesting.MakeFactoryWithObjects()
-	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
-		Namespaces: []*corev1.Namespace{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
-				},
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "Namespace",
-				},
-			},
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-ns",
-				},
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "Namespace",
-				},
-			},
-		},
-	}, kubefakes.NewFakeClientGetter(k8s), &mgmtfetcherfake.FakeAuthClientGetter{})
+func setup(t *testing.T, clusterClients map[string]client.Client) pb.GitOpsSetsClient {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	clientsPool.ClientsReturns(clusterClients)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clusterClients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
+	}
+	namespaces := map[string][]corev1.Namespace{
+		"management": {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "namespace-a-1"}}},
+		"leaf-1":     {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "namespace-x-1"}}},
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, namespaces, logr.Discard())
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+	fakeFactory.GetUserNamespacesReturns(namespaces)
 
 	opts := server.ServerOpts{
-		ClientsFactory:    factory,
-		ManagementFetcher: mgmtFetcher,
-		Cluster:           cluster.DefaultCluster,
+		ClientsFactory: fakeFactory,
 	}
 	srv := server.NewGitOpsSetsServer(opts)
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
 		pb.RegisterGitOpsSetsServer(s, srv)
-	}, WithClientsPoolInterceptor(&auth.UserPrincipal{ID: "bob"}))
-
-	return pb.NewGitOpsSetsClient(conn), k8s
-}
-
-func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
-	ns := &corev1.Namespace{}
-	ns.Name = "kube-test-" + rand.String(5)
-
-	g.Expect(k.Create(ctx, ns)).To(Succeed())
-
-	return ns
-}
-
-func WithClientsPoolInterceptor(user *auth.UserPrincipal) grpc.ServerOption {
-	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		ctx = auth.WithPrincipal(ctx, user)
-		return handler(ctx, req)
 	})
+
+	return pb.NewGitOpsSetsClient(conn)
+}
+
+func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		appsv1.AddToScheme,
+		corev1.AddToScheme,
+		ctrl.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(clusterState...).
+		Build()
+
+	return c
 }

@@ -1,0 +1,59 @@
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: vcluster-template-development
+  namespace: default
+  annotations:
+    templates.weave.works/profiles-enabled: "true"
+    templates.weave.works/add-common-bases: "true"
+spec:
+  description: A simple capv template
+  params:
+    - name: CLUSTER_NAME
+      required: true
+      description: This is used for the cluster naming.
+    - name: NAMESPACE
+      description: Namespace to create the cluster in
+      default: default
+    - name: KUBERNETES_VERSION
+      description: Kubernetes version to use for the cluster
+      options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
+      default: "1.23.3"
+  resourcetemplates:
+    - content:
+        - apiVersion: gitops.weave.works/v1alpha1
+          kind: GitopsCluster
+          metadata:
+            name: "${CLUSTER_NAME}"
+            labels:
+              weave.works/capi: bootstrap
+          spec:
+            capiClusterRef:
+              name: "${CLUSTER_NAME}"
+        - apiVersion: cluster.x-k8s.io/v1beta1
+          kind: Cluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          spec:
+            infrastructureRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+              kind: VCluster
+              name: ${CLUSTER_NAME}
+            controlPlaneRef:
+              apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+              kind: VCluster
+              name: ${CLUSTER_NAME}
+        - apiVersion: infrastructure.cluster.x-k8s.io/v1alpha1
+          kind: VCluster
+          metadata:
+            name: ${CLUSTER_NAME}
+          spec:
+            kubernetesVersion: "${KUBERNETES_VERSION:=}"
+            helmRelease:
+              values: |
+                syncer:
+                  extraArgs:
+                    - "--tls-san=${CLUSTER_NAME}.${NAMESPACE}.svc"
+            controlPlaneEndpoint:
+              host: ${VCLUSTER_HOST:=""}
+              port: ${VCLUSTER_PORT:=0}

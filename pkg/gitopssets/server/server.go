@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"sync"
 
@@ -12,7 +13,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/internal/convert"
@@ -23,8 +23,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8s_json "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"k8s.io/apimachinery/pkg/types"
@@ -38,21 +38,14 @@ var (
 
 type ServerOpts struct {
 	logr.Logger
-	ClustersManager   clustersmngr.ClustersManager
-	ClientsFactory    clustersmngr.ClustersManager
-	ManagementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
-	Scheme            *k8sruntime.Scheme
-	Cluster           string
+	ClientsFactory clustersmngr.ClustersManager
 }
 
 type server struct {
 	pb.UnimplementedGitOpsSetsServer
 
-	log               logr.Logger
-	clients           clustersmngr.ClustersManager
-	managementFetcher *mgmtfetcher.ManagementCrossNamespacesFetcher
-	scheme            *k8sruntime.Scheme
-	cluster           string
+	log     logr.Logger
+	clients clustersmngr.ClustersManager
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -63,42 +56,87 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error 
 
 func NewGitOpsSetsServer(opts ServerOpts) pb.GitOpsSetsServer {
 	return &server{
-		log:               opts.Logger,
-		clients:           opts.ClientsFactory,
-		managementFetcher: opts.ManagementFetcher,
-		scheme:            opts.Scheme,
-		cluster:           opts.Cluster,
+		log:     opts.Logger,
+		clients: opts.ClientsFactory,
 	}
 }
 
 func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsRequest) (*pb.ListGitOpsSetsResponse, error) {
-	gitopsSets := []*pb.GitOpsSet{}
-	errors := []*pb.GitOpsSetListError{}
+	respErrors := []*pb.GitOpsSetListError{}
 
-	namespacedLists, err := s.managementFetcher.Fetch(ctx, "GitOpsSet", func() client.ObjectList {
+	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &pb.GitOpsSetListError{
+						ClusterName: cerr.ClusterName,
+						Message:     cerr.Error(),
+					})
+				}
+			}
+		} else {
+			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
+		}
+	}
+
+	gitopsSets, gitopsSetsListErrors, err := s.listGitopsSets(ctx, clustersClient)
+	if err != nil {
+		return nil, fmt.Errorf("listing gitops sets: %w", err)
+	}
+
+	response := pb.ListGitOpsSetsResponse{
+		Errors:     respErrors,
+		Gitopssets: gitopsSets,
+	}
+
+	response.Errors = append(response.Errors, gitopsSetsListErrors...)
+	return &response, nil
+}
+
+func (s *server) listGitopsSets(ctx context.Context, cl clustersmngr.Client) ([]*pb.GitOpsSet, []*pb.GitOpsSetListError, error) {
+	list := clustersmngr.NewClusteredList(func() client.ObjectList {
 		return &ctrl.GitOpsSetList{}
 	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to query gitopssets: %w", err)
-	}
 
-	for _, namespacedList := range namespacedLists {
-		if namespacedList.Error != nil {
-			errors = append(errors, &pb.GitOpsSetListError{
-				Namespace: namespacedList.Namespace,
-				Message:   namespacedList.Error.Error(),
+	listErrors := []*pb.GitOpsSetListError{}
+	if err := cl.ClusteredList(ctx, list, true); err != nil {
+		var errs clustersmngr.ClusteredListError
+
+		if !errors.As(err, &errs) {
+			return nil, nil, fmt.Errorf("converting to ClusteredListError: %w", errs)
+		}
+
+		for _, e := range errs.Errors {
+			if apimeta.IsNoMatchError(e.Err) {
+				// Skip reporting an error if a leaf cluster does not have the gitopssets CRD installed.
+				s.log.Info("gitopssets crd not present on cluster, skipping error", "cluster", e.Cluster)
+				continue
+			}
+
+			listErrors = append(listErrors, &pb.GitOpsSetListError{
+				ClusterName: e.Cluster,
+				Message:     e.Err.Error(),
 			})
 		}
-		gsList := namespacedList.List.(*ctrl.GitOpsSetList)
-		for _, gs := range gsList.Items {
-			gitopsSets = append(gitopsSets, convert.GitOpsToProto(s.cluster, gs))
+	}
+
+	gitopsSets := []*pb.GitOpsSet{}
+	for clusterName, objs := range list.Lists() {
+		for i := range objs {
+			// TODO: why do we need this?
+			obj, ok := objs[i].(*ctrl.GitOpsSetList)
+			if !ok {
+				continue
+			}
+
+			for _, es := range obj.Items {
+				gitopsSets = append(gitopsSets, convert.GitOpsToProto(clusterName, es))
+			}
 		}
 	}
 
-	return &pb.ListGitOpsSetsResponse{
-		Gitopssets: gitopsSets,
-		Errors:     errors,
-	}, nil
+	return gitopsSets, listErrors, nil
 }
 
 func (s *server) GetGitOpsSet(ctx context.Context, msg *pb.GetGitOpsSetRequest) (*pb.GetGitOpsSetResponse, error) {
