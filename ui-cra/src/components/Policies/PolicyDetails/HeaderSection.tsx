@@ -1,14 +1,14 @@
-import { Policy } from '../../../cluster-services/cluster_services.pb';
-import Severity from '../Severity';
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
+import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { usePolicyStyle } from '../PolicyStyles';
-import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
-import {  useFeatureFlags } from '@weaveworks/weave-gitops';
-import Mode from '../Mode';
+import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
+import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
+import Mode from '../Mode';
+import { usePolicyStyle } from '../PolicyStyles';
+import Severity from '../Severity';
 
 function HeaderSection({
   id,
@@ -24,8 +24,7 @@ function HeaderSection({
   modes,
 }: Policy) {
   const classes = usePolicyStyle();
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -33,12 +32,12 @@ function HeaderSection({
     },
     {
       rowkey: 'Cluster',
-      value: <ClusterDashboardLink clusterName={clusterName || ''}/>,
+      value: <ClusterDashboardLink clusterName={clusterName || ''} />,
     },
     {
       rowkey: 'Tenant',
       value: tenant,
-      hidden: flags.WEAVE_GITOPS_FEATURE_TENANCY !== 'true',
+      hidden: isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY'),
     },
     {
       rowkey: 'Tags',

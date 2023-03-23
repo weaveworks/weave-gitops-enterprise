@@ -5,7 +5,6 @@ import {
   NavItem,
   V2Routes
 } from '@weaveworks/weave-gitops';
-import { FeatureFlags } from '@weaveworks/weave-gitops/ui/hooks/featureflags';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
@@ -69,7 +68,7 @@ function getParentNavRouteValueExtended(
   }
 }
 
-function getNavItems(flagsRes: FeatureFlags): NavItem[] {
+function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
   return [
     {
       label: 'Platform',
@@ -88,7 +87,7 @@ function getNavItems(flagsRes: FeatureFlags): NavItem[] {
       label: 'Terraform',
       link: { value: Routes.TerraformObjects },
       icon: IconType.TerraformIcon,
-      disabled: !flagsRes.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+      disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_TERRAFORM_UI'),
     },
     {
       label: 'Secrets',
@@ -117,7 +116,7 @@ function getNavItems(flagsRes: FeatureFlags): NavItem[] {
       label: 'Pipelines',
       link: { value: Routes.Pipelines },
       icon: IconType.PipelinesIcon,
-      disabled: !flagsRes.WEAVE_GITOPS_FEATURE_PIPELINES,
+      disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_PIPELINES'),
     },
     {
       label: 'Delivery ',
@@ -179,8 +178,8 @@ const NavContainer = styled.div`
 const Navigation: FC = () => {
   const [collapsed, setCollapsed] = useState(false);
 
-  const { data } = useFeatureFlags();
-  const navItems = useMemo(() => getNavItems(data?.flags || {}), [data]);
+  const { isFlagEnabled } = useFeatureFlags();
+  const navItems = useMemo(() => getNavItems(isFlagEnabled), [isFlagEnabled]);
 
   const currentPage = useLocation();
   const routeValue = getParentNavRouteValueExtended(
