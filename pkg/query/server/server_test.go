@@ -26,22 +26,24 @@ func TestServer_StoreObjects(t *testing.T) {
 		errPattern string
 	}{
 		{
-			name: "cannot store object for empty objects",
+			name: "can store object for empty objects",
 			request: &pb.StoreObjectsRequest{
 				Objects: []*pb.Object{},
 			},
-			errPattern: "empty slice found",
+			errPattern: "",
 		},
 		{
 			name: "can store object rule with object",
 			request: &pb.StoreObjectsRequest{
 				Objects: []*pb.Object{
 					{
-						Cluster:   "dev-cluster",
-						Name:      "podinfo",
-						Namespace: "default",
-						Kind:      "HelmRelease",
-						Status:    "released",
+						Cluster:    "dev-cluster",
+						Name:       "podinfo",
+						Namespace:  "default",
+						Kind:       "HelmRelease",
+						Status:     "released",
+						ApiGroup:   "apiGroup",
+						ApiVersion: "apiVersion",
 					},
 				},
 			},

@@ -81,6 +81,16 @@ type FakeRemoteStoreWriter struct {
 	log logr.Logger
 }
 
+func (f FakeRemoteStoreWriter) DeleteRoles(ctx context.Context, roles []models.Role) error {
+	f.log.Info("faked DeleteRoles roles")
+	return nil
+}
+
+func (f FakeRemoteStoreWriter) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	f.log.Info("faked DeleteRoleBindings roles")
+	return nil
+}
+
 func (f FakeRemoteStoreWriter) StoreRoles(ctx context.Context, roles []models.Role) error {
 	f.log.Info("faked store roles")
 	return nil

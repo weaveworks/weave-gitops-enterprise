@@ -235,7 +235,7 @@ func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan
 	return &fakeWatcher{log: log}, nil
 }
 
-func fakeProcessRecordFunc(ctx context.Context, records []models.ObjectTransaction, s store.Store, logger logr.Logger) error {
+func fakeProcessRecordFunc(ctx context.Context, records []models.ObjectTransaction, s store.StoreWriter, logger logr.Logger) error {
 	log.Info("fake process record")
 	return nil
 }
