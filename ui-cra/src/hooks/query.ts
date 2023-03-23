@@ -53,6 +53,7 @@ export function useQueryService(
     {
       keepPreviousData: true,
       retry: false,
+      refetchInterval: 5000,
     },
   );
 }
