@@ -1,6 +1,13 @@
+import { Drawer } from '@material-ui/core';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import { createStyles, makeStyles, Theme } from '@material-ui/core/styles';
-import { AuthCheck, SignIn } from '@weaveworks/weave-gitops';
+import {
+  AppContext,
+  AuthCheck,
+  DetailModal,
+  SignIn,
+} from '@weaveworks/weave-gitops';
+import { useContext } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
 import { ListConfigProvider, VersionProvider } from '../../contexts/ListConfig';
@@ -46,6 +53,8 @@ const SignInWrapper = styled.div`
 
 const Layout = () => {
   const classes = useStyles();
+  const { appState, setDetailModal } = useContext(AppContext);
+  const detail = appState.detailModal;
   return (
     <Switch>
       <Route
@@ -70,6 +79,19 @@ const Layout = () => {
                     <AppRoutes />
                   </ErrorBoundary>
                 </main>
+                <Drawer
+                  anchor="right"
+                  open={detail ? true : false}
+                  onClose={() => setDetailModal(null)}
+                  ModalProps={{ keepMounted: false }}
+                >
+                  {detail && (
+                    <DetailModal
+                      className={detail.className}
+                      object={detail.object}
+                    />
+                  )}
+                </Drawer>
               </div>
             </VersionProvider>
           </ListConfigProvider>
