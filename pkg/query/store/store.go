@@ -73,7 +73,7 @@ func NewStore(backend StorageBackend, uri string, log logr.Logger) (Store, error
 		if err != nil {
 			return nil, fmt.Errorf("error creating sqlite db: %w", err)
 		}
-		return NewSQLiteStore(db)
+		return NewSQLiteStore(db, log)
 	default:
 		return nil, fmt.Errorf("unknown storage backend: %s", backend)
 	}
@@ -136,18 +136,18 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 
 	// {wego.weave.works: {Application: true, Source: true}}
 	for _, rule := range rules {
-		for _, apiGroup := range strings.Split(rule.APIGroups, ",") {
+		for _, apiGroup := range models.SplitRuleData(rule.APIGroups) {
 
 			if _, ok := derivedAccess[apiGroup]; !ok {
 				derivedAccess[apiGroup] = map[string]bool{}
 			}
 
-			rList := strings.Split(rule.Resources, ",")
+			rList := models.SplitRuleData(rule.Resources)
 			if models.ContainsWildcard(rList) {
 				derivedAccess[apiGroup]["*"] = true
 			}
 
-			vList := strings.Split(rule.Verbs, ",")
+			vList := models.SplitRuleData(rule.Verbs)
 			if models.ContainsWildcard(vList) || hasVerbs(vList, requiredVerbs) {
 				for _, resource := range rList {
 					derivedAccess[apiGroup][resource] = true
@@ -166,10 +166,12 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 	}
 
 	return models.AccessRule{
-		Cluster:         clusterName,
-		Namespace:       role.Namespace,
-		AccessibleKinds: accessibleKinds,
-		Subjects:        binding.Subjects,
+		Cluster:           clusterName,
+		Namespace:         role.Namespace,
+		AccessibleKinds:   accessibleKinds,
+		Subjects:          binding.Subjects,
+		ProvidedByRole:    fmt.Sprintf("%s/%s", role.Kind, role.Name),
+		ProvidedByBinding: fmt.Sprintf("%s/%s", binding.Kind, binding.Name),
 	}
 }
 

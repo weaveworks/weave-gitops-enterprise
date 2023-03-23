@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
@@ -274,7 +275,7 @@ func createStore(t *testing.T) (Store, *gorm.DB) {
 	db, err := CreateSQLiteDB(dbDir)
 	g.Expect(err).To(BeNil())
 
-	store, err := NewSQLiteStore(db)
+	store, err := NewSQLiteStore(db, logr.Discard())
 	g.Expect(err).To(BeNil())
 
 	return store, db
