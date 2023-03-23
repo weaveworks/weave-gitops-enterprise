@@ -9,7 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 
-type FakeStoreWriter struct {
+type FakeRemoteStoreWriter struct {
 	DeleteObjectsStub        func(context.Context, []models.Object) error
 	deleteObjectsMutex       sync.RWMutex
 	deleteObjectsArgsForCall []struct {
@@ -45,6 +45,16 @@ type FakeStoreWriter struct {
 	}
 	deleteRolesReturnsOnCall map[int]struct {
 		result1 error
+	}
+	GetUrlStub        func() string
+	getUrlMutex       sync.RWMutex
+	getUrlArgsForCall []struct {
+	}
+	getUrlReturns struct {
+		result1 string
+	}
+	getUrlReturnsOnCall map[int]struct {
+		result1 string
 	}
 	StoreObjectsStub        func(context.Context, []models.Object) error
 	storeObjectsMutex       sync.RWMutex
@@ -86,7 +96,7 @@ type FakeStoreWriter struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeStoreWriter) DeleteObjects(arg1 context.Context, arg2 []models.Object) error {
+func (fake *FakeRemoteStoreWriter) DeleteObjects(arg1 context.Context, arg2 []models.Object) error {
 	var arg2Copy []models.Object
 	if arg2 != nil {
 		arg2Copy = make([]models.Object, len(arg2))
@@ -111,26 +121,26 @@ func (fake *FakeStoreWriter) DeleteObjects(arg1 context.Context, arg2 []models.O
 	return fakeReturns.result1
 }
 
-func (fake *FakeStoreWriter) DeleteObjectsCallCount() int {
+func (fake *FakeRemoteStoreWriter) DeleteObjectsCallCount() int {
 	fake.deleteObjectsMutex.RLock()
 	defer fake.deleteObjectsMutex.RUnlock()
 	return len(fake.deleteObjectsArgsForCall)
 }
 
-func (fake *FakeStoreWriter) DeleteObjectsCalls(stub func(context.Context, []models.Object) error) {
+func (fake *FakeRemoteStoreWriter) DeleteObjectsCalls(stub func(context.Context, []models.Object) error) {
 	fake.deleteObjectsMutex.Lock()
 	defer fake.deleteObjectsMutex.Unlock()
 	fake.DeleteObjectsStub = stub
 }
 
-func (fake *FakeStoreWriter) DeleteObjectsArgsForCall(i int) (context.Context, []models.Object) {
+func (fake *FakeRemoteStoreWriter) DeleteObjectsArgsForCall(i int) (context.Context, []models.Object) {
 	fake.deleteObjectsMutex.RLock()
 	defer fake.deleteObjectsMutex.RUnlock()
 	argsForCall := fake.deleteObjectsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStoreWriter) DeleteObjectsReturns(result1 error) {
+func (fake *FakeRemoteStoreWriter) DeleteObjectsReturns(result1 error) {
 	fake.deleteObjectsMutex.Lock()
 	defer fake.deleteObjectsMutex.Unlock()
 	fake.DeleteObjectsStub = nil
@@ -139,7 +149,7 @@ func (fake *FakeStoreWriter) DeleteObjectsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) DeleteObjectsReturnsOnCall(i int, result1 error) {
+func (fake *FakeRemoteStoreWriter) DeleteObjectsReturnsOnCall(i int, result1 error) {
 	fake.deleteObjectsMutex.Lock()
 	defer fake.deleteObjectsMutex.Unlock()
 	fake.DeleteObjectsStub = nil
@@ -153,7 +163,7 @@ func (fake *FakeStoreWriter) DeleteObjectsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) DeleteRoleBindings(arg1 context.Context, arg2 []models.RoleBinding) error {
+func (fake *FakeRemoteStoreWriter) DeleteRoleBindings(arg1 context.Context, arg2 []models.RoleBinding) error {
 	var arg2Copy []models.RoleBinding
 	if arg2 != nil {
 		arg2Copy = make([]models.RoleBinding, len(arg2))
@@ -178,26 +188,26 @@ func (fake *FakeStoreWriter) DeleteRoleBindings(arg1 context.Context, arg2 []mod
 	return fakeReturns.result1
 }
 
-func (fake *FakeStoreWriter) DeleteRoleBindingsCallCount() int {
+func (fake *FakeRemoteStoreWriter) DeleteRoleBindingsCallCount() int {
 	fake.deleteRoleBindingsMutex.RLock()
 	defer fake.deleteRoleBindingsMutex.RUnlock()
 	return len(fake.deleteRoleBindingsArgsForCall)
 }
 
-func (fake *FakeStoreWriter) DeleteRoleBindingsCalls(stub func(context.Context, []models.RoleBinding) error) {
+func (fake *FakeRemoteStoreWriter) DeleteRoleBindingsCalls(stub func(context.Context, []models.RoleBinding) error) {
 	fake.deleteRoleBindingsMutex.Lock()
 	defer fake.deleteRoleBindingsMutex.Unlock()
 	fake.DeleteRoleBindingsStub = stub
 }
 
-func (fake *FakeStoreWriter) DeleteRoleBindingsArgsForCall(i int) (context.Context, []models.RoleBinding) {
+func (fake *FakeRemoteStoreWriter) DeleteRoleBindingsArgsForCall(i int) (context.Context, []models.RoleBinding) {
 	fake.deleteRoleBindingsMutex.RLock()
 	defer fake.deleteRoleBindingsMutex.RUnlock()
 	argsForCall := fake.deleteRoleBindingsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStoreWriter) DeleteRoleBindingsReturns(result1 error) {
+func (fake *FakeRemoteStoreWriter) DeleteRoleBindingsReturns(result1 error) {
 	fake.deleteRoleBindingsMutex.Lock()
 	defer fake.deleteRoleBindingsMutex.Unlock()
 	fake.DeleteRoleBindingsStub = nil
@@ -206,7 +216,7 @@ func (fake *FakeStoreWriter) DeleteRoleBindingsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) DeleteRoleBindingsReturnsOnCall(i int, result1 error) {
+func (fake *FakeRemoteStoreWriter) DeleteRoleBindingsReturnsOnCall(i int, result1 error) {
 	fake.deleteRoleBindingsMutex.Lock()
 	defer fake.deleteRoleBindingsMutex.Unlock()
 	fake.DeleteRoleBindingsStub = nil
@@ -220,7 +230,7 @@ func (fake *FakeStoreWriter) DeleteRoleBindingsReturnsOnCall(i int, result1 erro
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) DeleteRoles(arg1 context.Context, arg2 []models.Role) error {
+func (fake *FakeRemoteStoreWriter) DeleteRoles(arg1 context.Context, arg2 []models.Role) error {
 	var arg2Copy []models.Role
 	if arg2 != nil {
 		arg2Copy = make([]models.Role, len(arg2))
@@ -245,26 +255,26 @@ func (fake *FakeStoreWriter) DeleteRoles(arg1 context.Context, arg2 []models.Rol
 	return fakeReturns.result1
 }
 
-func (fake *FakeStoreWriter) DeleteRolesCallCount() int {
+func (fake *FakeRemoteStoreWriter) DeleteRolesCallCount() int {
 	fake.deleteRolesMutex.RLock()
 	defer fake.deleteRolesMutex.RUnlock()
 	return len(fake.deleteRolesArgsForCall)
 }
 
-func (fake *FakeStoreWriter) DeleteRolesCalls(stub func(context.Context, []models.Role) error) {
+func (fake *FakeRemoteStoreWriter) DeleteRolesCalls(stub func(context.Context, []models.Role) error) {
 	fake.deleteRolesMutex.Lock()
 	defer fake.deleteRolesMutex.Unlock()
 	fake.DeleteRolesStub = stub
 }
 
-func (fake *FakeStoreWriter) DeleteRolesArgsForCall(i int) (context.Context, []models.Role) {
+func (fake *FakeRemoteStoreWriter) DeleteRolesArgsForCall(i int) (context.Context, []models.Role) {
 	fake.deleteRolesMutex.RLock()
 	defer fake.deleteRolesMutex.RUnlock()
 	argsForCall := fake.deleteRolesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStoreWriter) DeleteRolesReturns(result1 error) {
+func (fake *FakeRemoteStoreWriter) DeleteRolesReturns(result1 error) {
 	fake.deleteRolesMutex.Lock()
 	defer fake.deleteRolesMutex.Unlock()
 	fake.DeleteRolesStub = nil
@@ -273,7 +283,7 @@ func (fake *FakeStoreWriter) DeleteRolesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) DeleteRolesReturnsOnCall(i int, result1 error) {
+func (fake *FakeRemoteStoreWriter) DeleteRolesReturnsOnCall(i int, result1 error) {
 	fake.deleteRolesMutex.Lock()
 	defer fake.deleteRolesMutex.Unlock()
 	fake.DeleteRolesStub = nil
@@ -287,7 +297,60 @@ func (fake *FakeStoreWriter) DeleteRolesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreObjects(arg1 context.Context, arg2 []models.Object) error {
+func (fake *FakeRemoteStoreWriter) GetUrl() string {
+	fake.getUrlMutex.Lock()
+	ret, specificReturn := fake.getUrlReturnsOnCall[len(fake.getUrlArgsForCall)]
+	fake.getUrlArgsForCall = append(fake.getUrlArgsForCall, struct {
+	}{})
+	stub := fake.GetUrlStub
+	fakeReturns := fake.getUrlReturns
+	fake.recordInvocation("GetUrl", []interface{}{})
+	fake.getUrlMutex.Unlock()
+	if stub != nil {
+		return stub()
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeRemoteStoreWriter) GetUrlCallCount() int {
+	fake.getUrlMutex.RLock()
+	defer fake.getUrlMutex.RUnlock()
+	return len(fake.getUrlArgsForCall)
+}
+
+func (fake *FakeRemoteStoreWriter) GetUrlCalls(stub func() string) {
+	fake.getUrlMutex.Lock()
+	defer fake.getUrlMutex.Unlock()
+	fake.GetUrlStub = stub
+}
+
+func (fake *FakeRemoteStoreWriter) GetUrlReturns(result1 string) {
+	fake.getUrlMutex.Lock()
+	defer fake.getUrlMutex.Unlock()
+	fake.GetUrlStub = nil
+	fake.getUrlReturns = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRemoteStoreWriter) GetUrlReturnsOnCall(i int, result1 string) {
+	fake.getUrlMutex.Lock()
+	defer fake.getUrlMutex.Unlock()
+	fake.GetUrlStub = nil
+	if fake.getUrlReturnsOnCall == nil {
+		fake.getUrlReturnsOnCall = make(map[int]struct {
+			result1 string
+		})
+	}
+	fake.getUrlReturnsOnCall[i] = struct {
+		result1 string
+	}{result1}
+}
+
+func (fake *FakeRemoteStoreWriter) StoreObjects(arg1 context.Context, arg2 []models.Object) error {
 	var arg2Copy []models.Object
 	if arg2 != nil {
 		arg2Copy = make([]models.Object, len(arg2))
@@ -312,26 +375,26 @@ func (fake *FakeStoreWriter) StoreObjects(arg1 context.Context, arg2 []models.Ob
 	return fakeReturns.result1
 }
 
-func (fake *FakeStoreWriter) StoreObjectsCallCount() int {
+func (fake *FakeRemoteStoreWriter) StoreObjectsCallCount() int {
 	fake.storeObjectsMutex.RLock()
 	defer fake.storeObjectsMutex.RUnlock()
 	return len(fake.storeObjectsArgsForCall)
 }
 
-func (fake *FakeStoreWriter) StoreObjectsCalls(stub func(context.Context, []models.Object) error) {
+func (fake *FakeRemoteStoreWriter) StoreObjectsCalls(stub func(context.Context, []models.Object) error) {
 	fake.storeObjectsMutex.Lock()
 	defer fake.storeObjectsMutex.Unlock()
 	fake.StoreObjectsStub = stub
 }
 
-func (fake *FakeStoreWriter) StoreObjectsArgsForCall(i int) (context.Context, []models.Object) {
+func (fake *FakeRemoteStoreWriter) StoreObjectsArgsForCall(i int) (context.Context, []models.Object) {
 	fake.storeObjectsMutex.RLock()
 	defer fake.storeObjectsMutex.RUnlock()
 	argsForCall := fake.storeObjectsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStoreWriter) StoreObjectsReturns(result1 error) {
+func (fake *FakeRemoteStoreWriter) StoreObjectsReturns(result1 error) {
 	fake.storeObjectsMutex.Lock()
 	defer fake.storeObjectsMutex.Unlock()
 	fake.StoreObjectsStub = nil
@@ -340,7 +403,7 @@ func (fake *FakeStoreWriter) StoreObjectsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreObjectsReturnsOnCall(i int, result1 error) {
+func (fake *FakeRemoteStoreWriter) StoreObjectsReturnsOnCall(i int, result1 error) {
 	fake.storeObjectsMutex.Lock()
 	defer fake.storeObjectsMutex.Unlock()
 	fake.StoreObjectsStub = nil
@@ -354,7 +417,7 @@ func (fake *FakeStoreWriter) StoreObjectsReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreRoleBindings(arg1 context.Context, arg2 []models.RoleBinding) error {
+func (fake *FakeRemoteStoreWriter) StoreRoleBindings(arg1 context.Context, arg2 []models.RoleBinding) error {
 	var arg2Copy []models.RoleBinding
 	if arg2 != nil {
 		arg2Copy = make([]models.RoleBinding, len(arg2))
@@ -379,26 +442,26 @@ func (fake *FakeStoreWriter) StoreRoleBindings(arg1 context.Context, arg2 []mode
 	return fakeReturns.result1
 }
 
-func (fake *FakeStoreWriter) StoreRoleBindingsCallCount() int {
+func (fake *FakeRemoteStoreWriter) StoreRoleBindingsCallCount() int {
 	fake.storeRoleBindingsMutex.RLock()
 	defer fake.storeRoleBindingsMutex.RUnlock()
 	return len(fake.storeRoleBindingsArgsForCall)
 }
 
-func (fake *FakeStoreWriter) StoreRoleBindingsCalls(stub func(context.Context, []models.RoleBinding) error) {
+func (fake *FakeRemoteStoreWriter) StoreRoleBindingsCalls(stub func(context.Context, []models.RoleBinding) error) {
 	fake.storeRoleBindingsMutex.Lock()
 	defer fake.storeRoleBindingsMutex.Unlock()
 	fake.StoreRoleBindingsStub = stub
 }
 
-func (fake *FakeStoreWriter) StoreRoleBindingsArgsForCall(i int) (context.Context, []models.RoleBinding) {
+func (fake *FakeRemoteStoreWriter) StoreRoleBindingsArgsForCall(i int) (context.Context, []models.RoleBinding) {
 	fake.storeRoleBindingsMutex.RLock()
 	defer fake.storeRoleBindingsMutex.RUnlock()
 	argsForCall := fake.storeRoleBindingsArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStoreWriter) StoreRoleBindingsReturns(result1 error) {
+func (fake *FakeRemoteStoreWriter) StoreRoleBindingsReturns(result1 error) {
 	fake.storeRoleBindingsMutex.Lock()
 	defer fake.storeRoleBindingsMutex.Unlock()
 	fake.StoreRoleBindingsStub = nil
@@ -407,7 +470,7 @@ func (fake *FakeStoreWriter) StoreRoleBindingsReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreRoleBindingsReturnsOnCall(i int, result1 error) {
+func (fake *FakeRemoteStoreWriter) StoreRoleBindingsReturnsOnCall(i int, result1 error) {
 	fake.storeRoleBindingsMutex.Lock()
 	defer fake.storeRoleBindingsMutex.Unlock()
 	fake.StoreRoleBindingsStub = nil
@@ -421,7 +484,7 @@ func (fake *FakeStoreWriter) StoreRoleBindingsReturnsOnCall(i int, result1 error
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreRoles(arg1 context.Context, arg2 []models.Role) error {
+func (fake *FakeRemoteStoreWriter) StoreRoles(arg1 context.Context, arg2 []models.Role) error {
 	var arg2Copy []models.Role
 	if arg2 != nil {
 		arg2Copy = make([]models.Role, len(arg2))
@@ -446,26 +509,26 @@ func (fake *FakeStoreWriter) StoreRoles(arg1 context.Context, arg2 []models.Role
 	return fakeReturns.result1
 }
 
-func (fake *FakeStoreWriter) StoreRolesCallCount() int {
+func (fake *FakeRemoteStoreWriter) StoreRolesCallCount() int {
 	fake.storeRolesMutex.RLock()
 	defer fake.storeRolesMutex.RUnlock()
 	return len(fake.storeRolesArgsForCall)
 }
 
-func (fake *FakeStoreWriter) StoreRolesCalls(stub func(context.Context, []models.Role) error) {
+func (fake *FakeRemoteStoreWriter) StoreRolesCalls(stub func(context.Context, []models.Role) error) {
 	fake.storeRolesMutex.Lock()
 	defer fake.storeRolesMutex.Unlock()
 	fake.StoreRolesStub = stub
 }
 
-func (fake *FakeStoreWriter) StoreRolesArgsForCall(i int) (context.Context, []models.Role) {
+func (fake *FakeRemoteStoreWriter) StoreRolesArgsForCall(i int) (context.Context, []models.Role) {
 	fake.storeRolesMutex.RLock()
 	defer fake.storeRolesMutex.RUnlock()
 	argsForCall := fake.storeRolesArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeStoreWriter) StoreRolesReturns(result1 error) {
+func (fake *FakeRemoteStoreWriter) StoreRolesReturns(result1 error) {
 	fake.storeRolesMutex.Lock()
 	defer fake.storeRolesMutex.Unlock()
 	fake.StoreRolesStub = nil
@@ -474,7 +537,7 @@ func (fake *FakeStoreWriter) StoreRolesReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) StoreRolesReturnsOnCall(i int, result1 error) {
+func (fake *FakeRemoteStoreWriter) StoreRolesReturnsOnCall(i int, result1 error) {
 	fake.storeRolesMutex.Lock()
 	defer fake.storeRolesMutex.Unlock()
 	fake.StoreRolesStub = nil
@@ -488,7 +551,7 @@ func (fake *FakeStoreWriter) StoreRolesReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeStoreWriter) Invocations() map[string][][]interface{} {
+func (fake *FakeRemoteStoreWriter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.deleteObjectsMutex.RLock()
@@ -497,6 +560,8 @@ func (fake *FakeStoreWriter) Invocations() map[string][][]interface{} {
 	defer fake.deleteRoleBindingsMutex.RUnlock()
 	fake.deleteRolesMutex.RLock()
 	defer fake.deleteRolesMutex.RUnlock()
+	fake.getUrlMutex.RLock()
+	defer fake.getUrlMutex.RUnlock()
 	fake.storeObjectsMutex.RLock()
 	defer fake.storeObjectsMutex.RUnlock()
 	fake.storeRoleBindingsMutex.RLock()
@@ -510,7 +575,7 @@ func (fake *FakeStoreWriter) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeStoreWriter) recordInvocation(key string, args []interface{}) {
+func (fake *FakeRemoteStoreWriter) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -522,4 +587,4 @@ func (fake *FakeStoreWriter) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ store.StoreWriter = new(FakeStoreWriter)
+var _ store.RemoteStoreWriter = new(FakeRemoteStoreWriter)
