@@ -23,8 +23,6 @@ spec:
       - envFrom:
           - configMapRef:
               name: {{ include "mccp.fullname" . }}-collector
-        command:
-        - /manager
         image: {{ .Values.images.collector }}
         livenessProbe:
           httpGet:
