@@ -22,6 +22,8 @@ type StoreService interface {
 	StoreRoles(ctx context.Context, roles []models.Role) error
 	StoreObjects(ctx context.Context, objs []models.Object) error
 	DeleteObjects(ctx context.Context, objs []models.Object) error
+	DeleteRoles(ctx context.Context, roles []models.Role) error
+	DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
 }
 
 type QueryServiceOpts struct {
@@ -62,6 +64,22 @@ type qs struct {
 type ss struct {
 	log logr.Logger
 	w   store.StoreWriter
+}
+
+func (s ss) DeleteRoles(ctx context.Context, roles []models.Role) error {
+	err := s.w.DeleteRoles(ctx, roles)
+	if err != nil {
+		return fmt.Errorf("error writting roles to delete: %w", err)
+	}
+	return nil
+}
+
+func (s ss) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	err := s.w.DeleteRoleBindings(ctx, roleBindings)
+	if err != nil {
+		return fmt.Errorf("error writting rolebindings to delete: %w", err)
+	}
+	return nil
 }
 
 func (s ss) DeleteObjects(ctx context.Context, objs []models.Object) error {

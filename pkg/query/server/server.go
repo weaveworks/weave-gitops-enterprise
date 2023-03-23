@@ -120,6 +120,35 @@ func (s *server) DeleteObjects(ctx context.Context, msg *pb.DeleteObjectsRequest
 	return &pb.DeleteObjectsResponse{}, nil
 }
 
+func (s *server) DeleteRoles(ctx context.Context, msg *pb.DeleteRolesRequest) (*pb.DeleteRolesResponse, error) {
+	if len(msg.GetRoles()) == 0 {
+		s.log.Info("ignored delete roles request as empty")
+		return &pb.DeleteRolesResponse{}, nil
+	}
+
+	roles := convertToRoles(msg.GetRoles())
+	err := s.ss.DeleteRoles(ctx, roles)
+	if err != nil {
+		return nil, fmt.Errorf("failed to delete roles: %w", err)
+	}
+	return &pb.DeleteRolesResponse{}, nil
+}
+
+func (s *server) DeleteRoleBindings(ctx context.Context, msg *pb.DeleteRoleBindingsRequest) (*pb.DeleteRoleBindingsResponse, error) {
+	if len(msg.GetRolebindings()) == 0 {
+		s.log.Info("ignored delete rolebindings request as empty")
+		return &pb.DeleteRoleBindingsResponse{}, nil
+	}
+
+	roleBindings := convertToRoleBindings(msg.GetRolebindings())
+	err := s.ss.DeleteRoleBindings(ctx, roleBindings)
+	if err != nil {
+
+		return nil, fmt.Errorf("failed to delete rolebindings: %w", err)
+	}
+	return &pb.DeleteRoleBindingsResponse{}, nil
+}
+
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {

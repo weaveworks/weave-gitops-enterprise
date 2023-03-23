@@ -53,18 +53,30 @@ service Query {
       body: "*"
     };
   }
+  rpc DeleteeRoles(DeleteRolesRequest) returns (DeleteRolesResponse) {
+    option (google.api.http) = {
+      delete: "/v1/query/roles"
+      body: "*"
+    };
+  }
+  rpc DeleteRoleBindings(DeleteRoleBindingsRequest) returns (DeleteRoleBindingsResponse) {
+    option (google.api.http) = {
+      delete: "/v1/query/rolebindings"
+      body: "*"
+    };
+  }
 }
 
 message QueryRequest {
-    repeated QueryClause query = 1;
-    int32 offset  = 2;
-    int32 limit   = 3;
+  repeated QueryClause query = 1;
+  int32 offset = 2;
+  int32 limit = 3;
 }
 
 message QueryClause {
-    string key     = 1;
-    string value   = 2;
-    string operand = 3;
+  string key = 1;
+  string value = 2;
+  string operand = 3;
 }
 
 message QueryResponse {
@@ -158,4 +170,17 @@ message DeleteObjectsRequest {
 }
 
 message DeleteObjectsResponse {
+}
+message DeleteRolesRequest {
+  repeated Role roles = 1;
+}
+
+message DeleteRolesResponse {
+}
+
+message DeleteRoleBindingsRequest {
+  repeated RoleBinding rolebindings = 1;
+}
+
+message DeleteRoleBindingsResponse {
 }

@@ -134,6 +134,36 @@
       }
     },
     "/v1/query/rolebindings": {
+      "delete": {
+        "operationId": "Query_DeleteRoleBindings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteRoleBindingsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DeleteRoleBindingsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      },
       "post": {
         "operationId": "Query_StoreRoleBindings",
         "responses": {
@@ -166,6 +196,36 @@
       }
     },
     "/v1/query/roles": {
+      "delete": {
+        "operationId": "Query_DeleteeRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DeleteRolesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      },
       "post": {
         "operationId": "Query_StoreRoles",
         "responses": {
@@ -275,6 +335,34 @@
       }
     },
     "v1DeleteObjectsResponse": {
+      "type": "object"
+    },
+    "v1DeleteRoleBindingsRequest": {
+      "type": "object",
+      "properties": {
+        "rolebindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1RoleBinding"
+          }
+        }
+      }
+    },
+    "v1DeleteRoleBindingsResponse": {
+      "type": "object"
+    },
+    "v1DeleteRolesRequest": {
+      "type": "object",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Role"
+          }
+        }
+      }
+    },
+    "v1DeleteRolesResponse": {
       "type": "object"
     },
     "v1Object": {

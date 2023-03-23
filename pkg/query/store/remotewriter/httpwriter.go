@@ -17,6 +17,66 @@ type httpRemoteStore struct {
 	log   logr.Logger
 }
 
+// TODO add test
+func (h httpRemoteStore) DeleteRoles(ctx context.Context, roles []models.Role) error {
+	deleteRolesPath := "v1/query/roles"
+	deleteRolesUrl := fmt.Sprintf("%s/%s", h.url, deleteRolesPath)
+
+	req := &pb.DeleteRolesRequest{
+		Roles: convertToPbRole(roles),
+	}
+
+	bodyAsJson, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed json marshalling: %w", err)
+	}
+	request, err := http.NewRequest("DELETE", deleteRolesUrl, bytes.NewBuffer(bodyAsJson))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	request.Header.Set("Cookie", fmt.Sprintf("id_token=%s", h.token))
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed http request: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != 200 {
+		return fmt.Errorf(fmt.Sprintf("response error: %s", response.Status))
+	}
+
+	return nil
+}
+
+// TODO add test
+func (h httpRemoteStore) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	deleteRoleBindingsPath := "v1/query/rolebindings"
+	deleteRolesBindingUrl := fmt.Sprintf("%s/%s", h.url, deleteRoleBindingsPath)
+
+	req := &pb.DeleteRoleBindingsRequest{
+		Rolebindings: convertToPbRoleBinding(roleBindings),
+	}
+
+	bodyAsJson, err := json.Marshal(req)
+	if err != nil {
+		return fmt.Errorf("failed json marshalling: %w", err)
+	}
+	request, err := http.NewRequest("DELETE", deleteRolesBindingUrl, bytes.NewBuffer(bodyAsJson))
+	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+	request.Header.Set("Cookie", fmt.Sprintf("id_token=%s", h.token))
+
+	client := &http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		return fmt.Errorf("failed http request: %w", err)
+	}
+	defer response.Body.Close()
+	if response.StatusCode != 200 {
+		return fmt.Errorf(fmt.Sprintf("response error: %s", response.Status))
+	}
+
+	return nil
+}
+
 // TODO refactor and make it more reliable, timeouts, retries!
 func (h httpRemoteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
 	storeRolesPath := "v1/query/roles"

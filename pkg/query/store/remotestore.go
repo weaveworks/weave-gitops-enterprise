@@ -20,6 +20,22 @@ type RemoteStore struct {
 	storeWriter RemoteStoreWriter
 }
 
+func (r RemoteStore) DeleteRoles(ctx context.Context, roles []models.Role) error {
+	err := r.storeWriter.DeleteRoles(ctx, roles)
+	if err != nil {
+		return fmt.Errorf("cannot remote store roles: %w", err)
+	}
+	return nil
+}
+
+func (r RemoteStore) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	err := r.storeWriter.DeleteRoleBindings(ctx, roleBindings)
+	if err != nil {
+		return fmt.Errorf("cannot remote store roles: %w", err)
+	}
+	return nil
+}
+
 func (r RemoteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
 	err := r.storeWriter.StoreRoles(ctx, roles)
 	if err != nil {

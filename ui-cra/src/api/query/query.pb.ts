@@ -108,6 +108,20 @@ export type DeleteObjectsRequest = {
 export type DeleteObjectsResponse = {
 }
 
+export type DeleteRolesRequest = {
+  roles?: Role[]
+}
+
+export type DeleteRolesResponse = {
+}
+
+export type DeleteRoleBindingsRequest = {
+  rolebindings?: RoleBinding[]
+}
+
+export type DeleteRoleBindingsResponse = {
+}
+
 export class Query {
   static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
     return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req)})
@@ -126,5 +140,11 @@ export class Query {
   }
   static DeleteObjects(req: DeleteObjectsRequest, initReq?: fm.InitReq): Promise<DeleteObjectsResponse> {
     return fm.fetchReq<DeleteObjectsRequest, DeleteObjectsResponse>(`/v1/query/objects`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
+  }
+  static DeleteeRoles(req: DeleteRolesRequest, initReq?: fm.InitReq): Promise<DeleteRolesResponse> {
+    return fm.fetchReq<DeleteRolesRequest, DeleteRolesResponse>(`/v1/query/roles`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
+  }
+  static DeleteRoleBindings(req: DeleteRoleBindingsRequest, initReq?: fm.InitReq): Promise<DeleteRoleBindingsResponse> {
+    return fm.fetchReq<DeleteRoleBindingsRequest, DeleteRoleBindingsResponse>(`/v1/query/rolebindings`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
   }
 }

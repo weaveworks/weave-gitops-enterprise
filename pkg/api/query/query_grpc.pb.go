@@ -24,6 +24,8 @@ type QueryClient interface {
 	StoreRoleBindings(ctx context.Context, in *StoreRoleBindingsRequest, opts ...grpc.CallOption) (*StoreRoleBindingsResponse, error)
 	StoreObjects(ctx context.Context, in *StoreObjectsRequest, opts ...grpc.CallOption) (*StoreObjectsResponse, error)
 	DeleteObjects(ctx context.Context, in *DeleteObjectsRequest, opts ...grpc.CallOption) (*DeleteObjectsResponse, error)
+	DeleteeRoles(ctx context.Context, in *DeleteRolesRequest, opts ...grpc.CallOption) (*DeleteRolesResponse, error)
+	DeleteRoleBindings(ctx context.Context, in *DeleteRoleBindingsRequest, opts ...grpc.CallOption) (*DeleteRoleBindingsResponse, error)
 }
 
 type queryClient struct {
@@ -88,6 +90,24 @@ func (c *queryClient) DeleteObjects(ctx context.Context, in *DeleteObjectsReques
 	return out, nil
 }
 
+func (c *queryClient) DeleteeRoles(ctx context.Context, in *DeleteRolesRequest, opts ...grpc.CallOption) (*DeleteRolesResponse, error) {
+	out := new(DeleteRolesResponse)
+	err := c.cc.Invoke(ctx, "/query.v1.Query/DeleteeRoles", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *queryClient) DeleteRoleBindings(ctx context.Context, in *DeleteRoleBindingsRequest, opts ...grpc.CallOption) (*DeleteRoleBindingsResponse, error) {
+	out := new(DeleteRoleBindingsResponse)
+	err := c.cc.Invoke(ctx, "/query.v1.Query/DeleteRoleBindings", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -98,6 +118,8 @@ type QueryServer interface {
 	StoreRoleBindings(context.Context, *StoreRoleBindingsRequest) (*StoreRoleBindingsResponse, error)
 	StoreObjects(context.Context, *StoreObjectsRequest) (*StoreObjectsResponse, error)
 	DeleteObjects(context.Context, *DeleteObjectsRequest) (*DeleteObjectsResponse, error)
+	DeleteeRoles(context.Context, *DeleteRolesRequest) (*DeleteRolesResponse, error)
+	DeleteRoleBindings(context.Context, *DeleteRoleBindingsRequest) (*DeleteRoleBindingsResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -122,6 +144,12 @@ func (UnimplementedQueryServer) StoreObjects(context.Context, *StoreObjectsReque
 }
 func (UnimplementedQueryServer) DeleteObjects(context.Context, *DeleteObjectsRequest) (*DeleteObjectsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteObjects not implemented")
+}
+func (UnimplementedQueryServer) DeleteeRoles(context.Context, *DeleteRolesRequest) (*DeleteRolesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteeRoles not implemented")
+}
+func (UnimplementedQueryServer) DeleteRoleBindings(context.Context, *DeleteRoleBindingsRequest) (*DeleteRoleBindingsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteRoleBindings not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -244,6 +272,42 @@ func _Query_DeleteObjects_Handler(srv interface{}, ctx context.Context, dec func
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_DeleteeRoles_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRolesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).DeleteeRoles(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/query.v1.Query/DeleteeRoles",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).DeleteeRoles(ctx, req.(*DeleteRolesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Query_DeleteRoleBindings_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteRoleBindingsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).DeleteRoleBindings(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/query.v1.Query/DeleteRoleBindings",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).DeleteRoleBindings(ctx, req.(*DeleteRoleBindingsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -274,6 +338,14 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteObjects",
 			Handler:    _Query_DeleteObjects_Handler,
+		},
+		{
+			MethodName: "DeleteeRoles",
+			Handler:    _Query_DeleteeRoles_Handler,
+		},
+		{
+			MethodName: "DeleteRoleBindings",
+			Handler:    _Query_DeleteRoleBindings_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
