@@ -35,9 +35,6 @@ export function useListConfig() {
       gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
         const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         setProvider(res.provider || '');
-        console.log(res);
-        console.log(resource, full_name, protocol);
-
         switch (res.provider) {
           case 'GitHub':
             setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
