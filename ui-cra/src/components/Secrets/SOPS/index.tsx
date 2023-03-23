@@ -27,56 +27,9 @@ import {
   getFormattedPayload,
   scrollToAlertSection,
   handelError,
+  getInitialData,
+  SOPS,
 } from './utils';
-
-export enum SecretDataType {
-  value,
-  KeyValue,
-}
-export interface SOPS {
-  clusterName: string;
-  secretName: string;
-  secretNamespace: string;
-  encryptionType: string;
-  kustomization: string;
-  secretData: { key: string; value: string }[];
-  secretValue: string;
-  repo: string | null | GitRepository;
-  provider: string;
-  branchName: string;
-  pullRequestTitle: string;
-  commitMessage: string;
-  pullRequestDescription: string;
-  secretType: SecretDataType;
-}
-function getInitialData(
-  callbackState: { state: { formData: SOPS } } | null,
-  random: string,
-) {
-  let defaultFormData = {
-    repo: null,
-    provider: '',
-    branchName: `add-SOPS-secret-branch-${random}`,
-    pullRequestTitle: 'Add SOPS Secret',
-    commitMessage: 'Add SOPS Secret',
-    pullRequestDescription: 'This PR adds a new SOPS Secret',
-    clusterName: '',
-    secretName: '',
-    secretNamespace: '',
-    encryptionType: 'GPG/AGE',
-    kustomization: '',
-    secretData: [{ key: '', value: '' }],
-    secretValue: '',
-    secretType: SecretDataType.value,
-  };
-
-  const initialFormData = {
-    ...defaultFormData,
-    ...callbackState?.state?.formData,
-  };
-
-  return { initialFormData };
-}
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();

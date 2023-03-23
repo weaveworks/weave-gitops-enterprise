@@ -5,7 +5,7 @@ import {
   RadioGroup,
 } from '@material-ui/core';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { SecretDataType, SOPS } from '.';
+import { SecretDataType, SOPS } from './utils';
 import InputDebounced from './InputDebounced';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 

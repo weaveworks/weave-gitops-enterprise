@@ -1,7 +1,6 @@
 import { MenuItem } from '@material-ui/core';
 import { useListKustomizationSOPS } from '../../../hooks/listObjects';
 import { Select } from '../../../utils/form';
-import { Tooltip } from '../../Shared';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ListKustomizations = ({

@@ -1,7 +1,6 @@
 import { CircularProgress } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
-import { SOPS } from '.';
 import useNotifications from '../../../contexts/Notifications';
 import { SecretPRPreview } from '../../../types/custom';
 import {
@@ -10,7 +9,7 @@ import {
 } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
 import { PreviewPRSection } from './styles';
-import { getFormattedPayload, handelError } from './utils';
+import { getFormattedPayload, handelError, SOPS } from './utils';
 
 export const PreviewModal = ({ formData }: { formData: SOPS }) => {
   const [openPreview, setOpenPreview] = useState(false);
