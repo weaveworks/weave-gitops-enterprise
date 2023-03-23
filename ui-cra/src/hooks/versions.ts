@@ -35,12 +35,23 @@ export function useListConfig() {
       gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
         const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
         setProvider(res.provider || '');
-        if (res.provider === 'GitHub') {
-          setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
-        } else if (res.provider === 'GitLab') {
-          setRepoLink(
-            `${protocol}://${resource}/${full_name}/-/merge_requests`,
-          );
+        console.log(res);
+        console.log(resource, full_name, protocol);
+
+        switch (res.provider) {
+          case 'GitHub':
+            setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
+            break;
+          case 'GitLab':
+            setRepoLink(
+              `${protocol}://${resource}/${full_name}/-/merge_requests`,
+            );
+            break;
+          case 'AzureDevOps':
+            setRepoLink(`${protocol}://${resource}/${full_name}/pullrequests`);
+            break;
+          default:
+            break;
         }
       });
   }, [repositoryURL, gitAuthClient]);
