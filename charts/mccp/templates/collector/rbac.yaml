@@ -19,7 +19,7 @@ rules:
   - apiGroups: [""]
     resources: ["secrets"]
     # read to read capi secrets like kubeconfig
-    verbs: ["create", "get", "watch", "list"]
+    verbs: ["get", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
