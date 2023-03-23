@@ -65,18 +65,12 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			objectGVK := object.GroupVersionKind()
 
 			if strings.Contains(ruleKind, "*") {
-				fmt.Printf("princial %s has access (*) to %s via rule %s (%s)\n", user.ID, objectGVK, rule.ProvidedByRole, gvk)
 				// If the rule contains a wildcard, then the user has access to all kinds.
 				return true, nil
 			}
 
-			if ruleKind == "HelmRelease" {
-				fmt.Printf("found rule for HR: %s\n", rule.ProvidedByRole)
-			}
-
 			// Check for an exact group/version/kind match.
 			if gvk == objectGVK {
-				fmt.Printf("princial %s has access to %s via rule %s\n", user.ID, objectGVK, rule.ProvidedByRole)
 				return true, nil
 			}
 		}
