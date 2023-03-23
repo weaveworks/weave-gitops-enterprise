@@ -27,6 +27,8 @@ export type Object = {
   kind?: string
   name?: string
   status?: string
+  apiGroup?: string
+  apiVersion?: string
 }
 
 export type DebugGetAccessRulesRequest = {
@@ -42,6 +44,8 @@ export type AccessRule = {
   namespace?: string
   accessibleKinds?: string[]
   subjects?: Subject[]
+  providedByRole?: string
+  providedByBinding?: string
 }
 
 export type Subject = {

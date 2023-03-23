@@ -156,11 +156,13 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 
 	for _, o := range obj {
 		pbObjects = append(pbObjects, &pb.Object{
-			Kind:      o.Kind,
-			Name:      o.Name,
-			Namespace: o.Namespace,
-			Cluster:   o.Cluster,
-			Status:    o.Status,
+			Kind:       o.Kind,
+			Name:       o.Name,
+			Namespace:  o.Namespace,
+			Cluster:    o.Cluster,
+			Status:     o.Status,
+			ApiGroup:   o.APIGroup,
+			ApiVersion: o.APIVersion,
 		})
 	}
 
@@ -172,9 +174,12 @@ func convertToPbAccessRule(rules []models.AccessRule) []*pb.AccessRule {
 
 	for _, r := range rules {
 		rule := &pb.AccessRule{
-			Namespace:       r.Namespace,
-			Cluster:         r.Cluster,
-			AccessibleKinds: []string{},
+			Namespace:         r.Namespace,
+			Cluster:           r.Cluster,
+			AccessibleKinds:   []string{},
+			Subjects:          []*pb.Subject{},
+			ProvidedByRole:    r.ProvidedByRole,
+			ProvidedByBinding: r.ProvidedByBinding,
 		}
 
 		for _, s := range r.Subjects {

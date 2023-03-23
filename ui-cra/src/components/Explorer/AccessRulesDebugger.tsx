@@ -22,10 +22,19 @@ function AccessRulesDebugger({ className }: Props) {
           },
           {
             label: 'Accessible Kinds',
-            value: (r: AccessRule) => r?.accessibleKinds?.join(', ') || null,
+            value: (r: AccessRule) =>
+              r?.accessibleKinds?.sort().join(', ') || null,
+          },
+          {
+            label: 'Role',
+            value: 'providedByRole',
+          },
+          {
+            label: 'Binding',
+            value: 'providedByBinding',
           },
         ]}
-        rows={rules?.rules}
+        rows={_.sortBy(rules?.rules, 'providedByRole')}
       />
     </div>
   );

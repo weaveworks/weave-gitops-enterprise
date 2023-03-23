@@ -123,6 +123,12 @@
           "items": {
             "$ref": "#/definitions/v1Subject"
           }
+        },
+        "providedByRole": {
+          "type": "string"
+        },
+        "providedByBinding": {
+          "type": "string"
         }
       }
     },
@@ -153,6 +159,12 @@
           "type": "string"
         },
         "status": {
+          "type": "string"
+        },
+        "apiGroup": {
+          "type": "string"
+        },
+        "apiVersion": {
           "type": "string"
         }
       }
