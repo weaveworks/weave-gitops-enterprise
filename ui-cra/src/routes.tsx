@@ -49,7 +49,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import PolicyConfigsList from './components/PolicyConfigs';
-import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails'
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import GitopsSets from './components/GitopsSets';
 import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import WGUserInfo from './components/UserInfo';
@@ -294,9 +294,14 @@ const AppRoutes = () => {
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
-      <Route exact path={Routes.CreateSecret} component={CreateSOPS} />
+      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
+      <Route
+        exact
+        path={Routes.PolicyConfigsDetails}
+        component={withSearchParams(PolicyConfigsDetails)}
+      />
 
       <Route
         path={Routes.TerraformDetail}

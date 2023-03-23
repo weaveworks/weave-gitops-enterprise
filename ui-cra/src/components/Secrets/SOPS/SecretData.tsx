@@ -29,12 +29,7 @@ const SecretData = ({
   };
 
   return (
-    <div className="group-section">
-      <h2>Secret Data</h2>
-      <p className="secret-data-hint">
-        Please note that we will encode the secret values to base64 before
-        encryption
-      </p>
+    <>
       <div className="form-group">
         <FormControl>
           <RadioGroup
@@ -42,7 +37,9 @@ const SecretData = ({
             aria-labelledby="demo-controlled-radio-buttons-group"
             name="controlled-radio-buttons-group"
             value={formData.secretType}
-            onChange={event => handleFormData(event.target.value, 'secretType')}
+            onChange={event =>
+              handleFormData(parseInt(event.target.value), 'secretType')
+            }
           >
             <FormControlLabel
               value={SecretDataType.value}
@@ -121,7 +118,7 @@ const SecretData = ({
           </Button>
         </>
       )}
-    </div>
+    </>
   );
 };
 

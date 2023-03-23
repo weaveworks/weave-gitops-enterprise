@@ -170,3 +170,6 @@ export type RequestError = Error & {
 export interface SecretPRPreview {
   externalSecretsFiles: { path: string; content: string }[];
 }
+export interface SOPSSecretPRPreview {
+  sopsSecertFiles: { path: string; content: string }[];
+}

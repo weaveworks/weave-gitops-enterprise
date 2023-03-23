@@ -1,7 +1,7 @@
 import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
-const { xs, medium } = theme.spacing;
+const { xs,small, medium } = theme.spacing;
 
 const { neutral30, neutral20, neutral10, primary10, primaryLight05 } =
   theme.colors;
@@ -60,4 +60,16 @@ export const FormWrapper = styled.form`
   .add-secret-data {
     margin-bottom: ${medium};
   }
+  .gitops-wrapper {
+    padding-bottom: 0px;
+  }
+  .create-cta {
+    display: flex;
+    justify-content: end;
+  }
+`;
+export const PreviewPRSection = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  padding: ${small};
 `;

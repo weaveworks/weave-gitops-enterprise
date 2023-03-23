@@ -1,8 +1,7 @@
-import React from 'react';
 import { MenuItem } from '@material-ui/core';
-import { Kind, Kustomization } from '@weaveworks/weave-gitops';
-import { useListObjects } from '../../../hooks/listObjects';
+import { useListKustomizationSOPS } from '../../../hooks/listObjects';
 import { Select } from '../../../utils/form';
+import { Tooltip } from '../../Shared';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ListKustomizations = ({
@@ -14,13 +13,8 @@ const ListKustomizations = ({
   handleFormData: (value: any) => void;
   clusterName: string;
 }) => {
-  const {
-    isLoading,
-    error,
-    data: kustomizations,
-  } = useListObjects(
-    Kustomization,
-    { kind: Kind.Kustomization, clusterName, namespace: '' },
+  const { isLoading, error, data } = useListKustomizationSOPS(
+    { clusterName },
     {
       retry: false,
     },
@@ -33,14 +27,18 @@ const ListKustomizations = ({
         required
         name="kustomization"
         label="KUSTOMIZATION"
-        description="Choose the kustomization that will be used by SOPS to decrypt the secret."
+        description={
+          !!data?.kustomizations?.length
+            ? 'Choose the kustomization that will be used by SOPS to decrypt the secret.'
+            : `No Kustomization found in ${clusterName}`
+        }
         onChange={event => handleFormData(event.target.value)}
         value={value}
-        disabled={!clusterName}
+        disabled={!clusterName || !data?.kustomizations?.length}
       >
-        {kustomizations?.objects?.map((k, index: number) => {
+        {data?.kustomizations?.map((k, index: number) => {
           return (
-            <MenuItem key={index} value={k.name}>
+            <MenuItem key={index} value={`${k.name}/${k.namespace}`}>
               {k.name}
             </MenuItem>
           );

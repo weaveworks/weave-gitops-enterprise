@@ -1,18 +1,33 @@
-import { MenuItem } from '@material-ui/core';
+import { CircularProgress, MenuItem } from '@material-ui/core';
+import { Button, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
+import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import useNotifications from '../../../contexts/Notifications';
+import { useCallbackState } from '../../../utils/callback-state';
 import { Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
+import { removeToken } from '../../../utils/request';
+import {
+  CreateDeploymentObjects,
+  encryptSopsSecret,
+} from '../../Applications/utils';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
-import { useCallbackState } from '../../../utils/callback-state';
+import { getRepositoryUrl } from '../../Templates/Form/utils';
 import InputDebounced from './InputDebounced';
-import SecretData from './SecretData';
-import { FormWrapper } from './styles';
 import ListClusters from './ListClusters';
 import ListKustomizations from './ListKustomizations';
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
+import { PreviewModal } from './PreviewModal';
+import SecretData from './SecretData';
+import { FormWrapper } from './styles';
+import {
+  getFormattedPayload,
+  scrollToAlertSection,
+  handelError,
+} from './utils';
 
 export enum SecretDataType {
   value,
@@ -26,7 +41,7 @@ export interface SOPS {
   kustomization: string;
   secretData: { key: string; value: string }[];
   secretValue: string;
-  repo: string | null;
+  repo: string | null | GitRepository;
   provider: string;
   branchName: string;
   pullRequestTitle: string;
@@ -73,14 +88,62 @@ const CreateSOPS = () => {
 
   const [formError, setFormError] = useState<string>('');
   const [formData, setFormData] = useState<SOPS>(initialFormData);
-  const handleCreateSecret = useCallback(() => {}, []);
   const handleFormData = (value: any, key: string) => {
     setFormData(f => (f = { ...f, [key]: value }));
   };
+  const { setNotifications } = useNotifications();
 
   const [loading, setLoading] = useState<boolean>(false);
+  const handleCreateSecret = useCallback(async () => {
+    setLoading(true);
 
-  const authRedirectPage = `/secrets/create`;
+    try {
+      const { encryptionPayload, cluster } = getFormattedPayload(formData);
+      const encrypted = await encryptSopsSecret(encryptionPayload);
+      const response = await CreateDeploymentObjects(
+        {
+          head_branch: formData.branchName,
+          title: formData.pullRequestTitle,
+          description: formData.pullRequestDescription,
+          commitMessage: formData.commitMessage,
+          repositoryUrl: getRepositoryUrl(formData.repo as GitRepository),
+          clusterAutomations: [
+            {
+              cluster,
+              isControlPlane: cluster.namespace ? true : false,
+              sops_secret: {
+                ...encrypted.encryptedSecret,
+              },
+              file_path: encrypted.path,
+            },
+          ],
+        },
+        getProviderToken(formData.provider as GitProvider),
+      );
+      setNotifications([
+        {
+          message: {
+            component: (
+              <Link href={response.webUrl} newTab>
+                PR created successfully, please review and merge the pull
+                request to apply the changes to the cluster.
+              </Link>
+            ),
+          },
+          severity: 'success',
+        },
+      ]);
+      scrollToAlertSection();
+    } catch (error: any) {
+      handelError(error, setNotifications);
+    } finally {
+      setLoading(false);
+      removeToken(formData.provider);
+      clearCallbackState();
+    }
+  }, [formData, setNotifications]);
+
+  const authRedirectPage = Routes.CreateSopsSecret;
 
   return (
     <PageTemplate
@@ -155,8 +218,15 @@ const CreateSOPS = () => {
                 )}
               </div>
             </div>
-
-            <SecretData formData={formData} handleFormData={handleFormData} />
+            <div className="group-section">
+              <h2>Secret Data</h2>
+              <p className="secret-data-hint">
+                Please note that we will encode the secret values to base64
+                before encryption
+              </p>
+              <SecretData formData={formData} handleFormData={handleFormData} />
+              <PreviewModal formData={formData} />
+            </div>
             <GitOps
               formData={formData}
               setFormData={setFormData}
@@ -167,15 +237,17 @@ const CreateSOPS = () => {
               enableGitRepoSelection={true}
             />
 
-            {loading ? (
-              <LoadingPage className="create-loading" />
-            ) : (
-              <div className="create-cta">
-                <Button type="submit" disabled={!enableCreatePR}>
-                  CREATE PULL REQUEST
-                </Button>
-              </div>
-            )}
+            <div className="create-cta">
+              <Button type="submit" disabled={!enableCreatePR || loading}>
+                CREATE PULL REQUEST
+                {loading && (
+                  <CircularProgress
+                    size={'1rem'}
+                    style={{ marginLeft: '4px' }}
+                  />
+                )}
+              </Button>
+            </div>
           </FormWrapper>
         </ContentWrapper>
       </CallbackStateContextProvider>
