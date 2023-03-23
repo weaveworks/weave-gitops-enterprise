@@ -50,11 +50,13 @@ message QueryResponse {
 
 
 message Object {
-    string cluster   = 1;
-    string namespace = 2;
-    string kind      = 3;
-    string name      = 4;
-    string status    = 5;
+    string cluster    = 1;
+    string namespace  = 2;
+    string kind       = 3;
+    string name       = 4;
+    string status     = 5;
+    string apiGroup   = 6;
+    string apiVersion = 7;
 }
 
 message DebugGetAccessRulesRequest {
@@ -71,6 +73,8 @@ message AccessRule {
     string   namespace              = 3;
     repeated string accessibleKinds = 4;
     repeated Subject subjects       = 5;
+    string   providedByRole         = 6;
+    string   providedByBinding      = 7;
 }
 
 message Subject {
