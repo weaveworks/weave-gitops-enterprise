@@ -1087,9 +1087,6 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 
 	if resourceType == "sops-secret" {
 		return filepath.Join(
-			viper.GetString("capi-repository-clusters-path"),
-			clusterNamespace,
-			cluster.Name,
 			"%s",
 			fileName,
 		)
