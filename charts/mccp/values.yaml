@@ -190,7 +190,13 @@ gitopssets-controller:
       image:
         tag: v0.6.0
 
+# Configuration for query collector component
 collector:
+  # feature flag to deploy it
   enabled: true
   fullnameOverride: collector
   clusterNamespace: ""
+  # configuration to configure the client to write event
+  queryServer:
+    # base url endpoint like https://clusters-service
+    url: ""
