@@ -5517,9 +5517,10 @@ type GetConfigResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RepositoryURL         string `protobuf:"bytes,1,opt,name=repositoryURL,proto3" json:"repositoryURL,omitempty"`
-	ManagementClusterName string `protobuf:"bytes,2,opt,name=managementClusterName,proto3" json:"managementClusterName,omitempty"`
-	UiConfig              string `protobuf:"bytes,3,opt,name=ui_config,json=uiConfig,proto3" json:"ui_config,omitempty"`
+	RepositoryURL         string            `protobuf:"bytes,1,opt,name=repositoryURL,proto3" json:"repositoryURL,omitempty"`
+	ManagementClusterName string            `protobuf:"bytes,2,opt,name=managementClusterName,proto3" json:"managementClusterName,omitempty"`
+	UiConfig              string            `protobuf:"bytes,3,opt,name=ui_config,json=uiConfig,proto3" json:"ui_config,omitempty"`
+	GitHostTypes          map[string]string `protobuf:"bytes,4,rep,name=git_host_types,json=gitHostTypes,proto3" json:"git_host_types,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 }
 
 func (x *GetConfigResponse) Reset() {
@@ -5573,6 +5574,13 @@ func (x *GetConfigResponse) GetUiConfig() string {
 		return x.UiConfig
 	}
 	return ""
+}
+
+func (x *GetConfigResponse) GetGitHostTypes() map[string]string {
+	if x != nil {
+		return x.GitHostTypes
+	}
+	return nil
 }
 
 type PolicyParamRepeatedString struct {
