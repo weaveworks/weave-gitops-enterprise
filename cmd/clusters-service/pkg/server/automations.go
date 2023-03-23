@@ -822,7 +822,6 @@ func generateSopsSecret(
 		return gitprovider.CommitFile{}, err
 	}
 
-	raw = append(raw, []byte("\n")...)
 	content := string(raw)
 
 	return gitprovider.CommitFile{
