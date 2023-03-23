@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 )
@@ -26,7 +27,7 @@ type PolicyRule struct {
 	RoleID    string
 }
 
-func (o *Role) GetID() string {
+func (o Role) GetID() string {
 	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.Kind, o.Name)
 }
 
@@ -48,4 +49,16 @@ func (o Role) Validate() error {
 	}
 
 	return nil
+}
+
+// We join the arrays into a string because the database may not support arrays.
+// These helpers are used to ensure we always use the same separator.
+var separator = ","
+
+func JoinRuleData(data []string) string {
+	return strings.Join(data, separator)
+}
+
+func SplitRuleData(data string) []string {
+	return strings.Split(data, separator)
 }
