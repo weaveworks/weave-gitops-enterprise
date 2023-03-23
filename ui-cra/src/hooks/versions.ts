@@ -44,10 +44,11 @@ export function useListConfig() {
               `${protocol}://${resource}/${full_name}/-/merge_requests`,
             );
             break;
-          case 'AzureDevOps':
-            setRepoLink(`${protocol}://${resource}/${full_name}/pullrequests`);
-            break;
+          // case 'AzureDevOps':
+          //   setRepoLink(`${protocol}://${resource}/${full_name}/pullrequests`);
+          //   break;
           default:
+            setRepoLink(`${protocol}://${resource}/${full_name}/pullrequests`);
             break;
         }
       });
