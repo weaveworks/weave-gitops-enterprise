@@ -43,25 +43,40 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 
 		for _, gvk := range rule.AccessibleKinds {
 
-			var kind string
+			var ruleKind string
 			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
 			// Sometimes the version is not present, so we need to handle that case.
 			parts := strings.Split(gvk, "/")
+
 			if len(parts) == 3 {
-				kind = parts[2]
+				ruleKind = parts[2]
 			} else if len(parts) == 2 {
-				kind = parts[1]
+				ruleKind = parts[1]
 			} else {
 				return false, fmt.Errorf("invalid GVK: %s", gvk)
 			}
 
-			if strings.Contains(kind, "*") {
+			ruleGroup := parts[0]
+
+			if ruleGroup != object.APIGroup {
+				continue
+			}
+
+			objectGVK := object.GroupVersionKind()
+
+			if strings.Contains(ruleKind, "*") {
+				fmt.Printf("princial %s has access (*) to %s via rule %s (%s)\n", user.ID, objectGVK, rule.ProvidedByRole, gvk)
 				// If the rule contains a wildcard, then the user has access to all kinds.
 				return true, nil
 			}
 
+			if ruleKind == "HelmRelease" {
+				fmt.Printf("found rule for HR: %s\n", rule.ProvidedByRole)
+			}
+
 			// Check for an exact group/version/kind match.
-			if gvk == object.GroupVersionKind() {
+			if gvk == objectGVK {
+				fmt.Printf("princial %s has access to %s via rule %s\n", user.ID, objectGVK, rule.ProvidedByRole)
 				return true, nil
 			}
 		}
@@ -74,9 +89,15 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 	matchingRules := []models.AccessRule{}
 
 	for _, rule := range rules {
+		if rule.AccessibleKinds == nil || len(rule.AccessibleKinds) == 0 {
+			// Not sure how this rule got created, but it doesn't provide any kinds, so ignore.
+			continue
+		}
+
 		for _, subject := range rule.Subjects {
 			if subject.Kind == "User" && subject.Name == user.ID {
 				matchingRules = append(matchingRules, rule)
+				continue
 			}
 
 			for _, group := range user.Groups {

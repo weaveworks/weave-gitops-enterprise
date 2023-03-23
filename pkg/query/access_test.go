@@ -229,6 +229,65 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				},
 			},
 		},
+		{
+			name: "policy rule with * permissions",
+			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			roles: []models.Role{
+				{
+					Name:      "role-a",
+					Cluster:   "cluster-a",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{
+						{
+							APIGroups: strings.Join([]string{"example.com/v1"}, ","),
+							Resources: strings.Join([]string{"*"}, ","),
+							Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
+						},
+					},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "cluster-a",
+				Name:      "binding-a",
+				Namespace: "",
+				Kind:      "ClusterRoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "User",
+					Name: "some-user",
+				}},
+				RoleRefName: "role-a",
+				RoleRefKind: "ClusterRole",
+			}},
+			objects: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+					Kind:       "somekind",
+					Name:       "somename",
+				},
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   "otherorg.com",
+					APIVersion: "v1",
+					Kind:       "otherkind",
+					Name:       "othername",
+				},
+			},
+			expected: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+					Kind:       "somekind",
+					Name:       "somename",
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {

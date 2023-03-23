@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"strings"
 
 	"gorm.io/gorm"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -47,7 +48,13 @@ func (o *Object) GetID() string {
 }
 
 func (o Object) GroupVersionKind() string {
-	return fmt.Sprintf("%s/%s/%s", o.APIGroup, o.APIVersion, o.Kind)
+	s := []string{o.APIGroup, o.APIVersion, o.Kind}
+
+	if o.APIVersion == "" {
+		s = []string{o.APIGroup, o.Kind}
+	}
+
+	return strings.Join(s, "/")
 }
 
 type TransactionType string

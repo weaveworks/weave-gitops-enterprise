@@ -2,7 +2,6 @@ package adapters
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	v1 "k8s.io/api/rbac/v1"
@@ -38,9 +37,9 @@ func (c *cRoleAdapter) ToModel() models.Role {
 
 	for _, r := range c.Rules {
 		rules = append(rules, models.PolicyRule{
-			Verbs:     strings.Join(r.Verbs, "/"),
-			APIGroups: strings.Join(r.APIGroups, "/"),
-			Resources: strings.Join(r.Resources, "/"),
+			APIGroups: models.JoinRuleData(r.APIGroups),
+			Resources: models.JoinRuleData(r.Resources),
+			Verbs:     models.JoinRuleData(r.Verbs),
 		})
 	}
 
@@ -78,9 +77,9 @@ func (r *roleAdapter) ToModel() models.Role {
 
 	for _, r := range r.Rules {
 		rules = append(rules, models.PolicyRule{
-			Verbs:     strings.Join(r.Verbs, "/"),
-			APIGroups: strings.Join(r.APIGroups, "/"),
-			Resources: strings.Join(r.Resources, "/"),
+			APIGroups: models.JoinRuleData(r.APIGroups),
+			Resources: models.JoinRuleData(r.Resources),
+			Verbs:     models.JoinRuleData(r.Verbs),
 		})
 	}
 
