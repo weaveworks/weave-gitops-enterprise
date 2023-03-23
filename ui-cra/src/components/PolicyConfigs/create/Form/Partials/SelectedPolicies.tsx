@@ -6,7 +6,7 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
-  TextField,
+  TextField
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import SearchIcon from '@material-ui/icons/Search';
@@ -14,13 +14,13 @@ import { Autocomplete } from '@material-ui/lab';
 import { Dispatch, useEffect, useMemo, useState } from 'react';
 import {
   Policy,
-  PolicyParam,
+  PolicyParam
 } from '../../../../../cluster-services/cluster_services.pb';
 import { useListListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
   PolicyDetailsCardWrapper,
-  usePolicyConfigStyle,
+  usePolicyConfigStyle
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -38,11 +38,9 @@ export const SelectedPolicies = ({
 }: // automation,
 SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
-  const { policies = {} } = formData;
+  // const { policies = {} } = formData;
   const [selectedPolicies, setSelectedPolicies] = useState<Policy[]>([]);
 
-  const [isPolicyConfigExist, setIsPolicyConfigExist] =
-    useState<boolean>(false);
   const { data } = useListListPolicies({});
 
   const policiesList = useMemo(
@@ -50,42 +48,66 @@ SelectSecretStoreProps) => {
     [data?.policies, cluster],
   );
   useEffect(() => {
-    if (formData.policies && data?.policies?.length) {
+    if (
+      formData.policies &&
+      data?.policies?.length &&
+      selectedPolicies.length === 0
+    ) {
       const selected: Policy[] = policiesList.filter((p: Policy) =>
         Object.keys(formData.policies).includes(p.id!),
       );
       setSelectedPolicies(selected);
+      console.log('d');
     }
-  }, [data?.policies, policiesList, formData.policies]);
+  }, [
+    data?.policies,
+    policiesList,
+    formData.policies,
+    selectedPolicies.length,
+  ]);
 
-  const handlePolicyParams = (value: any, id: string, param: PolicyParam) => {
-    const { name, value: defaultValue } = param;
+  const handlePolicyParams = (val: any, id: string, param: PolicyParam) => {
+    const { name, type } = param;
+    const defaultValue =
+      type === 'array' ? param.value?.value.join(', ') : param.value?.value;
+    const value = type === 'integer' ? parseInt(val) || '0' : val;
+
+    console.log(val, value, defaultValue);
+    const areSameValues =
+      type === 'array'
+        ? JSON.stringify(value.split(',').filter((i: string) => i !== '')) ===
+          JSON.stringify(defaultValue?.split(','))
+        : value === defaultValue;
+
     if (
-      value === defaultValue?.value ||
-      (value === '' && defaultValue === undefined)
+      areSameValues ||
+      (value === '' && defaultValue === (null || undefined))
     ) {
-      const item = formData.policies;
-      delete item[id].parameters[name as string];
-      if (Object.keys(item[id].parameters).length === 0) delete item[id];
-      if (Object.keys(item).length === 0) setIsPolicyConfigExist(false);
+      const policyConfigs = formData.policies;
+      delete policyConfigs[id].parameters[name as string];
+      if (Object.keys(policyConfigs[id]?.parameters).length === 0)
+        delete policyConfigs[id];
     } else {
+      console.log('else');
       formData.policies = {
-        ...policies,
+        ...formData.policies,
         [id as string]: {
           parameters: {
-            ...policies[id]?.parameters,
-            [name as string]: param.type === 'array' ? value.split(',') : value,
+            ...formData.policies[id]?.parameters,
+            [name as string]:
+              type === 'array'
+                ? value.split(',').filter((i: string) => i !== '')
+                : value,
           },
         },
       };
-
-      setIsPolicyConfigExist(true);
     }
 
     setFormData({
       ...formData,
       policies: formData.policies,
     });
+    console.log(formData.policies, selectedPolicies);
   };
   const handleDeletePolicyParam = (id: string) => {
     const item = formData.policies || {};
@@ -148,7 +170,6 @@ SelectSecretStoreProps) => {
                 {...params}
                 variant="outlined"
                 name="policies"
-                error={formError === 'policies' && !isPolicyConfigExist}
                 disabled={cluster === undefined}
                 style={{ border: 'none !important' }}
                 InputProps={{
@@ -229,9 +250,10 @@ SelectSecretStoreProps) => {
                             defaultValue={getValue(policy.id!, param)}
                             onChange={event => {
                               handlePolicyParams(
-                                param.type === 'integer'
-                                  ? parseInt(event.target.value)
-                                  : event.target.value,
+                                // param.type === 'integer'
+                                //   ? parseInt(event.target.value) || '0'
+                                //   :
+                                event.target.value,
                                 policy.id!,
                                 param,
                               );
