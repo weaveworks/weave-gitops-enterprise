@@ -69,20 +69,11 @@ func (c *watchingCollector) Start() error {
 func (c *watchingCollector) Stop() error {
 	c.log.Info("stopping collector")
 
-	for _, cluster := range c.clusters {
-		err := c.Unwatch(cluster)
-		if err != nil {
-			return err
-		}
-
-	}
-
 	return nil
 }
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
-	clusters           []cluster.Cluster
 	clusterManager     clustersmngr.ClustersManager
 	clusterWatchers    map[string]Watcher
 	kinds              []schema.GroupVersionKind
@@ -100,7 +91,6 @@ func newWatchingCollector(opts CollectorOpts, store store.StoreWriter) (*watchin
 	}
 
 	return &watchingCollector{
-		clusters:           opts.Clusters,
 		clusterManager:     opts.ClusterManager,
 		clusterWatchers:    make(map[string]Watcher),
 		newWatcherFunc:     opts.NewWatcherFunc,

@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"testing"
 
@@ -29,6 +30,10 @@ func TestNewCollector(t *testing.T) {
 	fakeStore := &storefakes.FakeStore{}
 
 	clustersManager := &clustersmngrfakes.FakeClustersManager{}
+	cmw := clustersmngr.ClustersWatcher{
+		Updates: make(chan clustersmngr.ClusterListUpdate),
+	}
+	clustersManager.SubscribeReturns(&cmw)
 
 	tests := []struct {
 		name       string

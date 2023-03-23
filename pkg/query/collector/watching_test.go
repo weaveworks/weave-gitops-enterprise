@@ -2,6 +2,8 @@ package collector
 
 import (
 	"context"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
@@ -26,8 +28,8 @@ func TestStart(t *testing.T) {
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
-		Log:      log,
-		Clusters: []cluster.Cluster{},
+		Log:            log,
+		ClusterManager: &clustersmngrfakes.FakeClustersManager{},
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
@@ -66,13 +68,15 @@ func TestStop(t *testing.T) {
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
 
-	fc := &clusterfakes.FakeCluster{}
-	fc.GetNameReturns("faked")
-	fc.GetServerConfigReturns(&rest.Config{}, nil)
+	cm := clustersmngrfakes.FakeClustersManager{}
 
+	cmw := clustersmngr.ClustersWatcher{
+		Updates: make(chan clustersmngr.ClusterListUpdate),
+	}
+	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
-		Log:      log,
-		Clusters: []cluster.Cluster{fc},
+		Log:            log,
+		ClusterManager: &cm,
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
