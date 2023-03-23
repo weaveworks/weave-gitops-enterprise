@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -17,9 +17,21 @@ type QueryService interface {
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
+type StoreService interface {
+	StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
+	StoreRoles(ctx context.Context, roles []models.Role) error
+	StoreObjects(ctx context.Context, objs []models.Object) error
+	DeleteObjects(ctx context.Context, objs []models.Object) error
+}
+
 type QueryServiceOpts struct {
 	Log         logr.Logger
 	StoreReader store.StoreReader
+}
+
+type StoreServiceOpts struct {
+	Log         logr.Logger
+	StoreWriter store.StoreWriter
 }
 
 const (
@@ -34,10 +46,54 @@ func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, 
 	}, nil
 }
 
+func NewStoreService(ctx context.Context, opts StoreServiceOpts) (StoreService, error) {
+	return &ss{
+		log: opts.Log,
+		w:   opts.StoreWriter,
+	}, nil
+}
+
 type qs struct {
 	log     logr.Logger
 	r       store.StoreReader
 	checker accesschecker.Checker
+}
+
+type ss struct {
+	log logr.Logger
+	w   store.StoreWriter
+}
+
+func (s ss) DeleteObjects(ctx context.Context, objs []models.Object) error {
+	err := s.w.DeleteObjects(ctx, objs)
+	if err != nil {
+		return fmt.Errorf("error writting objects to delete: %w", err)
+	}
+	return nil
+}
+
+func (s ss) StoreObjects(ctx context.Context, objs []models.Object) error {
+	err := s.w.StoreObjects(ctx, objs)
+	if err != nil {
+		return fmt.Errorf("error writting objects to store: %w", err)
+	}
+	return nil
+}
+
+func (s ss) StoreRoles(ctx context.Context, roles []models.Role) error {
+	err := s.w.StoreRoles(ctx, roles)
+	if err != nil {
+		return fmt.Errorf("cannot store roles: %w", err)
+	}
+	return nil
+}
+
+func (s ss) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	err := s.w.StoreRoleBindings(ctx, roleBindings)
+	if err != nil {
+		return fmt.Errorf("cannot store role bindings: %w", err)
+	}
+	return nil
 }
 
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object

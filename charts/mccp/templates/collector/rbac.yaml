@@ -1,0 +1,73 @@
+{{- if .Values.collector.enabled -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: collector-role
+rules:
+  - apiGroups: [ "" ]
+    resources: [ "namespaces" ]
+    verbs: [ "get", "list" ]
+  - apiGroups: ["gitops.weave.works"]
+    resources: ["gitopsclusters"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["helm.toolkit.fluxcd.io", "kustomize.toolkit.fluxcd.io"]
+    resources: ["*"]
+    verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: collector-metrics-reader
+rules:
+- nonResourceURLs:
+  - /metrics
+  verbs:
+  - get
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: collector-proxy-role
+rules:
+- apiGroups:
+  - authentication.k8s.io
+  resources:
+  - tokenreviews
+  verbs:
+  - create
+- apiGroups:
+  - authorization.k8s.io
+  resources:
+  - subjectaccessreviews
+  verbs:
+  - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: collector-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: collector-role
+subjects:
+- kind: ServiceAccount
+  name: collector
+  namespace: {{ .Release.Namespace | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: collector-proxy-rolebinding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: collector-proxy-role
+subjects:
+- kind: ServiceAccount
+  name: collector
+  namespace: {{ .Release.Namespace | quote }}
+{{- end }}

@@ -3,6 +3,7 @@ package rolecollector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -11,7 +12,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -44,7 +44,7 @@ func (a *RoleCollector) Stop() error {
 	return a.col.Stop()
 }
 
-func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
+func NewRoleCollector(w store.StoreWriter, opts collector.CollectorOpts) (*RoleCollector, error) {
 	opts.ObjectKinds = []schema.GroupVersionKind{
 		rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		rbacv1.SchemeGroupVersion.WithKind("Role"),
@@ -68,7 +68,7 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.StoreWriter, log logr.Logger) error {
 	roles := []models.Role{}
 	rolesToDelete := []models.Role{}
 

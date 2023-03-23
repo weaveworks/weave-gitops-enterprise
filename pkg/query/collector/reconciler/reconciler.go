@@ -3,11 +3,11 @@ package reconciler
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"

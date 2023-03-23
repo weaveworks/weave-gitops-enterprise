@@ -60,6 +60,7 @@ if 'gitopssets-controller' in to_edit:
 # --- rename chart resources to human readable 
 
 k8s_resource('chart-mccp-cluster-service', new_name='cluster-service', labels=["local"], port_forwards='8000')
+k8s_resource('chart-mccp-collector', new_name='collector', labels=["local"])
 k8s_resource('chart-pipeline-controller', new_name='pipeline-controller', labels=["remote-images"])
 k8s_resource('chart-mccp-cluster-bootstrap-controller', new_name='cluster-bootstrap-controller', labels=cluster_bootstrap_controller_labels)
 k8s_resource('chart-cluster-controller', new_name='cluster-controller', labels=cluster_controller_labels)
@@ -177,4 +178,48 @@ else:
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
       entrypoint= ["/sbin/tini", "--", "clusters-service", "--dev-mode"]
+   )
+
+
+# --- collector
+
+if native_build:
+   # Build locally (usually slower under MacOS than build in container)
+
+   local_resource(
+      'compile-collector',
+      'make build-linux',
+      deps=[
+         '../weave-gitops/core',
+         './cmd/collector',
+         './pkg'
+      ],
+      ignore=[
+         './cmd/collector/bin'
+      ],
+      dir='cmd/collector',
+      labels=["local"]
+   )
+
+   docker_build_with_restart(
+      'weaveworks/weave-gitops-enterprise-collector',
+      '.',
+      dockerfile="cmd/collector/dev.dockerfile",
+      entrypoint='/app/collector',
+      build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'},
+      live_update=[
+         sync('cmd/collector/bin', '/app'),
+      ],
+      ignore=[
+         'cmd/collector/collector'
+      ],
+   )
+else:
+   # Build in container (default)
+   docker_build(
+      'weaveworks/weave-gitops-enterprise-collector',
+      '.',
+      dockerfile='cmd/collector/Dockerfile',
+      build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
+      entrypoint= ["/sbin/tini", "--", "collector"]
    )

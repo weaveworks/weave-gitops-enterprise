@@ -3,7 +3,7 @@ package rolecollector
 import (
 	"testing"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	v1 "k8s.io/api/rbac/v1"

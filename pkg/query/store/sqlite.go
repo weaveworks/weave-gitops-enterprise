@@ -3,10 +3,9 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"os"
 	"path/filepath"
-
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -88,7 +87,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 
 	for _, object := range objects {
 		if err := object.Validate(); err != nil {
-			return fmt.Errorf("invalid object: %w", err)
+			return fmt.Errorf("invalid object: %+v with error: %w", object, err)
 		}
 
 		object.ID = object.GetID()

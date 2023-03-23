@@ -3,9 +3,10 @@ package collector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -14,19 +15,48 @@ import (
 )
 
 func (c *watchingCollector) Start() error {
+	//TODO add context
+	ctx := context.Background()
+	cw := c.clusterManager.Subscribe()
 	c.objectsChannel = make(chan []models.ObjectTransaction)
 
-	for _, cluster := range c.clusters {
+	for _, cluster := range c.clusterManager.GetClusters() {
 		err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
 	}
 
+	//watch on clusters
 	go func() {
 		for {
-			objectRecords := <-c.objectsChannel
-			err := c.processRecordsFunc(context.Background(), objectRecords, c.store, c.log)
+			select {
+			case <-ctx.Done():
+				return
+			case updates := <-cw.Updates:
+
+				for _, cluster := range updates.Added {
+					err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
+					if err != nil {
+						c.log.Error(err, "cannot watch cluster")
+					}
+				}
+
+				for _, cluster := range updates.Removed {
+					err := c.Unwatch(cluster)
+					if err != nil {
+						c.log.Error(err, "cannot unwatch cluster")
+					}
+				}
+
+			}
+		}
+	}()
+	//watch on channels
+	go func() {
+		for {
+			objectTransactions := <-c.objectsChannel
+			err := c.processRecordsFunc(ctx, objectTransactions, c.store, c.log)
 			if err != nil {
 				c.log.Error(err, "cannot process records")
 			}
@@ -53,9 +83,10 @@ func (c *watchingCollector) Stop() error {
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
 	clusters           []cluster.Cluster
+	clusterManager     clustersmngr.ClustersManager
 	clusterWatchers    map[string]Watcher
 	kinds              []schema.GroupVersionKind
-	store              store.Store
+	store              store.StoreWriter
 	objectsChannel     chan []models.ObjectTransaction
 	newWatcherFunc     NewWatcherFunc
 	log                logr.Logger
@@ -63,13 +94,14 @@ type watchingCollector struct {
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
-func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingCollector, error) {
+func newWatchingCollector(opts CollectorOpts, store store.StoreWriter) (*watchingCollector, error) {
 	if opts.NewWatcherFunc == nil {
 		opts.NewWatcherFunc = defaultNewWatcher
 	}
 
 	return &watchingCollector{
 		clusters:           opts.Clusters,
+		clusterManager:     opts.ClusterManager,
 		clusterWatchers:    make(map[string]Watcher),
 		newWatcherFunc:     opts.NewWatcherFunc,
 		store:              store,
@@ -82,7 +114,7 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 // Function to create a watcher for a set of kinds. Operations target an store.
 type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error)
 
-type ProcessRecordsFunc = func(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error
+type ProcessRecordsFunc = func(ctx context.Context, objectRecords []models.ObjectTransaction, store store.StoreWriter, log logr.Logger) error
 
 // TODO add unit tests
 func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {

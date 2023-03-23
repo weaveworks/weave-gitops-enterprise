@@ -24,9 +24,12 @@ export type QueryResponse = {
 export type Object = {
   cluster?: string
   namespace?: string
+  apiGroup?: string
+  apiVersion?: string
   kind?: string
   name?: string
   status?: string
+  message?: string
 }
 
 export type DebugGetAccessRulesRequest = {
@@ -44,9 +47,65 @@ export type AccessRule = {
   subjects?: Subject[]
 }
 
+export type Role = {
+  cluster?: string
+  namespace?: string
+  kind?: string
+  name?: string
+  policyRules?: PolicyRule[]
+}
+
+export type PolicyRule = {
+  apiGroups?: string
+  resources?: string
+  verbs?: string
+  roleId?: string
+}
+
+export type RoleBinding = {
+  cluster?: string
+  namespace?: string
+  kind?: string
+  name?: string
+  roleRefName?: string
+  roleRefKind?: string
+  subjects?: Subject[]
+}
+
 export type Subject = {
   kind?: string
   name?: string
+  namespace?: string
+  apiGroup?: string
+  roleBindingId?: string
+}
+
+export type StoreRolesRequest = {
+  roles?: Role[]
+}
+
+export type StoreRolesResponse = {
+}
+
+export type StoreRoleBindingsRequest = {
+  rolebindings?: RoleBinding[]
+}
+
+export type StoreRoleBindingsResponse = {
+}
+
+export type StoreObjectsRequest = {
+  objects?: Object[]
+}
+
+export type StoreObjectsResponse = {
+}
+
+export type DeleteObjectsRequest = {
+  objects?: Object[]
+}
+
+export type DeleteObjectsResponse = {
 }
 
 export class Query {
@@ -55,5 +114,17 @@ export class Query {
   }
   static DebugGetAccessRules(req: DebugGetAccessRulesRequest, initReq?: fm.InitReq): Promise<DebugGetAccessRulesResponse> {
     return fm.fetchReq<DebugGetAccessRulesRequest, DebugGetAccessRulesResponse>(`/v1/debug/access-rules?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static StoreRoles(req: StoreRolesRequest, initReq?: fm.InitReq): Promise<StoreRolesResponse> {
+    return fm.fetchReq<StoreRolesRequest, StoreRolesResponse>(`/v1/query/roles`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static StoreRoleBindings(req: StoreRoleBindingsRequest, initReq?: fm.InitReq): Promise<StoreRoleBindingsResponse> {
+    return fm.fetchReq<StoreRoleBindingsRequest, StoreRoleBindingsResponse>(`/v1/query/rolebindings`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static StoreObjects(req: StoreObjectsRequest, initReq?: fm.InitReq): Promise<StoreObjectsResponse> {
+    return fm.fetchReq<StoreObjectsRequest, StoreObjectsResponse>(`/v1/query/objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static DeleteObjects(req: DeleteObjectsRequest, initReq?: fm.InitReq): Promise<DeleteObjectsResponse> {
+    return fm.fetchReq<DeleteObjectsRequest, DeleteObjectsResponse>(`/v1/query/objects`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
   }
 }

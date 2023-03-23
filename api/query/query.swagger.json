@@ -70,6 +70,132 @@
           "Query"
         ]
       }
+    },
+    "/v1/query/objects": {
+      "delete": {
+        "operationId": "Query_DeleteObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1DeleteObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1DeleteObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      },
+      "post": {
+        "operationId": "Query_StoreObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StoreObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1StoreObjectsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      }
+    },
+    "/v1/query/rolebindings": {
+      "post": {
+        "operationId": "Query_StoreRoleBindings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StoreRoleBindingsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1StoreRoleBindingsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      }
+    },
+    "/v1/query/roles": {
+      "post": {
+        "operationId": "Query_StoreRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1StoreRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1StoreRolesRequest"
+            }
+          }
+        ],
+        "tags": [
+          "Query"
+        ]
+      }
     }
   },
   "definitions": {
@@ -137,6 +263,20 @@
         }
       }
     },
+    "v1DeleteObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Object"
+          }
+        }
+      }
+    },
+    "v1DeleteObjectsResponse": {
+      "type": "object"
+    },
     "v1Object": {
       "type": "object",
       "properties": {
@@ -146,6 +286,12 @@
         "namespace": {
           "type": "string"
         },
+        "apiGroup": {
+          "type": "string"
+        },
+        "apiVersion": {
+          "type": "string"
+        },
         "kind": {
           "type": "string"
         },
@@ -153,6 +299,26 @@
           "type": "string"
         },
         "status": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    },
+    "v1PolicyRule": {
+      "type": "object",
+      "properties": {
+        "apiGroups": {
+          "type": "string"
+        },
+        "resources": {
+          "type": "string"
+        },
+        "verbs": {
+          "type": "string"
+        },
+        "roleId": {
           "type": "string"
         }
       }
@@ -201,6 +367,100 @@
         }
       }
     },
+    "v1Role": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "policyRules": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1PolicyRule"
+          }
+        }
+      }
+    },
+    "v1RoleBinding": {
+      "type": "object",
+      "properties": {
+        "cluster": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "roleRefName": {
+          "type": "string"
+        },
+        "roleRefKind": {
+          "type": "string"
+        },
+        "subjects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Subject"
+          }
+        }
+      }
+    },
+    "v1StoreObjectsRequest": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Object"
+          }
+        }
+      }
+    },
+    "v1StoreObjectsResponse": {
+      "type": "object"
+    },
+    "v1StoreRoleBindingsRequest": {
+      "type": "object",
+      "properties": {
+        "rolebindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1RoleBinding"
+          }
+        }
+      }
+    },
+    "v1StoreRoleBindingsResponse": {
+      "type": "object"
+    },
+    "v1StoreRolesRequest": {
+      "type": "object",
+      "properties": {
+        "roles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1Role"
+          }
+        }
+      }
+    },
+    "v1StoreRolesResponse": {
+      "type": "object"
+    },
     "v1Subject": {
       "type": "object",
       "properties": {
@@ -208,6 +468,15 @@
           "type": "string"
         },
         "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "apiGroup": {
+          "type": "string"
+        },
+        "roleBindingId": {
           "type": "string"
         }
       }

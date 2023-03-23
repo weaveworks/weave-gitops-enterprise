@@ -3,12 +3,12 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"strings"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"gorm.io/gorm"
 	"k8s.io/kubectl/pkg/util/slice"
+	"gorm.io/gorm"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate

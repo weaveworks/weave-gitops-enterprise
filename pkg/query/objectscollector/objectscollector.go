@@ -3,12 +3,12 @@ package objectscollector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
@@ -36,7 +36,7 @@ func (a *ObjectsCollector) Stop() error {
 	return a.col.Stop()
 }
 
-func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
+func NewObjectsCollector(w store.StoreWriter, opts collector.CollectorOpts) (*ObjectsCollector, error) {
 
 	opts.ObjectKinds = []schema.GroupVersionKind{
 		v2beta1.GroupVersion.WithKind("HelmRelease"),
@@ -57,7 +57,7 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.StoreWriter, log logr.Logger) error {
 	upsert := []models.Object{}
 	delete := []models.Object{}
 
@@ -73,6 +73,7 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			Status:     "not available",
 			Message:    "not available",
 		}
+		log.Info(fmt.Sprintf("object processed: %+v", object))
 		if obj.TransactionType() == models.TransactionTypeDelete {
 			delete = append(delete, object)
 		} else {

@@ -8,28 +8,51 @@ import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
-    info: {
-      title: "Weave GitOps Query Service API",
-      version: "0.1";
-      description: "The API handles handles cross-cluster queries for Weave GitOps Enterprise";
-    };
-    consumes: "application/json";
-    produces: "application/json";
+  info: {
+    title: "Weave GitOps Query Service API",
+    version: "0.1";
+    description: "The API handles handles cross-cluster queries for Weave GitOps Enterprise";
+  };
+  consumes: "application/json";
+  produces: "application/json";
 };
 
 service Query {
-    rpc DoQuery(QueryRequest) returns (QueryResponse) {
-        option (google.api.http) = {
-            post: "/v1/query"
-            body: "*"
-        };
-    }
-
-    rpc DebugGetAccessRules(DebugGetAccessRulesRequest) returns (DebugGetAccessRulesResponse) {
-        option (google.api.http) = {
-            get: "/v1/debug/access-rules"
-        };
-    }
+  rpc DoQuery(QueryRequest) returns (QueryResponse) {
+    option (google.api.http) = {
+      post: "/v1/query"
+      body: "*"
+    };
+  }
+  rpc DebugGetAccessRules(DebugGetAccessRulesRequest) returns (DebugGetAccessRulesResponse) {
+    option (google.api.http) = {
+      get: "/v1/debug/access-rules"
+    };
+  }
+  rpc StoreRoles(StoreRolesRequest) returns (StoreRolesResponse) {
+    option (google.api.http) = {
+      post: "/v1/query/roles"
+      body: "*"
+    };
+  }
+  rpc StoreRoleBindings(StoreRoleBindingsRequest) returns (StoreRoleBindingsResponse) {
+    option (google.api.http) = {
+      post: "/v1/query/rolebindings"
+      body: "*"
+    };
+  }
+  rpc StoreObjects(StoreObjectsRequest) returns (StoreObjectsResponse) {
+    option (google.api.http) = {
+      post: "/v1/query/objects"
+      body: "*"
+    };
+  }
+  rpc DeleteObjects(DeleteObjectsRequest) returns (DeleteObjectsResponse) {
+    option (google.api.http) = {
+      delete: "/v1/query/objects"
+      body: "*"
+    };
+  }
 }
 
 message QueryRequest {
@@ -48,13 +71,15 @@ message QueryResponse {
   repeated Object objects = 1;
 }
 
-
 message Object {
-    string cluster   = 1;
-    string namespace = 2;
-    string kind      = 3;
-    string name      = 4;
-    string status    = 5;
+  string cluster = 1;
+  string namespace = 2;
+  string apiGroup = 3;
+  string apiVersion = 4;
+  string kind = 5;
+  string name = 6;
+  string status = 7;
+  string message = 8;
 }
 
 message DebugGetAccessRulesRequest {
@@ -62,18 +87,75 @@ message DebugGetAccessRulesRequest {
 }
 
 message DebugGetAccessRulesResponse {
-    repeated AccessRule rules = 1;
+  repeated AccessRule rules = 1;
 }
 
 message AccessRule {
-    string   cluster                = 1;
-    string   principal              = 2;
-    string   namespace              = 3;
-    repeated string accessibleKinds = 4;
-    repeated Subject subjects       = 5;
+  string   cluster = 1;
+  string   principal = 2;
+  string   namespace = 3;
+  repeated string accessibleKinds = 4;
+  repeated Subject subjects = 5;
+}
+
+message Role {
+  string   cluster = 1;
+  string   namespace = 2;
+  string   kind = 3;
+  string   name = 4;
+  repeated PolicyRule policyRules = 5;
+}
+
+message PolicyRule {
+  string   apiGroups = 1;
+  string   resources = 2;
+  string   verbs = 3;
+  string   roleId = 4;
+}
+
+message RoleBinding {
+  string   cluster = 1;
+  string   namespace = 2;
+  string   kind = 3;
+  string   name = 4;
+  string   roleRefName = 5;
+  string   roleRefKind = 6;
+  repeated Subject subjects = 7;
 }
 
 message Subject {
-    string kind = 1;
-    string name = 2;
+  string   kind = 1;
+  string   name = 2;
+  string   namespace = 3;
+  string   apiGroup = 4;
+  string   roleBindingId = 5;
+}
+
+message StoreRolesRequest {
+  repeated Role roles = 1;
+}
+
+message StoreRolesResponse {
+}
+
+message StoreRoleBindingsRequest {
+  repeated RoleBinding rolebindings = 1;
+}
+
+message StoreRoleBindingsResponse {
+}
+
+message StoreObjectsRequest {
+  repeated Object objects = 1;
+}
+
+message StoreObjectsResponse {
+}
+
+
+message DeleteObjectsRequest {
+  repeated Object objects = 1;
+}
+
+message DeleteObjectsResponse {
 }

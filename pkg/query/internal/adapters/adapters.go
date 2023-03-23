@@ -2,9 +2,9 @@ package adapters
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	v1 "k8s.io/api/rbac/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
