@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"github.com/go-logr/logr"
-	"k8s.io/kubectl/pkg/util/slice"
 	"gorm.io/gorm"
+	"k8s.io/kubectl/pkg/util/slice"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
