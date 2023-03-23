@@ -27,9 +27,14 @@ func TestStart(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
+	cm := clustersmngrfakes.FakeClustersManager{}
+	cmw := clustersmngr.ClustersWatcher{
+		Updates: make(chan clustersmngr.ClusterListUpdate),
+	}
+	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
 		Log:            log,
-		ClusterManager: &clustersmngrfakes.FakeClustersManager{},
+		ClusterManager: &cm,
 		ObjectKinds: []schema.GroupVersionKind{
 			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
 		},
