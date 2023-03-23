@@ -1,6 +1,4 @@
-import {
-    MenuItem
-} from '@material-ui/core';
+import { MenuItem } from '@material-ui/core';
 import { Dispatch, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
@@ -34,10 +32,7 @@ export const SelectMatchType = ({
   const classes = usePolicyConfigStyle();
   const { matchType } = formData;
 
-  const [matchTypeList, setMatchTypeList] = useState<string[]>([
-    'workspaces',
-    'apps',
-  ]);
+  const [matchTypeList] = useState<string[]>(['workspaces', 'apps']);
 
   const getCheckList = (matchType: string) => {
     switch (matchType) {
