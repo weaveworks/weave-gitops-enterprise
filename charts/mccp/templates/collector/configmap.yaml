@@ -1,3 +1,4 @@
+{{- if .Values.collector.enabled -}}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,3 +7,4 @@ metadata:
 data:
   QUERY_SERVER_URL: {{ .Values.collector.queryServer.url }}
   CLUSTER_NAMESPACE: {{ .Values.collector.clusterNamespace }}
+{{- end }}
