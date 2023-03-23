@@ -2,7 +2,7 @@ import {
   Checkbox,
   createStyles,
   makeStyles,
-  withStyles
+  withStyles,
 } from '@material-ui/core';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
@@ -15,24 +15,26 @@ import {
   IconType,
   Kind,
   KubeStatusIndicator,
-  LoadingPage,
+  RouterTab,
   statusSortHelper,
+  SubRouterTabs,
   theme,
-  useListSources
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
+import path from 'path';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useHistory } from 'react-router-dom';
+import { Link, useHistory, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import { useListConfigContext } from '../../contexts/ListConfig';
 import useNotifications, {
-  NotificationData
+  NotificationData,
 } from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
@@ -46,18 +48,20 @@ import {
   Openshift,
   OtherOnprem,
   Rancher,
-  Vsphere
+  Vsphere,
 } from '../../utils/icons';
 import { openLinkHandler } from '../../utils/link-checker';
-import { contentCss, ContentWrapper } from '../Layout/ContentWrapper';
+import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
+import PoliciesViolations from '../PolicyViolations';
 import { TableWrapper, Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
 import { GitRepositoryEnriched } from '../Templates/Form';
 import {
   getCreateRequestAnnotation,
-  getInitialGitRepo
+  getInitialGitRepo,
 } from '../Templates/Form/utils';
+import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
@@ -92,9 +96,9 @@ const ClustersTableWrapper = styled(TableWrapper)`
   width: 100%;
 `;
 
-const LoadingWrapper = styled.div`
-  ${contentCss};
-`;
+// const LoadingWrapper = styled.div`
+//   ${contentCss};
+// `;
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
@@ -221,6 +225,7 @@ export const getGitRepos = (sources: Source[] | undefined) =>
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
+  const { path } = useRouteMatch();
   const { clusters, isLoading } = useClusters();
   const { setNotifications } = useNotifications();
   const [selectedCluster, setSelectedCluster] =
@@ -390,6 +395,7 @@ const MCCP: FC<{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              marginBottom:'20px'
             }}
           >
             <ActionsWrapper>
@@ -463,91 +469,98 @@ const MCCP: FC<{
               </Button>
             </ActionsWrapper>
           </div>
-          {!isLoading ? (
-            <ClustersTableWrapper id="clusters-list">
-              <DataTable
-                key={clusters.length}
-                filters={initialFilterState}
-                rows={clusters}
-                fields={[
-                  {
-                    label: 'Select',
-                    value: ({ name, namespace }: GitopsClusterEnriched) => (
-                      <ClusterRowCheckbox
-                        name={name}
-                        namespace={namespace}
-                        onChange={handleIndividualClick}
-                        checked={Boolean(
-                          selectedCluster?.name === name &&
-                            selectedCluster?.namespace === namespace,
-                        )}
-                      />
-                    ),
-                    maxWidth: 25,
-                  },
-                  {
-                    label: 'Name',
-                    value: (c: GitopsClusterEnriched) =>
-                      c.controlPlane === true ? (
-                        <span data-cluster-name={c.name}>{c.name}</span>
-                      ) : (
-                        <Link
-                          to={`/cluster?clusterName=${c.name}`}
-                          color={theme.colors.primary}
-                          data-cluster-name={c.name}
-                        >
-                          {c.name}
-                        </Link>
-                      ),
-                    sortValue: ({ name }) => name,
-                    textSearchable: true,
-                    maxWidth: 275,
-                  },
-                  {
-                    label: 'Dashboards',
-                    value: (c: GitopsClusterEnriched) => (
-                      <DashboardsList cluster={c} />
-                    ),
-                  },
-                  {
-                    label: 'Type',
-                    value: (c: GitopsClusterEnriched) => (
-                      <ClusterIcon cluster={c}></ClusterIcon>
-                    ),
-                  },
-                  {
-                    label: 'Namespace',
-                    value: 'namespace',
-                  },
-                  {
-                    label: 'Status',
-                    value: (c: GitopsClusterEnriched) =>
-                      c.conditions && c.conditions.length > 0 ? (
-                        <KubeStatusIndicator short conditions={c.conditions} />
-                      ) : null,
-                    sortValue: statusSortHelper,
-                  },
-                  {
-                    label: 'Message',
-                    value: (c: GitopsClusterEnriched) =>
-                      (c.conditions && c.conditions[0]?.message) || null,
-                    sortValue: ({ conditions }) => computeMessage(conditions),
-                    maxWidth: 600,
-                  },
-                  {
-                    label: '',
-                    value: (c: GitopsClusterEnriched) => (
-                      <EditButton resource={c} />
-                    ),
-                  },
-                ]}
-              />
-            </ClustersTableWrapper>
-          ) : (
-            <LoadingWrapper>
-              <LoadingPage />
-            </LoadingWrapper>
-          )}
+          <SubRouterTabs rootPath={`${path}/list`}>
+            <RouterTab name="Clusters" path={`${path}/list`}>
+              <LoadingWrapper loading={isLoading}>
+                <ClustersTableWrapper id="clusters-list">
+                  <DataTable
+                    key={clusters.length}
+                    filters={initialFilterState}
+                    rows={clusters}
+                    fields={[
+                      {
+                        label: 'Select',
+                        value: ({ name, namespace }: GitopsClusterEnriched) => (
+                          <ClusterRowCheckbox
+                            name={name}
+                            namespace={namespace}
+                            onChange={handleIndividualClick}
+                            checked={Boolean(
+                              selectedCluster?.name === name &&
+                                selectedCluster?.namespace === namespace,
+                            )}
+                          />
+                        ),
+                        maxWidth: 25,
+                      },
+                      {
+                        label: 'Name',
+                        value: (c: GitopsClusterEnriched) =>
+                          c.controlPlane === true ? (
+                            <span data-cluster-name={c.name}>{c.name}</span>
+                          ) : (
+                            <Link
+                              to={`/cluster?clusterName=${c.name}`}
+                              color={theme.colors.primary}
+                              data-cluster-name={c.name}
+                            >
+                              {c.name}
+                            </Link>
+                          ),
+                        sortValue: ({ name }) => name,
+                        textSearchable: true,
+                        maxWidth: 275,
+                      },
+                      {
+                        label: 'Dashboards',
+                        value: (c: GitopsClusterEnriched) => (
+                          <DashboardsList cluster={c} />
+                        ),
+                      },
+                      {
+                        label: 'Type',
+                        value: (c: GitopsClusterEnriched) => (
+                          <ClusterIcon cluster={c}></ClusterIcon>
+                        ),
+                      },
+                      {
+                        label: 'Namespace',
+                        value: 'namespace',
+                      },
+                      {
+                        label: 'Status',
+                        value: (c: GitopsClusterEnriched) =>
+                          c.conditions && c.conditions.length > 0 ? (
+                            <KubeStatusIndicator
+                              short
+                              conditions={c.conditions}
+                            />
+                          ) : null,
+                        sortValue: statusSortHelper,
+                      },
+                      {
+                        label: 'Message',
+                        value: (c: GitopsClusterEnriched) =>
+                          (c.conditions && c.conditions[0]?.message) || null,
+                        sortValue: ({ conditions }) =>
+                          computeMessage(conditions),
+                        maxWidth: 600,
+                      },
+                      {
+                        label: '',
+                        value: (c: GitopsClusterEnriched) => (
+                          <EditButton resource={c} />
+                        ),
+                      },
+                    ]}
+                  />
+                </ClustersTableWrapper>
+              </LoadingWrapper>
+            </RouterTab>
+            <RouterTab name="Violations" path={`${path}/violations`}>
+              <PoliciesViolations />
+            </RouterTab>
+          </SubRouterTabs>
         </ContentWrapper>
       </CallbackStateContextProvider>
     </PageTemplate>

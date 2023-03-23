@@ -103,7 +103,7 @@ const AppRoutes = () => {
       <Route exact path="/">
         <Redirect to={Routes.Clusters} />
       </Route>
-      <Route component={MCCP} exact path={Routes.Clusters} />
+      <Route component={MCCP} path={Routes.Clusters} />
       <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (

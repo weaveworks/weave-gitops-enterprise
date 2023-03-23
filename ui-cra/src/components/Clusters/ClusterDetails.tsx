@@ -20,7 +20,6 @@ import { useEffect, useState } from 'react';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { useIsClusterWithSources } from '../Applications/utils';
-import PoliciesViolations from '../PolicyViolations';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
 type Props = {
@@ -123,9 +122,6 @@ const ClusterDetails = ({ clusterName }: Props) => {
                     getDashboardAnnotations={getDashboardAnnotations}
                     getKubeconfig={getKubeconfig}
                   />
-                </RouterTab>
-                <RouterTab name="Violations" path={`${path}/violations`}>
-                  <PoliciesViolations clusterName={clusterName} />
                 </RouterTab>
               </SubRouterTabs>
             </>

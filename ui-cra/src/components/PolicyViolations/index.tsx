@@ -1,9 +1,10 @@
+import { ListPolicyValidationsRequest } from '../../cluster-services/cluster_services.pb';
 import { useListPolicyValidations } from '../../contexts/PolicyViolations';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { FieldsType, PolicyViolationsTable } from './Table';
 
-const PoliciesViolations = ({ clusterName }: { clusterName: string }) => {
-  const { data, error, isLoading } = useListPolicyValidations({ clusterName });
+const PoliciesViolations = (req: ListPolicyValidationsRequest) => {
+  const { data, error, isLoading } = useListPolicyValidations(req);
   return (
     <LoadingWrapper
       loading={isLoading}
