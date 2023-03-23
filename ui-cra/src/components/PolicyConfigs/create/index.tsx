@@ -225,7 +225,7 @@ const CreatePolicyConfig = () => {
       case 'apps':
         return selectedAppsList;
     }
-  }, [selectedWorkspacesList, selectedAppsList,matchType]);
+  }, [selectedWorkspacesList, selectedAppsList, matchType]);
 
   const getClusterAutomations = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
@@ -240,7 +240,7 @@ const CreatePolicyConfig = () => {
         },
         spec: {
           match: {
-            [matchType]: () => getTargetList(),
+            [matchType]: getTargetList(),
           },
           config: policies,
         },

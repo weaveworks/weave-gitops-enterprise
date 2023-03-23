@@ -1,26 +1,26 @@
 import {
-    Card,
-    CardContent,
-    FormControl,
-    FormControlLabel,
-    FormLabel,
-    Radio,
-    RadioGroup,
-    TextField
+  Card,
+  CardContent,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  TextField,
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import SearchIcon from '@material-ui/icons/Search';
 import { Autocomplete } from '@material-ui/lab';
-import { Dispatch, useEffect, useState } from 'react';
+import { Dispatch, useEffect, useMemo, useState } from 'react';
 import {
-    Policy,
-    PolicyParam
+  Policy,
+  PolicyParam,
 } from '../../../../../cluster-services/cluster_services.pb';
 import { useListListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
-    PolicyDetailsCardWrapper,
-    usePolicyConfigStyle
+  PolicyDetailsCardWrapper,
+  usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -43,10 +43,12 @@ SelectSecretStoreProps) => {
 
   const [isPolicyConfigExist, setIsPolicyConfigExist] =
     useState<boolean>(false);
-  const { data, isLoading } = useListListPolicies({});
-  const policiesList =
-    data?.policies?.filter(p => p.clusterName === cluster) || [];
+  const { data } = useListListPolicies({});
 
+  const policiesList = useMemo(
+    () => data?.policies?.filter(p => p.clusterName === cluster) || [],
+    [data?.policies, cluster],
+  );
   useEffect(() => {
     if (formData.policies && data?.policies?.length) {
       const selected: Policy[] = policiesList.filter((p: Policy) =>
@@ -54,13 +56,13 @@ SelectSecretStoreProps) => {
       );
       setSelectedPolicies(selected);
     }
-  }, [data?.policies]);
+  }, [data?.policies, policiesList, formData.policies]);
 
   const handlePolicyParams = (value: any, id: string, param: PolicyParam) => {
     const { name, value: defaultValue } = param;
     if (
       value === defaultValue?.value ||
-      (value === '' && defaultValue == undefined)
+      (value === '' && defaultValue === undefined)
     ) {
       const item = formData.policies;
       delete item[id].parameters[name as string];
