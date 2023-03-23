@@ -84,6 +84,12 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 				return fmt.Errorf("cannot create role: %w", err)
 			}
 
+			if len(role.GetRules()) == 0 {
+				// Certain roles have no policy rules for some reason.
+				// Possibly related to the rbac.authorization.k8s.io/aggregate-to-gitops-reader label?
+				continue
+			}
+
 			if obj.TransactionType() == models.TransactionTypeDelete {
 				rolesToDelete = append(rolesToDelete, role.ToModel())
 				continue

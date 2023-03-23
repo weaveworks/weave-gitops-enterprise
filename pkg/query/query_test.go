@@ -186,7 +186,7 @@ func TestRunQuery(t *testing.T) {
 			db, err := store.CreateSQLiteDB(dir)
 			g.Expect(err).NotTo(HaveOccurred())
 
-			s, err := store.NewSQLiteStore(db)
+			s, err := store.NewSQLiteStore(db, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
 			q := &qs{

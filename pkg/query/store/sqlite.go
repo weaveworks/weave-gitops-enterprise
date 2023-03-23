@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
 	"gorm.io/driver/sqlite"
@@ -17,12 +18,14 @@ import (
 const dbFile = "resources.db"
 
 type SQLiteStore struct {
-	db *gorm.DB
+	db  *gorm.DB
+	log logr.Logger
 }
 
-func NewSQLiteStore(db *gorm.DB) (*SQLiteStore, error) {
+func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
-		db: db,
+		db:  db,
+		log: log,
 	}, nil
 }
 
@@ -31,27 +34,41 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 		return fmt.Errorf("empty role list")
 	}
 
-	rows := []models.Role{}
-
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
 			return fmt.Errorf("invalid role: %w", err)
 		}
 
 		role.ID = role.GetID()
-		rows = append(rows, role)
+
+		result := i.db.Unscoped().Delete(&role.PolicyRules, "role_id = ?", role.ID)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete policy rules: %w", result.Error)
+		}
+
+		m := i.db.Model(&role).Association("PolicyRules")
+
+		if err := m.Delete(role.PolicyRules); err != nil {
+			return fmt.Errorf("failed to delete policy rules: %w", err)
+		}
+
+		clauses := i.db.Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			UpdateAll: true,
+		})
+
+		result = clauses.Create(&role)
+
+		if result.Error != nil {
+			return fmt.Errorf("failed to store role: %w", result.Error)
+		}
+
+		i.log.Info("stored role", "role", fmt.Sprintf("%s/%s/%s/%s", role.Cluster, role.Namespace, role.Kind, role.Name))
 	}
 
-	clauses := i.db.Clauses(clause.OnConflict{
-		Columns: []clause.Column{
-			{Name: "id"},
-		},
-		UpdateAll: true,
-	})
-
-	result := clauses.Create(&rows)
-
-	return result.Error
+	return nil
 }
 
 func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
@@ -59,27 +76,38 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 		return fmt.Errorf("empty role binding list")
 	}
 
-	rows := []models.RoleBinding{}
-
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)
 		}
 
 		roleBinding.ID = roleBinding.GetID()
-		rows = append(rows, roleBinding)
+
+		result := i.db.Unscoped().Delete(&roleBinding.Subjects, "role_binding_id = ?", roleBinding.ID)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete subjects: %w", result.Error)
+		}
+
+		m := i.db.Model(&roleBinding).Association("Subjects")
+
+		if err := m.Delete(roleBinding.Subjects); err != nil {
+			return fmt.Errorf("failed to delete subjects: %w", err)
+		}
+
+		clauses := i.db.Clauses(clause.OnConflict{
+			Columns: []clause.Column{
+				{Name: "id"},
+			},
+			UpdateAll: true,
+		})
+
+		result = clauses.Create(&roleBinding)
+		if result.Error != nil {
+			return fmt.Errorf("failed to store role binding: %w", result.Error)
+		}
 	}
 
-	clauses := i.db.Clauses(clause.OnConflict{
-		Columns: []clause.Column{
-			{Name: "id"},
-		},
-		UpdateAll: true,
-	})
-
-	result := clauses.Create(&rows)
-
-	return result.Error
+	return nil
 }
 
 func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
@@ -140,6 +168,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 
 	tx := i.db.Limit(limit)
 	tx = tx.Offset(offset)
+	tx = tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "name"}, Desc: true})
 
 	if q != nil && len(q) > 0 {
 		for _, c := range q {
