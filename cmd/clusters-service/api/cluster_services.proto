@@ -859,7 +859,8 @@ message GetConfigRequest {}
 message GetConfigResponse {
   string repositoryURL = 1;
   string managementClusterName = 2;
-    string ui_config = 3;
+  string ui_config = 3;
+  map<string, string> git_host_types = 4;
 }
 
 message PolicyParamRepeatedString { repeated string value = 1; }

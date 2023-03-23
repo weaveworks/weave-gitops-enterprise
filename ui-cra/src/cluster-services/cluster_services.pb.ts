@@ -551,6 +551,7 @@ export type GetConfigResponse = {
   repositoryURL?: string
   managementClusterName?: string
   uiConfig?: string
+  gitHostTypes?: {[key: string]: string}
 }
 
 export type PolicyParamRepeatedString = {
