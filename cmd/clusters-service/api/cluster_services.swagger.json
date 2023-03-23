@@ -1967,6 +1967,12 @@
         },
         "uiConfig": {
           "type": "string"
+        },
+        "gitHostTypes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
