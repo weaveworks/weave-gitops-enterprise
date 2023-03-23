@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -35,6 +36,7 @@ type GetAutomations struct {
 	Clusters             []string
 	ExternalSecretsFiles []*capiv1_proto.CommitFile
 	PolicyConfigsFiles   []*capiv1_proto.CommitFile
+	SopsSecretsFiles     []*capiv1_proto.CommitFile
 }
 
 func toGitCommitFile(file *capiv1_proto.CommitFile) git.CommitFile {
@@ -90,6 +92,12 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 
 	if len(automations.PolicyConfigsFiles) > 0 {
 		for _, f := range automations.PolicyConfigsFiles {
+			files = append(files, toGitCommitFile(f))
+		}
+	}
+
+	if len(automations.SopsSecretsFiles) > 0 {
+		for _, f := range automations.SopsSecretsFiles {
 			files = append(files, toGitCommitFile(f))
 		}
 	}
@@ -159,6 +167,7 @@ func (s *server) RenderAutomation(ctx context.Context, msg *capiv1_proto.RenderA
 		HelmReleaseFiles:     automations.HelmReleaseFiles,
 		ExternalSecretsFiles: automations.ExternalSecretsFiles,
 		PolicyConfigFiles:    automations.PolicyConfigsFiles,
+		SopsSecertFiles:      automations.SopsSecretsFiles,
 	}, err
 }
 
@@ -174,6 +183,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 	var helmReleaseFiles []*capiv1_proto.CommitFile
 	var externalSecretsFiles []*capiv1_proto.CommitFile
 	var policyConfigsFiles []*capiv1_proto.CommitFile
+	var sopsSecretsFiles []*capiv1_proto.CommitFile
 
 	if len(ca) > 0 {
 		for _, c := range ca {
@@ -243,6 +253,19 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 				})
 			}
 
+			if c.SopsSecret != nil {
+				sopsSecret, err := generateSopsSecret(ctx, c.IsControlPlane, cluster, client, c.SopsSecret, c.FilePath)
+
+				if err != nil {
+					return nil, err
+				}
+
+				sopsSecretsFiles = append(sopsSecretsFiles, &capiv1_proto.CommitFile{
+					Path:    *sopsSecret.Path,
+					Content: *sopsSecret.Content,
+				})
+			}
+
 			clusters = append(clusters, c.Cluster.Name)
 		}
 	}
@@ -253,6 +276,7 @@ func getAutomations(ctx context.Context, client client.Client, ca []*capiv1_prot
 		Clusters:             clusters,
 		ExternalSecretsFiles: externalSecretsFiles,
 		PolicyConfigsFiles:   policyConfigsFiles,
+		SopsSecretsFiles:     sopsSecretsFiles,
 	}, nil
 }
 
@@ -376,6 +400,8 @@ func validateAutomations(ca []*capiv1_proto.ClusterAutomation) error {
 			err = multierror.Append(err, validateExternalSecret(c.ExternalSecret))
 		} else if c.PolicyConfig != nil {
 			err = multierror.Append(err, validatePolicyConfig(c.PolicyConfig))
+		} else if c.SopsSecret != nil {
+			err = multierror.Append(err, validateSopsSecret(c.SopsSecret))
 		} else {
 			err = multierror.Append(err, fmt.Errorf("cluster automation must contain either kustomization or helm release or external secret"))
 		}
@@ -768,6 +794,67 @@ func validatePolicyConfig(config *capiv1_proto.PolicyConfigObject) error {
 		if len(policyConfig.Parameters) == 0 {
 			err = multierror.Append(err, fmt.Errorf("policy %s configuration must have at least one parameter", policyID))
 		}
+	}
+
+	return err
+}
+
+func generateSopsSecret(
+	ctx context.Context,
+	isControlPlane bool,
+	cluster types.NamespacedName,
+	client client.Client,
+	secret *capiv1_proto.SopsSecret,
+	filePath string) (gitprovider.CommitFile, error) {
+
+	namespacedName := createNamespacedName(secret.Metadata.Name, secret.Metadata.Namespace)
+
+	path := getClusterResourcePath(isControlPlane, "sops-secret", cluster, namespacedName)
+
+	realPath, err := filepath.Rel(".", filePath)
+	if err != nil {
+		return gitprovider.CommitFile{}, err
+	}
+
+	path = fmt.Sprintf(path, realPath)
+	raw, err := yaml.Marshal(secret)
+	if err != nil {
+		return gitprovider.CommitFile{}, err
+	}
+
+	content := string(raw)
+
+	return gitprovider.CommitFile{
+		Path:    &path,
+		Content: &content,
+	}, nil
+}
+
+func validateSopsSecret(secret *capiv1_proto.SopsSecret) error {
+	var err error
+
+	if secret.ApiVersion == "" {
+		err = multierror.Append(err, errors.New("missing apiVersion field"))
+	}
+
+	if secret.Kind == "" {
+		err = multierror.Append(err, errors.New("missing kind field"))
+	}
+
+	if secret.Metadata.Name == "" {
+		err = multierror.Append(err, errors.New("missing secret name"))
+	}
+
+	if secret.Metadata.Namespace == "" {
+		err = multierror.Append(err, errors.New("missing secret namespace"))
+	}
+
+	if secret.Data == nil && secret.StringData == nil {
+		err = multierror.Append(err, errors.New("either data or stringData fields are required"))
+	}
+
+	if secret.Data != nil && secret.StringData != nil {
+		err = multierror.Append(err, errors.New("expected only one of data or stringData fields, but found both"))
 	}
 
 	return err

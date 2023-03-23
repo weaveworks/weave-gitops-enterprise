@@ -112,19 +112,31 @@ func getOwnerFromURL(url url.URL, providerName GitProviderName) (string, error) 
 	return strings.Join(parts[:len(parts)-1], "/"), nil
 }
 
+func GitHostTypes(gitHostTypesConfig map[string]string) map[string]string {
+	defaults := map[string]string{
+		github.DefaultDomain:         string(GitProviderGitHub),
+		gitlab.DefaultDomain:         string(GitProviderGitLab),
+		AzureDevOpsHTTPDefaultDomain: string(GitProviderAzureDevOps),
+		AzureDevOpsSSHDefaultDomain:  string(GitProviderAzureDevOps),
+	}
+
+	// add in the user defined git host types
+	for k, v := range gitHostTypesConfig {
+		defaults[k] = v
+	}
+
+	return defaults
+}
+
 // detectGitProviderFromURL accepts a url related to a git repo and
 // returns the name of the provider associated.
-func detectGitProviderFromURL(raw string, gitHostTypes map[string]string) (GitProviderName, error) {
+func detectGitProviderFromURL(raw string, gitHostTypesConfig map[string]string) (GitProviderName, error) {
 	u, err := parseGitURL(raw)
 	if err != nil {
 		return "", fmt.Errorf("could not parse git repo url %q: %w", raw, err)
 	}
 
-	// defaults for github, gitlab and azure devops
-	gitHostTypes[github.DefaultDomain] = string(GitProviderGitHub)
-	gitHostTypes[gitlab.DefaultDomain] = string(GitProviderGitLab)
-	gitHostTypes[AzureDevOpsHTTPDefaultDomain] = string(GitProviderAzureDevOps)
-	gitHostTypes[AzureDevOpsSSHDefaultDomain] = string(GitProviderAzureDevOps)
+	gitHostTypes := GitHostTypes(gitHostTypesConfig)
 
 	provider := gitHostTypes[u.Host]
 	if provider == "" {
