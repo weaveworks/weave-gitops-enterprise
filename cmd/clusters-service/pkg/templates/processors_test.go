@@ -252,6 +252,15 @@ func TestProcessor_Params(t *testing.T) {
 				{Name: "KUBERNETES_VERSION", Required: true},
 			},
 		},
+		{
+			filename: "testdata/text-template7.yaml",
+			want: []Param{
+				{Name: "CLUSTER_NAME"},
+				{Name: "NAMESPACE"},
+				{Name: "NEW_PARAM"},
+				{Name: "OTHER_PARAM"},
+			},
+		},
 	}
 
 	for _, tt := range paramTests {

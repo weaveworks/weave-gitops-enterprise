@@ -3,7 +3,6 @@ package templates
 import (
 	"bytes"
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 	"text/template"
@@ -275,11 +274,9 @@ type TextTemplateProcessor struct {
 }
 
 func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([]byte, error) {
-	templateName := p.template.GetName()
-	left, right := p.templateDelims()
-	parsed, err := template.New(templateName).Funcs(templateFuncs).Delims(left, right).Parse(string(tmpl))
+	parsed, err := p.parseToTemplate(tmpl)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse template: %w", err)
+		return nil, err
 	}
 
 	var out bytes.Buffer
@@ -291,6 +288,17 @@ func (p *TextTemplateProcessor) Render(tmpl []byte, values map[string]string) ([
 	}
 
 	return out.Bytes(), nil
+}
+
+func (p *TextTemplateProcessor) parseToTemplate(tmpl []byte) (*template.Template, error) {
+	templateName := p.template.GetName()
+	left, right := p.templateDelims()
+	parsed, err := template.New(templateName).Funcs(templateFuncs).Delims(left, right).Parse(string(tmpl))
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse template: %w", err)
+	}
+
+	return parsed, nil
 }
 
 func (p *TextTemplateProcessor) templateDelims() (string, string) {
@@ -309,20 +317,18 @@ func (p *TextTemplateProcessor) ParamNames(raw []byte) ([]string, error) {
 		return nil, fmt.Errorf("failed to convert back to YAML: %w", err)
 	}
 
-	left, right := p.templateDelims()
-	paramsString := regexp.QuoteMeta(left) + `.*\.params\.([A-Za-z0-9_]+).*` + regexp.QuoteMeta(right)
-
-	paramsRE, err := regexp.Compile(paramsString)
+	parsed, err := p.parseToTemplate(b)
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse parameters using regexp %q: %w", paramsString, err)
-	}
-	result := paramsRE.FindAllSubmatch(b, -1)
-	variables := sets.NewString()
-	for _, r := range result {
-		variables.Insert(string(r[1]))
+		return nil, err
 	}
 
-	return variables.List(), nil
+	// The *parse.Tree field is exported only for use by html/template
+	// and should be treated as unexported by all other clients.
+	//
+	// This is a bit naughty but we would need to recreate the template builtins
+	// to pass to the parser implementation ("eq" etc) as they are internal to
+	// the package.
+	return parseTextParamNames(parsed.Tree), nil
 }
 
 // NewEnvsubstTemplateProcessor creates and returns a new
