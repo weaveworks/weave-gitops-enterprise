@@ -28,6 +28,7 @@ type server struct {
 	qs   query.QueryService
 	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
+	log  logr.Logger
 }
 
 func (s *server) StopCollection() error {
@@ -89,6 +90,7 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 }
 
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
+	log := opts.Logger
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
 		return nil, nil, err
@@ -112,9 +114,8 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	if !opts.SkipCollection {
 
 		optsCollector := collector.CollectorOpts{
-			Log:      opts.Logger,
-			Clusters: opts.ClustersManager.GetClusters(),
-			// ClusterManager: opts.ClustersManager,
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
 		}
 
 		rulesCollector, err := rolecollector.NewRoleCollector(s, optsCollector)
@@ -137,6 +138,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
+		log.Info("collectors created")
 	}
 
 	return serv, serv.StopCollection, nil

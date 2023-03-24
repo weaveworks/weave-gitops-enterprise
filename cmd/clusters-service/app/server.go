@@ -648,6 +648,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		_, err := queryserver.Hydrate(ctx, grpcMux, queryserver.ServerOpts{
 			Logger:          args.Log,
 			ClustersManager: args.ClustersManager,
+			SkipCollection:  false,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)

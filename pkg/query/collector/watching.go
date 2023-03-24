@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -14,22 +15,56 @@ import (
 )
 
 func (c *watchingCollector) Start() error {
+	c.log.Info("starting watcher", "kinds", c.kinds)
+	//TODO add context
+	ctx := context.Background()
+	cw := c.clusterManager.Subscribe()
 	c.objectsChannel = make(chan []models.ObjectTransaction)
 
-	for _, cluster := range c.clusters {
+	for _, cluster := range c.clusterManager.GetClusters() {
 		err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
+		c.log.Info("watching cluster", "cluster", cluster.GetName())
 	}
 
+	//watch on clusters
 	go func() {
 		for {
-			objectRecords := <-c.objectsChannel
-			err := c.processRecordsFunc(context.Background(), objectRecords, c.store, c.log)
+			select {
+			case <-ctx.Done():
+				return
+			case updates := <-cw.Updates:
+
+				for _, cluster := range updates.Added {
+					err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
+					if err != nil {
+						c.log.Error(err, "cannot watch cluster")
+					}
+					c.log.Info("watching cluster", "cluster", cluster.GetName())
+				}
+
+				for _, cluster := range updates.Removed {
+					err := c.Unwatch(cluster)
+					if err != nil {
+						c.log.Error(err, "cannot unwatch cluster")
+					}
+					c.log.Info("unwatching cluster", "cluster", cluster.GetName())
+				}
+
+			}
+		}
+	}()
+	//watch on channels
+	go func() {
+		for {
+			objectTransactions := <-c.objectsChannel
+			err := c.processRecordsFunc(ctx, objectTransactions, c.store, c.log)
 			if err != nil {
 				c.log.Error(err, "cannot process records")
 			}
+			c.log.Info("processed records", "records", objectTransactions)
 		}
 	}()
 
@@ -39,20 +74,12 @@ func (c *watchingCollector) Start() error {
 func (c *watchingCollector) Stop() error {
 	c.log.Info("stopping collector")
 
-	for _, cluster := range c.clusters {
-		err := c.Unwatch(cluster)
-		if err != nil {
-			return err
-		}
-
-	}
-
 	return nil
 }
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
-	clusters           []cluster.Cluster
+	clusterManager     clustersmngr.ClustersManager
 	clusterWatchers    map[string]Watcher
 	kinds              []schema.GroupVersionKind
 	store              store.Store
@@ -69,7 +96,7 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 	}
 
 	return &watchingCollector{
-		clusters:           opts.Clusters,
+		clusterManager:     opts.ClusterManager,
 		clusterWatchers:    make(map[string]Watcher),
 		newWatcherFunc:     opts.NewWatcherFunc,
 		store:              store,
