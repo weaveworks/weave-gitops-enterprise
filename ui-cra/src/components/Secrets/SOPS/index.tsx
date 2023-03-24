@@ -26,7 +26,7 @@ import { FormWrapper } from './styles';
 import {
   getFormattedPayload,
   scrollToAlertSection,
-  handelError,
+  handleError,
   getInitialData,
   SOPS,
 } from './utils';
@@ -88,7 +88,7 @@ const CreateSOPS = () => {
       ]);
       scrollToAlertSection();
     } catch (error: any) {
-      handelError(error, setNotifications);
+      handleError(error, setNotifications);
     } finally {
       setLoading(false);
       removeToken(formData.provider);

@@ -1,5 +1,5 @@
 import { MenuItem } from '@material-ui/core';
-import { useListKustomizationSOPS } from '../../../hooks/listObjects';
+import { useListKustomizationSOPS } from '../../../hooks/listSOPSKustomization';
 import { Select } from '../../../utils/form';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 

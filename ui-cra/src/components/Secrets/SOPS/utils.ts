@@ -47,8 +47,13 @@ export function getInitialData(
 
   return { initialFormData };
 }
-export const convertToObject = (arr: any[]) => {
-  const obj: any = {};
+export const convertToObject = (
+  arr: {
+    key: string;
+    value: string;
+  }[],
+) => {
+  const obj: { [key: string]: string } = {};
   arr.forEach(o => {
     obj[o.key] = o.value;
   });
@@ -59,7 +64,7 @@ export function scrollToAlertSection() {
   element?.scrollIntoView({ behavior: 'smooth' });
 }
 
-export const handelError = (err: any, setNotifications: any) => {
+export const handleError = (err: any, setNotifications: any) => {
   if (err.code === 401) {
     const { pathname, search } = window.location;
     const redirectUrl = encodeURIComponent(`${pathname}${search}`);

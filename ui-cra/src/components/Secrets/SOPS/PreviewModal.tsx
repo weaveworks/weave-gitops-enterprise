@@ -9,7 +9,7 @@ import {
 } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
 import { PreviewPRSection } from './styles';
-import { getFormattedPayload, handelError, SOPS } from './utils';
+import { getFormattedPayload, handleError, SOPS } from './utils';
 
 export const PreviewModal = ({ formData }: { formData: SOPS }) => {
   const [openPreview, setOpenPreview] = useState(false);
@@ -37,7 +37,7 @@ export const PreviewModal = ({ formData }: { formData: SOPS }) => {
       setOpenPreview(true);
       setPRPreview(render);
     } catch (err: any) {
-      handelError(err, setNotifications);
+      handleError(err, setNotifications);
     } finally {
       setPreviewLoading(false);
     }
