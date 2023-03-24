@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/fluxcd/pkg/runtime/logger"
 	flag "github.com/spf13/pflag"
-	collector_app "github.com/weaveworks/weave-gitops-enterprise/cmd/collector/app"
+	collectorapp "github.com/weaveworks/weave-gitops-enterprise/cmd/collector/app"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -69,7 +69,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	remoteStore, err := store.NewRemoteStore(store.RemoteStoreOpts{
+	remoteStore, err := store.NewStore(store.RemoteBackend, store.StoreOpts{
 		Log:   log,
 		Url:   querySeverUrl,
 		Token: string(token),
@@ -80,14 +80,14 @@ func main() {
 	}
 
 	//TODO these arguments should come from
-	opts := collector_app.ServerOpts{
+	opts := collectorapp.ServerOpts{
 		Logger:            log,
 		ClustersNamespace: "flux-system",
 		Store:             remoteStore,
 	}
 
 	//TODO capture stop
-	collector, _, err := collector_app.NewServer(ctx, opts)
+	collector, _, err := collectorapp.NewServer(ctx, opts)
 	if err != nil {
 		log.Error(err, "unable to create collector server")
 		os.Exit(1)

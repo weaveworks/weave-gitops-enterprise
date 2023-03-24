@@ -240,7 +240,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			dir, err := os.MkdirTemp("", "test")
 			g.Expect(err).NotTo(HaveOccurred())
 
-			store, err := store.NewStore(store.StorageBackendSQLite, dir)
+			store, err := store.NewStore(store.StorageBackendSQLite, store.StoreOpts{Url: dir})
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(store.StoreObjects(context.Background(), tt.objects)).To(Succeed())
@@ -248,8 +248,8 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
 
 			qs, err := NewQueryService(ctx, QueryServiceOpts{
-				Log:         logr.Discard(),
-				StoreReader: store,
+				Log:   logr.Discard(),
+				Store: store,
 			})
 
 			assert.NoError(t, err)
