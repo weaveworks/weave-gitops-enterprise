@@ -23,6 +23,19 @@ import (
 	"syscall"
 	"time"
 
+	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
+
+	"github.com/NYTimes/gziphandler"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
+	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -65,17 +78,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
 
-	"github.com/NYTimes/gziphandler"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/pricing"
-	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
-	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	"google.golang.org/protobuf/reflect/protoreflect"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -640,6 +642,17 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		Logger:          args.Log,
 	}); err != nil {
 		return fmt.Errorf("failed to register progressive delivery handler server: %w", err)
+	}
+
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_EXPLORER") != "" {
+		_, err := queryserver.Hydrate(ctx, grpcMux, queryserver.ServerOpts{
+			Logger:          args.Log,
+			ClustersManager: args.ClustersManager,
+			SkipCollection:  false,
+		})
+		if err != nil {
+			return fmt.Errorf("hydrating pipelines server: %w", err)
+		}
 	}
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
