@@ -28,7 +28,7 @@ listOCIRepositories: false
 enablePipelines: true
 
 # Turns on explorer to true
-enableExplorer: true
+enableExplorer: false
 
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false

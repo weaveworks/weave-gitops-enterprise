@@ -15,6 +15,7 @@ import (
 )
 
 func (c *watchingCollector) Start() error {
+	c.log.Info("starting watcher", "kinds", c.kinds)
 	//TODO add context
 	ctx := context.Background()
 	cw := c.clusterManager.Subscribe()
@@ -25,6 +26,7 @@ func (c *watchingCollector) Start() error {
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
+		c.log.Info("watching cluster", "cluster", cluster.GetName())
 	}
 
 	//watch on clusters
@@ -40,6 +42,7 @@ func (c *watchingCollector) Start() error {
 					if err != nil {
 						c.log.Error(err, "cannot watch cluster")
 					}
+					c.log.Info("watching cluster", "cluster", cluster.GetName())
 				}
 
 				for _, cluster := range updates.Removed {
@@ -47,6 +50,7 @@ func (c *watchingCollector) Start() error {
 					if err != nil {
 						c.log.Error(err, "cannot unwatch cluster")
 					}
+					c.log.Info("unwatching cluster", "cluster", cluster.GetName())
 				}
 
 			}
@@ -60,6 +64,7 @@ func (c *watchingCollector) Start() error {
 			if err != nil {
 				c.log.Error(err, "cannot process records")
 			}
+			c.log.Info("processed records", "records", objectTransactions)
 		}
 	}()
 

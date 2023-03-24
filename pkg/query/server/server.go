@@ -90,6 +90,7 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 }
 
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
+	log := opts.Logger
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
 		return nil, nil, err
@@ -137,6 +138,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
+		log.Info("collectors created")
 	}
 
 	return serv, serv.StopCollection, nil
