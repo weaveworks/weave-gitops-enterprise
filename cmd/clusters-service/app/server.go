@@ -23,17 +23,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/NYTimes/gziphandler"
-	awsconfig "github.com/aws/aws-sdk-go-v2/config"
-	"github.com/aws/aws-sdk-go-v2/service/pricing"
-	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
-	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/spf13/cobra"
-	flag "github.com/spf13/pflag"
-	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
@@ -75,6 +64,19 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
+
+	"github.com/NYTimes/gziphandler"
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/pricing"
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/go-logr/logr"
+	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/cobra"
+	flag "github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"google.golang.org/protobuf/reflect/protoreflect"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -146,6 +148,9 @@ type Params struct {
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
 	LogLevel                          string                    `mapstructure:"log-level"`
+	GitProviderCSRFCookieDomain       string                    `mapstructure:"git-provider-csrf-cookie-domain"`
+	GitProviderCSRFCookiePath         string                    `mapstructure:"git-provider-csrf-cookie-path"`
+	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -235,6 +240,10 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("cost-estimation-filters", "", "Cost estimation filters")
 	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
 	cmdFlags.String("cost-estimation-csv-file", "", "Filename to parse as Cost Estimation data")
+	// Used to configure the cookie holding the CSRF token that gets created during the OAuth flow
+	cmdFlags.String("git-provider-csrf-cookie-domain", "", "The domain of the CSRF cookie")
+	cmdFlags.String("git-provider-csrf-cookie-path", "", "The path of the CSRF cookie")
+	cmdFlags.Duration("git-provider-csrf-cookie-duration", 5*time.Minute, "The duration of the CSRF cookie before it expires")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -507,6 +516,7 @@ func StartServer(ctx context.Context, p Params) error {
 		WithGrpcRuntimeOptions(
 			[]grpc_runtime.ServeMuxOption{
 				grpc_runtime.WithIncomingHeaderMatcher(CustomIncomingHeaderMatcher),
+				grpc_runtime.WithForwardResponseOption(IssueGitProviderCSRFCookie(p.GitProviderCSRFCookieDomain, p.GitProviderCSRFCookiePath, p.GitProviderCSRFCookieDuration)),
 				middleware.WithGrpcErrorLogging(log),
 			},
 		),
@@ -956,4 +966,35 @@ func makeCostEstimator(ctx context.Context, log logr.Logger, p Params) (estimati
 	log.Info("Parsed default cost estimation filters", "filters", filters)
 
 	return estimation.NewAWSClusterEstimator(pricer, filters), nil
+}
+
+// IssueGitProviderCSRFCookie gets executed before sending the HTTP response and checks if any gRPC handlers have
+// previously set any custom metadata with the key `x-git-provider-csrf`. If so, it will read its value and issue
+// an HTTP cookie with that value. The cookie will be read during the OAuth flow, when the user authenticates to a
+// git provider in order to receive a short-lived token.
+func IssueGitProviderCSRFCookie(domain string, path string, duration time.Duration) func(ctx context.Context, w http.ResponseWriter, p protoreflect.ProtoMessage) error {
+	return func(ctx context.Context, w http.ResponseWriter, p protoreflect.ProtoMessage) error {
+		md, ok := grpc_runtime.ServerMetadataFromContext(ctx)
+		if !ok {
+			return nil
+		}
+
+		if vals := md.HeaderMD.Get(gitauth_server.GitProviderCSRFHeaderName); len(vals) > 0 {
+			state := vals[0]
+			md.HeaderMD.Delete(gitauth_server.GitProviderCSRFHeaderName)
+			w.Header().Del(grpc_runtime.MetadataHeaderPrefix + gitauth_server.GitProviderCSRFHeaderName)
+			cookie := &http.Cookie{
+				Name:     gitauth_server.GitProviderCSRFCookieName,
+				Value:    state,
+				Domain:   domain,
+				Path:     path,
+				Secure:   true,
+				HttpOnly: true,
+				Expires:  time.Now().UTC().Add(duration),
+			}
+			http.SetCookie(w, cookie)
+		}
+
+		return nil
+	}
 }

@@ -414,6 +414,9 @@
         "code": {
           "type": "string"
         },
+        "state": {
+          "type": "string"
+        },
         "redirectUri": {
           "type": "string"
         }
@@ -431,6 +434,9 @@
       "type": "object",
       "properties": {
         "code": {
+          "type": "string"
+        },
+        "state": {
           "type": "string"
         },
         "redirectUri": {
