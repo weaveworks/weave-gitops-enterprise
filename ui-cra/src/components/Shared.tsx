@@ -70,6 +70,7 @@ export const Message = styled.div`
   display: flex;
   flex-direction: column;
 `;
+
 export const Title = styled.h4`
   font-size: ${({ theme }) => theme.fontSizes.large};
   font-weight: 600;

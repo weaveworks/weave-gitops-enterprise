@@ -3,20 +3,14 @@ import { isEmpty } from 'lodash';
 import styled from 'styled-components';
 import { transparentize } from 'polished';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Flex, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import ArrowForward from '@material-ui/icons/ArrowForwardIos';
 import { Link } from 'react-router-dom';
 
 interface Size {
   size?: 'small';
 }
-const Container = styled.div`
-  align-items: center;
-  display: flex;
-  justify-content: center;
-  font-size: ${20}px;
-  height: 32px;
-`;
+
 const Span = styled.span`
   color: ${({ theme }) => theme.colors.white};
   text-overflow: ellipsis;
@@ -79,7 +73,12 @@ const useStyles = makeStyles(() =>
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   const classes = useStyles();
   return (
-    <Container>
+    <Flex
+      style={{
+        fontSize: '20px',
+        height: '32px',
+      }}
+    >
       {path.map(({ label, url }, index) => (
         <div
           key={index}
@@ -104,6 +103,6 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
           )}
         </div>
       ))}
-    </Container>
+    </Flex>
   );
 };

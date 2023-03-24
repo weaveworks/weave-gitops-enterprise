@@ -118,12 +118,6 @@ export const TextWrapper = styled.p`
   font-weight: 400;
 `;
 
-export const FlexCenter = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-`;
-
 export const LinkTag = styled(Link)`
   color: ${theme.colors.primary};
 `;

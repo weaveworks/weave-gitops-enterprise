@@ -16,6 +16,7 @@ import { getRepositoryUrl } from '../Templates/Form/utils';
 import AuthButton from './AuthButton';
 
 const GitAuthForm = styled(Flex)`
+  justify-content: space-between;
   #SELECT_GIT_REPO-group {
     width: 75%;
     padding-top: ${({ theme }) => theme.spacing.xs};

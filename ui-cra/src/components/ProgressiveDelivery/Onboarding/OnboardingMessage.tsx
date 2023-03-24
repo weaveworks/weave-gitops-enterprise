@@ -1,9 +1,8 @@
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
 import {
-  FlexCenter,
   Header4,
   LinkTag,
   OnBoardingMessageWrapper,
@@ -18,7 +17,7 @@ const OnboardingMessage = () => {
         path={[
           {
             label: 'Applications',
-            url:Routes.Applications,
+            url: Routes.Applications,
           },
           { label: 'Delivery' },
         ]}
@@ -42,14 +41,14 @@ const OnboardingMessage = () => {
             rollback for deployment strategies such as Canary, A/B Testing, and
             Blue/Green.
           </TextWrapper>
-          <FlexCenter>
+          <Flex align center>
             <LinkTag
               href="https://docs.gitops.weave.works/docs/next/guides/delivery/"
               newTab
             >
               <Button id="navigate-to-flagger"> FLAGGER GUIDE</Button>
             </LinkTag>
-          </FlexCenter>
+          </Flex>
         </OnBoardingMessageWrapper>
       </ContentWrapper>
     </>

@@ -18,6 +18,7 @@ import {
   Button as WeaveButton,
   KubeStatusIndicator,
   useListSources,
+  Flex,
 } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import {
@@ -35,10 +36,6 @@ import { useIsClusterWithSources } from '../Applications/utils';
 import { Tooltip } from '../Shared';
 import { Routes } from '../../utils/nav';
 
-interface Size {
-  size?: 'small';
-}
-
 type Props = {
   className?: string;
   name: string;
@@ -52,10 +49,6 @@ const ClusterDashbordWrapper = styled.div`
     font-weight: bold;
     color: ${theme.colors.primary};
   }
-`;
-
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
 `;
 
 const useStyles = makeStyles(() =>
@@ -132,7 +125,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
         ]}
       >
         <ContentWrapper>
-          <ActionsWrapper>
+          <Flex>
             <WeaveButton
               id="cluster-application"
               className={classes.clusterApplicationBtn}
@@ -178,7 +171,7 @@ const ClusterDashboard = ({ clusterName }: Props) => {
                 </div>
               </Tooltip>
             )}
-          </ActionsWrapper>
+          </Flex>
 
           <SubRouterTabs rootPath={`${path}/details`}>
             <RouterTab name="Details" path={`${path}/details`}>

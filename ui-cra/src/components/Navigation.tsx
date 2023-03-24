@@ -1,6 +1,7 @@
 import Box from '@material-ui/core/Box';
 import { makeStyles } from '@material-ui/core/styles';
 import {
+  Flex,
   Link,
   theme,
   useFeatureFlags,
@@ -42,18 +43,13 @@ interface NavigationItem {
   relatedRoutes?: Array<string>;
 }
 
-const NavWrapper = styled.div`
-  display: flex;
-  align-items: center;
-  justify-content: start;
+const NavWrapper = styled(Flex)`
   flex-direction: column;
   margin-bottom: ${small};
 
   a.route-nav {
     width: 100%;
-    display: flex;
     align-items: center;
-    justify-content: start;
     padding-top: ${xs};
     padding-bottom: ${xs};
     padding-left: ${medium};
@@ -224,7 +220,7 @@ const NavItems = () => {
     {
       name: 'POLICY CONFIGS',
       link: Routes.PolicyConfigs,
-      icon:  <PolicyConfigs />,
+      icon: <PolicyConfigs />,
     },
   ];
   return (

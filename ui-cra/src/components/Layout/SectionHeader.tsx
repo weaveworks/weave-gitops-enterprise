@@ -1,6 +1,6 @@
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { theme, UserSettings } from '@weaveworks/weave-gitops';
+import { Flex, theme, UserSettings } from '@weaveworks/weave-gitops';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
@@ -8,10 +8,10 @@ interface Size {
 }
 
 const { medium, small } = theme.spacing;
-const Wrapper = styled.div<Size>`
+
+const Wrapper = styled(Flex)<Size>`
   align-items: center;
   justify-content: space-between;
-  display: flex;
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
@@ -21,7 +21,6 @@ const Wrapper = styled.div<Size>`
   position: sticky;
   top: 0;
   z-index: 2;
-
   background: inherit;
   .MuiListItemIcon-root {
     min-width: 30px;

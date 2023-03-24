@@ -22,6 +22,7 @@ import {
   useListSources,
   GitRepository,
   Kind,
+  Flex,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -61,13 +62,6 @@ import {
 } from '../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../Templates/Form';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
-
-interface Size {
-  size?: 'small';
-}
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
-`;
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
@@ -392,7 +386,7 @@ const MCCP: FC<{
               justifyContent: 'space-between',
             }}
           >
-            <ActionsWrapper>
+            <Flex>
               <Button
                 id="create-cluster"
                 startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -461,7 +455,7 @@ const MCCP: FC<{
                 />
                 GO TO OPEN PULL REQUESTS
               </Button>
-            </ActionsWrapper>
+            </Flex>
           </div>
           {!isLoading ? (
             <ClustersTableWrapper id="clusters-list">

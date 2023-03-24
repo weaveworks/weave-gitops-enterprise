@@ -1,6 +1,5 @@
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import {
-  FlexCenter,
   Header4,
   LinkTag,
   OnBoardingMessageWrapper,
@@ -19,13 +18,13 @@ const OnboardingImageAutomationMessage = () => {
         To get started with this feature, follow the Flux guide to install the
         Image Reflector and Image Automation controllers on your cluster(s).
       </TextWrapper>
-      <FlexCenter>
+      <Flex align center>
         <LinkTag href="https://fluxcd.io/flux/guides/image-update/" newTab>
           <Button id="navigate-to-imageautomation">
             IMAGE AUTOMATION GUIDE
           </Button>
         </LinkTag>
-      </FlexCenter>
+      </Flex>
     </OnBoardingMessageWrapper>
   );
 };
