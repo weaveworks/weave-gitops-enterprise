@@ -1,7 +1,7 @@
 //go:build integration
 // +build integration
 
-package remotewriter
+package store
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestRemoteStore_StoreObjects(t *testing.T) {
+func TestRemoteStore_StoreObjects_Integration(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 
@@ -22,12 +22,12 @@ func TestRemoteStore_StoreObjects(t *testing.T) {
 	writerToken := os.Getenv("QUERY_SERVER_TOKEN")
 	g.Expect(writerToken == "").To(BeFalse())
 
-	opts := RemoteWriterOpts{
+	opts := StoreOpts{
 		Log:   log,
 		Url:   writerUrl,
 		Token: writerToken,
 	}
-	store, err := NewHttpRemoteStore(opts)
+	store, err := NewStore(RemoteBackend, opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(store).NotTo(BeNil())
 
@@ -77,12 +77,12 @@ func TestRemoteStore_DeleteObjects(t *testing.T) {
 	writerToken := os.Getenv("QUERY_SERVER_TOKEN")
 	g.Expect(writerToken == "").To(BeFalse())
 
-	opts := RemoteWriterOpts{
+	opts := StoreOpts{
 		Log:   log,
 		Url:   writerUrl,
 		Token: writerToken,
 	}
-	store, err := NewHttpRemoteStore(opts)
+	store, err := NewStore(RemoteBackend, opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(store).NotTo(BeNil())
 
@@ -132,12 +132,12 @@ func TestHttpRemoteStore_StoreRoles(t *testing.T) {
 	writerToken := os.Getenv("QUERY_SERVER_TOKEN")
 	g.Expect(writerToken == "").To(BeFalse())
 
-	opts := RemoteWriterOpts{
+	opts := StoreOpts{
 		Log:   log,
 		Url:   writerUrl,
 		Token: writerToken,
 	}
-	store, err := NewHttpRemoteStore(opts)
+	store, err := NewStore(RemoteBackend, opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(store).NotTo(BeNil())
 
@@ -186,12 +186,12 @@ func TestHttpRemoteStore_StoreRoleBindings(t *testing.T) {
 	writerToken := os.Getenv("QUERY_SERVER_TOKEN")
 	g.Expect(writerToken == "").To(BeFalse())
 
-	opts := RemoteWriterOpts{
+	opts := StoreOpts{
 		Log:   log,
 		Url:   writerUrl,
 		Token: writerToken,
 	}
-	store, err := NewHttpRemoteStore(opts)
+	store, err := NewStore(RemoteBackend, opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(store).NotTo(BeNil())
 

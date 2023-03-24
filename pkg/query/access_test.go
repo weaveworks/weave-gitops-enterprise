@@ -240,7 +240,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			dir, err := os.MkdirTemp("", "test")
 			g.Expect(err).NotTo(HaveOccurred())
 
-			store, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
+			store, err := store.NewStore(store.StorageBackendSQLite, dir)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(store.StoreObjects(context.Background(), tt.objects)).To(Succeed())

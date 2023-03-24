@@ -3,10 +3,10 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
 	"strings"
 
-	"github.com/go-logr/logr"
 	"gorm.io/gorm"
 	"k8s.io/kubectl/pkg/util/slice"
 )
@@ -63,17 +63,26 @@ type StorageBackend string
 
 const (
 	StorageBackendSQLite StorageBackend = "sqlite"
+	RemoteBackend        StorageBackend = "remote"
 )
 
-// factory method that by default creates a in memory store
-func NewStore(backend StorageBackend, uri string, log logr.Logger) (Store, error) {
+type StoreOpts struct {
+	Log   logr.Logger
+	Url   string
+	Token string
+}
+
+func NewStore(backend StorageBackend, opts StoreOpts) (Store, error) {
 	switch backend {
 	case StorageBackendSQLite:
-		db, err := CreateSQLiteDB(uri)
+		db, err := CreateSQLiteDB(opts.Url)
 		if err != nil {
 			return nil, fmt.Errorf("error creating sqlite db: %w", err)
 		}
 		return NewSQLiteStore(db)
+	case RemoteBackend:
+		return newRemoteStore(opts)
+
 	default:
 		return nil, fmt.Errorf("unknown storage backend: %s", backend)
 	}

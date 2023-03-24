@@ -14,6 +14,47 @@ import (
 	"gorm.io/gorm"
 )
 
+func TestNewStore(t *testing.T) {
+
+	tests := []struct {
+		name           string
+		storageBackend StorageBackend
+		uri            string
+		errPattern     string
+	}{
+		{
+			name:           "can create sqllite store",
+			storageBackend: StorageBackendSQLite,
+			//TODO this is not an uri
+			uri:        os.TempDir(),
+			errPattern: "",
+		},
+		{
+			name:           "can create remote store",
+			storageBackend: RemoteBackend,
+			uri:            "https://my-remote-backend",
+			errPattern:     "",
+		},
+	}
+	g := NewGomegaWithT(t)
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			opts := StoreOpts{
+				Url: tt.uri,
+			}
+
+			store, err := NewStore(tt.storageBackend, opts)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			g.Expect(store).NotTo(BeNil())
+		})
+	}
+
+}
+
 func TestGetObjects(t *testing.T) {
 	g := NewGomegaWithT(t)
 
