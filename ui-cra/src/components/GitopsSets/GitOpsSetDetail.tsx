@@ -14,13 +14,10 @@ import {
   YamlView,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
-import styled from 'styled-components';
 import { useRouteMatch } from 'react-router-dom';
-import { Routes } from '../../utils/nav';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
-import { TableWrapper } from '../Shared';
+import styled from 'styled-components';
+import { getInventory } from '.';
+import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
   useGetGitOpsSet,
@@ -29,8 +26,11 @@ import {
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
-import { getInventory } from '.';
+import { Routes } from '../../utils/nav';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
+import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
+import { TableWrapper } from '../Shared';
 
 const YAML = require('yaml');
 
@@ -208,7 +208,10 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
               <TableWrapper>
                 <ReconciledObjectsTable
-                  reconciledObjectsAutomation={reconciledObjectsAutomation}
+                  kind={reconciledObjectsAutomation.type}
+                  name={reconciledObjectsAutomation.name}
+                  namespace={reconciledObjectsAutomation.namespace}
+                  clusterName={reconciledObjectsAutomation.clusterName}
                 />
               </TableWrapper>
             </Box>
@@ -225,7 +228,13 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
             <ReconciliationGraph
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
+              kind={reconciledObjectsAutomation.type}
+              name={reconciledObjectsAutomation.name}
+              namespace={reconciledObjectsAutomation.namespace}
+              clusterName={reconciledObjectsAutomation.clusterName}
+              source={reconciledObjectsAutomation.source}
+              suspended={reconciledObjectsAutomation.suspended}
+              conditions={reconciledObjectsAutomation.conditions}
             />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
