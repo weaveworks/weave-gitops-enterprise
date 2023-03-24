@@ -7,9 +7,7 @@ import {
   Select,
   TextField,
 } from '@material-ui/core';
-import { Flex, Input } from '@weaveworks/weave-gitops';
-// @ts-ignore
-import { ChipGroup } from '@weaveworks/weave-gitops-main';
+import { ChipGroup, Flex, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import * as React from 'react';
 import styled from 'styled-components';
