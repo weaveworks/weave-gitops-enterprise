@@ -184,7 +184,12 @@ const NavItems = () => {
       link: Routes.GitOpsSets,
       icon: <GitOpsSetsIcon />,
     },
-    { name: 'EXPLORER', link: Routes.Explorer, icon: null },
+    {
+      name: 'EXPLORER',
+      link: Routes.Explorer,
+      icon: null,
+      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_EXPLORER,
+    },
     {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
