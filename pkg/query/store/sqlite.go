@@ -105,6 +105,8 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 		if result.Error != nil {
 			return fmt.Errorf("failed to store role binding: %w", result.Error)
 		}
+		i.log.Info("stored rolebinding", "rolebinding", fmt.Sprintf("%s/%s/%s/%s", roleBinding.Cluster, roleBinding.Namespace, roleBinding.Kind, roleBinding.Name))
+
 	}
 
 	return nil
@@ -121,6 +123,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 
 		object.ID = object.GetID()
 		rows = append(rows, object)
+		i.log.Info("storing object", "object", object.GetID())
 	}
 
 	clauses := i.db.Clauses(clause.OnConflict{

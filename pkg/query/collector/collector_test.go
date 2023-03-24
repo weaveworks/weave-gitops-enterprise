@@ -1,6 +1,8 @@
 package collector
 
 import (
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
@@ -10,8 +12,6 @@ import (
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -29,6 +29,12 @@ func TestNewCollector(t *testing.T) {
 
 	fakeStore := &storefakes.FakeStore{}
 
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
+	cmw := clustersmngr.ClustersWatcher{
+		Updates: make(chan clustersmngr.ClusterListUpdate),
+	}
+	clustersManager.SubscribeReturns(&cmw)
+
 	tests := []struct {
 		name       string
 		options    CollectorOpts
@@ -42,7 +48,7 @@ func TestNewCollector(t *testing.T) {
 				ObjectKinds:        kinds,
 				ProcessRecordsFunc: fakeProcessRecordFunc,
 				NewWatcherFunc:     newFakeWatcher,
-				Clusters:           []cluster.Cluster{&clusterfakes.FakeCluster{}},
+				ClusterManager:     clustersManager,
 			},
 			store:      fakeStore,
 			errPattern: "",
