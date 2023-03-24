@@ -6,7 +6,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/kubectl/pkg/util/slice"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
@@ -146,47 +145,4 @@ func (a *RoleCollector) Watch(cluster cluster.Cluster, objectsChannel chan []mod
 
 func (a *RoleCollector) Status(cluster cluster.Cluster) (string, error) {
 	return a.col.Status(cluster)
-}
-
-func hasVerbs(a, b []string) bool {
-	for _, v := range b {
-		if containsWildcard(a) {
-			return true
-		}
-		if slice.ContainsString(a, v, nil) {
-			return true
-		}
-	}
-
-	return false
-}
-
-func containsWildcard(permissions []string) bool {
-	for _, p := range permissions {
-		if p == "*" {
-			return true
-		}
-	}
-
-	return false
-}
-
-func bindingRoleMatch(binding adapters.BindingLike, role adapters.RoleLike) bool {
-	if binding.GetClusterName() != role.GetClusterName() {
-		return false
-	}
-
-	if binding.GetNamespace() != role.GetNamespace() {
-		return false
-	}
-
-	if binding.GetRoleRef().Kind != role.GetObjectKind().GroupVersionKind().Kind {
-		return false
-	}
-
-	if binding.GetRoleRef().Name != role.GetName() {
-		return false
-	}
-
-	return true
 }

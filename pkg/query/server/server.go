@@ -28,7 +28,6 @@ type server struct {
 	qs   query.QueryService
 	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
-	log  logr.Logger
 }
 
 func (s *server) StopCollection() error {

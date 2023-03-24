@@ -24,9 +24,9 @@ metadata:
     rbac.authorization.k8s.io/aggregate-to-gitops-reader: "true"
     {{- end }}
 rules:
-  - apiGroups: ["*"]
-    resources: ["*"]
-    verbs: [ "get", "list", "watch" ]
+  # - apiGroups: ["*"]
+  #   resources: ["*"]
+  #   verbs: [ "get", "list", "watch" ]
 
   - apiGroups: ["kustomize.toolkit.fluxcd.io"]
     resources: ["*"]

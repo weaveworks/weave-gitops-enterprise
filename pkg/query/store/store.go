@@ -3,7 +3,6 @@ package store
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -118,15 +117,6 @@ func bindingRoleMatch(binding models.RoleBinding, role models.Role) bool {
 	}
 
 	return true
-}
-
-func roleRefFromString(ref string) (string, string, string, error) {
-	parts := strings.Split(ref, "/")
-	if len(parts) != 3 {
-		return "", "", "", fmt.Errorf("invalid role ref: %s", ref)
-	}
-
-	return parts[0], parts[1], parts[2], nil
 }
 
 func convertToAccessRule(clusterName string, role models.Role, binding models.RoleBinding, requiredVerbs []string) models.AccessRule {

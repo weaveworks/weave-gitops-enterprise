@@ -183,6 +183,8 @@ func TestRunQuery(t *testing.T) {
 			checker.HasAccessReturns(true, nil)
 
 			dir, err := os.MkdirTemp("", "test")
+			g.Expect(err).NotTo(HaveOccurred())
+
 			db, err := store.CreateSQLiteDB(dir)
 			g.Expect(err).NotTo(HaveOccurred())
 

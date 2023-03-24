@@ -173,7 +173,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	tx = tx.Offset(offset)
 	tx = tx.Order(clause.OrderByColumn{Column: clause.Column{Name: "name"}, Desc: true})
 
-	if q != nil && len(q) > 0 {
+	if len(q) > 0 {
 		for _, c := range q {
 
 			if c.GetKey() == "" {
