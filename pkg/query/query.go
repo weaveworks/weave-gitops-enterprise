@@ -13,27 +13,14 @@ import (
 
 // QueryService is an all-in-one service that handles managing a collector, writing to the store, and responding to queries
 type QueryService interface {
+	store.StoreWriter
 	RunQuery(ctx context.Context, q store.Query, opts store.QueryOption) ([]models.Object, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
-type StoreService interface {
-	StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
-	StoreRoles(ctx context.Context, roles []models.Role) error
-	StoreObjects(ctx context.Context, objs []models.Object) error
-	DeleteObjects(ctx context.Context, objs []models.Object) error
-	DeleteRoles(ctx context.Context, roles []models.Role) error
-	DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
-}
-
 type QueryServiceOpts struct {
-	Log         logr.Logger
-	StoreReader store.StoreReader
-}
-
-type StoreServiceOpts struct {
-	Log         logr.Logger
-	StoreWriter store.StoreWriter
+	Log   logr.Logger
+	Store store.Store
 }
 
 const (
@@ -43,71 +30,59 @@ const (
 func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, error) {
 	return &qs{
 		log:     opts.Log,
-		r:       opts.StoreReader,
+		store:   opts.Store,
 		checker: accesschecker.NewAccessChecker(),
-	}, nil
-}
-
-func NewStoreService(ctx context.Context, opts StoreServiceOpts) (StoreService, error) {
-	return &ss{
-		log: opts.Log,
-		w:   opts.StoreWriter,
 	}, nil
 }
 
 type qs struct {
 	log     logr.Logger
-	r       store.StoreReader
+	store   store.Store
 	checker accesschecker.Checker
 }
 
-type ss struct {
-	log logr.Logger
-	w   store.StoreWriter
-}
-
-func (s ss) DeleteRoles(ctx context.Context, roles []models.Role) error {
-	err := s.w.DeleteRoles(ctx, roles)
+func (s qs) DeleteRoles(ctx context.Context, roles []models.Role) error {
+	err := s.store.DeleteRoles(ctx, roles)
 	if err != nil {
 		return fmt.Errorf("error writting roles to delete: %w", err)
 	}
 	return nil
 }
 
-func (s ss) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
-	err := s.w.DeleteRoleBindings(ctx, roleBindings)
+func (s qs) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	err := s.store.DeleteRoleBindings(ctx, roleBindings)
 	if err != nil {
 		return fmt.Errorf("error writting rolebindings to delete: %w", err)
 	}
 	return nil
 }
 
-func (s ss) DeleteObjects(ctx context.Context, objs []models.Object) error {
-	err := s.w.DeleteObjects(ctx, objs)
+func (s qs) DeleteObjects(ctx context.Context, objs []models.Object) error {
+	err := s.store.DeleteObjects(ctx, objs)
 	if err != nil {
 		return fmt.Errorf("error writting objects to delete: %w", err)
 	}
 	return nil
 }
 
-func (s ss) StoreObjects(ctx context.Context, objs []models.Object) error {
-	err := s.w.StoreObjects(ctx, objs)
+func (s qs) StoreObjects(ctx context.Context, objs []models.Object) error {
+	err := s.store.StoreObjects(ctx, objs)
 	if err != nil {
 		return fmt.Errorf("error writting objects to store: %w", err)
 	}
 	return nil
 }
 
-func (s ss) StoreRoles(ctx context.Context, roles []models.Role) error {
-	err := s.w.StoreRoles(ctx, roles)
+func (s qs) StoreRoles(ctx context.Context, roles []models.Role) error {
+	err := s.store.StoreRoles(ctx, roles)
 	if err != nil {
 		return fmt.Errorf("cannot store roles: %w", err)
 	}
 	return nil
 }
 
-func (s ss) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
-	err := s.w.StoreRoleBindings(ctx, roleBindings)
+func (s qs) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+	err := s.store.StoreRoleBindings(ctx, roleBindings)
 	if err != nil {
 		return fmt.Errorf("cannot store role bindings: %w", err)
 	}
@@ -123,12 +98,12 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		return nil, fmt.Errorf("principal not found")
 	}
 
-	allObjects, err := q.r.GetObjects(ctx, query, opts)
+	allObjects, err := q.store.GetObjects(ctx, query, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting objects from store: %w", err)
 	}
 
-	rules, err := q.r.GetAccessRules(ctx)
+	rules, err := q.store.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
@@ -150,7 +125,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 }
 
 func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
-	return q.r.GetAccessRules(ctx)
+	return q.store.GetAccessRules(ctx)
 }
 
 func defaultAccessFilter(user *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object {

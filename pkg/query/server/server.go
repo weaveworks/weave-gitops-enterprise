@@ -21,7 +21,6 @@ type server struct {
 	pb.UnimplementedQueryServer
 
 	qs  query.QueryService
-	ss  query.StoreService
 	log logr.Logger
 }
 
@@ -72,7 +71,7 @@ func (s *server) StoreRoles(ctx context.Context, msg *pb.StoreRolesRequest) (*pb
 		return &pb.StoreRolesResponse{}, nil
 	}
 	roles := convertToRoles(msg.GetRoles())
-	err := s.ss.StoreRoles(ctx, roles)
+	err := s.qs.StoreRoles(ctx, roles)
 	if err != nil {
 		return nil, fmt.Errorf("failed to store roles: %w", err)
 	}
@@ -85,7 +84,7 @@ func (s *server) StoreRoleBindings(ctx context.Context, msg *pb.StoreRoleBinding
 		return &pb.StoreRoleBindingsResponse{}, nil
 	}
 	rbs := convertToRoleBindings(msg.GetRolebindings())
-	err := s.ss.StoreRoleBindings(ctx, rbs)
+	err := s.qs.StoreRoleBindings(ctx, rbs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to store role bindings: %w", err)
 	}
@@ -99,7 +98,7 @@ func (s *server) StoreObjects(ctx context.Context, msg *pb.StoreObjectsRequest) 
 	}
 
 	objs := convertToObjects(msg.GetObjects())
-	err := s.ss.StoreObjects(ctx, objs)
+	err := s.qs.StoreObjects(ctx, objs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to store objects: %w", err)
 	}
@@ -113,7 +112,7 @@ func (s *server) DeleteObjects(ctx context.Context, msg *pb.DeleteObjectsRequest
 	}
 
 	objs := convertToObjects(msg.GetObjects())
-	err := s.ss.DeleteObjects(ctx, objs)
+	err := s.qs.DeleteObjects(ctx, objs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete objects: %w", err)
 	}
@@ -127,7 +126,7 @@ func (s *server) DeleteRoles(ctx context.Context, msg *pb.DeleteRolesRequest) (*
 	}
 
 	roles := convertToRoles(msg.GetRoles())
-	err := s.ss.DeleteRoles(ctx, roles)
+	err := s.qs.DeleteRoles(ctx, roles)
 	if err != nil {
 		return nil, fmt.Errorf("failed to delete roles: %w", err)
 	}
@@ -141,7 +140,7 @@ func (s *server) DeleteRoleBindings(ctx context.Context, msg *pb.DeleteRoleBindi
 	}
 
 	roleBindings := convertToRoleBindings(msg.GetRolebindings())
-	err := s.ss.DeleteRoleBindings(ctx, roleBindings)
+	err := s.qs.DeleteRoleBindings(ctx, roleBindings)
 	if err != nil {
 
 		return nil, fmt.Errorf("failed to delete rolebindings: %w", err)
@@ -155,28 +154,22 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, err
 	}
 
-	s, err := store.NewStore(store.StorageBackendSQLite, dbDir)
+	s, err := store.NewStore(store.StorageBackendSQLite, store.StoreOpts{
+		Url: dbDir,
+	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)
 	}
 
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
-		Log:         opts.Logger,
-		StoreReader: s,
+		Log:   opts.Logger,
+		Store: s,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
 
-	ss, err := query.NewStoreService(ctx, query.StoreServiceOpts{
-		Log:         opts.Logger,
-		StoreWriter: s,
-	})
-	if err != nil {
-		return nil, nil, fmt.Errorf("failed to create store service: %w", err)
-	}
-
-	serv := &server{qs: qs, ss: ss, log: opts.Logger}
+	serv := &server{qs: qs, log: opts.Logger}
 
 	return serv, serv.Stop, nil
 }

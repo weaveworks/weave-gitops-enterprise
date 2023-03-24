@@ -191,7 +191,7 @@ func TestRunQuery(t *testing.T) {
 
 			q := &qs{
 				log:     logr.Discard(),
-				r:       s,
+				store:   s,
 				checker: checker,
 			}
 
