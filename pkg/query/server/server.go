@@ -28,6 +28,7 @@ type server struct {
 	qs   query.QueryService
 	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
+	log  logr.Logger
 }
 
 func (s *server) StopCollection() error {
@@ -112,9 +113,8 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	if !opts.SkipCollection {
 
 		optsCollector := collector.CollectorOpts{
-			Log:      opts.Logger,
-			Clusters: opts.ClustersManager.GetClusters(),
-			// ClusterManager: opts.ClustersManager,
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
 		}
 
 		rulesCollector, err := rolecollector.NewRoleCollector(s, optsCollector)
