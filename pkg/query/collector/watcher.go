@@ -70,8 +70,6 @@ type DefaultWatcher struct {
 	status            ClusterWatchingStatus
 	newWatcherManager WatcherManagerFunc
 	objectsChannel    chan []models.ObjectTransaction
-	// useProxy is a flag to indicate if the helm watcher should use the proxy
-	// useProxy bool
 }
 
 type WatcherManagerFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
