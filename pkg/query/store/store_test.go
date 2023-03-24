@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"github.com/go-logr/logr/testr"
 	"os"
 	"strings"
 	"testing"
@@ -16,34 +17,38 @@ import (
 
 func TestNewStore(t *testing.T) {
 
+	log := testr.New(t)
 	tests := []struct {
 		name           string
 		storageBackend StorageBackend
-		uri            string
+		opts           StoreOpts
 		errPattern     string
 	}{
 		{
 			name:           "can create sqllite store",
 			storageBackend: StorageBackendSQLite,
-			//TODO this is not an uri
-			uri:        os.TempDir(),
+			//TODO this is not an url
+			opts: StoreOpts{
+				Url: os.TempDir(),
+				Log: log,
+			},
 			errPattern: "",
 		},
 		{
 			name:           "can create remote store",
 			storageBackend: RemoteBackend,
-			uri:            "https://my-remote-backend",
-			errPattern:     "",
+			opts: StoreOpts{
+				Url:   "https://my-remote-backend",
+				Token: "abc",
+				Log:   log,
+			},
+			errPattern: "",
 		},
 	}
 	g := NewGomegaWithT(t)
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			opts := StoreOpts{
-				Url: tt.uri,
-			}
-
-			store, err := NewStore(tt.storageBackend, opts)
+			store, err := NewStore(tt.storageBackend, tt.opts)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

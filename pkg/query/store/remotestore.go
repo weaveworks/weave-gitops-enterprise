@@ -235,7 +235,7 @@ func newRemoteStore(opts StoreOpts) (Store, error) {
 		client: &http.Client{},
 	}
 
-	remoteStore.log.Info("remote store created", "uri", opts.Url)
+	remoteStore.log.Info("remote store created", "url", opts.Url)
 
 	return remoteStore, nil
 }
