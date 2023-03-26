@@ -37,7 +37,7 @@ export const ListApplications = ({
         ),
       );
     }
-  }, [formData.appMatch, setSelectedAppsList, formData.appMatch]);
+  }, [formData.appMatch, setSelectedAppsList]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, app: any) => {
     const { name, checked } = e.target;
