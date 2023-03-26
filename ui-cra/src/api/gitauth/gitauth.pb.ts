@@ -87,6 +87,7 @@ export type GetBitbucketServerAuthURLResponse = {
 
 export type AuthorizeBitbucketServerRequest = {
   code?: string
+  state?: string
   redirectUri?: string
 }
 
@@ -104,6 +105,7 @@ export type GetAzureDevOpsAuthURLResponse = {
 
 export type AuthorizeAzureDevOpsRequest = {
   code?: string
+  state?: string
   redirectUri?: string
 }
 

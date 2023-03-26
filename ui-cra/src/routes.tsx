@@ -23,6 +23,8 @@ import ClusterDashboard from './components/Clusters/ClusterDashboard';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
+import GitopsSets from './components/GitopsSets';
+import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
@@ -33,6 +35,8 @@ import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
+import PolicyConfigsList from './components/PolicyConfigs';
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
@@ -48,10 +52,8 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import PolicyConfigsList from './components/PolicyConfigs';
-import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails'
-import GitopsSets from './components/GitopsSets';
-import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
+
+import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
 
@@ -296,14 +298,15 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
+
       <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
       <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
-
 
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
+      <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
       <Route
         exact
         path={Routes.GitOpsSets}
@@ -322,6 +325,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
+              state=''
             />
           );
         }}
@@ -344,6 +348,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.BitBucketServer}
               code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />
@@ -368,6 +373,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.AzureDevOps}
               code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />
