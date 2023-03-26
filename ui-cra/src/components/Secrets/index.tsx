@@ -24,7 +24,7 @@ const SecretsList = () => {
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={() => handleCreateSecret(Routes.CreateSecret)}
         >
-          CREATE A SECRET
+          CREATE EXTERNAL SECRET
         </Button>
         <Button
           id="create-sops-secrets"
@@ -33,7 +33,18 @@ const SecretsList = () => {
         >
           CREATE SOPS SECRET
         </Button>
-        {data?.secrets && <SecretsTable secrets={data.secrets} />}
+        {data?.secrets && (
+          <>
+            <h2
+              style={{
+                margin: '32px 0 8px 0',
+              }}
+            >
+              ExternalSecrets List
+            </h2>
+            <SecretsTable secrets={data.secrets} />
+          </>
+        )}
       </ContentWrapper>
     </PageTemplate>
   );
