@@ -811,13 +811,12 @@ func generateSopsSecret(
 
 	path := getClusterResourcePath(isControlPlane, "sops-secret", cluster, namespacedName)
 
-	kustomizationPath, err := filepath.Rel(".", filePath)
+	realPath, err := filepath.Rel(".", filePath)
 	if err != nil {
 		return gitprovider.CommitFile{}, err
 	}
 
-	path = fmt.Sprintf(path, kustomizationPath)
-
+	path = fmt.Sprintf(path, realPath)
 	raw, err := yaml.Marshal(secret)
 	if err != nil {
 		return gitprovider.CommitFile{}, err
@@ -852,6 +851,10 @@ func validateSopsSecret(secret *capiv1_proto.SopsSecret) error {
 
 	if secret.Data == nil && secret.StringData == nil {
 		err = multierror.Append(err, errors.New("either data or stringData fields are required"))
+	}
+
+	if secret.Data != nil && secret.StringData != nil {
+		err = multierror.Append(err, errors.New("expected only one of data or stringData fields, but found both"))
 	}
 
 	return err

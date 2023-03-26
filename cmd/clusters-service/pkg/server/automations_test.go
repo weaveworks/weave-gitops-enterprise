@@ -1667,10 +1667,6 @@ status: {}
 								"username": "admin",
 								"password": "password",
 							},
-							StringData: map[string]string{
-								"username": "admin",
-								"password": "password",
-							},
 							Type:      "Opaque",
 							Immutable: true,
 						},
@@ -1679,7 +1675,7 @@ status: {}
 			},
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
-					Path: "clusters/management/secrets-age/my-secret-my-namepsace-sops-secret.yaml",
+					Path: "secrets-age/my-secret-my-namepsace-sops-secret.yaml",
 					Content: `apiVersion: v1
 data:
   password: password
@@ -1692,9 +1688,6 @@ metadata:
     label-2: value-2
   name: my-secret
   namespace: my-namepsace
-stringData:
-  password: password
-  username: admin
 type: Opaque
 `,
 				},
@@ -1727,10 +1720,6 @@ type: Opaque
 									"label-1": "value-1",
 									"label-2": "value-2",
 								},
-							},
-							Data: map[string]string{
-								"username": "admin",
-								"password": "password",
 							},
 							StringData: map[string]string{
 								"username": "admin",
@@ -1772,10 +1761,6 @@ type: Opaque
 								},
 							},
 							Data: map[string]string{
-								"username": "admin",
-								"password": "password",
-							},
-							StringData: map[string]string{
 								"username": "admin",
 								"password": "password",
 							},
@@ -1822,6 +1807,50 @@ type: Opaque
 				},
 			},
 			err: errors.New("either data or stringData fields are required"),
+		},
+		{
+			name: "committed files for sops secret with data and stringData",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New sops secret",
+				Description:   "Creates sops secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						FilePath:       "./secrets-age",
+						SopsSecret: &capiv1_protos.SopsSecret{
+							ApiVersion: "v1",
+							Kind:       "Secret",
+							Metadata: &capiv1_protos.SopsSecretMetadata{
+								Name:      "my-secret",
+								Namespace: "my-namepsace",
+								Labels: map[string]string{
+									"label-1": "value-1",
+									"label-2": "value-2",
+								},
+							},
+							Type:      "Opaque",
+							Immutable: true,
+							Data: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+							StringData: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("expected only one of data or stringData fields, but found both"),
 		},
 	}
 
