@@ -9,8 +9,7 @@ export interface SOPS {
   secretNamespace: string;
   encryptionType: string;
   kustomization: string;
-  secretData: { key: string; value: string }[];
-  secretValue: string;
+  data: { key: string; value: string }[];
   repo: string | null | GitRepository;
   provider: string;
   branchName: string;
@@ -35,8 +34,7 @@ export function getInitialData(
     secretNamespace: '',
     encryptionType: 'GPG/AGE',
     kustomization: '',
-    secretData: [{ key: '', value: '' }],
-    secretValue: '',
+    data: [{ key: '', value: '' }],
     secretType: SecretDataType.value,
   };
 
@@ -89,8 +87,7 @@ export const getFormattedPayload = (formData: SOPS) => {
     secretName,
     secretNamespace,
     kustomization,
-    secretData,
-    secretValue,
+    data,
     secretType,
   } = formData;
   const [k_name, k_namespace] = kustomization.split('/');
@@ -104,14 +101,12 @@ export const getFormattedPayload = (formData: SOPS) => {
       : {
           name: c_namespace,
         };
-  const data =
+  const sdata =
     secretType === SecretDataType.value
       ? {
-          stringData: {
-            string: secretValue,
-          },
+          stringData: convertToObject(data),
         }
-      : { data: convertToObject(secretData) };
+      : { data: convertToObject(data) };
 
   return {
     encryptionPayload: {
@@ -120,7 +115,7 @@ export const getFormattedPayload = (formData: SOPS) => {
       namespace: secretNamespace,
       kustomization_name: k_name,
       kustomization_namespace: k_namespace,
-      ...data,
+      ...sdata,
     },
     cluster,
   };

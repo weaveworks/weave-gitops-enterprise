@@ -9,7 +9,7 @@ import { SecretDataType, SOPS } from './utils';
 import InputDebounced from './InputDebounced';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 
-const SecretData = ({
+const data = ({
   formData,
   handleFormData,
 }: {
@@ -17,7 +17,7 @@ const SecretData = ({
   handleFormData: (value: any, key: string) => void;
 }) => {
   const handleSecretChange = (index: number, isKey: boolean, value: string) => {
-    const mappedData = formData.secretData.map((e, i) => {
+    const mappedData = formData.data.map((e, i) => {
       if (i === index) {
         if (isKey) e.key = value;
         else e.value = value;
@@ -44,82 +44,59 @@ const SecretData = ({
             <FormControlLabel
               value={SecretDataType.value}
               control={<Radio />}
-              label="String Data"
+              label="stringData"
             />
             <FormControlLabel
               value={SecretDataType.KeyValue}
               control={<Radio />}
-              label="Data"
+              label="data"
             />
           </RadioGroup>
         </FormControl>
       </div>
-      {formData.secretType === SecretDataType.value ? (
-        <InputDebounced
-          required
-          name="secretValue"
-          label="SECRET VALUE"
-          value={formData.secretValue}
-          handleFormData={val => handleFormData(val, 'secretValue')}
-        />
-      ) : (
-        <>
-          {formData.secretData.map((obj, index) => (
-            <div key={index} className="secret-data-list">
-              <InputDebounced
-                required
-                name="dataSecretKey"
-                label="KEY"
-                placeholder="Secret key"
-                value={obj.key}
-                handleFormData={val =>
-                  handleFormData(
-                    handleSecretChange(index, true, val),
-                    'secretData',
-                  )
-                }
-              />
-              <InputDebounced
-                required
-                name="dataSecretValue"
-                label="VALUE"
-                placeholder="secret value"
-                value={obj.value}
-                handleFormData={val =>
-                  handleFormData(
-                    handleSecretChange(index, false, val),
-                    'secretData',
-                  )
-                }
-              />
-              {formData.secretData.length > 1 && (
-                <RemoveCircleOutlineIcon
-                  className="remove-icon"
-                  onClick={() => {
-                    formData.secretData.splice(index, 1);
-                    console.log(formData.secretData);
-                    handleFormData([...formData.secretData], 'secretData');
-                  }}
-                />
-              )}
-            </div>
-          ))}
-          <Button
-            className="add-secret-data"
-            startIcon={<Icon type={IconType.AddIcon} size="base" />}
-            onClick={() =>
-              handleFormData(
-                [...formData.secretData, { key: '', value: '' }],
-                'secretData',
-              )
+      {formData.data.map((obj, index) => (
+        <div key={`${obj.key}-${index}`} className="secret-data-list">
+          <InputDebounced
+            required
+            name="dataSecretKey"
+            label="KEY"
+            placeholder="Secret key"
+            value={obj.key}
+            handleFormData={val =>
+              handleFormData(handleSecretChange(index, true, val), 'data')
             }
-          >
-            Add
-          </Button>
-        </>
-      )}
+          />
+          <InputDebounced
+            required
+            name="dataSecretValue"
+            label="VALUE"
+            placeholder="secret value"
+            value={obj.value}
+            handleFormData={val =>
+              handleFormData(handleSecretChange(index, false, val), 'data')
+            }
+          />
+          <RemoveCircleOutlineIcon
+            className="remove-icon"
+            onClick={() => {
+              formData.data.splice(index, 1);
+              handleFormData([...formData.data], 'data');
+            }}
+          />
+        </div>
+      ))}
+
+      <Button
+        className="add-secret-data"
+        startIcon={<Icon type={IconType.AddIcon} size="base" />}
+        onClick={() =>
+          handleFormData([...formData.data, { key: '', value: '' }], 'data')
+        }
+      >
+        Add
+      </Button>
     </>
   );
 };
 
-export default SecretData;
+export default data;
