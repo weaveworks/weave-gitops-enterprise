@@ -8,24 +8,21 @@ interface SelectSecretStoreProps {
   cluster: string;
   formError: string;
   formData: any;
-  selectedApplytList: any[];
-  setSelectedApplytList: Dispatch<React.SetStateAction<any>>;
+  SelectedAppsList: PolicyConfigApplicationMatch[];
+  setSelectedAppsList: Dispatch<React.SetStateAction<any>>;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }
 export const ListApplications = ({
   cluster,
   formData,
-  selectedApplytList,
-  setSelectedApplytList,
+  SelectedAppsList,
+  setSelectedAppsList,
   setFormData,
 }: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
-  const { appMatch = [] } = formData;
   const [isChecked, setIsChecked] = useState<string[]>([]);
-  const [selectedTargetList, setSelectedTargetList] = useState<any[]>([]);
   const { data: applicationsList, isLoading: isApplicationsListLoading } =
     useListAutomations('', { retry: false });
-
   const applications =
     applicationsList?.result
       ?.filter(app => app.clusterName === cluster)
@@ -33,18 +30,18 @@ export const ListApplications = ({
 
   useEffect(() => {
     if (formData.appMatch) {
-      setSelectedTargetList(formData.appMatch);
+      setSelectedAppsList(formData.appMatch);
       setIsChecked(
-        appMatch.map((i: PolicyConfigApplicationMatch) => `${i.name}${i.kind}`),
+        formData.appMatch.map(
+          (i: PolicyConfigApplicationMatch) => `${i.name}${i.kind}`,
+        ),
       );
     }
-  }, [formData.appMatch, setSelectedApplytList, appMatch]);
+  }, [formData.appMatch, setSelectedAppsList, formData.appMatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>, app: any) => {
-    setSelectedApplytList([]);
-
     const { name, checked } = e.target;
-    let selected = selectedTargetList;
+    let selected = SelectedAppsList;
     if (checked) {
       selected.push({
         kind: app.obj.kind,
@@ -59,17 +56,17 @@ export const ListApplications = ({
       );
     }
 
-    setSelectedTargetList(selected);
-    setSelectedApplytList(selected);
+    setSelectedAppsList(selected);
     setFormData({
       ...formData,
       appMatch: selected,
     });
   };
-  return cluster ? (
-    <div>
-      {!isApplicationsListLoading ? (
-        applications.length ? (
+
+  const getList = () => {
+    switch (isApplicationsListLoading) {
+      case false: {
+        return applicationsList?.result.length && applications.length ? (
           <FormGroup>
             <ul className={classes.checkList}>
               {applications.map(app => (
@@ -107,12 +104,14 @@ export const ListApplications = ({
           </FormGroup>
         ) : (
           <span>No Applications found</span>
-        )
-      ) : (
-        <span>Loading...</span>
-      )}
-    </div>
-  ) : (
-    <span>No cluster selected yet</span>
-  );
+        );
+      }
+      case true:
+        return <span>Loading...</span>;
+      default:
+        return <></>;
+    }
+  };
+
+  return cluster ? getList() : <span>No cluster selected yet</span>;
 };

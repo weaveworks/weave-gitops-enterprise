@@ -11,8 +11,10 @@ interface SelectSecretStoreProps {
   formError: string;
   formData: any;
   selectedWorkspacesList: string[];
+
   setSelectedWorkspacesList: Dispatch<React.SetStateAction<any>>;
   selectedAppsList: PolicyConfigApplicationMatch[];
+
   setSelectedAppsList: Dispatch<React.SetStateAction<any>>;
   handleFormData: (fieldName: string, value: any) => void;
   setFormData: Dispatch<React.SetStateAction<any>>;
@@ -23,6 +25,7 @@ export const SelectMatchType = ({
   formData,
   formError,
   selectedWorkspacesList,
+
   setSelectedWorkspacesList,
   selectedAppsList,
   setSelectedAppsList,
@@ -42,8 +45,8 @@ export const SelectMatchType = ({
             cluster={cluster}
             formData={formData}
             formError={formError}
-            selectedApplytList={selectedAppsList}
-            setSelectedApplytList={setSelectedAppsList}
+            setSelectedAppsList={setSelectedAppsList}
+            SelectedAppsList={selectedAppsList}
             setFormData={setFormData}
           />
         );
@@ -53,8 +56,8 @@ export const SelectMatchType = ({
             cluster={cluster}
             formData={formData}
             formError={formError}
-            selectedApplytList={selectedWorkspacesList}
-            setSelectedApplytList={setSelectedWorkspacesList}
+            selectedWorkspacesList={selectedWorkspacesList}
+            setSelectedWorkspacesList={setSelectedWorkspacesList}
             setFormData={setFormData}
           />
         );
@@ -62,19 +65,6 @@ export const SelectMatchType = ({
         <></>;
     }
   };
-
-  // const HandleSelectTarget = (event: React.ChangeEvent<any>) => {
-  //   const { value } = event.target;
-  //   let currentAutomation = [...formData.clusterAutomations];
-  //   currentAutomation[0] = {
-  //     ...automation,
-  //     matchType: value,
-  //   };
-  //   setFormData({
-  //     ...formData,
-  //     clusterAutomations: currentAutomation,
-  //   });
-  // };
 
   return (
     <>

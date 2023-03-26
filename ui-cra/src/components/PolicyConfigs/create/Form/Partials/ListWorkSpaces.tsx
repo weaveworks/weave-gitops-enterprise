@@ -1,5 +1,5 @@
 import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
-import { Dispatch, useEffect, useState } from 'react';
+import { Dispatch, useEffect } from 'react';
 import { useListWorkspaces } from '../../../../../contexts/Workspaces';
 import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
 
@@ -7,24 +7,23 @@ interface SelectSecretStoreProps {
   cluster: string;
   formError: string;
   formData: any;
-  selectedApplytList: any[];
-  setSelectedApplytList: Dispatch<React.SetStateAction<any>>;
+  setSelectedWorkspacesList: Dispatch<React.SetStateAction<any>>;
+  selectedWorkspacesList: any[];
   setFormData: Dispatch<React.SetStateAction<any>>;
 }
 
 export const ListWorkSpaces = ({
   cluster,
   formData,
-  selectedApplytList,
-  setSelectedApplytList,
+  setSelectedWorkspacesList,
   setFormData,
+  selectedWorkspacesList,
 }: SelectSecretStoreProps) => {
-  const classes = usePolicyConfigStyle();
-  const [selectedTargetList, setSelectedTargetList] = useState<any[]>([]);
-
   const { data: workSpacesList, isLoading: isWorkSpacesListLoading } =
     useListWorkspaces({});
-  const { wsMatch = [] } = formData;
+
+  const classes = usePolicyConfigStyle();
+
   const workspaces =
     workSpacesList?.workspaces?.filter(
       workspace => workspace.clusterName === cluster,
@@ -32,34 +31,29 @@ export const ListWorkSpaces = ({
 
   useEffect(() => {
     if (formData.wsMatch) {
-      setSelectedTargetList(formData.wsMatch);
+      setSelectedWorkspacesList(formData.wsMatch);
     }
-  }, [formData.wsMatch, setSelectedApplytList]);
+  }, [formData.wsMatch, setSelectedWorkspacesList]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedApplytList([]);
     const { name, checked } = e.target;
+    let selected = selectedWorkspacesList;
     if (checked) {
-      setSelectedTargetList([...selectedTargetList, name]);
-      formData.wsMatch = [...wsMatch, name];
+      selected.push(name);
     } else {
-      setSelectedTargetList(selectedTargetList.filter(item => item !== name));
-      formData.wsMatch = formData.wsMatch.filter(
-        (item: string) => item !== name,
-      );
+      selected = selected.filter(item => item !== name);
     }
-    setSelectedApplytList(formData.wsMatch);
-
+    setSelectedWorkspacesList(selected);
     setFormData({
       ...formData,
-      wsMatch: formData.wsMatch,
+      wsMatch: selected,
     });
   };
 
-  return cluster ? (
-    <div className="form-field">
-      {!isWorkSpacesListLoading ? (
-        workspaces.length ? (
+  const getList = () => {
+    switch (isWorkSpacesListLoading) {
+      case false: {
+        return workspaces.length ? (
           <FormGroup>
             <ul className={classes.checkList}>
               {workspaces.map(workspace => (
@@ -71,7 +65,9 @@ export const ListWorkSpaces = ({
                     key={workspace.name}
                     control={
                       <Checkbox
-                        checked={selectedTargetList.includes(workspace.name)}
+                        checked={selectedWorkspacesList.includes(
+                          workspace.name,
+                        )}
                         name={workspace.name}
                         onChange={e => handleChange(e)}
                       />
@@ -84,12 +80,14 @@ export const ListWorkSpaces = ({
           </FormGroup>
         ) : (
           <span>No Workspaces found</span>
-        )
-      ) : (
-        <span>Loading...</span>
-      )}
-    </div>
-  ) : (
-    <span>No cluster selected yet</span>
-  );
+        );
+      }
+      case true:
+        return <span>Loading...</span>;
+      default:
+        return <></>;
+    }
+  };
+
+  return cluster ? getList() : <span>No cluster selected yet</span>;
 };

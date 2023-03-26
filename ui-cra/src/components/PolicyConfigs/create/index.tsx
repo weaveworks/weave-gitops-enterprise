@@ -124,6 +124,8 @@ function getInitialData(
     policyConfigName: '',
     matchType: '',
     policies: {},
+    wsMatch: [],
+    appMatch: [],
   };
 
   const initialFormData = {
@@ -142,12 +144,9 @@ const CreatePolicyConfig = () => {
     .sort();
 
   const { setNotifications } = useNotifications();
-  const [selectedWorkspacesList, setSelectedWorkspacesList] = useState<any[]>(
-    [],
-  );
-  const [selectedAppsList, setSelectedAppsList] = useState<
-    PolicyConfigApplicationMatch[]
-  >([]);
+  const [selectedWorkspacesList, setSelectedWorkspacesList] = useState<any[]>();
+  const [selectedAppsList, setSelectedAppsList] =
+    useState<PolicyConfigApplicationMatch[]>();
 
   const callbackState = useCallbackState();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
@@ -247,7 +246,6 @@ const CreatePolicyConfig = () => {
       },
       isControlPlane: isControlPlane,
     });
-    console.log(clusterAutomations);
     return clusterAutomations;
   }, [
     clusterName,
@@ -366,21 +364,18 @@ const CreatePolicyConfig = () => {
                   formData={formData}
                   cluster={clusterName}
                   handleFormData={handleFormData}
-                  selectedWorkspacesList={selectedWorkspacesList}
+                  selectedWorkspacesList={selectedWorkspacesList || []}
                   setSelectedWorkspacesList={setSelectedWorkspacesList}
                   setFormData={setFormData}
-                  selectedAppsList={selectedAppsList}
+                  selectedAppsList={selectedAppsList || []}
                   setSelectedAppsList={setSelectedAppsList}
                 />
 
-                {/* {clusterName && */}
                 <SelectedPolicies
                   cluster={clusterName}
                   setFormData={setFormData}
                   formData={formData}
-                  formError={formError}
                 />
-                {/* } */}
               </div>
               <PreviewPRModal
                 formData={formData}

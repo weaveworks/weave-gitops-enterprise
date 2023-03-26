@@ -6,7 +6,7 @@ import {
   FormLabel,
   Radio,
   RadioGroup,
-  TextField
+  TextField,
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import SearchIcon from '@material-ui/icons/Search';
@@ -14,31 +14,27 @@ import { Autocomplete } from '@material-ui/lab';
 import { Dispatch, useEffect, useMemo, useState } from 'react';
 import {
   Policy,
-  PolicyParam
+  PolicyParam,
 } from '../../../../../cluster-services/cluster_services.pb';
 import { useListListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
   PolicyDetailsCardWrapper,
-  usePolicyConfigStyle
+  usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
   cluster: string;
-  formError: string;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }
 
 export const SelectedPolicies = ({
   cluster,
-  formError,
   formData,
   setFormData,
-}: // automation,
-SelectSecretStoreProps) => {
+}: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
-  // const { policies = {} } = formData;
   const [selectedPolicies, setSelectedPolicies] = useState<Policy[]>([]);
 
   const { data } = useListListPolicies({});
@@ -47,6 +43,7 @@ SelectSecretStoreProps) => {
     () => data?.policies?.filter(p => p.clusterName === cluster) || [],
     [data?.policies, cluster],
   );
+
   useEffect(() => {
     if (
       formData.policies &&
@@ -57,7 +54,6 @@ SelectSecretStoreProps) => {
         Object.keys(formData.policies).includes(p.id!),
       );
       setSelectedPolicies(selected);
-      console.log('d');
     }
   }, [
     data?.policies,
@@ -71,8 +67,6 @@ SelectSecretStoreProps) => {
     const defaultValue =
       type === 'array' ? param.value?.value.join(', ') : param.value?.value;
     const value = type === 'integer' ? parseInt(val) || '0' : val;
-
-    console.log(val, value, defaultValue);
     const areSameValues =
       type === 'array'
         ? JSON.stringify(value.split(',').filter((i: string) => i !== '')) ===
@@ -88,7 +82,6 @@ SelectSecretStoreProps) => {
       if (Object.keys(policyConfigs[id]?.parameters).length === 0)
         delete policyConfigs[id];
     } else {
-      console.log('else');
       formData.policies = {
         ...formData.policies,
         [id as string]: {
@@ -96,7 +89,7 @@ SelectSecretStoreProps) => {
             ...formData.policies[id]?.parameters,
             [name as string]:
               type === 'array'
-                ? value.split(',').filter((i: string) => i !== '')
+                ? value.split(',').filter((i: string) => i !== ' ')
                 : value,
           },
         },
@@ -107,7 +100,6 @@ SelectSecretStoreProps) => {
       ...formData,
       policies: formData.policies,
     });
-    console.log(formData.policies, selectedPolicies);
   };
   const handleDeletePolicyParam = (id: string) => {
     const item = formData.policies || {};
@@ -142,48 +134,110 @@ SelectSecretStoreProps) => {
     }
   };
 
+  const policiesInput = () => (
+    <Autocomplete
+      multiple
+      className={classes.SelectPoliciesWithSearch}
+      id="grouped-demo"
+      value={selectedPolicies}
+      options={policiesList?.sort((a, b) =>
+        b.category!.localeCompare(a.category!),
+      )}
+      groupBy={option => option.category || ''}
+      onChange={(e, policy) => setSelectedPolicies(policy)}
+      noOptionsText="No Policies found on that cluster."
+      getOptionLabel={option => option.name || ''}
+      filterSelectedOptions
+      renderInput={params => (
+        <>
+          <span className={classes.fieldNote}>
+            Select the policies to include in this policy config
+          </span>
+          <TextField
+            {...params}
+            variant="outlined"
+            name="policies"
+            disabled={cluster === undefined}
+            style={{ border: 'none !important' }}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: (
+                <>
+                  <SearchIcon />
+                </>
+              ),
+            }}
+          />
+        </>
+      )}
+    />
+  );
+
+  const getParameterField = (param: PolicyParam, id: string) => {
+    const { type, name } = param;
+    switch (type) {
+      case 'boolean':
+        return (
+          <FormControl>
+            <FormLabel id="demo-row-radio-buttons-group-label">
+              {name}
+            </FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="demo-row-radio-buttons-group-label"
+              name="row-radio-buttons-group"
+              value={getValue(id!, param)}
+              onChange={event => {
+                handlePolicyParams(
+                  event.target.value === 'true' ? true : false,
+                  id!,
+                  param,
+                );
+              }}
+            >
+              {formData.policies[id!]?.parameters[param.name!] && (
+                <span className="modified">Modified</span>
+              )}
+              <FormControlLabel
+                value={'true'}
+                control={<Radio />}
+                label="True"
+              />
+              <FormControlLabel
+                value={'false'}
+                control={<Radio />}
+                label="False"
+              />
+            </RadioGroup>
+          </FormControl>
+        );
+      default:
+        return (
+          <>
+            {formData.policies[id!]?.parameters[name!] && (
+              <span className="modified">Modified</span>
+            )}
+            <Input
+              className="form-section"
+              type={type === 'integer' ? 'number' : 'text'}
+              name={name}
+              label={name}
+              defaultValue={getValue(id!, param)}
+              onChange={event => {
+                handlePolicyParams(event.target.value, id!, param);
+              }}
+            />
+          </>
+        );
+    }
+  };
   return (
     <>
       <div className="form-field policyField">
         <label className={classes.sectionTitle}>
           Policies <span>({selectedPolicies?.length || 0})</span>
         </label>
-        <Autocomplete
-          multiple
-          className={classes.SelectPoliciesWithSearch}
-          id="grouped-demo"
-          value={selectedPolicies}
-          options={policiesList?.sort((a, b) =>
-            b.category!.localeCompare(a.category!),
-          )}
-          groupBy={option => option.category || ''}
-          onChange={(e, policy) => setSelectedPolicies(policy)}
-          noOptionsText="No Policies found on that cluster."
-          getOptionLabel={option => option.name || ''}
-          filterSelectedOptions
-          renderInput={params => (
-            <>
-              <span className={classes.fieldNote}>
-                Select the policies to include in this policy config
-              </span>
-              <TextField
-                {...params}
-                variant="outlined"
-                name="policies"
-                disabled={cluster === undefined}
-                style={{ border: 'none !important' }}
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      <SearchIcon />
-                    </>
-                  ),
-                }}
-              />
-            </>
-          )}
-        />
+        {policiesInput()}
       </div>
       <PolicyDetailsCardWrapper>
         {selectedPolicies?.map(policy => (
@@ -204,63 +258,7 @@ SelectSecretStoreProps) => {
                     key={`${param.name}${policy.id}`}
                   >
                     <div className={`parameterItemValue ${classes.upperCase}`}>
-                      {param.type === 'boolean' ? (
-                        <FormControl>
-                          <FormLabel id="demo-row-radio-buttons-group-label">
-                            {param.name}
-                          </FormLabel>
-                          <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={getValue(policy.id!, param)}
-                            onChange={event => {
-                              handlePolicyParams(
-                                event.target.value === 'true' ? true : false,
-                                policy.id!,
-                                param,
-                              );
-                            }}
-                          >
-                            {formData.policies[policy.id!]?.parameters[
-                              param.name!
-                            ] && <span className="modified">Modified</span>}
-                            <FormControlLabel
-                              value={'true'}
-                              control={<Radio />}
-                              label="True"
-                            />
-                            <FormControlLabel
-                              value={'false'}
-                              control={<Radio />}
-                              label="False"
-                            />
-                          </RadioGroup>
-                        </FormControl>
-                      ) : (
-                        <>
-                          {formData.policies[policy.id!]?.parameters[
-                            param.name!
-                          ] && <span className="modified">Modified</span>}
-                          <Input
-                            className="form-section"
-                            type={param.type === 'integer' ? 'number' : 'text'}
-                            name={param.name}
-                            label={param.name}
-                            defaultValue={getValue(policy.id!, param)}
-                            onChange={event => {
-                              handlePolicyParams(
-                                // param.type === 'integer'
-                                //   ? parseInt(event.target.value) || '0'
-                                //   :
-                                event.target.value,
-                                policy.id!,
-                                param,
-                              );
-                            }}
-                          />
-                        </>
-                      )}
+                      {getParameterField(param, policy.id!)}
                     </div>
                   </div>
                 ))}
