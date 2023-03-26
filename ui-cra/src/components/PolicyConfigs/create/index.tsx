@@ -307,7 +307,7 @@ const CreatePolicyConfig = () => {
         documentTitle="Secrets"
         path={[
           { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
-          { label: 'Create New' },
+          { label: 'Create New PolicyConfig' },
         ]}
       >
         <CallbackStateContextProvider
