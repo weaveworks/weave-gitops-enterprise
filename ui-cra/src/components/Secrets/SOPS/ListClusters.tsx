@@ -11,7 +11,7 @@ const ListClusters = ({
   value: string;
   handleFormData: (value: any) => void;
 }) => {
-  let { isLoading, data, error } = useListCluster();
+  const { isLoading, data, error } = useListCluster();
   return (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       <Select
@@ -22,20 +22,24 @@ const ListClusters = ({
         onChange={event => handleFormData(event.target.value)}
         value={value}
       >
-        {data?.gitopsClusters?.map((option, index: number) => {
-          return (
-            <MenuItem
-              key={index}
-              value={
-                option.namespace
-                  ? `${option.namespace}/${option.name}`
-                  : option.name
-              }
-            >
-              {option.name}
-            </MenuItem>
-          );
-        })}
+        {data?.gitopsClusters
+          ?.filter(e =>
+            e.conditions?.find(c => c.status === 'True' && c.type === 'Ready'),
+          )
+          .map((option, index: number) => {
+            return (
+              <MenuItem
+                key={index}
+                value={
+                  option.namespace
+                    ? `${option.namespace}/${option.name}`
+                    : option.name
+                }
+              >
+                {option.name}
+              </MenuItem>
+            );
+          })}
       </Select>
     </LoadingWrapper>
   );
