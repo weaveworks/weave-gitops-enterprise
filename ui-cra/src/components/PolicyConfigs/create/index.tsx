@@ -75,8 +75,6 @@ const FormWrapper = styled.form`
 
     .form-section {
       display: flex;
-      width: 50%;
-
       div[class*='MuiInputBase-root'] {
         margin-right: ${small};
       }
