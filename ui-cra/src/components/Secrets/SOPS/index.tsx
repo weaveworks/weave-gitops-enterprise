@@ -103,7 +103,7 @@ const CreateSOPS = () => {
       documentTitle="SOPS"
       path={[
         { label: 'Secrets', url: Routes.Secrets },
-        { label: 'Create new SOPS' },
+        { label: 'Create new sops secret' },
       ]}
     >
       <CallbackStateContextProvider
