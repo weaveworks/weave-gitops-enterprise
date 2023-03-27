@@ -278,7 +278,7 @@ func (s *applicationServer) ValidateProviderToken(ctx context.Context, msg *pb.V
 		return nil, grpcStatus.Error(codes.Unauthenticated, err.Error())
 	}
 
-	v, err := findValidator(msg.Provider, s)
+	v, err := s.findValidator(msg.Provider)
 	if err != nil {
 		return nil, grpcStatus.Error(codes.InvalidArgument, err.Error())
 	}
@@ -307,7 +307,7 @@ func toProtoProvider(p gp.GitProviderName) pb.GitProvider {
 	return pb.GitProvider_Unknown
 }
 
-func findValidator(provider pb.GitProvider, s *applicationServer) (auth.ProviderTokenValidator, error) {
+func (s *applicationServer) findValidator(provider pb.GitProvider) (auth.ProviderTokenValidator, error) {
 	switch provider {
 	case pb.GitProvider_GitHub:
 		return s.ghAuthClient, nil
