@@ -6,14 +6,15 @@ import {
   Link,
   LoadingPage,
   theme,
-  useListSources
+  useListSources,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
-  ClusterAutomation, PolicyConfigApplicationMatch
+  ClusterAutomation,
+  PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
@@ -23,9 +24,7 @@ import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import {
-  CreateDeploymentObjects
-} from '../../Applications/utils';
+import { CreateDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -34,9 +33,8 @@ import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getInitialGitRepo,
-  getRepositoryUrl
+  getRepositoryUrl,
 } from '../../Templates/Form/utils';
-import { usePolicyConfigStyle } from '../PolicyConfigStyles';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { PreviewPRModal } from './PreviewPRModal';
@@ -77,8 +75,6 @@ const FormWrapper = styled.form`
 
     .form-section {
       display: flex;
-      // width: 50%;
-
       div[class*='MuiInputBase-root'] {
         margin-right: ${small};
       }
@@ -126,6 +122,8 @@ function getInitialData(
     policyConfigName: '',
     matchType: '',
     policies: {},
+    wsMatch: [],
+    appMatch: [],
   };
 
   const initialFormData = {
@@ -136,17 +134,17 @@ function getInitialData(
   return { initialFormData };
 }
 const CreatePolicyConfig = () => {
-
   const history = useHistory();
 
-  let { data: allClusters, isLoading } = useGetClustersList({});
+  let { data: allClusters } = useGetClustersList({});
   const clusters = allClusters?.gitopsClusters
-    ?.filter(s => s.conditions![0].status == 'True')
+    ?.filter(s => s.conditions![0].status === 'True')
     .sort();
 
   const { setNotifications } = useNotifications();
-  const [selectedWorkspacesList, setSelectedWorkspacesList] = useState<any[]>([]);
-  const [selectedAppsList, setSelectedAppsList] = useState<PolicyConfigApplicationMatch[]>([]);
+  const [selectedWorkspacesList, setSelectedWorkspacesList] = useState<any[]>();
+  const [selectedAppsList, setSelectedAppsList] =
+    useState<PolicyConfigApplicationMatch[]>();
 
   const callbackState = useCallbackState();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
@@ -217,14 +215,14 @@ const CreatePolicyConfig = () => {
   const handleFormData = (fieldName?: string, value?: any) => {
     setFormData((f: any) => (f = { ...f, [fieldName as string]: value }));
   };
-  const getTargetList = () => {
+  const getTargetList = useCallback(() => {
     switch (matchType) {
       case 'workspaces':
         return selectedWorkspacesList;
       case 'apps':
         return selectedAppsList;
     }
-  };
+  }, [selectedWorkspacesList, selectedAppsList, matchType]);
 
   const getClusterAutomations = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
@@ -246,15 +244,14 @@ const CreatePolicyConfig = () => {
       },
       isControlPlane: isControlPlane,
     });
-    console.log(clusterAutomations);
     return clusterAutomations;
   }, [
     clusterName,
     clusterNamespace,
     isControlPlane,
     policyConfigName,
-    getTargetList,
     policies,
+    getTargetList,
     matchType,
   ]);
 
@@ -306,7 +303,7 @@ const CreatePolicyConfig = () => {
         documentTitle="PolicyConfigs"
         path={[
           { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
-          { label: 'Create New' },
+          { label: 'Create New PolicyConfig' },
         ]}
       >
         <CallbackStateContextProvider
@@ -327,9 +324,9 @@ const CreatePolicyConfig = () => {
               <div className="group-section">
                 <Input
                   className="form-section"
-                  required
                   name="policyConfigName"
-                  description="The name of your policy configration"
+                  required
+                  description="The name of your policy config"
                   label="NAME"
                   value={policyConfigName}
                   onChange={e =>
@@ -340,12 +337,12 @@ const CreatePolicyConfig = () => {
                 <Select
                   className="form-section"
                   name="clusterName"
-                  label="CLUSTER"
                   required
+                  label="CLUSTER"
                   value={selectedCluster || ''}
                   description="Select your cluster"
                   onChange={HandleSelectCluster}
-                  error={formError === 'clusterName' && !formData.clusterName}
+                  error={formError === 'clusterName' && !clusterName}
                 >
                   {!clusters?.length ? (
                     <MenuItem disabled={true}>Loading...</MenuItem>
@@ -367,21 +364,19 @@ const CreatePolicyConfig = () => {
                   formData={formData}
                   cluster={clusterName}
                   handleFormData={handleFormData}
-                  selectedWorkspacesList={selectedWorkspacesList}
+                  selectedWorkspacesList={selectedWorkspacesList || []}
                   setSelectedWorkspacesList={setSelectedWorkspacesList}
                   setFormData={setFormData}
-                  selectedAppsList={selectedAppsList}
+                  selectedAppsList={selectedAppsList || []}
                   setSelectedAppsList={setSelectedAppsList}
                 />
 
-                {/* {clusterName && */}
                 <SelectedPolicies
                   cluster={clusterName}
                   setFormData={setFormData}
                   formData={formData}
                   formError={formError}
                 />
-                {/* } */}
               </div>
               <PreviewPRModal
                 formData={formData}

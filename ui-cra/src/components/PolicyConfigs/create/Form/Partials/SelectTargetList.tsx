@@ -1,6 +1,4 @@
-import {
-    MenuItem
-} from '@material-ui/core';
+import { MenuItem } from '@material-ui/core';
 import { Dispatch, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
@@ -34,10 +32,7 @@ export const SelectMatchType = ({
   const classes = usePolicyConfigStyle();
   const { matchType } = formData;
 
-  const [matchTypeList, setMatchTypeList] = useState<string[]>([
-    'workspaces',
-    'apps',
-  ]);
+  const [matchTypeList] = useState<string[]>(['workspaces', 'apps']);
 
   const getCheckList = (matchType: string) => {
     switch (matchType) {
@@ -47,8 +42,8 @@ export const SelectMatchType = ({
             cluster={cluster}
             formData={formData}
             formError={formError}
-            selectedApplytList={selectedAppsList}
-            setSelectedApplytList={setSelectedAppsList}
+            setSelectedAppsList={setSelectedAppsList}
+            SelectedAppsList={selectedAppsList}
             setFormData={setFormData}
           />
         );
@@ -58,8 +53,8 @@ export const SelectMatchType = ({
             cluster={cluster}
             formData={formData}
             formError={formError}
-            selectedApplytList={selectedWorkspacesList}
-            setSelectedApplytList={setSelectedWorkspacesList}
+            selectedWorkspacesList={selectedWorkspacesList}
+            setSelectedWorkspacesList={setSelectedWorkspacesList}
             setFormData={setFormData}
           />
         );
@@ -67,19 +62,6 @@ export const SelectMatchType = ({
         <></>;
     }
   };
-
-  // const HandleSelectTarget = (event: React.ChangeEvent<any>) => {
-  //   const { value } = event.target;
-  //   let currentAutomation = [...formData.clusterAutomations];
-  //   currentAutomation[0] = {
-  //     ...automation,
-  //     matchType: value,
-  //   };
-  //   setFormData({
-  //     ...formData,
-  //     clusterAutomations: currentAutomation,
-  //   });
-  // };
 
   return (
     <>

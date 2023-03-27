@@ -7,13 +7,12 @@ import {
   Radio,
   RadioGroup,
   TextField,
-  FormHelperText as MuiFormHelperText,
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import SearchIcon from '@material-ui/icons/Search';
 import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { Autocomplete } from '@material-ui/lab';
-import { Dispatch, useEffect, useState } from 'react';
+import { Dispatch, useEffect, useMemo, useState } from 'react';
 import {
   Policy,
   PolicyParam,
@@ -27,58 +26,78 @@ import {
 
 interface SelectSecretStoreProps {
   cluster: string;
-  formError: string;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
+  formError: string;
 }
 
 export const SelectedPolicies = ({
   cluster,
-  formError,
   formData,
   setFormData,
+  formError,
 }: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
-  const { policies = {} } = formData;
   const [selectedPolicies, setSelectedPolicies] = useState<Policy[]>([]);
 
-  const [isPolicyConfigExist, setIsPolicyConfigExist] =
-    useState<boolean>(false);
-  const { data, isLoading } = useListListPolicies({});
-  const policiesList =
-    data?.policies?.filter(p => p.clusterName === cluster) || [];
+  const { data } = useListListPolicies({});
+
+  const policiesList = useMemo(
+    () => data?.policies?.filter(p => p.clusterName === cluster) || [],
+    [data?.policies, cluster],
+  );
 
   useEffect(() => {
-    if (formData.policies && data?.policies?.length) {
+    if (
+      formData.policies &&
+      data?.policies?.length &&
+      selectedPolicies.length === 0
+    ) {
       const selected: Policy[] = policiesList.filter((p: Policy) =>
         Object.keys(formData.policies).includes(p.id!),
       );
       setSelectedPolicies(selected);
     }
-  }, [data?.policies]);
+  }, [
+    data?.policies,
+    policiesList,
+    formData.policies,
+    selectedPolicies.length,
+  ]);
 
-  const handlePolicyParams = (value: any, id: string, param: PolicyParam) => {
-    const { name, value: defaultValue } = param;
+  const handlePolicyParams = (val: any, id: string, param: PolicyParam) => {
+    const { name, type } = param;
+    const defaultValue =
+      type === 'array' ? param.value?.value.join(', ') : param.value?.value;
+    const value = type === 'integer' ? parseInt(val) || '0' : val;
+    const areSameValues =
+      type === 'array'
+        ? JSON.stringify(
+            value.split(/[\s,]+/).filter((i: string) => i !== ''),
+          ) === JSON.stringify(defaultValue?.split(/[\s,]+/))
+        : value === defaultValue;
+
     if (
-      value === defaultValue?.value ||
-      (value === '' && defaultValue == undefined)
+      areSameValues ||
+      (value === '' && defaultValue === (null || undefined))
     ) {
-      const item = formData.policies;
-      delete item[id].parameters[name as string];
-      if (Object.keys(item[id].parameters).length === 0) delete item[id];
-      if (Object.keys(item).length === 0) setIsPolicyConfigExist(false);
+      const policyConfigs = formData.policies;
+      delete policyConfigs[id].parameters[name as string];
+      if (Object.keys(policyConfigs[id]?.parameters).length === 0)
+        delete policyConfigs[id];
     } else {
       formData.policies = {
-        ...policies,
+        ...formData.policies,
         [id as string]: {
           parameters: {
-            ...policies[id]?.parameters,
-            [name as string]: param.type === 'array' ? value.split(',') : value,
+            ...formData.policies[id]?.parameters,
+            [name as string]:
+              type === 'array'
+                ? value.split(/[\s,]+/).filter((i: string) => i !== ' ')
+                : value,
           },
         },
       };
-
-      setIsPolicyConfigExist(true);
     }
 
     setFormData({
@@ -142,11 +161,9 @@ export const SelectedPolicies = ({
             {...params}
             variant="outlined"
             name="policies"
-            required={true}
+            required
             disabled={cluster === undefined}
-            style={{
-              border: 'none !important',
-            }}
+            style={{ border: 'none !important' }}
             InputProps={{
               ...params.InputProps,
               endAdornment: <SearchIcon />,
@@ -221,43 +238,7 @@ export const SelectedPolicies = ({
         <label className={classes.sectionTitle}>
           Policies <span>({selectedPolicies?.length || 0})</span>
         </label>
-        <Autocomplete
-          multiple
-          className={classes.SelectPoliciesWithSearch}
-          id="grouped-demo"
-          value={selectedPolicies}
-          options={policiesList?.sort((a, b) =>
-            b.category!.localeCompare(a.category!),
-          )}
-          groupBy={option => option.category || ''}
-          onChange={(e, policy) => setSelectedPolicies(policy)}
-          noOptionsText="No Policies found on that cluster."
-          getOptionLabel={option => option.name || ''}
-          filterSelectedOptions
-          renderInput={params => (
-            <>
-              <span className={classes.fieldNote}>
-                Select the policies to include in this policy config
-              </span>
-              <TextField
-                {...params}
-                variant="outlined"
-                name="policies"
-                error={formError === 'policies' && !isPolicyConfigExist}
-                disabled={cluster === undefined}
-                style={{ border: 'none !important' }}
-                InputProps={{
-                  ...params.InputProps,
-                  endAdornment: (
-                    <>
-                      <SearchIcon />
-                    </>
-                  ),
-                }}
-              />
-            </>
-          )}
-        />
+        {policiesInput()}
       </div>
       {formError === 'policies' && formData.policies.toString() !== '' && (
         <div className={classes.errorSection}>
@@ -284,62 +265,7 @@ export const SelectedPolicies = ({
                     key={`${param.name}${policy.id}`}
                   >
                     <div className={`parameterItemValue ${classes.upperCase}`}>
-                      {param.type === 'boolean' ? (
-                        <FormControl>
-                          <FormLabel id="demo-row-radio-buttons-group-label">
-                            {param.name}
-                          </FormLabel>
-                          <RadioGroup
-                            row
-                            aria-labelledby="demo-row-radio-buttons-group-label"
-                            name="row-radio-buttons-group"
-                            value={getValue(policy.id!, param)}
-                            onChange={event => {
-                              handlePolicyParams(
-                                event.target.value === 'true' ? true : false,
-                                policy.id!,
-                                param,
-                              );
-                            }}
-                          >
-                            {formData.policies[policy.id!]?.parameters[
-                              param.name!
-                            ] && <span className="modified">Modified</span>}
-                            <FormControlLabel
-                              value={'true'}
-                              control={<Radio />}
-                              label="True"
-                            />
-                            <FormControlLabel
-                              value={'false'}
-                              control={<Radio />}
-                              label="False"
-                            />
-                          </RadioGroup>
-                        </FormControl>
-                      ) : (
-                        <>
-                          {formData.policies[policy.id!]?.parameters[
-                            param.name!
-                          ] && <span className="modified">Modified</span>}
-                          <Input
-                            className="form-section"
-                            type={param.type === 'integer' ? 'number' : 'text'}
-                            name={param.name}
-                            label={param.name}
-                            defaultValue={getValue(policy.id!, param)}
-                            onChange={event => {
-                              handlePolicyParams(
-                                param.type === 'integer'
-                                  ? parseInt(event.target.value)
-                                  : event.target.value,
-                                policy.id!,
-                                param,
-                              );
-                            }}
-                          />
-                        </>
-                      )}
+                      {getParameterField(param, policy.id!)}
                     </div>
                   </div>
                 ))}
