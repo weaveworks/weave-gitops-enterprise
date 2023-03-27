@@ -121,7 +121,6 @@ const CreateSOPS = () => {
               validateFormData(event, handleCreateSecret, setFormError)
             }
           >
-            {console.count('Debaounce')}
             <div className="group-section">
               <div className="form-group">
                 <ListClusters
@@ -136,6 +135,7 @@ const CreateSOPS = () => {
                   label="SECRET NAME"
                   value={formData.secretName}
                   handleFormData={val => handleFormData(val, 'secretName')}
+                  
                 />
                 <InputDebounced
                   required
@@ -180,7 +180,6 @@ const CreateSOPS = () => {
               </p>
               <SecretData formData={formData} setFormData={setFormData} />
 
-              {JSON.stringify(formData.data)}
               <PreviewModal formData={formData} />
             </div>
             <GitOps

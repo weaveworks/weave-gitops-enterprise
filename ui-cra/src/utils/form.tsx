@@ -81,9 +81,10 @@ type PickedInputProps = Pick<
   | 'type'
   | 'disabled'
   | 'placeholder'
+  | 'onBlur'
 >;
 
-interface InputProps extends PickedInputProps {
+export interface InputProps extends PickedInputProps {
   label?: string;
   className?: string;
   multiline?: boolean;
@@ -100,6 +101,7 @@ export const Input: FC<InputProps> = ({
   disabled,
   value,
   onChange,
+  onBlur,
   label,
   type,
   placeholder,
@@ -125,6 +127,7 @@ export const Input: FC<InputProps> = ({
         disabled={disabled}
         id={`${label}-input`}
         onChange={onChange}
+        onBlur={onBlur}
         placeholder={placeholder}
         type={type}
         value={value}
