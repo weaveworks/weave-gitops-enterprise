@@ -42,7 +42,7 @@ const CreateSOPS = () => {
   const [formError, setFormError] = useState<string>('');
   const [formData, setFormData] = useState<SOPS>(initialFormData);
   const handleFormData = (value: any, key: string) => {
-    setFormData(f => (f = { ...f, [key]: value }));
+    setFormData(f => ({ ...f, [key]: value }));
   };
   const { setNotifications } = useNotifications();
 
@@ -125,9 +125,10 @@ const CreateSOPS = () => {
               <div className="form-group">
                 <ListClusters
                   value={formData.clusterName}
-                  handleFormData={(val: any) =>
-                    handleFormData(val, 'clusterName')
-                  }
+                  handleFormData={(val: any) => {
+                    handleFormData(val, 'clusterName');
+                    handleFormData('', 'kustomization');
+                  }}
                 />
                 <InputDebounced
                   required
@@ -177,7 +178,8 @@ const CreateSOPS = () => {
                 Please note that we will encode the secret values to base64
                 before encryption
               </p>
-              <SecretData formData={formData} handleFormData={handleFormData} />
+              <SecretData formData={formData} setFormData={setFormData} />
+
               <PreviewModal formData={formData} />
             </div>
             <GitOps

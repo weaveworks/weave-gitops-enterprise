@@ -1,45 +1,43 @@
-import { useCallback, useState } from 'react';
-import { Input } from '../../../utils/form';
+import { FC, useEffect, useState } from 'react';
+import { Input, InputProps } from '../../../utils/form';
+import { useDebounce } from '../../../utils/hooks';
 
-const InputDebounced = ({
-  required = true,
-  name,
-  label,
-  placeholder = '',
+interface InputDebounceProps extends InputProps {
+  value?: string;
+  handleFormData: (value: any) => void;
+}
+
+const InputDebounced: FC<InputDebounceProps> = ({
   value,
   handleFormData,
-}: {
-  required: boolean;
-  name: string;
-  placeholder?: string;
-  label: string;
-  value: string;
-  handleFormData: (value: any) => void;
+  ...rest
 }) => {
-  const [data, setData] = useState<string>(value);
-  const debounce = () => {
-    let timer: NodeJS.Timeout | null;
-    return function (val: string) {
-      setData(val);
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        timer = null;
-        handleFormData(val);
-      }, 500);
-    };
+  const [data, setData] = useState<string>(value || '');
+  const [error, setError] = useState<boolean>(false);
+  const debouncedValue = useDebounce<string>(data);
+
+  const handleChange = (e: any) => {
+    setData(e.target.value);
+    setError(!e.target.value && (rest.required || false));
   };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handleOnChange = useCallback(debounce(), []);
+
+  const handleBlur = () => {
+    setError(!data && (rest.required || false));
+  };
+
+  useEffect(() => {
+    handleFormData(debouncedValue);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedValue]);
 
   return (
     <Input
       className="form-section"
-      required={required}
-      name={name}
-      label={label}
-      placeholder={placeholder}
+      {...rest}
       value={data}
-      onChange={e => handleOnChange(e.target.value)}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      error={error}
     />
   );
 };
