@@ -1,7 +1,6 @@
 import styled from 'styled-components';
-import CodeView from '../CodeView';
 import { Body, Message, Title } from '../Shared';
-import { Link } from '@weaveworks/weave-gitops';
+import { Link, YamlView } from '@weaveworks/weave-gitops';
 
 type Props = {
   plan?: string;
@@ -12,11 +11,7 @@ function TerraformPlanView({ plan, error }: Props) {
   return (
     <>
       {plan && !error ? (
-        <CodeView
-          kind="Terraform"
-          code={plan.trimStart() || ''}
-          colorizeChanges
-        />
+        <YamlView yaml={plan.trimStart() || ''} />
       ) : (
         <Message>
           <Title>Terraform Plan</Title>
