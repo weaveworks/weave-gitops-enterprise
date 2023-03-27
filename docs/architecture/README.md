@@ -71,7 +71,7 @@ C4Context
 
 Weave Gitops Enterprise as tiered application that could be seen in the following diagram
 
-```mermaid-source
+```mermaid
 C4Container
   title Weave Gitops Enterprise
   Person(platformOperator, "Platform Operator")
@@ -138,7 +138,7 @@ UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 From the previous view, we could go a level deeper to understand the different 
 business domains provided weave gitops enterprise.
 
-```mermaid-source
+```mermaid
 C4Container
     title Weave Gitops Enterprise - Domains
     Container_Boundary(weaveGitopsEnterpriseBackend, "Weave Gitops Enterprise Backend") {

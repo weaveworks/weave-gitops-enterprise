@@ -22,7 +22,7 @@ and 3) Periodically using our audit scans.
 
 It is composed by the following aggregates or capabilities
 
-```mermaid-source
+```mermaid
 C4Component
     title "Application Delivery - Container Diagram - Capabilities"
     Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI","javascript and reactJs","weave gitops experience via web browser")

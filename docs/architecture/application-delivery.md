@@ -33,7 +33,7 @@ Pipelines enables a user to deliver application changes across different environ
 
 It is composed by the following aggregates or capabilities
 
-```mermaid-source
+```mermaid
 C4Component
       title Application Delivery - Pipelines Domain Component Diagram
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")
@@ -65,7 +65,7 @@ Progressive Delivery enables a user to deliver an application change into a give
 
 It is composed by the following aggregates or capabilities
 
-```mermaid-source
+```mermaid
 C4Component
       title Application Delivery - Progressive Delivery Domain Component Diagram
       Container(weaveGitopsEnterpriseUi, "Weave Gitops Enterprise UI")

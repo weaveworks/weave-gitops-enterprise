@@ -21,7 +21,7 @@ diagrams due to c4models integration with mermaid and markdown.
 
 It is composed by the following aggregates or capabilities
 
-```mermaid-source
+```mermaid
 C4Context
   title Weave Gitops Enterprise
 
