@@ -325,7 +325,7 @@ const CreatePolicyConfig = () => {
                 <Input
                   className="form-section"
                   name="policyConfigName"
-                  description="The name of your policy configration"
+                  description="The name of your policy config"
                   label="NAME"
                   value={policyConfigName}
                   onChange={e =>
