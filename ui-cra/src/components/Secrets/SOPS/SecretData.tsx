@@ -1,14 +1,8 @@
-import {
-  FormControl,
-  FormControlLabel,
-  Radio,
-  RadioGroup
-} from '@material-ui/core';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
 import InputDebounced from './InputDebounced';
-import { SecretDataType, SOPS } from './utils';
+import { SOPS } from './utils';
 
 const data = ({
   formData,
@@ -31,34 +25,7 @@ const data = ({
 
   return (
     <>
-      <div className="form-group">
-        <FormControl>
-          <RadioGroup
-            row
-            aria-labelledby="demo-controlled-radio-buttons-group"
-            name="controlled-radio-buttons-group"
-            value={formData.secretType}
-            onChange={event =>
-              setFormData((f: SOPS) => ({
-                ...f,
-                secretType: parseInt(event.target.value),
-              }))
-            }
-          >
-            <FormControlLabel
-              value={SecretDataType.value}
-              control={<Radio />}
-              label="stringData"
-            />
-            <FormControlLabel
-              value={SecretDataType.KeyValue}
-              control={<Radio />}
-              label="data"
-            />
-          </RadioGroup>
-        </FormControl>
-      </div>
-      {formData.data.map((obj, index) => (
+      {formData.data.map(obj => (
         <div key={obj.id} className="secret-data-list">
           <InputDebounced
             required

@@ -1,8 +1,4 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
-export enum SecretDataType {
-  value,
-  KeyValue,
-}
 export interface SOPS {
   clusterName: string;
   secretName: string;
@@ -16,7 +12,6 @@ export interface SOPS {
   pullRequestTitle: string;
   commitMessage: string;
   pullRequestDescription: string;
-  secretType: SecretDataType;
 }
 export function getInitialData(
   callbackState: { state: { formData: SOPS } } | null,
@@ -35,7 +30,6 @@ export function getInitialData(
     encryptionType: 'GPG/AGE',
     kustomization: '',
     data: [{ id: 1, key: '', value: '' }],
-    secretType: SecretDataType.value,
   };
 
   const initialFormData = {
@@ -88,7 +82,6 @@ export const getFormattedPayload = (formData: SOPS) => {
     secretNamespace,
     kustomization,
     data,
-    secretType,
   } = formData;
   const [k_name, k_namespace] = kustomization.split('/');
   const [c_namespace, c_name] = clusterName.split('/');
@@ -101,12 +94,6 @@ export const getFormattedPayload = (formData: SOPS) => {
       : {
           name: c_namespace,
         };
-  const sdata =
-    secretType === SecretDataType.value
-      ? {
-          stringData: convertToObject(data),
-        }
-      : { data: convertToObject(data) };
 
   return {
     encryptionPayload: {
@@ -115,7 +102,7 @@ export const getFormattedPayload = (formData: SOPS) => {
       namespace: secretNamespace,
       kustomization_name: k_name,
       kustomization_namespace: k_namespace,
-      ...sdata,
+      data: convertToObject(data),
     },
     cluster,
   };
