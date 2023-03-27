@@ -2,10 +2,15 @@ import {
   Flex,
   getParentNavRouteValue,
   IconType,
+  Logo,
+  Nav,
   NavItem,
-  V2Routes
+  useFeatureFlags,
+  V2Routes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { FC, useMemo, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 
