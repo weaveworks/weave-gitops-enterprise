@@ -6,8 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-logr/logr"
+	pbp "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/models"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"net/http"
 )
 
@@ -19,7 +22,24 @@ type RemoteStore struct {
 }
 
 func (h RemoteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error) {
-	h.log.Info("get objects not supported for remote stores")
+
+	ctx = metadata.NewIncomingContext(ctx, metadata.Pairs("Cookie", h.token))
+
+	// Replace the address with your own
+	conn, err := grpc.Dial(h.url, grpc.WithInsecure())
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	pipelines := pbp.NewPipelinesClient(conn)
+	req := &pbp.ListPipelinesRequest{}
+
+	resp, err := pipelines.ListPipelines(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	h.log.Info("response pipelines", "resp", resp.String())
 	return nil, nil
 }
 
@@ -147,31 +167,26 @@ func (h RemoteStore) StoreRoleBindings(ctx context.Context, roleBindings []model
 }
 
 func (h RemoteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
-	storeObjectsPath := "v1/query/objects"
-	storeObjectsUrl := fmt.Sprintf("%s/%s", h.url, storeObjectsPath)
 
+	ctx = metadata.NewIncomingContext(ctx, metadata.Pairs("Cookie", h.token))
+
+	// Replace the address with your own
+	conn, err := grpc.Dial(h.url, grpc.WithInsecure())
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	queryClient := pb.NewQueryClient(conn)
 	req := &pb.StoreObjectsRequest{
 		Objects: convertToPbObject(objects),
 	}
 
-	bodyAsJson, err := json.Marshal(req)
+	resp, err := queryClient.StoreObjects(ctx, req)
 	if err != nil {
-		return fmt.Errorf("failed json marshalling: %w", err)
+		return err
 	}
-	request, err := http.NewRequest("POST", storeObjectsUrl, bytes.NewBuffer(bodyAsJson))
-	request.Header.Set("Content-Type", "application/json; charset=UTF-8")
-	request.Header.Set("Cookie", fmt.Sprintf("id_token=%s", h.token))
-
-	client := &http.Client{}
-	response, err := client.Do(request)
-	if err != nil {
-		return fmt.Errorf("failed http request: %w", err)
-	}
-	defer response.Body.Close()
-	if response.StatusCode != 200 {
-		return fmt.Errorf(fmt.Sprintf("response error: %s", response.Status))
-	}
-
+	h.log.Info("response store objects", "resp", resp.String())
 	return nil
 }
 
