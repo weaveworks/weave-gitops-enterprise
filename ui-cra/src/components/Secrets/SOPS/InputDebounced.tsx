@@ -18,7 +18,7 @@ const InputDebounced: FC<InputDebounceProps> = ({
 
   const handleChange = (e: any) => {
     setData(e.target.value);
-    setError(!e.target.value);
+    setError(!e.target.value && (rest.required || false));
   };
 
   const handleBlur = () => {
