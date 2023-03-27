@@ -33,8 +33,6 @@ Pipelines enables a user to deliver application changes across different environ
 
 It is composed by the following aggregates or capabilities
 
-![Pipelines](imgs/application-delivery-pipelines.svg)
-
 ```mermaid-source
 C4Component
       title Application Delivery - Pipelines Domain Component Diagram
@@ -66,8 +64,6 @@ C4Component
 Progressive Delivery enables a user to deliver an application change into a given environment in a safe manner to optimise for application availability.
 
 It is composed by the following aggregates or capabilities
-
-![Progressive Delivery](imgs/application-delivery-progressive-delivery.svg)
 
 ```mermaid-source
 C4Component

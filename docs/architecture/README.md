@@ -20,9 +20,8 @@ Diagrams aim to be self-explanatory however:
    or  [watch this](https://www.youtube.com/watch?v=x2-rSnhpw0g).
 2. They are using concepts from Domain Driven Design. If it gets difficult to read, please have a look to
    the following [article](https://medium.com/@ruxijitianu/summary-of-the-domain-driven-design-concepts-9dd1a6f90091).
-3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagraming. It currently has an early support 
+3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagramming. It currently has an early support 
    for [C4](https://mermaid-js.github.io/mermaid/#/c4c) with known limitations like markdown rendering via github. 
-   To overtake this limitation you will see both the image (in svg) and the source code as `mermaid-source` code-block.
 
 ## Glossary
 
@@ -71,8 +70,6 @@ C4Context
 ## Weave Gitops Enterprise as Application Tiers
 
 Weave Gitops Enterprise as tiered application that could be seen in the following diagram
-
-![Container Diagram Capabilities](imgs/tiers.svg)
 
 ```mermaid-source
 C4Container
@@ -140,8 +137,6 @@ UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 
 From the previous view, we could go a level deeper to understand the different 
 business domains provided weave gitops enterprise.
-
-![Container Diagram Capabilities](imgs/domains.svg)
 
 ```mermaid-source
 C4Container

@@ -21,8 +21,6 @@ diagrams due to c4models integration with mermaid and markdown.
 
 It is composed by the following aggregates or capabilities
 
-![Context Diagram](./imgs/cluster-management-context.svg)
-
 ```mermaid-source
 C4Context
   title Weave Gitops Enterprise

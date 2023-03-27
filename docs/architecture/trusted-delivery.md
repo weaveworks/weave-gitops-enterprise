@@ -22,8 +22,6 @@ and 3) Periodically using our audit scans.
 
 It is composed by the following aggregates or capabilities
 
-![Component Diagram Capabilities](./imgs/trusted-delivery-container.svg)
-
 ```mermaid-source
 C4Component
     title "Application Delivery - Container Diagram - Capabilities"
