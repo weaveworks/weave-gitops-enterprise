@@ -1,6 +1,7 @@
 import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
 import { Dispatch, useEffect } from 'react';
 import { useListWorkspaces } from '../../../../../contexts/Workspaces';
+import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -19,8 +20,7 @@ export const ListWorkSpaces = ({
   setFormData,
   selectedWorkspacesList,
 }: SelectSecretStoreProps) => {
-  const { data: workSpacesList, isLoading: isWorkSpacesListLoading } =
-    useListWorkspaces({});
+  const { data: workSpacesList, isLoading, error } = useListWorkspaces({});
 
   const classes = usePolicyConfigStyle();
 
@@ -50,44 +50,36 @@ export const ListWorkSpaces = ({
     });
   };
 
-  const getList = () => {
-    switch (isWorkSpacesListLoading) {
-      case false: {
-        return workspaces.length ? (
-          <FormGroup>
-            <ul className={classes.checkList}>
-              {workspaces.map(workspace => (
-                <li
-                  key={`${workspace.name}${workspace.clusterName}`}
-                  className="workspaces"
-                >
-                  <FormControlLabel
-                    key={workspace.name}
-                    control={
-                      <Checkbox
-                        checked={selectedWorkspacesList.includes(
-                          workspace.name,
-                        )}
-                        name={workspace.name}
-                        onChange={e => handleChange(e)}
-                      />
-                    }
-                    label={workspace.name}
-                  />
-                </li>
-              ))}
-            </ul>
-          </FormGroup>
-        ) : (
-          <span>No Workspaces found</span>
-        );
-      }
-      case true:
-        return <span>Loading...</span>;
-      default:
-        return <></>;
-    }
-  };
-
-  return cluster ? getList() : <span>No cluster selected yet</span>;
+  return !!cluster ? (
+    <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
+      {workspaces.length ? (
+        <FormGroup>
+          <ul className={classes.checkList}>
+            {workspaces.map(workspace => (
+              <li
+                key={`${workspace.name}${workspace.clusterName}`}
+                className="workspaces"
+              >
+                <FormControlLabel
+                  key={workspace.name}
+                  control={
+                    <Checkbox
+                      checked={selectedWorkspacesList.includes(workspace.name)}
+                      name={workspace.name}
+                      onChange={e => handleChange(e)}
+                    />
+                  }
+                  label={workspace.name}
+                />
+              </li>
+            ))}
+          </ul>
+        </FormGroup>
+      ) : (
+        <span>No Workspaces found</span>
+      )}{' '}
+    </LoadingWrapper>
+  ) : (
+    <span>No cluster selected yet</span>
+  );
 };

@@ -2,6 +2,7 @@ import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
 import { useListAutomations } from '@weaveworks/weave-gitops';
 import { Dispatch, useEffect, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
+import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -21,8 +22,11 @@ export const ListApplications = ({
 }: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
   const [isChecked, setIsChecked] = useState<string[]>([]);
-  const { data: applicationsList, isLoading: isApplicationsListLoading } =
-    useListAutomations('', { retry: false });
+  const {
+    data: applicationsList,
+    isLoading,
+    error,
+  } = useListAutomations('', { retry: false });
   const applications =
     applicationsList?.result
       ?.filter(app => app.clusterName === cluster)
@@ -63,55 +67,49 @@ export const ListApplications = ({
     });
   };
 
-  const getList = () => {
-    switch (isApplicationsListLoading) {
-      case false: {
-        return applicationsList?.result.length && applications.length ? (
-          <FormGroup>
-            <ul className={classes.checkList}>
-              {applications.map(app => (
-                <li key={app.obj.metadata.name}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        size="small"
-                        checked={isChecked.includes(
-                          app.obj.metadata.name + app.obj.kind,
-                        )}
-                        name={app.obj.metadata.name}
-                        onChange={e => handleChange(e, app)}
-                      />
-                    }
-                    label={
-                      <>
-                        <span>
-                          {app.obj.metadata.namespace === ''
-                            ? '*'
-                            : app.obj.metadata.namespace}
-                          /{app.obj.metadata.name}
-                        </span>
-                        <span
-                          className={`${classes.targetItemKind} ${classes.capitlize}`}
-                        >
-                          {app.obj.kind}
-                        </span>
-                      </>
-                    }
-                  />
-                </li>
-              ))}
-            </ul>
-          </FormGroup>
-        ) : (
-          <span>No Applications found</span>
-        );
-      }
-      case true:
-        return <span>Loading...</span>;
-      default:
-        return <></>;
-    }
-  };
-
-  return cluster ? getList() : <span>No cluster selected yet</span>;
+  return !!cluster ? (
+    <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
+      {applicationsList?.result.length && applications.length ? (
+        <FormGroup>
+          <ul className={classes.checkList}>
+            {applications.map(app => (
+              <li key={app.obj.metadata.name}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      size="small"
+                      checked={isChecked.includes(
+                        app.obj.metadata.name + app.obj.kind,
+                      )}
+                      name={app.obj.metadata.name}
+                      onChange={e => handleChange(e, app)}
+                    />
+                  }
+                  label={
+                    <>
+                      <span>
+                        {app.obj.metadata.namespace === ''
+                          ? '*'
+                          : app.obj.metadata.namespace}
+                        /{app.obj.metadata.name}
+                      </span>
+                      <span
+                        className={`${classes.targetItemKind} ${classes.capitlize}`}
+                      >
+                        {app.obj.kind}
+                      </span>
+                    </>
+                  }
+                />
+              </li>
+            ))}
+          </ul>
+        </FormGroup>
+      ) : (
+        <span>No Applications found</span>
+      )}
+    </LoadingWrapper>
+  ) : (
+    <span>No cluster selected yet</span>
+  );
 };
