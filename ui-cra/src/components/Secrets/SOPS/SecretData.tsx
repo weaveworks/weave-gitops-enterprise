@@ -10,7 +10,7 @@ import { Dispatch } from 'react';
 import InputDebounced from './InputDebounced';
 import { SecretDataType, SOPS } from './utils';
 
-const SecretData = ({
+const data = ({
   formData,
   setFormData,
 }: {
@@ -110,4 +110,4 @@ const SecretData = ({
   );
 };
 
-export default SecretData;
+export default data;
