@@ -1,15 +1,17 @@
 import {
-    Card,
-    CardContent,
-    FormControl,
-    FormControlLabel,
-    FormLabel,
-    Radio,
-    RadioGroup,
-    TextField
+  Card,
+  CardContent,
+  FormControl,
+  FormControlLabel,
+  FormLabel,
+  Radio,
+  RadioGroup,
+  TextField,
+  FormHelperText as MuiFormHelperText,
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import SearchIcon from '@material-ui/icons/Search';
+import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { Autocomplete } from '@material-ui/lab';
 import { Dispatch, useEffect, useState } from 'react';
 import {
@@ -28,6 +30,7 @@ interface SelectSecretStoreProps {
   formError: string;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
+  formError: string;
 }
 
 export const SelectedPolicies = ({
@@ -35,8 +38,8 @@ export const SelectedPolicies = ({
   formError,
   formData,
   setFormData,
-}: // automation,
-SelectSecretStoreProps) => {
+  formError,
+}: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
   const { policies = {} } = formData;
   const [selectedPolicies, setSelectedPolicies] = useState<Policy[]>([]);
@@ -118,6 +121,102 @@ SelectSecretStoreProps) => {
     }
   };
 
+  const policiesInput = () => (
+    <Autocomplete
+      multiple
+      className={classes.SelectPoliciesWithSearch}
+      id="grouped-demo"
+      value={selectedPolicies}
+      options={policiesList?.sort((a, b) =>
+        b.category!.localeCompare(a.category!),
+      )}
+      groupBy={option => option.category || ''}
+      onChange={(e, policy) => setSelectedPolicies(policy)}
+      noOptionsText="No Policies found on that cluster."
+      getOptionLabel={option => option.name || ''}
+      filterSelectedOptions
+      renderInput={params => (
+        <>
+          <span className={classes.fieldNote}>
+            Select the policies to include in this policy config
+          </span>
+          <TextField
+            {...params}
+            variant="outlined"
+            name="policies"
+            required={true}
+            disabled={cluster === undefined}
+            style={{
+              border: 'none !important',
+            }}
+            InputProps={{
+              ...params.InputProps,
+              endAdornment: <SearchIcon />,
+            }}
+          />
+        </>
+      )}
+    />
+  );
+
+  const getParameterField = (param: PolicyParam, id: string) => {
+    const { type, name } = param;
+    switch (type) {
+      case 'boolean':
+        return (
+          <FormControl>
+            <FormLabel id="demo-row-radio-buttons-group-label">
+              {name}
+            </FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="demo-row-radio-buttons-group-label"
+              name="row-radio-buttons-group"
+              value={getValue(id!, param)}
+              onChange={event => {
+                handlePolicyParams(
+                  event.target.value === 'true' ? true : false,
+                  id!,
+                  param,
+                );
+              }}
+            >
+              {formData.policies[id!]?.parameters[param.name!] && (
+                <span className="modified">Modified</span>
+              )}
+              <FormControlLabel
+                value={'true'}
+                control={<Radio />}
+                label="True"
+              />
+              <FormControlLabel
+                value={'false'}
+                control={<Radio />}
+                label="False"
+              />
+            </RadioGroup>
+          </FormControl>
+        );
+      default:
+        return (
+          <>
+            {formData.policies[id!]?.parameters[name!] && (
+              <span className="modified">Modified</span>
+            )}
+            <Input
+              className="form-section"
+              type={type === 'integer' ? 'number' : 'text'}
+              name={name}
+              label={name}
+              defaultValue={getValue(id!, param)}
+              onChange={event => {
+                handlePolicyParams(event.target.value, id!, param);
+              }}
+            />
+          </>
+        );
+    }
+  };
   return (
     <>
       <div className="form-field policyField">
@@ -162,6 +261,12 @@ SelectSecretStoreProps) => {
           )}
         />
       </div>
+      {formError === 'policies' && formData.policies.toString() !== '' && (
+        <div className={classes.errorSection}>
+          <ErrorIcon />
+          <span>Please add at least one policy with modified parameter</span>
+        </div>
+      )}
       <PolicyDetailsCardWrapper>
         {selectedPolicies?.map(policy => (
           <li key={policy.id}>

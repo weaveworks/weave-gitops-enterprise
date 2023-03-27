@@ -15,6 +15,7 @@ const {
   feedbackLight,
   backGrey,
   alertMedium,
+  alertDark,
 } = theme.colors;
 const {
   medium: mediumFont,
@@ -77,8 +78,15 @@ export const usePolicyConfigStyle = makeStyles(() =>
       listStyle: 'none',
       flexFlow: 'wrap',
       paddingLeft: small,
+      marginTop: none,
       '& li': {
         width: '45%',
+        '&.workspaces': {
+          width: '33%',
+          '& label': {
+            marginBottom: '0 !important',
+          },
+        },
         '& .Mui-checked': {
           color: primary10,
         },
@@ -121,6 +129,22 @@ export const usePolicyConfigStyle = makeStyles(() =>
       display: 'block',
       color: neutral30,
       fontSize: smallFont,
+    },
+    errorSection: {
+      color: alertDark,
+      display: 'Flex',
+      alignItems: 'center',
+      margin: none,
+      fontSize: smallFont,
+      marginTop: xs,
+      textAlign: 'left',
+      fontWeight: 400,
+      lineHeight: 1.66,
+      '& svg': {
+        marginRight: xxs,
+        width: '20px',
+        height: '20px',
+      },
     },
   }),
 );

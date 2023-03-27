@@ -65,7 +65,8 @@ export const ListWorkSpaces = ({
               {workspaces.map(workspace => (
                 <li
                   key={`${workspace.name}${workspace.clusterName}`}
-                  style={{ width: '33%' }}
+                  className="workspaces"
+                  // style={{ width: '33%', marginBottom: '0 !important' }}
                 >
                   <FormControlLabel
                     key={workspace.name}

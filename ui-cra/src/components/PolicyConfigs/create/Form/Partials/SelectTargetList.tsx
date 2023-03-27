@@ -89,6 +89,7 @@ export const SelectMatchType = ({
           className="form-section"
           name="matchType"
           placeholder="Select your target"
+          required
           label=""
           value={matchType || ''}
           onChange={e => handleFormData('matchType', e.target.value)}

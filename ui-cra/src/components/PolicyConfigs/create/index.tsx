@@ -303,7 +303,7 @@ const CreatePolicyConfig = () => {
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate
-        documentTitle="Secrets"
+        documentTitle="PolicyConfigs"
         path={[
           { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
           { label: 'Create New' },
@@ -327,6 +327,7 @@ const CreatePolicyConfig = () => {
               <div className="group-section">
                 <Input
                   className="form-section"
+                  required
                   name="policyConfigName"
                   description="The name of your policy configration"
                   label="NAME"
@@ -340,10 +341,11 @@ const CreatePolicyConfig = () => {
                   className="form-section"
                   name="clusterName"
                   label="CLUSTER"
+                  required
                   value={selectedCluster || ''}
                   description="Select your cluster"
                   onChange={HandleSelectCluster}
-                  error={formError === 'clusterName' && !clusterName}
+                  error={formError === 'clusterName' && !formData.clusterName}
                 >
                   {!clusters?.length ? (
                     <MenuItem disabled={true}>Loading...</MenuItem>
