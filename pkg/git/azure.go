@@ -102,7 +102,7 @@ func (p *AzureDevOpsProvider) CreatePullRequest(ctx context.Context, input PullR
 			commit.Files,
 		)
 
-		if _, err := p.sendRawRequest(ctx, request); err != nil {
+		if _, err := p.sendRawRequest(ctx, request, nil); err != nil {
 			return nil, err
 		}
 
@@ -129,30 +129,25 @@ func (p *AzureDevOpsProvider) GetTreeList(ctx context.Context, repoURL string, s
 		return nil, fmt.Errorf("unable to get git provider url: %w", err)
 	}
 
-	// At this point GetGitProviderUrl should fail if it's not a valid URL.
-	u, _ := url.Parse(repoURL)
 	jsmc := JenkinsSCM{}
 
-	repo, err := jsmc.GetRepository(ctx, p.log, p.client, u)
+	request, err := jsmc.ListContents(repoURL, path, sha)
 	if err != nil {
-		return nil, fmt.Errorf("unable to find repository: %w", err)
+		return nil, fmt.Errorf("unable to create list request: %w", err)
+	}
+
+	list := jscmContentList{}
+	if _, err := p.sendRawRequest(ctx, request, &list); err != nil {
+		return nil, fmt.Errorf("failed list request: %w", err)
 	}
 
 	files := []*TreeEntry{}
-
-	fileList, _, err := p.client.Contents.List(ctx, repo.FullName, path, sha)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, file := range fileList {
+	for _, file := range list.Value {
 		files = append(files, &TreeEntry{
-			Name: file.Name,
 			Path: file.Path,
-			Type: file.Type,
-			Size: file.Size,
-			SHA:  file.Sha,
-			Link: file.Link,
+			SHA:  file.CommitID,
+			Type: file.GitObjectType,
+			Link: file.URL,
 		})
 	}
 
@@ -192,7 +187,7 @@ func (p *AzureDevOpsProvider) ListPullRequests(ctx context.Context, repoURL stri
 	return prs, nil
 }
 
-func (p *AzureDevOpsProvider) sendRawRequest(ctx context.Context, request *scm.Request) (*scm.Response, error) {
+func (p *AzureDevOpsProvider) sendRawRequest(ctx context.Context, request *scm.Request, response interface{}) (*scm.Response, error) {
 	resp, err := p.client.Do(ctx, request)
 	if err != nil {
 		return nil, fmt.Errorf("failed to commit files: %w", err)
@@ -206,6 +201,10 @@ func (p *AzureDevOpsProvider) sendRawRequest(ctx context.Context, request *scm.R
 		_ = json.NewDecoder(resp.Body).Decode(err)
 
 		return resp, err
+	}
+
+	if response != nil {
+		_ = json.NewDecoder(resp.Body).Decode(response)
 	}
 
 	return resp, nil
