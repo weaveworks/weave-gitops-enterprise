@@ -31,7 +31,7 @@ func TestJenkinsSCM_ParseURL(t *testing.T) {
 			err:      nil,
 		},
 		{
-			caseName: "valid azure devops url",
+			caseName: "invalid azure devops url",
 			input:    "https://weaveworks@dev.azure.com/weaveworks",
 			org:      "",
 			project:  "",

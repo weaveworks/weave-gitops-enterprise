@@ -20,7 +20,7 @@ type JenkinsSCM struct{}
 
 func (p *JenkinsSCM) ParseURL(repoURL *url.URL) (string, string, string, error) {
 	pathParts := strings.Split(strings.Trim(repoURL.Path, "/"), "/")
-	// This is a naiv implementation here. Right now use only Azure DevOps with
+	// This is a naive implementation here. Right now use only Azure DevOps with
 	// this provider. When we start to move other providers to use this scm
 	// library instead of go-git-provider, this function has to be revised.
 	if len(pathParts) != 4 {
