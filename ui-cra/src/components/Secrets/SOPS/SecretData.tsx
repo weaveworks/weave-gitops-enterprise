@@ -2,30 +2,31 @@ import {
   FormControl,
   FormControlLabel,
   Radio,
-  RadioGroup,
+  RadioGroup
 } from '@material-ui/core';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { SecretDataType, SOPS } from './utils';
-import InputDebounced from './InputDebounced';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Dispatch } from 'react';
+import InputDebounced from './InputDebounced';
+import { SecretDataType, SOPS } from './utils';
 
-const data = ({
+const SecretData = ({
   formData,
-  handleFormData,
+  setFormData,
 }: {
   formData: SOPS;
-  handleFormData: (value: any, key: string) => void;
+  setFormData: Dispatch<React.SetStateAction<any>>;
 }) => {
-  const handleSecretChange = (index: number, isKey: boolean, value: string) => {
-    const mappedData = formData.data.map((e, i) => {
-      if (i === index) {
+  const handleSecretChange = (id: number, isKey: boolean, value: string) => {
+    let data = [...formData.data];
+    const mappedData = data.map(e => {
+      if (e.id === id) {
         if (isKey) e.key = value;
         else e.value = value;
-        return e;
       }
       return e;
     });
-    return mappedData;
+    setFormData((f: SOPS) => ({ ...f, data: mappedData }));
   };
 
   return (
@@ -38,7 +39,10 @@ const data = ({
             name="controlled-radio-buttons-group"
             value={formData.secretType}
             onChange={event =>
-              handleFormData(parseInt(event.target.value), 'secretType')
+              setFormData((f: SOPS) => ({
+                ...f,
+                secretType: parseInt(event.target.value),
+              }))
             }
           >
             <FormControlLabel
@@ -55,16 +59,14 @@ const data = ({
         </FormControl>
       </div>
       {formData.data.map((obj, index) => (
-        <div key={`${obj.key}-${index}`} className="secret-data-list">
+        <div key={obj.id} className="secret-data-list">
           <InputDebounced
             required
             name="dataSecretKey"
             label="KEY"
             placeholder="Secret key"
             value={obj.key}
-            handleFormData={val =>
-              handleFormData(handleSecretChange(index, true, val), 'data')
-            }
+            handleFormData={val => handleSecretChange(obj.id, true, val)}
           />
           <InputDebounced
             required
@@ -72,25 +74,34 @@ const data = ({
             label="VALUE"
             placeholder="secret value"
             value={obj.value}
-            handleFormData={val =>
-              handleFormData(handleSecretChange(index, false, val), 'data')
-            }
+            handleFormData={val => handleSecretChange(obj.id, false, val)}
           />
           <RemoveCircleOutlineIcon
             className="remove-icon"
-            onClick={() => {
-              formData.data.splice(index, 1);
-              handleFormData([...formData.data], 'data');
-            }}
+            onClick={() =>
+              setFormData((f: SOPS) => ({
+                ...f,
+                data: f.data.filter(e => e.id !== obj.id),
+              }))
+            }
           />
         </div>
       ))}
-
       <Button
         className="add-secret-data"
         startIcon={<Icon type={IconType.AddIcon} size="base" />}
         onClick={() =>
-          handleFormData([...formData.data, { key: '', value: '' }], 'data')
+          setFormData((f: SOPS) => ({
+            ...f,
+            data: [
+              ...f.data,
+              {
+                id: f.data.length > 0 ? f.data[f.data.length - 1].id + 1 : 1,
+                key: '',
+                value: '',
+              },
+            ],
+          }))
         }
       >
         Add
@@ -99,4 +110,4 @@ const data = ({
   );
 };
 
-export default data;
+export default SecretData;

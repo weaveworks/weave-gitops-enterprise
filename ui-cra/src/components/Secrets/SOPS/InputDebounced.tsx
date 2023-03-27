@@ -1,5 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Input } from '../../../utils/form';
+import { useDebounce } from '../../../utils/hooks';
 
 const InputDebounced = ({
   required = true,
@@ -17,19 +18,11 @@ const InputDebounced = ({
   handleFormData: (value: any) => void;
 }) => {
   const [data, setData] = useState<string>(value);
-  const debounce = () => {
-    let timer: NodeJS.Timeout | null;
-    return function (val: string) {
-      setData(val);
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(() => {
-        timer = null;
-        handleFormData(val);
-      }, 500);
-    };
-  };
+  const debouncedValue = useDebounce<string>(data);
+  useEffect(() => {
+    handleFormData(debouncedValue);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const handleOnChange = useCallback(debounce(), []);
+  }, [debouncedValue]);
 
   return (
     <Input
@@ -39,7 +32,7 @@ const InputDebounced = ({
       label={label}
       placeholder={placeholder}
       value={data}
-      onChange={e => handleOnChange(e.target.value)}
+      onChange={e => setData(e.target.value)}
     />
   );
 };

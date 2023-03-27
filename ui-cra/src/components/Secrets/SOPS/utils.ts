@@ -9,7 +9,7 @@ export interface SOPS {
   secretNamespace: string;
   encryptionType: string;
   kustomization: string;
-  data: { key: string; value: string }[];
+  data: { id: number; key: string; value: string }[];
   repo: string | null | GitRepository;
   provider: string;
   branchName: string;
@@ -34,7 +34,7 @@ export function getInitialData(
     secretNamespace: '',
     encryptionType: 'GPG/AGE',
     kustomization: '',
-    data: [{ key: '', value: '' }],
+    data: [{ id: 1, key: '', value: '' }],
     secretType: SecretDataType.value,
   };
 

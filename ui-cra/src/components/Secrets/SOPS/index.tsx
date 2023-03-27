@@ -42,7 +42,7 @@ const CreateSOPS = () => {
   const [formError, setFormError] = useState<string>('');
   const [formData, setFormData] = useState<SOPS>(initialFormData);
   const handleFormData = (value: any, key: string) => {
-    setFormData(f => (f = { ...f, [key]: value }));
+    setFormData(f => ({ ...f, [key]: value }));
   };
   const { setNotifications } = useNotifications();
 
@@ -121,6 +121,7 @@ const CreateSOPS = () => {
               validateFormData(event, handleCreateSecret, setFormError)
             }
           >
+            {console.count('Debaounce')}
             <div className="group-section">
               <div className="form-group">
                 <ListClusters
@@ -177,7 +178,9 @@ const CreateSOPS = () => {
                 Please note that we will encode the secret values to base64
                 before encryption
               </p>
-              <SecretData formData={formData} handleFormData={handleFormData} />
+              <SecretData formData={formData} setFormData={setFormData} />
+
+              {JSON.stringify(formData.data)}
               <PreviewModal formData={formData} />
             </div>
             <GitOps
