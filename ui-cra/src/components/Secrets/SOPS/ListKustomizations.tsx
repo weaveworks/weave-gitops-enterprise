@@ -26,22 +26,23 @@ const ListKustomizations = ({
         required
         name="kustomization"
         label="KUSTOMIZATION"
-        description={
-          !!data?.kustomizations?.length
-            ? 'Choose the kustomization that will be used by SOPS to decrypt the secret.'
-            : `No Kustomization found in ${clusterName}`
-        }
+        description="Choose the kustomization that will be used by SOPS to decrypt the secret."
         onChange={event => handleFormData(event.target.value)}
         value={value}
-        disabled={!clusterName || !data?.kustomizations?.length}
       >
-        {data?.kustomizations?.map((k, index: number) => {
-          return (
-            <MenuItem key={index} value={`${k.name}/${k.namespace}`}>
-              {k.name}
-            </MenuItem>
-          );
-        })}
+        {!!data?.kustomizations?.length ? (
+          data?.kustomizations?.map((k, index: number) => {
+            return (
+              <MenuItem key={index} value={`${k.name}/${k.namespace}`}>
+                {k.name}
+              </MenuItem>
+            );
+          })
+        ) : (
+          <MenuItem value="" disabled={true}>
+            No Kustomization found in {clusterName}
+          </MenuItem>
+        )}
       </Select>
     </LoadingWrapper>
   );
