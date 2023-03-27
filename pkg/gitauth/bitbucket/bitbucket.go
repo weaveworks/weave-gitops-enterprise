@@ -13,10 +13,13 @@ import (
 	"time"
 )
 
-var bitbucketScopes = []string{"REPO_WRITE", "REPO_READ", "PUBLIC_REPOS"}
+// REPO_WRITE is used for pushing code to a git repository.
+// REPO_READ is used for creating pull requests.
+// PUBLIC_REPOS is used for accessing public projects/repositories.
+var scopes = []string{"REPO_WRITE", "REPO_READ", "PUBLIC_REPOS"}
 
 type AuthClient interface {
-	AuthURL(ctx context.Context, redirectURI string) (url.URL, error)
+	AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error)
 	ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error)
 	ValidateToken(ctx context.Context, token string) error
 }
@@ -29,52 +32,51 @@ type defaultAuthClient struct {
 	http *http.Client
 }
 
-func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string) (url.URL, error) {
+// AuthURL is used to construct the authorization URL.
+// https://confluence.atlassian.com/bitbucketserver/bitbucket-oauth-2-0-provider-api-1108483661.html
+func (c *defaultAuthClient) AuthURL(ctx context.Context, redirectURI string, state string) (url.URL, error) {
 	u, err := buildBitbucketURL()
-
 	if err != nil {
-		return u, fmt.Errorf("building bitbucket server url: %w", err)
+		return u, err
 	}
 
 	u.Path = "/rest/oauth2/latest/authorize"
 
-	cid := getClientID()
-
-	if cid == "" {
-		return u, errors.New("env var BITBUCKET_SERVER_CLIENT_ID not set")
+	id, err := getClientID()
+	if err != nil {
+		return u, err
 	}
 
 	params := u.Query()
-	params.Set("client_id", cid)
+	params.Set("client_id", id)
 	params.Set("redirect_uri", redirectURI)
 	params.Set("response_type", "code")
-	params.Set("grant_type", "authorization_code")
-
-	params.Set("scope", strings.Join(bitbucketScopes, " "))
+	params.Set("state", state)
+	params.Set("scope", strings.Join(scopes, " "))
 	u.RawQuery = params.Encode()
 	return u, nil
 }
 
 func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code string) (*TokenResponseState, error) {
 	u, err := buildBitbucketURL()
-
 	if err != nil {
-		return nil, fmt.Errorf("building bitbucket server url: %w", err)
+		return nil, err
 	}
 
-	cid := getClientID()
-	if cid == "" {
-		return nil, errors.New("env var BITBUCKET_SERVER_CLIENT_ID not set")
+	id, err := getClientID()
+	if err != nil {
+		return nil, err
 	}
 
-	secret := getClientSecret()
-	if secret == "" {
-		return nil, errors.New("env var BITBUCKET_SERVER_CLIENT_SECRET not set")
+	secret, err := getClientSecret()
+	if err != nil {
+		return nil, err
 	}
+
 	// https://atlassian.example.com/rest/oauth2/latest/token?client_id=CLIENT_ID&client_secret=CLIENT_SECRET&code=CODE&grant_type=authorization_code&redirect_uri=REDIRECT_URI
 	u.Path = "/rest/oauth2/latest/token"
 	params := u.Query()
-	params.Set("client_id", cid)
+	params.Set("client_id", id)
 	params.Set("client_secret", secret)
 	params.Set("redirect_uri", redirectURI)
 	params.Set("code", code)
@@ -84,17 +86,43 @@ func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code 
 	return doCodeExchangeRequest(ctx, u, c.http)
 }
 
+// ValidateToken makes an HTTP call to https://{BITBUCKET_SERVER_HOSTNAME}/rest/api/latest/users
+// and returns a nil error if the response is 200 OK. Otherwise it returns an error.
+// Making a call to get a page of users is used as a proxy to validate whether the
+// token is still valid.
 func (c *defaultAuthClient) ValidateToken(ctx context.Context, token string) error {
+	u, err := buildBitbucketURL()
+	if err != nil {
+		return err
+	}
+
+	u.Path = "/rest/api/latest/users"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for BitBucket Server API: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request to BitBucket Server API: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return errors.New("token is invalid")
+	}
 
 	return nil
 }
 
 func buildBitbucketURL() (url.URL, error) {
-	host := os.Getenv("BITBUCKET_SERVER_HOSTNAME")
 	u := url.URL{}
 
+	host := os.Getenv("BITBUCKET_SERVER_HOSTNAME")
 	if host == "" {
-		return u, errors.New("env var BITBUCKET_SERVER_HOSTNAME is not set")
+		return u, errors.New("cannot build bitbucket server url: environment variable BITBUCKET_SERVER_HOSTNAME is not set")
 	}
 
 	u.Scheme = "https"
@@ -103,12 +131,22 @@ func buildBitbucketURL() (url.URL, error) {
 	return u, nil
 }
 
-func getClientID() string {
-	return os.Getenv("BITBUCKET_SERVER_CLIENT_ID")
+func getClientID() (string, error) {
+	id := os.Getenv("BITBUCKET_SERVER_CLIENT_ID")
+	if id == "" {
+		return "", errors.New("environment variable BITBUCKET_SERVER_CLIENT_ID is not set")
+	}
+
+	return id, nil
 }
 
-func getClientSecret() string {
-	return os.Getenv("BITBUCKET_SERVER_CLIENT_SECRET")
+func getClientSecret() (string, error) {
+	secret := os.Getenv("BITBUCKET_SERVER_CLIENT_SECRET")
+	if secret == "" {
+		return "", errors.New("environment variable BITBUCKET_SERVER_CLIENT_SECRET is not set")
+	}
+
+	return secret, nil
 }
 
 func doCodeExchangeRequest(ctx context.Context, tURL url.URL, c *http.Client) (*TokenResponseState, error) {

@@ -266,6 +266,21 @@ service ClustersService {
       get : "/v1/policy-configs/{name}"
     };
   }
+
+  // EncryptSopsSecret encrypts a sops secret
+  rpc EncryptSopsSecret(EncryptSopsSecretRequest) returns (EncryptSopsSecretResponse) {
+    option (google.api.http) = {
+      post : "/v1/encrypt-sops-secret",
+      body : "*"
+    };
+  }
+
+  // ListSopsKustomizations list Sops kustomizations
+  rpc ListSopsKustomizations(ListSopsKustomizationsRequest) returns (ListSopsKustomizationsResponse) {
+    option (google.api.http) = {
+      get : "/v1/sops-kustomizations"
+    };
+  }
 }
 
 
@@ -354,6 +369,8 @@ message RenderTemplateResponse {
   CostEstimate costEstimate = 4;
   repeated CommitFile external_secrets_files = 5;
   repeated CommitFile policy_config_files = 6;
+  repeated CommitFile sops_secret_files = 7;
+
 }
 
 message RenderAutomationRequest {
@@ -365,6 +382,7 @@ message RenderAutomationResponse {
   repeated CommitFile helm_release_files = 2;
   repeated CommitFile external_secrets_files = 3;
   repeated CommitFile policy_config_files = 4;
+  repeated CommitFile sops_secert_files = 5;
 }
 
 message ListGitopsClustersRequest {
@@ -482,6 +500,8 @@ message CreatePullRequestRequest {
   PreviousValues previous_values = 16;
   repeated ExternalSecret external_secrets = 17;
   repeated PolicyConfigObject policy_configs = 18;
+  repeated SopsSecret sops_secrets = 19;
+
 }
 
 // Previous values for a CreatePullRequestRequest.
@@ -492,6 +512,7 @@ message PreviousValues {
   repeated Kustomization kustomizations = 4;
   repeated ExternalSecret external_secrets = 5;
   repeated PolicyConfigObject policy_configs = 6;
+  repeated SopsSecret sops_secrets = 7;
  }
 
 message CreatePullRequestResponse {
@@ -707,6 +728,7 @@ message ClusterAutomation {
   string file_path = 5;
   ExternalSecret external_secret = 6;
   PolicyConfigObject policy_config = 7;
+  SopsSecret sops_secret = 8;
 }
 
 // External Secrets template
@@ -837,7 +859,8 @@ message GetConfigRequest {}
 message GetConfigResponse {
   string repositoryURL = 1;
   string managementClusterName = 2;
-    string ui_config = 3;
+  string ui_config = 3;
+  map<string, string> git_host_types = 4;
 }
 
 message PolicyParamRepeatedString { repeated string value = 1; }
@@ -1191,4 +1214,54 @@ message PolicyConfigObjectSpec {
 message PolicyConfigObject {
   Metadata metadata = 1;
   PolicyConfigObjectSpec spec  = 2;
+}
+
+
+message EncryptSopsSecretRequest {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+  string type = 4; 
+  bool immutable = 5;
+  map<string, string> data = 6;
+  map<string, string> stringData = 7;
+  string kustomization_name = 8;
+  string kustomization_namespace = 9;
+  string clusterName = 10;
+}
+
+message EncryptSopsSecretResponse {
+  google.protobuf.Value encrypted_secret = 1;
+  string path = 2;
+}
+
+message ListSopsKustomizationsRequest {
+  string clusterName = 1;
+}
+
+message ListSopsKustomizationsResponse {
+  repeated SopsKustomizations kustomizations = 1;
+  int32 total = 2;
+}
+
+message SopsKustomizations {
+  string name = 1;
+  string namespace = 2;
+}
+
+message SopsSecretMetadata {
+  string name = 1;
+  string namespace = 2;
+  map<string, string> labels = 3;
+}
+
+message SopsSecret {
+  string apiVersion = 1;
+  string kind = 2;
+  SopsSecretMetadata metadata = 3;
+  map<string,string> data = 4;
+  map<string,string> stringData = 5;
+  string type = 6;
+  bool immutable = 7;
+  google.protobuf.Value sops = 8; 
 }
