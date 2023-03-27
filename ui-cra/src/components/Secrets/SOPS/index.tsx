@@ -125,9 +125,10 @@ const CreateSOPS = () => {
               <div className="form-group">
                 <ListClusters
                   value={formData.clusterName}
-                  handleFormData={(val: any) =>
-                    handleFormData(val, 'clusterName')
-                  }
+                  handleFormData={(val: any) => {
+                    handleFormData(val, 'clusterName');
+                    handleFormData('', 'kustomization');
+                  }}
                 />
                 <InputDebounced
                   required
@@ -135,7 +136,6 @@ const CreateSOPS = () => {
                   label="SECRET NAME"
                   value={formData.secretName}
                   handleFormData={val => handleFormData(val, 'secretName')}
-                  
                 />
                 <InputDebounced
                   required
