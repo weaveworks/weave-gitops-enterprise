@@ -32,8 +32,6 @@ TBA
 
 It aims to represent Weave Gitops Enterprise as a whole system and how it fits into the world around it.
 
-![Weave Gitops System Diagram](./imgs/system-context.svg)
-
 ```mermaid
 C4Context
       title Weave Gitops Enterprise - System Context Diagram
