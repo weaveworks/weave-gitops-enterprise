@@ -15,20 +15,32 @@ import (
 	"k8s.io/client-go/util/retry"
 )
 
-type jenkinsSCM struct{}
+type JenkinsSCM struct{}
 
-func (p *jenkinsSCM) GetRepository(ctx context.Context, log logr.Logger, client *scm.Client, repoURL *url.URL) (*scm.Repository, error) {
+func (p *JenkinsSCM) ParseURL(repoURL *url.URL) (string, string, string, error) {
 	pathParts := strings.Split(strings.Trim(repoURL.Path, "/"), "/")
+	// This is a naiv implementation here. Right now use only Azure DevOps with
+	// this provider. When we start to move other providers to use this scm
+	// library instead of go-git-provider, this function has to be revised.
 	if len(pathParts) != 4 {
-		return nil, fmt.Errorf("unbale to parse url %+v", repoURL)
+		return "", "", "", fmt.Errorf("unbale to parse url %+v", repoURL)
 	}
 
 	org := pathParts[0]
 	project := pathParts[1]
 	name := pathParts[3]
 
+	return org, project, name, nil
+}
+
+func (p *JenkinsSCM) GetRepository(ctx context.Context, log logr.Logger, client *scm.Client, repoURL *url.URL) (*scm.Repository, error) {
+	org, project, name, err := p.ParseURL(repoURL)
+	if err != nil {
+		return nil, err
+	}
+
 	var repo *scm.Repository
-	err := retry.OnError(DefaultBackoff,
+	err = retry.OnError(DefaultBackoff,
 		func(err error) bool { return errors.Is(err, scm.ErrNotFound) },
 		func() error {
 			var err error
@@ -47,7 +59,7 @@ func (p *jenkinsSCM) GetRepository(ctx context.Context, log logr.Logger, client 
 	return repo, nil
 }
 
-func (p *jenkinsSCM) GetCurrentCommitOfBranch(ctx context.Context, client *scm.Client, repo *scm.Repository, branch, path string) (string, error) {
+func (p *JenkinsSCM) GetCurrentCommitOfBranch(ctx context.Context, client *scm.Client, repo *scm.Repository, branch, path string) (string, error) {
 	commits, _, err := client.Git.ListCommits(ctx, repo.FullName, scm.CommitListOptions{Ref: branch, Path: path})
 	if err != nil {
 		return "", fmt.Errorf("failed to list commits: %w", err)
@@ -56,7 +68,7 @@ func (p *jenkinsSCM) GetCurrentCommitOfBranch(ctx context.Context, client *scm.C
 	return commits[0].Sha, nil
 }
 
-func (p *jenkinsSCM) CreateFile(ctx context.Context, client *scm.Client, repo *scm.Repository, path string, params *scm.ContentParams) error {
+func (p *JenkinsSCM) CreateFile(ctx context.Context, client *scm.Client, repo *scm.Repository, path string, params *scm.ContentParams) error {
 	_, err := client.Contents.Create(ctx, repo.FullName, path, params)
 	if err != nil {
 		return fmt.Errorf("unable to write files to branch %q: %w", params.Branch, err)
@@ -65,7 +77,7 @@ func (p *jenkinsSCM) CreateFile(ctx context.Context, client *scm.Client, repo *s
 	return nil
 }
 
-func (p *jenkinsSCM) UpdateFile(ctx context.Context, client *scm.Client, repo *scm.Repository, path string, params *scm.ContentParams) error {
+func (p *JenkinsSCM) UpdateFile(ctx context.Context, client *scm.Client, repo *scm.Repository, path string, params *scm.ContentParams) error {
 	_, err := client.Contents.Update(ctx, repo.FullName, path, params)
 	if err != nil {
 		return fmt.Errorf("unable to write files to branch %q: %w", params.Branch, err)
@@ -74,7 +86,7 @@ func (p *jenkinsSCM) UpdateFile(ctx context.Context, client *scm.Client, repo *s
 	return nil
 }
 
-func (p *jenkinsSCM) Endpoint(repoURL, path string) (string, error) {
+func (p *JenkinsSCM) Endpoint(repoURL, path string) (string, error) {
 	u, err := url.Parse(repoURL)
 	if err != nil {
 		return "", fmt.Errorf("unbale to parse url %q: %w", repoURL, err)
@@ -107,7 +119,7 @@ func (p *jenkinsSCM) Endpoint(repoURL, path string) (string, error) {
 // See:
 // https://github.com/jenkins-x/go-scm/blob/main/scm/driver/azure/content.go#L91
 
-func (p *jenkinsSCM) CommitFilesRequest(sha, url, head, message string, files []CommitFile) *scm.Request {
+func (p *JenkinsSCM) CommitFilesRequest(sha, url, head, message string, files []CommitFile) *scm.Request {
 	endpoint, _ := p.Endpoint(url, "pushes")
 
 	ref := refUpdate{
