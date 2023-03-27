@@ -66,7 +66,6 @@ export const ListWorkSpaces = ({
                 <li
                   key={`${workspace.name}${workspace.clusterName}`}
                   className="workspaces"
-                  // style={{ width: '33%', marginBottom: '0 !important' }}
                 >
                   <FormControlLabel
                     key={workspace.name}

@@ -15,14 +15,14 @@ import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg
 import { Autocomplete } from '@material-ui/lab';
 import { Dispatch, useEffect, useState } from 'react';
 import {
-    Policy,
-    PolicyParam
+  Policy,
+  PolicyParam,
 } from '../../../../../cluster-services/cluster_services.pb';
 import { useListListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
-    PolicyDetailsCardWrapper,
-    usePolicyConfigStyle
+  PolicyDetailsCardWrapper,
+  usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -30,7 +30,6 @@ interface SelectSecretStoreProps {
   formError: string;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
-  formError: string;
 }
 
 export const SelectedPolicies = ({
@@ -38,7 +37,6 @@ export const SelectedPolicies = ({
   formError,
   formData,
   setFormData,
-  formError,
 }: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
   const { policies = {} } = formData;
