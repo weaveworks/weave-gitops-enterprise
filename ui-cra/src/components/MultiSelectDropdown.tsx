@@ -1,12 +1,13 @@
-import React, { FC, useEffect, useState } from 'react';
 import Checkbox from '@material-ui/core/Checkbox';
+import FormControl from '@material-ui/core/FormControl';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
-import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import React, { FC, useEffect, useState } from 'react';
+import styled from 'styled-components';
 
 const useStyles = makeStyles(theme => ({
   formControl: {
@@ -115,4 +116,4 @@ const MultiSelectDropdown: FC<{
   );
 };
 
-export default MultiSelectDropdown;
+export default styled(MultiSelectDropdown)``;
