@@ -73,6 +73,10 @@ func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 						Path:    "management/cluster-01.yaml",
 						Content: &content,
 					},
+					{
+						Path:    "management/cluster-02.yaml",
+						Content: &content,
+					},
 				},
 			},
 		},
@@ -84,7 +88,7 @@ func TestCreatePullRequestInGitHubOrganization(t *testing.T) {
 	assert.Equal(t, pr.GetHTMLURL(), res.Link)
 	assert.Equal(t, pr.GetTitle(), "New cluster")
 	assert.Equal(t, pr.GetBody(), "Creates a cluster through a CAPI template")
-	assert.Equal(t, pr.GetChangedFiles(), 1)
+	assert.Equal(t, pr.GetChangedFiles(), 2)
 }
 
 func TestCreatePullRequestInGitHubUser(t *testing.T) {

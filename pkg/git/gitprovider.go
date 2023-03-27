@@ -55,10 +55,10 @@ func (g goGitProvider) WriteFilesToBranch(ctx context.Context, log logr.Logger, 
 	for _, c := range req.Commits {
 		// Adapt for go-git-providers
 		adapted := make([]gitprovider.CommitFile, 0)
-		for _, f := range c.Files {
+		for idx := range c.Files {
 			adapted = append(adapted, gitprovider.CommitFile{
-				Path:    &f.Path,
-				Content: f.Content,
+				Path:    &c.Files[idx].Path,
+				Content: c.Files[idx].Content,
 			})
 		}
 
