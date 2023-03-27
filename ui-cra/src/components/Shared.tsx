@@ -2,18 +2,6 @@ import { Tooltip as Mtooltip, TooltipProps } from '@material-ui/core';
 import { FC } from 'react';
 import styled from 'styled-components';
 
-export const Code = styled.div`
-  display: flex;
-  align-self: center;
-  padding: 16px;
-  background-color: ${({ theme }) => theme.colors.white};
-  font-family: ${({ theme }) => theme.fontFamilies.monospace};
-  border: 1px solid ${({ theme }) => theme.colors.neutral20};
-  border-radius: ${({ theme }) => theme.borderRadius.soft};
-  overflow: auto;
-  font-size: ${({ theme }) => theme.fontSizes.small};
-`;
-
 const TooltipStyle = styled.div`
   font-size: 14px;
 `;

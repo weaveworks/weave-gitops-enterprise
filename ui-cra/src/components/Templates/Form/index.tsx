@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
@@ -77,8 +78,6 @@ const small = weaveTheme.spacing.small;
 
 const FormWrapper = styled.form`
   .create-cta {
-    display: flex;
-    justify-content: end;
     padding: ${({ theme }) => theme.spacing.small};
     button {
       width: 200px;
@@ -89,15 +88,11 @@ const FormWrapper = styled.form`
   }
 `;
 
-const CredentialsWrapper = styled.div`
-  display: flex;
-  align-items: center;
+const CredentialsWrapper = styled(Flex)`
   & .template-title {
     margin-right: ${({ theme }) => theme.spacing.medium};
   }
   & .credentials {
-    display: flex;
-    align-items: center;
     span {
       margin-right: ${({ theme }) => theme.spacing.xs};
     }
@@ -567,7 +562,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           }
         >
           <Grid item xs={12} sm={10} md={10} lg={8}>
-            <CredentialsWrapper>
+            <CredentialsWrapper align>
               <div className="template-title">
                 Template: <span>{template.name}</span>
               </div>
@@ -653,7 +648,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
-              <div className="create-cta">
+              <Flex end className="create-cta">
                 <Button
                   type="submit"
                   onClick={() => setSubmitType('Create resource')}
@@ -661,7 +656,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 >
                   CREATE PULL REQUEST
                 </Button>
-              </div>
+              </Flex>
             )}
           </Grid>
         </FormWrapper>

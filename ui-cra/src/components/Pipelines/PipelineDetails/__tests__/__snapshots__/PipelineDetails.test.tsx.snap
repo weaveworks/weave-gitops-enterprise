@@ -1,6 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PipelineDetails snapshots renders 1`] = `
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
 .c7 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -287,10 +301,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
@@ -313,23 +323,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   height: 100%;
 }
 
-.c2 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  font-size: 20px;
-  height: 32px;
-}
-
 .c4 {
   color: #fff;
   text-overflow: ellipsis;
@@ -343,7 +336,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   white-space: nowrap;
 }
 
-.c1 {
+.c2 {
   -webkit-align-items: center;
   -webkit-box-align: center;
   -ms-flex-align: center;
@@ -352,10 +345,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
   color: inherit;
   font-size: 20px;
   height: 80px;
@@ -371,7 +360,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   background: inherit;
 }
 
-.c1 .MuiListItemIcon-root {
+.c2 .MuiListItemIcon-root {
   min-width: 30px;
 }
 
@@ -473,10 +462,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
     class="c0"
   >
     <div
-      class="c1 count-header"
+      class="c1 c2 count-header"
     >
       <div
-        class="c2"
+        class="c1"
       >
         <div
           class="makeStyles-path-120"
@@ -1346,7 +1335,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c38"
+        class="c1 c38"
       >
         <div>
           Need help? Raise a 

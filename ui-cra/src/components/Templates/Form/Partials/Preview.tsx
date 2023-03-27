@@ -21,7 +21,7 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import JSZip from 'jszip';
 import { Tooltip } from '../../../Shared';
 
@@ -31,9 +31,6 @@ const DialogWrapper = styled(Dialog)`
   }
   .info {
     padding: ${({ theme }) => theme.spacing.medium};
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
   }
   .tabs-container {
     margin-left: ${({ theme }) => theme.spacing.large};
@@ -218,12 +215,12 @@ const Preview: FC<{
           </TabPanel>
         ))}
       </DialogContent>
-      <div className="info">
+      <Flex align between className="info">
         <span>
           You may edit these as part of the pull request with your git provider.
         </span>
         <Button onClick={downloadFile}>Download</Button>
-      </div>
+      </Flex>
     </DialogWrapper>
   );
 };

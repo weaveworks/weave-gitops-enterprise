@@ -44,7 +44,6 @@ interface NavigationItem {
 }
 
 const NavWrapper = styled(Flex)`
-  flex-direction: column;
   margin-bottom: ${small};
 
   a.route-nav {
@@ -227,7 +226,7 @@ const NavItems = () => {
     <>
       {navItems.map(item => {
         return item.isVisible !== false ? (
-          <NavWrapper key={item.name}>
+          <NavWrapper column key={item.name}>
             <NavItem
               exact={!!item.subItems ? true : false}
               to={item.link}
