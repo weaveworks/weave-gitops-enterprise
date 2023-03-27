@@ -34,6 +34,7 @@ import Divider from '@material-ui/core/Divider';
 import { useIsClusterWithSources } from '../Applications/utils';
 import { Tooltip } from '../Shared';
 import { Routes } from '../../utils/nav';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 
 interface Size {
   size?: 'small';
@@ -138,9 +139,11 @@ const ClusterDashboard = ({ clusterName }: Props) => {
               className={classes.clusterApplicationBtn}
               startIcon={<Icon type={IconType.FilterIcon} size="base" />}
               onClick={() => {
-                const filtersValues = encodeURIComponent(
-                  `clusterName: ${currentCluster?.namespace}/${currentCluster?.name}`,
-                );
+                const filtersValues = toFilterQueryString([
+                  {
+                    clusterName: `${currentCluster?.namespace}/${currentCluster?.name}`,
+                  },
+                ]);
                 history.push(`/applications?filters=${filtersValues}`);
               }}
             >

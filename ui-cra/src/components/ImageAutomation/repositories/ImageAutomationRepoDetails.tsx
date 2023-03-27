@@ -8,6 +8,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
+import { toFilterQueryString } from '../../../utils/FilterQueryString';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 
@@ -31,7 +32,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
     },
   );
 
-  const filtersValues = encodeURIComponent(`imageRepositoryRef: ${name}`);
+  const filtersValues = toFilterQueryString([{ imageRepositoryRef: name }]);
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <PageTemplate

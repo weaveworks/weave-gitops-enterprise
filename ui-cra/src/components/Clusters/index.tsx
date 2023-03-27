@@ -61,6 +61,7 @@ import {
 } from '../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../Templates/Form';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 
 interface Size {
   size?: 'small';
@@ -303,9 +304,10 @@ const MCCP: FC<{
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
-    const filtersValues = encodeURIComponent(
-      `templateType: cluster_templateType: `,
-    );
+    const filtersValues = toFilterQueryString([
+      { templateType: 'cluster' },
+      { templateType: '' },
+    ]);
     history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
 
