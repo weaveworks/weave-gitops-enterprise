@@ -2,6 +2,7 @@ package azure
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,6 +14,9 @@ import (
 	"time"
 )
 
+// vso.code_write is used to read/write to Git repositories via the API.
+// Using this scope also allows us to read account information which we
+// use as a proxy for token validation.
 var scopes = []string{"vso.code_write"}
 
 type AuthClient interface {
@@ -72,22 +76,53 @@ func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code 
 	return doCodeExchangeRequest(ctx, u, c.http, strings.NewReader(params.Encode()))
 }
 
+// ValidateToken makes an HTTP call to https://app.vssps.visualstudio.com/_apis/accounts
+// and returns a nil error if the response is 200 OK. Otherwise it returns an error.
+// Making a call to get the accounts of the user is used as a proxy to validate whether
+// the token is still valid.
+// https://learn.microsoft.com/en-us/rest/api/azure/devops/account/accounts/list?view=azure-devops-rest-7.0&tabs=HTTP
 func (c *defaultAuthClient) ValidateToken(ctx context.Context, token string) error {
+	u := buildAzureURL()
+	u.Path = "_apis/accounts"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for Azure DevOps API: %w", err)
+	}
+
+	// https://learn.microsoft.com/en-us/azure/devops/organizations/accounts/use-personal-access-tokens-to-authenticate?toc=%2Fazure%2Fdevops%2Forganizations%2Ftoc.json&view=azure-devops&tabs=Linux#use-a-pat
+	b64Token := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf(":%s", token)))
+	req.Header.Set("Authorization", fmt.Sprintf("Basic %s", b64Token))
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request to Azure DevOps API: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return errors.New("token is invalid")
+	}
+
 	return nil
 }
 
 func buildAzureURL() url.URL {
-	u := url.URL{
-		Scheme: "https",
-		Host:   "app.vssps.visualstudio.com",
+	u := url.URL{}
+
+	// Using a custom hostname here is purely for unit tests
+	host, exists := os.LookupEnv("AZURE_DEVOPS_HOSTNAME")
+	if !exists {
+		host = "app.vssps.visualstudio.com"
 	}
+	u.Scheme = "https"
+	u.Host = host
 
 	return u
 }
 
 func getClientID() (string, error) {
-	id := os.Getenv("AZURE_DEVOPS_CLIENT_ID")
-	if id == "" {
+	id, exists := os.LookupEnv("AZURE_DEVOPS_CLIENT_ID")
+	if !exists {
 		return "", errors.New("environment variable AZURE_DEVOPS_CLIENT_ID is not set")
 	}
 
@@ -95,9 +130,9 @@ func getClientID() (string, error) {
 }
 
 func getClientSecret() (string, error) {
-	secret := os.Getenv("AZURE_DEVOPS_CLIENT_SECRET")
-	if secret == "" {
-		return "", errors.New("environment variable AZURE_DEVOPS_CLIENT_SECRET not set")
+	secret, exists := os.LookupEnv("AZURE_DEVOPS_CLIENT_SECRET")
+	if !exists {
+		return "", errors.New("environment variable AZURE_DEVOPS_CLIENT_SECRET is not set")
 	}
 
 	return secret, nil

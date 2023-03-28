@@ -13,6 +13,9 @@ import (
 	"time"
 )
 
+// REPO_WRITE is used for pushing code to a git repository.
+// REPO_READ is used for creating pull requests.
+// PUBLIC_REPOS is used for accessing public projects/repositories.
 var scopes = []string{"REPO_WRITE", "REPO_READ", "PUBLIC_REPOS"}
 
 type AuthClient interface {
@@ -83,7 +86,33 @@ func (c *defaultAuthClient) ExchangeCode(ctx context.Context, redirectURI, code 
 	return doCodeExchangeRequest(ctx, u, c.http)
 }
 
+// ValidateToken makes an HTTP call to https://{BITBUCKET_SERVER_HOSTNAME}/rest/api/latest/users
+// and returns a nil error if the response is 200 OK. Otherwise it returns an error.
+// Making a call to get a page of users is used as a proxy to validate whether the
+// token is still valid.
 func (c *defaultAuthClient) ValidateToken(ctx context.Context, token string) error {
+	u, err := buildBitbucketURL()
+	if err != nil {
+		return err
+	}
+
+	u.Path = "/rest/api/latest/users"
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, u.String(), nil)
+	if err != nil {
+		return fmt.Errorf("failed to create request for BitBucket Server API: %w", err)
+	}
+
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", token))
+
+	res, err := c.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request to BitBucket Server API: %w", err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		return errors.New("token is invalid")
+	}
 
 	return nil
 }
