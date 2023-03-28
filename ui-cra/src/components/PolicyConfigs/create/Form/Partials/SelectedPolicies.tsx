@@ -232,6 +232,12 @@ export const SelectedPolicies = ({
         );
     }
   };
+
+  console.log(
+    'is',
+    formError === 'policies' && JSON.stringify(formData.policies) !== '{}',
+    JSON.stringify(formData.policies),
+  );
   return (
     <>
       <div className="form-field policyField">
@@ -240,12 +246,13 @@ export const SelectedPolicies = ({
         </label>
         {policiesInput()}
       </div>
-      {formError === 'policies' && formData.policies.toString() !== '' && (
+      {formError === 'policies' && JSON.stringify(formData.policies) === '{}' && (
         <div className={classes.errorSection}>
           <ErrorIcon />
           <span>Please add at least one policy with modified parameter</span>
         </div>
       )}
+
       <PolicyDetailsCardWrapper>
         {selectedPolicies?.map(policy => (
           <li key={policy.id}>

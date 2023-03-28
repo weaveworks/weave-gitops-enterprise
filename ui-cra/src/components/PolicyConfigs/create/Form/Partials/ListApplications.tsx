@@ -29,7 +29,11 @@ export const ListApplications = ({
   } = useListAutomations('', { retry: false });
   const applications =
     applicationsList?.result
-      ?.filter(app => app.clusterName === cluster)
+      ?.filter(app =>
+        formData.isControlPlane
+          ? app.clusterName === cluster
+          : app.clusterName === `${formData.clusterNamespace}/${cluster}`,
+      )
       .sort((a, b) => a.obj.metadata.name - b.obj.metadata.name) || [];
 
   useEffect(() => {
