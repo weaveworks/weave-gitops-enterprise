@@ -43,7 +43,12 @@ export const SelectedPolicies = ({
   const { data } = useListListPolicies({});
 
   const policiesList = useMemo(
-    () => data?.policies?.filter(p => p.clusterName === cluster) || [],
+    () =>
+      data?.policies?.filter(p =>
+        formData.isControlPlane
+          ? p.clusterName === cluster
+          : p.clusterName === `${formData.clusterNamespace}/${cluster}`,
+      ) || [],
     [data?.policies, cluster],
   );
 

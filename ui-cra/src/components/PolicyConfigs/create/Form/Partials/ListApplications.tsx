@@ -21,7 +21,7 @@ export const ListApplications = ({
   setFormData,
 }: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
-  const [isChecked, setIsChecked] = useState<string[]>([]);
+  const [checks, setChecks] = useState<string[]>([]);
   const {
     data: applicationsList,
     isLoading,
@@ -39,7 +39,7 @@ export const ListApplications = ({
   useEffect(() => {
     if (formData.appMatch) {
       setSelectedAppsList(formData.appMatch);
-      setIsChecked(
+      setChecks(
         formData.appMatch.map(
           (i: PolicyConfigApplicationMatch) => `${i.name}${i.kind}`,
         ),
@@ -56,12 +56,10 @@ export const ListApplications = ({
         name: name,
         namespace: app.obj.metadata.namespace || '',
       });
-      setIsChecked([...isChecked, `${name}${app.obj.kind}`]);
+      setChecks([...checks, `${name}${app.obj.kind}`]);
     } else {
       selected = selected.filter(item => item.name !== name);
-      setIsChecked(
-        isChecked.filter((i: string) => i === `${name}${app.obj.kind}`),
-      );
+      setChecks(checks.filter((i: string) => i === `${name}${app.obj.kind}`));
     }
 
     setSelectedAppsList(selected);
@@ -71,7 +69,7 @@ export const ListApplications = ({
     });
   };
 
-  return !!cluster ? (
+  return (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {applicationsList?.result.length && applications.length ? (
         <FormGroup>
@@ -82,7 +80,7 @@ export const ListApplications = ({
                   control={
                     <Checkbox
                       size="small"
-                      checked={isChecked.includes(
+                      checked={checks.includes(
                         app.obj.metadata.name + app.obj.kind,
                       )}
                       name={app.obj.metadata.name}
@@ -113,7 +111,5 @@ export const ListApplications = ({
         <span>No Applications found</span>
       )}
     </LoadingWrapper>
-  ) : (
-    <span>No cluster selected yet</span>
   );
 };

@@ -32,9 +32,10 @@ export const SelectMatchType = ({
   const classes = usePolicyConfigStyle();
   const { matchType } = formData;
 
-  const [matchTypeList] = useState<string[]>(['workspaces', 'apps']);
+  const matchTypeList = ['workspaces', 'apps'];
 
   const getCheckList = (matchType: string) => {
+    if (!!cluster) return <span>No cluster selected yet</span>;
     switch (matchType) {
       case 'apps':
         return (
