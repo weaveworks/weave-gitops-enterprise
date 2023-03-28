@@ -17,10 +17,62 @@ import { createStyles, makeStyles } from '@material-ui/core';
 import { GitAuth } from '../../contexts/GitAuth';
 import GitUrlParse from 'git-url-parse';
 import { openLinkHandler } from '../../utils/link-checker';
+import useConfig from '../../hooks/config';
+// import urijs
+import URI from 'urijs';
+import { GetConfigResponse } from '../../cluster-services/cluster_services.pb';
+import { getInitialGitRepo } from '../Templates/Form/utils';
 
 type Props = {
   gitRepos: GitRepository[];
 };
+
+const useStyles = makeStyles(() =>
+  createStyles({
+    optionsButton: {
+      marginRight: '0px',
+    },
+    externalLink: {
+      marginRight: '5px',
+    },
+  }),
+);
+
+function getDomain(url: string) {
+  const uri = URI(url);
+  return uri.domain();
+}
+
+function getHttpsUrl(url: string) {
+  // FIXME: does not work for azure devops
+  const uri = URI(url);
+  return uri.protocol('https').toString();
+}
+
+function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
+  // FIXME: check the annoation as well
+  console.log({ gitRepo });
+
+  const domain = getDomain(gitRepo.obj.spec.url);
+  console.log({ gitRepo, domain });
+  const provider = config?.gitHostTypes?.[domain] || 'github';
+  if (provider === 'github') {
+    return getHttpsUrl(gitRepo.obj.spec.url) + '/pulls';
+  }
+  if (provider === 'gitlab') {
+    return getHttpsUrl(gitRepo.obj.spec.url) + '/-/merge_requests';
+  }
+
+  // FIXME: this is not correct
+  if (provider === 'bitbucket') {
+    return getHttpsUrl(gitRepo.obj.spec.url) + '/pull-requests';
+  }
+
+  // FIXME: this is not correct
+  if (provider === 'azuredevops') {
+    return getHttpsUrl(gitRepo.obj.spec.url) + '/pullrequests';
+  }
+}
 
 export default function OpenedPullRequest({ gitRepos }: Props) {
   const [open, setOpen] = React.useState(false);
@@ -39,6 +91,21 @@ export default function OpenedPullRequest({ gitRepos }: Props) {
       ),
     [gitRepos],
   );
+
+  const Classes = useStyles();
+
+  const { data: config, isLoading } = useConfig();
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!config) {
+    return <div>Config not found</div>;
+  }
+
+  console.log({ gitRepos });
+  const initialUrl = getInitialGitRepo('', gitRepos) as GitRepository;
+  const initialPullRequestUrl = getPullRequestUrl(initialUrl, config) || '';
 
   const handleMenuItemClick = (
     event: React.MouseEvent<HTMLLIElement, MouseEvent>,
@@ -80,24 +147,13 @@ export default function OpenedPullRequest({ gitRepos }: Props) {
     setOpen(false);
   };
 
-  const useStyles = makeStyles(() =>
-    createStyles({
-      optionsButton: {
-        marginRight: '0px',
-      },
-      externalLink: {
-        marginRight: '5px',
-      },
-    }),
-  );
-  const Classes = useStyles();
   return (
     <>
       <ButtonGroup variant="outlined" ref={anchorRef} aria-label="split button">
         <Button
           className={Classes.optionsButton}
           color="primary"
-          onClick={openLinkHandler(OpenPrUrl)}
+          onClick={openLinkHandler(initialPullRequestUrl)}
           disabled={OpenPrButtonDisabled || !options.length}
         >
           {selectedIndex === -1 ? (
@@ -146,6 +202,7 @@ export default function OpenedPullRequest({ gitRepos }: Props) {
                     <MenuItem
                       key={option}
                       selected={index === selectedIndex}
+                      // FIXME: change to openLinkHandler
                       onClick={event => handleMenuItemClick(event, index)}
                     >
                       {option}
