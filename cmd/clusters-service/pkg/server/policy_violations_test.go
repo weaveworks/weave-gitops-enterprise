@@ -2,13 +2,16 @@ package server
 
 import (
 	"context"
+	"errors"
 	"testing"
 
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-multierror"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/protobuf/testing/protocmp"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -24,48 +27,47 @@ func TestGetPolicyViolation(t *testing.T) {
 		err          error
 		expected     *capiv1_proto.GetPolicyValidationResponse
 	}{
-		// TODO: fix when possible (fake client)
-		// {
-		// 	name:        "get policy violation",
-		// 	ViolationId: "66101548-12c1-4f79-a09a-a12979903fba",
-		// 	clusterState: []runtime.Object{
-		// 		makeEvent(t),
-		// 	},
-		// 	clusterName: "Default",
-		// 	expected: &capiv1_proto.GetPolicyValidationResponse{
-		// 		Violation: &capiv1_proto.PolicyValidation{
-		// 			Id:              "66101548-12c1-4f79-a09a-a12979903fba",
-		// 			Name:            "Missing app Label",
-		// 			PolicyId:        "weave.policies.missing-app-label",
-		// 			ClusterId:       "cluster-1",
-		// 			Category:        "Access Control",
-		// 			Severity:        "high",
-		// 			CreatedAt:       "0001-01-01T00:00:00Z",
-		// 			Message:         "Policy event",
-		// 			Entity:          "my-deployment",
-		// 			Namespace:       "default",
-		// 			Description:     "Missing app label",
-		// 			HowToSolve:      "how_to_solve",
-		// 			ViolatingEntity: `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
-		// 			ClusterName:     "Default",
-		// 			Occurrences: []*capiv1_proto.PolicyValidationOccurrence{
-		// 				{
-		// 					Message: "occurrence details",
-		// 				},
-		// 			},
-		// 		},
-		// 	},
-		// 	err: nil,
-		// },
-		// {
-		// 	name:        "policy violation doesn't exist",
-		// 	ViolationId: "invalid-id",
-		// 	clusterState: []runtime.Object{
-		// 		makeEvent(t),
-		// 	},
-		// 	clusterName: "Default",
-		// 	err:         errors.New("no policy violation found with id invalid-id and cluster: Default"),
-		// },
+		{
+			name:        "get policy violation",
+			ViolationId: "66101548-12c1-4f79-a09a-a12979903fba",
+			clusterState: []runtime.Object{
+				makeEvent(t),
+			},
+			clusterName: "Default",
+			expected: &capiv1_proto.GetPolicyValidationResponse{
+				Violation: &capiv1_proto.PolicyValidation{
+					Id:              "66101548-12c1-4f79-a09a-a12979903fba",
+					Name:            "Missing app Label",
+					PolicyId:        "weave.policies.missing-app-label",
+					ClusterId:       "cluster-1",
+					Category:        "Access Control",
+					Severity:        "high",
+					CreatedAt:       "0001-01-01T00:00:00Z",
+					Message:         "Policy event",
+					Entity:          "my-deployment",
+					Namespace:       "default",
+					Description:     "Missing app label",
+					HowToSolve:      "how_to_solve",
+					ViolatingEntity: `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
+					ClusterName:     "Default",
+					Occurrences: []*capiv1_proto.PolicyValidationOccurrence{
+						{
+							Message: "occurrence details",
+						},
+					},
+				},
+			},
+			err: nil,
+		},
+		{
+			name:        "policy violation doesn't exist",
+			ViolationId: "invalid-id",
+			clusterState: []runtime.Object{
+				makeEvent(t),
+			},
+			clusterName: "Default",
+			err:         errors.New("no policy violation found with id invalid-id and cluster: Default"),
+		},
 		{
 			name:        "cluster name not specified",
 			ViolationId: "66101548-12c1-4f79-a09a-a12979903fba",
@@ -216,57 +218,56 @@ func TestListPolicyValidations(t *testing.T) {
 	}
 }
 
-// TODO: fix when possible (fake client)
-// func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
-// 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
-// 	fakeCl := createClient(t, makeEvent(t))
-// 	clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
-// 	clientsPool.ClientReturns(fakeCl, nil)
-// 	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
-// 		corev1.Namespace{},
-// 	}}, logr.Discard())
+func TestPartialPolicyValidationsConnectionErrors(t *testing.T) {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	fakeCl := createClient(t, makeEvent(t))
+	clientsPool.ClientsReturns(map[string]client.Client{"Default": fakeCl})
+	clientsPool.ClientReturns(fakeCl, nil)
+	clustersClient := clustersmngr.NewClient(clientsPool, map[string][]corev1.Namespace{"Default": {
+		corev1.Namespace{},
+	}}, logr.Discard())
 
-// 	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
-// 	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
-// 	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
-// 		var multi *multierror.Error
-// 		multi = multierror.Append(multi, &clusterErr)
-// 		return clustersClient, multi
-// 	}
+	clusterErr := clustersmngr.ClientError{ClusterName: "demo", Err: errors.New("failed adding cluster client to pool: connection refused")}
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientStub = func(ctx context.Context, user *auth.UserPrincipal) (clustersmngr.Client, error) {
+		var multi *multierror.Error
+		multi = multierror.Append(multi, &clusterErr)
+		return clustersClient, multi
+	}
 
-// 	s := createServer(t, serverOptions{
-// 		clustersManager: fakeFactory,
-// 	})
+	s := createServer(t, serverOptions{
+		clustersManager: fakeFactory,
+	})
 
-// 	policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})
-// 	if err != nil {
-// 		t.Fatal(err)
-// 	}
+	policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
 
-// 	expectValidation := &capiv1_proto.ListPolicyValidationsResponse{
-// 		Violations: []*capiv1_proto.PolicyValidation{
-// 			{
-// 				Id:          "66101548-12c1-4f79-a09a-a12979903fba",
-// 				Name:        "Missing app Label",
-// 				PolicyId:    "weave.policies.missing-app-label",
-// 				ClusterId:   "cluster-1",
-// 				Category:    "Access Control",
-// 				Severity:    "high",
-// 				CreatedAt:   "0001-01-01T00:00:00Z",
-// 				Message:     "Policy event",
-// 				Entity:      "my-deployment",
-// 				Namespace:   "default",
-// 				ClusterName: "Default",
-// 			},
-// 		},
-// 		Total:  int32(1),
-// 		Errors: []*capiv1_proto.ListError{{Message: clusterErr.Error(), ClusterName: clusterErr.ClusterName}},
-// 	}
-// 	if diff := cmp.Diff(expectValidation.Violations, policyViolation.Violations, protocmp.Transform()); diff != "" {
-// 		t.Fatalf("policy violation didn't match expected:\n%s", diff)
-// 	}
+	expectValidation := &capiv1_proto.ListPolicyValidationsResponse{
+		Violations: []*capiv1_proto.PolicyValidation{
+			{
+				Id:          "66101548-12c1-4f79-a09a-a12979903fba",
+				Name:        "Missing app Label",
+				PolicyId:    "weave.policies.missing-app-label",
+				ClusterId:   "cluster-1",
+				Category:    "Access Control",
+				Severity:    "high",
+				CreatedAt:   "0001-01-01T00:00:00Z",
+				Message:     "Policy event",
+				Entity:      "my-deployment",
+				Namespace:   "default",
+				ClusterName: "Default",
+			},
+		},
+		Total:  int32(1),
+		Errors: []*capiv1_proto.ListError{{Message: clusterErr.Error(), ClusterName: clusterErr.ClusterName}},
+	}
+	if diff := cmp.Diff(expectValidation.Violations, policyViolation.Violations, protocmp.Transform()); diff != "" {
+		t.Fatalf("policy violation didn't match expected:\n%s", diff)
+	}
 
-// 	if diff := cmp.Diff(expectValidation.Errors, policyViolation.Errors, protocmp.Transform()); diff != "" {
-// 		t.Fatalf("policy violation errors didn't match expected:\n%s", diff)
-// 	}
-// }
+	if diff := cmp.Diff(expectValidation.Errors, policyViolation.Errors, protocmp.Transform()); diff != "" {
+		t.Fatalf("policy violation errors didn't match expected:\n%s", diff)
+	}
+}

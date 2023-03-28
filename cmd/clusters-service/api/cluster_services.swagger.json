@@ -333,6 +333,39 @@
         ]
       }
     },
+    "/v1/encrypt-sops-secret": {
+      "post": {
+        "summary": "EncryptSopsSecret encrypts a sops secret",
+        "operationId": "ClustersService_EncryptSopsSecret",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1EncryptSopsSecretResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1EncryptSopsSecretRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/enterprise/automations": {
       "post": {
         "summary": "Creates a pull request for the given list of Kustomizations.",
@@ -799,6 +832,37 @@
             "required": true,
             "type": "string"
           },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/sops-kustomizations": {
+      "get": {
+        "summary": "ListSopsKustomizations list Sops kustomizations",
+        "operationId": "ClustersService_ListSopsKustomizations",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListSopsKustomizationsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
           {
             "name": "clusterName",
             "in": "query",
@@ -1497,6 +1561,9 @@
         },
         "policyConfig": {
           "$ref": "#/definitions/v1PolicyConfigObject"
+        },
+        "sopsSecret": {
+          "$ref": "#/definitions/v1SopsSecret"
         }
       }
     },
@@ -1688,6 +1755,12 @@
           "items": {
             "$ref": "#/definitions/v1PolicyConfigObject"
           }
+        },
+        "sopsSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SopsSecret"
+          }
         }
       }
     },
@@ -1846,6 +1919,61 @@
         }
       }
     },
+    "v1EncryptSopsSecretRequest": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "immutable": {
+          "type": "boolean"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stringData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "kustomizationName": {
+          "type": "string"
+        },
+        "kustomizationNamespace": {
+          "type": "string"
+        },
+        "clusterName": {
+          "type": "string"
+        }
+      }
+    },
+    "v1EncryptSopsSecretResponse": {
+      "type": "object",
+      "properties": {
+        "encryptedSecret": {
+          "type": "object"
+        },
+        "path": {
+          "type": "string"
+        }
+      }
+    },
     "v1Event": {
       "type": "object",
       "properties": {
@@ -1967,6 +2095,12 @@
         },
         "uiConfig": {
           "type": "string"
+        },
+        "gitHostTypes": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -2486,6 +2620,21 @@
         }
       }
     },
+    "v1ListSopsKustomizationsResponse": {
+      "type": "object",
+      "properties": {
+        "kustomizations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SopsKustomizations"
+          }
+        },
+        "total": {
+          "type": "integer",
+          "format": "int32"
+        }
+      }
+    },
     "v1ListTemplateParamsResponse": {
       "type": "object",
       "properties": {
@@ -2573,6 +2722,12 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },
@@ -3021,6 +3176,12 @@
           "items": {
             "$ref": "#/definitions/v1PolicyConfigObject"
           }
+        },
+        "sopsSecrets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1SopsSecret"
+          }
         }
       },
       "description": "Previous values for a CreatePullRequestRequest."
@@ -3082,6 +3243,12 @@
           "items": {
             "$ref": "#/definitions/v1CommitFile"
           }
+        },
+        "sopsSecertFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
         }
       }
     },
@@ -3116,6 +3283,12 @@
           }
         },
         "policyConfigFiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1CommitFile"
+          }
+        },
+        "sopsSecretFiles": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"
@@ -3163,6 +3336,69 @@
       "properties": {
         "name": {
           "type": "string"
+        }
+      }
+    },
+    "v1SopsKustomizations": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
+    "v1SopsSecret": {
+      "type": "object",
+      "properties": {
+        "apiVersion": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "#/definitions/v1SopsSecretMetadata"
+        },
+        "data": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stringData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "immutable": {
+          "type": "boolean"
+        },
+        "sops": {
+          "type": "object"
+        }
+      }
+    },
+    "v1SopsSecretMetadata": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
         }
       }
     },

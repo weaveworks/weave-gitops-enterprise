@@ -40,6 +40,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
@@ -57,6 +58,7 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		clusterv1.AddToScheme,
 		rbacv1.AddToScheme,
 		esv1beta1.AddToScheme,
+		kustomizev1beta2.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
@@ -66,6 +68,10 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 	c := fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
+		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
+			event := o.(*corev1.Event)
+			return []string{event.Type}
+		})).
 		Build()
 
 	return c

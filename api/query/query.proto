@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package query.v1;
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/query/api";
+
+import "google/api/annotations.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps Query Service API",
+      version: "0.1";
+      description: "The API handles handles cross-cluster queries for Weave GitOps Enterprise";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
+service Query {
+    rpc DoQuery(QueryRequest) returns (QueryResponse) {
+        option (google.api.http) = {
+            post: "/v1/query"
+            body: "*"
+        };
+    }
+
+    rpc DebugGetAccessRules(DebugGetAccessRulesRequest) returns (DebugGetAccessRulesResponse) {
+        option (google.api.http) = {
+            get: "/v1/debug/access-rules"
+        };
+    }
+}
+
+message QueryRequest {
+    repeated QueryClause query = 1;
+    int32 offset  = 2;
+    int32 limit   = 3;
+}
+
+message QueryClause {
+    string key     = 1;
+    string value   = 2;
+    string operand = 3;
+}
+
+message QueryResponse {
+  repeated Object objects = 1;
+}
+
+
+message Object {
+    string cluster    = 1;
+    string namespace  = 2;
+    string kind       = 3;
+    string name       = 4;
+    string status     = 5;
+    string apiGroup   = 6;
+    string apiVersion = 7;
+}
+
+message DebugGetAccessRulesRequest {
+
+}
+
+message DebugGetAccessRulesResponse {
+    repeated AccessRule rules = 1;
+}
+
+message AccessRule {
+    string   cluster                = 1;
+    string   principal              = 2;
+    string   namespace              = 3;
+    repeated string accessibleKinds = 4;
+    repeated Subject subjects       = 5;
+    string   providedByRole         = 6;
+    string   providedByBinding      = 7;
+}
+
+message Subject {
+    string kind = 1;
+    string name = 2;
+}

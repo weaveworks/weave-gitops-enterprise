@@ -10,6 +10,7 @@ import {
   useTheme,
 } from '@material-ui/core/styles';
 import {
+  AppContext,
   AuthCheck,
   AuthContextProvider,
   coreClient,
@@ -18,8 +19,9 @@ import {
   Pendo,
   SignIn,
   theme as weaveTheme,
+  DetailModal,
 } from '@weaveworks/weave-gitops';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Route, Switch } from 'react-router-dom';
 import styled from 'styled-components';
 import { Terraform } from '../api/terraform/terraform.pb';
@@ -112,6 +114,9 @@ const App = () => {
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+  const { appState, setDetailModal } = useContext(AppContext);
+
+  const detail = appState.detailModal;
 
   return (
     <Compose components={[NotificationsProvider]}>
@@ -164,6 +169,16 @@ const App = () => {
             <AppRoutes />
           </ErrorBoundary>
         </main>
+        <Drawer
+          anchor="right"
+          open={detail ? true : false}
+          onClose={() => setDetailModal(null)}
+          ModalProps={{ keepMounted: false }}
+        >
+          {detail && (
+            <DetailModal className={detail.className} object={detail.object} />
+          )}
+        </Drawer>
       </div>
     </Compose>
   );
