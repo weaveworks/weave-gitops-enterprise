@@ -17,7 +17,7 @@ const ListClusters = ({
       <Select
         className="form-section"
         name="clusterName"
-        required
+        required={true}
         label="CLUSTER"
         onChange={event => handleFormData(event.target.value)}
         value={value}

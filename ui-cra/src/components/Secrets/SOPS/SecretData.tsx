@@ -6,9 +6,11 @@ import { SOPS } from './utils';
 
 const data = ({
   formData,
+  validateForm,
   setFormData,
 }: {
   formData: SOPS;
+  validateForm: boolean;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }) => {
   const handleSecretChange = (id: number, isKey: boolean, value: string) => {
@@ -34,6 +36,7 @@ const data = ({
             placeholder="Secret key"
             value={obj.key}
             handleFormData={val => handleSecretChange(obj.id, true, val)}
+            error={validateForm && !obj.key}
           />
           <InputDebounced
             required
@@ -42,6 +45,7 @@ const data = ({
             placeholder="secret value"
             value={obj.value}
             handleFormData={val => handleSecretChange(obj.id, false, val)}
+            error={validateForm && !obj.value}
           />
           <RemoveCircleOutlineIcon
             className="remove-icon"

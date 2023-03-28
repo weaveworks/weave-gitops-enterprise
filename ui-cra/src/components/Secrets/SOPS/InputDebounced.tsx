@@ -9,20 +9,20 @@ interface InputDebounceProps extends InputProps {
 
 const InputDebounced: FC<InputDebounceProps> = ({
   value,
+  error,
   handleFormData,
   ...rest
 }) => {
   const [data, setData] = useState<string>(value || '');
-  const [error, setError] = useState<boolean>(false);
+  const [inputError, setInputError] = useState<boolean>(error || false);
   const debouncedValue = useDebounce<string>(data);
 
   const handleChange = (e: any) => {
     setData(e.target.value);
-    setError(!e.target.value && (rest.required || false));
   };
 
   const handleBlur = () => {
-    setError(!data && (rest.required || false));
+    setInputError(!data && (rest.required || false));
   };
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const InputDebounced: FC<InputDebounceProps> = ({
       value={data}
       onChange={handleChange}
       onBlur={handleBlur}
-      error={error}
+      error={error || (inputError && !data)}
     />
   );
 };

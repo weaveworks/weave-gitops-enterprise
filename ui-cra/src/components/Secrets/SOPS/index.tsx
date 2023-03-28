@@ -40,6 +40,7 @@ const CreateSOPS = () => {
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const [formError, setFormError] = useState<string>('');
+  const [validateForm, setValidateForm] = useState<boolean>(false);
   const [formData, setFormData] = useState<SOPS>(initialFormData);
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
@@ -117,9 +118,10 @@ const CreateSOPS = () => {
         <ContentWrapper>
           <FormWrapper
             noValidate
-            onSubmit={event =>
-              validateFormData(event, handleCreateSecret, setFormError)
-            }
+            onSubmit={event => {
+              setValidateForm(true);
+              validateFormData(event, handleCreateSecret, setFormError);
+            }}
           >
             <div className="group-section">
               <div className="form-group">
@@ -136,6 +138,7 @@ const CreateSOPS = () => {
                   label="SECRET NAME"
                   value={formData.secretName}
                   handleFormData={val => handleFormData(val, 'secretName')}
+                  error={validateForm && !formData.secretName}
                 />
                 <InputDebounced
                   required
@@ -143,6 +146,7 @@ const CreateSOPS = () => {
                   label="SECRET NAMESPACE"
                   value={formData.secretNamespace}
                   handleFormData={val => handleFormData(val, 'secretNamespace')}
+                  error={validateForm && !formData.secretNamespace}
                 />
               </div>
             </div>
@@ -178,7 +182,11 @@ const CreateSOPS = () => {
                 Please note that we will encode the secret values to base64
                 before encryption
               </p>
-              <SecretData formData={formData} setFormData={setFormData} />
+              <SecretData
+                formData={formData}
+                setFormData={setFormData}
+                validateForm={validateForm}
+              />
 
               <PreviewModal formData={formData} />
             </div>

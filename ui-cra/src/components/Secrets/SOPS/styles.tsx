@@ -1,7 +1,7 @@
 import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
-const { xs,small, medium } = theme.spacing;
+const { xs, small, medium } = theme.spacing;
 
 const { neutral30, neutral20, neutral10, primary10, primaryLight05 } =
   theme.colors;
@@ -42,9 +42,9 @@ export const FormWrapper = styled.form`
   }
   .secret-data-list {
     display: flex;
-    align-items: center;
+    align-items: self-start;
     .remove-icon {
-      margin-bottom: 6px;
+      margin-top: 25px;
       color: ${neutral30};
       cursor: pointer;
     }
