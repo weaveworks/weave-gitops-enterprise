@@ -47,18 +47,6 @@ export const TableWrapper = styled.div`
   }
 `;
 
-//In NoRunsMessage and TerraformDependenciesView
-export const Message = styled.div`
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 5px 10px 50px 3px rgb(0 0 0 / 10%);
-  border-radius: 10px;
-  padding: ${({ theme }) => `${theme.spacing.large} ${theme.spacing.xxl}`};
-  max-width: 560px;
-  margin: auto;
-  display: flex;
-  flex-direction: column;
-`;
-
 export const Title = styled.h4`
   font-size: ${({ theme }) => theme.fontSizes.large};
   font-weight: 600;

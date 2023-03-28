@@ -1,6 +1,6 @@
 import styled from 'styled-components';
-import { Body, Message, Title } from '../Shared';
-import { Link, YamlView } from '@weaveworks/weave-gitops';
+import { Body, Title } from '../Shared';
+import { Flex, Link, MessageBox, YamlView } from '@weaveworks/weave-gitops';
 
 type Props = {
   plan?: string;
@@ -9,11 +9,11 @@ type Props = {
 
 function TerraformPlanView({ plan, error }: Props) {
   return (
-    <>
+    <Flex align wide tall column>
       {plan && !error ? (
         <YamlView yaml={plan.trimStart() || ''} />
       ) : (
-        <Message>
+        <MessageBox>
           <Title>Terraform Plan</Title>
           <Body>No plan available.</Body>
           <Body>
@@ -29,9 +29,9 @@ function TerraformPlanView({ plan, error }: Props) {
               visit our documentation
             </Link>
           </Body>
-        </Message>
+        </MessageBox>
       )}
-    </>
+    </Flex>
   );
 }
 

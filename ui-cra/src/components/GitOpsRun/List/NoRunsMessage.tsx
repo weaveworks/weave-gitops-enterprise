@@ -1,9 +1,9 @@
-import { Link } from '@weaveworks/weave-gitops';
-import { Body, Message, Title } from '../../Shared';
+import { Link, MessageBox } from '@weaveworks/weave-gitops';
+import { Body, Title } from '../../Shared';
 
 const NoRunsMessage = () => {
   return (
-    <Message>
+    <MessageBox>
       <Title>GitOps Run</Title>
       <Body>
         There are currently no instances of GitOps run running on the cluster.
@@ -18,7 +18,7 @@ const NoRunsMessage = () => {
           here
         </Link>
       </Body>
-    </Message>
+    </MessageBox>
   );
 };
 

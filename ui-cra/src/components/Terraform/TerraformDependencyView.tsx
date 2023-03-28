@@ -1,10 +1,10 @@
-import { DagGraph, Flex } from '@weaveworks/weave-gitops';
+import { DagGraph, Flex, MessageBox } from '@weaveworks/weave-gitops';
 import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
 import React from 'react';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
-import { Body, Message, Title } from '../Shared';
+import { Body, Title } from '../Shared';
 import {
   getGraphNodes,
   makeObjectId,
@@ -62,14 +62,14 @@ function TerraformDependenciesView({ className, object }: Props) {
   const shouldShowGraph = graphNodes && graphNodes.length;
 
   return (
-    <Flex wide tall column>
+    <Flex align wide tall column>
       {shouldShowGraph ? (
         <DagGraph
           className={className}
           nodes={graphNodes as FluxObjectNode[]}
         />
       ) : (
-        <Message>
+        <MessageBox>
           <Title>No Dependencies</Title>
           <Body>
             There are no dependencies set up for your Terraform object at this
@@ -82,7 +82,7 @@ function TerraformDependenciesView({ className, object }: Props) {
             started. For example, you can wait for a database to report as
             'Ready' before attempting to deploy other services.
           </Body>
-        </Message>
+        </MessageBox>
       )}
     </Flex>
   );
