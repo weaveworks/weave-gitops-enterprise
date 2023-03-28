@@ -47,15 +47,17 @@ const data = ({
             handleFormData={val => handleSecretChange(obj.id, false, val)}
             error={validateForm && !obj.value}
           />
-          <RemoveCircleOutlineIcon
-            className="remove-icon"
-            onClick={() =>
-              setFormData((f: SOPS) => ({
-                ...f,
-                data: f.data.filter(e => e.id !== obj.id),
-              }))
-            }
-          />
+          {formData.data.length > 1 && (
+            <RemoveCircleOutlineIcon
+              className="remove-icon"
+              onClick={() =>
+                setFormData((f: SOPS) => ({
+                  ...f,
+                  data: f.data.filter(e => e.id !== obj.id),
+                }))
+              }
+            />
+          )}
         </div>
       ))}
       <Button

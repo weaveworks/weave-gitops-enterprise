@@ -5,10 +5,12 @@ import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabs
 
 const ListKustomizations = ({
   value,
+  validateForm,
   handleFormData,
   clusterName,
 }: {
   value: string;
+  validateForm: boolean;
   handleFormData: (value: any) => void;
   clusterName: string;
 }) => {
@@ -29,6 +31,7 @@ const ListKustomizations = ({
         description="Choose the kustomization that will be used by SOPS to decrypt the secret."
         onChange={event => handleFormData(event.target.value)}
         value={value}
+        error={validateForm && !value}
       >
         {!!data?.kustomizations?.length ? (
           data?.kustomizations?.map((k, index: number) => {

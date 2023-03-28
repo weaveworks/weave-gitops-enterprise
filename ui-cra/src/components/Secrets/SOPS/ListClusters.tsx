@@ -6,9 +6,11 @@ import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabs
 
 const ListClusters = ({
   value,
+  validateForm,
   handleFormData,
 }: {
   value: string;
+  validateForm: boolean;
   handleFormData: (value: any) => void;
 }) => {
   const { isLoading, data, error } = useListCluster();
@@ -21,6 +23,7 @@ const ListClusters = ({
         label="CLUSTER"
         onChange={event => handleFormData(event.target.value)}
         value={value}
+        error={validateForm && !value}
       >
         {data?.gitopsClusters
           ?.filter(e =>

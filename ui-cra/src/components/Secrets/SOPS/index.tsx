@@ -127,6 +127,7 @@ const CreateSOPS = () => {
               <div className="form-group">
                 <ListClusters
                   value={formData.clusterName}
+                  validateForm={validateForm}
                   handleFormData={(val: any) => {
                     handleFormData(val, 'clusterName');
                     handleFormData('', 'kustomization');
@@ -167,6 +168,7 @@ const CreateSOPS = () => {
                 </Select>
                 {!!formData.clusterName && (
                   <ListKustomizations
+                    validateForm={validateForm}
                     value={formData.kustomization}
                     handleFormData={(val: any) =>
                       handleFormData(val, 'kustomization')
