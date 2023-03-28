@@ -5,7 +5,7 @@ import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useCallbackState } from '../../../utils/callback-state';
-import { Select, validateFormData } from '../../../utils/form';
+import { InputDebounced, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import {
@@ -17,7 +17,6 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
-import InputDebounced from './InputDebounced';
 import ListClusters from './ListClusters';
 import ListKustomizations from './ListKustomizations';
 import { PreviewModal } from './PreviewModal';
@@ -189,7 +188,6 @@ const CreateSOPS = () => {
                 setFormData={setFormData}
                 validateForm={validateForm}
               />
-
               <PreviewModal formData={formData} />
             </div>
             <GitOps

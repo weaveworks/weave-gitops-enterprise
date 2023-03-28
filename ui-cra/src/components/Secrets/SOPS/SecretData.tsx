@@ -1,7 +1,7 @@
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
-import InputDebounced from './InputDebounced';
+import { InputDebounced } from '../../../utils/form';
 import { SOPS } from './utils';
 
 const data = ({

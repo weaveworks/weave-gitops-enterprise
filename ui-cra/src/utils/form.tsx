@@ -13,9 +13,10 @@ import {
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
-import React, { Dispatch, FC } from 'react';
+import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
 import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { debounce } from 'lodash';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -258,4 +259,52 @@ export const validateFormData = (
     setFormError((firstEmpty as HTMLInputElement).name);
   }
   setSubmitType && setSubmitType('');
+};
+
+interface InputDebounceProps extends InputProps {
+  value?: string;
+  handleFormData: (value: any) => void;
+}
+
+export const InputDebounced: FC<InputDebounceProps> = ({
+  value,
+  error,
+  handleFormData,
+  ...rest
+}) => {
+  const [data, setData] = useState<string>(value || '');
+  const [inputError, setInputError] = useState<boolean>(error || false);
+
+  const handleBlur = () => {
+    setInputError(!data && (rest.required || false));
+  };
+
+  const updateFormData = useRef(
+    debounce(value => {
+      handleFormData(value);
+    }, 500),
+  ).current;
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    setData(value);
+    updateFormData(value);
+  };
+
+  useEffect(() => {
+    return () => {
+      updateFormData.cancel();
+    };
+  }, [updateFormData]);
+
+  return (
+    <Input
+      className="form-section"
+      {...rest}
+      value={data}
+      onChange={handleChange}
+      onBlur={handleBlur}
+      error={error || (inputError && !data)}
+    />
+  );
 };
