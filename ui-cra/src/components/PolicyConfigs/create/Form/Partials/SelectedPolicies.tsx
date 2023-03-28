@@ -161,7 +161,6 @@ export const SelectedPolicies = ({
             {...params}
             variant="outlined"
             name="policies"
-            required
             disabled={cluster === undefined}
             style={{ border: 'none !important' }}
             InputProps={{
@@ -233,11 +232,6 @@ export const SelectedPolicies = ({
     }
   };
 
-  console.log(
-    'is',
-    formError === 'policies' && JSON.stringify(formData.policies) !== '{}',
-    JSON.stringify(formData.policies),
-  );
   return (
     <>
       <div className="form-field policyField">
