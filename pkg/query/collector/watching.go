@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
@@ -56,7 +57,7 @@ func (c *watchingCollector) Start() error {
 			}
 		}
 	}()
-	//watch on channels
+
 	go func() {
 		for {
 			objectTransactions := <-c.objectsChannel
