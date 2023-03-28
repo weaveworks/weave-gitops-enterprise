@@ -25,8 +25,10 @@ export const ListWorkSpaces = ({
   const classes = usePolicyConfigStyle();
 
   const workspaces =
-    workSpacesList?.workspaces?.filter(
-      workspace => workspace.clusterName === cluster,
+    workSpacesList?.workspaces?.filter(workspace =>
+      formData.isControlPlane
+        ? workspace.clusterName === cluster
+        : workspace.clusterName === `${formData.clusterNamespace}/${cluster}`,
     ) || [];
 
   useEffect(() => {
