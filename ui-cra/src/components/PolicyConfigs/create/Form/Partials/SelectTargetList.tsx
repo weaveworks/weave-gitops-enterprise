@@ -35,7 +35,6 @@ export const SelectMatchType = ({
   const matchTypeList = ['workspaces', 'apps'];
 
   const getCheckList = (matchType: string) => {
-    if (!!cluster) return <span>No cluster selected yet</span>;
     switch (matchType) {
       case 'apps':
         return (
@@ -63,7 +62,7 @@ export const SelectMatchType = ({
         <></>;
     }
   };
-
+  
   return (
     <>
       <div className="form-field">

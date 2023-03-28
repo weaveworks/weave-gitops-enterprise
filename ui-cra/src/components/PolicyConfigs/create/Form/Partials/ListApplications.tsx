@@ -69,7 +69,7 @@ export const ListApplications = ({
     });
   };
 
-  return (
+  return !!cluster ? (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {applicationsList?.result.length && applications.length ? (
         <FormGroup>
@@ -111,5 +111,7 @@ export const ListApplications = ({
         <span>No Applications found</span>
       )}
     </LoadingWrapper>
+  ) : (
+    <span>No cluster selected yet</span>
   );
 };

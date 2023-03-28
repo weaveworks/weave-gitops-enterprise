@@ -52,7 +52,7 @@ export const ListWorkSpaces = ({
     });
   };
 
-  return (
+  return !!cluster ? (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {workspaces.length ? (
         <FormGroup>
@@ -81,5 +81,7 @@ export const ListWorkSpaces = ({
         <span>No Workspaces found</span>
       )}{' '}
     </LoadingWrapper>
+  ) : (
+    <span>No cluster selected yet</span>
   );
 };
