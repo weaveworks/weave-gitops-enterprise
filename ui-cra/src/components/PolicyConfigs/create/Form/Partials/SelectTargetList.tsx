@@ -1,5 +1,5 @@
 import { MenuItem } from '@material-ui/core';
-import { Dispatch, useState } from 'react';
+import { Dispatch } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
 import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
@@ -62,7 +62,7 @@ export const SelectMatchType = ({
         <></>;
     }
   };
-  
+
   return (
     <>
       <div className="form-field">

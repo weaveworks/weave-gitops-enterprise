@@ -49,7 +49,7 @@ export const SelectedPolicies = ({
           ? p.clusterName === cluster
           : p.clusterName === `${formData.clusterNamespace}/${cluster}`,
       ) || [],
-    [data?.policies, cluster],
+    [data?.policies, cluster, formData],
   );
 
   useEffect(() => {
