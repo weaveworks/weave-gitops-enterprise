@@ -37,7 +37,7 @@ function HeaderSection({
     {
       rowkey: 'Tenant',
       value: tenant,
-      hidden: isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY'),
+      hidden: !isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY'),
     },
     {
       rowkey: 'Tags',
