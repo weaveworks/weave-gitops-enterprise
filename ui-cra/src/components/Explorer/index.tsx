@@ -9,6 +9,7 @@ import {
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import qs from 'query-string';
 import * as React from 'react';
 import { useHistory } from 'react-router-dom';
@@ -32,6 +33,8 @@ type QueryState = {
   limit: number;
   offset: number;
   selectedFilter: string;
+  orderBy: string;
+  orderDescending: boolean;
 };
 
 function initialTerms(search: string) {
@@ -41,6 +44,12 @@ function initialTerms(search: string) {
 }
 
 const DEFAULT_LIMIT = 25;
+
+type DataTableField = {
+  label: string;
+  value: string | ((o: Object) => React.ReactNode);
+  sortValue?: (o: any) => string;
+};
 
 // ?clusterName=management&name=flux-system&namespace=flux-system
 
@@ -60,11 +69,15 @@ function Explorer({ className }: Props) {
       },
     ],
     selectedFilter: '',
+    orderBy: 'name',
+    orderDescending: false,
   });
+
   const { data, error, isFetching } = useQueryService(
     queryState.pinnedTerms.join(','),
     queryState.limit,
     queryState.offset,
+    `${queryState.orderBy} ${queryState.orderDescending ? 'desc' : 'asc'}`,
   );
 
   React.useEffect(() => {
@@ -164,12 +177,14 @@ function Explorer({ className }: Props) {
 
                         return <Link to={url}>{o.name}</Link>;
                       },
+                      sortValue: () => 'name',
                     },
                     { label: 'Kind', value: 'kind' },
                     { label: 'Namespace', value: 'namespace' },
                     { label: 'Cluster', value: 'cluster' },
                     {
                       label: 'Status',
+                      sortValue: () => 'status',
                       value: (o: Object) => (
                         <Flex align>
                           <Box marginRight={1}>
@@ -195,6 +210,21 @@ function Explorer({ className }: Props) {
                     { label: 'Message', value: 'message' },
                   ]}
                   rows={data?.objects}
+                  disableSort
+                  onColumnHeaderClick={(field: DataTableField) => {
+                    const col = _.isFunction(field.value)
+                      ? field.sortValue && field.sortValue(field.value)
+                      : field.value;
+
+                    setQueryState({
+                      ...queryState,
+                      orderBy: col as string,
+                      orderDescending:
+                        queryState.orderBy == col
+                          ? !queryState.orderDescending
+                          : false,
+                    });
+                  }}
                 />
                 <Flex wide center>
                   <Box p={2}>

@@ -225,6 +225,7 @@ type query struct {
 	clauses []clause
 	offset  int32
 	limit   int32
+	orderBy string
 }
 
 func (q *query) GetQuery() []store.QueryClause {
@@ -243,6 +244,10 @@ func (q *query) GetOffset() int32 {
 
 func (q *query) GetLimit() int32 {
 	return q.limit
+}
+
+func (q *query) GetOrderBy() string {
+	return q.orderBy
 }
 
 type clause struct {

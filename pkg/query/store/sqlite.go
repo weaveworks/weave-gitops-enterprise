@@ -163,6 +163,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	// -1 tells GORM to ignore the limit/offset
 	var limit int = -1
 	var offset int = -1
+	var orderBy string = ""
 
 	if opts != nil {
 		if opts.GetLimit() != 0 {
@@ -171,10 +172,15 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		if opts.GetOffset() != 0 {
 			offset = int(opts.GetOffset())
 		}
+
+		if opts.GetOrderBy() != "" {
+			orderBy = opts.GetOrderBy()
+		}
 	}
 
 	tx := i.db.Limit(limit)
 	tx = tx.Offset(offset)
+	tx = tx.Order(orderBy)
 
 	if len(q) > 0 {
 		for _, c := range q {

@@ -36,11 +36,12 @@ export function useQueryService(
   query: string,
   limit: number = 2,
   offset: number = 0,
+  orderBy?: string,
 ) {
   const api = Query;
 
   return useQuery<QueryResponse, Error>(
-    ['query', { query, limit, offset }],
+    ['query', { query, limit, offset, orderBy }],
     () => {
       const opts = convertToOpts(query);
 
@@ -48,6 +49,7 @@ export function useQueryService(
         query: opts,
         limit,
         offset,
+        orderBy,
       });
     },
     {

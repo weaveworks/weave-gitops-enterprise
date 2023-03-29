@@ -42,6 +42,7 @@ type Query []QueryClause
 type QueryOption interface {
 	GetLimit() int32
 	GetOffset() int32
+	GetOrderBy() string
 }
 
 type QueryClause interface {

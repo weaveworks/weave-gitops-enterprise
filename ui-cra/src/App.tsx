@@ -7,7 +7,6 @@ import {
   coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
-  Pendo,
   theme,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
@@ -86,8 +85,7 @@ const GlobalStyle = createGlobalStyle`
 
   ::-webkit-scrollbar-track {
     margin-top: 5px;
-    -webkit-box-shadow: transparent;
-    -moz-box-shadow: transparent;
+    box-shadow: transparent;
     background-color: transparent;
     border-radius: 5px;
   }
@@ -154,12 +152,12 @@ const App: FC = () => {
                           <CoreClientContextProvider api={coreClient}>
                             <TerraformProvider api={Terraform}>
                               <LinkResolverProvider resolver={resolver}>
-                                <Pendo
+                                {/* <Pendo
                                   defaultTelemetryFlag="true"
                                   //@ts-ignore
                                   tier="enterprise"
                                   version={process.env.REACT_APP_VERSION}
-                                />
+                                /> */}
                                 <Compose components={[NotificationsProvider]}>
                                   <Layout />
                                   <ToastContainer

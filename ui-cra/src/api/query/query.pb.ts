@@ -9,6 +9,7 @@ export type QueryRequest = {
   query?: QueryClause[]
   offset?: number
   limit?: number
+  orderBy?: string
 }
 
 export type QueryClause = {
