@@ -64,7 +64,7 @@ const Footer = ({ version }: { version: string }) => {
       ) : (
         <div>
           Need help? Raise a&nbsp;
-          <Link newTab href="https://weavesupport.zendesk.com/">
+          <Link newTab href="https://support.weave.works/helpdesk/">
             support ticket
           </Link>
         </div>
