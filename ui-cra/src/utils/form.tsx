@@ -179,6 +179,9 @@ export interface SelectProps extends MuiSelectProps {
   disabled?: boolean;
   className?: string;
   description?: string;
+  required?: boolean;
+  name?: string;
+  error?: boolean;
 }
 
 export const Select: FC<SelectProps> = ({
@@ -192,6 +195,9 @@ export const Select: FC<SelectProps> = ({
   className,
   description,
   disabled,
+  required,
+  name,
+  error,
 }) => (
   <FormControl id={`${label}-group`} className={className}>
     <InputLabel htmlFor={`${label}-input`} shrink>
@@ -199,11 +205,22 @@ export const Select: FC<SelectProps> = ({
     </InputLabel>
     <MuiSelect
       id={`${label}-input`}
-      input={input ?? <InputBase />}
+      input={input ?? <InputBase required={required} error={error} />}
       onChange={onChange}
       value={value}
       variant={variant ?? 'outlined'}
       disabled={disabled}
+      endAdornment={
+        <InputAdornment
+          position="end"
+          style={{ paddingRight: weaveTheme.spacing.large }}
+        >
+          {error && <ErrorIcon />}
+        </InputAdornment>
+      }
+      required={required}
+      name={name}
+      error={error}
     >
       {children ??
         items?.map(item => (
@@ -212,7 +229,15 @@ export const Select: FC<SelectProps> = ({
           </MenuItem>
         ))}
     </MuiSelect>
-    <MuiFormHelperText>{description}</MuiFormHelperText>
+    <MuiFormHelperText
+      style={{
+        color: error
+          ? weaveTheme.colors.alertDark
+          : weaveTheme.colors.neutral30,
+      }}
+    >
+      {!error ? description : 'Please fill this field in.'}
+    </MuiFormHelperText>
   </FormControl>
 );
 
