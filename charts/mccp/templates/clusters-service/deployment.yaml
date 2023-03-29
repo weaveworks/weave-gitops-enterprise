@@ -35,6 +35,7 @@ spec:
           image: {{ .Values.images.clustersService }}
           args:
             - --pipeline-controller-address={{ .Values.clustersService.pipeline_controller_address | default (printf "http://%s-pipeline-controller-promotion" .Release.Name) }}:8082
+            - --log-level={{ .Values.config.logLevel }}
             {{- range .Values.clustersService.args }}
             - {{ . }}
             {{- end }}
