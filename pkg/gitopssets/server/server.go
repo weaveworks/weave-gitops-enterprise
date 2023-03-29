@@ -62,22 +62,10 @@ func NewGitOpsSetsServer(opts ServerOpts) pb.GitOpsSetsServer {
 }
 
 func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsRequest) (*pb.ListGitOpsSetsResponse, error) {
-	respErrors := []*pb.GitOpsSetListError{}
-
 	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	respErrors, err := toListErrors(err)
 	if err != nil {
-		if merr, ok := err.(*multierror.Error); ok {
-			for _, err := range merr.Errors {
-				if cerr, ok := err.(*clustersmngr.ClientError); ok {
-					respErrors = append(respErrors, &pb.GitOpsSetListError{
-						ClusterName: cerr.ClusterName,
-						Message:     cerr.Error(),
-					})
-				}
-			}
-		} else {
-			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
-		}
+		return nil, fmt.Errorf("error extracting errors: %w", err)
 	}
 
 	gitopsSets, gitopsSetsListErrors, err := s.listGitopsSets(ctx, clustersClient)
@@ -379,4 +367,24 @@ func (s *server) SyncGitOpsSet(ctx context.Context, msg *pb.SyncGitOpsSetRequest
 	// }
 
 	return &pb.SyncGitOpsSetResponse{Success: true}, nil
+}
+
+func toListErrors(err error) ([]*pb.GitOpsSetListError, error) {
+	respErrors := []*pb.GitOpsSetListError{}
+
+	if err != nil {
+		if merr, ok := err.(*multierror.Error); ok {
+			for _, err := range merr.Errors {
+				if cerr, ok := err.(*clustersmngr.ClientError); ok {
+					respErrors = append(respErrors, &pb.GitOpsSetListError{
+						ClusterName: cerr.ClusterName,
+						Message:     cerr.Error(),
+					})
+				}
+			}
+		} else {
+			return nil, fmt.Errorf("unexpected error while getting clusters client, error: %w", err)
+		}
+	}
+	return respErrors, nil
 }
