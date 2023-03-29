@@ -22,10 +22,6 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
       documentTitle="Delivery"
       path={[
         {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
-        {
           label: 'Delivery',
           url: Routes.Canaries,
         },

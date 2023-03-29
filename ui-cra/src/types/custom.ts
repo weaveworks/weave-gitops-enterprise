@@ -170,3 +170,7 @@ export type RequestError = Error & {
 export interface SecretPRPreview {
   externalSecretsFiles: { path: string; content: string }[];
 }
+
+export interface PolicyConfigPRPreview {
+  policyConfigFiles: { path: string; content: string }[];
+}

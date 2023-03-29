@@ -19,15 +19,14 @@ type Props = {
 };
 
 function TerraformListTable({ className, rows }: Props) {
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
   let filterState = {
     ...filterConfig(rows, 'namespace'),
     ...filterConfig(rows, 'Cluster', tf => tf.clusterName),
     ...filterConfig(rows, 'Source', tf => tf.sourceRef.name),
     ...filterConfig(rows, 'Status', filterByStatusCallback),
   };
-  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
+  if (isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY')) {
     filterState = {
       ...filterState,
       ...filterConfig(rows, 'tenant'),
@@ -54,7 +53,7 @@ function TerraformListTable({ className, rows }: Props) {
           textSearchable: true,
         },
         { value: 'namespace', label: 'Namespace' },
-        ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
+        ...(isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY')
           ? [{ label: 'Tenant', value: 'tenant' }]
           : []),
         { value: 'clusterName', label: 'Cluster' },
