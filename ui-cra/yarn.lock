@@ -2335,10 +2335,41 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.19.0-14-g18efa32a":
-  version "0.19.0-14-g18efa32a"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-14-g18efa32a/2b022d368b10d44f197579b53dfc67832041a7c3#2b022d368b10d44f197579b53dfc67832041a7c3"
-  integrity sha512-D9LUyKNgXmB9nEsQrURhSkEy0SvFVfRjDywt2/66IhWYOkJS9ICyXuisTIKhc8UULoaIbNr6SwvbOQLzc/oHTg==
+"@weaveworks/weave-gitops-main@0.19.0-32-g3db84ae3":
+  version "0.19.0-32-g3db84ae3"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-32-g3db84ae3/bd535d981ef012e3055456bb4545908ca1a812a3#bd535d981ef012e3055456bb4545908ca1a812a3"
+  integrity sha512-2OzQ8B80lN3BUPimZK3HA4681F2KjokxOsEOk1Tcno7fU4juLWY4qTVvtHij5fg0NLn1JMCjQCU8thQ4g52fGw==
+  dependencies:
+    "@material-ui/core" "^4.12.3"
+    "@material-ui/icons" "^4.11.2"
+    "@material-ui/lab" "^4.0.0-alpha.58"
+    d3 "^7.6.1"
+    d3-dag "^0.11.5"
+    history "^5.0.0"
+    http-proxy-middleware "^2.0.3"
+    jest-canvas-mock "^2.4.0"
+    jest-fail-on-console "^3.0.1"
+    jest-worker "^27.5.1"
+    js-sha3 "0.8.0"
+    lodash "^4.17.21"
+    luxon "^3.2.1"
+    mnemonic-browser "^0.0.1"
+    postcss "^8.3.11"
+    query-string "^4.3.4"
+    react "^17.0.2"
+    react-dom "^17.0.2"
+    react-lottie-player "^1.4.3"
+    react-query "^3.34.7"
+    react-router-dom "^5.2.0"
+    react-toastify "^7.0.4"
+    sha3 "^2.1.4"
+    styled-components "^5.3.0"
+    yaml "^1.10.2"
+
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.19.0-22-g8fdebc94":
+  version "0.19.0-22-g8fdebc94"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-22-g8fdebc94/ddf95ad1c72aee5f9fd56ac69bf432a2dbd8c248#ddf95ad1c72aee5f9fd56ac69bf432a2dbd8c248"
+  integrity sha512-BKeE+zd6e29+nniHm+Ud551KFIG4Isw8pxWQnqlizb7vxDDLGuxSNufGzkUBciQQ3/nLUbHV5UGmeWgKf7mcnw==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

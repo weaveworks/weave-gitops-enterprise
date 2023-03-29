@@ -1,8 +1,8 @@
-import React, { FC, useEffect, useState } from 'react';
+import { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { Notification, NotificationData } from './index';
 
-const NotificationProvider: FC = ({ children }) => {
+const NotificationsProvider: FC = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationData[] | []>(
     [],
   );
@@ -19,4 +19,4 @@ const NotificationProvider: FC = ({ children }) => {
   );
 };
 
-export default NotificationProvider;
+export default NotificationsProvider;

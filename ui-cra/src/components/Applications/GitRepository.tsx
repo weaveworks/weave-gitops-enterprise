@@ -9,7 +9,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
-import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -34,10 +33,6 @@ const WGApplicationsGitRepository: FC<Props> = props => {
     <PageTemplate
       documentTitle="Git Repository"
       path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
         {
           label: 'Sources',
           url: V2Routes.Sources,
