@@ -64,7 +64,6 @@ func (c *watchingCollector) Start() error {
 			if err != nil {
 				c.log.Error(err, "cannot process records")
 			}
-			c.log.Info("processed records", "records", objectTransactions)
 		}
 	}()
 
