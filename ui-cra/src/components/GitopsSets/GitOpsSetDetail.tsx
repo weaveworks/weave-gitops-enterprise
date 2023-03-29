@@ -241,11 +241,16 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             />
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
-            <Graph
-              className={className}
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
-              objects={objects || []}
-            />
+            <RequestStateHandler
+              loading={isLoading}
+              error={error as RequestError}
+            >
+              <Graph
+                className={className}
+                reconciledObjectsAutomation={reconciledObjectsAutomation}
+                objects={objects || []}
+              />
+            </RequestStateHandler>
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
