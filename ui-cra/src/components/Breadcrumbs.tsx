@@ -1,11 +1,11 @@
-import React, { FC } from 'react';
-import { isEmpty } from 'lodash';
-import styled from 'styled-components';
-import { transparentize } from 'polished';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import ArrowForward from '@material-ui/icons/ArrowForwardIos';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { isEmpty } from 'lodash';
+import { transparentize } from 'polished';
+import { FC } from 'react';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 
 interface Size {
   size?: 'small';
@@ -18,7 +18,6 @@ const Container = styled.div`
   height: 32px;
 `;
 const Span = styled.span`
-  color: ${({ theme }) => theme.colors.white};
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;

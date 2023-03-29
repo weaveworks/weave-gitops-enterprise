@@ -24,7 +24,7 @@ extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
     value: ""
   - name: WEAVE_GITOPS_FEATURE_TELEMETRY
-    value: "false"
+    value: "true"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
 

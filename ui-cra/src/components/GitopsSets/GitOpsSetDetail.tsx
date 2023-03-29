@@ -18,13 +18,10 @@ import {
   YamlView,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
-import styled from 'styled-components';
 import { useRouteMatch } from 'react-router-dom';
-import { Routes } from '../../utils/nav';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
-import { TableWrapper } from '../Shared';
+import styled from 'styled-components';
+import { getInventory } from '.';
+import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
   useGetGitOpsSet,
@@ -33,9 +30,12 @@ import {
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
-import { getInventory } from '.';
 import { RequestError } from '../../types/custom';
+import { Routes } from '../../utils/nav';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
+import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
+import { TableWrapper } from '../Shared';
 
 const YAML = require('yaml');
 
