@@ -25,7 +25,6 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	log  logr.Logger
 	qs   query.QueryService
 	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
@@ -82,7 +81,7 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 
 	user := auth.Principal(ctx)
 
-	matching := accesschecker.NewAccessChecker(s.log).RelevantRulesForUser(user, rules)
+	matching := accesschecker.NewAccessChecker().RelevantRulesForUser(user, rules)
 
 	return &pb.DebugGetAccessRulesResponse{
 		Rules: convertToPbAccessRule(matching),
@@ -109,7 +108,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
 
-	serv := &server{qs: qs, log: log}
+	serv := &server{qs: qs}
 
 	if !opts.SkipCollection {
 

@@ -2,8 +2,7 @@ package query
 
 import (
 	"context"
-	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/go-logr/logr"
 	"os"
 	"strings"
 	"testing"
@@ -343,16 +342,13 @@ func TestRunQuery_AccessRules(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
-			log := testr.NewWithOptions(t, testr.Options{
-				Verbosity: logger.LogLevelDebug,
-			})
 
 			ctx := auth.WithPrincipal(context.Background(), tt.user)
 
 			dir, err := os.MkdirTemp("", "test")
 			g.Expect(err).NotTo(HaveOccurred())
 
-			store, err := store.NewStore(store.StorageBackendSQLite, dir, log)
+			store, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(store.StoreObjects(context.Background(), tt.objects)).To(Succeed())
@@ -360,7 +356,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
 
 			qs, err := NewQueryService(ctx, QueryServiceOpts{
-				Log:         log,
+				Log:         logr.Discard(),
 				StoreReader: store,
 			})
 

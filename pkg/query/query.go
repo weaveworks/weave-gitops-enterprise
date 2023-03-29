@@ -30,7 +30,7 @@ func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, 
 	return &qs{
 		log:     opts.Log,
 		r:       opts.StoreReader,
-		checker: accesschecker.NewAccessChecker(opts.Log),
+		checker: accesschecker.NewAccessChecker(),
 	}, nil
 }
 

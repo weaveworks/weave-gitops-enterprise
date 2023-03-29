@@ -2,8 +2,6 @@ package accesschecker
 
 import (
 	"fmt"
-	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -24,21 +22,15 @@ type Checker interface {
 	RelevantRulesForUser(user *auth.UserPrincipal, rules []models.AccessRule) []models.AccessRule
 }
 
-type defaultAccessChecker struct {
-	log logr.Logger
-}
+type defaultAccessChecker struct{}
 
 // HasAccess checks if a principal has access to a resource.
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
-	a.log.V(logger.LogLevelDebug).Info("has access request", "user", user.ID, "object", object)
-
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
 	matchingRules := a.RelevantRulesForUser(user, rules)
 
 	for _, rule := range matchingRules {
-		a.log.V(logger.LogLevelDebug).Info("trying match", "rule", fmt.Sprintf("%v", rule))
-
 		if rule.Cluster != object.Cluster {
 			// Not the same cluster, so not relevant.
 			continue
@@ -124,8 +116,6 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 }
 
 // NewAccessChecker returns a new AccessChecker.
-func NewAccessChecker(log logr.Logger) Checker {
-	return &defaultAccessChecker{
-		log: log.WithName("access-checker"),
-	}
+func NewAccessChecker() Checker {
+	return &defaultAccessChecker{}
 }
