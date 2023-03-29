@@ -177,6 +177,6 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	rules2, err := store.GetAccessRules(ctx)
 	g.Expect(err).To(BeNil())
 
-	g.Expect(check.HasAccess(user, obj, rules2)).To(BeTrue())
+	g.Expect(check.HasAccess(user, obj, rules2)).To(BeFalse())
 
 }
