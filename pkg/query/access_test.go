@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"github.com/go-logr/logr/testr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"os"
 	"strings"
 	"testing"
@@ -231,7 +232,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 		},
 		{
 			name: "cluster roles with unspecified api version",
-			user: auth.NewUserPrincipal(auth.ID("wego-admin"), auth.Groups([]string{"group-a"})),
+			user: auth.NewUserPrincipal(auth.ID("wego"), auth.Groups([]string{"group-a"})),
 			objects: []models.Object{
 				{
 					Cluster:    "flux-system/leaf-cluster-1",
@@ -244,7 +245,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 			roles: []models.Role{
 				{
-					Name:      "wego-admin-cluster-role",
+					Name:      "wego-cluster-role",
 					Cluster:   "flux-system/leaf-cluster-1",
 					Namespace: "",
 					Kind:      "ClusterRole",
@@ -257,14 +258,14 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 			bindings: []models.RoleBinding{{
 				Cluster:   "flux-system/leaf-cluster-1",
-				Name:      "wego-admin-cluster-role",
+				Name:      "wego-cluster-role",
 				Namespace: "",
 				Kind:      "ClusterRoleBinding",
 				Subjects: []models.Subject{{
 					Kind: "User",
-					Name: "wego-admin",
+					Name: "wego",
 				}},
-				RoleRefName: "wego-admin-cluster-role",
+				RoleRefName: "wego-cluster-role",
 				RoleRefKind: "ClusterRole",
 			}},
 			expected: []models.Object{
@@ -343,7 +344,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
 			log := testr.NewWithOptions(t, testr.Options{
-				Verbosity: 1,
+				Verbosity: logger.LogLevelDebug,
 			})
 
 			ctx := auth.WithPrincipal(context.Background(), tt.user)
