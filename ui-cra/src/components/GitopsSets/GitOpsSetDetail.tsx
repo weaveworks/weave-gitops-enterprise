@@ -1,14 +1,17 @@
 import { Box } from '@material-ui/core';
 import {
+  AppContext,
   Button,
+  filterByStatusCallback,
+  filterConfig,
   Flex,
+  FluxObjectsTable,
   InfoList,
   KubeStatusIndicator,
   Metadata,
   PageStatus,
   ReconciledObjectsAutomation,
-  ReconciledObjectsTable,
-  ReconciliationGraph,
+  RequestStateHandler,
   RouterTab,
   SubRouterTabs,
   YamlView,
@@ -31,6 +34,7 @@ import {
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import { getInventory } from '.';
+import { RequestError } from '../../types/custom';
 
 const YAML = require('yaml');
 
@@ -123,7 +127,11 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
 
   const gs = gitOpsSet?.gitopsSet;
 
-  const { isLoading } = useGetReconciledTree(
+  const {
+    data: objects,
+    isLoading,
+    error,
+  } = useGetReconciledTree(
     gs?.name || '',
     gs?.namespace || '',
     'GitOpsSet',
@@ -144,6 +152,14 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     type: gs.type || 'GitOpsSet',
     clusterName: gs.clusterName || '',
   };
+
+  const initialFilterState = {
+    ...filterConfig(objects, 'type'),
+    ...filterConfig(objects, 'namespace'),
+    ...filterConfig(objects, 'status', filterByStatusCallback),
+  };
+
+  const { setDetailModal } = React.useContext(AppContext);
 
   return (
     <PageTemplate
@@ -200,9 +216,17 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               />
               <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
               <TableWrapper>
-                <ReconciledObjectsTable
-                  reconciledObjectsAutomation={reconciledObjectsAutomation}
-                />
+                <RequestStateHandler
+                  loading={isLoading}
+                  error={error as RequestError}
+                >
+                  <FluxObjectsTable
+                    className={className}
+                    objects={objects || []}
+                    onClick={setDetailModal}
+                    initialFilterState={initialFilterState}
+                  />
+                </RequestStateHandler>
               </TableWrapper>
             </Box>
           </RouterTab>
@@ -217,8 +241,10 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             />
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
-            <ReconciliationGraph
+            <Graph
+              className={className}
               reconciledObjectsAutomation={reconciledObjectsAutomation}
+              objects={objects || []}
             />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
