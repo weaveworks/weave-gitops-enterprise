@@ -29,16 +29,14 @@ type defaultAccessChecker struct {
 
 // HasAccess checks if a principal has access to a resource.
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
-	a.log.V(1).Info("has access request", "user", user.ID, "object", object, "rules", rules)
+	a.log.V(1).Info("has access request", "user", user.ID, "object", object)
 
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
 	matchingRules := a.RelevantRulesForUser(user, rules)
 
-	a.log.V(1).Info("matchingRules", "rules", matchingRules)
-
 	for _, rule := range matchingRules {
-		a.log.V(1).Info("relevant rule", "rule", fmt.Sprintf("%v", rule))
+		a.log.V(1).Info("trying match", "rule", fmt.Sprintf("%v", rule))
 
 		if rule.Cluster != object.Cluster {
 			// Not the same cluster, so not relevant.
@@ -50,13 +48,9 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			continue
 		}
 
-		a.log.V(1).Info("rule applies namespace and cluster")
-
-		a.log.V(1).Info("object", "gvk", object.GroupVersionKind())
-
+		//Checks whether the rule allows object's kind
+		//It will be allowed if the rule allows the apigroup and kind
 		for _, gvk := range rule.AccessibleKinds {
-
-			a.log.V(1).Info("rule", "gvk", gvk)
 
 			var ruleKind string
 			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
@@ -70,11 +64,9 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			} else {
 				return false, fmt.Errorf("invalid GVK: %s", gvk)
 			}
-
 			ruleGroup := parts[0]
 
 			if ruleGroup != object.APIGroup {
-				a.log.V(1).Info("not matching rule: not same api group")
 				continue
 			}
 
@@ -85,11 +77,19 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 				return true, nil
 			}
 
+			//given roles rule contains apigroups https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
+			// but not version, any version would work
+			// we match on kind
+			if ruleKind != object.Kind {
+				return true, nil
+			}
+
+			//TODO: review with jordan when we match here
 			// Check for an exact group/version/kind match.
 			if gvk == objectGVK {
 				return true, nil
 			}
-			a.log.V(1).Info("not matching rule: not same gvk")
+
 		}
 	}
 

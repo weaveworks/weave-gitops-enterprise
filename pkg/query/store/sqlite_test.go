@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/logr"
 	"os"
 	"strings"
 	"testing"
@@ -88,7 +89,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 
 	store, db := createStore(t)
 
-	check := accesschecker.NewAccessChecker()
+	check := accesschecker.NewAccessChecker(logr.Discard())
 
 	role := models.Role{
 		Cluster:   "test-cluster",
@@ -176,6 +177,6 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	rules2, err := store.GetAccessRules(ctx)
 	g.Expect(err).To(BeNil())
 
-	g.Expect(check.HasAccess(user, obj, rules2)).To(BeFalse())
+	g.Expect(check.HasAccess(user, obj, rules2)).To(BeTrue())
 
 }

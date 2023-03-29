@@ -180,7 +180,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 		},
 		{
-			name: "cluster roles with unspecified api version",
+			name: "cluster roles with unspecified api version with wildcard",
 
 			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
 			objects: []models.Object{
@@ -230,7 +230,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 		},
 		{
-			name: "cluster roles with unspecified api version 2",
+			name: "cluster roles with unspecified api version",
 			user: auth.NewUserPrincipal(auth.ID("wego-admin"), auth.Groups([]string{"group-a"})),
 			objects: []models.Object{
 				{
