@@ -251,7 +251,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					Kind:      "ClusterRole",
 					PolicyRules: []models.PolicyRule{{
 						APIGroups: strings.Join([]string{"helm.toolkit.fluxcd.io"}, ","),
-						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Resources: strings.Join([]string{"HelmRelease"}, ","),
 						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
 					}},
 				},

@@ -81,7 +81,7 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			//given roles rule contains apigroups https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
 			// but not version, any version would work
 			// we match on kind
-			if ruleKind != object.Kind {
+			if ruleKind == object.Kind {
 				return true, nil
 			}
 
