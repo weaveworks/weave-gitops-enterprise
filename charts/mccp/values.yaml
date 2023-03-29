@@ -27,6 +27,9 @@ listOCIRepositories: false
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: true
 
+# Turns on explorer to true
+enableExplorer: false
+
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
 
@@ -59,12 +62,13 @@ config:
     issuerURL: ""
     redirectURL: ""
     cookieDuration: 1h
-    claimUsername: ""
-    claimGroups: ""
+    claimUsername: "email"
+    claimGroups: "groups"
+    clientID: "github"
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
-    clientCredentialsSecret: ""
+    clientCredentialsSecret: "github-client"
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
-    customScopes: ""
+    customScopes: "groups, openid, email, profile"
   auth:
     userAccount:
       enabled: true
@@ -174,7 +178,7 @@ templates-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.1.2
+        tag: v0.1.4
 
 gitopssets-controller:
   enabled: true
@@ -183,4 +187,4 @@ gitopssets-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.5.1
+        tag: v0.6.0

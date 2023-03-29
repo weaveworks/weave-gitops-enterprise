@@ -12,6 +12,10 @@ import Notifications from './Notifications';
 
 import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 import { useVersionContext } from '../../contexts/ListConfig';
+import {
+  WarningIcon,
+  WarningWrapper,
+} from '../PolicyConfigs/PolicyConfigStyles';
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
@@ -49,6 +53,7 @@ interface Props {
   errors?: ListError[];
   loading?: boolean;
   notifications?: NotificationData[];
+  warningMsg?: string;
 }
 
 export const ContentWrapper: FC<Props> = ({
@@ -56,6 +61,7 @@ export const ContentWrapper: FC<Props> = ({
   backgroundColor,
   errors,
   loading,
+  warningMsg,
 }) => {
   const versionResponse = useVersionContext();
   const { notifications, setNotifications } = useNotifications();
@@ -105,6 +111,16 @@ export const ContentWrapper: FC<Props> = ({
         <AlertListErrors
           errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
         />
+      )}
+      {!!warningMsg && (
+        <WarningWrapper
+          severity="warning"
+          iconMapping={{
+            warning: <WarningIcon />,
+          }}
+        >
+          <span>{warningMsg}</span>
+        </WarningWrapper>
       )}
       <Notifications notifications={topNotifications} />
 

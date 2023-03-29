@@ -16,6 +16,7 @@ import {
 import { GitAuth } from '../../contexts/GitAuth';
 import useNotifications from '../../contexts/Notifications';
 import {
+  azureDevOpsOAuthRedirectURI,
   bitbucketServerOAuthRedirectURI,
   gitlabOAuthRedirectURI,
 } from '../../utils/formatters';
@@ -25,6 +26,7 @@ import { getCallbackState, storeProviderToken } from './utils';
 
 type Props = {
   code: string;
+  state: string;
   provider: GitProvider;
   error?: string | null;
   errorDescription?: string | null;
@@ -41,6 +43,7 @@ const ErrorMessage = ({ title, message }: any) => {
 
 function OAuthCallback({
   code,
+  state,
   provider,
   error: paramsError,
   errorDescription,
@@ -68,7 +71,18 @@ function OAuthCallback({
       req(
         gitAuthClient.AuthorizeBitbucketServer({
           code,
+          state,
           redirectUri: bitbucketServerOAuthRedirectURI(),
+        }),
+      );
+    }
+
+    if (provider === GitProvider.AzureDevOps) {
+      req(
+        gitAuthClient.AuthorizeAzureDevOps({
+          code,
+          state,
+          redirectUri: azureDevOpsOAuthRedirectURI(),
         }),
       );
     }

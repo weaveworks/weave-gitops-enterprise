@@ -28,6 +28,7 @@ import {
 import _ from 'lodash';
 
 const GITOPSSETS_KEY = 'gitopssets';
+const GITOPSSETS_POLL_INTERVAL = 5000;
 
 export function useListGitOpsSets() {
   const { setNotifications } = useNotifications();
@@ -40,6 +41,7 @@ export function useListGitOpsSets() {
     () => GitOpsSets.ListGitOpsSets({}),
     {
       keepPreviousData: true,
+      refetchInterval: GITOPSSETS_POLL_INTERVAL,
       onError,
     },
   );
@@ -51,10 +53,11 @@ interface DetailParams {
   clusterName: string;
 }
 
-export function useGetGitOpsSet(
-  { name, namespace, clusterName }: DetailParams,
-  enabled?: boolean,
-) {
+export function useGetGitOpsSet({
+  name,
+  namespace,
+  clusterName,
+}: DetailParams) {
   const { setNotifications } = useNotifications();
   const onError = (error: Error) =>
     setNotifications([{ message: { text: error.message }, severity: 'error' }]);
@@ -64,7 +67,6 @@ export function useGetGitOpsSet(
     () => GitOpsSets.GetGitOpsSet({ name, namespace, clusterName }),
     {
       onError,
-      // enabled
     },
   );
 }

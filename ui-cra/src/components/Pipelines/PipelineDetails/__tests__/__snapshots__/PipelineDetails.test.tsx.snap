@@ -119,25 +119,24 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c9 svg {
-  fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c9 svg path.image-automation {
+.c9 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9 svg.sources {
   fill: none !important;
 }
 
-.c9 svg.sources path {
-  fill: !important;
-}
-
 .c9 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9.downward {
@@ -161,25 +160,25 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c35 svg {
-  fill: #27AE60 !important;
+  fill: #27AE60;
   height: 16px;
   width: 16px;
 }
 
-.c35 svg path.image-automation {
+.c35 svg path.path-fill {
   fill: #27AE60 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c35 svg.sources {
   fill: none !important;
 }
 
-.c35 svg.sources path {
-  fill: #27AE60 !important;
-}
-
 .c35 svg.sources rect {
   stroke: #27AE60 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c35.downward {
@@ -1353,7 +1352,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
           Need help? Raise a 
           <a
             class="c19"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >

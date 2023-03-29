@@ -44,25 +44,24 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c7 svg {
-  fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c7 svg path.image-automation {
+.c7 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7 svg.sources {
   fill: none !important;
 }
 
-.c7 svg.sources path {
-  fill: !important;
-}
-
 .c7 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7.downward {
@@ -86,25 +85,24 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c11 svg {
-  fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c11 svg path.image-automation {
+.c11 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11 svg.sources {
   fill: none !important;
 }
 
-.c11 svg.sources path {
-  fill: !important;
-}
-
 .c11 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11.downward {
@@ -420,7 +418,7 @@ exports[`Applications index test snapshots loading 1`] = `
           Need help? Raise a 
           <a
             class="c14"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
@@ -633,25 +631,24 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c7 svg {
-  fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c7 svg path.image-automation {
+.c7 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7 svg.sources {
   fill: none !important;
 }
 
-.c7 svg.sources path {
-  fill: !important;
-}
-
 .c7 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7.downward {
@@ -675,25 +672,24 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c11 svg {
-  fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c11 svg path.image-automation {
+.c11 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11 svg.sources {
   fill: none !important;
 }
 
-.c11 svg.sources path {
-  fill: !important;
-}
-
 .c11 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11.downward {
@@ -717,25 +713,25 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c26 svg {
-  fill: #737373 !important;
+  fill: #737373;
   height: 24px;
   width: 24px;
 }
 
-.c26 svg path.image-automation {
+.c26 svg path.path-fill {
   fill: #737373 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c26 svg.sources {
   fill: none !important;
 }
 
-.c26 svg.sources path {
-  fill: #737373 !important;
-}
-
 .c26 svg.sources rect {
   stroke: #737373 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c26.downward {
@@ -760,25 +756,25 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c32 svg {
-  fill: #d8d8d8 !important;
+  fill: #d8d8d8;
   height: 16px;
   width: 16px;
 }
 
-.c32 svg path.image-automation {
+.c32 svg path.path-fill {
   fill: #d8d8d8 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c32 svg.sources {
   fill: none !important;
 }
 
-.c32 svg.sources path {
-  fill: #d8d8d8 !important;
-}
-
 .c32 svg.sources rect {
   stroke: #d8d8d8 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c32.downward {
@@ -2235,7 +2231,7 @@ exports[`Applications index test snapshots success 1`] = `
           Need help? Raise a 
           <a
             class="c42"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >

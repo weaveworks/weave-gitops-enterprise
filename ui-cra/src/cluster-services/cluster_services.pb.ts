@@ -97,6 +97,7 @@ export type RenderTemplateResponse = {
   costEstimate?: CostEstimate
   externalSecretsFiles?: CommitFile[]
   policyConfigFiles?: CommitFile[]
+  sopsSecretFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -108,6 +109,7 @@ export type RenderAutomationResponse = {
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
   policyConfigFiles?: CommitFile[]
+  sopsSecertFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -219,6 +221,7 @@ export type CreatePullRequestRequest = {
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
   policyConfigs?: PolicyConfigObject[]
+  sopsSecrets?: SopsSecret[]
 }
 
 export type PreviousValues = {
@@ -228,6 +231,7 @@ export type PreviousValues = {
   kustomizations?: Kustomization[]
   externalSecrets?: ExternalSecret[]
   policyConfigs?: PolicyConfigObject[]
+  sopsSecrets?: SopsSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -416,6 +420,7 @@ export type ClusterAutomation = {
   filePath?: string
   externalSecret?: ExternalSecret
   policyConfig?: PolicyConfigObject
+  sopsSecret?: SopsSecret
 }
 
 export type ExternalSecret = {
@@ -459,6 +464,16 @@ export type KustomizationSpec = {
   sourceRef?: SourceRef
   targetNamespace?: string
   createNamespace?: boolean
+  decryption?: Decryption
+}
+
+export type Decryption = {
+  provider?: string
+  secretRef?: SecretRef
+}
+
+export type SecretRef = {
+  name?: string
 }
 
 export type HelmRelease = {
@@ -484,6 +499,7 @@ export type ChartSpec = {
 export type Metadata = {
   name?: string
   namespace?: string
+  annotations?: {[key: string]: string}
 }
 
 export type SourceRef = {
@@ -535,6 +551,7 @@ export type GetConfigResponse = {
   repositoryURL?: string
   managementClusterName?: string
   uiConfig?: string
+  gitHostTypes?: {[key: string]: string}
 }
 
 export type PolicyParamRepeatedString = {
@@ -806,6 +823,15 @@ export type ListExternalSecretStoresResponse = {
   total?: number
 }
 
+export type SyncExternalSecretsRequest = {
+  clusterName?: string
+  namespace?: string
+  externalSecretName?: string
+}
+
+export type SyncExternalSecretsResponse = {
+}
+
 export type PolicyConfigListItem = {
   name?: string
   clusterName?: string
@@ -834,6 +860,7 @@ export type GetPolicyConfigResponse = {
   clusterName?: string
   age?: string
   status?: string
+  matchType?: string
   match?: PolicyConfigMatch
   policies?: PolicyConfigPolicy[]
   totalPolicies?: number
@@ -878,6 +905,55 @@ export type PolicyConfigObjectSpec = {
 export type PolicyConfigObject = {
   metadata?: Metadata
   spec?: PolicyConfigObjectSpec
+}
+
+export type EncryptSopsSecretRequest = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+  type?: string
+  immutable?: boolean
+  data?: {[key: string]: string}
+  stringData?: {[key: string]: string}
+  kustomizationName?: string
+  kustomizationNamespace?: string
+  clusterName?: string
+}
+
+export type EncryptSopsSecretResponse = {
+  encryptedSecret?: GoogleProtobufStruct.Value
+  path?: string
+}
+
+export type ListSopsKustomizationsRequest = {
+  clusterName?: string
+}
+
+export type ListSopsKustomizationsResponse = {
+  kustomizations?: SopsKustomizations[]
+  total?: number
+}
+
+export type SopsKustomizations = {
+  name?: string
+  namespace?: string
+}
+
+export type SopsSecretMetadata = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+}
+
+export type SopsSecret = {
+  apiVersion?: string
+  kind?: string
+  metadata?: SopsSecretMetadata
+  data?: {[key: string]: string}
+  stringData?: {[key: string]: string}
+  type?: string
+  immutable?: boolean
+  sops?: GoogleProtobufStruct.Value
 }
 
 export class ClustersService {
@@ -977,10 +1053,19 @@ export class ClustersService {
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
+  static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
+    return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
     return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
+    return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListSopsKustomizations(req: ListSopsKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSopsKustomizationsResponse> {
+    return fm.fetchReq<ListSopsKustomizationsRequest, ListSopsKustomizationsResponse>(`/v1/sops-kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }
