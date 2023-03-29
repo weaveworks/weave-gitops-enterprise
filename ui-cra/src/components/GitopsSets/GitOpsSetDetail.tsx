@@ -123,11 +123,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
 
   const gs = gitOpsSet?.gitopsSet;
 
-  const {
-    data: objects,
-    error,
-    isLoading,
-  } = useGetReconciledTree(
+  const { isLoading } = useGetReconciledTree(
     gs?.name || '',
     gs?.namespace || '',
     'GitOpsSet',
@@ -140,9 +136,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   }
 
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    objects: objects || [],
-    error: error || undefined,
-    isLoading: isLoading || false,
     source: gs.objectRef || ({} as ObjectRef),
     name: gs.name || '',
     namespace: gs.namespace || '',

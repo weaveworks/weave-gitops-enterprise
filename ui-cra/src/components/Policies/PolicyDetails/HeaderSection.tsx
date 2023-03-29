@@ -6,7 +6,7 @@ import { usePolicyStyle } from '../PolicyStyles';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
-import {  useFeatureFlags } from '@weaveworks/weave-gitops';
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
 import Mode from '../Mode';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 
@@ -24,8 +24,7 @@ function HeaderSection({
   modes,
 }: Policy) {
   const classes = usePolicyStyle();
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Policy ID',
@@ -33,12 +32,12 @@ function HeaderSection({
     },
     {
       rowkey: 'Cluster',
-      value: <ClusterDashboardLink clusterName={clusterName || ''}/>,
+      value: <ClusterDashboardLink clusterName={clusterName || ''} />,
     },
     {
       rowkey: 'Tenant',
       value: tenant,
-      hidden: flags.WEAVE_GITOPS_FEATURE_TENANCY !== 'true',
+      hidden: isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY'),
     },
     {
       rowkey: 'Tags',

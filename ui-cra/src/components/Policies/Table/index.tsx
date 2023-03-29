@@ -25,8 +25,7 @@ interface Props {
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   policies.forEach(policy => {
     policy.audit = policy.modes?.includes('audit') ? 'audit' : '';
@@ -40,7 +39,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
     ...filterConfig(policies, 'audit'),
   };
 
-  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
+  if (isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY')) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(policies, 'tenant'),
@@ -85,7 +84,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
               <Mode modeName={enforce ? 'admission' : ''} />
             ),
           },
-          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
+          ...(isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY')
             ? [{ label: 'Tenant', value: 'tenant' }]
             : []),
           {

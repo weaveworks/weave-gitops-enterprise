@@ -122,7 +122,7 @@ const useStyles = makeStyles({
 });
 
 const NavItems = () => {
-  const { data: flagsRes } = useFeatureFlags();
+  const { isFlagEnabled } = useFeatureFlags();
   const location = useLocation();
   const navItems: Array<NavigationItem> = [
     {
@@ -166,7 +166,7 @@ const NavItems = () => {
         {
           name: 'PIPELINES',
           link: Routes.Pipelines,
-          isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_PIPELINES,
+          isVisible: isFlagEnabled('WEAVE_GITOPS_FEATURE_PIPELINES'),
         },
         {
           name: 'DELIVERY',
@@ -188,13 +188,13 @@ const NavItems = () => {
       name: 'EXPLORER',
       link: Routes.Explorer,
       icon: null,
-      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_EXPLORER,
+      isVisible: isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER'),
     },
     {
       name: 'GITOPS RUN',
       link: Routes.GitOpsRun,
       icon: <GitOpsRun className="gitops-run" />,
-      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_RUN_UI,
+      isVisible: isFlagEnabled('WEAVE_GITOPS_FEATURE_RUN_UI'),
     },
     {
       name: 'TEMPLATES',
@@ -205,7 +205,7 @@ const NavItems = () => {
       name: 'TERRAFORM',
       link: Routes.TerraformObjects,
       icon: <TerraformLogo />,
-      isVisible: !!flagsRes.flags.WEAVE_GITOPS_FEATURE_TERRAFORM_UI,
+      isVisible: isFlagEnabled('WEAVE_GITOPS_FEATURE_TERRAFORM_UI'),
     },
     {
       name: 'WORKSPACES',
