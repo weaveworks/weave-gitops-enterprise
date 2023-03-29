@@ -2,6 +2,7 @@ package accesschecker
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -22,15 +23,23 @@ type Checker interface {
 	RelevantRulesForUser(user *auth.UserPrincipal, rules []models.AccessRule) []models.AccessRule
 }
 
-type defaultAccessChecker struct{}
+type defaultAccessChecker struct {
+	log logr.Logger
+}
 
 // HasAccess checks if a principal has access to a resource.
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
+	a.log.V(1).Info("has access request", "user", user.ID, "object", object, "rules", rules)
+
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
 	matchingRules := a.RelevantRulesForUser(user, rules)
 
+	a.log.V(1).Info("matchingRules", "rules", matchingRules)
+
 	for _, rule := range matchingRules {
+		a.log.V(1).Info("relevant rule", "rule", fmt.Sprintf("%v", rule))
+
 		if rule.Cluster != object.Cluster {
 			// Not the same cluster, so not relevant.
 			continue
@@ -41,7 +50,13 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			continue
 		}
 
+		a.log.V(1).Info("rule applies namespace and cluster")
+
+		a.log.V(1).Info("object", "gvk", object.GroupVersionKind())
+
 		for _, gvk := range rule.AccessibleKinds {
+
+			a.log.V(1).Info("rule", "gvk", gvk)
 
 			var ruleKind string
 			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
@@ -59,6 +74,7 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			ruleGroup := parts[0]
 
 			if ruleGroup != object.APIGroup {
+				a.log.V(1).Info("not matching rule: not same api group")
 				continue
 			}
 
@@ -73,6 +89,7 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			if gvk == objectGVK {
 				return true, nil
 			}
+			a.log.V(1).Info("not matching rule: not same gvk")
 		}
 	}
 
@@ -106,6 +123,8 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 }
 
 // NewAccessChecker returns a new AccessChecker.
-func NewAccessChecker() Checker {
-	return &defaultAccessChecker{}
+func NewAccessChecker(log logr.Logger) Checker {
+	return &defaultAccessChecker{
+		log: log.WithName("access-checker"),
+	}
 }

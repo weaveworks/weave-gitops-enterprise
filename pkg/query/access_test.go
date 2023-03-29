@@ -2,12 +2,12 @@ package query
 
 import (
 	"context"
+	"github.com/go-logr/logr/testr"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/alecthomas/assert"
-	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-// We test access rules here to get to get coverage on the store logic as well as the query service.
+// We test access rules here to get coverage on the store logic as well as the query service.
 // Mocking the store here wouldn't really be testing anything.
 func TestRunQuery_AccessRules(t *testing.T) {
 	tests := []struct {
@@ -230,6 +230,55 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 		},
 		{
+			name: "cluster roles with unspecified api version 2",
+			user: auth.NewUserPrincipal(auth.ID("wego-admin"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   "helm.toolkit.fluxcd.io",
+					APIVersion: "v2beta1",
+					Kind:       "HelmRelease",
+					Name:       "nginx-113",
+				},
+			},
+			roles: []models.Role{
+				{
+					Name:      "wego-admin-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{"helm.toolkit.fluxcd.io"}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "flux-system/leaf-cluster-1",
+				Name:      "wego-admin-cluster-role",
+				Namespace: "",
+				Kind:      "ClusterRoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "User",
+					Name: "wego-admin",
+				}},
+				RoleRefName: "wego-admin-cluster-role",
+				RoleRefKind: "ClusterRole",
+			}},
+			expected: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   "helm.toolkit.fluxcd.io",
+					APIVersion: "v2beta1",
+					Kind:       "HelmRelease",
+					Name:       "nginx-113",
+				},
+			},
+		},
+		{
 			name: "policy rule with * permissions",
 			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
 			roles: []models.Role{
@@ -293,13 +342,16 @@ func TestRunQuery_AccessRules(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
+			log := testr.NewWithOptions(t, testr.Options{
+				Verbosity: 1,
+			})
 
 			ctx := auth.WithPrincipal(context.Background(), tt.user)
 
 			dir, err := os.MkdirTemp("", "test")
 			g.Expect(err).NotTo(HaveOccurred())
 
-			store, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
+			store, err := store.NewStore(store.StorageBackendSQLite, dir, log)
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(store.StoreObjects(context.Background(), tt.objects)).To(Succeed())
@@ -307,7 +359,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
 
 			qs, err := NewQueryService(ctx, QueryServiceOpts{
-				Log:         logr.Discard(),
+				Log:         log,
 				StoreReader: store,
 			})
 
