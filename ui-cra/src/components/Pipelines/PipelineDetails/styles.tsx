@@ -14,7 +14,7 @@ export const usePipelineStyles = makeStyles(() =>
       borderRadius: '10px',
     },
     gridWrapper: {
-      maxWidth: 'calc(100vw - 300px)',
+      width: '100%',
       display: 'flex',
       flexWrap: 'nowrap',
       overflow: 'auto',
