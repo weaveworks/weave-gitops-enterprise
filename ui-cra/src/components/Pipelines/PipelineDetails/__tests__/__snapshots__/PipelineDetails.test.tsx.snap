@@ -1352,7 +1352,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
           Need help? Raise a 
           <a
             class="c19"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
