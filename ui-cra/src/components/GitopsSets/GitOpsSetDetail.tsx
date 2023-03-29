@@ -6,6 +6,7 @@ import {
   filterConfig,
   Flex,
   FluxObjectsTable,
+  Graph,
   InfoList,
   KubeStatusIndicator,
   Metadata,
@@ -139,6 +140,14 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     gs?.clusterName || '',
   );
 
+  const initialFilterState = {
+    ...filterConfig(objects, 'type'),
+    ...filterConfig(objects, 'namespace'),
+    ...filterConfig(objects, 'status', filterByStatusCallback),
+  };
+
+  const { setDetailModal } = React.useContext(AppContext);
+
   if (!gs) {
     return null;
   }
@@ -152,14 +161,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     type: gs.type || 'GitOpsSet',
     clusterName: gs.clusterName || '',
   };
-
-  const initialFilterState = {
-    ...filterConfig(objects, 'type'),
-    ...filterConfig(objects, 'namespace'),
-    ...filterConfig(objects, 'status', filterByStatusCallback),
-  };
-
-  const { setDetailModal } = React.useContext(AppContext);
 
   return (
     <PageTemplate
