@@ -90,8 +90,6 @@ func TestListGitOpsSets(t *testing.T) {
 					Namespace:   obj.Namespace,
 					ClusterName: "management",
 				},
-				// FIXME: ignore below doesn't seem to work
-				Yaml: res.Gitopssets[0].Yaml,
 			},
 		},
 	}
