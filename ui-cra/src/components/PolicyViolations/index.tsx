@@ -1,28 +1,21 @@
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { FieldsType, PolicyViolationsTable } from './Table';
+import { ListPolicyValidationsRequest } from '../../cluster-services/cluster_services.pb';
 import { useListPolicyValidations } from '../../contexts/PolicyViolations';
-import { Routes } from '../../utils/nav';
+import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { FieldsType, PolicyViolationsTable } from './Table';
 
-const PoliciesViolations = () => {
-  const { data, isLoading } = useListPolicyValidations({});
+const PoliciesViolations = (req: ListPolicyValidationsRequest) => {
+  const { data, error, isLoading } = useListPolicyValidations(req);
   return (
-    <PageTemplate
-      documentTitle="Violation Log"
-      path={[
-        { label: 'Clusters', url: Routes.Clusters },
-        {
-          label: 'Violation Log',
-        },
-      ]}
+    <LoadingWrapper
+      loading={isLoading}
+      errorMessage={error?.message}
+      errors={data?.errors}
     >
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
-        <PolicyViolationsTable
-          violations={data?.violations || []}
-          tableType={FieldsType.policy}
-        />
-      </ContentWrapper>
-    </PageTemplate>
+      <PolicyViolationsTable
+        violations={data?.violations || []}
+        tableType={FieldsType.policy}
+      />
+    </LoadingWrapper>
   );
 };
 

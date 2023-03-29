@@ -173,3 +173,6 @@ export interface SecretPRPreview {
 export interface SOPSSecretPRPreview {
   sopsSecertFiles: { path: string; content: string }[];
 }
+export interface PolicyConfigPRPreview {
+  policyConfigFiles: { path: string; content: string }[];
+}

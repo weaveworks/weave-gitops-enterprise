@@ -19,7 +19,6 @@ import WGNotificationsProvider from './components/Applications/NotificationsProv
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
-import ClusterDashboard from './components/Clusters/ClusterDashboard';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
@@ -55,6 +54,8 @@ import { Routes } from './utils/nav';
 import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
 import CreateSOPS from './components/Secrets/SOPS';
+import ClusterDetails from './components/Clusters/ClusterDetails';
+import CreatePolicyConfig from './components/PolicyConfigs/create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -81,7 +82,7 @@ const CoreWrapper = styled.div`
   .MuiButton-root {
     margin-right: 0;
   }
-  max-width: calc(100vw - 220px);
+  width: 100%;
 `;
 
 const Page404 = () => (
@@ -103,11 +104,11 @@ const AppRoutes = () => {
       <Route exact path="/">
         <Redirect to={Routes.Clusters} />
       </Route>
-      <Route component={MCCP} exact path={Routes.Clusters} />
+      <Route component={MCCP} path={Routes.Clusters} />
       <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (
-          <ClusterDashboard {...props} />
+          <ClusterDetails {...props} />
         ))}
         path={Routes.ClusterDashboard}
       />
@@ -298,11 +299,9 @@ const AppRoutes = () => {
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route
-        exact
-        path={Routes.PolicyConfigsDetails}
-        component={withSearchParams(PolicyConfigsDetails)}
-      />
+      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
+      <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
+
 
       <Route
         path={Routes.TerraformDetail}

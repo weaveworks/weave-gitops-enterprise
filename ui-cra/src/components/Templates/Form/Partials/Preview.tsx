@@ -13,6 +13,7 @@ import {
 import {
   AppPRPreview,
   ClusterPRPreview,
+  PolicyConfigPRPreview,
   SecretPRPreview,
   SOPSSecretPRPreview,
 } from '../../../../types/custom';
@@ -118,6 +119,13 @@ const Preview: FC<{
           {
             tabName: 'SOPS Secret',
             files: (PRPreview as SOPSSecretPRPreview).sopsSecertFiles,
+          },
+        ];
+      case 'policyconfig':
+        return [
+          {
+            tabName: 'PolicyConfigs',
+            files: (PRPreview as PolicyConfigPRPreview).policyConfigFiles,
           },
         ];
       default:

@@ -3,14 +3,18 @@ import { Box, CircularProgress } from '@material-ui/core';
 import { Flex } from '@weaveworks/weave-gitops';
 import Alert from '@material-ui/lab/Alert';
 import { useWorkspaceStyle } from '../../WorkspaceStyles';
+import { AlertListErrors } from '../../../Layout/AlertListErrors';
+import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 interface Props {
   loading: boolean;
   errorMessage?: string;
   children: any;
+  errors?: ListError[];
 }
 const LoadingWrapper: FC<Props> = ({
   children,
+  errors,
   errorMessage,
   loading,
 }) => {
@@ -25,6 +29,7 @@ const LoadingWrapper: FC<Props> = ({
           </Flex>
         </Box>
       )}
+      {errors && <AlertListErrors errors={errors} />}
       {errorMessage && (
         <Alert severity="error" className={classes.alertWrapper}>
           {errorMessage}

@@ -183,6 +183,9 @@ export interface SelectProps extends MuiSelectProps {
   disabled?: boolean;
   className?: string;
   description?: string;
+  required?: boolean;
+  name?: string;
+  error?: boolean;
 }
 
 export const Select: FC<SelectProps> = ({
@@ -197,6 +200,7 @@ export const Select: FC<SelectProps> = ({
   description,
   disabled,
   required,
+  name,
   error,
 }) => (
   <FormControl id={`${label}-group`} className={className}>
@@ -205,7 +209,7 @@ export const Select: FC<SelectProps> = ({
     </InputLabel>
     <MuiSelect
       id={`${label}-input`}
-      input={input ?? <InputBase />}
+      input={input ?? <InputBase required={required} error={error} />}
       onChange={onChange}
       value={value}
       variant={variant ?? 'outlined'}
@@ -220,6 +224,7 @@ export const Select: FC<SelectProps> = ({
       }
       required={required}
       error={error}
+      name={name}
     >
       {children ??
         items?.map(item => (
