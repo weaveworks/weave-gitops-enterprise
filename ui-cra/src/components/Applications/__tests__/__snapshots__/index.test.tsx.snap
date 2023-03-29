@@ -419,7 +419,7 @@ exports[`Applications index test snapshots loading 1`] = `
           Need help? Raise a 
           <a
             class="c14"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
@@ -2233,7 +2233,7 @@ exports[`Applications index test snapshots success 1`] = `
           Need help? Raise a 
           <a
             class="c42"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
