@@ -32,7 +32,9 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
     },
   );
 
-  const filtersValues = toFilterQueryString([{ imageRepositoryRef: name }]);
+  const filtersValues = toFilterQueryString([
+    { key: 'imageRepositoryRef', value: name },
+  ]);
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <PageTemplate

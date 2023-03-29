@@ -1,11 +1,8 @@
-export const toFilterQueryString = (filters: { [key: string]: string }[]) => {
+export const toFilterQueryString = (
+  filters: { key: string; value: string }[],
+) => {
   const filtersValues = encodeURIComponent(
-    filters
-      .map(
-        filter =>
-          `${Object.keys(filter)[0]}: ${Object.values(filter)[0] || ''}`,
-      )
-      .join('_'),
+    filters.map(filter => `${filter.key}: ${filter.value}`).join('_'),
   );
   return filtersValues;
 };

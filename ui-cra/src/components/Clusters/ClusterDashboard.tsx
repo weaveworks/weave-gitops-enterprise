@@ -141,7 +141,8 @@ const ClusterDashboard = ({ clusterName }: Props) => {
               onClick={() => {
                 const filtersValues = toFilterQueryString([
                   {
-                    clusterName: `${currentCluster?.namespace}/${currentCluster?.name}`,
+                    key: 'clusterName',
+                    value: `${currentCluster?.namespace}/${currentCluster?.name}`,
                   },
                 ]);
                 history.push(`/applications?filters=${filtersValues}`);

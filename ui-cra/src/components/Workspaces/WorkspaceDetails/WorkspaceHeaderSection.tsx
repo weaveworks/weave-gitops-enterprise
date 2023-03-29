@@ -25,8 +25,8 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
       <Button
         onClick={() => {
           const filtersValues = toFilterQueryString([
-            { tenant: name || '' },
-            { clusterName: clusterName || '' },
+            { key: 'tenant', value: name || '' },
+            { key: 'clusterName', value: clusterName || '' },
           ]);
           history.push(`/applications?filters=${filtersValues}`);
         }}

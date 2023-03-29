@@ -305,8 +305,8 @@ const MCCP: FC<{
 
   const handleAddCluster = useCallback(() => {
     const filtersValues = toFilterQueryString([
-      { templateType: 'cluster' },
-      { templateType: '' },
+      { key: 'templateType', value: 'cluster' },
+      { key: 'templateType', value: '' },
     ]);
     history.push(`/templates?filters=${filtersValues}`);
   }, [history]);
