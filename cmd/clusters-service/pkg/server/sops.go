@@ -254,6 +254,9 @@ func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.L
 	kustomizationList := &kustomizev1beta2.KustomizationList{}
 
 	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList); err != nil {
+		if strings.Contains(err.Error(), "no matches for kind") {
+			return &capiv1_proto.ListSopsKustomizationsResponse{}, nil
+		}
 		return nil, fmt.Errorf("failed to list kustomizations, error: %w", err)
 	}
 

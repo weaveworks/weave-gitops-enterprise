@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	stdlog "log"
 	"math/big"
 	"net"
 	"net/http"
@@ -30,6 +29,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
+	"github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -67,7 +67,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	core_fetcher "github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -149,7 +148,6 @@ type Params struct {
 	CostEstimationFilters             string                    `mapstructure:"cost-estimation-filters"`
 	CostEstimationAPIRegion           string                    `mapstructure:"cost-estimation-api-region"`
 	CostEstimationFilename            string                    `mapstructure:"cost-estimation-csv-file"`
-	LogLevel                          string                    `mapstructure:"log-level"`
 	GitProviderCSRFCookieDomain       string                    `mapstructure:"git-provider-csrf-cookie-domain"`
 	GitProviderCSRFCookiePath         string                    `mapstructure:"git-provider-csrf-cookie-path"`
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
@@ -168,6 +166,7 @@ type OIDCAuthenticationOptions struct {
 
 func NewAPIServerCommand() *cobra.Command {
 	p := &Params{}
+	var logOptions logger.Options
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -189,7 +188,7 @@ func NewAPIServerCommand() *cobra.Command {
 			return checkParams(*p)
 		},
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return StartServer(context.Background(), *p)
+			return StartServer(context.Background(), *p, logOptions)
 		},
 	}
 
@@ -237,7 +236,6 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmdFlags.String("ui-config", "", "UI configuration, JSON encoded")
 	cmdFlags.String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
-	cmdFlags.String("log-level", logger.DefaultLogLevel, "log level")
 
 	cmdFlags.String("cost-estimation-filters", "", "Cost estimation filters")
 	cmdFlags.String("cost-estimation-api-region", "", "API region for cost estimation queries")
@@ -252,6 +250,8 @@ func NewAPIServerCommand() *cobra.Command {
 			cobra.CheckErr(cmdFlags.MarkHidden(fl.Name))
 		}
 	})
+
+	logOptions.BindFlags(cmdFlags)
 
 	return cmd
 }
@@ -321,11 +321,8 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func StartServer(ctx context.Context, p Params) error {
-	log, err := logger.New(p.LogLevel, os.Getenv("HUMAN_LOGS") != "")
-	if err != nil {
-		stdlog.Fatalf("Couldn't set up logger: %v", err)
-	}
+func StartServer(ctx context.Context, p Params, logOptions logger.Options) error {
+	log := logger.NewLogger(logOptions)
 
 	featureflags.SetFromEnv(os.Environ())
 
@@ -346,7 +343,7 @@ func StartServer(ctx context.Context, p Params) error {
 		schemeBuilder = append(schemeBuilder, capiv1.AddToScheme)
 	}
 
-	err = schemeBuilder.AddToScheme(scheme)
+	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		return err
 	}
