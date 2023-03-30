@@ -13,7 +13,7 @@ import { FC, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
-import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
+import { ReactComponent as GitOpsSetsIcon } from '../../assets/img/templates/gitopssets.svg';
 
 function getParentNavRouteValueExtended(
   route: string,
