@@ -55,6 +55,7 @@ import { Routes } from './utils/nav';
 import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
 import ClusterDetails from './components/Clusters/ClusterDetails';
+import CreatePolicyConfig from './components/PolicyConfigs/create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -297,11 +298,9 @@ const AppRoutes = () => {
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route
-        exact
-        path={Routes.PolicyConfigsDetails}
-        component={withSearchParams(PolicyConfigsDetails)}
-      />
+      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
+      <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
+
 
       <Route
         path={Routes.TerraformDetail}

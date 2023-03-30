@@ -71,6 +71,8 @@ export enum Routes {
 
   PolicyConfigs = '/policyConfigs',
   PolicyConfigsDetails = '/policyConfigs/details',
+  CreatePolicyConfig = '/policyConfigs/create',
+
 
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
