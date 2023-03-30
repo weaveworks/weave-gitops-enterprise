@@ -215,10 +215,15 @@ const Navigation: FC = () => {
   return (
     <NavContainer>
       <LogoHeight align>
-        <Logo link={Routes.Clusters} collapsed={collapsed} />
+        <Logo
+          className="test-id-home"
+          link={Routes.Clusters}
+          collapsed={collapsed}
+        />
       </LogoHeight>
       <NavHeight>
         <Nav
+          className="test-id-navigation"
           collapsed={collapsed}
           setCollapsed={setCollapsed}
           navItems={navItems as NavItem[]}

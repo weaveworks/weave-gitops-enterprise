@@ -453,7 +453,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-120"
