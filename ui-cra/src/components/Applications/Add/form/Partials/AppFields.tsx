@@ -1,22 +1,22 @@
-import React, { FC, Dispatch, useEffect, useCallback } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
-import _ from 'lodash';
-import { Input, Select } from '../../../../../utils/form';
 import {
-  ListSubheader,
-  MenuItem,
   Checkbox,
   FormControlLabel,
+  ListSubheader,
+  MenuItem,
 } from '@material-ui/core';
-import { useListSources, theme, Flex, Kind } from '@weaveworks/weave-gitops';
-import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
+import { Flex, Kind, theme, useListSources } from '@weaveworks/weave-gitops';
 import {
   GitRepository,
   HelmRepository,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Tooltip } from '../../../../Shared';
+import _ from 'lodash';
+import React, { Dispatch, FC, useCallback, useEffect } from 'react';
+import { useHistory, useLocation } from 'react-router-dom';
+import styled from 'styled-components';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
+import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
+import { Input, Select } from '../../../../../utils/form';
+import { Tooltip } from '../../../../Shared';
 import { useClustersWithSources } from '../../../utils';
 
 const AppFieldsWrapper = styled.div`

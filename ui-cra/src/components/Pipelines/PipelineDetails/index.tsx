@@ -79,16 +79,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   });
 
   const classes = usePipelineStyles();
-  const path = `/applications/pipelines/details`;
+  const path = `/pipelines/details`;
 
   return (
     <PageTemplate
       documentTitle="Pipeline Details"
       path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
         {
           label: 'Pipelines',
           url: Routes.Pipelines,

@@ -54,6 +54,10 @@ function Explorer({ className }: Props) {
     filters: [
       { label: 'Kustomizations', value: 'kind:Kustomization' },
       { label: 'Helm Releases', value: 'kind:HelmRelease' },
+      {
+        label: 'Failed',
+        value: 'status:Failed',
+      },
     ],
     selectedFilter: '',
   });
@@ -164,6 +168,31 @@ function Explorer({ className }: Props) {
                     { label: 'Kind', value: 'kind' },
                     { label: 'Namespace', value: 'namespace' },
                     { label: 'Cluster', value: 'cluster' },
+                    {
+                      label: 'Status',
+                      value: (o: Object) => (
+                        <Flex align>
+                          <Box marginRight={1}>
+                            <Icon
+                              size={24}
+                              color={
+                                o?.status === 'Success'
+                                  ? 'successOriginal'
+                                  : 'alertOriginal'
+                              }
+                              type={
+                                o?.status === 'Success'
+                                  ? IconType.SuccessIcon
+                                  : IconType.ErrorIcon
+                              }
+                            />
+                          </Box>
+
+                          {o?.status}
+                        </Flex>
+                      ),
+                    },
+                    { label: 'Message', value: 'message' },
                   ]}
                   rows={data?.objects}
                 />
@@ -198,4 +227,10 @@ function Explorer({ className }: Props) {
   );
 }
 
-export default styled(Explorer).attrs({ className: Explorer.name })``;
+export default styled(Explorer).attrs({ className: Explorer.name })`
+  td:last-child {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+  }
+`;

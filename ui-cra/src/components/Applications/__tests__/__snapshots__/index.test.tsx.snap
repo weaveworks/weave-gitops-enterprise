@@ -197,6 +197,7 @@ exports[`Applications index test snapshots loading 1`] = `
 
 .c0 {
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 }
 
@@ -208,7 +209,6 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c3 {
-  color: #fff;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -226,7 +226,7 @@ exports[`Applications index test snapshots loading 1`] = `
   justify-content: space-between;
   color: inherit;
   font-size: 20px;
-  height: 80px;
+  height: 60px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
@@ -255,7 +255,7 @@ exports[`Applications index test snapshots loading 1`] = `
       class="c1 c2 count-header"
     >
       <div
-        class="c1"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-18"
@@ -301,7 +301,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
         class="c8"
@@ -400,7 +400,7 @@ exports[`Applications index test snapshots loading 1`] = `
           Need help? Raise a 
           <a
             class="c14"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
@@ -837,8 +837,12 @@ exports[`Applications index test snapshots success 1`] = `
   overflow: hidden;
   background: white;
   height: 0px;
-  -webkit-transition: height 0.2s ease-in;
-  transition: height 0.2s ease-in;
+  -webkit-transition-property: height;
+  transition-property: height;
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+  -webkit-transition-timing-function: ease-in-out;
+  transition-timing-function: ease-in-out;
   z-index: 1;
 }
 
@@ -1040,6 +1044,7 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c0 {
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 }
 
@@ -1051,7 +1056,6 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c3 {
-  color: #fff;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -1069,7 +1073,7 @@ exports[`Applications index test snapshots success 1`] = `
   justify-content: space-between;
   color: inherit;
   font-size: 20px;
-  height: 80px;
+  height: 60px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
@@ -1098,7 +1102,7 @@ exports[`Applications index test snapshots success 1`] = `
       class="c1 c2 count-header"
     >
       <div
-        class="c1"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-34"
@@ -1147,7 +1151,7 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
         class="c8"
@@ -2180,8 +2184,8 @@ exports[`Applications index test snapshots success 1`] = `
         <div>
           Need help? Raise a 
           <a
-            class="c41"
-            href="https://weavesupport.zendesk.com/"
+            class="c42"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >

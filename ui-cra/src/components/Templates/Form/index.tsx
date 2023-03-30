@@ -1,6 +1,3 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, Redirect } from 'react-router-dom';
-import styled from 'styled-components';
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
   createStyles,
@@ -20,12 +17,18 @@ import {
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Redirect, useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import {
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -43,7 +46,13 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
+import { getFormattedCostEstimate } from '../../../utils/formatters';
+import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { getGitRepos } from '../../Clusters';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { getLink } from '../Edit/EditButton';
+import useNotifications from './../../../contexts/Notifications';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
@@ -56,15 +65,6 @@ import {
   getInitialGitRepo,
   getRepositoryUrl,
 } from './utils';
-import { getFormattedCostEstimate } from '../../../utils/formatters';
-import useNotifications from './../../../contexts/Notifications';
-import { Routes } from '../../../utils/nav';
-import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { Pipeline } from '../../../api/pipelines/types.pb';
-import { getLink } from '../Edit/EditButton';
-import { getGitRepos } from '../../Clusters';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -306,7 +306,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
 
   // get the cost estimate feature flag
-  const { data: featureFlagsData } = useFeatureFlags();
+  const { isFlagEnabled } = useFeatureFlags();
 
   const isCredentialEnabled =
     annotations?.['templates.weave.works/credentials-enabled'] === 'true';
@@ -315,7 +315,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const isKustomizationsEnabled =
     annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
   const isCostEstimationEnabled =
-    featureFlagsData.flags.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
+    isFlagEnabled('WEAVE_GITOPS_FEATURE_COST_ESTIMATION') &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(

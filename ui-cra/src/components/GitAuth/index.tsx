@@ -1,10 +1,10 @@
-import React, { FC, Dispatch, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
-import { RepoInputWithAuth } from './RepoInputWithAuth';
 import { getRepositoryUrl } from '../Templates/Form/utils';
+import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
+import { RepoInputWithAuth } from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;

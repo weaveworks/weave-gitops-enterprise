@@ -1,28 +1,30 @@
-import React, { FC } from 'react';
-import { isEmpty } from 'lodash';
-import styled from 'styled-components';
-import { transparentize } from 'polished';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
-import { Flex, theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Container } from '@material-ui/core';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import ArrowForward from '@material-ui/icons/ArrowForwardIos';
+import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { isEmpty } from 'lodash';
+import { transparentize } from 'polished';
+import { FC } from 'react';
 import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 
 interface Size {
   size?: 'small';
 }
 
 const Span = styled.span`
-  color: ${({ theme }) => theme.colors.white};
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
   max-width: 300px;
 `;
+
 export const Title = styled.div<Size>`
   margin-right: ${({ size }) =>
     size === 'small' ? weaveTheme.spacing.xxs : weaveTheme.spacing.xs};
   white-space: nowrap;
 `;
+
 export const Count = styled.div<Size>`
   background: ${({ size }) =>
     size === 'small'
@@ -38,6 +40,7 @@ export const Count = styled.div<Size>`
   margin-left: ${weaveTheme.spacing.xxs};
   border-radius: ${weaveTheme.borderRadius.soft};
 `;
+
 export interface Breadcrumb {
   label: string;
   url?: string;
@@ -73,12 +76,7 @@ const useStyles = makeStyles(() =>
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   const classes = useStyles();
   return (
-    <Flex
-      style={{
-        fontSize: '20px',
-        height: '32px',
-      }}
-    >
+    <Container className="test-id-breadcrumbs">
       {path.map(({ label, url }, index) => (
         <div
           key={index}
@@ -103,6 +101,6 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
           )}
         </div>
       ))}
-    </Flex>
+    </Container>
   );
 };

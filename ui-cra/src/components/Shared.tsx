@@ -33,7 +33,7 @@ export const ColumnHeaderTooltip: FC<TooltipProps> = ({
 );
 
 export const TableWrapper = styled.div`
-  max-width: calc(100vw - 300px);
+  width: 100%;
   div[class*='FilterDialog'] {
     .Mui-checked {
       color: ${({ theme }) => theme.colors.primary};

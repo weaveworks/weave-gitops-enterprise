@@ -2335,10 +2335,41 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.19.0-15-gae87b649":
-  version "0.19.0-15-gae87b649"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-15-gae87b649/01a7909b4fd7b7a446742e4f14023914f7be502b#01a7909b4fd7b7a446742e4f14023914f7be502b"
-  integrity sha512-4fF8xzZdYmr/2U7vuPDYefrsId2Kxzf16cPM2HAofWQbSKu6g9ThbQ1Xwp9dF6yGTnDlAwbtCnOli1qlYvj1bQ==
+"@weaveworks/weave-gitops-main@0.19.0-32-g3db84ae3":
+  version "0.19.0-32-g3db84ae3"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-32-g3db84ae3/bd535d981ef012e3055456bb4545908ca1a812a3#bd535d981ef012e3055456bb4545908ca1a812a3"
+  integrity sha512-2OzQ8B80lN3BUPimZK3HA4681F2KjokxOsEOk1Tcno7fU4juLWY4qTVvtHij5fg0NLn1JMCjQCU8thQ4g52fGw==
+  dependencies:
+    "@material-ui/core" "^4.12.3"
+    "@material-ui/icons" "^4.11.2"
+    "@material-ui/lab" "^4.0.0-alpha.58"
+    d3 "^7.6.1"
+    d3-dag "^0.11.5"
+    history "^5.0.0"
+    http-proxy-middleware "^2.0.3"
+    jest-canvas-mock "^2.4.0"
+    jest-fail-on-console "^3.0.1"
+    jest-worker "^27.5.1"
+    js-sha3 "0.8.0"
+    lodash "^4.17.21"
+    luxon "^3.2.1"
+    mnemonic-browser "^0.0.1"
+    postcss "^8.3.11"
+    query-string "^4.3.4"
+    react "^17.0.2"
+    react-dom "^17.0.2"
+    react-lottie-player "^1.4.3"
+    react-query "^3.34.7"
+    react-router-dom "^5.2.0"
+    react-toastify "^7.0.4"
+    sha3 "^2.1.4"
+    styled-components "^5.3.0"
+    yaml "^1.10.2"
+
+"@weaveworks/weave-gitops@0.20.0":
+  version "0.20.0"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.20.0/674e48e77c75181135b62b9583bc80c0b08730d7#674e48e77c75181135b62b9583bc80c0b08730d7"
+  integrity sha512-OBaH02ftws1sVawGUet1+iW4g4CJBPJNBvuuNHF8QfkqBZ6672kZ3ng9jcgXWrrBqaNaEo38p5qycy0/eR+lUQ==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -3185,9 +3216,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001297, caniuse-lite@^1.0.30001312:
-  version "1.0.30001399"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001399.tgz"
-  integrity sha512-4vQ90tMKS+FkvuVWS5/QY1+d805ODxZiKFzsU8o/RsVJz49ZSRR8EjykLJbqhzdPgadbX6wB538wOzle3JniRA==
+  version "1.0.30001472"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001472.tgz"
+  integrity sha512-xWC/0+hHHQgj3/vrKYY0AAzeIUgr7L9wlELIcAvZdDUHlhL/kNxMdnQLOSOQfP8R51ZzPhmHdyMkI0MMpmxCfg==
 
 case-sensitive-paths-webpack-plugin@^2.4.0:
   version "2.4.0"

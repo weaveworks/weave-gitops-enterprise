@@ -15,7 +15,7 @@ const Wrapper = styled(Flex)<Size>`
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  height: ${80}px;
+  height: ${60}px;
   flex-grow: 1;
   padding: 0 ${small} 0 ${medium};
   position: sticky;
