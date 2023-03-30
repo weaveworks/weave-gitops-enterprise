@@ -68,7 +68,7 @@ func (a SourcesPage) CountSources() int {
 
 func GetSourceDetailPage(webDriver *agouti.Page) *SourceDetailPage {
 	detailPage := SourceDetailPage{
-		Header: webDriver.Find(`".test-id-breadcrumbs > :last-child"`),
+		Header: webDriver.Find(`.test-id-breadcrumbs > :last-child`),
 		Title:  webDriver.Find(`div[class*="SourceDetail"]`),
 	}
 	return &detailPage
