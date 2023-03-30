@@ -9,7 +9,6 @@ import {
   GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
 } from '../types/custom';
-import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -112,37 +111,6 @@ const useClusters = () => {
     getDashboardAnnotations,
     getCluster,
   };
-};
-
-export const useListCluster = (
-  opts: ReactQueryOptions<ListGitopsClustersResponse, Error> = {
-    keepPreviousData: true,
-  },
-) => {
-  const { api } = useContext(EnterpriseClientContext);
-  const { notifications, setNotifications } = useNotifications();
-
-  const onError = (error: Error) => {
-    if (
-      error &&
-      notifications?.some(
-        notification => error.message === notification.message.text,
-      ) === false
-    ) {
-      setNotifications([
-        ...notifications,
-        { message: { text: error?.message }, severity: 'error' },
-      ]);
-    }
-  };
-  return useQuery<ListGitopsClustersResponse, Error>(
-    'clusters',
-    () => api.ListGitopsClusters({}),
-    {
-      ...opts,
-      onError,
-    },
-  );
 };
 
 export default useClusters;

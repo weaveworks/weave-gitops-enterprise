@@ -71,7 +71,7 @@ const GitOps: FC<{
   );
 
   return (
-    <GitOpsWrapper className='gitops-wrapper'>
+    <GitOpsWrapper>
       <h2>GitOps</h2>
       <Input
         className="form-section"

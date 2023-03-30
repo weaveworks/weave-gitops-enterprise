@@ -68,7 +68,6 @@ export enum Routes {
   Secrets = '/secrets',
   SecretDetails = '/secrets/details',
   CreateSecret = '/secrets/create',
-  CreateSopsSecret = '/secrets/sops/create',
 
   PolicyConfigs = '/policyConfigs',
   PolicyConfigsDetails = '/policyConfigs/details',

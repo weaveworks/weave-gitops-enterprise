@@ -850,7 +850,7 @@ func validateSopsSecret(secret *capiv1_proto.SopsSecret) error {
 	}
 
 	if secret.Data == nil && secret.StringData == nil {
-		err = multierror.Append(err, errors.New("key/value pairs must be set in either data or stringData"))
+		err = multierror.Append(err, errors.New("either data or stringData fields are required"))
 	}
 
 	if secret.Data != nil && secret.StringData != nil {

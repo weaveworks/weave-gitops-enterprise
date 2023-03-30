@@ -23,9 +23,9 @@ const LoadingWrapper: FC<Props> = ({
   return (
     <div className={classes.fullWidth}>
       {loading && (
-        <Box margin={4}>
+        <Box marginTop={4}>
           <Flex wide center>
-            <CircularProgress size={'2rem'}/>
+            <CircularProgress />
           </Flex>
         </Box>
       )}
