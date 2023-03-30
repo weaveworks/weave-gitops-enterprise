@@ -60,16 +60,11 @@ import {
   getCreateRequestAnnotation,
   getInitialGitRepo,
 } from '../Templates/Form/utils';
-// <<<<<<< HEAD
-// import { GitRepositoryEnriched } from '../Templates/Form';
-// import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
-// =======
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
-// >>>>>>> main
 
 interface Size {
   size?: 'small';
@@ -100,10 +95,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
   }
   width: 100%;
 `;
-
-// const LoadingWrapper = styled.div`
-//   ${contentCss};
-// `;
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
