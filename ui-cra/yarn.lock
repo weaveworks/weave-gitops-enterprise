@@ -2366,10 +2366,10 @@
     styled-components "^5.3.0"
     yaml "^1.10.2"
 
-"@weaveworks/weave-gitops@0.20.0":
-  version "0.20.0"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.20.0/674e48e77c75181135b62b9583bc80c0b08730d7#674e48e77c75181135b62b9583bc80c0b08730d7"
-  integrity sha512-OBaH02ftws1sVawGUet1+iW4g4CJBPJNBvuuNHF8QfkqBZ6672kZ3ng9jcgXWrrBqaNaEo38p5qycy0/eR+lUQ==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-2-g15becb29":
+  version "0.20.0-2-g15becb29"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-2-g15becb29/4e39fd7e403f35d8cacf19c19a0d92d9a48a88ff#4e39fd7e403f35d8cacf19c19a0d92d9a48a88ff"
+  integrity sha512-ez6OVxosr4dOP/4EO3dIesgVRDSfsS6ClFC9vuhHQ9QrIOKjtCNIWSmqmnRPWQDA6U79G6LSztHSWiy4+byVEQ==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
