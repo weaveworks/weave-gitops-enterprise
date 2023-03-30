@@ -141,8 +141,14 @@ const ProfilesListItem: FC<{
     handleUpdateProfile(profile);
   };
 
-  const handleChangeYaml = (event: ChangeEvent<HTMLTextAreaElement>) =>
-    setYaml(event.target.value);
+  const handleUpdateProfiles = useCallback(
+    value => {
+      setYaml(value);
+      profile.values.forEach(item => {
+        if (item.version === version) {
+          item.yaml = value;
+        }
+      });
 
   const [selectedValue] = profile.values.filter(
     value => value.selected === true,
@@ -154,17 +160,20 @@ const ProfilesListItem: FC<{
     version = profile.values?.[0].version || '';
   }
 
-  const handleUpdateProfiles = useCallback(() => {
-    profile.values.forEach(item => {
-      if (item.version === version) {
-        item.yaml = yaml;
-      }
-    });
+  const handleUpdateProfiles = useCallback(
+    value => {
+      setYaml(value);
+      profile.values.forEach(item => {
+        if (item.version === version) {
+          item.yaml = value;
+        }
+      });
 
-    handleUpdateProfile(profile);
+      handleUpdateProfile(profile);
 
-    setOpenYamlPreview(false);
-  }, [profile, handleUpdateProfile, version, yaml]);
+      setOpenYamlPreview(false);
+    },
+    [profile, handleUpdateProfile, version],
 
   const handleRenderInput = useCallback(
     (params: AutocompleteRenderInputParams) => (
@@ -246,10 +255,10 @@ const ProfilesListItem: FC<{
             semverMaxSatisfying(availableVersions, version) ||
             availableVersions[0]
           }
-          onChange={handleChangeYaml}
           onSave={handleUpdateProfiles}
           onClose={() => setOpenYamlPreview(false)}
           helmRepo={helmRepo}
+          onDiscard={() => setOpenYamlPreview(false)}
         />
       )}
     </>

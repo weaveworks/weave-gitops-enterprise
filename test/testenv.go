@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -25,7 +24,7 @@ func getRepoRoot(t *testing.T) string {
 func StartTestEnv(t *testing.T) *testutils.K8sTestEnv {
 	t.Helper()
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", getRepoRoot(t))
-	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
+	t.Setenv("KUBEBUILDER_ASSETS", envTestPath)
 
 	k8sEnv, err := testutils.StartK8sTestEnvironment([]string{
 		"../tools/testcrds",

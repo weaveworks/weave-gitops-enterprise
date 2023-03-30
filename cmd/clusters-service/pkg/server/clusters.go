@@ -9,20 +9,22 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/imdario/mergo"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/services/profiles"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc/codes"
@@ -31,15 +33,19 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server/gitproviders"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/validation"
 )
@@ -190,7 +196,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		msg.PreviousValues = nil
 	}
 
-	git_files, err := GetFiles(
+	gitFiles, err := GetFiles(
 		ctx,
 		client,
 		s.log,
@@ -214,13 +220,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		return nil, err
 	}
 
-	files := []gitprovider.CommitFile{}
-	files = append(files, git_files.RenderedTemplate...)
-	files = append(files, git_files.ProfileFiles...)
-	files = append(files, git_files.KustomizationFiles...)
-	files = append(files, git_files.ExternalSecretsFiles...)
+	files := []git.CommitFile{}
+	files = append(files, gitFiles.RenderedTemplate...)
+	files = append(files, gitFiles.ProfileFiles...)
+	files = append(files, gitFiles.KustomizationFiles...)
+	files = append(files, gitFiles.ExternalSecretsFiles...)
 
-	deletedFiles := getDeletedFiles(prevFiles, git_files)
+	deletedFiles := getDeletedFiles(prevFiles, gitFiles)
 	files = append(files, deletedFiles...)
 
 	repositoryURL := viper.GetString("capi-templates-repository-url")
@@ -243,12 +249,13 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	if msg.CommitMessage == "" {
 		msg.CommitMessage = "Add Cluster Manifests"
 	}
+
 	_, err = s.provider.GetRepository(ctx, *gp, repositoryURL)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to access repo %s: %s", repositoryURL, err)
 	}
 
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
 		ReposistoryAPIURL: msg.RepositoryApiUrl,
@@ -289,7 +296,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		baseBranch = msg.BaseBranch
 	}
 
-	var filesList []gitprovider.CommitFile
+	var filesList []git.CommitFile
 	if len(msg.ClusterNamespacedNames) > 0 {
 		for _, clusterNamespacedName := range msg.ClusterNamespacedNames {
 			// Files in manifest path
@@ -298,8 +305,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 					clusterNamespacedName.Name,
 					getClusterNamespace(clusterNamespacedName.Namespace)),
 			)
-			filesList = append(filesList, gitprovider.CommitFile{
-				Path:    &path,
+			filesList = append(filesList, git.CommitFile{
+				Path:    path,
 				Content: nil,
 			})
 
@@ -315,8 +322,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			}
 
 			for _, treeEntry := range treeEntries {
-				filesList = append(filesList, gitprovider.CommitFile{
-					Path:    &treeEntry.Path,
+				filesList = append(filesList, git.CommitFile{
+					Path:    treeEntry.Path,
 					Content: nil,
 				})
 			}
@@ -327,8 +334,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			path := getClusterManifestPath(
 				createNamespacedName(clusterName, getClusterNamespace("")),
 			)
-			filesList = append(filesList, gitprovider.CommitFile{
-				Path:    &path,
+			filesList = append(filesList, git.CommitFile{
+				Path:    path,
 				Content: nil,
 			})
 
@@ -344,8 +351,8 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 			}
 
 			for _, treeEntry := range treeEntries {
-				filesList = append(filesList, gitprovider.CommitFile{
-					Path:    &treeEntry.Path,
+				filesList = append(filesList, git.CommitFile{
+					Path:    treeEntry.Path,
 					Content: nil,
 				})
 			}
@@ -370,7 +377,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "failed to get repo %s: %s", repositoryURL, err)
 	}
 
-	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, git.WriteFilesToBranchAndCreatePullRequestRequest{
+	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
 		GitProvider:       *gp,
 		RepositoryURL:     repositoryURL,
 		ReposistoryAPIURL: msg.RepositoryApiUrl,
@@ -421,11 +428,29 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		return val, nil
 	}
 
+	// Used to override the secret that we discover
+	var overrideSecret []byte
+	overrideSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      "cluster-kubeconfig-override",
+	}
+	sec, err := secretByName(ctx, cl, overrideSecretName)
+	if err != nil && !apierrors.IsNotFound(err) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", overrideSecret, "value")
+		}
+		overrideSecret = val
+	}
+
 	userSecretName := client.ObjectKey{
 		Namespace: getClusterNamespace(cluster.Namespace),
 		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
 	}
-	sec, err := secretByName(ctx, cl, userSecretName)
+	sec, err = secretByName(ctx, cl, userSecretName)
 	if err != nil && !apierrors.IsNotFound(err) {
 		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
 	}
@@ -433,6 +458,10 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		val, ok := kubeConfigFromSecret(sec)
 		if !ok {
 			return nil, fmt.Errorf("secret %q was found but is missing key %q", userSecretName, "value")
+		}
+
+		if overrideSecret != nil {
+			return mergeKubeConfigs(val, overrideSecret)
 		}
 		return val, nil
 	}
@@ -449,6 +478,10 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		val, ok := kubeConfigFromSecret(sec)
 		if !ok {
 			return nil, fmt.Errorf("secret %q was found but is missing key %q", clusterSecretName, "value")
+		}
+
+		if overrideSecret != nil {
+			return mergeKubeConfigs(val, overrideSecret)
 		}
 		return val, nil
 	}
@@ -515,7 +548,7 @@ func getToken(ctx context.Context) (string, string, error) {
 	return providerToken.AccessToken, "oauth2", nil
 }
 
-func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFile, error) {
+func getCommonKustomization(cluster types.NamespacedName) (*git.CommitFile, error) {
 	commonKustomizationPath := getCommonKustomizationPath(cluster)
 	commonKustomization := createKustomizationObject(&capiv1_proto.Kustomization{
 		Metadata: &capiv1_proto.Metadata{
@@ -538,15 +571,57 @@ func getCommonKustomization(cluster types.NamespacedName) (*gitprovider.CommitFi
 		return nil, fmt.Errorf("error marshalling common kustomization, %w", err)
 	}
 	commonKustomizationString := string(b)
-	file := &gitprovider.CommitFile{
-		Path:    &commonKustomizationPath,
+	file := &git.CommitFile{
+		Path:    commonKustomizationPath,
 		Content: &commonKustomizationString,
 	}
 
 	return file, nil
 }
 
-func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider, error) {
+func getSopsKustomization(cluster types.NamespacedName, msg GetFilesRequest) (*git.CommitFile, error) {
+	sopsKustomizationPath := getSopsKustomizationPath(cluster)
+	sopsKustomization := createSopsKustomizationObject(&capiv1_proto.Kustomization{
+		Metadata: &capiv1_proto.Metadata{
+			Name:      msg.ParameterValues["SOPS_KUSTOMIZATION_NAME"],
+			Namespace: "flux-system",
+			Annotations: map[string]string{
+				"sops-public-key/name":      fmt.Sprintf("%s%s", msg.ParameterValues["SOPS_SECRET_REF"], "-pub"),
+				"sops-public-key/namespace": msg.ParameterValues["SOPS_SECRET_REF_NAMESPACE"],
+			},
+		},
+		Spec: &capiv1_proto.KustomizationSpec{
+			Path: filepath.Join(
+				viper.GetString("capi-repository-clusters-path"),
+				cluster.Namespace,
+				cluster.Name,
+				"sops",
+			),
+			SourceRef: &capiv1_proto.SourceRef{
+				Name: "flux-system",
+			},
+			Decryption: &capiv1_proto.Decryption{
+				Provider: "sops",
+				SecretRef: &capiv1_proto.SecretRef{
+					Name: msg.ParameterValues["SOPS_SECRET_REF"],
+				},
+			},
+		},
+	})
+
+	b, err := yaml.Marshal(sopsKustomization)
+	if err != nil {
+		return nil, fmt.Errorf("error marshalling sops kustomization, %w", err)
+	}
+	sopsKustomizationString := string(b)
+	file := &git.CommitFile{
+		Path:    sopsKustomizationPath,
+		Content: &sopsKustomizationString,
+	}
+	return file, nil
+}
+
+func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvider, error) {
 	token, tokenType, err := getToken(ctx)
 	if err != nil {
 		return nil, err
@@ -568,7 +643,7 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*git.GitProvider
 		repoHostname = repoURL.URL().Host
 	}
 
-	return &git.GitProvider{
+	return &csgit.GitProvider{
 		Type:      repoType,
 		TokenType: tokenType,
 		Token:     token,
@@ -620,7 +695,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]gitprovider.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]git.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -730,7 +805,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 		return nil, err
 	}
 
-	commitFiles := []gitprovider.CommitFile{}
+	commitFiles := []git.CommitFile{}
 	// For each path, we join the content of relative profiles and add to a commit file
 	for path := range profilesByPath {
 		profileContent := string(bytes.Join(profilesByPath[path], []byte("---\n")))
@@ -739,15 +814,15 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			return nil, fmt.Errorf("cannot render path %s: %w", path, err)
 		}
 		renderedPathStr := string(renderedPath)
-		file := &gitprovider.CommitFile{
-			Path:    &renderedPathStr,
+		file := git.CommitFile{
+			Path:    renderedPathStr,
 			Content: &profileContent,
 		}
-		commitFiles = append(commitFiles, *file)
+		commitFiles = append(commitFiles, file)
 	}
 
 	sort.Slice(commitFiles, func(i, j int) bool {
-		return *commitFiles[i].Path < *commitFiles[j].Path
+		return commitFiles[i].Path < commitFiles[j].Path
 	})
 
 	return commitFiles, nil
@@ -869,6 +944,13 @@ func getCommonKustomizationPath(cluster types.NamespacedName) string {
 	)
 }
 
+func getSopsKustomizationPath(cluster types.NamespacedName) string {
+	return filepath.Join(
+		getClusterDirPath(cluster),
+		"sops-kustomization.yaml",
+	)
+}
+
 func getClusterProfilesPath(cluster types.NamespacedName) string {
 	return filepath.Join(
 		getClusterDirPath(cluster),
@@ -971,12 +1053,12 @@ func generateKustomizationFile(
 	isControlPlane bool,
 	cluster types.NamespacedName,
 	kustomization *capiv1_proto.Kustomization,
-	filePath string) (gitprovider.CommitFile, error) {
+	filePath string) (git.CommitFile, error) {
 	kustomizationYAML := createKustomizationObject(kustomization)
 
 	b, err := yaml.Marshal(kustomizationYAML)
 	if err != nil {
-		return gitprovider.CommitFile{}, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Metadata.Name, err)
+		return git.CommitFile{}, fmt.Errorf("error marshalling %s kustomization, %w", kustomization.Metadata.Name, err)
 	}
 
 	k := createNamespacedName(kustomization.Metadata.Name, kustomization.Metadata.Namespace)
@@ -988,8 +1070,8 @@ func generateKustomizationFile(
 
 	kustomizationContent := string(b)
 
-	file := &gitprovider.CommitFile{
-		Path:    &kustomizationPath,
+	file := &git.CommitFile{
+		Path:    kustomizationPath,
 		Content: &kustomizationContent,
 	}
 
@@ -1033,6 +1115,13 @@ func getClusterResourcePath(isControlPlane bool, resourceType string, cluster, r
 		)
 	}
 
+	if resourceType == "sops-secret" {
+		return filepath.Join(
+			"%s",
+			fileName,
+		)
+	}
+
 	return filepath.Join(
 		viper.GetString("capi-repository-clusters-path"),
 		clusterNamespace,
@@ -1067,6 +1156,39 @@ func createKustomizationObject(kustomization *capiv1_proto.Kustomization) *kusto
 	return generatedKustomization
 }
 
+func createSopsKustomizationObject(kustomization *capiv1_proto.Kustomization) *kustomizev1.Kustomization {
+	generatedKustomization := &kustomizev1.Kustomization{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        kustomization.Metadata.Name,
+			Namespace:   kustomization.Metadata.Namespace,
+			Annotations: kustomization.Metadata.Annotations,
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      kustomizationKind,
+				Name:      kustomization.Spec.SourceRef.Name,
+				Namespace: kustomization.Spec.SourceRef.Namespace,
+			},
+			Decryption: &kustomizev1.Decryption{
+				Provider: kustomization.Spec.Decryption.Provider,
+				SecretRef: &meta.LocalObjectReference{
+					Name: kustomization.Spec.Decryption.SecretRef.Name,
+				},
+			},
+			Interval:        metav1.Duration{Duration: time.Minute * 10},
+			Prune:           true,
+			Path:            kustomization.Spec.Path,
+			TargetNamespace: kustomization.Spec.TargetNamespace,
+		},
+	}
+
+	return generatedKustomization
+}
+
 func kubeConfigFromSecret(s *corev1.Secret) ([]byte, bool) {
 	val, ok := s.Data["value.yaml"]
 	if ok {
@@ -1086,11 +1208,11 @@ func createNamespacedName(name, namespace string) types.NamespacedName {
 	}
 }
 
-// Get list of gitprovider.CommitFile objects of files that should be deleted with empty content
+// Get list of git.CommitFile objects of files that should be deleted with empty content
 // Kustomizations and Profiles removed during an edit are added to the deleted list
 // Old files with changed paths are added to the deleted list
-func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitprovider.CommitFile {
-	deletedFiles := []gitprovider.CommitFile{}
+func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []git.CommitFile {
+	deletedFiles := []git.CommitFile{}
 
 	removedKustomizations := getMissingFiles(prevFiles.KustomizationFiles, newFiles.KustomizationFiles)
 	removedProfiles := getMissingFiles(prevFiles.ProfileFiles, newFiles.ProfileFiles)
@@ -1101,4 +1223,56 @@ func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []gitp
 	deletedFiles = append(deletedFiles, removedRenderedTemplates...)
 
 	return deletedFiles
+}
+
+func mergeKubeConfigs(main, overrides []byte) ([]byte, error) {
+	mainCfg, err := clientcmd.Load(main)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the KubeConfig: %w", err)
+	}
+
+	overrideCfg, err := clientcmd.Load(overrides)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the override KubeConfig: %w", err)
+	}
+
+	if err := mergo.Merge(mainCfg, overrideCfg, mergo.WithOverride, mergo.WithTransformers(authInfoTransformer{})); err != nil {
+		return nil, fmt.Errorf("failed to merge override config: %w", err)
+	}
+
+	// This will replace the context user with the authinfo user if only one
+	// context and user exist.
+	// This allows complete replacement of the authinfos from the merged secret.
+	authUsers := []string{}
+	for name := range mainCfg.AuthInfos {
+		authUsers = append(authUsers, name)
+	}
+	var replaceUser string
+	if len(authUsers) == 1 {
+		replaceUser = authUsers[0]
+	}
+
+	if len(mainCfg.Contexts) == 1 && mainCfg.CurrentContext != "" {
+		mainCfg.Contexts[mainCfg.CurrentContext].AuthInfo = replaceUser
+	}
+
+	return clientcmd.Write(*mainCfg)
+}
+
+type authInfoTransformer struct {
+}
+
+// the AuthInfo transformer entirely overwrites the AuthInfos, this causes the
+// users in the overrides to replace the users in the main list
+func (t authInfoTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
+	if typ == reflect.TypeOf(map[string]*clientcmdapi.AuthInfo{}) {
+		return func(dst, src reflect.Value) error {
+			srcAuthInfo := src.Interface().(map[string]*clientcmdapi.AuthInfo)
+			dst.Set(reflect.ValueOf(srcAuthInfo))
+
+			return nil
+		}
+	}
+
+	return nil
 }

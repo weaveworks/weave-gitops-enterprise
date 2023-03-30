@@ -30,7 +30,14 @@ rules:
     resources: ["helmreleases"]
     verbs: ["get", "list", "patch"]
   - apiGroups: ["source.toolkit.fluxcd.io"]
-    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    resources:
+      [
+        "buckets",
+        "helmcharts",
+        "gitrepositories",
+        "helmrepositories",
+        "ocirepositories",
+      ]
     verbs: ["get", "list", "patch"]
   - apiGroups: [""]
     resources: ["events"]
@@ -47,4 +54,4 @@ rules:
     - clusterexternalsecrets
     - secretstores
     - clustersecretstores
-    verbs: ["get", "list"]
+    verbs: ["get", "list", "udpate", "patch"]

@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,10 +19,10 @@ import (
 	"time"
 
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
@@ -42,7 +44,7 @@ import (
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 )
@@ -397,7 +399,7 @@ func TestCreatePullRequest(t *testing.T) {
 	testCases := []struct {
 		name           string
 		clusterState   []runtime.Object
-		provider       git.Provider
+		provider       csgit.Provider
 		pruneEnvVar    string
 		req            *capiv1_protos.CreatePullRequestRequest
 		expected       string
@@ -501,6 +503,154 @@ func TestCreatePullRequest(t *testing.T) {
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
+			name: "create pull request with template with comments",
+			clusterState: []runtime.Object{
+				readCAPITemplateFixture(t, "testdata/template-with-comments.yaml"),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-1",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME": "foo",
+					"NAMESPACE":    "default",
+				},
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+			CommittedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/default/foo/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`},
+				{
+					Path: "clusters/my-cluster/clusters/default/foo.yaml",
+					Content: `apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: "foo-control-plane"
+  namespace: "default"
+  annotations:
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"foo\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
+spec:
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerMachineTemplate # {"testing": "field"}
+      name: "foo-control-plane"
+      namespace: "default"
+  version: "1.26.1"
+`,
+				},
+			},
+		},
+		{
+			name: "create pull request with template with sops enabled",
+			clusterState: []runtime.Object{
+				readCAPITemplateFixture(t, "testdata/template-with-sops.yaml"),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreatePullRequestRequest{
+				TemplateName: "cluster-template-sops",
+				ParameterValues: map[string]string{
+					"CLUSTER_NAME":              "foo",
+					"NAMESPACE":                 "default",
+					"SOPS_KUSTOMIZATION_NAME":   "my-secrets",
+					"SOPS_SECRET_REF":           "sops-gpg",
+					"SOPS_SECRET_REF_NAMESPACE": "flux-system",
+				},
+				RepositoryUrl:     "https://github.com/org/repo.git",
+				HeadBranch:        "feature-01",
+				BaseBranch:        "main",
+				Title:             "New Cluster",
+				Description:       "Creates a cluster through a CAPI template",
+				CommitMessage:     "Add cluster manifest",
+				TemplateNamespace: "default",
+			},
+			expected: "https://github.com/org/repo/pull/1",
+			CommittedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/default/foo/sops-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  annotations:
+    sops-public-key/name: sops-gpg-pub
+    sops-public-key/namespace: flux-system
+  creationTimestamp: null
+  name: my-secrets
+  namespace: flux-system
+spec:
+  decryption:
+    provider: sops
+    secretRef:
+      name: sops-gpg
+  interval: 10m0s
+  path: clusters/default/foo/sops
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`,
+				},
+				{
+					Path: "clusters/default/foo/clusters-bases-kustomization.yaml",
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  creationTimestamp: null
+  name: clusters-bases-kustomization
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  path: clusters/bases
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+status: {}
+`},
+				{
+					Path: "clusters/my-cluster/clusters/default/foo.yaml",
+					Content: `apiVersion: controlplane.cluster.x-k8s.io/v1beta1
+kind: KubeadmControlPlane
+metadata:
+  name: "foo-control-plane"
+  namespace: "default"
+  annotations:
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-sops\",\"parameter_values\":{\"CLUSTER_NAME\":\"foo\",\"NAMESPACE\":\"default\",\"SOPS_KUSTOMIZATION_NAME\":\"my-secrets\",\"SOPS_SECRET_REF\":\"sops-gpg\",\"SOPS_SECRET_REF_NAMESPACE\":\"flux-system\"},\"commit_message\":\"Add cluster manifest\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
+spec:
+  machineTemplate:
+    infrastructureRef:
+      apiVersion: infrastructure.cluster.x-k8s.io/v1beta1
+      kind: DockerMachineTemplate # {"testing": "field"}
+      name: "foo-control-plane"
+      namespace: "default"
+  version: "1.26.1"
+`,
+				},
+			},
+		},
+		{
 			name: "default profile values",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
@@ -536,9 +686,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"default"},"commit_message":"Add
-      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1"}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\"}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -636,9 +784,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"foo","NAMESPACE":"default"},"commit_message":"Add
-      cluster manifest","template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"foo\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -704,9 +850,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
-      cluster manifest","values":[{"name":"demo-profile","version":"0.0.1","namespace":"test-system"}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\",\"namespace\":\"test-system\"}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -821,9 +965,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"New
-      Cluster","description":"Creates a cluster through a CAPI template","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Add
-      cluster manifest","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}},{"metadata":{"name":"apps-billing","namespace":"flux-system"},"spec":{"path":"./apps/billing","source_ref":{"name":"flux-system","namespace":"flux-system"}}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Add cluster manifest\",\"kustomizations\":[{\"metadata\":{\"name\":\"apps-capi\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/capi\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"},\"target_namespace\":\"foo-ns\"}},{\"metadata\":{\"name\":\"apps-billing\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/billing\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"}}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1007,9 +1149,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
-      Cluster","description":"Delete kustomization from cluster","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace"},"commit_message":"Edits
-      dev","template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"Edit Cluster\",\"description\":\"Delete kustomization from cluster\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Edits dev\",\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1149,9 +1289,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
-      Cluster","description":"Edit namespace","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace-2"},"commit_message":"Edits
-      dev","kustomizations":[{"metadata":{"name":"apps-capi","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"Edit Cluster\",\"description\":\"Edit namespace\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace-2\"},\"commit_message\":\"Edits dev\",\"kustomizations\":[{\"metadata\":{\"name\":\"apps-capi\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/capi\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"},\"target_namespace\":\"foo-ns\"}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1163,7 +1301,7 @@ metadata:
 			expected: "https://github.com/org/repo/pull/1",
 		},
 		{
-			name: "Edit cluster namespace and kustomization name ",
+			name: "Edit cluster namespace and kustomization name",
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
@@ -1269,9 +1407,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: '{"repository_url":"https://github.com/org/repo.git","head_branch":"feature-01","base_branch":"main","title":"Edit
-      Cluster","description":"Edit namespace","template_name":"cluster-template-1","parameter_values":{"CLUSTER_NAME":"dev","NAMESPACE":"clusters-namespace-2"},"commit_message":"Edits
-      dev","kustomizations":[{"metadata":{"name":"apps-capi-2","namespace":"flux-system"},"spec":{"path":"./apps/capi","source_ref":{"name":"flux-system","namespace":"flux-system"},"target_namespace":"foo-ns"}}],"template_namespace":"default","template_kind":"CAPITemplate"}'
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"Edit Cluster\",\"description\":\"Edit namespace\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace-2\"},\"commit_message\":\"Edits dev\",\"kustomizations\":[{\"metadata\":{\"name\":\"apps-capi-2\",\"namespace\":\"flux-system\"},\"spec\":{\"path\":\"./apps/capi\",\"source_ref\":{\"name\":\"flux-system\",\"namespace\":\"flux-system\"},\"target_namespace\":\"foo-ns\"}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
   labels:
     templates.weave.works/template-name: cluster-template-1
     templates.weave.works/template-namespace: default
@@ -1373,7 +1509,7 @@ func TestGetKubeconfig(t *testing.T) {
 		req                     *capiv1_protos.GetKubeconfigRequest
 		ctx                     context.Context
 		expected                []byte
-		err                     error
+		wantErr                 string
 	}{
 		{
 			name: "get kubeconfig as JSON",
@@ -1389,7 +1525,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "get kubeconfig as binary",
@@ -1420,7 +1556,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName:      "dev",
 				ClusterNamespace: "testing",
 			},
-			err: errors.New("unable to get kubeconfig secret for cluster testing/dev"),
+			wantErr: "unable to get kubeconfig secret for cluster testing/dev",
 		},
 		{
 			name: "secret found but is missing key",
@@ -1435,7 +1571,7 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "dev",
 			},
-			err: errors.New("secret \"default/dev-kubeconfig\" was found but is missing key \"value\""),
+			wantErr: `secret "default/dev-kubeconfig" was found but is missing key "value"`,
 		},
 		{
 			name: "use cluster_namespace to get secret",
@@ -1452,7 +1588,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterNamespace: "kube-system",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "no namespace and lookup across namespaces, use default namespace",
@@ -1468,7 +1604,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "user kubeconfig exists",
@@ -1485,7 +1621,75 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("bar")))),
+			expected: []byte("bar"),
+		},
+		{
+			name: "kubeconfig override exists merges with existing secret",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value.yaml", `{"apiVersion":"v1","clusters":[{"cluster":{"certificate-authority-data":"anVzdCB0ZXN0aW5n","server":"https://example.com"},"name":"example-com"}],"contexts":[{"context":{"cluster":"example-com","user":"example-com-admin"},"name":"example-com"}],"current-context":"example-com","kind":"Config","preferences":{},"users":[{"name":"example-com-admin","user":{"token":"token"}}]}`),
+				// makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"),
+				makeSecret("cluster-kubeconfig-override", "default", "value.yaml", `
+apiVersion: v1
+kind: Config
+users:
+- name: example-com-overridden-user
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      args:
+      - oidc-login
+      - get-token
+      - --oidc-issuer-url=https://auth.w3ops.net
+      - --oidc-client-id=k8s-leaf-cluster-auth
+      - --oidc-client-secret=<redacted>
+      - --oidc-extra-scope=groups
+      - --oidc-extra-scope=profile
+      - --oidc-extra-scope=email
+      command: kubectl
+`),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(`apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: anVzdCB0ZXN0aW5n
+    server: https://example.com
+  name: example-com
+contexts:
+- context:
+    cluster: example-com
+    user: example-com-overridden-user
+  name: example-com
+current-context: example-com
+kind: Config
+preferences: {}
+users:
+- name: example-com-overridden-user
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      args:
+      - oidc-login
+      - get-token
+      - --oidc-issuer-url=https://auth.w3ops.net
+      - --oidc-client-id=k8s-leaf-cluster-auth
+      - --oidc-client-secret=<redacted>
+      - --oidc-extra-scope=groups
+      - --oidc-extra-scope=profile
+      - --oidc-extra-scope=email
+      command: kubectl
+      env: null
+      interactiveMode: IfAvailable
+      provideClusterInfo: false
+`),
 		},
 		{
 			name: "gitops cluster references secret",
@@ -1504,7 +1708,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "gitops-cluster",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "gitops cluster references non-existent secret",
@@ -1521,8 +1725,8 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "gitops-cluster",
 			},
-			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			err: errors.New("failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster"),
+			ctx:     metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			wantErr: "failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster",
 		},
 	}
 	for _, tt := range testCases {
@@ -1538,16 +1742,35 @@ func TestGetKubeconfig(t *testing.T) {
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
 			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to get the kubeconfig:\n%s", err)
+				if tt.wantErr == "" {
+					t.Fatalf("failed to get the kubeconfig: %s", err)
 				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("got the wrong error:\n%s", diff)
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
 				}
-			} else {
-				if diff := cmp.Diff(string(tt.expected), string(res.Data)); diff != "" {
-					t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
+				return
+			}
+
+			var data []byte
+			if res != nil {
+				data = res.Data
+				// If we received a JSON response, parse it and extract the
+				// kubeconfig for comparison with the desired result.
+				if res.ContentType == "application/json" {
+					var body map[string]any
+
+					if err := json.Unmarshal(res.Data, &body); err != nil {
+						t.Fatal(err)
+					}
+
+					if data, err = base64.StdEncoding.DecodeString(body["kubeconfig"].(string)); err != nil {
+						t.Fatal(err)
+					}
 				}
+			}
+
+			if diff := cmp.Diff(string(tt.expected), string(data)); diff != "" {
+				t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
 			}
 		})
 	}
@@ -1561,7 +1784,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 
 	testCases := []struct {
 		name           string
-		provider       git.Provider
+		provider       csgit.Provider
 		req            *capiv1_protos.DeleteClustersPullRequestRequest
 		CommittedFiles []*capiv1_protos.CommitFile
 		expected       string
@@ -1673,8 +1896,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				if fakeGitProvider.OriginalFiles != nil {
 					// sort CommittedFiles and OriginalFiles for comparison
 					sort.Slice(fakeGitProvider.CommittedFiles[:], func(i, j int) bool {
-						currFile := *fakeGitProvider.CommittedFiles[i].Path
-						nextFile := *fakeGitProvider.CommittedFiles[j].Path
+						currFile := fakeGitProvider.CommittedFiles[i].Path
+						nextFile := fakeGitProvider.CommittedFiles[j].Path
 						return currFile < nextFile
 					})
 					sort.Strings(fakeGitProvider.OriginalFiles)
@@ -1683,8 +1906,8 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 						t.Fatalf("number of committed files (%d) do not match number of expected files (%d)\n", len(fakeGitProvider.CommittedFiles), len(fakeGitProvider.OriginalFiles))
 					}
 					for ind, committedFile := range fakeGitProvider.CommittedFiles {
-						if *committedFile.Path != fakeGitProvider.OriginalFiles[ind] {
-							t.Fatalf("committed file does not match expected file\n%v\n%v", *committedFile.Path, fakeGitProvider.OriginalFiles[ind])
+						if committedFile.Path != fakeGitProvider.OriginalFiles[ind] {
+							t.Fatalf("committed file does not match expected file\n%v\n%v", committedFile.Path, fakeGitProvider.OriginalFiles[ind])
 
 						}
 					}
@@ -1811,7 +2034,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -1887,7 +2110,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -1962,7 +2185,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"management/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2038,7 +2261,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2115,7 +2338,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2221,7 +2444,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2294,7 +2517,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 		},
 	)
 	require.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2377,7 +2600,7 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	expected := []gitprovider.CommitFile{
+	expected := []git.CommitFile{
 		makeCommitFile(
 			"ns-foo/cluster-foo/profiles.yaml",
 			`apiVersion: source.toolkit.fluxcd.io/v1beta2
@@ -2539,13 +2762,13 @@ status: {}
 	var tests = []struct {
 		name     string
 		template *gapiv1.GitOpsTemplate
-		expected []gitprovider.CommitFile
+		expected []git.CommitFile
 		params   map[string]string
 	}{
 		{
 			name:     "generate profile paths",
 			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "", "", ""),
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"ns-foo/cluster-foo/profiles.yaml",
 					concatYaml(expectedHelmRelease, expectedBarHelmRelease, expectedFooHelmRelease),
@@ -2555,7 +2778,7 @@ status: {}
 		{
 			name:     "generate profile paths with custom paths",
 			template: makeTestTemplateWithPaths(templatesv1.RenderTypeEnvsubst, "repo.yaml", "foo.yaml", "bar.yaml"),
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"bar.yaml",
 					concatYaml(expectedBarHelmRelease),
@@ -2576,7 +2799,7 @@ status: {}
 			params: map[string]string{
 				"BAR_PATH": "special-bar.yaml",
 			},
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"foo.yaml",
 					concatYaml(expectedFooHelmRelease),
@@ -2597,7 +2820,7 @@ status: {}
 			params: map[string]string{
 				"BAR_PATH": "special-bar.yaml",
 			},
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				makeCommitFile(
 					"foo.yaml",
 					concatYaml(expectedFooHelmRelease),
@@ -2659,11 +2882,11 @@ func makeTestHelmRepositoryTemplate(base string) *sourcev1.HelmRepository {
 	})
 }
 
-func makeCommitFile(path, content string) gitprovider.CommitFile {
+func makeCommitFile(path, content string) git.CommitFile {
 	p := path
 	c := content
-	return gitprovider.CommitFile{
-		Path:    &p,
+	return git.CommitFile{
+		Path:    p,
 		Content: &c,
 	}
 }
@@ -2748,4 +2971,18 @@ func testNewChart(t *testing.T, name string, sourceRef *capiv1_protos.SourceRef)
 			SourceRef: sourceRef,
 		},
 	}
+}
+
+func readCAPITemplateFixture(t *testing.T, name string) *capiv1.CAPITemplate {
+	t.Helper()
+	b, err := os.ReadFile(name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	loaded := &capiv1.CAPITemplate{}
+	if err := yaml.Unmarshal(b, &loaded); err != nil {
+		t.Fatal(err)
+	}
+
+	return loaded
 }

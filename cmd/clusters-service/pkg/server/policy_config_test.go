@@ -454,6 +454,7 @@ func TestGetPolicyConfig(t *testing.T) {
 				TotalPolicies: int32(2),
 				Status:        "OK",
 				Age:           "0001-01-01T00:00:00Z",
+				MatchType:     "namespaces",
 				Match: &capiv1_proto.PolicyConfigMatch{
 					Namespaces: []string{"namespace-1", "namespace-2"},
 				},
@@ -508,6 +509,7 @@ func TestGetPolicyConfig(t *testing.T) {
 				TotalPolicies: int32(1),
 				Status:        "Warning",
 				Age:           "0001-01-01T00:00:00Z",
+				MatchType:     "apps",
 				Match: &capiv1_proto.PolicyConfigMatch{
 					Apps: []*capiv1_proto.PolicyConfigApplicationMatch{
 						{
@@ -550,6 +552,7 @@ func TestGetPolicyConfig(t *testing.T) {
 				TotalPolicies: int32(3),
 				Status:        "Warning",
 				Age:           "0001-01-01T00:00:00Z",
+				MatchType:     "resources",
 				Match: &capiv1_proto.PolicyConfigMatch{
 					Resources: []*capiv1_proto.PolicyConfigResourceMatch{
 						{
@@ -628,6 +631,7 @@ func TestGetPolicyConfig(t *testing.T) {
 				TotalPolicies: int32(1),
 				Status:        "OK",
 				Age:           "0001-01-01T00:00:00Z",
+				MatchType:     "workspaces",
 				Match: &capiv1_proto.PolicyConfigMatch{
 					Workspaces: []string{"tenant-1", "tenant-2"},
 				},
@@ -682,6 +686,7 @@ func TestGetPolicyConfig(t *testing.T) {
 		assert.Equal(t, tt.response.TotalPolicies, res.TotalPolicies, "policy config total policies is not equal")
 		assert.Equal(t, tt.response.Status, res.Status, "policy config status is not equal")
 		assert.Equal(t, tt.response.Age, res.Age, "policy config age is not equal")
+		assert.Equal(t, tt.response.MatchType, res.MatchType, "policy config matchType is not equal")
 		assert.Equal(t, tt.response.Match.Namespaces, res.Match.Namespaces, "policy config match namespaces is not equal")
 		assert.Equal(t, tt.response.Match.Apps, res.Match.Apps, "policy config match apps is not equal")
 		assert.Equal(t, tt.response.Match.Resources, res.Match.Resources, "policy config match resources is not equal")

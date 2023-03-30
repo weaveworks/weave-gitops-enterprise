@@ -140,9 +140,10 @@ if native_build:
    # Build locally (usually slower under MacOS than build in container)
 
    local_resource(
-      'clusters-service-native-build',
+      'compile',
       'make build-linux',
       deps=[
+         '../weave-gitops/core',
          './cmd/clusters-service',
          './pkg'
       ],

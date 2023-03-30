@@ -162,6 +162,17 @@ export interface AppPRPreview {
   kustomizationFiles: { path: string; content: string }[];
   helmReleaseFiles: { path: string; content: string }[];
 }
+
+export type RequestError = Error & {
+  code?: number;
+};
+
 export interface SecretPRPreview {
   externalSecretsFiles: { path: string; content: string }[];
+}
+export interface SOPSSecretPRPreview {
+  sopsSecertFiles: { path: string; content: string }[];
+}
+export interface PolicyConfigPRPreview {
+  policyConfigFiles: { path: string; content: string }[];
 }

@@ -22,6 +22,7 @@ export interface ListConfigResponse extends GetConfigResponse {
 export function useListConfig() {
   const { api } = useContext(EnterpriseClientContext);
   const [repoLink, setRepoLink] = useState<string>('');
+  const [provider, setProvider] = useState<string>('');
   const queryResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
@@ -33,6 +34,7 @@ export function useListConfig() {
     repositoryURL &&
       gitAuthClient.ParseRepoURL({ url: repositoryURL }).then(res => {
         const { resource, full_name, protocol } = GitUrlParse(repositoryURL);
+        setProvider(res.provider || '');
         if (res.provider === 'GitHub') {
           setRepoLink(`${protocol}://${resource}/${full_name}/pulls`);
         } else if (res.provider === 'GitLab') {
@@ -47,5 +49,6 @@ export function useListConfig() {
     ...queryResponse,
     repoLink,
     uiConfig,
+    provider,
   };
 }

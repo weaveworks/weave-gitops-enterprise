@@ -8,5 +8,5 @@ export const resolver = (path: string, params?: any) => {
     return url;
   }
   // Fix Kind as a path
-  return path.includes('/') ? path : '';
+  return path?.includes('/') ? path : '';
 };

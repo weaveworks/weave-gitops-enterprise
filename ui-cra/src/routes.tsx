@@ -19,10 +19,11 @@ import WGNotificationsProvider from './components/Applications/NotificationsProv
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
-import ClusterDashboard from './components/Clusters/ClusterDashboard';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
+import GitopsSets from './components/GitopsSets';
+import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
@@ -33,6 +34,8 @@ import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
+import PolicyConfigsList from './components/PolicyConfigs';
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
@@ -48,8 +51,11 @@ import TerraformObjectList from './components/Terraform/TerraformObjectList';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import PolicyConfigsList from './components/PolicyConfigs';
+import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
+import CreateSOPS from './components/Secrets/SOPS';
+import ClusterDetails from './components/Clusters/ClusterDetails';
+import CreatePolicyConfig from './components/PolicyConfigs/create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -76,7 +82,7 @@ const CoreWrapper = styled.div`
   .MuiButton-root {
     margin-right: 0;
   }
-  max-width: calc(100vw - 220px);
+  width: 100%;
 `;
 
 const Page404 = () => (
@@ -98,11 +104,11 @@ const AppRoutes = () => {
       <Route exact path="/">
         <Redirect to={Routes.Clusters} />
       </Route>
-      <Route component={MCCP} exact path={Routes.Clusters} />
+      <Route component={MCCP} path={Routes.Clusters} />
       <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (
-          <ClusterDashboard {...props} />
+          <ClusterDetails {...props} />
         ))}
         path={Routes.ClusterDashboard}
       />
@@ -257,17 +263,17 @@ const AppRoutes = () => {
       />
       <Route path={Routes.ImageAutomation} component={ImageAutomationPage} />
       <Route
-          path={V2Routes.ImageAutomationUpdatesDetails}
-          component={withSearchParams(ImageAutomationUpdatesDetails)}
-        />
-        <Route
-          path={V2Routes.ImageAutomationRepositoryDetails}
-          component={withSearchParams(ImageAutomationRepoDetails)}
-        />
-        <Route
-          path={V2Routes.ImagePolicyDetails}
-          component={withSearchParams(ImagePolicyDetails)}
-        />
+        path={V2Routes.ImageAutomationUpdatesDetails}
+        component={withSearchParams(ImageAutomationUpdatesDetails)}
+      />
+      <Route
+        path={V2Routes.ImageAutomationRepositoryDetails}
+        component={withSearchParams(ImageAutomationRepoDetails)}
+      />
+      <Route
+        path={V2Routes.ImagePolicyDetails}
+        component={withSearchParams(ImagePolicyDetails)}
+      />
       <Route exact path={Routes.Policies} component={Policies} />
       <Route
         exact
@@ -291,11 +297,25 @@ const AppRoutes = () => {
         component={withSearchParams(SecretDetails)}
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
+      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
+      <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
+
 
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
+      />
+      <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
+      <Route
+        exact
+        path={Routes.GitOpsSets}
+        component={withSearchParams(GitopsSets)}
+      />
+      <Route
+        path={Routes.GitOpsSetDetail}
+        component={withSearchParams(GitOpsSetDetail)}
       />
       <Route
         exact
@@ -306,6 +326,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
+              state=''
             />
           );
         }}
@@ -328,6 +349,32 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.BitBucketServer}
               code={params.code as string}
+              state={params.state as string}
+              error={error}
+              errorDescription={desc}
+            />
+          );
+        }}
+      />
+      <Route
+        exact
+        path={Routes.AzureDevOpsOauthCallback}
+        component={({ location }: any) => {
+          const params = qs.parse(location.search);
+
+          const error = Array.isArray(params?.error)
+            ? params?.error.join(', ')
+            : params?.error;
+
+          const desc = Array.isArray(params.error_description)
+            ? params.error_description?.join('\n')
+            : params?.error_description;
+
+          return (
+            <OAuthCallback
+              provider={GitProvider.AzureDevOps}
+              code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />

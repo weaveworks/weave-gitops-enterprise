@@ -61,6 +61,70 @@
         ]
       }
     },
+    "/v1/gitauth/auth_providers/azuredevops": {
+      "get": {
+        "summary": "GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL used to initiate the OAuth flow.",
+        "operationId": "GitAuth_GetAzureDevOpsAuthURL",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetAzureDevOpsAuthURLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "redirectUri",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
+    "/v1/gitauth/auth_providers/azuredevops/authorize": {
+      "post": {
+        "summary": "AuthorizeAzureDevOps returns a token after a user authorizes Azure DevOps to grant access to their\naccount on behalf of Weave GitOps Enterprise.",
+        "operationId": "GitAuth_AuthorizeAzureDevOps",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeAzureDevOpsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1AuthorizeAzureDevOpsRequest"
+            }
+          }
+        ],
+        "tags": [
+          "GitAuth"
+        ]
+      }
+    },
     "/v1/gitauth/auth_providers/bitbucketserver": {
       "get": {
         "operationId": "GitAuth_GetBitbucketServerAuthURL",
@@ -344,10 +408,35 @@
         }
       }
     },
+    "v1AuthorizeAzureDevOpsRequest": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "redirectUri": {
+          "type": "string"
+        }
+      }
+    },
+    "v1AuthorizeAzureDevOpsResponse": {
+      "type": "object",
+      "properties": {
+        "token": {
+          "type": "string"
+        }
+      }
+    },
     "v1AuthorizeBitbucketServerRequest": {
       "type": "object",
       "properties": {
         "code": {
+          "type": "string"
+        },
+        "state": {
           "type": "string"
         },
         "redirectUri": {
@@ -378,6 +467,14 @@
       "type": "object",
       "properties": {
         "token": {
+          "type": "string"
+        }
+      }
+    },
+    "v1GetAzureDevOpsAuthURLResponse": {
+      "type": "object",
+      "properties": {
+        "url": {
           "type": "string"
         }
       }
@@ -441,7 +538,8 @@
         "Unknown",
         "GitHub",
         "GitLab",
-        "BitBucketServer"
+        "BitBucketServer",
+        "AzureDevOps"
       ],
       "default": "Unknown"
     },

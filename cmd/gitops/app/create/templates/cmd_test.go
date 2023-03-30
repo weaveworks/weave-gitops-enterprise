@@ -156,7 +156,7 @@ func TestGenerateFilesLocally(t *testing.T) {
 
 	actualFilenames := []string{}
 	for _, file := range files {
-		actualFilenames = append(actualFilenames, *file.Path)
+		actualFilenames = append(actualFilenames, file.Path)
 	}
 
 	if diff := cmp.Diff(expectedFiles, actualFilenames); diff != "" {
@@ -186,7 +186,7 @@ func TestGenerateFilesLocallyWithCharts(t *testing.T) {
 
 	actualFilenames := []string{}
 	for _, file := range files {
-		actualFilenames = append(actualFilenames, *file.Path)
+		actualFilenames = append(actualFilenames, file.Path)
 	}
 
 	assert.Contains(t, *files[1].Content, "version: 0.0.8")
@@ -205,15 +205,9 @@ func TestRunWithProfiles(t *testing.T) {
 	// Set and restore some env
 	keyCache := "HELM_REPOSITORY_CACHE"
 	keyConfig := "HELM_REPOSITORY_CONFIG"
-	repoCache := os.Getenv(keyCache)
-	repoConfig := os.Getenv(keyConfig)
 	// Set up the test paths for helm repo and cache
-	os.Setenv(keyCache, testSettings.RepositoryCache)
-	os.Setenv(keyConfig, testSettings.RepositoryConfig)
-	defer func() {
-		os.Setenv(keyCache, repoCache)
-		os.Setenv(keyConfig, repoConfig)
-	}()
+	t.Setenv(keyCache, testSettings.RepositoryCache)
+	t.Setenv(keyConfig, testSettings.RepositoryConfig)
 
 	cmd := CreateCommand
 	cmd.SetArgs([]string{

@@ -1,13 +1,13 @@
 import { TableCell, TableRow } from '@material-ui/core';
-import styled from 'styled-components';
 import { theme } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 
 const { medium } = theme.fontSizes;
-const { small, xs } = theme.spacing;
+const { xs } = theme.spacing;
 const { neutral30, neutral40 } = theme.colors;
 
 const RowHeaderWrapper = styled.div`
-  margin: ${small} 0;
+  margin: ${xs} 0;
   display: flex;
   justify-content: start;
   align-items: center;

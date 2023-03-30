@@ -2,29 +2,20 @@ package git
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"path"
-	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
 
-	"github.com/fluxcd/go-git-providers/github"
-	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/fluxcd/go-git-providers/gitprovider"
-	"github.com/fluxcd/go-git-providers/stash"
 	go_git "github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
-	"github.com/weaveworks/weave-gitops/pkg/gitproviders"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"k8s.io/apimachinery/pkg/util/wait"
-	"k8s.io/client-go/util/retry"
 )
-
-const deleteFilesCommitMessage = "Delete old files for resources"
 
 var DefaultBackoff = wait.Backoff{
 	Steps:    4,
@@ -35,9 +26,9 @@ var DefaultBackoff = wait.Backoff{
 
 type Provider interface {
 	WriteFilesToBranchAndCreatePullRequest(ctx context.Context, req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error)
-	GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error)
-	GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error)
-	ListPullRequests(ctx context.Context, gp GitProvider, url string) ([]gitprovider.PullRequest, error)
+	GetRepository(ctx context.Context, gp GitProvider, url string) (*git.Repository, error)
+	GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*git.TreeEntry, error)
+	ListPullRequests(ctx context.Context, gp GitProvider, url string) ([]*git.PullRequest, error)
 }
 
 type GitProviderService struct {
@@ -66,7 +57,7 @@ type WriteFilesToBranchAndCreatePullRequestRequest struct {
 	Title             string
 	Description       string
 	CommitMessage     string
-	Files             []gitprovider.CommitFile
+	Files             []git.CommitFile
 }
 
 type WriteFilesToBranchAndCreatePullRequestResponse struct {
@@ -76,65 +67,32 @@ type WriteFilesToBranchAndCreatePullRequestResponse struct {
 // WriteFilesToBranchAndCreatePullRequest writes a set of provided files
 // to a new branch and creates a new pull request for that branch.
 // It returns the URL of the pull request.
-func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(ctx context.Context,
-	req WriteFilesToBranchAndCreatePullRequestRequest) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
-	commits := []Commit{}
-
-	repoURL, err := GetGitProviderUrl(req.RepositoryURL)
+func (s *GitProviderService) WriteFilesToBranchAndCreatePullRequest(
+	ctx context.Context,
+	req WriteFilesToBranchAndCreatePullRequestRequest,
+) (*WriteFilesToBranchAndCreatePullRequestResponse, error) {
+	provider, err := getGitProviderClient(s.log, req.GitProvider)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get git provider url: %w", err)
+		return nil, fmt.Errorf("unable to create provider: %w", err)
 	}
 
-	repo, err := s.GetRepository(ctx, req.GitProvider, repoURL)
-	if err != nil {
-		return nil, fmt.Errorf("unable to get repo: %w", err)
-	}
-
-	// Gitlab doesn't support createOrUpdate, so we need to check if the file exists
-	// and if it does, we need to create a commit to delete the file.
-	if req.GitProvider.Type == "gitlab" {
-		deletedFiles, err := s.getUpdatedFiles(ctx, req.Files, req.GitProvider, repoURL, req.BaseBranch)
-		if err != nil {
-			return nil, fmt.Errorf("unable to get files from tree list: %w", err)
-		}
-
-		// If there are files to delete, append them to the map of changes to be deleted.
-		if len(deletedFiles) > 0 {
-			commits = append(commits, Commit{
-				CommitMessage: deleteFilesCommitMessage,
-				Files:         deletedFiles,
-			})
-		}
-	}
-
-	// Add the files to be created to the map of changes.
-	commits = append(commits, Commit{
-		CommitMessage: req.CommitMessage,
-		Files:         req.Files,
-	})
-
-	if err := s.writeFilesToBranch(ctx, writeFilesToBranchRequest{
-		Repository: repo,
-		HeadBranch: req.HeadBranch,
-		BaseBranch: req.BaseBranch,
-		Commits:    commits,
-	}); err != nil {
-		return nil, fmt.Errorf("unable to write files to branch %q: %w", req.HeadBranch, err)
-	}
-
-	res, err := s.createPullRequest(ctx, createPullRequestRequest{
-		Repository:  repo,
-		HeadBranch:  req.HeadBranch,
-		BaseBranch:  req.BaseBranch,
-		Title:       req.Title,
-		Description: req.Description,
+	pr, err := provider.CreatePullRequest(ctx, git.PullRequestInput{
+		RepositoryURL: req.RepositoryURL,
+		Title:         req.Title,
+		Body:          req.Description,
+		Head:          req.HeadBranch,
+		Base:          req.BaseBranch,
+		Commits: []git.Commit{{
+			CommitMessage: req.CommitMessage,
+			Files:         req.Files,
+		}},
 	})
 	if err != nil {
 		return nil, fmt.Errorf("unable to create pull request for branch %q: %w", req.HeadBranch, err)
 	}
 
 	return &WriteFilesToBranchAndCreatePullRequestResponse{
-		WebURL: res.WebURL,
+		WebURL: pr.Link,
 	}, nil
 }
 
@@ -144,66 +102,13 @@ type GitRepo struct {
 	Auth        *http.BasicAuth
 }
 
-func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, url string) (gitprovider.OrgRepository, error) {
-	c, err := getGitProviderClient(gp)
+func (s *GitProviderService) GetRepository(ctx context.Context, gp GitProvider, url string) (*git.Repository, error) {
+	provider, err := getGitProviderClient(s.log, gp)
 	if err != nil {
 		return nil, fmt.Errorf("unable to get a git provider client for %q: %w", gp.Type, err)
 	}
 
-	var ref *gitprovider.OrgRepositoryRef
-	if gp.Type == string(gitproviders.GitProviderGitHub) || gp.Type == string(gitproviders.GitProviderGitLab) {
-		ref, err = gitprovider.ParseOrgRepositoryURL(url)
-		if err != nil {
-			return nil, fmt.Errorf("unable to parse repository URL %q: %w", url, err)
-		}
-		ref.Domain = addSchemeToDomain(ref.Domain)
-		ref = WithCombinedSubOrgs(*ref)
-	} else if gp.Type == string(gitproviders.GitProviderBitBucketServer) {
-		// The ParseOrgRepositoryURL function used for other providers
-		// fails to parse BitBucket Server URLs correctly
-		re := regexp.MustCompile(`://(?P<host>[^/]+)/(.+/)?(?P<key>[^/]+)/(?P<repo>[^/]+)\.git`)
-		match := re.FindStringSubmatch(url)
-		result := make(map[string]string)
-		for i, name := range re.SubexpNames() {
-			if i != 0 && name != "" {
-				result[name] = match[i]
-			}
-		}
-		if len(result) != 3 {
-			return nil, fmt.Errorf("unable to parse repository URL %q using regex %q", url, re.String())
-		}
-
-		orgRef := &gitprovider.OrganizationRef{
-			Domain:       result["host"],
-			Organization: result["key"],
-		}
-		ref = &gitprovider.OrgRepositoryRef{
-			OrganizationRef: *orgRef,
-			RepositoryName:  result["repo"],
-		}
-		ref.SetKey(result["key"])
-		ref.Domain = addSchemeToDomain(ref.Domain)
-	} else {
-		return nil, fmt.Errorf("unsupported git provider")
-	}
-
-	var repo gitprovider.OrgRepository
-	err = retry.OnError(DefaultBackoff,
-		func(err error) bool { return errors.Is(err, gitprovider.ErrNotFound) },
-		func() error {
-			var err error
-			repo, err = c.OrgRepositories().Get(ctx, *ref)
-			if err != nil {
-				s.log.Info("Retrying getting the repository")
-				return err
-			}
-			return nil
-		})
-	if err != nil {
-		return nil, fmt.Errorf("unable to get repository %q: %w, (client domain: %s)", url, err, c.SupportedDomain())
-	}
-
-	return repo, nil
+	return provider.GetRepository(ctx, url)
 }
 
 // WithCombinedSubOrgs combines the subgroups into the organization field of the reference
@@ -217,39 +122,22 @@ func WithCombinedSubOrgs(ref gitprovider.OrgRepositoryRef) *gitprovider.OrgRepos
 }
 
 // GetTreeList retrieves list of tree files from gitprovider given the sha/branch
-func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*gitprovider.TreeEntry, error) {
-	repo, err := s.GetRepository(ctx, gp, repoUrl)
+func (s *GitProviderService) GetTreeList(ctx context.Context, gp GitProvider, repoUrl string, sha string, path string, recursive bool) ([]*git.TreeEntry, error) {
+	provider, err := getGitProviderClient(s.log, gp)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("unable to get a git provider client for %q: %w", gp.Type, err)
 	}
 
-	treePaths, err := repo.Trees().List(ctx, sha, path, recursive)
-	if err != nil {
-		return nil, err
-	}
-
-	return treePaths, nil
+	return provider.GetTreeList(ctx, repoUrl, sha, path)
 }
 
-func (s *GitProviderService) ListPullRequests(ctx context.Context, gp GitProvider, repoURL string) ([]gitprovider.PullRequest, error) {
-	repo, err := s.GetRepository(ctx, gp, repoURL)
+func (s *GitProviderService) ListPullRequests(ctx context.Context, gp GitProvider, repoURL string) ([]*git.PullRequest, error) {
+	provider, err := getGitProviderClient(s.log, gp)
 	if err != nil {
-		return nil, fmt.Errorf("unable to get repo: %w", err)
+		return nil, fmt.Errorf("unable to get a git provider client for %q: %w", gp.Type, err)
 	}
 
-	prs, err := repo.PullRequests().List(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("unable to list pull requests for %q: %w", repoURL, err)
-	}
-
-	return prs, nil
-}
-
-type writeFilesToBranchRequest struct {
-	Repository gitprovider.OrgRepository
-	HeadBranch string
-	BaseBranch string
-	Commits    []Commit
+	return provider.ListPullRequests(ctx, repoURL)
 }
 
 type Commit struct {
@@ -257,110 +145,44 @@ type Commit struct {
 	Files         []gitprovider.CommitFile
 }
 
-func (s *GitProviderService) writeFilesToBranch(ctx context.Context, req writeFilesToBranchRequest) error {
-
-	var commits []gitprovider.Commit
-	err := retry.OnError(DefaultBackoff,
-		func(err error) bool {
-			// Ideally this should return true only for 404 (gitprovider.ErrNotFound) and 409 errors
-			return true
-		}, func() error {
-			var err error
-			commits, err = req.Repository.Commits().ListPage(ctx, req.BaseBranch, 1, 1)
-			if err != nil {
-				s.log.Info("Retrying getting the repository")
-				return err
-			}
-			return nil
-		})
-	if err != nil {
-		return fmt.Errorf("unable to get most recent commit for branch %q: %w", req.BaseBranch, err)
-	}
-	if len(commits) == 0 {
-		return fmt.Errorf("no commits were found for branch %q, is the repository empty?", req.BaseBranch)
-	}
-
-	err = req.Repository.Branches().Create(ctx, req.HeadBranch, commits[0].Get().Sha)
-	if err != nil {
-		return fmt.Errorf("unable to create new branch %q from commit %q in branch %q: %w", req.HeadBranch, commits[0].Get().Sha, req.BaseBranch, err)
-	}
-
-	// Loop through all the commits and write the files.
-	for _, c := range req.Commits {
-		commit, err := req.Repository.Commits().Create(ctx, req.HeadBranch, c.CommitMessage, c.Files)
-		if err != nil {
-			return fmt.Errorf("unable to commit changes to %q: %w", req.HeadBranch, err)
-		}
-		s.log.WithValues("sha", commit.Get().Sha, "branch", req.HeadBranch).Info("Files committed")
-	}
-
-	return nil
-}
-
-type createPullRequestRequest struct {
-	Repository  gitprovider.OrgRepository
-	HeadBranch  string
-	BaseBranch  string
-	Title       string
-	Description string
-}
-
-type createPullRequestResponse struct {
-	WebURL string
-}
-
-func (s *GitProviderService) createPullRequest(ctx context.Context, req createPullRequestRequest) (*createPullRequestResponse, error) {
-	pr, err := req.Repository.PullRequests().Create(ctx, req.Title, req.HeadBranch, req.BaseBranch, req.Description)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create new pull request for branch %q: %w", req.HeadBranch, err)
-	}
-	s.log.WithValues("pullRequestURL", pr.Get().WebURL).Info("Created pull request")
-
-	return &createPullRequestResponse{
-		WebURL: pr.Get().WebURL,
-	}, nil
-}
-
-func getGitProviderClient(gpi GitProvider) (gitprovider.Client, error) {
-	var client gitprovider.Client
-	var err error
-
+func getGitProviderClient(log logr.Logger, gpi GitProvider) (git.Provider, error) {
 	// quirk of ggp
 	hostname := addSchemeToDomain(gpi.Hostname)
 
+	providerFactory := git.NewFactory(log)
+	providerOpts := []git.ProviderWithFn{}
+
 	switch gpi.Type {
-	case "github":
+	case git.GitHubProviderName:
+		providerOpts = append(providerOpts, git.WithOAuth2Token(gpi.Token))
+
 		if gpi.Hostname != "github.com" {
-			client, err = github.NewClient(
-				gitprovider.WithOAuth2Token(gpi.Token),
-				gitprovider.WithDomain(hostname),
-			)
-		} else {
-			client, err = github.NewClient(
-				gitprovider.WithOAuth2Token(gpi.Token),
-			)
+			providerOpts = append(providerOpts, git.WithDomain(hostname))
 		}
-		if err != nil {
-			return nil, err
-		}
-	case "gitlab":
+	case git.GitLabProviderName:
+		providerOpts = append(providerOpts, git.WithConditionalRequests())
+		providerOpts = append(providerOpts, git.WithToken(gpi.TokenType, gpi.Token))
+
 		if gpi.Hostname != "gitlab.com" {
-			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithDomain(hostname), gitprovider.WithConditionalRequests(true))
-		} else {
-			client, err = gitlab.NewClient(gpi.Token, gpi.TokenType, gitprovider.WithConditionalRequests(true))
+			providerOpts = append(providerOpts, git.WithDomain(hostname))
 		}
-		if err != nil {
-			return nil, err
-		}
-	case "bitbucket-server":
-		client, err = stash.NewStashClient("git", gpi.Token, gitprovider.WithDomain(hostname), gitprovider.WithConditionalRequests(true))
-		if err != nil {
-			return nil, err
-		}
+	case git.BitBucketServerProviderName:
+		providerOpts = append(providerOpts, git.WithUsername("git"))
+		providerOpts = append(providerOpts, git.WithToken(gpi.TokenType, gpi.Token))
+		providerOpts = append(providerOpts, git.WithDomain(hostname))
+		providerOpts = append(providerOpts, git.WithConditionalRequests())
+	case git.AzureDevOpsProviderName:
+		providerOpts = append(providerOpts, git.WithToken(gpi.TokenType, gpi.Token))
 	default:
 		return nil, fmt.Errorf("the Git provider %q is not supported", gpi.Type)
 	}
-	return client, err
+
+	provider, err := providerFactory.Create(
+		gpi.Type,
+		providerOpts...,
+	)
+
+	return provider, err
 }
 
 func GetGitProviderUrl(giturl string) (string, error) {
@@ -388,39 +210,4 @@ func addSchemeToDomain(domain string) string {
 		return "https://" + domain
 	}
 	return domain
-}
-
-func (s *GitProviderService) getUpdatedFiles(
-	ctx context.Context,
-	reqFiles []gitprovider.CommitFile,
-	gp GitProvider,
-	repoURL,
-	branch string) ([]gitprovider.CommitFile, error) {
-	var updatedFiles []gitprovider.CommitFile
-
-	for _, file := range reqFiles {
-		// if file content is empty, then it's a delete operation
-		// so we don't need to check if the file exists
-		if file.Content == nil {
-			continue
-		}
-
-		dirPath, _ := filepath.Split(*file.Path)
-
-		treeEntries, err := s.GetTreeList(ctx, gp, repoURL, branch, dirPath, true)
-		if err != nil {
-			return nil, fmt.Errorf("error getting list of trees in repo: %s@%s: %w", repoURL, branch, err)
-		}
-
-		for _, treeEntry := range treeEntries {
-			if treeEntry.Path == *file.Path {
-				updatedFiles = append(updatedFiles, gitprovider.CommitFile{
-					Path:    &treeEntry.Path,
-					Content: nil,
-				})
-			}
-		}
-	}
-
-	return updatedFiles, nil
 }

@@ -5,10 +5,10 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/fluxcd/go-git-providers/gitprovider"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	apitemplate "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 )
 
 func TestGetProvider(t *testing.T) {
@@ -252,104 +252,104 @@ func TestGetMissingFiles(t *testing.T) {
 
 	tests := []struct {
 		name          string
-		originalFiles []gitprovider.CommitFile
-		extraFiles    []gitprovider.CommitFile
-		expected      []gitprovider.CommitFile
+		originalFiles []git.CommitFile
+		extraFiles    []git.CommitFile
+		expected      []git.CommitFile
 	}{
 		{
 			name: "original files with empty extra files",
-			originalFiles: []gitprovider.CommitFile{
+			originalFiles: []git.CommitFile{
 				{
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr("dummy content"),
 				},
 				{
-					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Path:    "testdata/cluster-template-1.yaml",
 					Content: strPtr("dummy content"),
 				},
 			},
-			extraFiles: []gitprovider.CommitFile{},
-			expected: []gitprovider.CommitFile{
+			extraFiles: []git.CommitFile{},
+			expected: []git.CommitFile{
 				{
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr(""),
 				},
 				{
-					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Path:    "testdata/cluster-template-1.yaml",
 					Content: strPtr(""),
 				},
 			},
 		},
 		{
 			name: "original files with files not in extra files",
-			originalFiles: []gitprovider.CommitFile{
+			originalFiles: []git.CommitFile{
 				{
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr("dummy content"),
 				},
 				{
-					Path:    strPtr("testdata/cluster-template-1.yaml"),
-					Content: strPtr("dummy content"),
-				},
-			},
-			extraFiles: []gitprovider.CommitFile{
-
-				{
-					Path:    strPtr("testdata/cluster-template-2.yaml"),
+					Path:    "testdata/cluster-template-1.yaml",
 					Content: strPtr("dummy content"),
 				},
 			},
-			expected: []gitprovider.CommitFile{
+			extraFiles: []git.CommitFile{
+
+				{
+					Path:    "testdata/cluster-template-2.yaml",
+					Content: strPtr("dummy content"),
+				},
+			},
+			expected: []git.CommitFile{
 				{
 
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr(""),
 				},
 				{
 
-					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Path:    "testdata/cluster-template-1.yaml",
 					Content: strPtr(""),
 				},
 			},
 		},
 		{
 			name:          "no original files",
-			originalFiles: []gitprovider.CommitFile{},
-			extraFiles: []gitprovider.CommitFile{
+			originalFiles: []git.CommitFile{},
+			extraFiles: []git.CommitFile{
 				{
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr("dummy content"),
 				},
 				{
-					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Path:    "testdata/cluster-template-1.yaml",
 					Content: strPtr("dummy content"),
 				},
 			},
-			expected: []gitprovider.CommitFile{},
+			expected: []git.CommitFile{},
 		},
 		{
 			name: "original with 1 file and extra with 2 files not in original",
-			originalFiles: []gitprovider.CommitFile{
+			originalFiles: []git.CommitFile{
 				{
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr("dummy content"),
 				},
 			},
-			extraFiles: []gitprovider.CommitFile{
+			extraFiles: []git.CommitFile{
 
 				{
-					Path:    strPtr("testdata/cluster-template-2.yaml"),
+					Path:    "testdata/cluster-template-2.yaml",
 					Content: strPtr("dummy content"),
 				}, {
 
-					Path:    strPtr("testdata/cluster-template-1.yaml"),
+					Path:    "testdata/cluster-template-1.yaml",
 					Content: strPtr(""),
 				},
 			},
-			expected: []gitprovider.CommitFile{
+			expected: []git.CommitFile{
 				{
 
-					Path:    strPtr("testdata/cluster-template.yaml"),
+					Path:    "testdata/cluster-template.yaml",
 					Content: strPtr(""),
 				},
 			},
@@ -359,7 +359,7 @@ func TestGetMissingFiles(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			sortFiles(tt.expected)
-			var expectedPaths []*string
+			var expectedPaths []string
 			expectedContents := make([]*string, len(tt.expected))
 			for i := range tt.expected {
 				expectedPaths = append(expectedPaths, tt.expected[i].Path)
@@ -367,7 +367,7 @@ func TestGetMissingFiles(t *testing.T) {
 
 			difference := getMissingFiles(tt.originalFiles, tt.extraFiles)
 			sortFiles(difference)
-			var differencePaths []*string
+			var differencePaths []string
 			var differenceContents []*string
 			for i := range difference {
 				differencePaths = append(differencePaths, difference[i].Path)
@@ -388,9 +388,9 @@ func TestGetMissingFiles(t *testing.T) {
 
 }
 
-func sortFiles(files []gitprovider.CommitFile) {
+func sortFiles(files []git.CommitFile) {
 	sort.Slice(files, func(i, j int) bool {
-		return *files[i].Path < *files[j].Path
+		return files[i].Path < files[j].Path
 	})
 }
 

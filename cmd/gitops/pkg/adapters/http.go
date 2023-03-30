@@ -13,6 +13,7 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/transport"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/templates"
@@ -110,14 +111,29 @@ func configureAuthForClient(opts *config.Options, httpClient *HTTPClient) error 
 
 	restConfig, err := kubecfg.GetConfig()
 	if err != nil {
-		return fmt.Errorf("error: could not load config for kubeconfig: %w", err)
+		return fmt.Errorf("could not load config for kubeconfig: %w", err)
 	}
 
 	if opts.InsecureSkipTLSVerify {
 		restConfig.TLSClientConfig = rest.TLSClientConfig{Insecure: true}
 	}
 
-	roundtripper, err := rest.TransportFor(restConfig)
+	// This fixes the insecure-client issue where clients wouldn't be able to
+	// talk to cluster.
+	//
+	// The TransportConfig() call gets a config that includes a TLS setup that
+	// is only setup to talk to the upstream kube-apiserver, with no other certs
+	// available.
+	transportConfig, err := restConfig.TransportConfig()
+	if err != nil {
+		return fmt.Errorf("failed to to create client transport: %w", err)
+	}
+	// By zeroing it out, we let it fall back to the system TLS config.
+	transportConfig.TLS = transport.TLSConfig{}
+
+	// This creates a new Transport, that adds the authorization tokens from the
+	// kubeconfig to the outgoing requests.
+	roundtripper, err := transport.New(transportConfig)
 	if err != nil {
 		return err
 	}

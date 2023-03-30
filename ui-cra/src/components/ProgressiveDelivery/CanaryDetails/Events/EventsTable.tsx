@@ -5,7 +5,7 @@ import { TableWrapper } from '../../../Shared';
 
 export const EventsTable = ({ events }: { events: Event[] }) => {
   return (
-    <TableWrapper id="events-list">
+    <TableWrapper id="events-list" style={{ width: '100%' }}>
       <DataTable
         rows={events}
         fields={[

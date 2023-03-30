@@ -11,6 +11,7 @@ export enum GitProvider {
   GitHub = "GitHub",
   GitLab = "GitLab",
   BitBucketServer = "BitBucketServer",
+  AzureDevOps = "AzureDevOps",
 }
 
 export type AuthenticateRequest = {
@@ -86,10 +87,29 @@ export type GetBitbucketServerAuthURLResponse = {
 
 export type AuthorizeBitbucketServerRequest = {
   code?: string
+  state?: string
   redirectUri?: string
 }
 
 export type AuthorizeBitbucketServerResponse = {
+  token?: string
+}
+
+export type GetAzureDevOpsAuthURLRequest = {
+  redirectUri?: string
+}
+
+export type GetAzureDevOpsAuthURLResponse = {
+  url?: string
+}
+
+export type AuthorizeAzureDevOpsRequest = {
+  code?: string
+  state?: string
+  redirectUri?: string
+}
+
+export type AuthorizeAzureDevOpsResponse = {
   token?: string
 }
 
@@ -114,6 +134,12 @@ export class GitAuth {
   }
   static AuthorizeGitlab(req: AuthorizeGitlabRequest, initReq?: fm.InitReq): Promise<AuthorizeGitlabResponse> {
     return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/gitauth/auth_providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static GetAzureDevOpsAuthURL(req: GetAzureDevOpsAuthURLRequest, initReq?: fm.InitReq): Promise<GetAzureDevOpsAuthURLResponse> {
+    return fm.fetchReq<GetAzureDevOpsAuthURLRequest, GetAzureDevOpsAuthURLResponse>(`/v1/gitauth/auth_providers/azuredevops?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static AuthorizeAzureDevOps(req: AuthorizeAzureDevOpsRequest, initReq?: fm.InitReq): Promise<AuthorizeAzureDevOpsResponse> {
+    return fm.fetchReq<AuthorizeAzureDevOpsRequest, AuthorizeAzureDevOpsResponse>(`/v1/gitauth/auth_providers/azuredevops/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ParseRepoURL(req: ParseRepoURLRequest, initReq?: fm.InitReq): Promise<ParseRepoURLResponse> {
     return fm.fetchReq<ParseRepoURLRequest, ParseRepoURLResponse>(`/v1/gitauth/parse_repo_url?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

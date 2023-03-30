@@ -44,25 +44,24 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c7 svg {
-  fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c7 svg path.image-automation {
+.c7 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7 svg.sources {
   fill: none !important;
 }
 
-.c7 svg.sources path {
-  fill: !important;
-}
-
 .c7 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7.downward {
@@ -86,25 +85,24 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c11 svg {
-  fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c11 svg path.image-automation {
+.c11 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11 svg.sources {
   fill: none !important;
 }
 
-.c11 svg.sources path {
-  fill: !important;
-}
-
 .c11 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11.downward {
@@ -189,6 +187,7 @@ exports[`Applications index test snapshots loading 1`] = `
 
 .c0 {
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 }
 
@@ -217,7 +216,6 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c3 {
-  color: #fff;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -239,7 +237,7 @@ exports[`Applications index test snapshots loading 1`] = `
   display: flex;
   color: inherit;
   font-size: 20px;
-  height: 80px;
+  height: 60px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
@@ -275,7 +273,7 @@ exports[`Applications index test snapshots loading 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-18"
@@ -321,7 +319,8 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      id="content-wrapper"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
         class="c8"
@@ -420,7 +419,7 @@ exports[`Applications index test snapshots loading 1`] = `
           Need help? Raise a 
           <a
             class="c14"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
@@ -633,25 +632,24 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c7 svg {
-  fill: !important;
   height: 24px;
   width: 24px;
 }
 
-.c7 svg path.image-automation {
+.c7 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7 svg.sources {
   fill: none !important;
 }
 
-.c7 svg.sources path {
-  fill: !important;
-}
-
 .c7 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c7.downward {
@@ -675,25 +673,24 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c11 svg {
-  fill: !important;
   height: 16px;
   width: 16px;
 }
 
-.c11 svg path.image-automation {
+.c11 svg path.path-fill {
   fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11 svg.sources {
   fill: none !important;
 }
 
-.c11 svg.sources path {
-  fill: !important;
-}
-
 .c11 svg.sources rect {
   stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c11.downward {
@@ -717,25 +714,25 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c26 svg {
-  fill: #737373 !important;
+  fill: #737373;
   height: 24px;
   width: 24px;
 }
 
-.c26 svg path.image-automation {
+.c26 svg path.path-fill {
   fill: #737373 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c26 svg.sources {
   fill: none !important;
 }
 
-.c26 svg.sources path {
-  fill: #737373 !important;
-}
-
 .c26 svg.sources rect {
   stroke: #737373 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c26.downward {
@@ -760,25 +757,25 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c32 svg {
-  fill: #d8d8d8 !important;
+  fill: #d8d8d8;
   height: 16px;
   width: 16px;
 }
 
-.c32 svg path.image-automation {
+.c32 svg path.path-fill {
   fill: #d8d8d8 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c32 svg.sources {
   fill: none !important;
 }
 
-.c32 svg.sources path {
-  fill: #d8d8d8 !important;
-}
-
 .c32 svg.sources rect {
   stroke: #d8d8d8 !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c32.downward {
@@ -859,8 +856,12 @@ exports[`Applications index test snapshots success 1`] = `
   overflow: hidden;
   background: white;
   height: 0px;
-  -webkit-transition: height 0.2s ease-in;
-  transition: height 0.2s ease-in;
+  -webkit-transition-property: height;
+  transition-property: height;
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+  -webkit-transition-timing-function: ease-in-out;
+  transition-timing-function: ease-in-out;
   z-index: 1;
 }
 
@@ -1066,6 +1067,7 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c0 {
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 }
 
@@ -1094,7 +1096,6 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c3 {
-  color: #fff;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -1116,7 +1117,7 @@ exports[`Applications index test snapshots success 1`] = `
   display: flex;
   color: inherit;
   font-size: 20px;
-  height: 80px;
+  height: 60px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
@@ -1152,7 +1153,7 @@ exports[`Applications index test snapshots success 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-34"
@@ -1201,7 +1202,8 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      id="content-wrapper"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
         class="c8"
@@ -2235,7 +2237,7 @@ exports[`Applications index test snapshots success 1`] = `
           Need help? Raise a 
           <a
             class="c42"
-            href="https://weavesupport.zendesk.com/"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >

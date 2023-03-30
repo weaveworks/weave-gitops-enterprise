@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	clustersv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pipelinesv1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
@@ -32,6 +33,10 @@ var requiredResources = []RequiredResource{
 	{
 		GroupVersionResource: gapiv1.GroupVersion.WithResource("gitopstemplates"),
 		Kind:                 gapiv1.Kind,
+	},
+	{
+		GroupVersionResource: gitopssetsv1alpha1.GroupVersion.WithResource("gitopssets"),
+		Kind:                 "GitOpsSet",
 	},
 	{
 		GroupVersionResource: clustersv1alpha1.GroupVersion.WithResource("gitopsclusters"),
