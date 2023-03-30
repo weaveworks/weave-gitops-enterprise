@@ -2,12 +2,12 @@ package query
 
 import (
 	"context"
+	"github.com/go-logr/logr"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/alecthomas/assert"
-	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
@@ -16,7 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-// We test access rules here to get to get coverage on the store logic as well as the query service.
+// We test access rules here to get coverage on the store logic as well as the query service.
 // Mocking the store here wouldn't really be testing anything.
 func TestRunQuery_AccessRules(t *testing.T) {
 	tests := []struct {
@@ -180,7 +180,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 		},
 		{
-			name: "cluster roles with unspecified api version",
+			name: "cluster roles with unspecified api version with wildcard",
 
 			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
 			objects: []models.Object{
@@ -226,6 +226,55 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
+				},
+			},
+		},
+		{
+			name: "cluster roles with unspecified api version",
+			user: auth.NewUserPrincipal(auth.ID("wego"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   "helm.toolkit.fluxcd.io",
+					APIVersion: "v2beta1",
+					Kind:       "HelmRelease",
+					Name:       "nginx-113",
+				},
+			},
+			roles: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{"helm.toolkit.fluxcd.io"}, ","),
+						Resources: strings.Join([]string{"HelmRelease"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "flux-system/leaf-cluster-1",
+				Name:      "wego-cluster-role",
+				Namespace: "",
+				Kind:      "ClusterRoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "User",
+					Name: "wego",
+				}},
+				RoleRefName: "wego-cluster-role",
+				RoleRefKind: "ClusterRole",
+			}},
+			expected: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   "helm.toolkit.fluxcd.io",
+					APIVersion: "v2beta1",
+					Kind:       "HelmRelease",
+					Name:       "nginx-113",
 				},
 			},
 		},

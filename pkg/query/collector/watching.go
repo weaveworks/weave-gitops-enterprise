@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
@@ -56,7 +57,7 @@ func (c *watchingCollector) Start() error {
 			}
 		}
 	}()
-	//watch on channels
+
 	go func() {
 		for {
 			objectTransactions := <-c.objectsChannel
@@ -64,7 +65,6 @@ func (c *watchingCollector) Start() error {
 			if err != nil {
 				c.log.Error(err, "cannot process records")
 			}
-			c.log.Info("processed records", "records", objectTransactions)
 		}
 	}()
 

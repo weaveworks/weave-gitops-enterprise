@@ -1,6 +1,6 @@
-import React, { FC } from 'react';
-import styled from 'styled-components';
 import { theme, UserSettings } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import styled from 'styled-components';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
@@ -15,7 +15,7 @@ const Wrapper = styled.div<Size>`
   color: ${({ size }) =>
     size === 'small' ? theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
-  height: ${80}px;
+  height: ${60}px;
   flex-grow: 1;
   padding: 0 ${small} 0 ${medium};
   position: sticky;

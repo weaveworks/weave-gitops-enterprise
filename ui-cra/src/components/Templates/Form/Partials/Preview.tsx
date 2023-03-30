@@ -13,6 +13,7 @@ import {
 import {
   AppPRPreview,
   ClusterPRPreview,
+  PolicyConfigPRPreview,
   SecretPRPreview,
 } from '../../../../types/custom';
 import {
@@ -110,6 +111,13 @@ const Preview: FC<{
           {
             tabName: 'External Secret',
             files: (PRPreview as SecretPRPreview).externalSecretsFiles,
+          },
+        ];
+      case 'policyconfig':
+        return [
+          {
+            tabName: 'PolicyConfigs',
+            files: (PRPreview as PolicyConfigPRPreview).policyConfigFiles,
           },
         ];
       default:
