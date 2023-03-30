@@ -281,7 +281,7 @@ exports[`Applications index test snapshots loading 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-18"
@@ -1178,7 +1178,7 @@ exports[`Applications index test snapshots success 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-34"
