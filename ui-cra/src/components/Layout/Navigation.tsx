@@ -13,6 +13,7 @@ import { FC, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
+import { ReactComponent as GitOpsSetsIcon } from '../assets/img/gitopssets.svg';
 
 function getParentNavRouteValueExtended(
   route: string,
@@ -73,7 +74,22 @@ function getParentNavRouteValueExtended(
   }
 }
 
-function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
+type GitOpsSet = {
+  label: string;
+  link?:
+    | {
+        value: V2Routes | string;
+        href?: string | undefined;
+        newTab?: boolean | undefined;
+      }
+    | undefined;
+  icon?: JSX.Element | undefined;
+  disabled?: boolean | undefined;
+};
+
+type NatIvemType = NavItem | GitOpsSet;
+
+function getNavItems(isFlagEnabled: (flag: string) => boolean): NatIvemType[] {
   return [
     {
       label: 'Platform',
@@ -81,17 +97,17 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Clusters',
       link: { value: Routes.Clusters },
-      icon: IconType.ClustersIcon,
+      icon: IconType.DnsOutlined,
     },
     {
       label: 'Templates',
       link: { value: Routes.Templates },
-      icon: IconType.TemplatesIcon,
+      icon: IconType.DashboardOutlined,
     },
     {
-      label: 'GitOps Sets',
+      label: 'GitOpsSets',
       link: { value: Routes.GitOpsSets },
-      icon: IconType.GitOpsSetsIcon,
+      icon: <GitOpsSetsIcon />,
     },
     {
       label: 'Terraform',
@@ -102,7 +118,7 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Secrets',
       link: { value: Routes.Secrets },
-      icon: IconType.SecretsIcon,
+      icon: IconType.VpnKeyOutlined,
     },
     {
       label: 'Delivery',
@@ -145,17 +161,17 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Workspaces',
       link: { value: Routes.Workspaces },
-      icon: IconType.WorkspacesIcon,
+      icon: IconType.TabOutlined,
     },
     {
       label: 'Policies',
       link: { value: Routes.Policies },
-      icon: IconType.PoliciesIcon,
+      icon: IconType.PolicyOutlined,
     },
     {
       label: 'Policy Configs',
       link: { value: Routes.PolicyConfigs },
-      icon: IconType.PolicyConfigsIcon,
+      icon: IconType.VerifiedUserOutlined,
     },
     {
       label: 'Developer Ex.',
@@ -168,7 +184,7 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Notifications',
       link: { value: Routes.Notifications },
-      icon: IconType.NotificationsIcon,
+      icon: IconType.NotificationsBell,
     },
   ];
 }
@@ -205,7 +221,7 @@ const Navigation: FC = () => {
         <Nav
           collapsed={collapsed}
           setCollapsed={setCollapsed}
-          navItems={navItems}
+          navItems={navItems as NavItem[]}
           currentPage={routeValue}
         />
       </NavHeight>
