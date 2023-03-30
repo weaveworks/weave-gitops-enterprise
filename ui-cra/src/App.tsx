@@ -7,6 +7,7 @@ import {
   coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
+  Pendo,
   theme,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
@@ -152,12 +153,11 @@ const App: FC = () => {
                           <CoreClientContextProvider api={coreClient}>
                             <TerraformProvider api={Terraform}>
                               <LinkResolverProvider resolver={resolver}>
-                                {/* <Pendo
+                                <Pendo
                                   defaultTelemetryFlag="true"
-                                  //@ts-ignore
                                   tier="enterprise"
                                   version={process.env.REACT_APP_VERSION}
-                                /> */}
+                                />
                                 <Compose components={[NotificationsProvider]}>
                                   <Layout />
                                   <ToastContainer

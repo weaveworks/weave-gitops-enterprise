@@ -205,6 +205,9 @@
         },
         "orderBy": {
           "type": "string"
+        },
+        "globalOperand": {
+          "type": "string"
         }
       }
     },

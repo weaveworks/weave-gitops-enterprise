@@ -37,12 +37,20 @@ const (
 	OperandNotEqual QueryOperand = "not_equal"
 )
 
+type GlobalOperand string
+
+const (
+	GlobalOperandAnd GlobalOperand = "and"
+	GlobalOperandOr  GlobalOperand = "or"
+)
+
 type Query []QueryClause
 
 type QueryOption interface {
 	GetLimit() int32
 	GetOffset() int32
 	GetOrderBy() string
+	GetGlobalOperand() string
 }
 
 type QueryClause interface {

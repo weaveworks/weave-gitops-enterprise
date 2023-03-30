@@ -37,6 +37,7 @@ message QueryRequest {
     int32    offset            = 2;
     int32    limit             = 3;
     string   orderBy           = 4;
+    string   globalOperand     = 5;
 }
 
 message QueryClause {

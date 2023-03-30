@@ -7,19 +7,75 @@ enum QueryOperands {
   notEqual = 'not_equal',
 }
 
-function convertToOpts(query: string): QueryClause[] {
+enum GlobalOperand {
+  and = 'and',
+  or = 'or',
+}
+
+const QUERY_REGEXP_STRING = '(.+?):(.+)';
+
+function isSimpleQuery(clauses: string[]) {
+  const queryRe = new RegExp(QUERY_REGEXP_STRING);
+
+  if (clauses.length !== 1) {
+    return false;
+  }
+
+  const matches = queryRe.exec(clauses[0]);
+
+  if (!matches) {
+    return true;
+  }
+
+  return false;
+}
+
+function convertToOpts(query: string): {
+  clauses: QueryClause[];
+  globalOperand: GlobalOperand;
+} {
   if (!query) {
-    return [{ key: '', value: '' }];
+    return {
+      clauses: [{ key: '', value: '' }],
+      globalOperand: GlobalOperand.and,
+    };
   }
 
   const clauses = query.split(',');
 
+  if (isSimpleQuery(clauses)) {
+    const value = clauses[0];
+
+    return {
+      clauses: [
+        {
+          key: 'name',
+          value,
+          operand: QueryOperands.equal,
+        },
+        {
+          key: 'namespace',
+          value,
+          operand: QueryOperands.equal,
+        },
+        {
+          key: 'cluster',
+          value,
+          operand: QueryOperands.equal,
+        },
+      ],
+      globalOperand: GlobalOperand.or,
+    };
+  }
+
   const out = _.map(clauses, clause => {
-    const queryRe = /(.+?):(.+)/g;
+    const queryRe = new RegExp(QUERY_REGEXP_STRING);
     const matches = queryRe.exec(clause);
 
     if (!matches) {
-      throw new Error('Invalid query');
+      throw new Error(
+        'Invalid query. Only single-term or key:value queries are supported; single-term and key:value queries cannot be mixed.',
+      );
     }
 
     return {
@@ -29,7 +85,7 @@ function convertToOpts(query: string): QueryClause[] {
     };
   });
 
-  return out;
+  return { clauses: out, globalOperand: GlobalOperand.and };
 }
 
 export function useQueryService(
@@ -43,13 +99,14 @@ export function useQueryService(
   return useQuery<QueryResponse, Error>(
     ['query', { query, limit, offset, orderBy }],
     () => {
-      const opts = convertToOpts(query);
+      const { clauses: q, globalOperand } = convertToOpts(query);
 
       return api.DoQuery({
-        query: opts,
+        query: q,
         limit,
         offset,
         orderBy,
+        globalOperand,
       });
     },
     {

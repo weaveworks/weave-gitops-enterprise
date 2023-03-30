@@ -138,7 +138,13 @@ function Explorer({ className }: Props) {
   return (
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
       <ContentWrapper
-        errors={error ? [{ message: error?.message }] : undefined}
+        errors={
+          error
+            ? // Hack to get the message to format correctly.
+              // The ContentWrapper API should be simplified to support things other than ListError.
+              [{ clusterName: 'Error', message: error?.message }]
+            : undefined
+        }
       >
         <div className={className}>
           <SubRouterTabs rootPath={`${Routes.Explorer}/query`}>
@@ -220,7 +226,7 @@ function Explorer({ className }: Props) {
                       ...queryState,
                       orderBy: col as string,
                       orderDescending:
-                        queryState.orderBy == col
+                        queryState.orderBy === col
                           ? !queryState.orderDescending
                           : false,
                     });
