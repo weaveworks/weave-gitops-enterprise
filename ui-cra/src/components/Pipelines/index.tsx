@@ -10,6 +10,7 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
@@ -31,7 +32,9 @@ const Pipelines = ({ className }: any) => {
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
           onClick={() => {
-            const filtersValues = encodeURIComponent(`templateType: pipeline`);
+            const filtersValues = toFilterQueryString([
+              { key: `templateType`, value: 'pipeline' },
+            ]);
             history.push(`/templates?filters=${filtersValues}`);
           }}
         >
