@@ -56,6 +56,7 @@ require (
 	github.com/loft-sh/vcluster v0.12.0
 	github.com/mattn/go-sqlite3 v1.14.16
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
+	github.com/microsoft/azure-devops-go-api/azuredevops v1.0.0-b5
 	github.com/mkmik/multierror v0.3.0
 	github.com/onsi/ginkgo/v2 v2.9.1
 	github.com/spf13/pflag v1.0.5

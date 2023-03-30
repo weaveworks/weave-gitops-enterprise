@@ -82,7 +82,6 @@ jobs:
         run: go install github.com/mattn/goveralls@v0.0.11
       - name: Run unit tests
         run: |
-          go version
           make unit-tests-with-coverage
 
   build:
@@ -101,6 +100,7 @@ jobs:
     env:
       GO_CACHE_NAME: cache-go-modules
       YARN_CACHE_NAME: cache-yarn
+      AZURE_DEVOPS_TOKEN: ${{ secrets.AZURE_DEVOPS_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
       GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
       GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
