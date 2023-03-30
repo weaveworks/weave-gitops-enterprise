@@ -141,15 +141,6 @@ const ProfilesListItem: FC<{
     handleUpdateProfile(profile);
   };
 
-  const handleUpdateProfiles = useCallback(
-    value => {
-      setYaml(value);
-      profile.values.forEach(item => {
-        if (item.version === version) {
-          item.yaml = value;
-        }
-      });
-
   const [selectedValue] = profile.values.filter(
     value => value.selected === true,
   );
@@ -174,6 +165,7 @@ const ProfilesListItem: FC<{
       setOpenYamlPreview(false);
     },
     [profile, handleUpdateProfile, version],
+  );
 
   const handleRenderInput = useCallback(
     (params: AutocompleteRenderInputParams) => (
