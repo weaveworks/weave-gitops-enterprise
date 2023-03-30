@@ -9,7 +9,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
-import { Routes } from '../../utils/nav';
 
 type Props = {
   name: string;
@@ -29,10 +28,6 @@ const WGApplicationsHelmChart: FC<Props> = props => {
     <PageTemplate
       documentTitle="Helm Chart"
       path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
         {
           label: 'Sources',
           url: V2Routes.Sources,

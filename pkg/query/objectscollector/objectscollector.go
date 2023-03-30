@@ -8,6 +8,7 @@ import (
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -63,6 +64,13 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 
 	for _, obj := range objectRecords {
 		gvk := obj.Object().GetObjectKind().GroupVersionKind()
+
+		o, err := adapters.ToFluxObject(obj.Object())
+		if err != nil {
+			log.Error(err, "failed to convert object to flux object")
+			continue
+		}
+
 		object := models.Object{
 			Cluster:    obj.ClusterName(),
 			Name:       obj.Object().GetName(),
@@ -70,8 +78,8 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			APIGroup:   gvk.Group,
 			APIVersion: gvk.Version,
 			Kind:       gvk.Kind,
-			Status:     "not available",
-			Message:    "not available",
+			Status:     string(adapters.Status(o)),
+			Message:    adapters.Message(o),
 		}
 		if obj.TransactionType() == models.TransactionTypeDelete {
 			delete = append(delete, object)

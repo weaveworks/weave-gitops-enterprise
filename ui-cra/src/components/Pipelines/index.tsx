@@ -25,16 +25,7 @@ const Pipelines = ({ className }: any) => {
   const history = useHistory();
 
   return (
-    <PageTemplate
-      documentTitle="Pipelines"
-      path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
-        { label: 'Pipelines' },
-      ]}
-    >
+    <PageTemplate documentTitle="Pipelines" path={[{ label: 'Pipelines' }]}>
       <ContentWrapper loading={isLoading} errors={data?.errors}>
         <Button
           data-testid="create-pipeline"

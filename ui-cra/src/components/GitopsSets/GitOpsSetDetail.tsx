@@ -1,26 +1,27 @@
 import { Box } from '@material-ui/core';
 import {
+  AppContext,
   Button,
+  filterByStatusCallback,
+  filterConfig,
   Flex,
+  FluxObjectsTable,
+  Graph,
   InfoList,
   KubeStatusIndicator,
   Metadata,
   PageStatus,
   ReconciledObjectsAutomation,
-  ReconciledObjectsTable,
-  ReconciliationGraph,
+  RequestStateHandler,
   RouterTab,
   SubRouterTabs,
   YamlView,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
-import styled from 'styled-components';
 import { useRouteMatch } from 'react-router-dom';
-import { Routes } from '../../utils/nav';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
-import { TableWrapper } from '../Shared';
+import styled from 'styled-components';
+import { getInventory } from '.';
+import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
   useGetGitOpsSet,
@@ -29,8 +30,12 @@ import {
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
 import { getLabels, getMetadata } from '../../utils/formatters';
-import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
-import { getInventory } from '.';
+import { RequestError } from '../../types/custom';
+import { Routes } from '../../utils/nav';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
+import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
+import { TableWrapper } from '../Shared';
 
 const YAML = require('yaml');
 
@@ -125,8 +130,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
 
   const {
     data: objects,
-    error,
     isLoading,
+    error,
   } = useGetReconciledTree(
     gs?.name || '',
     gs?.namespace || '',
@@ -135,14 +140,19 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     gs?.clusterName || '',
   );
 
+  const initialFilterState = {
+    ...filterConfig(objects, 'type'),
+    ...filterConfig(objects, 'namespace'),
+    ...filterConfig(objects, 'status', filterByStatusCallback),
+  };
+
+  const { setDetailModal } = React.useContext(AppContext);
+
   if (!gs) {
     return null;
   }
 
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
-    objects: objects || [],
-    error: error || undefined,
-    isLoading: isLoading || false,
     source: gs.objectRef || ({} as ObjectRef),
     name: gs.name || '',
     namespace: gs.namespace || '',
@@ -207,9 +217,17 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               />
               <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
               <TableWrapper>
-                <ReconciledObjectsTable
-                  reconciledObjectsAutomation={reconciledObjectsAutomation}
-                />
+                <RequestStateHandler
+                  loading={isLoading}
+                  error={error as RequestError}
+                >
+                  <FluxObjectsTable
+                    className={className}
+                    objects={objects || []}
+                    onClick={setDetailModal}
+                    initialFilterState={initialFilterState}
+                  />
+                </RequestStateHandler>
               </TableWrapper>
             </Box>
           </RouterTab>
@@ -224,9 +242,16 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             />
           </RouterTab>
           <RouterTab name="Graph" path={`${path}/graph`}>
-            <ReconciliationGraph
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
-            />
+            <RequestStateHandler
+              loading={isLoading}
+              error={error as RequestError}
+            >
+              <Graph
+                className={className}
+                reconciledObjectsAutomation={reconciledObjectsAutomation}
+                objects={objects || []}
+              />
+            </RequestStateHandler>
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView

@@ -1,5 +1,5 @@
 import { ReportProblem } from '@material-ui/icons';
-import { Alert } from '@material-ui/lab';
+import { Alert, Autocomplete } from '@material-ui/lab';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
@@ -9,14 +9,21 @@ const {
   defaultOriginal,
   black,
   primary,
+  primary10,
   neutral30,
   neutral20,
   feedbackLight,
   backGrey,
+  alertMedium,
+  alertDark,
 } = theme.colors;
-const { medium: mediumFont } = theme.fontSizes;
-const { none, xxs, xs, small, base, large } = theme.spacing;
-
+const {
+  medium: mediumFont,
+  small: smallFont,
+  large: largeFontSize,
+  tiny: tinyFont,
+} = theme.fontSizes;
+const { none, xxs, xs, small, base, large, medium } = theme.spacing;
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     centered: {
@@ -66,6 +73,79 @@ export const usePolicyConfigStyle = makeStyles(() =>
       whiteSpace: 'pre-line',
       textTransform: 'capitalize',
     },
+    checkList: {
+      display: 'flex',
+      listStyle: 'none',
+      flexFlow: 'wrap',
+      paddingLeft: small,
+      marginTop: none,
+      '& li': {
+        width: '45%',
+        '&.workspaces': {
+          width: '33%',
+          '& label': {
+            marginBottom: '0 !important',
+          },
+        },
+        '& .Mui-checked': {
+          color: primary10,
+        },
+        '& svg': {
+          marginRight: '5px',
+        },
+        '& label': {
+          marginTop: `${xs} !important`,
+          marginBottom: `${base} !important`,
+          fontSize: largeFontSize,
+        },
+      },
+    },
+    SelectPoliciesWithSearch: {
+      '& div[class*="MuiOutlinedInput-root"]': {
+        paddingTop: '0 !important',
+        paddingBottom: '0 !important',
+        paddingRight: `${small} !important`,
+      },
+      '& fieldset[class*="MuiOutlinedInput-root"]::hover': {
+        borderColor: '#d8d8d8 !important',
+      },
+      '& div[class*="MuiFormControl-root"]': {
+        paddingRight: small,
+      },
+
+      '& div[class*="MuiChip-root"]': {
+        height: '26px',
+      },
+      '& input': {
+        border: 'none !important',
+      },
+      '& svg': {
+        color: '#0000008a !important',
+      },
+    },
+    fieldNote: {
+      textTransform: 'uppercase',
+      marginBottom: small,
+      display: 'block',
+      color: neutral30,
+      fontSize: smallFont,
+    },
+    errorSection: {
+      color: alertDark,
+      display: 'Flex',
+      alignItems: 'center',
+      margin: none,
+      fontSize: smallFont,
+      marginTop: xs,
+      textAlign: 'left',
+      fontWeight: 400,
+      lineHeight: 1.66,
+      '& svg': {
+        marginRight: xxs,
+        width: '20px',
+        height: '20px',
+      },
+    },
   }),
 );
 
@@ -93,8 +173,24 @@ export const PolicyDetailsCardWrapper = styled.ul`
   display: flex;
   flex-flow: wrap;
   li {
-    width: 33%;
+    width: 400px;
     padding: ${small};
+    .modified {
+      color: #c2185b;
+      display: block;
+      margin-bottom: ${xxs};
+      font-size: ${tinyFont};
+      position: absolute;
+      bottom: ${xxs};
+    }
+    .editPolicyCardHeader {
+      justify-content: space-between;
+      align-items: center;
+      svg {
+        color: ${alertMedium};
+        cursor: pointer;
+      }
+    }
     .MuiCard-root {
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
       border: 1px solid ${neutral20};
@@ -112,13 +208,47 @@ export const PolicyDetailsCardWrapper = styled.ul`
       font-size: ${small};
       font-weight: 400;
       margin-top: ${xs};
+      position: relative;
       label {
         margin-bottom: ${xs};
         display: block;
+        font-size: ${small};
+        color: black;
       }
+
+      label[class*='MuiFormControlLabel-root'] {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        margin-bottom: ${medium} !important;
+        span[class*='PrivateSwitchBase-root'] {
+          padding: 0 ${xxs} 0 ${xs};
+        }
+        span {
+          font-size: ${small};
+          svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+
       .parameterItemValue {
         color: ${neutral30};
+        label {
+          padding-bottom: ${xs};
+        }
       }
     }
+  }
+`;
+
+export const SelectPoliciesWithSearch = styled(Autocomplete)`
+  div[class*='MuiOutlinedInput-root'] {
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+  }
+  input {
+    border: none !important;
   }
 `;
