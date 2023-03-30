@@ -1806,7 +1806,7 @@ type: Opaque
 					},
 				},
 			},
-			err: errors.New("either data or stringData fields are required"),
+			err: errors.New("key/value pairs must be set in either data or stringData"),
 		},
 		{
 			name: "committed files for sops secret with data and stringData",
