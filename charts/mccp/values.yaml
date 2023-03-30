@@ -185,13 +185,6 @@ gitopssets-controller:
   # gitops-controller-manager etc
   fullnameOverride: gitopssets
   controllerManager:
-    enabledGenerators:
-      - GitRepository
-      - Cluster
-      - PullRequests
-      - List
-      - APIClient
-      - Matrix
     manager:
       image:
         tag: v0.7.0
