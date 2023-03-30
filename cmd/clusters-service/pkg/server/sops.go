@@ -30,8 +30,8 @@ import (
 
 const (
 	EncryptedRegex                   = "^(data|stringData)$"
-	DecryptionPGPExt                 = ".asc"
-	DecryptionAgeExt                 = ".agekey"
+	EncryptionPGPExt                 = ".asc"
+	EncryptionAgeExt                 = ".agekey"
 	SopsPublicKeyNameAnnotation      = "sops-public-key/name"
 	SopsPublicKeyNamespaceAnnotation = "sops-public-key/namespace"
 )
@@ -47,15 +47,17 @@ func NewEncryptor() *Encryptor {
 }
 
 func (e *Encryptor) Encrypt(raw []byte, keys ...keys.MasterKey) ([]byte, error) {
+	// load secret into sops tree branches
 	branches, err := e.store.LoadPlainFile(raw)
 	if err != nil {
 		return nil, err
 	}
 
+	// construct sops tree with the branches and the metadata
 	tree := sops.Tree{
 		Branches: branches,
 		Metadata: sops.Metadata{
-			EncryptedRegex: EncryptedRegex,
+			EncryptedRegex: EncryptedRegex, // set the encrypted regex to encrypt only data and stringData fields
 			KeyGroups: []sops.KeyGroup{
 				keys,
 			},
@@ -86,21 +88,25 @@ func (e *Encryptor) Encrypt(raw []byte, keys ...keys.MasterKey) ([]byte, error) 
 }
 
 func (e *Encryptor) EncryptWithPGP(raw []byte, publicKey string) ([]byte, error) {
+	// import gpg public key
 	err := importPGPKey(publicKey)
 	if err != nil {
 		return nil, err
 	}
 
+	// import parse gpg public key to get its fingerprint
 	key, err := gopgp.NewKeyFromArmoredReader(strings.NewReader(publicKey))
 	if err != nil {
 		return nil, err
 	}
 
+	// get the master key object from public key's fingerprint
 	masterKey := pgp.NewMasterKeyFromFingerprint(key.GetFingerprint())
 	return e.Encrypt(raw, masterKey)
 }
 
 func (e *Encryptor) EncryptWithAGE(raw []byte, recipient string) ([]byte, error) {
+	// get master key object from age public key
 	keys, err := age.MasterKeysFromRecipients(recipient)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create the master key: %w", err)
@@ -146,13 +152,13 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 		return nil, errors.New("kustomization is missing encryption key information")
 	}
 
-	encryptionSecret := client.ObjectKey{
+	encryptionSecretKey := client.ObjectKey{
 		Name:      encryptionSecretName,
 		Namespace: encryptionSecretNamespace,
 	}
 
-	var decryptionSecret v1.Secret
-	if err := clustersClient.Get(ctx, msg.ClusterName, encryptionSecret, &decryptionSecret); err != nil {
+	var encryptionSecret v1.Secret
+	if err := clustersClient.Get(ctx, msg.ClusterName, encryptionSecretKey, &encryptionSecret); err != nil {
 		return nil, fmt.Errorf("failed to get encryption key: %w", err)
 	}
 
@@ -161,7 +167,7 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 		return nil, fmt.Errorf("failed to generate secret: %w", err)
 	}
 
-	encryptedKey, err := encryptSecret(rawSecret, decryptionSecret)
+	encryptedKey, err := encryptSecret(rawSecret, encryptionSecret)
 	if err != nil {
 		return nil, fmt.Errorf("failed to encrypt secret: %w", err)
 	}
@@ -210,16 +216,16 @@ func generateSecret(msg *capiv1_proto.EncryptSopsSecretRequest) ([]byte, error) 
 	return buf.Bytes(), nil
 }
 
-func encryptSecret(raw []byte, decryptSecret v1.Secret) ([]byte, error) {
+func encryptSecret(raw []byte, encryptionSecret v1.Secret) ([]byte, error) {
 	encryptor := NewEncryptor()
-	for name, value := range decryptSecret.Data {
+	for name, value := range encryptionSecret.Data {
 		switch filepath.Ext(name) {
-		case DecryptionPGPExt:
+		case EncryptionPGPExt:
 			return encryptor.EncryptWithPGP(raw, string(value))
-		case DecryptionAgeExt:
+		case EncryptionAgeExt:
 			return encryptor.EncryptWithAGE(raw, strings.TrimRight(string(value), "\n"))
 		default:
-			return nil, errors.New("invalid decryption secret")
+			return nil, errors.New("invalid encryption secret")
 		}
 	}
 	return nil, nil
