@@ -273,7 +273,7 @@ exports[`Applications index test snapshots loading 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-18"
@@ -856,8 +856,12 @@ exports[`Applications index test snapshots success 1`] = `
   overflow: hidden;
   background: white;
   height: 0px;
-  -webkit-transition: height 0.2s ease-in;
-  transition: height 0.2s ease-in;
+  -webkit-transition-property: height;
+  transition-property: height;
+  -webkit-transition-duration: 0.2s;
+  transition-duration: 0.2s;
+  -webkit-transition-timing-function: ease-in-out;
+  transition-timing-function: ease-in-out;
   z-index: 1;
 }
 
@@ -1149,7 +1153,7 @@ exports[`Applications index test snapshots success 1`] = `
       class="c1 count-header"
     >
       <div
-        class="c2"
+        class="c2 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-34"
