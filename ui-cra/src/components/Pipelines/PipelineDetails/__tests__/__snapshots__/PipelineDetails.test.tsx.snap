@@ -129,18 +129,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg rect.rect-height {
-  height: 24px;
-  width: 24px;
+.c9 svg.sources {
+  fill: none !important;
 }
 
-.c9 svg rect.rect-stroke {
+.c9 svg.sources rect {
+  stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c9 svg.no-fill {
-  fill: none !important;
 }
 
 .c9.downward {
@@ -175,19 +171,14 @@ exports[`PipelineDetails snapshots renders 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c35 svg rect.rect-height {
-  height: 16px;
-  width: 16px;
+.c35 svg.sources {
+  fill: none !important;
 }
 
-.c35 svg rect.rect-stroke {
-  stroke: #27AE60;
+.c35 svg.sources rect {
+  stroke: #27AE60 !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c35 svg.no-fill {
-  fill: none !important;
 }
 
 .c35.downward {
