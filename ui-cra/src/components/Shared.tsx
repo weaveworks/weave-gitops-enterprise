@@ -1,4 +1,5 @@
 import { Tooltip as Mtooltip, TooltipProps } from '@material-ui/core';
+import { Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
 
@@ -54,8 +55,6 @@ export const Title = styled.h4`
   margin-bottom: ${({ theme }) => theme.spacing.small};
 `;
 
-export const Body = styled.p`
-  font-size: ${({ theme }) => theme.fontSizes.medium};
-  color: ${({ theme }) => theme.colors.neutral30};
-  font-weight: 400;
+export const LinkTag = styled(Link)`
+  color: ${({ theme }) => theme.colors.primary};
 `;

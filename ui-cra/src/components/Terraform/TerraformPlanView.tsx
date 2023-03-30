@@ -1,6 +1,12 @@
 import styled from 'styled-components';
-import { Body, Title } from '../Shared';
-import { Flex, Link, MessageBox, YamlView } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  Link,
+  MessageBox,
+  YamlView,
+  Text,
+  Spacer,
+} from '@weaveworks/weave-gitops';
 
 type Props = {
   plan?: string;
@@ -14,21 +20,27 @@ function TerraformPlanView({ plan, error }: Props) {
         <YamlView yaml={plan.trimStart() || ''} />
       ) : (
         <MessageBox>
-          <Title>Terraform Plan</Title>
-          <Body>No plan available.</Body>
-          <Body>
+          <Spacer padding="small" />
+          <Text size="large" semiBold>
+            Terraform Plan
+          </Text>
+          <Spacer padding="small" />
+          <Text size="medium">No plan available.</Text>
+          <Spacer padding="small" />
+          <Text size="medium">
             To enable the plan view, please set the field
             `spec.storeReadablePlan` to `human`.
-          </Body>
-          <Body>
+          </Text>
+          <Spacer padding="small" />
+          <Text size="medium">
             To learn more about planning Terraform resources,&nbsp;
             <Link
               href="https://docs.gitops.weave.works/docs/terraform/Using%20Terraform%20CR/plan-and-manually-apply-terraform-resources/"
               newTab
             >
-              visit our documentation
+              visit our documentation.
             </Link>
-          </Body>
+          </Text>
         </MessageBox>
       )}
     </Flex>

@@ -1,13 +1,14 @@
-import { Button, Flex, MessageBox } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  Flex,
+  MessageBox,
+  Spacer,
+  Text,
+} from '@weaveworks/weave-gitops';
 import { Routes } from '../../../utils/nav';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { SectionHeader } from '../../Layout/SectionHeader';
-import {
-  Header4,
-  LinkTag,
-  OnBoardingMessageWrapper,
-  TextWrapper,
-} from '../CanaryStyles';
+import { LinkTag } from '../../Shared';
 
 const OnboardingMessage = () => {
   return (
@@ -25,39 +26,41 @@ const OnboardingMessage = () => {
       <ContentWrapper>
         <Flex center>
           <MessageBox>
-            <Header4>Progressive Delivery</Header4>
-            <TextWrapper>
+            <Spacer padding="small" />
+            <Text size="large" semiBold>
+              Progressive Delivery
+            </Text>
+            <Spacer padding="small" />
+            <Text size="medium">
               None of the clusters you have connected in Weave GitOps have the
               requirements installed for Progressive Delivery.
-            </TextWrapper>
-            <TextWrapper>
+            </Text>
+            <Spacer padding="xs" />
+            <Text size="medium">
               To get started with this feature, follow the guide to install
               Flagger on your cluster(s).
-            </TextWrapper>
-            <Header4>Why Flagger?</Header4>
-            <TextWrapper>
+            </Text>
+            <Spacer padding="small" />
+            <Text size="large" semiBold>
+              Why Flagger?
+            </Text>
+            <Spacer padding="small" />
+            <Text>
               Flagger was designed to give developers confidence in automating
               production releases with progressive delivery techniques. Flagger
               can run automated application analysis, testing, promotion, and
               rollback for deployment strategies such as Canary, A/B Testing,
               and Blue/Green.
-            </TextWrapper>
-            {/* <Flex align> */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-              }}
-            >
+            </Text>
+            <Spacer padding="small" />
+            <Flex wide align center>
               <LinkTag
                 href="https://docs.gitops.weave.works/docs/next/guides/delivery/"
                 newTab
               >
                 <Button id="navigate-to-flagger"> FLAGGER GUIDE</Button>
               </LinkTag>
-            </div>
-            {/* </Flex> */}
+            </Flex>
           </MessageBox>
         </Flex>
       </ContentWrapper>

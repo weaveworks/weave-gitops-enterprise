@@ -1,8 +1,7 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Link, theme } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
+import { theme } from '@weaveworks/weave-gitops';
 
-const { small, xs, medium, base, large, xxl } = theme.spacing;
+const { small, xs, medium, base } = theme.spacing;
 
 export const useCanaryStyle = makeStyles(() =>
   createStyles({
@@ -95,29 +94,3 @@ export const useCanaryStyle = makeStyles(() =>
     },
   }),
 );
-
-export const OnBoardingMessageWrapper = styled.div`
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 5px 10px 50px 3px rgb(0 0 0 / 10%);
-  border-radius: 10px;
-  padding: ${large} ${xxl};
-  max-width: 560px;
-  margin: auto;
-`;
-
-export const Header4 = styled.div`
-  font-size: ${theme.fontSizes.large};
-  font-weight: 600;
-  color: ${theme.colors.neutral30};
-  margin-bottom: ${small};
-`;
-
-export const TextWrapper = styled.p`
-  font-size: ${theme.fontSizes.medium};
-  color: ${theme.colors.neutral30};
-  font-weight: 400;
-`;
-
-export const LinkTag = styled(Link)`
-  color: ${theme.colors.primary};
-`;
