@@ -57,6 +57,7 @@ message Object {
     string status     = 5;
     string apiGroup   = 6;
     string apiVersion = 7;
+    string message    = 8;
 }
 
 message DebugGetAccessRulesRequest {
