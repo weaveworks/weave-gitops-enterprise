@@ -97,6 +97,7 @@ export const ContentWrapper: FC<Props> = ({
 
   return (
     <div
+      id="content-wrapper"
       style={{
         display: 'flex',
         flexDirection: 'column',
