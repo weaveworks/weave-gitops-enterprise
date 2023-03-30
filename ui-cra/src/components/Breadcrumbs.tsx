@@ -78,7 +78,7 @@ const useStyles = makeStyles(() =>
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   const classes = useStyles();
   return (
-    <Container>
+    <Container className="test-id-breadcrumbs">
       {path.map(({ label, url }, index) => (
         <div
           key={index}
