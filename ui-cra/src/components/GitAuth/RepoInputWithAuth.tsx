@@ -95,7 +95,11 @@ export function RepoInputWithAuth({
   return (
     <GitAuthForm className={props.className} align start>
       <Select
-        error={gitRepos && !!err?.message ? true : false}
+        error={
+          !!parsedValue?.value && gitRepos.length > 0 && !!err?.message
+            ? true
+            : false
+        }
         description={!formData.repo || !err ? props.description : err?.message}
         name="repo-select"
         required={true}

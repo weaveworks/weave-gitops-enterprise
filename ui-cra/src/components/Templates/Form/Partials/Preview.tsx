@@ -15,6 +15,7 @@ import {
   ClusterPRPreview,
   PolicyConfigPRPreview,
   SecretPRPreview,
+  SOPSSecretPRPreview,
 } from '../../../../types/custom';
 import {
   CommitFile,
@@ -108,6 +109,13 @@ const Preview: FC<{
           {
             tabName: 'External Secret',
             files: (PRPreview as SecretPRPreview).externalSecretsFiles,
+          },
+        ];
+      case 'sops':
+        return [
+          {
+            tabName: 'SOPS Secret',
+            files: (PRPreview as SOPSSecretPRPreview).sopsSecertFiles,
           },
         ];
       case 'policyconfig':
