@@ -1,7 +1,6 @@
-import { Container } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import ArrowForward from '@material-ui/icons/ArrowForwardIos';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
+import { Flex, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { isEmpty } from 'lodash';
 import { transparentize } from 'polished';
 import { FC } from 'react';
@@ -11,6 +10,11 @@ import styled from 'styled-components';
 interface Size {
   size?: 'small';
 }
+
+const Container = styled(Flex)`
+  font-size: ${20}px;
+  height: 32px;
+`;
 
 const Span = styled.span`
   text-overflow: ellipsis;
@@ -45,9 +49,11 @@ export interface Breadcrumb {
   label: string;
   url?: string;
 }
+
 interface Props extends Size {
   path: Breadcrumb[];
 }
+
 const useStyles = makeStyles(() =>
   createStyles({
     path: {
@@ -73,10 +79,11 @@ const useStyles = makeStyles(() =>
     },
   }),
 );
+
 export const Breadcrumbs: FC<Props> = ({ path, size }) => {
   const classes = useStyles();
   return (
-    <Container className="test-id-breadcrumbs">
+    <Container align center className="test-id-breadcrumbs">
       {path.map(({ label, url }, index) => (
         <div
           key={index}

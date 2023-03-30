@@ -20,8 +20,6 @@ import {
   SubRouterTabs,
   theme,
   useListSources,
-  GitRepository,
-  Kind,
   Flex,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
