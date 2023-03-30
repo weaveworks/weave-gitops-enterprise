@@ -121,7 +121,7 @@ func GetLoginPage(webDriver *agouti.Page) *LoginPage {
 		Password:        webDriver.Find(`input#password`),
 		LoginOIDC:       webDriver.FindByButton(`LOGIN WITH OIDC PROVIDER`),
 		Continue:        webDriver.FindByButton(`CONTINUE`),
-		AccountSettings: webDriver.Find(`button[title="Account settings"]`),
+		AccountSettings: webDriver.Find(`button[class*="PersonButton"]`),
 	}
 
 	return &loginPage
