@@ -103,7 +103,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
 .c22 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   text-transform: uppercase;
   font-style: normal;
   color: #737373;
@@ -129,14 +129,18 @@ exports[`PipelineDetails snapshots renders 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg.sources {
-  fill: none !important;
+.c9 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
 }
 
-.c9 svg.sources rect {
-  stroke: !important;
+.c9 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c9 svg.no-fill {
+  fill: none !important;
 }
 
 .c9.downward {
@@ -171,14 +175,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c35 svg.sources {
-  fill: none !important;
+.c35 svg rect.rect-height {
+  height: 16px;
+  width: 16px;
 }
 
-.c35 svg.sources rect {
-  stroke: #27AE60 !important;
+.c35 svg rect.rect-stroke {
+  stroke: #27AE60;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c35 svg.no-fill {
+  fill: none !important;
 }
 
 .c35.downward {
@@ -211,7 +220,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   padding: 8px;
 }
 
-.c19 {
+.c18 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
@@ -233,34 +242,8 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-color: #d8d8d8;
 }
 
-.c18 .active-tab {
+.c19.active-tab {
   background: #00b3ec19;
-}
-
-.c18 .MuiTab-root {
-  line-height: 1;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
-  letter-spacing: 1px;
-  height: 32px;
-  min-height: 32px;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
-  width: fit-content;
-}
-
-.c18 .MuiTabs-root {
-  min-height: 32px;
-}
-
-.c18 .MuiTabs-fixed {
-  height: 32px;
-}
-
-.c18 .MuiTabs-indicator {
-  height: 3px;
-  background-color: #00b3ec;
 }
 
 .c6 {
@@ -460,12 +443,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c31 .c8 img {
   width: 16px;
-}
-
-@media (min-width:600px) {
-  .c18 .MuiTab-root {
-    min-width: 132px;
-  }
 }
 
 <div>
@@ -698,10 +675,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="c17 c18 $66f9bbb72ea3c190$var$SubRouterTabs"
+          class="c17 $66f9bbb72ea3c190$var$SubRouterTabs"
         >
           <div
-            class="MuiTabs-root"
+            class="MuiTabs-root horizontal-tabs"
           >
             <div
               class="MuiTabs-scroller MuiTabs-fixed"
@@ -713,11 +690,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
               >
                 <a
                   aria-disabled="false"
-                  aria-selected="true"
-                  class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false Mui-selected"
+                  class="c18 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c19 $f59ecea4231521c0$var$MuiTabfalse"
                   href="/pipelines/details/status"
                   role="tab"
-                  tabindex="0"
+                  tabindex="-1"
                 >
                   <span
                     class="c20 c21"
@@ -740,8 +716,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
                 <a
                   aria-disabled="false"
-                  aria-selected="false"
-                  class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
+                  class="c18 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c19 $f59ecea4231521c0$var$MuiTabfalse"
                   href="/pipelines/details/yaml"
                   role="tab"
                   tabindex="-1"
@@ -767,8 +742,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
                 <a
                   aria-disabled="false"
-                  aria-selected="false"
-                  class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
+                  class="c18 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c19 $f59ecea4231521c0$var$MuiTabfalse"
                   href="/pipelines/details/pullrequests"
                   role="tab"
                   tabindex="-1"
@@ -794,7 +768,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
               </div>
               <span
-                class="PrivateTabIndicator-root-136 PrivateTabIndicator-colorPrimary-137 MuiTabs-indicator"
+                class="PrivateTabIndicator-root-137 PrivateTabIndicator-colorPrimary-138 MuiTabs-indicator"
                 style="left: 0px; width: 0px;"
               />
             </div>
@@ -866,7 +840,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c18"
                         href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
                       >
                         <span
@@ -998,7 +972,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c18"
                         href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-qa"
                       >
                         <span
@@ -1109,7 +1083,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c18"
                         href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-perf"
                       >
                         <span
@@ -1241,7 +1215,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c18"
                         href="/helm_release/details?clusterName=default%2Fprod&name=podinfo&namespace=podinfo-02-prod"
                       >
                         <span
@@ -1321,7 +1295,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         <div>
           Need help? Raise a 
           <a
-            class="c19"
+            class="c18"
             href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
