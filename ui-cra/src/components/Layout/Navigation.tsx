@@ -81,17 +81,17 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Clusters',
       link: { value: Routes.Clusters },
-      icon: IconType.DnsOutlined,
+      icon: IconType.ClustersIcon,
     },
     {
       label: 'Templates',
       link: { value: Routes.Templates },
-      icon: IconType.DashboardOutlined,
+      icon: IconType.TemplatesIcon,
     },
     {
       label: 'GitOpsSets',
       link: { value: Routes.GitOpsSets },
-      icon: IconType.FilterIcon,
+      icon: IconType.GitOpsSetsIcon,
     },
     {
       label: 'Terraform',
@@ -102,7 +102,7 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Secrets',
       link: { value: Routes.Secrets },
-      icon: IconType.VpnKeyOutlined,
+      icon: IconType.SecretsIcon,
     },
     {
       label: 'Delivery',
@@ -145,17 +145,17 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Workspaces',
       link: { value: Routes.Workspaces },
-      icon: IconType.TabOutlined,
+      icon: IconType.WorkspacesIcon,
     },
     {
       label: 'Policies',
       link: { value: Routes.Policies },
-      icon: IconType.PolicyOutlined,
+      icon: IconType.PoliciesIcon,
     },
     {
       label: 'Policy Configs',
       link: { value: Routes.PolicyConfigs },
-      icon: IconType.VerifiedUserOutlined,
+      icon: IconType.PolicyConfigsIcon,
     },
     {
       label: 'Developer Ex.',
@@ -168,7 +168,7 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Notifications',
       link: { value: Routes.Notifications },
-      icon: IconType.NotificationsBell,
+      icon: IconType.NotificationsIcon,
     },
   ];
 }
