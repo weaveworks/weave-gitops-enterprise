@@ -13,7 +13,6 @@ import { FC, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
-import { ReactComponent as GitOpsSetsIcon } from '../../assets/img/templates/gitopssets.svg';
 
 function getParentNavRouteValueExtended(
   route: string,
@@ -74,22 +73,7 @@ function getParentNavRouteValueExtended(
   }
 }
 
-type GitOpsSet = {
-  label: string;
-  link?:
-    | {
-        value: V2Routes | string;
-        href?: string | undefined;
-        newTab?: boolean | undefined;
-      }
-    | undefined;
-  icon?: JSX.Element | undefined;
-  disabled?: boolean | undefined;
-};
-
-type NatIvemType = NavItem | GitOpsSet;
-
-function getNavItems(isFlagEnabled: (flag: string) => boolean): NatIvemType[] {
+function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
   return [
     {
       label: 'Platform',
@@ -107,7 +91,7 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NatIvemType[] {
     {
       label: 'GitOpsSets',
       link: { value: Routes.GitOpsSets },
-      icon: <GitOpsSetsIcon />,
+      icon: IconType.FilterIcon,
     },
     {
       label: 'Terraform',
@@ -226,7 +210,7 @@ const Navigation: FC = () => {
           className="test-id-navigation"
           collapsed={collapsed}
           setCollapsed={setCollapsed}
-          navItems={navItems as NavItem[]}
+          navItems={navItems}
           currentPage={routeValue}
         />
       </NavHeight>
