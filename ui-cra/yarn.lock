@@ -2366,17 +2366,10 @@
     styled-components "^5.3.0"
     yaml "^1.10.2"
 
-<<<<<<< HEAD
 "@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-3-g0ffa5ad1":
   version "0.20.0-3-g0ffa5ad1"
   resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-3-g0ffa5ad1/df25821d03b80da67addc1c583e327a82a1d1af7#df25821d03b80da67addc1c583e327a82a1d1af7"
   integrity sha512-D6wwe9olRDaxemdkJ2LKS1MOoHLtVNF7WeAe/AvXi+mTGvJJlCeIlIeRDWcOfFJT2xlLE4mUtCGGWFiYGP33JA==
-=======
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-2-g15becb29":
-  version "0.20.0-2-g15becb29"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-2-g15becb29/4e39fd7e403f35d8cacf19c19a0d92d9a48a88ff#4e39fd7e403f35d8cacf19c19a0d92d9a48a88ff"
-  integrity sha512-ez6OVxosr4dOP/4EO3dIesgVRDSfsS6ClFC9vuhHQ9QrIOKjtCNIWSmqmnRPWQDA6U79G6LSztHSWiy4+byVEQ==
->>>>>>> af0b201bf6042cf1b05312b516846e3520db44da
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
