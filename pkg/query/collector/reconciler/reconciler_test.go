@@ -175,11 +175,11 @@ func TestReconciler_Reconcile(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var reconcileError error
 			objectsChannel := make(chan []models.ObjectTransaction)
+			defer close(objectsChannel)
 			gvk := v2beta1.GroupVersion.WithKind("HelmRelease")
 			reconciler, err := NewReconciler(clusterName, gvk, fakeClient, objectsChannel, logger)
 			g.Expect(err).To(BeNil())
 			g.Expect(reconciler).NotTo(BeNil())
-			defer close(objectsChannel)
 			go func() {
 				_, reconcileError = reconciler.Reconcile(ctx, tt.request)
 				return

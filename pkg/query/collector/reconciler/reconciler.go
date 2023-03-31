@@ -89,7 +89,6 @@ func getClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 	}
 }
 
-// TODO add unit
 func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	r.log.Info("new reconcile request", "request", req)

@@ -113,6 +113,10 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 }
 
 func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
+	//do nothing if empty collection
+	if len(objects) == 0 {
+		return nil
+	}
 	// Gotta copy the objects because we need to set the ID
 	rows := []models.Object{}
 
