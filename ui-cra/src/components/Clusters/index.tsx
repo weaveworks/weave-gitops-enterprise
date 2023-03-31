@@ -61,6 +61,7 @@ import {
   getCreateRequestAnnotation,
   getInitialGitRepo,
 } from '../Templates/Form/utils';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
@@ -88,10 +89,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
   }
   width: 100%;
 `;
-
-// const LoadingWrapper = styled.div`
-//   ${contentCss};
-// `;
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
@@ -300,10 +297,13 @@ const MCCP: FC<{
     (getInitialGitRepo(initialUrl, gitRepos) as GitRepositoryEnriched);
   const history = useHistory();
 
-  const handleAddCluster = useCallback(
-    () => history.push(`/templates`),
-    [history],
-  );
+  const handleAddCluster = useCallback(() => {
+    const filtersValues = toFilterQueryString([
+      { key: 'templateType', value: 'cluster' },
+      { key: 'templateType', value: '' },
+    ]);
+    history.push(`/templates?filters=${filtersValues}`);
+  }, [history]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
