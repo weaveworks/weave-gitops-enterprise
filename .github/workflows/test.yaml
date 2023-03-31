@@ -45,8 +45,7 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Lint
-        run: |
-          make lint
+        run: make lint
 
   unit-tests:
     needs: cache
@@ -64,8 +63,7 @@ jobs:
           GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
         run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
       - name: Run unit tests
-        run: |
-          make unit-tests-with-coverage
+        run: make unit-tests-with-coverage
 
   build:
     uses: ./.github/workflows/build.yaml
@@ -105,10 +103,7 @@ jobs:
         with:
           ssh-private-key: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
       - name: Run integration tests
-        run: |
-          make dependencies
-          go test -v ./cmd/clusters-service/... -tags=integration
-          go test -v ./pkg/git/... -tags=integration
+        run: make integration-tests
 
   ui-unit-tests:
     runs-on: ubuntu-latest
