@@ -178,29 +178,12 @@ jobs:
     runs-on: ${{ inputs.runs-on }}
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
-      - id: go-cache-paths
-        run: |
-          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
-          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
+      - name: Checkout code
+        uses: actions/checkout@v3.5.0
       - name: Install Go
-        uses: actions/setup-go@v3.5.0
+        uses: actions/setup-go@v4.0.0
         with:
           go-version: 1.20.x
-      - name: Checkout code
-        uses: actions/checkout@v3.1.0
-        with:
-          fetch-depth: 0
-      - name: Go Build Cache
-        env:
-          GO_CACHE_NAME: cache-go-modules
-        uses: actions/cache@v3.0.11
-        with:
-          path: |
-            ${{ steps.go-cache-paths.outputs.go-build }}
-            ${{ steps.go-cache-paths.outputs.go-mod }}
-          key: ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-build-${{ env.GO_CACHE_NAME }}-
       - name: setup aws credentials
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
