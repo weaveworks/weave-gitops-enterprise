@@ -1,7 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
+import { describe, expect, it } from 'vitest';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
+import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
+
 import {
   ApplicationsClientMock,
   defaultContexts,

@@ -1,4 +1,5 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
+import { describe, expect, it } from 'vitest';
 import { getInitialGitRepo, getRepositoryUrl } from '../utils';
 
 describe('getRepositoryUrl', () => {

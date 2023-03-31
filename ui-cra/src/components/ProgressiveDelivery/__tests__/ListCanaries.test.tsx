@@ -1,11 +1,12 @@
 import { act, render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import ListCanaries from '../';
 import { ProgressiveDeliveryProvider } from '../../../contexts/ProgressiveDelivery';
 import {
   defaultContexts,
+  findCellInCol,
   ProgressiveDeliveryMock,
   withContext,
-  findCellInCol,
 } from '../../../utils/test-utils';
 
 describe('ListCanaries', () => {

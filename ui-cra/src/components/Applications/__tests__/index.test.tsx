@@ -10,7 +10,9 @@ import {
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
+import { describe, expect, it } from 'vitest';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { GitAuthProvider } from '../../../contexts/GitAuth';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import { muiTheme } from '../../../muiTheme';
@@ -20,7 +22,6 @@ import {
   EnterpriseClientMock,
   withContext,
 } from '../../../utils/test-utils';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
 
 describe('Applications index test', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
