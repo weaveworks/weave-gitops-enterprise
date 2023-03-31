@@ -1,18 +1,18 @@
-import { FC } from 'react';
-import { Policy } from '../../../cluster-services/cluster_services.pb';
-import { usePolicyStyle } from '../PolicyStyles';
 import {
   DataTable,
   filterConfig,
   formatURL,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
-import { Link } from 'react-router-dom';
-import Severity from '../Severity';
 import moment from 'moment';
-import { TableWrapper } from '../../Shared';
+import { FC } from 'react';
+import { Link } from 'react-router-dom';
+import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
+import { TableWrapper } from '../../Shared';
 import Mode from '../Mode';
+import { usePolicyStyle } from '../PolicyStyles';
+import Severity from '../Severity';
 
 interface CustomPolicy extends Policy {
   audit?: string;

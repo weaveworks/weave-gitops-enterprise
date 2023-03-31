@@ -1,7 +1,15 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
-import { AppContextProvider, theme } from '@weaveworks/weave-gitops';
+import {
+  AppContextProvider,
+  AuthContextProvider,
+  coreClient,
+  CoreClientContextProvider,
+  LinkResolverProvider,
+  Pendo,
+  theme,
+} from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import {
   QueryCache,
@@ -14,16 +22,22 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
+import { Terraform } from './api/terraform/terraform.pb';
 import bg from './assets/img/bg.svg';
-import ResponsiveDrawer from './components/ResponsiveDrawer';
+import { ClustersService } from './cluster-services/cluster_services.pb';
+import Layout from './components/Layout/Layout';
+import Compose from './components/ProvidersCompose';
+import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
+import NotificationsProvider from './contexts/Notifications/Provider';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import RequestContextProvider from './contexts/Request';
+import { TerraformProvider } from './contexts/Terraform';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
-
+import { resolver } from './utils/link-resolver';
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
   /* https://github.com/necolas/normalize.css/issues/694 */
@@ -135,12 +149,30 @@ const App: FC = () => {
                 <PipelinesProvider api={Pipelines}>
                   <GitAuthProvider>
                     <AppContextProvider>
-                      <ResponsiveDrawer />
-                      <ToastContainer
-                        position="top-center"
-                        autoClose={5000}
-                        newestOnTop={false}
-                      />
+                      <AuthContextProvider>
+                        <EnterpriseClientProvider api={ClustersService}>
+                          <CoreClientContextProvider api={coreClient}>
+                            <TerraformProvider api={Terraform}>
+                              <LinkResolverProvider resolver={resolver}>
+                                <Pendo
+                                  defaultTelemetryFlag="true"
+                                  //@ts-ignore
+                                  tier="enterprise"
+                                  version={process.env.REACT_APP_VERSION}
+                                />
+                                <Compose components={[NotificationsProvider]}>
+                                  <Layout />
+                                  <ToastContainer
+                                    position="top-center"
+                                    autoClose={5000}
+                                    newestOnTop={false}
+                                  />
+                                </Compose>
+                              </LinkResolverProvider>
+                            </TerraformProvider>
+                          </CoreClientContextProvider>
+                        </EnterpriseClientProvider>
+                      </AuthContextProvider>
                     </AppContextProvider>
                   </GitAuthProvider>
                 </PipelinesProvider>

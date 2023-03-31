@@ -41,6 +41,8 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			continue
 		}
 
+		//Checks whether the rule allows object's kind
+		//It will be allowed if the rule allows the apigroup and kind
 		for _, gvk := range rule.AccessibleKinds {
 
 			var ruleKind string
@@ -55,7 +57,6 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			} else {
 				return false, fmt.Errorf("invalid GVK: %s", gvk)
 			}
-
 			ruleGroup := parts[0]
 
 			if ruleGroup != object.APIGroup {
@@ -69,10 +70,19 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 				return true, nil
 			}
 
+			//given roles rule contains apigroups https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
+			// but not version, any version would work
+			// we match on kind
+			if ruleKind == object.Kind {
+				return true, nil
+			}
+
+			//TODO: review with jordan when we match here
 			// Check for an exact group/version/kind match.
 			if gvk == objectGVK {
 				return true, nil
 			}
+
 		}
 	}
 
