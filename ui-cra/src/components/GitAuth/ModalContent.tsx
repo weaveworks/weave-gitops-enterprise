@@ -23,7 +23,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   return (
     <div className={className}>
       <Pad wide center>
-        <Flex align testId="github-code-container">
+        <Flex align data-testid="github-code-container">
           <p className="code-text" data-testid="github-code">
             {codeRes.userCode}
           </p>
