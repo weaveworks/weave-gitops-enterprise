@@ -91,7 +91,6 @@ func getClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 
 func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
-	r.log.Info("new reconcile request", "request", req)
 	clientObject, err := getClientObjectByKind(r.gvk)
 	if err != nil {
 		return ctrl.Result{}, fmt.Errorf("could not get client object: %w", err)
@@ -111,8 +110,6 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		object:          clientObject,
 		transactionType: txType,
 	}}
-
-	r.log.Info("tx", "tx", fmt.Sprintf("%+v", transactions))
 
 	//TODO manage error
 	r.objectsChannel <- transactions
