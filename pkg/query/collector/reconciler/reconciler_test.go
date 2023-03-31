@@ -142,7 +142,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			name:   "can reconcile created or updated resource requests",
 			object: createdOrUpdatedHelmRelease,
 			request: ctrl.Request{
-				types.NamespacedName{
+				NamespacedName: types.NamespacedName{
 					Name:      createdOrUpdatedHelmRelease.GetName(),
 					Namespace: createdOrUpdatedHelmRelease.GetNamespace(),
 				},
@@ -158,7 +158,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			name:   "can reconcile delete resource requests",
 			object: deleteHelmRelease,
 			request: ctrl.Request{
-				types.NamespacedName{
+				NamespacedName: types.NamespacedName{
 					Name:      deleteHelmRelease.GetName(),
 					Namespace: deleteHelmRelease.GetNamespace(),
 				},
@@ -182,7 +182,6 @@ func TestReconciler_Reconcile(t *testing.T) {
 			g.Expect(reconciler).NotTo(BeNil())
 			go func() {
 				_, reconcileError = reconciler.Reconcile(ctx, tt.request)
-				return
 			}()
 			objectTransactions := <-objectsChannel
 			if tt.errPattern != "" {
