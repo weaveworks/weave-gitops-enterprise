@@ -78,7 +78,7 @@ function RowHeader({
   value: string | JSX.Element | undefined;
 }) {
   return (
-    <Flex start style={{ margin: `${xs} 0` }} data-testid={rowkey}>
+    <Flex start style={{ margin: `${xs} 0` }} testId={rowkey}>
       <RowTitle>{rowkey} :</RowTitle>
       <RowBody>{children || value || '--'}</RowBody>
     </Flex>
