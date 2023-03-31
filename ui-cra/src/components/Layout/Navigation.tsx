@@ -140,6 +140,12 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
       icon: IconType.FluxIcon,
     },
     {
+      label: 'Explore',
+      link: { value: Routes.Explorer },
+      icon: IconType.SearchIcon,
+      disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER'),
+    },
+    {
       label: 'Guardrails',
     },
     {
