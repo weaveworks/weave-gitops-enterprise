@@ -24,7 +24,6 @@ jobs:
   coverage:
     runs-on: ubuntu-latest
     env:
-      WGE_COVERALLS_TOKEN: ${{ secrets.WGE_COVERALLS_TOKEN }}
       ARTEFACTS_BASE_DIR: /tmp/workspace/test
     steps:
       - name: Install Go
@@ -44,8 +43,6 @@ jobs:
           go install github.com/wadey/gocovmerge@latest
           go install github.com/jstemmer/go-junit-report@latest
           npm install -g junit-report-merger
-      - name: Install goveralls
-        run: go install github.com/mattn/goveralls@v0.0.11
       - name: Run unit tests
         run: |
           go version
