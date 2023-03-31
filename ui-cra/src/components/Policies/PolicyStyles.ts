@@ -161,11 +161,12 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   }),
 );
 
-export const ParameterWrapper = styled(Flex)`
+export const ParameterWrapper = styled.div`
   border: 1px solid ${neutral20};
   box-sizing: border-box;
   border-radius: ${xxs};
   padding: ${base};
+  display: flex;
   margin-bottom: ${base};
   margin-top: ${base};
 `;

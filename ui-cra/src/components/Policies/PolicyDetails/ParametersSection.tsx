@@ -13,14 +13,8 @@ function ParametersSection({ parameters }: Policy) {
         <div className={classes.cardTitle}>Parameters Definition:</div>
         {parameters?.map((parameter: PolicyParam) => (
           <ParameterWrapper key={parameter.name} id={parameter.name}>
-            <ParameterCell
-              label="Name"
-              value={parameter.name}
-            ></ParameterCell>
-            <ParameterCell
-              label="Type"
-              value={parameter.type}
-            ></ParameterCell>
+            <ParameterCell label="Name" value={parameter.name}></ParameterCell>
+            <ParameterCell label="Type" value={parameter.type}></ParameterCell>
             <ParameterCell
               label="Value"
               value={parseValue(parameter)}

@@ -26,7 +26,7 @@ export const ParameterCell = ({
   value: string | undefined;
 }) => {
   return (
-    <ParameterInfo column testid={label}>
+    <ParameterInfo column testId={label}>
       <span className="label">{label}</span>
       <span className="body1">{value}</span>
     </ParameterInfo>
