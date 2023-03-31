@@ -225,6 +225,7 @@ func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object
 			object.GetID(),
 		)
 		result := i.db.Unscoped().Delete(&models.Object{}, where)
+		i.log.Info("deleted object", "id", where)
 		if result.Error != nil {
 			return fmt.Errorf("failed to delete object: %w", result.Error)
 		}

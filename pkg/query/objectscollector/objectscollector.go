@@ -59,6 +59,7 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 }
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+
 	upsert := []models.Object{}
 	delete := []models.Object{}
 
@@ -81,19 +82,27 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			Status:     string(adapters.Status(o)),
 			Message:    adapters.Message(o),
 		}
+		log.Info("received process request", "object", fmt.Sprintf("%+v", obj))
+
 		if obj.TransactionType() == models.TransactionTypeDelete {
+			log.Info("its delete")
 			delete = append(delete, object)
 		} else {
+			log.Info("its upsert")
 			upsert = append(upsert, object)
 		}
 	}
 
-	if err := store.StoreObjects(ctx, upsert); err != nil {
-		return fmt.Errorf("failed to store objects: %w", err)
+	if len(upsert) > 0 {
+		if err := store.StoreObjects(ctx, upsert); err != nil {
+			return fmt.Errorf("failed to store objects: %w", err)
+		}
 	}
 
-	if err := store.DeleteObjects(ctx, delete); err != nil {
-		return fmt.Errorf("failed to delete objects: %w", err)
+	if len(delete) > 0 {
+		if err := store.DeleteObjects(ctx, delete); err != nil {
+			return fmt.Errorf("failed to delete objects: %w", err)
+		}
 	}
 
 	return nil
