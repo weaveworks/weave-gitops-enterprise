@@ -26,7 +26,7 @@ type defaultAccessChecker struct {
 	kindByResourceMap map[string]string
 }
 
-// HasAccess checks if a principal has access to a resource.
+// HasAccess checks if a principal has access to an object given principal access rules
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
@@ -43,7 +43,7 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			continue
 		}
 
-		// A RBAC policyRule includes apiGroups and resources https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
+		// A RBAC policyRule includes a set of <ApiGroup,Resource> https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
 		// It will allow access if both apiGroups and resources allow access
 		for _, gr := range rule.AccessibleKinds {
 
@@ -106,7 +106,8 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 	return matchingRules
 }
 
-// NewAccessChecker returns a new AccessChecker configured with a set of allowed gvks
+// NewAccessChecker returns a new AccessChecker configured with a set of allowed resources
+// and kinds it could check access to
 func NewAccessChecker(kindByResourceMap map[string]string) (Checker, error) {
 	return &defaultAccessChecker{
 		kindByResourceMap: kindByResourceMap,

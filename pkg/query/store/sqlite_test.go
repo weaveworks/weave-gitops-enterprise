@@ -3,7 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utilstest"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
 	"testing"
@@ -88,7 +88,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	ctx := context.Background()
 
 	store, db := createStore(t)
-	resourcesMap, err := utilstest.CreateAllowedResourcesMapForApplications()
+	resourcesMap, err := testutils.CreateDefaultResourceKindMap()
 	g.Expect(err).To(BeNil())
 	check, err := accesschecker.NewAccessChecker(resourcesMap)
 	g.Expect(err).To(BeNil())

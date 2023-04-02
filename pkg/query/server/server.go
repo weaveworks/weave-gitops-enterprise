@@ -50,10 +50,12 @@ func (s *server) StopCollection() error {
 }
 
 type ServerOpts struct {
-	Logger          logr.Logger
+	Logger logr.Logger
+	// required to watch clusters
 	ClustersManager clustersmngr.ClustersManager
 	SkipCollection  bool
 	StoreType       string
+	// required to map GVRs to GVKs for authz purporses
 	DiscoveryClient discovery.DiscoveryInterface
 }
 
@@ -88,21 +90,23 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 	}, nil
 }
 
-// it checks whether the resource from the policy rule allows access to the kind.
 // GVKs and GVRs are related. GVKs are served under HTTP paths identified by GVRs.
 // The process of mapping a GVK to a GVR is called REST mapping.
+// This method creates a map <resource,kind> to allow access checker
+// to determine whether a policyRule (from GVR) allows a kind (from GVK)
+// More info https://kubernetes.io/docs/reference/using-api/api-concepts/#standard-api-terminology
 func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string, error) {
 	_, resourcesList, err := dc.ServerGroupsAndResources()
 	if err != nil {
 		return nil, err
 	}
-	groupResourceMap := map[string]string{}
+	kindByResourceMap := map[string]string{}
 	for _, resourceList := range resourcesList {
 		for _, resource := range resourceList.APIResources {
-			groupResourceMap[resource.Name] = resource.Kind
+			kindByResourceMap[resource.Name] = resource.Kind
 		}
 	}
-	return groupResourceMap, nil
+	return kindByResourceMap, nil
 }
 
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
@@ -120,7 +124,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 
 	kindByResourceMap, err := createKindByResourceMap(opts.DiscoveryClient)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create store:%w", err)
+		return nil, nil, fmt.Errorf("cannot resources mapper:%w", err)
 	}
 
 	checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
@@ -128,7 +132,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
-		Log:           opts.Logger,
+		Log:           log,
 		StoreReader:   s,
 		AccessChecker: checker,
 	})

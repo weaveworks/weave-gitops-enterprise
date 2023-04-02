@@ -5,7 +5,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utilstest"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
 	"testing"
@@ -398,7 +398,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
 
 			//create gvks and resources configuration
-			kindByResourceMap, err := utilstest.CreateAllowedResourcesMapForApplications()
+			kindByResourceMap, err := testutils.CreateDefaultResourceKindMap()
 			assert.NoError(t, err)
 
 			checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
