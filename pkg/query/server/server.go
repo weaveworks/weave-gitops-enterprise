@@ -52,7 +52,6 @@ func (s *server) StopCollection() error {
 type ServerOpts struct {
 	Logger          logr.Logger
 	ClustersManager clustersmngr.ClustersManager
-	Resources       []string
 	SkipCollection  bool
 	StoreType       string
 	DiscoveryClient discovery.DiscoveryInterface
