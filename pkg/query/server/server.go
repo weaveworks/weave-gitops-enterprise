@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"k8s.io/client-go/discovery"
 	"os"
 
 	"github.com/go-logr/logr"
@@ -19,12 +20,12 @@ import (
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 type server struct {
 	pb.UnimplementedQueryServer
 
+	ac   accesschecker.Checker
 	qs   query.QueryService
 	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
@@ -51,9 +52,10 @@ func (s *server) StopCollection() error {
 type ServerOpts struct {
 	Logger          logr.Logger
 	ClustersManager clustersmngr.ClustersManager
-	ObjectKinds     []schema.GroupVersionKind
+	Resources       []string
 	SkipCollection  bool
 	StoreType       string
+	DiscoveryClient discovery.DiscoveryInterface
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -81,15 +83,32 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 
 	user := auth.Principal(ctx)
 
-	matching := accesschecker.NewAccessChecker().RelevantRulesForUser(user, rules)
-
+	matching := s.ac.RelevantRulesForUser(user, rules)
 	return &pb.DebugGetAccessRulesResponse{
 		Rules: convertToPbAccessRule(matching),
 	}, nil
 }
 
+// it checks whether the resource from the policy rule allows access to the kind.
+// GVKs and GVRs are related. GVKs are served under HTTP paths identified by GVRs.
+// The process of mapping a GVK to a GVR is called REST mapping.
+func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string, error) {
+	_, resourcesList, err := dc.ServerGroupsAndResources()
+	if err != nil {
+		return nil, err
+	}
+	groupResourceMap := map[string]string{}
+	for _, resourceList := range resourcesList {
+		for _, resource := range resourceList.APIResources {
+			groupResourceMap[resource.Name] = resource.Kind
+		}
+	}
+	return groupResourceMap, nil
+}
+
 func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
-	log := opts.Logger
+	log := opts.Logger.WithName("query-server")
+
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
 		return nil, nil, err
@@ -100,15 +119,26 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)
 	}
 
+	kindByResourceMap, err := createKindByResourceMap(opts.DiscoveryClient)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create store:%w", err)
+	}
+
+	checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
+	}
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
-		Log:         opts.Logger,
-		StoreReader: s,
+		Log:           opts.Logger,
+		StoreReader:   s,
+		AccessChecker: checker,
 	})
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
 
-	serv := &server{qs: qs}
+	serv := &server{qs: qs, ac: checker}
 
 	if !opts.SkipCollection {
 

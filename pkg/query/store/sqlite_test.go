@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utilstest"
 	"os"
 	"strings"
 	"testing"
@@ -87,8 +88,10 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	ctx := context.Background()
 
 	store, db := createStore(t)
-
-	check := accesschecker.NewAccessChecker()
+	resourcesMap, err := utilstest.CreateAllowedResourcesMapForApplications()
+	g.Expect(err).To(BeNil())
+	check, err := accesschecker.NewAccessChecker(resourcesMap)
+	g.Expect(err).To(BeNil())
 
 	role := models.Role{
 		Cluster:   "test-cluster",
@@ -98,7 +101,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 		PolicyRules: []models.PolicyRule{
 			{
 				APIGroups: strings.Join([]string{"example.com"}, ","),
-				Resources: strings.Join([]string{"SomeKind"}, ","),
+				Resources: strings.Join([]string{"helmreleases"}, ","),
 				Verbs:     strings.Join([]string{"get", "list"}, ","),
 			},
 		},
@@ -125,7 +128,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	obj := models.Object{
 		Cluster:    "test-cluster",
 		Namespace:  "namespace",
-		Kind:       "SomeKind",
+		Kind:       "HelmRelease",
 		APIGroup:   "example.com",
 		APIVersion: "",
 	}
@@ -144,7 +147,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	var resources1 string
 	g.Expect(sqlDB.QueryRow("SELECT id, resources FROM policy_rules WHERE role_id = ?", roleID).Scan(&id, &resources1)).To(Succeed())
 
-	g.Expect(resources1).To(Equal("SomeKind"))
+	g.Expect(resources1).To(Equal("helmreleases"))
 
 	rules1, err := store.GetAccessRules(ctx)
 	g.Expect(err).To(BeNil())
