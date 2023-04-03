@@ -6,7 +6,6 @@ import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { useState } from 'react';
 import styled from 'styled-components';
 import { GitopsClusterEnriched } from '../../types/custom';
-
 import { CAPIClusterStatus } from './CAPIClusterStatus';
 import { DashboardsList } from './DashboardsList';
 

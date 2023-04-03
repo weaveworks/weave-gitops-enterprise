@@ -20,6 +20,7 @@ import {
   SubRouterTabs,
   theme,
   useListSources,
+  Flex,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
@@ -65,13 +66,6 @@ import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWra
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
-
-interface Size {
-  size?: 'small';
-}
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
-`;
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
@@ -397,7 +391,7 @@ const MCCP: FC<{
               marginBottom: '20px',
             }}
           >
-            <ActionsWrapper>
+            <Flex>
               <Button
                 id="create-cluster"
                 startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -466,7 +460,7 @@ const MCCP: FC<{
                 />
                 GO TO OPEN PULL REQUESTS
               </Button>
-            </ActionsWrapper>
+            </Flex>
           </div>
           <SubRouterTabs rootPath={`${path}/list`}>
             <RouterTab name="Clusters" path={`${path}/list`}>
