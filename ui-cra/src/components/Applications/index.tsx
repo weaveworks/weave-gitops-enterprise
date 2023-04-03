@@ -64,7 +64,7 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <OpenedPullRequest gitRepos={gitRepos}></OpenedPullRequest>
+            <OpenedPullRequest />
           </ActionsWrapper>
         </div>
         {isLoading ? (

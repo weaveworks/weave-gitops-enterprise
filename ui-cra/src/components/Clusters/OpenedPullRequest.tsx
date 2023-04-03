@@ -1,10 +1,5 @@
-import React, { useContext, useMemo } from 'react';
-import {
-  Button,
-  GitRepository,
-  Icon,
-  IconType,
-} from '@weaveworks/weave-gitops';
+import React, { useMemo } from 'react';
+import { Button, GitRepository } from '@weaveworks/weave-gitops';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -14,18 +9,15 @@ import Popper from '@material-ui/core/Popper';
 import MenuItem from '@material-ui/core/MenuItem';
 import MenuList from '@material-ui/core/MenuList';
 import { createStyles, makeStyles } from '@material-ui/core';
-import { GitAuth } from '../../contexts/GitAuth';
-import GitUrlParse from 'git-url-parse';
 import { openLinkHandler } from '../../utils/link-checker';
 import useConfig from '../../hooks/config';
-// import urijs
-import URI from 'urijs';
 import { GetConfigResponse } from '../../cluster-services/cluster_services.pb';
-import { getInitialGitRepo } from '../Templates/Form/utils';
-
-type Props = {
-  gitRepos: GitRepository[];
-};
+import {
+  getDefaultGitRepo,
+  getProvider,
+  getRepositoryUrl,
+} from '../Templates/Form/utils';
+import { useGitRepos } from '../../hooks/gitrepos';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -38,63 +30,47 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-function getDomain(url: string) {
-  const uri = URI(url);
-  return uri.domain();
-}
-
-function getHttpsUrl(url: string) {
-  // FIXME: does not work for azure devops
-  const uri = URI(url);
-  return uri.protocol('https').toString();
-}
-
 function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
-  // FIXME: check the annoation as well
-  console.log({ gitRepo });
+  const provider = getProvider(gitRepo, config);
 
-  const domain = getDomain(gitRepo.obj.spec.url);
-  console.log({ gitRepo, domain });
-  const provider = config?.gitHostTypes?.[domain] || 'github';
-  if (provider === 'github') {
-    return getHttpsUrl(gitRepo.obj.spec.url) + '/pulls';
-  }
+  const baseUrl = getRepositoryUrl(gitRepo);
+
   if (provider === 'gitlab') {
-    return getHttpsUrl(gitRepo.obj.spec.url) + '/-/merge_requests';
+    return baseUrl + '/-/merge_requests';
   }
 
   // FIXME: this is not correct
   if (provider === 'bitbucket') {
-    return getHttpsUrl(gitRepo.obj.spec.url) + '/pull-requests';
+    return baseUrl + '/pull-requests';
   }
 
   // FIXME: this is not correct
   if (provider === 'azuredevops') {
-    return getHttpsUrl(gitRepo.obj.spec.url) + '/pullrequests';
+    return baseUrl + '/pullrequests';
   }
+
+  // github is the default
+  return baseUrl + '/pulls';
 }
 
-export default function OpenedPullRequest({ gitRepos }: Props) {
+export default function OpenedPullRequest() {
   const [open, setOpen] = React.useState(false);
   const anchorRef = React.useRef<HTMLDivElement>(null);
-  const [selectedIndex, setSelectedIndex] = React.useState(-1);
-  const { gitAuthClient } = useContext(GitAuth);
-  const [OpenPrUrl, setOpenPrUrl] = React.useState('');
-  const [OpenPrButtonDisabled, setOpenPrButtonDisabled] = React.useState(false);
 
-  const options = useMemo(
-    () =>
-      gitRepos.map(
-        repo =>
-          repo?.obj?.metadata?.annotations?.['weave.works/repo-https-url'] ||
-          repo.obj.spec.url,
-      ),
-    [gitRepos],
-  );
+  const { gitRepos } = useGitRepos();
 
   const Classes = useStyles();
 
   const { data: config, isLoading } = useConfig();
+
+  const options = useMemo(
+    () =>
+      !config
+        ? ([] as string[])
+        : gitRepos.map(repo => getPullRequestUrl(repo, config)),
+    [gitRepos, config],
+  );
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
@@ -103,34 +79,11 @@ export default function OpenedPullRequest({ gitRepos }: Props) {
     return <div>Config not found</div>;
   }
 
-  console.log({ gitRepos });
-  const initialUrl = getInitialGitRepo('', gitRepos) as GitRepository;
-  const initialPullRequestUrl = getPullRequestUrl(initialUrl, config) || '';
+  if (!gitRepos || gitRepos.length === 0) {
+    return <div>Git Repos not found</div>;
+  }
 
-  const handleMenuItemClick = (
-    event: React.MouseEvent<HTMLLIElement, MouseEvent>,
-    index: number,
-  ) => {
-    setSelectedIndex(index);
-    setOpen(false);
-    const repoUrl = options[index];
-    setOpenPrButtonDisabled(true);
-    gitAuthClient.ParseRepoURL({ url: repoUrl }).then(res => {
-      setOpenPrButtonDisabled(false);
-      const { protocol, href } = GitUrlParse(repoUrl);
-      let parsedUrl = '';
-      if (protocol === 'ssh') {
-        parsedUrl = href.replace('ssh://git@', 'https://');
-      }
-      const provider = res.provider || '';
-      if (provider === 'GitHub') {
-        setOpenPrUrl(`${parsedUrl}/pulls`);
-      }
-      if (provider === 'GitLab') {
-        setOpenPrUrl(`${parsedUrl}/-/merge_requests`);
-      }
-    });
-  };
+  const defaultRepo = getDefaultGitRepo(gitRepos, config);
 
   const handleToggle = () => {
     setOpen(prevOpen => !prevOpen);
@@ -153,21 +106,12 @@ export default function OpenedPullRequest({ gitRepos }: Props) {
         <Button
           className={Classes.optionsButton}
           color="primary"
-          onClick={openLinkHandler(initialPullRequestUrl)}
-          disabled={OpenPrButtonDisabled || !options.length}
-        >
-          {selectedIndex === -1 ? (
-            'SELECT GIT REPOSITORY'
-          ) : (
-            <>
-              <Icon
-                className={Classes.externalLink}
-                type={IconType.ExternalTab}
-                size="base"
-              />
-              GO TO OPEN PULL REQUESTS AT {options[selectedIndex]}
-            </>
+          onClick={openLinkHandler(
+            getPullRequestUrl(defaultRepo, config) || '',
           )}
+          disabled={!options.length}
+        >
+          View open pull requests
         </Button>
         <Button
           size="small"
@@ -201,9 +145,8 @@ export default function OpenedPullRequest({ gitRepos }: Props) {
                   {options.map((option, index) => (
                     <MenuItem
                       key={option}
-                      selected={index === selectedIndex}
                       // FIXME: change to openLinkHandler
-                      onClick={event => handleMenuItemClick(event, index)}
+                      onClick={openLinkHandler(option)}
                     >
                       {option}
                     </MenuItem>

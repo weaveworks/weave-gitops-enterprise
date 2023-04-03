@@ -447,7 +447,7 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <OpenedPullRequest gitRepos={gitRepos}></OpenedPullRequest>
+              <OpenedPullRequest />
             </Flex>
           </div>
           <SubRouterTabs rootPath={`${path}/list`}>
