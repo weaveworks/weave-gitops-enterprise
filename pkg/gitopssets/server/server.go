@@ -101,9 +101,16 @@ func (s *server) listGitopsSets(ctx context.Context, cl clustersmngr.Client) ([]
 				continue
 			}
 
+			if k8serrors.IsForbidden(e.Err) {
+				// Skip reporting an error if user doesn't have permission to list gitopssets on a cluster.
+				s.log.V(logger.LogLevelDebug).Info("user does not have permission to list gitopssets in namespace/cluster", "namespace", e.Namespace, "cluster", e.Cluster)
+				continue
+			}
+
 			listErrors = append(listErrors, &pb.GitOpsSetListError{
 				ClusterName: e.Cluster,
 				Message:     e.Err.Error(),
+				Namespace:   e.Namespace,
 			})
 		}
 	}

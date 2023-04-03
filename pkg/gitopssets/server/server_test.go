@@ -26,6 +26,7 @@ import (
 	"google.golang.org/protobuf/testing/protocmp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -204,7 +205,15 @@ func TestListWithMissingCRD(t *testing.T) {
 		},
 	}
 
-	unusableClient := errorClient{}
+	unusableClient := errorClient{
+		err: &apimeta.NoResourceMatchError{
+			PartialResource: schema.GroupVersionResource{
+				Version:  ctrl.GroupVersion.Version,
+				Group:    ctrl.GroupVersion.Group,
+				Resource: "gitopssets",
+			},
+		},
+	}
 
 	clusterClients := map[string]client.Client{
 		"management": createClient(t, obj),
@@ -248,6 +257,61 @@ func TestListWithMissingCRD(t *testing.T) {
 	expectedLog := "INFO gitopssets crd not present on cluster, skipping error cluster leaf-1"
 	if !strings.Contains(buf.String(), expectedLog) {
 		t.Fatalf("expected log message %v, got %v", expectedLog, buf.String())
+	}
+}
+
+func TestListWithNoRBAC(t *testing.T) {
+	ctx := context.Background()
+
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "namespace-a-1",
+		},
+	}
+
+	unusableClient := errorClient{
+		err: &kerrors.StatusError{
+			ErrStatus: metav1.Status{
+				Reason: metav1.StatusReasonForbidden,
+			},
+		},
+	}
+
+	clusterClients := map[string]client.Client{
+		"management": createClient(t, obj),
+		"leaf-1":     unusableClient,
+	}
+
+	client := setup(t, clusterClients)
+
+	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
+	assert.NoError(t, err)
+
+	expected := &pb.ListGitOpsSetsResponse{
+		Gitopssets: []*pb.GitOpsSet{
+			{
+				Name:        obj.Name,
+				Type:        "GitOpsSet",
+				Namespace:   obj.Namespace,
+				ClusterName: "management",
+				ObjectRef: &pb.ObjectRef{
+					Kind:        "GitOpsSet",
+					Name:        obj.Name,
+					Namespace:   obj.Namespace,
+					ClusterName: "management",
+				},
+			},
+		},
+	}
+
+	ignoreFields := protocmp.IgnoreFields(&pb.GitOpsSet{}, "yaml")
+	if diff := cmp.Diff(expected, res, ignoreFields, protocmp.Transform()); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, res, diff)
 	}
 }
 
@@ -481,9 +545,9 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 
 type errorClient struct {
 	client.Client
+	err error
 }
 
 func (s errorClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
-	gvk := list.GetObjectKind().GroupVersionKind()
-	return &apimeta.NoResourceMatchError{PartialResource: schema.GroupVersionResource{Version: gvk.Version, Group: gvk.Group, Resource: fmt.Sprintf("%T", list)}}
+	return s.err
 }
