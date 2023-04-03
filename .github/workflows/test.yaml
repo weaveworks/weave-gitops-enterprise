@@ -114,8 +114,10 @@ jobs:
       - id: cache-paths
         run: |
           echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+          echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
+          echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3.1.0
       - name: Yarn Cache
         uses: actions/cache@v3.0.11
         with:
