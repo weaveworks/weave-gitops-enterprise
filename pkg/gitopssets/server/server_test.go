@@ -1,9 +1,10 @@
-package server_test
+package server
 
 import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"testing"
@@ -11,14 +12,13 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	"github.com/google/go-cmp/cmp"
-	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/hashicorp/go-multierror"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
 	"github.com/tonglil/buflogr"
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
@@ -94,8 +94,9 @@ func TestListGitOpsSets(t *testing.T) {
 		},
 	}
 
-	if cmp.Diff(expected, res, protocmp.Transform(), cmpopts.IgnoreFields(pb.GitOpsSet{}, "Yaml")) != "" {
-		t.Fatalf("expected %v, got %v", expected, res)
+	ignoreFields := protocmp.IgnoreFields(&pb.GitOpsSet{}, "yaml")
+	if diff := cmp.Diff(expected, res, protocmp.Transform(), ignoreFields); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, res, diff)
 	}
 }
 
@@ -153,6 +154,42 @@ func TestListWithErrors(t *testing.T) {
 	}
 }
 
+func TestToListErrors(t *testing.T) {
+	// a multierror with 2 errors
+	err := multierror.Append(
+		&clustersmngr.ClientError{
+			ClusterName: "cluster-1",
+			Err:         errors.New("error 1"),
+		},
+		&clustersmngr.ClientError{
+			ClusterName: "cluster-2",
+			Err:         errors.New("error 2"),
+		},
+		// should be ignored
+		errors.New("oh no"),
+	).ErrorOrNil()
+
+	errList, err := toListErrors(err)
+	assert.NoError(t, err)
+
+	expected := []*pb.GitOpsSetListError{
+		{
+			ClusterName: "cluster-1",
+			Message:     "error 1",
+		},
+		{
+			ClusterName: "cluster-2",
+			Message:     "error 2",
+		},
+	}
+
+	assert.Equal(t, expected, errList)
+
+	if diff := cmp.Diff(expected, errList, protocmp.Transform()); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, errList, diff)
+	}
+}
+
 func TestListWithMissingCRD(t *testing.T) {
 	ctx := context.Background()
 
@@ -177,7 +214,7 @@ func TestListWithMissingCRD(t *testing.T) {
 	buf := bytes.Buffer{}
 	log := buflogr.NewWithBuffer(&buf)
 
-	client := setup(t, clusterClients, func(opt server.ServerOpts) server.ServerOpts {
+	client := setup(t, clusterClients, func(opt ServerOpts) ServerOpts {
 		opt.Logger = log
 		return opt
 	})
@@ -266,8 +303,8 @@ func TestGetReconciledObjects(t *testing.T) {
 				Name:      "my-deployment",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
-					server.GitOpsSetNameKey:      gsName,
-					server.GitOpsSetNamespaceKey: ns1.Name,
+					GitOpsSetNameKey:      gsName,
+					GitOpsSetNamespaceKey: ns1.Name,
 				},
 			},
 			Spec: appsv1.DeploymentSpec{
@@ -295,8 +332,8 @@ func TestGetReconciledObjects(t *testing.T) {
 				Name:      "my-configmap",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
-					server.GitOpsSetNameKey:      gsName,
-					server.GitOpsSetNamespaceKey: ns1.Name,
+					GitOpsSetNameKey:      gsName,
+					GitOpsSetNamespaceKey: ns1.Name,
 				},
 			},
 		},
@@ -384,7 +421,7 @@ func TestGetReconciledObjects(t *testing.T) {
 	}
 }
 
-func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(opts server.ServerOpts) server.ServerOpts) pb.GitOpsSetsClient {
+func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(opts ServerOpts) ServerOpts) pb.GitOpsSetsClient {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(clusterClients)
 	clientsPool.ClientStub = func(name string) (client.Client, error) {
@@ -404,7 +441,7 @@ func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(o
 	fakeFactory.GetUserNamespacesReturns(namespaces)
 
 	log := testr.New(t)
-	options := server.ServerOpts{
+	options := ServerOpts{
 		ClientsFactory: fakeFactory,
 		Logger:         log,
 	}
@@ -413,7 +450,7 @@ func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(o
 		options = o(options)
 	}
 
-	srv := server.NewGitOpsSetsServer(options)
+	srv := NewGitOpsSetsServer(options)
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
 		pb.RegisterGitOpsSetsServer(s, srv)

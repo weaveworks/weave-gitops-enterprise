@@ -63,7 +63,7 @@ func NewGitOpsSetsServer(opts ServerOpts) pb.GitOpsSetsServer {
 
 func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsRequest) (*pb.ListGitOpsSetsResponse, error) {
 	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
-	respErrors, err := toListErrors(err)
+	clientConnectionErrors, err := toListErrors(err)
 	if err != nil {
 		return nil, fmt.Errorf("error extracting errors: %w", err)
 	}
@@ -74,11 +74,10 @@ func (s *server) ListGitOpsSets(ctx context.Context, msg *pb.ListGitOpsSetsReque
 	}
 
 	response := pb.ListGitOpsSetsResponse{
-		Errors:     respErrors,
+		Errors:     append(clientConnectionErrors, gitopsSetsListErrors...),
 		Gitopssets: gitopsSets,
 	}
 
-	response.Errors = append(response.Errors, gitopsSetsListErrors...)
 	return &response, nil
 }
 
