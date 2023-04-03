@@ -1074,6 +1074,8 @@ github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0/go.mod h1:fJ0UAZc1fx3xZhU4eSHQDJ
 github.com/mbilski/exhaustivestruct v1.2.0/go.mod h1:OeTBVxQWoEmB2J2JCHmXWPJ0aksxSUOUy+nvtVEfzXc=
 github.com/mgechev/dots v0.0.0-20210922191527-e955255bf517/go.mod h1:KQ7+USdGKfpPjXk4Ga+5XxQM4Lm4e3gAogrreFAYpOg=
 github.com/mgechev/revive v1.1.2/go.mod h1:bnXsMr+ZTH09V5rssEI+jHAZ4z+ZdyhgO/zsy3EhK+0=
+github.com/microsoft/azure-devops-go-api/azuredevops v1.0.0-b5 h1:YH424zrwLTlyHSH/GzLMJeu5zhYVZSx5RQxGKm1h96s=
+github.com/microsoft/azure-devops-go-api/azuredevops v1.0.0-b5/go.mod h1:PoGiBqKSQK1vIfQ+yVaFcGjDySHvym6FM1cNYnwzbrY=
 github.com/miekg/dns v1.0.14/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.26/go.mod h1:bPDLeHnStXmXAq1m/Ch/hvfNHr14JKNPMBo3VZKjuso=
 github.com/miekg/dns v1.1.35/go.mod h1:KNUDUusw/aVsxyTYZM1oqvCicbwhgbNgztCETuNZ7xM=
@@ -1462,8 +1464,8 @@ github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7Fw
 github.com/viki-org/dnscache v0.0.0-20130720023526-c70c1f23c5d8/go.mod h1:dniwbG03GafCjFohMDmz6Zc6oCuiqgH6tGNyXTkHzXE=
 github.com/weaveworks/cluster-controller v1.4.1 h1:vnbHPI+0GkcSOp986WvO5D6grb2IMgDvveKblmGm3vk=
 github.com/weaveworks/cluster-controller v1.4.1/go.mod h1:NrgkuiyejE2nizsiXNeqaNWfVhpvG2SlAiWHnxKIS4U=
-github.com/weaveworks/gitopssets-controller v0.6.0 h1:o1U/StVVCs5JTFP62AIl0JXQn6gnuBdY71AvjVikrZM=
-github.com/weaveworks/gitopssets-controller v0.6.0/go.mod h1:FF4+ie44tnxSgFv+juV3b4f8ScGRxMckJGqwbYU7mfk=
+github.com/weaveworks/gitopssets-controller v0.7.0 h1:t0BSAzXlyowf3R6VtgkFVaee4/BS0KXBs4/q4MnMbOc=
+github.com/weaveworks/gitopssets-controller v0.7.0/go.mod h1:mF1D5uoRqPU+2MxHAR6tcW84zw4gdsPccHM2VNVFroY=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d h1:HhH19ygpcDDadUMNIc8PtSCqpQ49gpY7je7P/Ow4ZAc=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d/go.mod h1:EMw4dkvNuR0GBKVbDFjZMUIma1sZhyS6heAZXM59s0Y=
 github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/CDoU7zdCw5A0=
@@ -1474,8 +1476,8 @@ github.com/weaveworks/templates-controller v0.1.4 h1:kCKfXhX5PVqsHV9R7/AbVn2nqHR
 github.com/weaveworks/templates-controller v0.1.4/go.mod h1:Z/SQzXvD43LXUD//9D9PcDczK0GKMYZlJtrMP57uk+Y=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4 h1:RRpzQlhbEC5WjL0jaMEvGUSZ8EsxzdqSSzginwSBTyc=
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4/go.mod h1:VK60b9WR7XEK1DvQNOpKEOlIQ56Qcy5KlAIFksQmUxI=
-github.com/weaveworks/weave-gitops v0.19.1-0.20230327064320-e712f5a2662a h1:h+K/Z09TeM3ZES0LrFJZCc3MdRsEdoK81F3lM/B04Ws=
-github.com/weaveworks/weave-gitops v0.19.1-0.20230327064320-e712f5a2662a/go.mod h1:kKCud3Y98o9HuvCm+mNtw1d52YUDhTUYPkfs8UUfmDE=
+github.com/weaveworks/weave-gitops v0.20.1-0.20230330012151-15becb29f486 h1:CPt9sbYCUI9ZqopFboAjUWinXg/l1DIbY2BcVPJbO94=
+github.com/weaveworks/weave-gitops v0.20.1-0.20230330012151-15becb29f486/go.mod h1:kKCud3Y98o9HuvCm+mNtw1d52YUDhTUYPkfs8UUfmDE=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.78.0 h1:8jUHfQVAprG04Av5g0PxVd3CNsZ5hCbojIax7Hba1mE=

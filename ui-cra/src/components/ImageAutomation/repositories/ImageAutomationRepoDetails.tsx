@@ -8,6 +8,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
+import { toFilterQueryString } from '../../../utils/FilterQueryString';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 
@@ -30,6 +31,10 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
       refetchInterval: 30000,
     },
   );
+
+  const filtersValues = toFilterQueryString([
+    { key: 'imageRepositoryRef', value: name },
+  ]);
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
     <PageTemplate
@@ -60,9 +65,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
             rootPath={rootPath}
           >
             <Button>
-              <Link
-                to={`/image_automation/policies?filters=imageRepositoryRef%3A%20${name}_`}
-              >
+              <Link to={`/image_automation/policies?filters=${filtersValues}`}>
                 Go To Image Policy
               </Link>
             </Button>

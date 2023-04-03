@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -1508,7 +1509,7 @@ func TestGetKubeconfig(t *testing.T) {
 		req                     *capiv1_protos.GetKubeconfigRequest
 		ctx                     context.Context
 		expected                []byte
-		err                     error
+		wantErr                 string
 	}{
 		{
 			name: "get kubeconfig as JSON",
@@ -1524,7 +1525,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "get kubeconfig as binary",
@@ -1555,7 +1556,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName:      "dev",
 				ClusterNamespace: "testing",
 			},
-			err: errors.New("unable to get kubeconfig secret for cluster testing/dev"),
+			wantErr: "unable to get kubeconfig secret for cluster testing/dev",
 		},
 		{
 			name: "secret found but is missing key",
@@ -1570,7 +1571,7 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "dev",
 			},
-			err: errors.New("secret \"default/dev-kubeconfig\" was found but is missing key \"value\""),
+			wantErr: `secret "default/dev-kubeconfig" was found but is missing key "value"`,
 		},
 		{
 			name: "use cluster_namespace to get secret",
@@ -1587,7 +1588,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterNamespace: "kube-system",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "no namespace and lookup across namespaces, use default namespace",
@@ -1603,7 +1604,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "user kubeconfig exists",
@@ -1620,7 +1621,75 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("bar")))),
+			expected: []byte("bar"),
+		},
+		{
+			name: "kubeconfig override exists merges with existing secret",
+			clusterState: []runtime.Object{
+				makeSecret("dev-kubeconfig", "default", "value.yaml", `{"apiVersion":"v1","clusters":[{"cluster":{"certificate-authority-data":"anVzdCB0ZXN0aW5n","server":"https://example.com"},"name":"example-com"}],"contexts":[{"context":{"cluster":"example-com","user":"example-com-admin"},"name":"example-com"}],"current-context":"example-com","kind":"Config","preferences":{},"users":[{"name":"example-com-admin","user":{"token":"token"}}]}`),
+				// makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"),
+				makeSecret("cluster-kubeconfig-override", "default", "value.yaml", `
+apiVersion: v1
+kind: Config
+users:
+- name: example-com-overridden-user
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      args:
+      - oidc-login
+      - get-token
+      - --oidc-issuer-url=https://auth.w3ops.net
+      - --oidc-client-id=k8s-leaf-cluster-auth
+      - --oidc-client-secret=<redacted>
+      - --oidc-extra-scope=groups
+      - --oidc-extra-scope=profile
+      - --oidc-extra-scope=email
+      command: kubectl
+`),
+				makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+					o.ObjectMeta.Name = "dev"
+					o.ObjectMeta.Namespace = "default"
+				}),
+			},
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte(`apiVersion: v1
+clusters:
+- cluster:
+    certificate-authority-data: anVzdCB0ZXN0aW5n
+    server: https://example.com
+  name: example-com
+contexts:
+- context:
+    cluster: example-com
+    user: example-com-overridden-user
+  name: example-com
+current-context: example-com
+kind: Config
+preferences: {}
+users:
+- name: example-com-overridden-user
+  user:
+    exec:
+      apiVersion: client.authentication.k8s.io/v1beta1
+      args:
+      - oidc-login
+      - get-token
+      - --oidc-issuer-url=https://auth.w3ops.net
+      - --oidc-client-id=k8s-leaf-cluster-auth
+      - --oidc-client-secret=<redacted>
+      - --oidc-extra-scope=groups
+      - --oidc-extra-scope=profile
+      - --oidc-extra-scope=email
+      command: kubectl
+      env: null
+      interactiveMode: IfAvailable
+      provideClusterInfo: false
+`),
 		},
 		{
 			name: "gitops cluster references secret",
@@ -1639,7 +1708,7 @@ func TestGetKubeconfig(t *testing.T) {
 				ClusterName: "gitops-cluster",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			expected: []byte(fmt.Sprintf(`{"kubeconfig":"%s"}`, base64.StdEncoding.EncodeToString([]byte("foo")))),
+			expected: []byte("foo"),
 		},
 		{
 			name: "gitops cluster references non-existent secret",
@@ -1656,8 +1725,8 @@ func TestGetKubeconfig(t *testing.T) {
 			req: &capiv1_protos.GetKubeconfigRequest{
 				ClusterName: "gitops-cluster",
 			},
-			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
-			err: errors.New("failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster"),
+			ctx:     metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			wantErr: "failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster",
 		},
 	}
 	for _, tt := range testCases {
@@ -1673,16 +1742,35 @@ func TestGetKubeconfig(t *testing.T) {
 			res, err := s.GetKubeconfig(tt.ctx, tt.req)
 
 			if err != nil {
-				if tt.err == nil {
-					t.Fatalf("failed to get the kubeconfig:\n%s", err)
+				if tt.wantErr == "" {
+					t.Fatalf("failed to get the kubeconfig: %s", err)
 				}
-				if diff := cmp.Diff(tt.err.Error(), err.Error()); diff != "" {
-					t.Fatalf("got the wrong error:\n%s", diff)
+				if msg := err.Error(); msg != tt.wantErr {
+					t.Fatalf("got error %q, want %q", msg, tt.wantErr)
 				}
-			} else {
-				if diff := cmp.Diff(string(tt.expected), string(res.Data)); diff != "" {
-					t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
+				return
+			}
+
+			var data []byte
+			if res != nil {
+				data = res.Data
+				// If we received a JSON response, parse it and extract the
+				// kubeconfig for comparison with the desired result.
+				if res.ContentType == "application/json" {
+					var body map[string]any
+
+					if err := json.Unmarshal(res.Data, &body); err != nil {
+						t.Fatal(err)
+					}
+
+					if data, err = base64.StdEncoding.DecodeString(body["kubeconfig"].(string)); err != nil {
+						t.Fatal(err)
+					}
 				}
+			}
+
+			if diff := cmp.Diff(string(tt.expected), string(data)); diff != "" {
+				t.Fatalf("kubeconfig didn't match expected:\n%s", diff)
 			}
 		})
 	}

@@ -29,6 +29,7 @@ export type Object = {
   status?: string
   apiGroup?: string
   apiVersion?: string
+  message?: string
 }
 
 export type DebugGetAccessRulesRequest = {

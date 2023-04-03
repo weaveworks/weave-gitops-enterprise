@@ -10,6 +10,7 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
@@ -25,23 +26,17 @@ const Pipelines = ({ className }: any) => {
   const history = useHistory();
 
   return (
-    <PageTemplate
-      documentTitle="Pipelines"
-      path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
-        { label: 'Pipelines' },
-      ]}
-    >
+    <PageTemplate documentTitle="Pipelines" path={[{ label: 'Pipelines' }]}>
       <ContentWrapper loading={isLoading} errors={data?.errors}>
         <Button
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={() =>
-            history.push(`/templates?filters=templateType%3A%20pipeline`)
-          }
+          onClick={() => {
+            const filtersValues = toFilterQueryString([
+              { key: `templateType`, value: 'pipeline' },
+            ]);
+            history.push(`/templates?filters=${filtersValues}`);
+          }}
         >
           CREATE A PIPELINE
         </Button>
