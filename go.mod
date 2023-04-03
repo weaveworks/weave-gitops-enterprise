@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.20.1-0.20230330012151-15becb29f486
+	github.com/weaveworks/weave-gitops v0.20.1-0.20230403103232-09a93e742bb3
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -84,10 +84,6 @@ require (
 )
 
 require (
-	github.com/fluxcd/pkg/http/fetch v0.3.0 // indirect
-	github.com/fluxcd/pkg/tar v0.2.0 // indirect
-	github.com/gitops-tools/pkg v0.1.0 // indirect
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	google.golang.org/api v0.107.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )
