@@ -1,6 +1,5 @@
 import { Box, IconButton } from '@material-ui/core';
 import {
-  DataTable,
   Flex,
   formatURL,
   Icon,
@@ -9,6 +8,8 @@ import {
   RouterTab,
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
+// @ts-ignore
+import { DataTable } from '@weaveworks/weave-gitops-main';
 import _ from 'lodash';
 import qs from 'query-string';
 import * as React from 'react';
