@@ -39,6 +39,7 @@ type Options struct {
 	HtmlRootPath              string
 	ClientGetter              kube.ClientGetter
 	AuthMethods               map[auth.AuthMethod]bool
+	AdminSecret               string
 	OIDC                      OIDCAuthenticationOptions
 	TLSCert                   string
 	TLSKey                    string
@@ -169,10 +170,11 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 }
 
 // WithAuthConfig is used to set the auth configuration including OIDC
-func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions, adminSecret string) Option {
 	return func(o *Options) {
 		o.AuthMethods = authMethods
 		o.OIDC = oidc
+		o.AdminSecret = adminSecret
 	}
 }
 
