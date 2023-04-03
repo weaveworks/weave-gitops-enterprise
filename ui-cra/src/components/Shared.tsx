@@ -50,7 +50,11 @@ export const TableWrapper = styled.div`
     .Mui-checked {
       color: ${({ theme }) => theme.colors.primary};
     }
+    .MuiFormControl-root {
+      min-width: 0px;
+    }
   }
+
   div[class*='SearchField__Expander'] {
     overflow: hidden;
   }
