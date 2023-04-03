@@ -16,7 +16,6 @@ import { getRepositoryUrl } from '../Templates/Form/utils';
 import AuthButton from './AuthButton';
 
 const GitAuthForm = styled(Flex)`
-  justify-content: space-between;
   #SELECT_GIT_REPO-group {
     width: 75%;
     padding-top: ${({ theme }) => theme.spacing.xs};
@@ -48,7 +47,7 @@ export function RepoInputWithAuth({
   const parsedValue = value && JSON.parse(value);
   const { data: res, error: err } = useParseRepoUrl(parsedValue?.value);
   const { data } = useListSources('', '', { retry: false });
-    const gitRepos = React.useMemo(
+  const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
     [data?.result],
   );
@@ -93,7 +92,7 @@ export function RepoInputWithAuth({
   };
 
   return (
-    <GitAuthForm className={props.className} align start>
+    <GitAuthForm className={props.className} align start between>
       <Select
         error={
           !!parsedValue?.value && gitRepos.length > 0 && !!err?.message
