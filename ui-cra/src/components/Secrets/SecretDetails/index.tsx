@@ -66,7 +66,7 @@ const SecretDetails = ({
             })
           }
         >
-          SYNC
+          Sync
         </Button>
         {generateRowHeaders(defaultHeaders)}
         <SecretDetailsTabs
