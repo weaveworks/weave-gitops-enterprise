@@ -4,6 +4,7 @@ import FormControl from '@material-ui/core/FormControl';
 import Select from '@material-ui/core/Select';
 import MenuItem from '@material-ui/core/MenuItem';
 import { useListCredentials } from '../../../../hooks/credentials';
+import { Flex } from '@weaveworks/weave-gitops';
 
 const Credentials: FC<{
   infraCredential: Credential | null;
@@ -42,7 +43,7 @@ const Credentials: FC<{
   );
 
   return (
-    <div className="credentials">
+    <Flex align className="credentials">
       <span>Infrastructure provider credentials:</span>
       <FormControl>
         <Select
@@ -55,7 +56,7 @@ const Credentials: FC<{
           {credentialsItems}
         </Select>
       </FormControl>
-    </div>
+    </Flex>
   );
 };
 

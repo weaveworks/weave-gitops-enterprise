@@ -1,7 +1,12 @@
 import styled from 'styled-components';
-import CodeView from '../CodeView';
-import { Body, Message, Title } from '../Shared';
-import { Link } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  Link,
+  MessageBox,
+  YamlView,
+  Text,
+  Spacer,
+} from '@weaveworks/weave-gitops';
 
 type Props = {
   plan?: string;
@@ -10,33 +15,35 @@ type Props = {
 
 function TerraformPlanView({ plan, error }: Props) {
   return (
-    <>
+    <Flex align wide tall column>
       {plan && !error ? (
-        <CodeView
-          kind="Terraform"
-          code={plan.trimStart() || ''}
-          colorizeChanges
-        />
+        <YamlView yaml={plan.trimStart() || ''} />
       ) : (
-        <Message>
-          <Title>Terraform Plan</Title>
-          <Body>No plan available.</Body>
-          <Body>
+        <MessageBox>
+          <Spacer padding="small" />
+          <Text size="large" semiBold>
+            Terraform Plan
+          </Text>
+          <Spacer padding="small" />
+          <Text size="medium">No plan available.</Text>
+          <Spacer padding="small" />
+          <Text size="medium">
             To enable the plan view, please set the field
             `spec.storeReadablePlan` to `human`.
-          </Body>
-          <Body>
+          </Text>
+          <Spacer padding="small" />
+          <Text size="medium">
             To learn more about planning Terraform resources,&nbsp;
             <Link
               href="https://docs.gitops.weave.works/docs/terraform/Using%20Terraform%20CR/plan-and-manually-apply-terraform-resources/"
               newTab
             >
-              visit our documentation
+              visit our documentation.
             </Link>
-          </Body>
-        </Message>
+          </Text>
+        </MessageBox>
       )}
-    </>
+    </Flex>
   );
 }
 

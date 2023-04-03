@@ -23,23 +23,8 @@ const AppFieldsWrapper = styled.div`
   .form-section {
     width: 50%;
   }
-  .loader {
-    padding-bottom: ${({ theme }) => theme.spacing.medium};
-  }
   .input-wrapper {
     padding-bottom: ${({ theme }) => theme.spacing.medium};
-  }
-  .preview-cta {
-    display: flex;
-    justify-content: flex-end;
-    padding: ${({ theme }) => theme.spacing.small}
-      ${({ theme }) => theme.spacing.base};
-    button {
-      width: 200px;
-    }
-  }
-  .preview-loading {
-    padding: ${({ theme }) => theme.spacing.base};
   }
 `;
 
