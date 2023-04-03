@@ -326,6 +326,8 @@ func initializeConfig(cmd *cobra.Command) error {
 func StartServer(ctx context.Context, p Params, logOptions logger.Options) error {
 	log := logger.NewLogger(logOptions)
 
+	log.Info("Starting server", "log-options", logOptions)
+
 	featureflags.SetFromEnv(os.Environ())
 
 	if p.CAPITemplatesNamespace == "" {
