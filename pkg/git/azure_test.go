@@ -115,7 +115,7 @@ func TestCreatePullRequestInAzureDevOps(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, pr)
 
-	re := regexp.MustCompile(`.\d$`)
+	re := regexp.MustCompile(`(\d+)$`)
 	id := re.FindString(pr.Link)
 	prID, _ := strconv.Atoi(id)
 	actual, err := client.GetPullRequest(ctx, adgit.GetPullRequestArgs{
