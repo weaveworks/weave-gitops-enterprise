@@ -84,6 +84,10 @@ require (
 )
 
 require (
+	github.com/fluxcd/pkg/http/fetch v0.3.0 // indirect
+	github.com/fluxcd/pkg/tar v0.2.0 // indirect
+	github.com/gitops-tools/pkg v0.1.0 // indirect
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	google.golang.org/api v0.107.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )

@@ -164,8 +164,7 @@ ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
 
-integration-tests:	
-	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/test-dependencies.toml
+integration-tests: dependencies
 	go test -v ./cmd/clusters-service/... -tags=integration
 	go test -v ./pkg/git/... -tags=integration
 

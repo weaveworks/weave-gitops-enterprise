@@ -131,3 +131,8 @@ tools=$("${BIN_DIR}"/stoml "${DEP_FILE}" .)
 for tool in $tools; do
     download_dependency "${tool}" "${BIN_DIR}"
 done
+
+echo "Installing golangci-lint"
+curl -sSfL \
+  https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+  | sh -s -- -b "$(go env GOPATH)"/bin v1.46.2
