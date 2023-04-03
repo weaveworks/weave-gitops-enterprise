@@ -89,7 +89,6 @@ func getClientObjectByKind(gvk schema.GroupVersionKind) (client.Object, error) {
 	}
 }
 
-// TODO add unit
 func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 
 	clientObject, err := getClientObjectByKind(r.gvk)
@@ -106,12 +105,14 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		txType = models.TransactionTypeDelete
 	}
 
-	//TODO manage error
-	r.objectsChannel <- []models.ObjectTransaction{transaction{
+	transactions := []models.ObjectTransaction{transaction{
 		clusterName:     r.clusterName,
 		object:          clientObject,
 		transactionType: txType,
 	}}
+
+	//TODO manage error
+	r.objectsChannel <- transactions
 
 	return ctrl.Result{}, nil
 }

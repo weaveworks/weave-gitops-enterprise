@@ -20,6 +20,7 @@ import {
   SubRouterTabs,
   theme,
   useListSources,
+  Flex,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
@@ -60,17 +61,11 @@ import {
   getCreateRequestAnnotation,
   getInitialGitRepo,
 } from '../Templates/Form/utils';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
-
-interface Size {
-  size?: 'small';
-}
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
-`;
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
@@ -94,10 +89,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
   }
   width: 100%;
 `;
-
-// const LoadingWrapper = styled.div`
-//   ${contentCss};
-// `;
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
@@ -306,10 +297,13 @@ const MCCP: FC<{
     (getInitialGitRepo(initialUrl, gitRepos) as GitRepositoryEnriched);
   const history = useHistory();
 
-  const handleAddCluster = useCallback(
-    () => history.push(`/templates`),
-    [history],
-  );
+  const handleAddCluster = useCallback(() => {
+    const filtersValues = toFilterQueryString([
+      { key: 'templateType', value: 'cluster' },
+      { key: 'templateType', value: '' },
+    ]);
+    history.push(`/templates?filters=${filtersValues}`);
+  }, [history]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
@@ -397,7 +391,7 @@ const MCCP: FC<{
               marginBottom: '20px',
             }}
           >
-            <ActionsWrapper>
+            <Flex>
               <Button
                 id="create-cluster"
                 startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -466,7 +460,7 @@ const MCCP: FC<{
                 />
                 GO TO OPEN PULL REQUESTS
               </Button>
-            </ActionsWrapper>
+            </Flex>
           </div>
           <SubRouterTabs rootPath={`${path}/list`}>
             <RouterTab name="Clusters" path={`${path}/list`}>

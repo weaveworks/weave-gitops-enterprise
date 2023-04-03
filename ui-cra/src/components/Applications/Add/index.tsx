@@ -8,6 +8,7 @@ import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
@@ -47,8 +48,6 @@ import { getGitRepos } from '../../Clusters';
 
 const FormWrapper = styled.form`
   .preview-cta {
-    display: flex;
-    justify-content: flex-end;
     padding: ${({ theme }) => theme.spacing.small}
       ${({ theme }) => theme.spacing.base};
     button {
@@ -59,8 +58,6 @@ const FormWrapper = styled.form`
     padding: ${({ theme }) => theme.spacing.base};
   }
   .create-cta {
-    display: flex;
-    justify-content: end;
     padding: ${({ theme }) => theme.spacing.small};
     button {
       width: 200px;
@@ -487,14 +484,14 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     {previewLoading ? (
                       <LoadingPage className="preview-loading" />
                     ) : (
-                      <div className="preview-cta">
+                      <Flex end className="preview-cta">
                         <Button
                           type="submit"
                           onClick={() => setSubmitType('PR Preview')}
                         >
                           PREVIEW PR
                         </Button>
-                      </div>
+                      </Flex>
                     )}
                   </Grid>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -510,7 +507,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     {loading ? (
                       <LoadingPage className="create-loading" />
                     ) : (
-                      <div className="create-cta">
+                      <Flex end className="create-cta">
                         <Button
                           type="submit"
                           onClick={() => setSubmitType('Create app')}
@@ -518,7 +515,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                         >
                           CREATE PULL REQUEST
                         </Button>
-                      </div>
+                      </Flex>
                     )}
                   </Grid>
                 </Grid>

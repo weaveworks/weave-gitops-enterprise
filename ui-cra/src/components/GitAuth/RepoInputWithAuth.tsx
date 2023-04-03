@@ -47,7 +47,7 @@ export function RepoInputWithAuth({
   const parsedValue = value && JSON.parse(value);
   const { data: res, error: err } = useParseRepoUrl(parsedValue?.value);
   const { data } = useListSources('', '', { retry: false });
-    const gitRepos = React.useMemo(
+  const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
     [data?.result],
   );
@@ -92,9 +92,13 @@ export function RepoInputWithAuth({
   };
 
   return (
-    <GitAuthForm className={props.className} align start>
+    <GitAuthForm className={props.className} align start between>
       <Select
-        error={gitRepos && !!err?.message ? true : false}
+        error={
+          !!parsedValue?.value && gitRepos.length > 0 && !!err?.message
+            ? true
+            : false
+        }
         description={!formData.repo || !err ? props.description : err?.message}
         name="repo-select"
         required={true}

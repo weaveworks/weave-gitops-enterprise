@@ -1,4 +1,4 @@
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { RouterTab, SubRouterTabs, YamlView } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useCanaryStyle } from '../CanaryStyles';
 
@@ -7,7 +7,6 @@ import {
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Routes } from '../../../utils/nav';
-import CodeView from '../../CodeView';
 import { getProgressValue } from '../ListCanaries/Table';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
@@ -85,7 +84,14 @@ function CanaryDetailsSection({
         </RouterTab>
         <RouterTab name="yaml" path={`${path}/yaml`}>
           <CanaryDetailsWrapper>
-            <CodeView code={canary.yaml || ''} kind="Canary" object={canary} />
+            <YamlView
+              yaml={canary.yaml || ''}
+              object={{
+                kind: 'Canary',
+                name: canary?.name,
+                namespace: canary?.namespace,
+              }}
+            />
           </CanaryDetailsWrapper>
         </RouterTab>
       </SubRouterTabs>

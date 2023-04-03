@@ -4,6 +4,7 @@ import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import FilterListIcon from '@material-ui/icons/FilterList';
 import { useHistory } from 'react-router-dom';
 import { useWorkspaceStyle } from '../WorkspaceStyles';
+import { toFilterQueryString } from '../../../utils/FilterQueryString';
 
 function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   const classes = useWorkspaceStyle();
@@ -23,9 +24,11 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
     <>
       <Button
         onClick={() => {
-          history.push(
-            `/applications?filters=tenant%3A%20${name}_clusterName%3A%20${clusterName}_`,
-          );
+          const filtersValues = toFilterQueryString([
+            { key: 'tenant', value: name || '' },
+            { key: 'clusterName', value: clusterName || '' },
+          ]);
+          history.push(`/applications?filters=${filtersValues}`);
         }}
         className={classes.navigateBtn}
       >

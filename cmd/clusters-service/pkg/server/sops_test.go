@@ -306,13 +306,16 @@ func decryptSecretValues(raw []byte, method, key string) (map[string]string, err
 
 	switch method {
 	case "age":
+		// set sops private key env var so the local client retrieve it
 		os.Setenv("SOPS_AGE_KEY", key)
 	case "gpg":
+		// import gpg private key so the local client retrieve it
 		if err := importPGPKey(key); err != nil {
 			return nil, err
 		}
 	}
 
+	// get the master key using the local client
 	metadataKey, err := tree.Metadata.GetDataKeyWithKeyServices([]keyservice.KeyServiceClient{
 		keyservice.NewLocalClient(),
 	})

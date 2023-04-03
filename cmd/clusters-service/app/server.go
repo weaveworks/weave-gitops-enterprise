@@ -137,6 +137,7 @@ type Params struct {
 	RuntimeNamespace                  string                    `mapstructure:"runtime-namespace"`
 	GitProviderToken                  string                    `mapstructure:"git-provider-token"`
 	AuthMethods                       []string                  `mapstructure:"auth-methods"`
+	AdminSecret                       string                    `mapstructure:"admin-secret"`
 	TLSCert                           string                    `mapstructure:"tls-cert"`
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
@@ -223,6 +224,7 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("cluster-name", "management", "name of the management cluster")
 
 	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
+	cmdFlags.String("admin-secret", "cluster-user-auth", "Name of the secret that contains admin credentials")
 	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmdFlags.String("oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
@@ -522,7 +524,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithCAPIClustersNamespace(p.CAPIClustersNamespace),
 		WithHtmlRootPath(p.HtmlRootPath),
 		WithClientGetter(clientGetter),
-		WithAuthConfig(authMethods, p.OIDC),
+		WithAuthConfig(authMethods, p.OIDC, p.AdminSecret),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
@@ -742,6 +744,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		tsv,
 		args.RuntimeNamespace,
 		args.AuthMethods,
+		args.AdminSecret,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)
