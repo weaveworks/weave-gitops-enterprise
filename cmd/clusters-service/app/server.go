@@ -646,6 +646,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_EXPLORER") != "" {
 		_, err := queryserver.Hydrate(ctx, grpcMux, queryserver.ServerOpts{
 			Logger:          args.Log,
+			DiscoveryClient: args.DiscoveryClient,
 			ClustersManager: args.ClustersManager,
 			SkipCollection:  false,
 		})
