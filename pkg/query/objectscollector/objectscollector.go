@@ -59,6 +59,7 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 }
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+
 	upsert := []models.Object{}
 	delete := []models.Object{}
 
@@ -81,6 +82,7 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			Status:     string(adapters.Status(o)),
 			Message:    adapters.Message(o),
 		}
+
 		if obj.TransactionType() == models.TransactionTypeDelete {
 			delete = append(delete, object)
 		} else {
