@@ -120,7 +120,7 @@ func (p *AzureDevOpsProvider) CreatePullRequest(ctx context.Context, input PullR
 		return nil, fmt.Errorf("unable to create pull request for branch %q: %w", input.Head, err)
 	}
 
-	return &PullRequest{Link: pr.Link}, nil
+	return &PullRequest{Title: pr.Title, Description: pr.Body, Link: pr.Link, Merged: pr.Merged}, nil
 }
 
 func (p *AzureDevOpsProvider) GetTreeList(ctx context.Context, repoURL string, sha string, path string) ([]*TreeEntry, error) {

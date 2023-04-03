@@ -81,6 +81,75 @@ func TestNewSQLiteStore(t *testing.T) {
 	}
 }
 
+func TestSQLiteStore_StoreObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name       string
+		objects    []models.Object
+		errPattern string
+	}{
+		{
+			name:       "should ignore when empty objects",
+			objects:    []models.Object{},
+			errPattern: "",
+		},
+		{
+			name: "should store with one object",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			errPattern: "",
+		},
+		{
+			name: "should store with more than one object",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := store.StoreObjects(ctx, tt.objects)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			var storedObjectsNum int
+			g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects").Scan(&storedObjectsNum)).To(Succeed())
+			g.Expect(storedObjectsNum == len(tt.objects)).To(BeTrue())
+		})
+	}
+}
+
 func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	// This is a sanity check test to prove that policy rules get upserted along with their roles
 	g := NewGomegaWithT(t)

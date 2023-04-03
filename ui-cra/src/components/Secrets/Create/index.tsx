@@ -319,7 +319,7 @@ const CreateSecret = () => {
         documentTitle="Secrets"
         path={[
           { label: 'Secrets', url: Routes.Secrets },
-          { label: 'Create new secret' },
+          { label: 'Create new external secret' },
         ]}
       >
         <CallbackStateContextProvider

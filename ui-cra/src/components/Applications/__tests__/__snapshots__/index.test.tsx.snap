@@ -54,14 +54,18 @@ exports[`Applications index test snapshots loading 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg.sources {
-  fill: none !important;
+.c7 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
 }
 
-.c7 svg.sources rect {
-  stroke: !important;
+.c7 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c7 svg.no-fill {
+  fill: none !important;
 }
 
 .c7.downward {
@@ -95,14 +99,18 @@ exports[`Applications index test snapshots loading 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c11 svg.sources {
-  fill: none !important;
+.c11 svg rect.rect-height {
+  height: 16px;
+  width: 16px;
 }
 
-.c11 svg.sources rect {
-  stroke: !important;
+.c11 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c11 svg.no-fill {
+  fill: none !important;
 }
 
 .c11.downward {
@@ -319,6 +327,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
+      id="content-wrapper"
       style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
@@ -641,14 +650,18 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c7 svg.sources {
-  fill: none !important;
+.c7 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
 }
 
-.c7 svg.sources rect {
-  stroke: !important;
+.c7 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c7 svg.no-fill {
+  fill: none !important;
 }
 
 .c7.downward {
@@ -682,14 +695,18 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c11 svg.sources {
-  fill: none !important;
+.c11 svg rect.rect-height {
+  height: 16px;
+  width: 16px;
 }
 
-.c11 svg.sources rect {
-  stroke: !important;
+.c11 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c11 svg.no-fill {
+  fill: none !important;
 }
 
 .c11.downward {
@@ -724,14 +741,19 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c26 svg.sources {
-  fill: none !important;
+.c26 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
 }
 
-.c26 svg.sources rect {
-  stroke: #737373 !important;
+.c26 svg rect.rect-stroke {
+  stroke: #737373;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c26 svg.no-fill {
+  fill: none !important;
 }
 
 .c26.downward {
@@ -767,14 +789,19 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c32 svg.sources {
-  fill: none !important;
+.c32 svg rect.rect-height {
+  height: 16px;
+  width: 16px;
 }
 
-.c32 svg.sources rect {
-  stroke: #d8d8d8 !important;
+.c32 svg rect.rect-stroke {
+  stroke: #d8d8d8;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c32 svg.no-fill {
+  fill: none !important;
 }
 
 .c32.downward {
@@ -1201,6 +1228,7 @@ exports[`Applications index test snapshots success 1`] = `
       </div>
     </div>
     <div
+      id="content-wrapper"
       style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
