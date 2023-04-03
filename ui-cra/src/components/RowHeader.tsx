@@ -1,17 +1,11 @@
 import { TableCell, TableRow } from '@material-ui/core';
-import { theme } from '@weaveworks/weave-gitops';
+import { Flex, theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
 const { medium } = theme.fontSizes;
 const { xs } = theme.spacing;
 const { neutral30, neutral40 } = theme.colors;
 
-const RowHeaderWrapper = styled.div`
-  margin: ${xs} 0;
-  display: flex;
-  justify-content: start;
-  align-items: center;
-`;
 const RowTitle = styled.div`
   font-weight: 600;
   font-size: ${medium};
@@ -84,10 +78,10 @@ function RowHeader({
   value: string | JSX.Element | undefined;
 }) {
   return (
-    <RowHeaderWrapper data-testid={rowkey}>
+    <Flex start style={{ margin: `${xs} 0` }} data-testid={rowkey}>
       <RowTitle>{rowkey} :</RowTitle>
       <RowBody>{children || value || '--'}</RowBody>
-    </RowHeaderWrapper>
+    </Flex>
   );
 }
 

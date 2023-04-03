@@ -166,6 +166,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },

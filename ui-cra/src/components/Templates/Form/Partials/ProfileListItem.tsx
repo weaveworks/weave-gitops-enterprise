@@ -1,5 +1,5 @@
 import { FormControl, Input, MenuItem, Select } from '@material-ui/core';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import React, {
   ChangeEvent,
   Dispatch,
@@ -8,7 +8,6 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import styled from 'styled-components';
 import {
   ClusterNamespacedName,
   RepositoryRef,
@@ -16,11 +15,6 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
-
-const ProfileWrapper = styled.div`
-  display: flex;
-  justify-content: space-around;
-`;
 
 const ProfilesListItem: FC<{
   cluster?: ClusterNamespacedName;
@@ -129,7 +123,10 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <ProfileWrapper data-profile-name={profile.name}>
+      <Flex
+        style={{ justifyContent: 'space-around' }}
+        data-profile-name={profile.name}
+      >
         <div className="profile-version">
           <FormControl>
             <Select
@@ -157,7 +154,7 @@ const ProfilesListItem: FC<{
         <Button variant="text" onClick={handleYamlPreview}>
           Values.yaml
         </Button>
-      </ProfileWrapper>
+      </Flex>
 
       {openYamlPreview && (
         <ChartValuesDialog

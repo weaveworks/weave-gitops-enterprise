@@ -254,16 +254,13 @@ type fakeWatcher struct {
 }
 
 func (f fakeWatcher) Start(ctx context.Context, log logr.Logger) error {
-	f.log.Info("fake watcher started")
 	return nil
 }
 
 func (f fakeWatcher) Stop() error {
-	f.log.Info("fake watcher stopped")
 	return nil
 }
 
 func (f fakeWatcher) Status() (string, error) {
-	f.log.Info("fake watcher status")
 	return string(ClusterWatchingStopped), nil
 }

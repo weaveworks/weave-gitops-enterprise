@@ -2340,10 +2340,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.19.0-14-g18efa32a":
-  version "0.19.0-14-g18efa32a"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-14-g18efa32a/2b022d368b10d44f197579b53dfc67832041a7c3#2b022d368b10d44f197579b53dfc67832041a7c3"
-  integrity sha512-D9LUyKNgXmB9nEsQrURhSkEy0SvFVfRjDywt2/66IhWYOkJS9ICyXuisTIKhc8UULoaIbNr6SwvbOQLzc/oHTg==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-7-gb6d3961f":
+  version "0.20.0-7-gb6d3961f"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-7-gb6d3961f/b26b24a2294714870539342648b227955fddc58e#b26b24a2294714870539342648b227955fddc58e"
+  integrity sha512-IkPTClLIaK/POrwC7jn+mUiUO9LgkM2PlbdkMlRGynTvcrJi38pGKh7sspd00uhR/StIHGMroggH+cPoosuXyA==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -3190,9 +3190,9 @@ caniuse-api@^3.0.0:
     lodash.uniq "^4.5.0"
 
 caniuse-lite@^1.0.0, caniuse-lite@^1.0.30001297, caniuse-lite@^1.0.30001312:
-  version "1.0.30001399"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001399.tgz"
-  integrity sha512-4vQ90tMKS+FkvuVWS5/QY1+d805ODxZiKFzsU8o/RsVJz49ZSRR8EjykLJbqhzdPgadbX6wB538wOzle3JniRA==
+  version "1.0.30001472"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001472.tgz"
+  integrity sha512-xWC/0+hHHQgj3/vrKYY0AAzeIUgr7L9wlELIcAvZdDUHlhL/kNxMdnQLOSOQfP8R51ZzPhmHdyMkI0MMpmxCfg==
 
 case-sensitive-paths-webpack-plugin@^2.4.0:
   version "2.4.0"

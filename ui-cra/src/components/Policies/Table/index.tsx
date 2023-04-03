@@ -1,18 +1,18 @@
-import { FC } from 'react';
-import { Policy } from '../../../cluster-services/cluster_services.pb';
-import { usePolicyStyle } from '../PolicyStyles';
 import {
   DataTable,
   filterConfig,
   formatURL,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
-import { Link } from 'react-router-dom';
-import Severity from '../Severity';
 import moment from 'moment';
-import { TableWrapper } from '../../Shared';
+import { FC } from 'react';
+import { Link } from 'react-router-dom';
+import { Policy } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
+import { TableWrapper } from '../../Shared';
 import Mode from '../Mode';
+import { usePolicyStyle } from '../PolicyStyles';
+import Severity from '../Severity';
 
 interface CustomPolicy extends Policy {
   audit?: string;
@@ -25,8 +25,7 @@ interface Props {
 
 export const PolicyTable: FC<Props> = ({ policies }) => {
   const classes = usePolicyStyle();
-  const { data } = useFeatureFlags();
-  const flags = data.flags;
+  const { isFlagEnabled } = useFeatureFlags();
 
   policies.forEach(policy => {
     policy.audit = policy.modes?.includes('audit') ? 'audit' : '';
@@ -40,7 +39,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
     ...filterConfig(policies, 'audit'),
   };
 
-  if (flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true') {
+  if (isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY')) {
     initialFilterState = {
       ...initialFilterState,
       ...filterConfig(policies, 'tenant'),
@@ -85,7 +84,7 @@ export const PolicyTable: FC<Props> = ({ policies }) => {
               <Mode modeName={enforce ? 'admission' : ''} />
             ),
           },
-          ...(flags.WEAVE_GITOPS_FEATURE_TENANCY === 'true'
+          ...(isFlagEnabled('WEAVE_GITOPS_FEATURE_TENANCY')
             ? [{ label: 'Tenant', value: 'tenant' }]
             : []),
           {

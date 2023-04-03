@@ -2,7 +2,7 @@ import React, { Dispatch, FC } from 'react';
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import styled from 'styled-components';
 import { Loader } from '../../../Loader';
-import { DataTable } from '@weaveworks/weave-gitops';
+import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import { Checkbox } from '@material-ui/core';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import ProfilesListItem from './ProfileListItem';
@@ -34,18 +34,17 @@ const ProfilesWrapper = styled.div`
       color: ${({ theme }) => theme.colors.primary};
     }
     .profile-details {
-      display: flex;
       justify-content: space-around;
     }
   }
 `;
 
 const ProfileDetailsLabelRenderer = () => (
-  <div className="profile-details">
+  <Flex className="profile-details">
     <h2>Version</h2>
     <h2>Namespace</h2>
     <h2>Yaml</h2>
-  </div>
+  </Flex>
 );
 
 const Profiles: FC<{

@@ -8,6 +8,8 @@ import {
   IconType,
   LoadingPage,
   useListAutomations,
+  theme,
+  Flex,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
@@ -19,8 +21,7 @@ import { getGitRepos } from '../Clusters';
 interface Size {
   size?: 'small';
 }
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
+const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
   }

@@ -1,7 +1,39 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`PipelineDetails snapshots renders 1`] = `
-.c7 {
+.c1 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+}
+
+.c3 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: center;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+.c9 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -15,7 +47,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
-.c11 {
+.c13 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -34,7 +66,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c17 {
+.c19 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -54,7 +86,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c30 {
+.c32 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -73,7 +105,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-.c32 {
+.c34 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -91,7 +123,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c21 {
+.c23 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -100,16 +132,16 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-.c22 {
+.c24 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 400;
   text-transform: uppercase;
   font-style: normal;
   color: #737373;
 }
 
-.c36 {
+.c38 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 800;
@@ -118,105 +150,114 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #27AE60;
 }
 
-.c9 svg {
+.c11 svg {
   height: 24px;
   width: 24px;
 }
 
-.c9 svg path.path-fill {
+.c11 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg.sources {
-  fill: none !important;
+.c11 svg rect.rect-height {
+  height: 24px;
+  width: 24px;
 }
 
-.c9 svg.sources rect {
-  stroke: !important;
+.c11 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9.downward {
+.c11 svg.no-fill {
+  fill: none !important;
+}
+
+.c11.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c9.upward {
+.c11.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c9 .c20 {
+.c11 .c22 {
   margin-left: 4px;
 }
 
-.c9 img {
+.c11 img {
   width: 24px;
 }
 
-.c35 svg {
+.c37 svg {
   fill: #27AE60;
   height: 16px;
   width: 16px;
 }
 
-.c35 svg path.path-fill {
+.c37 svg path.path-fill {
   fill: #27AE60 !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c35 svg.sources {
-  fill: none !important;
+.c37 svg rect.rect-height {
+  height: 16px;
+  width: 16px;
 }
 
-.c35 svg.sources rect {
-  stroke: #27AE60 !important;
+.c37 svg rect.rect-stroke {
+  stroke: #27AE60;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c35.downward {
+.c37 svg.no-fill {
+  fill: none !important;
+}
+
+.c37.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c35.upward {
+.c37.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c35 .c20 {
+.c37 .c22 {
   margin-left: 4px;
   color: #27AE60;
 }
 
-.c35 img {
+.c37 img {
   width: 16px;
 }
 
-.c34 .c8 .c20 {
+.c36 .c10 .c22 {
   color: #1a1a1a;
   font-weight: 400;
 }
 
-.c23 {
+.c25 {
   padding: 8px;
 }
 
-.c19 {
+.c20 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-.c15.MuiButton-root {
+.c17.MuiButton-root {
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -228,89 +269,77 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 600;
 }
 
-.c15.MuiButton-outlined {
+.c17.MuiButton-outlined {
   padding: 8px 12px;
   border-color: #d8d8d8;
 }
 
-.c18 .active-tab {
+.c21.active-tab {
   background: #00b3ec19;
 }
 
-.c18 .MuiTab-root {
-  line-height: 1;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
-  letter-spacing: 1px;
-  height: 32px;
-  min-height: 32px;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
-  width: fit-content;
-}
-
-.c18 .MuiTabs-root {
-  min-height: 32px;
-}
-
-.c18 .MuiTabs-fixed {
-  height: 32px;
-}
-
-.c18 .MuiTabs-indicator {
-  height: 3px;
-  background-color: #00b3ec;
-}
-
-.c6 {
+.c8 {
   height: 40px;
   width: 40px;
 }
 
-.c6.MuiIconButton-root {
+.c8.MuiIconButton-root {
   background-color: #F6F7F9;
   color: #737373;
 }
 
-.c6.MuiIconButton-root:hover {
+.c8.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
 }
 
-.c5 {
+.c7 {
   padding-right: 12px;
 }
 
-.c38 {
+.c40 {
   padding: calc(24px - 4px) 24px;
   background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
-.c38 a {
+.c40 a {
   color: #00b3ec;
 }
 
 .c0 {
   width: 100%;
+  height: 100%;
   margin: 0 auto;
 }
 
-.c10 {
+.c12 {
   padding: 24px;
   background-color: #fff;
   border-radius: 8px 8px 0 0;
   height: 100%;
+}
+
+.c4 {
+  font-size: 20px;
+  height: 32px;
+}
+
+.c6 {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 300px;
+}
+
+.c5 {
+  margin-right: 8px;
+  white-space: nowrap;
 }
 
 .c2 {
@@ -318,47 +347,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-  font-size: 20px;
-  height: 32px;
-}
-
-.c4 {
-  color: #fff;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  max-width: 300px;
-}
-
-.c3 {
-  margin-right: 8px;
-  white-space: nowrap;
-}
-
-.c1 {
-  -webkit-align-items: center;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
-  align-items: center;
   -webkit-box-pack: justify;
   -webkit-justify-content: space-between;
   -ms-flex-pack: justify;
   justify-content: space-between;
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
   color: inherit;
   font-size: 20px;
-  height: 80px;
+  height: 60px;
   -webkit-box-flex: 1;
   -webkit-flex-grow: 1;
   -ms-flex-positive: 1;
@@ -371,33 +366,33 @@ exports[`PipelineDetails snapshots renders 1`] = `
   background: inherit;
 }
 
-.c1 .MuiListItemIcon-root {
+.c2 .MuiListItemIcon-root {
   min-width: 30px;
 }
 
-.c13 {
+.c15 {
   font-weight: bold;
 }
 
-.c14 {
+.c16 {
   text-overflow: ellipsis;
   overflow: hidden !important;
 }
 
-.c12 {
+.c14 {
   width: 100%;
 }
 
-.c12 tr {
+.c14 tr {
   height: 72px;
   border-bottom: none;
 }
 
-.c16 span {
+.c18 span {
   margin-right: 0px;
 }
 
-.c25 {
+.c27 {
   font-size: 20px;
   margin-bottom: 12px;
   text-overflow: ellipsis;
@@ -406,7 +401,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: calc(250px - 32px);
 }
 
-.c24 {
+.c26 {
   background: #fff;
   padding: 12px;
   margin-bottom: 8px;
@@ -415,34 +410,34 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 600;
 }
 
-.c26 {
+.c28 {
   font-size: 14px;
   color: #1a1a1a;
   font-weight: 400;
 }
 
-.c27 {
+.c29 {
   margin-bottom: 12px;
   line-height: 24px;
 }
 
-.c27 a > span {
+.c29 a > span {
   font-size: 20px;
 }
 
-.c28 {
+.c30 {
   font-size: 14px;
 }
 
-.c29 {
+.c31 {
   position: relative;
 }
 
-.c29 .version {
+.c31 .version {
   margin-left: 4px;
 }
 
-.c37 {
+.c39 {
   color: #737373;
   font-size: 14px;
   border: 1px solid #d8d8d8;
@@ -450,22 +445,16 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-radius: 50%;
 }
 
-.c31 {
+.c33 {
   font-size: 20px;
 }
 
-.c31 .c33 span {
+.c33 .c35 span {
   display: none;
 }
 
-.c31 .c8 img {
+.c33 .c10 img {
   width: 16px;
-}
-
-@media (min-width:600px) {
-  .c18 .MuiTab-root {
-    min-width: 132px;
-  }
 }
 
 <div>
@@ -473,52 +462,22 @@ exports[`PipelineDetails snapshots renders 1`] = `
     class="c0"
   >
     <div
-      class="c1 count-header"
+      class="c1 c2 count-header"
     >
       <div
-        class="c2"
+        class="c3 c4 test-id-breadcrumbs"
       >
         <div
           class="makeStyles-path-120"
           style="align-items: center;"
         >
           <div
-            class="c3"
+            class="c5"
             role="heading"
           >
             <a
               class="makeStyles-link-123"
-              href="/applications"
-            >
-              Applications
-            </a>
-          </div>
-        </div>
-        <div
-          class="makeStyles-path-120"
-          style="align-items: center;"
-        >
-          <div
-            class="makeStyles-divider-121"
-          >
-            <svg
-              aria-hidden="true"
-              class="MuiSvgIcon-root makeStyles-iconDivider-122"
-              focusable="false"
-              viewBox="0 0 24 24"
-            >
-              <path
-                d="M5.88 4.12L13.76 12l-7.88 7.88L8 22l10-10L8 2z"
-              />
-            </svg>
-          </div>
-          <div
-            class="c3"
-            role="heading"
-          >
-            <a
-              class="makeStyles-link-123"
-              href="/applications/pipelines"
+              href="/pipelines"
             >
               Pipelines
             </a>
@@ -543,7 +502,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             </svg>
           </div>
           <span
-            class="c4 makeStyles-labelLink-124"
+            class="c6 makeStyles-labelLink-124"
             title="podinfo-02"
           >
             podinfo-02
@@ -551,11 +510,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c5"
+        class="c7"
       >
         <button
           aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c6"
+          class="MuiButtonBase-root MuiIconButton-root c8"
           tabindex="0"
           title="Account settings"
           type="button"
@@ -564,7 +523,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c7 c8 c9"
+              class="c9 c10 c11"
             >
               <svg
                 aria-hidden="true"
@@ -585,19 +544,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-      style="display: flex; flex-direction: column; width: calc(100% - 4px); max-height: calc(100vh - 80px); overflow-wrap: normal; overflow-x: scroll; padding: 0px 12px; margin: 0px auto;"
+      id="content-wrapper"
+      style="display: flex; flex-direction: column; width: 100%; max-height: calc(100vh - 60px); overflow-wrap: normal; overflow-x: scroll; padding-right: 24px; margin: 0px auto;"
     >
       <div
-        class="c10"
+        class="c12"
       >
         <div
           class="MuiBox-root MuiBox-root-131"
         >
           <div
-            class="c11"
+            class="c13"
           >
             <div
-              class="c12 KeyValueTable"
+              class="c14 KeyValueTable"
               role="list"
             >
               <div
@@ -611,12 +571,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       aria-label="Automated"
-                      class="c13"
+                      class="c15"
                     >
                       Automated
                     </div>
                     <div
-                      class="c14"
+                      class="c16"
                     >
                       True
                     </div>
@@ -630,12 +590,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       aria-label="Strategy"
-                      class="c13"
+                      class="c15"
                     >
                       Strategy
                     </div>
                     <div
-                      class="c14"
+                      class="c16"
                     >
                       Notification
                     </div>
@@ -649,12 +609,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       aria-label="URL"
-                      class="c13"
+                      class="c15"
                     >
                       URL
                     </div>
                     <div
-                      class="c14"
+                      class="c16"
                     >
                       <span
                         style="margin-left: 2px;"
@@ -672,12 +632,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       aria-label="Branch"
-                      class="c13"
+                      class="c15"
                     >
                       Branch
                     </div>
                     <div
-                      class="c14"
+                      class="c16"
                     >
                       <span
                         style="margin-left: 2px;"
@@ -698,7 +658,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   class="makeStyles-editButton-119"
                 >
                   <button
-                    class="MuiButtonBase-root MuiButton-root MuiButton-outlined c15 c16 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
+                    class="MuiButtonBase-root MuiButton-root MuiButton-outlined c17 c18 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
                     disabled=""
                     tabindex="-1"
                     type="button"
@@ -728,10 +688,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
           </div>
         </div>
         <div
-          class="c17 c18 $66f9bbb72ea3c190$var$SubRouterTabs"
+          class="c19 $66f9bbb72ea3c190$var$SubRouterTabs"
         >
           <div
-            class="MuiTabs-root"
+            class="MuiTabs-root horizontal-tabs"
           >
             <div
               class="MuiTabs-scroller MuiTabs-fixed"
@@ -743,21 +703,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
               >
                 <a
                   aria-disabled="false"
-                  aria-selected="true"
-                  class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false Mui-selected"
-                  href="/applications/pipelines/details/status"
+                  class="c20 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c21 $f59ecea4231521c0$var$MuiTabfalse"
+                  href="/pipelines/details/status"
                   role="tab"
-                  tabindex="0"
+                  tabindex="-1"
                 >
                   <span
-                    class="c20 c21"
+                    class="c22 c23"
                     color="primary"
                   >
                     <span
                       class="MuiTab-wrapper"
                     >
                       <span
-                        class="c20 c22"
+                        class="c22 c24"
                         color="neutral30"
                       >
                         Status
@@ -770,21 +729,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
                 <a
                   aria-disabled="false"
-                  aria-selected="false"
-                  class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
-                  href="/applications/pipelines/details/yaml"
+                  class="c20 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c21 $f59ecea4231521c0$var$MuiTabfalse"
+                  href="/pipelines/details/yaml"
                   role="tab"
                   tabindex="-1"
                 >
                   <span
-                    class="c20 c21"
+                    class="c22 c23"
                     color="primary"
                   >
                     <span
                       class="MuiTab-wrapper"
                     >
                       <span
-                        class="c20 c22"
+                        class="c22 c24"
                         color="neutral30"
                       >
                         Yaml
@@ -797,21 +755,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
                 <a
                   aria-disabled="false"
-                  aria-selected="false"
-                  class="c19 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit false"
-                  href="/applications/pipelines/details/pullrequests"
+                  class="c20 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c21 $f59ecea4231521c0$var$MuiTabfalse"
+                  href="/pipelines/details/pullrequests"
                   role="tab"
                   tabindex="-1"
                 >
                   <span
-                    class="c20 c21"
+                    class="c22 c23"
                     color="primary"
                   >
                     <span
                       class="MuiTab-wrapper"
                     >
                       <span
-                        class="c20 c22"
+                        class="c22 c24"
                         color="neutral30"
                       >
                         Pull Requests
@@ -824,13 +781,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </a>
               </div>
               <span
-                class="PrivateTabIndicator-root-136 PrivateTabIndicator-colorPrimary-137 MuiTabs-indicator"
+                class="PrivateTabIndicator-root-137 PrivateTabIndicator-colorPrimary-138 MuiTabs-indicator"
                 style="left: 0px; width: 0px;"
               />
             </div>
           </div>
           <div
-            class="c23"
+            class="c25"
           />
           <div
             class="MuiGrid-root makeStyles-gridWrapper-114 MuiGrid-container MuiGrid-spacing-xs-4"
@@ -855,19 +812,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </div>
               </div>
               <div
-                class="c24"
+                class="c26"
                 role="targeting"
               >
                 <div
-                  class="c25 workloadTarget"
+                  class="c27 workloadTarget"
                 >
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Cluster
                   </div>
                   <div
-                    class="c27 cluster-name"
+                    class="c29 cluster-name"
                   >
                     <a
                       href="/cluster?clusterName=dev"
@@ -876,47 +833,47 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                   </div>
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Namespace
                   </div>
                   <div
-                    class="c28 workload-namespace"
+                    class="c30 workload-namespace"
                   >
                     podinfo-02-dev
                   </div>
                 </div>
                 <div
-                  class="c29"
+                  class="c31"
                 >
                   <div
-                    class="c30"
+                    class="c32"
                   >
                     <div
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c20"
                         href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
                       >
                         <span
-                          class="c20 c21"
+                          class="c22 c23"
                           color="primary"
                         >
                           <div
-                            class="c31 WorkloadStatus"
+                            class="c33 WorkloadStatus"
                           >
                             <div
-                              class="c7"
+                              class="c9"
                             >
                               <div
                                 style="margin-right: 4px;"
                               >
                                 <div
-                                  class="c32 c33 c34 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                  class="c34 c35 c36 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                 >
                                   <div
-                                    class="c7 c8 c35"
+                                    class="c9 c10 c37"
                                   >
                                     <svg
                                       aria-hidden="true"
@@ -929,7 +886,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                       />
                                     </svg>
                                     <span
-                                      class="c20 c36"
+                                      class="c22 c38"
                                       color="successOriginal"
                                     >
                                       Ready
@@ -958,7 +915,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       </div>
                     </div>
                     <span
-                      class="c37 last-applied-version"
+                      class="c39 last-applied-version"
                     >
                       v6.2.1
                     </span>
@@ -987,19 +944,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </div>
               </div>
               <div
-                class="c24"
+                class="c26"
                 role="targeting"
               >
                 <div
-                  class="c25 workloadTarget"
+                  class="c27 workloadTarget"
                 >
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Cluster
                   </div>
                   <div
-                    class="c27 cluster-name"
+                    class="c29 cluster-name"
                   >
                     <a
                       href="/cluster?clusterName=dev"
@@ -1008,47 +965,47 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                   </div>
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Namespace
                   </div>
                   <div
-                    class="c28 workload-namespace"
+                    class="c30 workload-namespace"
                   >
                     podinfo-02-qa
                   </div>
                 </div>
                 <div
-                  class="c29"
+                  class="c31"
                 >
                   <div
-                    class="c30"
+                    class="c32"
                   >
                     <div
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c20"
                         href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-qa"
                       >
                         <span
-                          class="c20 c21"
+                          class="c22 c23"
                           color="primary"
                         >
                           <div
-                            class="c31 WorkloadStatus"
+                            class="c33 WorkloadStatus"
                           >
                             <div
-                              class="c7"
+                              class="c9"
                             >
                               <div
                                 style="margin-right: 4px;"
                               >
                                 <div
-                                  class="c32 c33 c34 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                  class="c34 c35 c36 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                 >
                                   <div
-                                    class="c7 c8 c35"
+                                    class="c9 c10 c37"
                                   >
                                     <svg
                                       aria-hidden="true"
@@ -1061,7 +1018,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                       />
                                     </svg>
                                     <span
-                                      class="c20 c36"
+                                      class="c22 c38"
                                       color="successOriginal"
                                     >
                                       Ready
@@ -1090,7 +1047,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       </div>
                     </div>
                     <span
-                      class="c37 last-applied-version"
+                      class="c39 last-applied-version"
                     >
                       v6.1.8
                     </span>
@@ -1098,19 +1055,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </div>
               </div>
               <div
-                class="c24"
+                class="c26"
                 role="targeting"
               >
                 <div
-                  class="c25 workloadTarget"
+                  class="c27 workloadTarget"
                 >
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Cluster
                   </div>
                   <div
-                    class="c27 cluster-name"
+                    class="c29 cluster-name"
                   >
                     <a
                       href="/cluster?clusterName=dev"
@@ -1119,47 +1076,47 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                   </div>
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Namespace
                   </div>
                   <div
-                    class="c28 workload-namespace"
+                    class="c30 workload-namespace"
                   >
                     podinfo-02-perf
                   </div>
                 </div>
                 <div
-                  class="c29"
+                  class="c31"
                 >
                   <div
-                    class="c30"
+                    class="c32"
                   >
                     <div
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c20"
                         href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-perf"
                       >
                         <span
-                          class="c20 c21"
+                          class="c22 c23"
                           color="primary"
                         >
                           <div
-                            class="c31 WorkloadStatus"
+                            class="c33 WorkloadStatus"
                           >
                             <div
-                              class="c7"
+                              class="c9"
                             >
                               <div
                                 style="margin-right: 4px;"
                               >
                                 <div
-                                  class="c32 c33 c34 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                  class="c34 c35 c36 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                 >
                                   <div
-                                    class="c7 c8 c35"
+                                    class="c9 c10 c37"
                                   >
                                     <svg
                                       aria-hidden="true"
@@ -1172,7 +1129,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                       />
                                     </svg>
                                     <span
-                                      class="c20 c36"
+                                      class="c22 c38"
                                       color="successOriginal"
                                     >
                                       Ready
@@ -1201,7 +1158,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       </div>
                     </div>
                     <span
-                      class="c37 last-applied-version"
+                      class="c39 last-applied-version"
                     >
                       v6.1.8
                     </span>
@@ -1230,19 +1187,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 </div>
               </div>
               <div
-                class="c24"
+                class="c26"
                 role="targeting"
               >
                 <div
-                  class="c25 workloadTarget"
+                  class="c27 workloadTarget"
                 >
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Cluster
                   </div>
                   <div
-                    class="c27 cluster-name"
+                    class="c29 cluster-name"
                   >
                     <a
                       href="/cluster?clusterName=prod"
@@ -1251,47 +1208,47 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                   </div>
                   <div
-                    class="c26"
+                    class="c28"
                   >
                     Namespace
                   </div>
                   <div
-                    class="c28 workload-namespace"
+                    class="c30 workload-namespace"
                   >
                     podinfo-02-prod
                   </div>
                 </div>
                 <div
-                  class="c29"
+                  class="c31"
                 >
                   <div
-                    class="c30"
+                    class="c32"
                   >
                     <div
                       class="automation"
                     >
                       <a
-                        class="c19"
+                        class="c20"
                         href="/helm_release/details?clusterName=default%2Fprod&name=podinfo&namespace=podinfo-02-prod"
                       >
                         <span
-                          class="c20 c21"
+                          class="c22 c23"
                           color="primary"
                         >
                           <div
-                            class="c31 WorkloadStatus"
+                            class="c33 WorkloadStatus"
                           >
                             <div
-                              class="c7"
+                              class="c9"
                             >
                               <div
                                 style="margin-right: 4px;"
                               >
                                 <div
-                                  class="c32 c33 c34 $43649dcb1d1d1221$var$KubeStatusIndicator"
+                                  class="c34 c35 c36 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                 >
                                   <div
-                                    class="c7 c8 c35"
+                                    class="c9 c10 c37"
                                   >
                                     <svg
                                       aria-hidden="true"
@@ -1304,7 +1261,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                       />
                                     </svg>
                                     <span
-                                      class="c20 c36"
+                                      class="c22 c38"
                                       color="successOriginal"
                                     >
                                       Ready
@@ -1333,7 +1290,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       </div>
                     </div>
                     <span
-                      class="c37 last-applied-version"
+                      class="c39 last-applied-version"
                     >
                       v6.1.6
                     </span>
@@ -1346,18 +1303,18 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c38"
+        class="c1 c40"
       >
         <div>
           Need help? Raise a 
           <a
-            class="c19"
-            href="https://weavesupport.zendesk.com/"
+            class="c20"
+            href="https://support.weave.works/helpdesk/"
             rel="noreferrer"
             target="_blank"
           >
             <span
-              class="c20 c21"
+              class="c22 c23"
               color="primary"
             >
               support ticket

@@ -1,8 +1,12 @@
-import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  RouterTab,
+  SubRouterTabs,
+  YamlView,
+} from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
-import CodeView from '../../CodeView';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 
@@ -75,16 +79,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   });
 
   const classes = usePipelineStyles();
-  const path = `/applications/pipelines/details`;
+  const path = `/pipelines/details`;
 
   return (
     <PageTemplate
       documentTitle="Pipeline Details"
       path={[
-        {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
         {
           label: 'Pipelines',
           url: Routes.Pipelines,
@@ -115,10 +115,13 @@ const PipelineDetails = ({ name, namespace }: Props) => {
             <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
-            <CodeView
-              kind="Pipeline"
-              code={data?.pipeline?.yaml || ''}
-              object={data?.pipeline || {}}
+            <YamlView
+              yaml={data?.pipeline?.yaml || ''}
+              object={{
+                kind: 'Pipeline',
+                name: data?.pipeline?.name,
+                namespace: data?.pipeline?.namespace,
+              }}
             />
           </RouterTab>
           <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
