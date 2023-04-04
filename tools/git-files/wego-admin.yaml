@@ -18,7 +18,8 @@ metadata:
   name: wego-admin-cluster-role
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods", "namespaces", "serviceaccounts"]
+    resources:
+      ["secrets", "pods", "namespaces", "serviceaccounts", "configmaps"]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
@@ -49,9 +50,21 @@ rules:
     resources: ["roles", "rolebindings"]
     verbs: ["get", "list"]
   - apiGroups: ["external-secrets.io"]
-    resources: 
-    - externalsecrets
-    - clusterexternalsecrets
-    - secretstores
-    - clustersecretstores
+    resources:
+      - externalsecrets
+      - clusterexternalsecrets
+      - secretstores
+      - clustersecretstores
     verbs: ["get", "list", "udpate", "patch"]
+  - apiGroups:
+      - templates.weave.works
+    resources:
+      - gitopssets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
