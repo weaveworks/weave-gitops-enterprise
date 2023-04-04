@@ -1,4 +1,4 @@
-import { useListObjects } from '@weaveworks/weave-gitops';
+import { Flex, useListObjects } from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 
@@ -16,7 +16,9 @@ const GitOpsRun = () => {
         {sessions?.objects?.length ? (
           <GitOpsRunTable sessions={sessions.objects} />
         ) : (
-          <NoRunsMessage />
+          <Flex center>
+            <NoRunsMessage />
+          </Flex>
         )}
       </ContentWrapper>
     </PageTemplate>

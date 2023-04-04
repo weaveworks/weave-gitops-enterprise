@@ -278,4 +278,7 @@ export default styled(GitOpsDetail).attrs({
   ${SubRouterTabs} {
     margin-top: ${props => props.theme.spacing.medium};
   }
+  .MuiSlider-vertical {
+    min-height: 400px;
+  }
 `;

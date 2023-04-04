@@ -3,7 +3,6 @@ package query
 import (
 	"context"
 	"fmt"
-
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -18,8 +17,9 @@ type QueryService interface {
 }
 
 type QueryServiceOpts struct {
-	Log         logr.Logger
-	StoreReader store.StoreReader
+	Log           logr.Logger
+	StoreReader   store.StoreReader
+	AccessChecker accesschecker.Checker
 }
 
 const (
@@ -30,7 +30,7 @@ func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, 
 	return &qs{
 		log:     opts.Log,
 		r:       opts.StoreReader,
-		checker: accesschecker.NewAccessChecker(),
+		checker: opts.AccessChecker,
 	}, nil
 }
 

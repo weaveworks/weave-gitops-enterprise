@@ -68,6 +68,11 @@ function getParentNavRouteValueExtended(
     case Routes.GitOpsRun:
     case Routes.GitOpsRunDetail:
       return Routes.GitOpsRun;
+
+    case Routes.Explorer:
+    case Routes.ExplorerAccessRules:
+      return Routes.Explorer;
+
     default:
       return false;
   }
@@ -138,6 +143,12 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
       label: 'Flux Runtime',
       link: { value: V2Routes.FluxRuntime },
       icon: IconType.FluxIcon,
+    },
+    {
+      label: 'Explorer',
+      link: { value: Routes.Explorer },
+      icon: IconType.SearchIcon,
+      disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER'),
     },
     {
       label: 'Guardrails',
