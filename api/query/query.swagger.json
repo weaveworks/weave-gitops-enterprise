@@ -202,6 +202,12 @@
         "limit": {
           "type": "integer",
           "format": "int32"
+        },
+        "orderBy": {
+          "type": "string"
+        },
+        "globalOperand": {
+          "type": "string"
         }
       }
     },

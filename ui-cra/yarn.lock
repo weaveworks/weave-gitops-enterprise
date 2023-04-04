@@ -2335,10 +2335,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops-main@0.19.0-32-g3db84ae3":
-  version "0.19.0-32-g3db84ae3"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-32-g3db84ae3/bd535d981ef012e3055456bb4545908ca1a812a3#bd535d981ef012e3055456bb4545908ca1a812a3"
-  integrity sha512-2OzQ8B80lN3BUPimZK3HA4681F2KjokxOsEOk1Tcno7fU4juLWY4qTVvtHij5fg0NLn1JMCjQCU8thQ4g52fGw==
+"@weaveworks/weave-gitops-main@0.20.0-12-gccf5178b":
+  version "0.20.0-12-gccf5178b"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-12-gccf5178b/a3502c8190bbc3d0e734d13054a5b56574100630#a3502c8190bbc3d0e734d13054a5b56574100630"
+  integrity sha512-IiyxygyeN1hwQy8RfAs0pT1a5XZH4ILoz8dNo7/oBS1R6Qsus2HzlG+OCmWt4NMx3E0STcKzH9swulETFz3gDQ==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2366,10 +2366,10 @@
     styled-components "^5.3.0"
     yaml "^1.10.2"
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-6-g09a93e74":
-  version "0.20.0-6-g09a93e74"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-6-g09a93e74/a592a3ac60ffad42a6b0a901c0459cdded58546e#a592a3ac60ffad42a6b0a901c0459cdded58546e"
-  integrity sha512-6X1qkO4XKv/HJxvA67NBHNjZHdXhKMc0cgLv8AF7m1eQInUlnLWaQqrD2l1XFqwSRPcznpiPexC9Q/5cbDDaKg==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-7-gb6d3961f":
+  version "0.20.0-7-gb6d3961f"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-7-gb6d3961f/b26b24a2294714870539342648b227955fddc58e#b26b24a2294714870539342648b227955fddc58e"
+  integrity sha512-IkPTClLIaK/POrwC7jn+mUiUO9LgkM2PlbdkMlRGynTvcrJi38pGKh7sspd00uhR/StIHGMroggH+cPoosuXyA==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

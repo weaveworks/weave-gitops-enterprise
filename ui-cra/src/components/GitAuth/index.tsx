@@ -8,8 +8,6 @@ import { RepoInputWithAuth } from './RepoInputWithAuth';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
-  display: flex;
-  justify-content: space-between;
   & .auth-message {
     padding-right: ${({ theme }) => theme.spacing.small};
     button {

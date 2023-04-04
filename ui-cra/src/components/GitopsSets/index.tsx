@@ -18,6 +18,7 @@ import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
 import _ from 'lodash';
 import { Routes } from '../../utils/nav';
+import { TableWrapper } from '../Shared';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
@@ -128,11 +129,13 @@ const GitopsSets: FC = () => {
         {isLoading ? (
           <LoadingPage />
         ) : (
-          <DataTable
-            fields={fields}
-            rows={data?.gitopssets}
-            filters={initialFilterState}
-          />
+          <TableWrapper id="gitopssets-list">
+            <DataTable
+              fields={fields}
+              rows={data?.gitopssets}
+              filters={initialFilterState}
+            />
+          </TableWrapper>
         )}
       </ContentWrapper>
     </PageTemplate>

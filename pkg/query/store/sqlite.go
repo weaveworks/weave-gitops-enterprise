@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -163,6 +164,8 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	// -1 tells GORM to ignore the limit/offset
 	var limit int = -1
 	var offset int = -1
+	var orderBy string = ""
+	useOrLogic := false
 
 	if opts != nil {
 		if opts.GetLimit() != 0 {
@@ -171,10 +174,39 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		if opts.GetOffset() != 0 {
 			offset = int(opts.GetOffset())
 		}
+
+		if opts.GetOrderBy() != "" {
+			orderBy = opts.GetOrderBy()
+		}
+
+		if opts.GetGlobalOperand() == string(GlobalOperandOr) {
+			useOrLogic = true
+		}
 	}
 
 	tx := i.db.Limit(limit)
 	tx = tx.Offset(offset)
+	tx = tx.Order(orderBy)
+
+	if useOrLogic {
+		stmt := ""
+
+		for _, c := range q {
+			op, err := toSQLOperand(QueryOperand(c.GetOperand()))
+			if err != nil {
+				return nil, err
+			}
+
+			stmt += fmt.Sprintf("%s %s '%s' OR ", c.GetKey(), op, c.GetValue())
+		}
+
+		stmt = strings.TrimSuffix(stmt, " OR ")
+		tx = tx.Raw(fmt.Sprintf("SELECT * FROM objects WHERE %s", stmt))
+
+		result := tx.Find(&objects)
+
+		return objects, result.Error
+	}
 
 	if len(q) > 0 {
 		for _, c := range q {
@@ -191,6 +223,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 
 			queryString := fmt.Sprintf("%s %s ?", c.GetKey(), op)
 			tx = tx.Where(queryString, val)
+
 		}
 	}
 
@@ -289,7 +322,7 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 
 	goDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to golang sql database: %w", err)
+		return nil, fmt.Errorf("failed to create sql database: %w", err)
 	}
 
 	// From the readme: https://github.com/mattn/go-sqlite3

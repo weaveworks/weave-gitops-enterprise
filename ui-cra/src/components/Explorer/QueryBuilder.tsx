@@ -19,7 +19,7 @@ type Props = {
   query: string;
   filters: { label: string; value: any }[];
   selectedFilter: string;
-  disabled: boolean;
+  disabled?: boolean;
   placeholder?: string;
   pinnedTerms: string[];
   onChange: (val: string, pinnedTerms: string[]) => void;
