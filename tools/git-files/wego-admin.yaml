@@ -18,7 +18,8 @@ metadata:
   name: wego-admin-cluster-role
 rules:
   - apiGroups: [""]
-    resources: ["secrets", "pods", "namespaces", "serviceaccounts"]
+    resources:
+      ["secrets", "pods", "namespaces", "serviceaccounts", "configmaps"]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]
