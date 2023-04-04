@@ -49,9 +49,21 @@ rules:
     resources: ["roles", "rolebindings"]
     verbs: ["get", "list"]
   - apiGroups: ["external-secrets.io"]
-    resources: 
-    - externalsecrets
-    - clusterexternalsecrets
-    - secretstores
-    - clustersecretstores
+    resources:
+      - externalsecrets
+      - clusterexternalsecrets
+      - secretstores
+      - clustersecretstores
     verbs: ["get", "list", "udpate", "patch"]
+  - apiGroups:
+      - templates.weave.works
+    resources:
+      - gitopssets
+    verbs:
+      - create
+      - delete
+      - get
+      - list
+      - patch
+      - update
+      - watch
