@@ -65,7 +65,7 @@ export function getRepositoryUrl(repo: GitRepository) {
 
 export function getProvider(repo: GitRepository, config: GetConfigResponse) {
   const url = getRepositoryUrl(repo);
-  const domain = URI(url).domain();
+  const domain = URI(url).hostname();
   return config?.gitHostTypes?.[domain] || 'github';
 }
 

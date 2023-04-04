@@ -34,7 +34,6 @@ function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
   const provider = getProvider(gitRepo, config);
 
   const baseUrl = getRepositoryUrl(gitRepo);
-
   if (provider === 'gitlab') {
     return baseUrl + '/-/merge_requests';
   }
