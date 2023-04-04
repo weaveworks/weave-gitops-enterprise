@@ -326,6 +326,8 @@ func initializeConfig(cmd *cobra.Command) error {
 func StartServer(ctx context.Context, p Params, logOptions logger.Options) error {
 	log := logger.NewLogger(logOptions)
 
+	log.Info("Starting server", "log-options", logOptions)
+
 	featureflags.SetFromEnv(os.Environ())
 
 	if p.CAPITemplatesNamespace == "" {
@@ -679,11 +681,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
-		Logger:            args.Log,
-		ClientsFactory:    args.ClustersManager,
-		ManagementFetcher: args.ManagementFetcher,
-		Scheme:            args.KubernetesClient.Scheme(),
-		Cluster:           args.Cluster,
+		Logger:         args.Log,
+		ClientsFactory: args.ClustersManager,
 	}); err != nil {
 		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
