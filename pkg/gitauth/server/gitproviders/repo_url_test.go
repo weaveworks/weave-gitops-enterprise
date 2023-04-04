@@ -19,6 +19,7 @@ func TestDetectGitProviderFromURL(t *testing.T) {
 		{name: "ssh+github", url: "ssh://git@github.com/weaveworks/weave-gitops.git", provider: GitProviderGitHub},
 		{name: "ssh+gitlab", url: "ssh://git@gitlab.com/weaveworks/weave-gitops.git", provider: GitProviderGitLab},
 		{name: "https+bitbucket", url: "https://bitbucket.weave.works/scm/wg/config.git", provider: GitProviderBitBucketServer},
+		{name: "ssh+bitbucket.org", url: "ssh://git@bitbucket.org/pesto-01/pesto-repo-01.git", provider: GitProviderBitBucketServer},
 	}
 
 	for _, tt := range tests {

@@ -8,6 +8,7 @@ import (
 	"github.com/fluxcd/go-git-providers/github"
 	"github.com/fluxcd/go-git-providers/gitlab"
 	"github.com/spf13/viper"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/utils"
 )
 
@@ -20,6 +21,7 @@ const (
 	AzureDevOpsHTTPDefaultDomain = "dev.azure.com"
 	// AzureDevOpsSSHDefaultDomain is used for SSH clone URLs
 	AzureDevOpsSSHDefaultDomain = "ssh.dev.azure.com"
+	BitBucketDefaultDomain      = "bitbucket.org"
 )
 
 type RepoURL struct {
@@ -118,6 +120,7 @@ func GitHostTypes(gitHostTypesConfig map[string]string) map[string]string {
 		gitlab.DefaultDomain:         string(GitProviderGitLab),
 		AzureDevOpsHTTPDefaultDomain: string(GitProviderAzureDevOps),
 		AzureDevOpsSSHDefaultDomain:  string(GitProviderAzureDevOps),
+		BitBucketDefaultDomain:       string(git.BitBucketServerProviderName),
 	}
 
 	// add in the user defined git host types
