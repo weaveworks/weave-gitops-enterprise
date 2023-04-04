@@ -1,14 +1,15 @@
+import SyncIcon from '@material-ui/icons/Sync';
+import { Button, theme } from '@weaveworks/weave-gitops';
+import moment from 'moment';
+import { useState } from 'react';
+import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import moment from 'moment';
+import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
-import { request } from '../../../utils/request';
-import { SyncExternalSecretsResponse } from '../../../cluster-services/cluster_services.pb';
-import { Button, theme } from '@weaveworks/weave-gitops';
-import SyncIcon from '@material-ui/icons/Sync';
+import { syncSecret } from './SyncSecret';
 
 const SecretDetails = ({
   externalSecretName,
@@ -38,12 +39,8 @@ const SecretDetails = ({
       value: moment(secretDetails?.timestamp).fromNow(),
     },
   ];
-
-  const syncSecret = (payload: any): Promise<SyncExternalSecretsResponse> => {
-    return request('POST', `/v1/external-secrets/sync`, {
-      body: JSON.stringify(payload),
-    });
-  };
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { setNotifications } = useNotifications();
 
   return (
     <PageTemplate
@@ -56,15 +53,20 @@ const SecretDetails = ({
       <ContentWrapper loading={isSecretDetailsLoading}>
         <Button
           id="create-secrets"
+          loading={isLoading}
           startIcon={<SyncIcon />}
           style={{ marginBottom: theme.spacing.medium }}
-          onClick={() =>
-            syncSecret({
-              clusterName,
-              namespace,
-              externalSecretName,
-            })
-          }
+          onClick={() => {
+            syncSecret(
+              {
+                clusterName,
+                namespace,
+                externalSecretName,
+              },
+              setNotifications,
+              setIsLoading,
+            );
+          }}
         >
           Sync
         </Button>
