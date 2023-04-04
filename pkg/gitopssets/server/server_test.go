@@ -145,6 +145,7 @@ func TestListWithErrors(t *testing.T) {
 			{
 				ClusterName: "leaf-1",
 				Message:     "no kind is registered for the type v1alpha1.GitOpsSetList in scheme \"pkg/runtime/scheme.go:100\"",
+				Namespace:   "namespace-x-1",
 			},
 		},
 	}
