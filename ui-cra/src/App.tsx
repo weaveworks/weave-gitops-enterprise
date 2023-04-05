@@ -86,8 +86,7 @@ const GlobalStyle = createGlobalStyle`
 
   ::-webkit-scrollbar-track {
     margin-top: 5px;
-    -webkit-box-shadow: transparent;
-    -moz-box-shadow: transparent;
+    box-shadow: transparent;
     background-color: transparent;
     border-radius: 5px;
   }
@@ -156,7 +155,6 @@ const App: FC = () => {
                               <LinkResolverProvider resolver={resolver}>
                                 <Pendo
                                   defaultTelemetryFlag="true"
-                                  //@ts-ignore
                                   tier="enterprise"
                                   version={process.env.REACT_APP_VERSION}
                                 />
