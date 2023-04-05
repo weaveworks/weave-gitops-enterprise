@@ -54,9 +54,9 @@ func (o WatcherOptions) Validate() error {
 }
 
 type Watcher interface {
-	Start(ctx context.Context, log logr.Logger) error
+	Start(ctx context.Context) error
 	Status() (string, error)
-	Stop() error
+	Stop(ctx context.Context) error
 }
 
 type DefaultWatcher struct {
@@ -65,7 +65,6 @@ type DefaultWatcher struct {
 	scheme            *runtime.Scheme
 	clusterRef        types.NamespacedName
 	cluster           cluster.Cluster
-	stopFn            context.CancelFunc
 	log               logr.Logger
 	status            ClusterWatchingStatus
 	newWatcherManager WatcherManagerFunc
@@ -73,6 +72,7 @@ type DefaultWatcher struct {
 }
 
 type WatcherManagerFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
+type WatcherStopFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
 
 type WatcherManagerOptions struct {
 	Log            logr.Logger
@@ -179,11 +179,9 @@ func newDefaultScheme() (*runtime.Scheme, error) {
 	return sc, nil
 }
 
-func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
-	w.log = log.WithName("watcher")
-
-	ctx, cancel := context.WithCancel(ctx)
-	w.stopFn = cancel
+func (w *DefaultWatcher) Start(ctx context.Context) error {
+	//TODO process cancel
+	//ctx, cancel := context.WithCancel(ctx)
 
 	cfg, err := w.cluster.GetServerConfig()
 	if err != nil {
@@ -211,7 +209,7 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 
 	go func() {
 		if err := w.watcherManager.Start(ctx); err != nil {
-			log.Error(err, "cannot start watcher")
+			w.log.Error(err, "cannot start watcher")
 		}
 	}()
 
@@ -220,12 +218,13 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 	return nil
 }
 
-func (w *DefaultWatcher) Stop() error {
-	if w.stopFn == nil {
-		return fmt.Errorf("Stop function not set yet")
-	}
-	w.stopFn()
-	return nil
+// Default stop function will gracefully stop watching the cluste r
+// and emmits a stop cluster watching event for upstreaming processing
+func (w *DefaultWatcher) Stop(context.Context) error {
+
+	return fmt.Errorf("not implemented")
+	//w.status = ClusterWatchingStopped
+	//return nil
 }
 
 func (w *DefaultWatcher) Status() (string, error) {

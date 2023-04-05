@@ -23,7 +23,7 @@ func (c *watchingCollector) Start() error {
 	c.objectsChannel = make(chan []models.ObjectTransaction)
 
 	for _, cluster := range c.clusterManager.GetClusters() {
-		err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
+		err := c.Watch(context.Background(), cluster)
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
@@ -37,9 +37,8 @@ func (c *watchingCollector) Start() error {
 			case <-ctx.Done():
 				return
 			case updates := <-cw.Updates:
-
 				for _, cluster := range updates.Added {
-					err := c.Watch(cluster, c.objectsChannel, context.Background(), c.log)
+					err := c.Watch(context.Background(), cluster)
 					if err != nil {
 						c.log.Error(err, "cannot watch cluster")
 					}
@@ -47,7 +46,7 @@ func (c *watchingCollector) Start() error {
 				}
 
 				for _, cluster := range updates.Removed {
-					err := c.Unwatch(cluster)
+					err := c.Unwatch(cluster.GetName())
 					if err != nil {
 						c.log.Error(err, "cannot unwatch cluster")
 					}
@@ -132,7 +131,7 @@ func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel c
 	return w, nil
 }
 
-func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
+func (w *watchingCollector) Watch(ctx context.Context, cluster cluster.Cluster) error {
 	config, err := cluster.GetServerConfig()
 	if err != nil {
 		return fmt.Errorf("cannot get config: %w", err)
@@ -143,7 +142,7 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan [
 		return fmt.Errorf("cluster name is empty")
 	}
 
-	watcher, err := w.newWatcherFunc(config, clusterName, w.objectsChannel, w.kinds, log)
+	watcher, err := w.newWatcherFunc(config, clusterName, w.objectsChannel, w.kinds, w.log)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for clusterName %s: %w", cluster.GetName(), err)
 	}
@@ -151,33 +150,28 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster, objectsChannel chan [
 	w.clusterWatchers[cluster.GetName()] = watcher
 
 	go func() {
-		err = watcher.Start(ctx, log)
+		err = watcher.Start(ctx)
 		if err != nil {
-			log.Error(err, "failed to start watcher", "cluster", cluster.GetName())
+			w.log.Error(err, "failed to start watcher", "cluster", cluster.GetName())
 		}
 	}()
 
 	return nil
 }
 
-func (w *watchingCollector) Unwatch(cluster cluster.Cluster) error {
-	if cluster == nil {
-		return fmt.Errorf("invalid clusterName")
-	}
-	if cluster.GetName() == "" {
+func (w *watchingCollector) Unwatch(clusterName string) error {
+	if clusterName == "" {
 		return fmt.Errorf("cluster name is empty")
 	}
-
-	clusterWatcher := w.clusterWatchers[cluster.GetName()]
+	clusterWatcher := w.clusterWatchers[clusterName]
 	if clusterWatcher == nil {
 		return fmt.Errorf("cluster watcher not found")
 	}
-	err := clusterWatcher.Stop()
+	err := clusterWatcher.Stop(nil)
 	if err != nil {
-		return err
+		return fmt.Errorf("cannot stop cluster watcher: %w", err)
 	}
-	w.clusterWatchers[cluster.GetName()] = nil
-
+	w.clusterWatchers[clusterName] = nil
 	return nil
 }
 

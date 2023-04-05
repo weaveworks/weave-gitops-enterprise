@@ -114,7 +114,7 @@ func TestStop(t *testing.T) {
 	}
 }
 
-func TestWatch(t *testing.T) {
+func TestClusterWatcher_Watch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
@@ -151,13 +151,75 @@ func TestWatch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			g.Expect(err).To(BeNil())
-			err = collector.Watch(tt.cluster, collector.objectsChannel, ctx, log)
+			err = collector.Watch(ctx, tt.cluster)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(collector.clusterWatchers[tt.cluster.GetName()]).NotTo(BeNil())
+			assertClusterWatcher(g, collector.clusterWatchers[tt.cluster.GetName()], ClusterWatchingStarted)
+		})
+	}
+}
+
+func TestClusterWatcher_Unwatch(t *testing.T) {
+	g := NewGomegaWithT(t)
+	log := testr.New(t)
+	ctx := context.Background()
+	fakeStore := &storefakes.FakeStore{}
+	opts := CollectorOpts{
+		Log: log,
+		ObjectKinds: []schema.GroupVersionKind{
+			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
+		},
+		ProcessRecordsFunc: fakeProcessRecordFunc,
+		NewWatcherFunc:     newFakeWatcher,
+	}
+	collector, err := newWatchingCollector(opts, fakeStore)
+	g.Expect(err).To(BeNil())
+	g.Expect(collector).NotTo(BeNil())
+
+	config := &rest.Config{
+		Host: "http://idontexist",
+	}
+	clusterName := "testCluster"
+
+	c := makeCluster(clusterName, config, log)
+	err = collector.Watch(ctx, c)
+	assertClusterWatcher(g, collector.clusterWatchers[clusterName], ClusterWatchingStarted)
+
+	tests := []struct {
+		name        string
+		clusterName string
+		errPattern  string
+	}{
+		{
+			name:        "unwatch empty cluster throws error",
+			clusterName: "",
+			errPattern:  "cluster name is empty",
+		},
+		{
+			name:        "unwatch non-existing cluster throws error",
+			clusterName: "idontexist",
+			errPattern:  "cluster watcher not found",
+		},
+		{
+			name:        "unwatch existing cluster unwatches it",
+			clusterName: clusterName,
+			errPattern:  "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			clusterWatcher := collector.clusterWatchers[tt.clusterName]
+			err = collector.Unwatch(tt.clusterName)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			g.Expect(collector.clusterWatchers[tt.clusterName]).To(BeNil())
+			assertClusterWatcher(g, clusterWatcher, ClusterWatchingStopped)
 		})
 	}
 }
@@ -196,7 +258,7 @@ func TestStatusCluster(t *testing.T) {
 	}
 
 	c := makeCluster(clusterName.Name, config, log)
-	err = collector.Watch(c, collector.objectsChannel, ctx, log)
+	err = collector.Watch(ctx, c)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -253,11 +315,11 @@ type fakeWatcher struct {
 	log logr.Logger
 }
 
-func (f fakeWatcher) Start(ctx context.Context, log logr.Logger) error {
+func (f fakeWatcher) Start(ctx context.Context) error {
 	return nil
 }
 
-func (f fakeWatcher) Stop() error {
+func (f fakeWatcher) Stop(context.Context) error {
 	return nil
 }
 

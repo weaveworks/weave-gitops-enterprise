@@ -244,18 +244,18 @@ func (fake *FakeCollector) StopReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Unwatch(arg1 cluster.Cluster) error {
+func (fake *FakeCollector) Unwatch(clusterName string) error {
 	fake.unwatchMutex.Lock()
 	ret, specificReturn := fake.unwatchReturnsOnCall[len(fake.unwatchArgsForCall)]
 	fake.unwatchArgsForCall = append(fake.unwatchArgsForCall, struct {
 		arg1 cluster.Cluster
-	}{arg1})
+	}{clusterName})
 	stub := fake.UnwatchStub
 	fakeReturns := fake.unwatchReturns
-	fake.recordInvocation("Unwatch", []interface{}{arg1})
+	fake.recordInvocation("Unwatch", []interface{}{clusterName})
 	fake.unwatchMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub(clusterName)
 	}
 	if specificReturn {
 		return ret.result1
@@ -305,7 +305,7 @@ func (fake *FakeCollector) UnwatchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Watch(arg1 cluster.Cluster, arg2 chan []models.ObjectTransaction, arg3 context.Context, arg4 logr.Logger) error {
+func (fake *FakeCollector) Watch(ctx context.Context, cluster cluster.Cluster) error {
 	fake.watchMutex.Lock()
 	ret, specificReturn := fake.watchReturnsOnCall[len(fake.watchArgsForCall)]
 	fake.watchArgsForCall = append(fake.watchArgsForCall, struct {

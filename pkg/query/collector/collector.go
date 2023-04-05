@@ -6,7 +6,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -17,8 +16,8 @@ import (
 // Interface for watching clusters via kuberentes api
 // https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
-	Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error
-	Unwatch(cluster cluster.Cluster) error
+	Watch(ctx context.Context, cluster cluster.Cluster) error
+	Unwatch(clusterName string) error
 	Status(cluster cluster.Cluster) (string, error)
 }
 

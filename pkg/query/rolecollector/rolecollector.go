@@ -140,7 +140,7 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 }
 
 func (a *RoleCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
-	return a.col.Watch(cluster, objectsChannel, ctx, log)
+	return a.col.Watch(ctx, cluster)
 }
 
 func (a *RoleCollector) Status(cluster cluster.Cluster) (string, error) {
