@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -55,8 +56,8 @@ func (o WatcherOptions) Validate() error {
 
 type Watcher interface {
 	Start(ctx context.Context) error
-	Status() (string, error)
 	Stop(ctx context.Context) error
+	Status() (string, error)
 }
 
 type DefaultWatcher struct {
@@ -69,6 +70,7 @@ type DefaultWatcher struct {
 	status            ClusterWatchingStatus
 	newWatcherManager WatcherManagerFunc
 	objectsChannel    chan []models.ObjectTransaction
+	stopFn            context.CancelFunc
 }
 
 type WatcherManagerFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
@@ -159,6 +161,7 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		status:            ClusterWatchingStopped,
 		newWatcherManager: opts.ManagerFunc,
 		objectsChannel:    opts.ObjectChannel,
+		log:               opts.Log,
 	}, nil
 }
 
@@ -180,8 +183,8 @@ func newDefaultScheme() (*runtime.Scheme, error) {
 }
 
 func (w *DefaultWatcher) Start(ctx context.Context) error {
-	//TODO process cancel
-	//ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(ctx)
+	w.stopFn = cancel
 
 	cfg, err := w.cluster.GetServerConfig()
 	if err != nil {
@@ -221,10 +224,36 @@ func (w *DefaultWatcher) Start(ctx context.Context) error {
 // Default stop function will gracefully stop watching the cluste r
 // and emmits a stop cluster watching event for upstreaming processing
 func (w *DefaultWatcher) Stop(context.Context) error {
+	// stop watcher manager via cancelling context
+	if w.stopFn == nil {
+		return fmt.Errorf("cannot stop watcher without stop manager function")
+	}
+	w.stopFn()
+	//emit delete all objects from cluster
+	transactions := []models.ObjectTransaction{deleteAllTransaction{
+		clusterName: w.cluster.GetName(),
+	}}
 
-	return fmt.Errorf("not implemented")
-	//w.status = ClusterWatchingStopped
-	//return nil
+	//TODO manage error
+	w.objectsChannel <- transactions
+	w.status = ClusterWatchingStopped
+	return nil
+}
+
+type deleteAllTransaction struct {
+	clusterName string
+}
+
+func (r deleteAllTransaction) ClusterName() string {
+	return r.clusterName
+}
+
+func (r deleteAllTransaction) Object() client.Object {
+	return nil
+}
+
+func (r deleteAllTransaction) TransactionType() models.TransactionType {
+	return models.TransactionTypeDeleteAll
 }
 
 func (w *DefaultWatcher) Status() (string, error) {

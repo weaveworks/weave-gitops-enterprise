@@ -2,6 +2,8 @@ package collector
 
 import (
 	"context"
+	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
@@ -72,7 +74,7 @@ func TestWatcher_Stop(t *testing.T) {
 	ctx := context.Background()
 	//setup watcher
 	fakeObjectsChannel := make(chan []models.ObjectTransaction)
-	watcher := makeWatcherAndStart(g, fakeObjectsChannel)
+	watcher := makeWatcherAndStart(g, fakeObjectsChannel, testr.New(t))
 	assertClusterWatcher(g, watcher, ClusterWatchingStarted)
 
 	tests := []struct {
@@ -86,20 +88,26 @@ func TestWatcher_Stop(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := watcher.Stop(ctx)
+			defer close(fakeObjectsChannel)
+			var err error
+			//TODO review deadlocks
+			go func() {
+				err = watcher.Stop(ctx)
+			}()
+			objectTransactions := <-fakeObjectsChannel
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
 			assertClusterWatcher(g, watcher, ClusterWatchingStopped)
+			g.Expect(objectTransactions[0].TransactionType() == models.TransactionTypeDeleteAll).To(BeTrue())
 		})
 	}
 
 }
 
-func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransaction) Watcher {
-
+func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransaction, log logr.Logger) Watcher {
 	options := WatcherOptions{
 		ClientConfig: &rest.Config{
 			Host: "http://idontexist",
@@ -153,5 +161,5 @@ func assertClusterWatcher(g *WithT, watcher Watcher, expectedStatus ClusterWatch
 	g.Expect(watcher).NotTo(BeNil())
 	status, err := watcher.Status()
 	g.Expect(err).To(BeNil())
-	g.Expect(ClusterWatchingStatus(status) == expectedStatus).NotTo(BeTrue())
+	g.Expect(ClusterWatchingStatus(status) == expectedStatus).To(BeTrue())
 }
