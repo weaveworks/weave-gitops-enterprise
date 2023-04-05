@@ -39,7 +39,7 @@ function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
   }
 
   // FIXME: this is not correct
-  if (provider === 'bitbucket') {
+  if (provider === 'bitbucket-server') {
     return baseUrl + '/pull-requests';
   }
 
