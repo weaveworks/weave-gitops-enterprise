@@ -63,7 +63,7 @@ export function getRepositoryUrl(repo: GitRepository) {
   if (uri.hostname() === 'ssh.dev.azure.com') {
     uri = azureSshToHttps(uri.toString());
   }
-  return uri.protocol('https').userinfo('').toString();
+  return uri.protocol('https').port('').userinfo('').toString();
 }
 
 function azureSshToHttps(sshUrl: string) {
