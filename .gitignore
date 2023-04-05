@@ -74,6 +74,7 @@ tools/core-files
 
 # ignore error files
 yarn-error.log
+__pycache__
 
 *.db
 *.bolt

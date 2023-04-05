@@ -1,0 +1,39 @@
+{{- if .Values.enableExplorer }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+  namespace: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+rules:
+  - apiGroups: [ "rbac.authorization.k8s.io" ]
+    resources: [ "roles", "clusterroles", "rolebindings", "clusterrolebindings" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "kustomize.toolkit.fluxcd.io" ]
+    resources: [ "kustomizations" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "helm.toolkit.fluxcd.io" ]
+    resources: [ "helmreleases" ]
+    verbs: [ "list", "watch" ]
+  - apiGroups: [ "source.toolkit.fluxcd.io" ]
+    resources: [ "buckets", "helmcharts", "gitrepositories", "helmrepositories", "ocirepositories" ]
+    verbs: [ "list", "watch" ]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+    namespace: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
+roleRef:
+  kind: ClusterRole
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

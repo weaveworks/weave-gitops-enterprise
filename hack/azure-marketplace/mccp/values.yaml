@@ -1,0 +1,202 @@
+cluster-controller:
+  controllerManager:
+    manager:
+      image:
+        repository: docker.io/weaveworks/cluster-controller
+        tag: v1.5.2
+  enabled: true
+  fullnameOverride: cluster
+clusterBootstrapController:
+  enabled: true
+clustersService:
+  args: []
+config:
+  auth:
+    tokenPassthrough:
+      enabled: true
+    userAccount:
+      enabled: true
+  capi:
+    baseBranch: main
+    clusters:
+      namespace: ''
+    repositoryApiURL: ''
+    repositoryClustersPath: ./clusters
+    repositoryPath: ./clusters/management/clusters
+    repositoryURL: ''
+    templates:
+      addBasesKustomization: enabled
+      injectPruneAnnotation: enabled
+      namespace: default
+  checkpoint:
+    enabled: true
+  cluster:
+    name: management
+  git:
+    hostname: github.com
+    type: github
+  logLevel: info
+  oidc:
+    claimGroups: ''
+    claimUsername: ''
+    clientCredentialsSecret: ''
+    cookieDuration: 1h
+    customScopes: ''
+    enabled: false
+    groupsPrefix: ''
+    issuerURL: ''
+    redirectURL: ''
+    usernamePrefix: ''
+  ui:
+    footer:
+      backgroundColor: ''
+      color: ''
+      content: ''
+      hideVersion: false
+    logoURL: ''
+enableExplorer: false
+enablePipelines: true
+enableRunUI: false
+enableTerraformUI: false
+envVars:
+- name: WEAVE_GITOPS_FEATURE_TENANCY
+  value: 'true'
+- name: WEAVE_GITOPS_FEATURE_CLUSTER
+  value: 'true'
+- name: WEAVE_GITOPS_USERS_CLIENTS_TTL
+  value: 30s
+explorer:
+  collector:
+    serviceAccount:
+      name: collector
+      namespace: flux-system
+extraEnvVars: []
+fullnameOverride: ''
+gitopssets-controller:
+  controllerManager:
+    args:
+    - --health-probe-bind-address=:8081
+    - --metrics-bind-address=127.0.0.1:8080
+    - --leader-elect
+    - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
+    manager:
+      image:
+        tag: v0.12.0
+  enabled: true
+  fullnameOverride: gitopssets
+global:
+  azure:
+    images:
+      clusterBootstrapController:
+        digest: sha256:0fbb0e8756d5e8ce00ef7e4b7af5e006b38c16e3b1f01a53795d7f7c5ab8135f
+        image: cluster-bootstrap-controller
+        registry: weaveworksmarketplacepublic.azurecr.io
+      clusterController:
+        digest: sha256:8e66786de7768cce16d276d668d7b357544b25c02d2c2fbc90a991dbb8b6fc9c
+        image: cluster-controller
+        registry: weaveworksmarketplacepublic.azurecr.io
+      clustersService:
+        digest: sha256:c5119c2272957cceef17278c9cf626e837bf91c5f7e0f180a5152dad379f5bd2
+        image: weave-gitops-enterprise-clusters-service
+        registry: weaveworksmarketplacepublic.azurecr.io
+      gitopssetsController:
+        digest: sha256:54b669b6d7a1cd7c24e629e6e5aea12f40ebd773f4d852a6d93467d17efc378e
+        image: gitopssets-controller
+        registry: weaveworksmarketplacepublic.azurecr.io
+      kubeRbacProxy:
+        digest: sha256:d4883d7c622683b3319b5e6b3a7edfbf2594c18060131a8bf64504805f875522
+        image: kube-rbac-proxy
+        registry: weaveworksmarketplacepublic.azurecr.io
+      pipelineController:
+        digest: sha256:744cccbbe3ed86d8a57999ee804a80cf45e0e10f14c2de8ddae6ea4da70073d2
+        image: pipeline-controller
+        registry: weaveworksmarketplacepublic.azurecr.io
+      policyAgent:
+        digest: sha256:6d88cfb0ed756446b98d6bf454f7fe06779cfd78088a0a8e9ad24508cc9df658
+        image: policy-agent
+        registry: weaveworksmarketplacepublic.azurecr.io
+      templatesController:
+        digest: sha256:dde211af18a48f7379339197a64ce1711fbe3ce6bd2247b965f7fd840f412f74
+        image: templates-controller
+        registry: weaveworksmarketplacepublic.azurecr.io
+      uiServer:
+        digest: sha256:c2f6db903de9cd6a90c7fc90b65f59bc3a043dd87bb9d2dbc8788e9ba9560a52
+        image: weave-gitops-enterprise-ui-server
+        registry: weaveworksmarketplacepublic.azurecr.io
+  capiEnabled: true
+  useK8sCachedClients: false
+imagePullSecrets: []
+images:
+  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
+  clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.25.0
+  uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.25.0
+ingress:
+  annotations: {}
+  className: ''
+  enabled: false
+  hosts:
+  - host: ''
+    paths:
+    - path: /
+      pathType: ImplementationSpecific
+  service:
+    name: clusters-service
+    port: 8000
+  tls: []
+listOCIRepositories: false
+metrics:
+  enabled: false
+  service:
+    annotations:
+      prometheus.io/path: /metrics
+      prometheus.io/port: '8080'
+      prometheus.io/scrape: 'false'
+    port: 8080
+nameOverride: ''
+networkPolicy:
+  enabled: true
+policy-agent:
+  config:
+    accountId: ''
+    clusterId: ''
+  enabled: false
+rbac:
+  adminUserRoleBindings:
+    create: true
+  userRoles:
+    create: true
+    roleAggregation:
+      enabled: true
+service:
+  annotations: {}
+  clusterIP: ''
+  externalIPs: []
+  externalTrafficPolicy: ''
+  healthCheckNodePort: 0
+  loadBalancerIP: ''
+  loadBalancerSourceRanges: []
+  nodePorts:
+    http: ''
+    https: ''
+    tcp: {}
+    udp: {}
+  ports:
+    https: 8000
+  targetPorts:
+    https: 8000
+  type: ClusterIP
+serviceAccount:
+  annotations: {}
+  create: true
+  name: ''
+templates-controller:
+  controllerManager:
+    manager:
+      image:
+        tag: v0.2.0
+  enabled: true
+  fullnameOverride: templates-controller
+tls:
+  enabled: true
+  secretName: ''
+useQueryServiceBackend: false
