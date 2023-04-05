@@ -1,0 +1,50 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: OCIRepository
+metadata:
+  name: weave-gitops-enterprise-production
+  namespace: flux-system
+spec:
+  interval: 5m
+  url: oci://709825985650.dkr.ecr.us-east-1.amazonaws.com/weaveworks/weave-gitops-enterprise-production
+  provider: generic
+  ref:
+    tag: 0.20.1-rc.1
+  secretRef:
+    name: ecr-auth
+---
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: weave-gitops-enterprise-production
+  namespace: flux-system
+spec:
+  interval: 10m
+  type: oci
+  url: oci://709825985650.dkr.ecr.us-east-1.amazonaws.com/weaveworks
+  secretRef:
+    name: ecr-auth
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: weave-gitops-enterprise-production
+  namespace: flux-system
+spec:
+  interval: 10m
+  targetNamespace: flux-system
+  releaseName: mccp
+  chart:
+    spec:
+      chart: weave-gitops-enterprise-production
+      version: 0.20.1-rc.1
+      sourceRef:
+        kind: HelmRepository
+        name: weave-gitops-enterprise-production
+  install:
+    crds: CreateReplace
+  upgrade:
+    crds: CreateReplace
+  interval: 50m
+  values:
+    global:
+      capiEnabled: false
