@@ -549,7 +549,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const handleSubmit = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
+      check(formData.provider);
       if (isAuthenticated) {
+        console.log('isAuthenticated', isAuthenticated);
         validateFormData(
           event,
           getSubmitFunction(submitType),
@@ -566,14 +568,24 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             display: 'bottom',
           },
         ]);
+        // if (isUnauthenticated(error.code)) {
+        //   removeToken(formData.provider);
+        // }
+        // return null;
       }
     },
-    [getSubmitFunction, isAuthenticated, setNotifications, submitType],
+    [
+      getSubmitFunction,
+      isAuthenticated,
+      setNotifications,
+      submitType,
+      check,
+      formData.provider,
+    ],
   );
 
   return useMemo(() => {
-    // if there is an error, return null
-    return notifications.length > 0 ? null : (
+    return (
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
@@ -676,7 +688,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 <Button
                   type="submit"
                   onClick={() => {
-                    check(formData.provider);
                     setSubmitType('Create resource');
                   }}
                   disabled={!enableCreatePR}
@@ -717,8 +728,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     resource,
     initialGitRepo,
     handleSubmit,
-    check,
-    notifications.length,
   ]);
 };
 
