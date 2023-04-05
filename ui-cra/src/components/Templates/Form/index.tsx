@@ -17,7 +17,14 @@ import {
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  FC,
+  FormEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -29,6 +36,7 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import { useIsAuthenticated } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -281,7 +289,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const { renderTemplate, addResource } = useTemplates();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
-  const { setNotifications } = useNotifications();
+  const { notifications, setNotifications } = useNotifications();
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -356,6 +364,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
+  const { isAuthenticated, req: check } = useIsAuthenticated();
 
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
@@ -538,8 +547,33 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
+  const handleSubmit = useCallback(
+    (event: FormEvent<HTMLFormElement>) => {
+      if (isAuthenticated) {
+        validateFormData(
+          event,
+          getSubmitFunction(submitType),
+          setFormError,
+          setSubmitType,
+        );
+      } else {
+        setNotifications([
+          {
+            message: {
+              text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
+            },
+            severity: 'error',
+            display: 'bottom',
+          },
+        ]);
+      }
+    },
+    [getSubmitFunction, isAuthenticated, setNotifications, submitType],
+  );
+
   return useMemo(() => {
-    return (
+    // if there is an error, return null
+    return notifications.length > 0 ? null : (
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
@@ -550,17 +584,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper
-          noValidate
-          onSubmit={event =>
-            validateFormData(
-              event,
-              getSubmitFunction(submitType),
-              setFormError,
-              setSubmitType,
-            )
-          }
-        >
+        <FormWrapper noValidate onSubmit={handleSubmit}>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper align>
               <div className="template-title">
@@ -651,7 +675,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <Flex end className="create-cta">
                 <Button
                   type="submit"
-                  onClick={() => setSubmitType('Create resource')}
+                  onClick={() => {
+                    check(formData.provider);
+                    setSubmitType('Create resource');
+                  }}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -687,10 +714,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isKustomizationsEnabled,
     isProfilesEnabled,
     formError,
-    submitType,
-    getSubmitFunction,
     resource,
     initialGitRepo,
+    handleSubmit,
+    check,
+    notifications.length,
   ]);
 };
 

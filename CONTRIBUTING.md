@@ -190,7 +190,7 @@ development cluster, run:
 ```
 cd ui-cra
 yarn
-PROXY_HOST=http://localhost:8000 yarn start
+WEGO_EE_PROXY_HOST=http://localhost:8000/ yarn start
 ```
 
 Now you have a separate frontend running on
