@@ -59,8 +59,22 @@ export function getRepositoryUrl(repo: GitRepository) {
   if (httpsUrl) {
     return httpsUrl;
   }
-  const uri = URI(repo?.obj?.spec?.url);
+  let uri = URI(repo?.obj?.spec?.url);
+  if (uri.hostname() === 'ssh.dev.azure.com') {
+    uri = azureSshToHttps(uri.toString());
+  }
   return uri.protocol('https').userinfo('').toString();
+}
+
+function azureSshToHttps(sshUrl: string) {
+  const parts = sshUrl.split('/');
+  const organization = parts[4];
+  const project = parts[5];
+  const repository = parts[6];
+
+  const httpsUrl = `https://dev.azure.com/${organization}/${project}/_git/${repository}`;
+
+  return URI(httpsUrl);
 }
 
 export function getProvider(repo: GitRepository, config: GetConfigResponse) {

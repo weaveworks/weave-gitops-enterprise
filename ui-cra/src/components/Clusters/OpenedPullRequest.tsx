@@ -44,7 +44,7 @@ function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
   }
 
   // FIXME: this is not correct
-  if (provider === 'azuredevops') {
+  if (provider === 'azure-devops') {
     return baseUrl + '/pullrequests';
   }
 
