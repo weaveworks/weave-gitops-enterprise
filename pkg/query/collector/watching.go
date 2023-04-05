@@ -147,7 +147,7 @@ func (w *watchingCollector) Watch(ctx context.Context, cluster cluster.Cluster) 
 		return fmt.Errorf("failed to create watcher for clusterName %s: %w", cluster.GetName(), err)
 	}
 	//TODO it might not be enough to avoid clashes
-	w.clusterWatchers[cluster.GetName()] = watcher
+	w.clusterWatchers[clusterName] = watcher
 
 	go func() {
 		err = watcher.Start(ctx)

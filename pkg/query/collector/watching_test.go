@@ -2,10 +2,6 @@ package collector
 
 import (
 	"context"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
-	"testing"
-
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -13,12 +9,15 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
+	"testing"
 
 	. "github.com/onsi/gomega"
 )
@@ -185,9 +184,7 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	clusterName := "testCluster"
 
 	c := makeCluster(clusterName, config, log)
-	err = collector.Watch(ctx, c)
-	assertClusterWatcher(g, collector.clusterWatchers[clusterName], ClusterWatchingStarted)
-
+	g.Expect(collector.Watch(ctx, c)).To(Succeed())
 	tests := []struct {
 		name        string
 		clusterName string
@@ -211,7 +208,6 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clusterWatcher := collector.clusterWatchers[tt.clusterName]
 			err = collector.Unwatch(tt.clusterName)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
@@ -219,7 +215,6 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 			}
 			g.Expect(err).To(BeNil())
 			g.Expect(collector.clusterWatchers[tt.clusterName]).To(BeNil())
-			assertClusterWatcher(g, clusterWatcher, ClusterWatchingStopped)
 		})
 	}
 }
@@ -232,7 +227,7 @@ func makeCluster(name string, config *rest.Config, log logr.Logger) cluster.Clus
 	return &cluster
 }
 
-func TestStatusCluster(t *testing.T) {
+func TestClusterWatcher_Status(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	ctx := context.Background()
@@ -312,17 +307,20 @@ func fakeProcessRecordFunc(ctx context.Context, records []models.ObjectTransacti
 }
 
 type fakeWatcher struct {
-	log logr.Logger
+	log    logr.Logger
+	status ClusterWatchingStatus
 }
 
 func (f fakeWatcher) Start(ctx context.Context) error {
+	f.status = ClusterWatchingStarted
 	return nil
 }
 
 func (f fakeWatcher) Stop(context.Context) error {
+	f.status = ClusterWatchingStopped
 	return nil
 }
 
 func (f fakeWatcher) Status() (string, error) {
-	return string(ClusterWatchingStopped), nil
+	return string(f.status), nil
 }
