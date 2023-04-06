@@ -5,9 +5,9 @@ describe('getRepositoryUrl', () => {
   it("should return something, but we don't care what it is as git@github.com: style url as flux does not support these", () => {
     const url = 'git@github.com:org/repo.git';
 
-    expect(getRepositoryUrl({ obj: { spec: { url } } } as GitRepository)).toBe(
-      'https:///git@github.com:org/repo.git',
-    );
+    expect(
+      getRepositoryUrl({ obj: { spec: { url } } } as GitRepository),
+    ).toBeTruthy();
   });
 
   it('should normalize ssh/https urls to https preserving .git if present', () => {
