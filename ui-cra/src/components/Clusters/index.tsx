@@ -50,7 +50,6 @@ import {
   Rancher,
   Vsphere,
 } from '../../utils/icons';
-import { openLinkHandler } from '../../utils/link-checker';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import PoliciesViolations from '../PolicyViolations';
@@ -66,6 +65,7 @@ import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWra
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
+import OpenedPullRequest from './OpenedPullRequest';
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
@@ -103,9 +103,6 @@ const useStyles = makeStyles(() =>
     clusterIcon: {
       marginRight: theme.spacing.small,
       color: theme.colors.neutral30,
-    },
-    externalIcon: {
-      marginRight: theme.spacing.small,
     },
   }),
 );
@@ -232,9 +229,7 @@ const MCCP: FC<{
     () => getGitRepos(sources?.result),
     [sources?.result],
   );
-
   const listConfigContext = useListConfigContext();
-  const repoLink = listConfigContext?.repoLink || '';
   const provider = listConfigContext?.provider;
 
   const capiClusters = useMemo(
@@ -253,7 +248,6 @@ const MCCP: FC<{
   const [random, setRandom] = useState<string>(
     Math.random().toString(36).substring(7),
   );
-  const classes = useStyles();
 
   useEffect(() => {
     if (openDeletePR === true) {
@@ -452,14 +446,7 @@ const MCCP: FC<{
                   onFinish={() => setOpenConnectInfo(false)}
                 />
               )}
-              <Button onClick={openLinkHandler(repoLink)}>
-                <Icon
-                  className={classes.externalIcon}
-                  type={IconType.ExternalTab}
-                  size="base"
-                />
-                GO TO OPEN PULL REQUESTS
-              </Button>
+              <OpenedPullRequest />
             </Flex>
           </div>
           <SubRouterTabs rootPath={`${path}/list`}>

@@ -8,15 +8,12 @@ import {
   IconType,
   LoadingPage,
   useListAutomations,
-  theme,
   Flex,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
-import { makeStyles, createStyles } from '@material-ui/core';
-import { openLinkHandler } from '../../utils/link-checker';
 import { Routes } from '../../utils/nav';
-import { useListConfigContext } from '../../contexts/ListConfig';
+import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 
 interface Size {
   size?: 'small';
@@ -27,20 +24,9 @@ const ActionsWrapper = styled(Flex)<Size>`
   }
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    externalIcon: {
-      marginRight: theme.spacing.small,
-    },
-  }),
-);
-
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const history = useHistory();
-  const listConfigContext = useListConfigContext();
-  const repoLink = listConfigContext?.repoLink || '';
-  const classes = useStyles();
 
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
@@ -70,14 +56,7 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <Button onClick={openLinkHandler(repoLink)}>
-              <Icon
-                className={classes.externalIcon}
-                type={IconType.ExternalTab}
-                size="base"
-              />
-              GO TO OPEN PULL REQUESTS
-            </Button>
+            <OpenedPullRequest />
           </ActionsWrapper>
         </div>
         {isLoading ? (

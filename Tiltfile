@@ -158,7 +158,7 @@ if native_build:
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
       dockerfile="cmd/clusters-service/dev.dockerfile",
-      entrypoint='/app/clusters-service --dev-mode',
+      entrypoint='/app/clusters-service --log-level=debug',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'},
       live_update=[
          sync('cmd/clusters-service/bin', '/app'),
@@ -176,5 +176,5 @@ else:
       ignore=["ui-cra"],
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
-      entrypoint= ["/sbin/tini", "--", "clusters-service", "--dev-mode"]
+      entrypoint= ["/sbin/tini", "--", "clusters-service", "--log-level=debug"]
    )
