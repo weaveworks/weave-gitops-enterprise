@@ -90,12 +90,16 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 		}
 	}
 
-	if err := store.StoreObjects(ctx, upsert); err != nil {
-		return fmt.Errorf("failed to store objects: %w", err)
+	if len(upsert) > 0 {
+		if err := store.StoreObjects(ctx, upsert); err != nil {
+			return fmt.Errorf("failed to store objects: %w", err)
+		}
 	}
 
-	if err := store.DeleteObjects(ctx, delete); err != nil {
-		return fmt.Errorf("failed to delete objects: %w", err)
+	if len(delete) > 0 {
+		if err := store.DeleteObjects(ctx, delete); err != nil {
+			return fmt.Errorf("failed to delete objects: %w", err)
+		}
 	}
 
 	return nil
