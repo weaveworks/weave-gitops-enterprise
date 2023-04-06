@@ -9,6 +9,7 @@ import {
   LoadingPage,
   useListAutomations,
   theme,
+  Flex,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
@@ -20,8 +21,7 @@ import { useListConfigContext } from '../../contexts/ListConfig';
 interface Size {
   size?: 'small';
 }
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
+const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
   }

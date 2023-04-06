@@ -1,4 +1,5 @@
 import { Alert } from '@material-ui/lab';
+import { Flex } from '@weaveworks/weave-gitops';
 import { useCheckCRDInstalled } from '../../contexts/ImageAutomation';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
@@ -20,7 +21,9 @@ function ImageAutomationPage() {
       <ContentWrapper loading={isLoading}>
         {error && <Alert severity="error">{error.message}</Alert>}
         {!isCRDAvailable ? (
-          <OnboardingImageAutomationMessage />
+          <Flex center>
+            <OnboardingImageAutomationMessage />
+          </Flex>
         ) : (
           <ImageAutomation />
         )}

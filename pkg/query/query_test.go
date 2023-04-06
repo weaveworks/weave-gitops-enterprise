@@ -173,6 +173,80 @@ func TestRunQuery(t *testing.T) {
 			},
 			want: []string{"obj-a", "obj-b"},
 		},
+		{
+			name: "`or` clause query",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster-1",
+					Name:       "podinfo",
+					Namespace:  "namespace-a",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "podinfo",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "name",
+					value:   "podinfo",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				globalOperand: string(store.GlobalOperandOr),
+			},
+			want: []string{"podinfo", "podinfo"},
+		},
+		{
+			name: "`or` clause with clusters",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo",
+					Namespace:  "namespace-a",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "name",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+				&clause{
+					key:     "namespace",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+				&clause{
+					key:     "cluster",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				globalOperand: string(store.GlobalOperandOr),
+			},
+			want: []string{"podinfo", "podinfo"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -222,9 +296,11 @@ func TestRunQuery(t *testing.T) {
 }
 
 type query struct {
-	clauses []clause
-	offset  int32
-	limit   int32
+	clauses       []clause
+	offset        int32
+	limit         int32
+	orderBy       string
+	globalOperand string
 }
 
 func (q *query) GetQuery() []store.QueryClause {
@@ -243,6 +319,14 @@ func (q *query) GetOffset() int32 {
 
 func (q *query) GetLimit() int32 {
 	return q.limit
+}
+
+func (q *query) GetOrderBy() string {
+	return q.orderBy
+}
+
+func (q *query) GetGlobalOperand() string {
+	return q.globalOperand
 }
 
 type clause struct {
