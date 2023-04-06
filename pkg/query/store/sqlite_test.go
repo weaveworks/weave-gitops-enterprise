@@ -151,6 +151,82 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 	}
 }
 
+func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name           string
+		addObjects     []models.Object // objects to add before deleting
+		deleteClusters []string
+		errPattern     string
+	}{
+		{
+			name:           "should do nothing for empty request",
+			addObjects:     []models.Object{},
+			deleteClusters: []string{},
+			errPattern:     "",
+		},
+		{
+			name: "should do nothing if no objects for cluster to delete",
+			addObjects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			deleteClusters: []string{"cluster-without-objects"},
+			errPattern:     "",
+		},
+		{
+			name: "should have deleted all for a cluster with objects",
+			addObjects: []models.Object{
+				{
+					Cluster:    "cluster-with-objects",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "cluster-with-objects",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			deleteClusters: []string{"cluster-with-objects"},
+			errPattern:     "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g.Expect(store.StoreObjects(ctx, tt.addObjects)).To(Succeed())
+			err := store.DeleteAllObjects(ctx, tt.deleteClusters)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			for _, deleteCluster := range tt.deleteClusters {
+				var numResources int
+				g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects WHERE cluster = ?", deleteCluster).Scan(&numResources)).To(Succeed())
+				g.Expect(numResources).To(Equal(0))
+			}
+		})
+	}
+}
+
 func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	// This is a sanity check test to prove that policy rules get upserted along with their roles
 	g := NewGomegaWithT(t)

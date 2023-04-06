@@ -24,8 +24,18 @@ type SQLiteStore struct {
 }
 
 func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
-	//TODO implement me
-	panic("implement me")
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Object{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
 }
 
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
