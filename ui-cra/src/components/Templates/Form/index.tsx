@@ -364,7 +364,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
-  const { isAuthenticated, req: check } = useIsAuthenticated();
+  const {
+    isAuthenticated,
+    // setIsAuthenticated,
+    req: check,
+  } = useIsAuthenticated();
 
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
@@ -547,43 +551,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
-  const handleSubmit = useCallback(
-    (event: FormEvent<HTMLFormElement>) => {
-      check(formData.provider);
-      if (isAuthenticated) {
-        console.log('isAuthenticated', isAuthenticated);
-        validateFormData(
-          event,
-          getSubmitFunction(submitType),
-          setFormError,
-          setSubmitType,
-        );
-      } else {
-        setNotifications([
-          {
-            message: {
-              text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
-            },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        // if (isUnauthenticated(error.code)) {
-        //   removeToken(formData.provider);
-        // }
-        // return null;
-      }
-    },
-    [
-      getSubmitFunction,
-      isAuthenticated,
-      setNotifications,
-      submitType,
-      check,
-      formData.provider,
-    ],
-  );
-
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -596,7 +563,22 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper noValidate onSubmit={handleSubmit}>
+        <FormWrapper
+          noValidate
+          onSubmit={event =>
+            validateFormData(
+              event,
+              getSubmitFunction(submitType),
+              setFormError,
+              setSubmitType,
+              isAuthenticated,
+              // setIsAuthenticated,
+              setNotifications,
+              check,
+              formData.provider,
+            )
+          }
+        >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper align>
               <div className="template-title">
@@ -727,7 +709,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formError,
     resource,
     initialGitRepo,
-    handleSubmit,
+    check,
+    isAuthenticated,
+    getSubmitFunction,
+    setNotifications,
+    submitType,
+    // setIsAuthenticated,
   ]);
 };
 

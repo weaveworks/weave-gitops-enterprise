@@ -20,15 +20,24 @@ export function useIsAuthenticated() {
     useRequestState<ValidateProviderTokenResponse>();
   const { gitAuthClient } = useContext(GitAuth);
 
+  // const [isAuthenticated, setIsAuthenticated] = useState(
+  //   error ? false : res?.valid,
+  // );
+
+  // console.log(isAuthenticated);
+
   return {
     isAuthenticated: error ? false : res?.valid,
+    // setIsAuthenticated,
     loading,
     error,
     req: useCallback(
-      (provider: GitProvider) => {
+      async (provider: GitProvider) => {
         //@ts-ignore
         const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-        req(gitAuthClient.ValidateProviderToken({ provider }, { headers }));
+        await req(
+          gitAuthClient.ValidateProviderToken({ provider }, { headers }),
+        );
       },
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [gitAuthClient],

@@ -17,6 +17,8 @@ import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
 import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { debounce } from 'lodash';
+import { GitProvider } from '../api/gitauth/gitauth.pb';
+import { removeToken } from './request';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -245,25 +247,49 @@ export const Select: FC<SelectProps> = ({
   </FormControl>
 );
 
-export const validateFormData = (
+export const validateFormData = async (
   event: any,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
   setSubmitType?: Dispatch<React.SetStateAction<string>>,
+  isAuthenticated?: boolean,
+  // setIsAuthenticated?: Dispatch<React.SetStateAction<any>>,
+  setNotifications?: Dispatch<React.SetStateAction<any>>,
+  check?: (provider: GitProvider) => void,
+  provider?: GitProvider,
 ) => {
   event.preventDefault();
-  const requiredButEmptyInputs = Array.from(event.target).filter(
-    (element: any) =>
-      element.type === 'text' && element.required && element.value === '',
-  );
-  if (requiredButEmptyInputs.length === 0) {
-    onSubmit();
+  check && check(provider || ('' as GitProvider));
+
+  console.log(isAuthenticated);
+
+  if (isAuthenticated) {
+    const requiredButEmptyInputs = Array.from(event.target).filter(
+      (element: any) =>
+        element.type === 'text' && element.required && element.value === '',
+    );
+    if (requiredButEmptyInputs.length === 0) {
+      onSubmit();
+    } else {
+      const [firstEmpty] = requiredButEmptyInputs;
+      (firstEmpty as HTMLInputElement).focus();
+      setFormError((firstEmpty as HTMLInputElement).name);
+    }
+    setSubmitType && setSubmitType('');
   } else {
-    const [firstEmpty] = requiredButEmptyInputs;
-    (firstEmpty as HTMLInputElement).focus();
-    setFormError((firstEmpty as HTMLInputElement).name);
+    // setIsAuthenticated && setIsAuthenticated(false);
+    // removeToken
+    setNotifications &&
+      setNotifications([
+        {
+          message: {
+            text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
+          },
+          severity: 'error',
+          display: 'bottom',
+        },
+      ]);
   }
-  setSubmitType && setSubmitType('');
 };
 
 interface InputDebounceProps extends InputProps {
