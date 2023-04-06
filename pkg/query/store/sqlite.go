@@ -23,6 +23,11 @@ type SQLiteStore struct {
 	log logr.Logger
 }
 
+func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
 		db:  db,

@@ -5,9 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
@@ -45,10 +43,10 @@ type FakeCollector struct {
 	stopReturnsOnCall map[int]struct {
 		result1 error
 	}
-	UnwatchStub        func(cluster.Cluster) error
+	UnwatchStub        func(string) error
 	unwatchMutex       sync.RWMutex
 	unwatchArgsForCall []struct {
-		arg1 cluster.Cluster
+		arg1 string
 	}
 	unwatchReturns struct {
 		result1 error
@@ -56,13 +54,11 @@ type FakeCollector struct {
 	unwatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	WatchStub        func(cluster.Cluster, chan []models.ObjectTransaction, context.Context, logr.Logger) error
+	WatchStub        func(context.Context, cluster.Cluster) error
 	watchMutex       sync.RWMutex
 	watchArgsForCall []struct {
-		arg1 cluster.Cluster
-		arg2 chan []models.ObjectTransaction
-		arg3 context.Context
-		arg4 logr.Logger
+		arg1 context.Context
+		arg2 cluster.Cluster
 	}
 	watchReturns struct {
 		result1 error
@@ -244,18 +240,18 @@ func (fake *FakeCollector) StopReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Unwatch(clusterName string) error {
+func (fake *FakeCollector) Unwatch(arg1 string) error {
 	fake.unwatchMutex.Lock()
 	ret, specificReturn := fake.unwatchReturnsOnCall[len(fake.unwatchArgsForCall)]
 	fake.unwatchArgsForCall = append(fake.unwatchArgsForCall, struct {
-		arg1 cluster.Cluster
-	}{clusterName})
+		arg1 string
+	}{arg1})
 	stub := fake.UnwatchStub
 	fakeReturns := fake.unwatchReturns
-	fake.recordInvocation("Unwatch", []interface{}{clusterName})
+	fake.recordInvocation("Unwatch", []interface{}{arg1})
 	fake.unwatchMutex.Unlock()
 	if stub != nil {
-		return stub(clusterName)
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -269,13 +265,13 @@ func (fake *FakeCollector) UnwatchCallCount() int {
 	return len(fake.unwatchArgsForCall)
 }
 
-func (fake *FakeCollector) UnwatchCalls(stub func(cluster.Cluster) error) {
+func (fake *FakeCollector) UnwatchCalls(stub func(string) error) {
 	fake.unwatchMutex.Lock()
 	defer fake.unwatchMutex.Unlock()
 	fake.UnwatchStub = stub
 }
 
-func (fake *FakeCollector) UnwatchArgsForCall(i int) cluster.Cluster {
+func (fake *FakeCollector) UnwatchArgsForCall(i int) string {
 	fake.unwatchMutex.RLock()
 	defer fake.unwatchMutex.RUnlock()
 	argsForCall := fake.unwatchArgsForCall[i]
@@ -305,21 +301,19 @@ func (fake *FakeCollector) UnwatchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Watch(ctx context.Context, cluster cluster.Cluster) error {
+func (fake *FakeCollector) Watch(arg1 context.Context, arg2 cluster.Cluster) error {
 	fake.watchMutex.Lock()
 	ret, specificReturn := fake.watchReturnsOnCall[len(fake.watchArgsForCall)]
 	fake.watchArgsForCall = append(fake.watchArgsForCall, struct {
-		arg1 cluster.Cluster
-		arg2 chan []models.ObjectTransaction
-		arg3 context.Context
-		arg4 logr.Logger
-	}{arg1, arg2, arg3, arg4})
+		arg1 context.Context
+		arg2 cluster.Cluster
+	}{arg1, arg2})
 	stub := fake.WatchStub
 	fakeReturns := fake.watchReturns
-	fake.recordInvocation("Watch", []interface{}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("Watch", []interface{}{arg1, arg2})
 	fake.watchMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2, arg3, arg4)
+		return stub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1
@@ -333,17 +327,17 @@ func (fake *FakeCollector) WatchCallCount() int {
 	return len(fake.watchArgsForCall)
 }
 
-func (fake *FakeCollector) WatchCalls(stub func(cluster.Cluster, chan []models.ObjectTransaction, context.Context, logr.Logger) error) {
+func (fake *FakeCollector) WatchCalls(stub func(context.Context, cluster.Cluster) error) {
 	fake.watchMutex.Lock()
 	defer fake.watchMutex.Unlock()
 	fake.WatchStub = stub
 }
 
-func (fake *FakeCollector) WatchArgsForCall(i int) (cluster.Cluster, chan []models.ObjectTransaction, context.Context, logr.Logger) {
+func (fake *FakeCollector) WatchArgsForCall(i int) (context.Context, cluster.Cluster) {
 	fake.watchMutex.RLock()
 	defer fake.watchMutex.RUnlock()
 	argsForCall := fake.watchArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeCollector) WatchReturns(result1 error) {

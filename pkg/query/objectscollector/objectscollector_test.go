@@ -66,18 +66,22 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 					}),
 					transactionType: models.TransactionTypeDelete,
 				},
+				testTransaction{
+					clusterName:     "anyCluster3",
+					object:          nil,
+					transactionType: models.TransactionTypeDeleteAll,
+				},
 			},
 			expectedStoreNumCalls: map[models.TransactionType]int{
 				models.TransactionTypeDelete:    1,
 				models.TransactionTypeUpsert:    1,
-				models.TransactionTypeDeleteAll: 0,
+				models.TransactionTypeDeleteAll: 1,
 			},
 			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			err := defaultProcessRecords(ctx, tt.objectRecords, fakeStore, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
@@ -86,6 +90,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			g.Expect(fakeStore.StoreObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeUpsert]))
 			g.Expect(fakeStore.DeleteObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeDelete]))
+			g.Expect(fakeStore.DeleteAllObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeDeleteAll]))
 		})
 	}
 

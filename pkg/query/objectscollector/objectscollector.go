@@ -58,24 +58,30 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(ctx context.Context, objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
 
 	upsert := []models.Object{}
 	delete := []models.Object{}
+	deleteAll := []string{} //holds the cluster names to delete all resources
 
-	for _, obj := range objectRecords {
-		gvk := obj.Object().GetObjectKind().GroupVersionKind()
+	for _, objTx := range objectTransactions {
+		// Handle delete all tx first as does not hold objects
+		if objTx.TransactionType() == models.TransactionTypeDeleteAll {
+			deleteAll = append(deleteAll, objTx.ClusterName())
+			continue
+		}
+		gvk := objTx.Object().GetObjectKind().GroupVersionKind()
 
-		o, err := adapters.ToFluxObject(obj.Object())
+		o, err := adapters.ToFluxObject(objTx.Object())
 		if err != nil {
 			log.Error(err, "failed to convert object to flux object")
 			continue
 		}
 
 		object := models.Object{
-			Cluster:    obj.ClusterName(),
-			Name:       obj.Object().GetName(),
-			Namespace:  obj.Object().GetNamespace(),
+			Cluster:    objTx.ClusterName(),
+			Name:       objTx.Object().GetName(),
+			Namespace:  objTx.Object().GetNamespace(),
 			APIGroup:   gvk.Group,
 			APIVersion: gvk.Version,
 			Kind:       gvk.Kind,
@@ -83,7 +89,7 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			Message:    adapters.Message(o),
 		}
 
-		if obj.TransactionType() == models.TransactionTypeDelete {
+		if objTx.TransactionType() == models.TransactionTypeDelete {
 			delete = append(delete, object)
 		} else {
 			upsert = append(upsert, object)
@@ -99,6 +105,12 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	if len(delete) > 0 {
 		if err := store.DeleteObjects(ctx, delete); err != nil {
 			return fmt.Errorf("failed to delete objects: %w", err)
+		}
+	}
+
+	if len(deleteAll) > 0 {
+		if err := store.DeleteAllObjects(ctx, deleteAll); err != nil {
+			return fmt.Errorf("failed to delete all objects: %w", err)
 		}
 	}
 

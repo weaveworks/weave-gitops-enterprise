@@ -10,6 +10,18 @@ import (
 )
 
 type FakeStoreWriter struct {
+	DeleteAllObjectsStub        func(context.Context, []string) error
+	deleteAllObjectsMutex       sync.RWMutex
+	deleteAllObjectsArgsForCall []struct {
+		arg1 context.Context
+		arg2 []string
+	}
+	deleteAllObjectsReturns struct {
+		result1 error
+	}
+	deleteAllObjectsReturnsOnCall map[int]struct {
+		result1 error
+	}
 	DeleteObjectsStub        func(context.Context, []models.Object) error
 	deleteObjectsMutex       sync.RWMutex
 	deleteObjectsArgsForCall []struct {
@@ -84,6 +96,73 @@ type FakeStoreWriter struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeStoreWriter) DeleteAllObjects(arg1 context.Context, arg2 []string) error {
+	var arg2Copy []string
+	if arg2 != nil {
+		arg2Copy = make([]string, len(arg2))
+		copy(arg2Copy, arg2)
+	}
+	fake.deleteAllObjectsMutex.Lock()
+	ret, specificReturn := fake.deleteAllObjectsReturnsOnCall[len(fake.deleteAllObjectsArgsForCall)]
+	fake.deleteAllObjectsArgsForCall = append(fake.deleteAllObjectsArgsForCall, struct {
+		arg1 context.Context
+		arg2 []string
+	}{arg1, arg2Copy})
+	stub := fake.DeleteAllObjectsStub
+	fakeReturns := fake.deleteAllObjectsReturns
+	fake.recordInvocation("DeleteAllObjects", []interface{}{arg1, arg2Copy})
+	fake.deleteAllObjectsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeStoreWriter) DeleteAllObjectsCallCount() int {
+	fake.deleteAllObjectsMutex.RLock()
+	defer fake.deleteAllObjectsMutex.RUnlock()
+	return len(fake.deleteAllObjectsArgsForCall)
+}
+
+func (fake *FakeStoreWriter) DeleteAllObjectsCalls(stub func(context.Context, []string) error) {
+	fake.deleteAllObjectsMutex.Lock()
+	defer fake.deleteAllObjectsMutex.Unlock()
+	fake.DeleteAllObjectsStub = stub
+}
+
+func (fake *FakeStoreWriter) DeleteAllObjectsArgsForCall(i int) (context.Context, []string) {
+	fake.deleteAllObjectsMutex.RLock()
+	defer fake.deleteAllObjectsMutex.RUnlock()
+	argsForCall := fake.deleteAllObjectsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStoreWriter) DeleteAllObjectsReturns(result1 error) {
+	fake.deleteAllObjectsMutex.Lock()
+	defer fake.deleteAllObjectsMutex.Unlock()
+	fake.DeleteAllObjectsStub = nil
+	fake.deleteAllObjectsReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeStoreWriter) DeleteAllObjectsReturnsOnCall(i int, result1 error) {
+	fake.deleteAllObjectsMutex.Lock()
+	defer fake.deleteAllObjectsMutex.Unlock()
+	fake.DeleteAllObjectsStub = nil
+	if fake.deleteAllObjectsReturnsOnCall == nil {
+		fake.deleteAllObjectsReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.deleteAllObjectsReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeStoreWriter) DeleteObjects(arg1 context.Context, arg2 []models.Object) error {
@@ -491,6 +570,8 @@ func (fake *FakeStoreWriter) StoreRolesReturnsOnCall(i int, result1 error) {
 func (fake *FakeStoreWriter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.deleteAllObjectsMutex.RLock()
+	defer fake.deleteAllObjectsMutex.RUnlock()
 	fake.deleteObjectsMutex.RLock()
 	defer fake.deleteObjectsMutex.RUnlock()
 	fake.deleteRoleBindingsMutex.RLock()
