@@ -19,6 +19,8 @@ import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { debounce } from 'lodash';
 import { GitProvider } from '../api/gitauth/gitauth.pb';
 import { removeToken } from './request';
+import { useIsAuthenticated } from '../hooks/gitprovider';
+import useNotifications from '../contexts/Notifications';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -247,23 +249,30 @@ export const Select: FC<SelectProps> = ({
   </FormControl>
 );
 
-export const validateFormData = async (
+interface ValidateFormDataProps {
+  event: any;
+  onSubmit: any;
+  setFormError: Dispatch<React.SetStateAction<any>>;
+  setSubmitType?: Dispatch<React.SetStateAction<string>>;
+  provider?: GitProvider;
+}
+
+export const useValidateFormData = (
   event: any,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
   setSubmitType?: Dispatch<React.SetStateAction<string>>,
-  isAuthenticated?: boolean,
-  // setIsAuthenticated?: Dispatch<React.SetStateAction<any>>,
-  setNotifications?: Dispatch<React.SetStateAction<any>>,
-  check?: (provider: GitProvider) => void,
   provider?: GitProvider,
 ) => {
-  event.preventDefault();
-  check && check(provider || ('' as GitProvider));
+  const { isAuthenticated, req: check } = useIsAuthenticated();
+  const { setNotifications } = useNotifications();
 
-  console.log(isAuthenticated);
-
-  if (isAuthenticated) {
+  const validateFormData = (
+    event: any,
+    onSubmit: any,
+    setFormError: Dispatch<React.SetStateAction<any>>,
+    setSubmitType?: Dispatch<React.SetStateAction<string>>,
+  ) => {
     const requiredButEmptyInputs = Array.from(event.target).filter(
       (element: any) =>
         element.type === 'text' && element.required && element.value === '',
@@ -276,10 +285,21 @@ export const validateFormData = async (
       setFormError((firstEmpty as HTMLInputElement).name);
     }
     setSubmitType && setSubmitType('');
-  } else {
-    // setIsAuthenticated && setIsAuthenticated(false);
-    // removeToken
-    setNotifications &&
+  };
+
+  useEffect(() => {
+    if (event) {
+      check(provider || ('' as GitProvider));
+    }
+  }, [provider, check, event]);
+
+  useEffect(() => {
+    console.log(isAuthenticated, event);
+    if (isAuthenticated && event) {
+      // setEnableCreatePR
+      validateFormData(event, onSubmit, setFormError, setSubmitType);
+    } else {
+      // removeToken
       setNotifications([
         {
           message: {
@@ -289,8 +309,28 @@ export const validateFormData = async (
           display: 'bottom',
         },
       ]);
-  }
+    }
+  }, [
+    isAuthenticated,
+    event,
+    onSubmit,
+    setFormError,
+    setNotifications,
+    setSubmitType,
+    // setEnableCreatePR
+  ]);
+
+  return { error: null };
 };
+
+// remove the below; only in place to prevent other forms from crashing
+export const validateFormData = (
+  event: any,
+  onSubmit: any,
+  setFormError: Dispatch<React.SetStateAction<any>>,
+  setSubmitType?: Dispatch<React.SetStateAction<string>>,
+  provider?: GitProvider,
+) => {};
 
 interface InputDebounceProps extends InputProps {
   value?: string;

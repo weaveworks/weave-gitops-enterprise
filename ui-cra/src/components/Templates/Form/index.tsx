@@ -17,14 +17,7 @@ import {
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, {
-  FC,
-  FormEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -36,7 +29,6 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { useIsAuthenticated } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -53,7 +45,7 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
-import { validateFormData } from '../../../utils/form';
+import { useValidateFormData } from '../../../utils/form';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
@@ -364,11 +356,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
-  const {
-    isAuthenticated,
-    // setIsAuthenticated,
-    req: check,
-  } = useIsAuthenticated();
 
   const handlePRPreview = useCallback(() => {
     const { parameterValues } = formData;
@@ -551,6 +538,21 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
+  const [event, setEvent] = useState<any>();
+
+  const { error } = useValidateFormData(
+    event,
+    getSubmitFunction(submitType),
+    setFormError,
+    setSubmitType,
+    formData.provider,
+  );
+
+  const handleSubmit = useCallback(event => {
+    event.preventDefault();
+    setEvent(event);
+  }, []);
+
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -563,22 +565,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           },
         }}
       >
-        <FormWrapper
-          noValidate
-          onSubmit={event =>
-            validateFormData(
-              event,
-              getSubmitFunction(submitType),
-              setFormError,
-              setSubmitType,
-              isAuthenticated,
-              // setIsAuthenticated,
-              setNotifications,
-              check,
-              formData.provider,
-            )
-          }
-        >
+        <FormWrapper noValidate onSubmit={handleSubmit}>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper align>
               <div className="template-title">
@@ -709,12 +696,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formError,
     resource,
     initialGitRepo,
-    check,
-    isAuthenticated,
-    getSubmitFunction,
-    setNotifications,
-    submitType,
-    // setIsAuthenticated,
+    handleSubmit,
   ]);
 };
 
