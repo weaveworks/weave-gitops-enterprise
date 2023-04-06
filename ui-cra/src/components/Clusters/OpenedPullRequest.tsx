@@ -1,5 +1,10 @@
 import React, { useMemo } from 'react';
-import { Button, GitRepository } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  GitRepository,
+  Icon,
+  IconType,
+} from '@weaveworks/weave-gitops';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -110,7 +115,14 @@ export default function OpenedPullRequest() {
           )}
           disabled={!options.length}
         >
-          View open pull requests
+          <>
+            <Icon
+              className={Classes.externalLink}
+              type={IconType.ExternalTab}
+              size="base"
+            />
+            VIEW OPEN PULL REQUESTS
+          </>
         </Button>
         <Button
           size="small"
