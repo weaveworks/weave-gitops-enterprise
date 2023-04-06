@@ -9,7 +9,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
 )
 
@@ -45,32 +44,16 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 		{
 			name: "can process non-empty record collection with no errors",
 			objectRecords: []models.ObjectTransaction{
-				testTransaction{
-					clusterName:     "anyCluster",
-					object:          testutils.NewHelmRelease("createdOrUpdatedHelmRelease", clusterName),
-					transactionType: models.TransactionTypeUpsert,
-				},
-				testTransaction{
-					clusterName: "anyCluster",
-					object: testutils.NewHelmRelease("deletedHelmRelease1", clusterName, func(hr *v2beta1.HelmRelease) {
-						now := metav1.Now()
-						hr.DeletionTimestamp = &now
-					}),
-					transactionType: models.TransactionTypeDelete,
-				},
-				testTransaction{
-					clusterName: "anyCluster2",
-					object: testutils.NewHelmRelease("deletedHelmRelease2", clusterName, func(hr *v2beta1.HelmRelease) {
-						now := metav1.Now()
-						hr.DeletionTimestamp = &now
-					}),
-					transactionType: models.TransactionTypeDelete,
-				},
-				testTransaction{
-					clusterName:     "anyCluster3",
-					object:          nil,
-					transactionType: models.TransactionTypeDeleteAll,
-				},
+				testutils.NewObjectTransaction("anyCluster", testutils.NewHelmRelease("createdOrUpdatedHelmRelease", clusterName), models.TransactionTypeUpsert),
+				testutils.NewObjectTransaction("anyCluster", testutils.NewHelmRelease("deletedHelmRelease1", clusterName, func(hr *v2beta1.HelmRelease) {
+					now := metav1.Now()
+					hr.DeletionTimestamp = &now
+				}), models.TransactionTypeDelete),
+				testutils.NewObjectTransaction("anyCluster2", testutils.NewHelmRelease("deletedHelmRelease2", clusterName, func(hr *v2beta1.HelmRelease) {
+					now := metav1.Now()
+					hr.DeletionTimestamp = &now
+				}), models.TransactionTypeDelete),
+				testutils.NewObjectTransaction("anyCluster3", nil, models.TransactionTypeDeleteAll),
 			},
 			expectedStoreNumCalls: map[models.TransactionType]int{
 				models.TransactionTypeDelete:    1,
@@ -94,22 +77,4 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 		})
 	}
 
-}
-
-type testTransaction struct {
-	clusterName     string
-	object          client.Object
-	transactionType models.TransactionType
-}
-
-func (r testTransaction) ClusterName() string {
-	return r.clusterName
-}
-
-func (r testTransaction) Object() client.Object {
-	return r.object
-}
-
-func (r testTransaction) TransactionType() models.TransactionType {
-	return r.transactionType
 }

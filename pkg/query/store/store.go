@@ -28,7 +28,9 @@ type StoreWriter interface {
 	DeleteObjects(ctx context.Context, object []models.Object) error
 	DeleteAllObjects(ctx context.Context, clusters []string) error
 	DeleteRoles(ctx context.Context, roles []models.Role) error
+	DeleteAllRoles(ctx context.Context, clusters []string) error
 	DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error
+	DeleteAllRoleBindings(ctx context.Context, clusters []string) error
 }
 
 type QueryOperand string

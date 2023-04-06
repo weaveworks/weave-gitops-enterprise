@@ -23,6 +23,16 @@ type SQLiteStore struct {
 	log logr.Logger
 }
 
+func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
 	for _, cluster := range clusters {
 		where := i.db.Where(
