@@ -1,4 +1,4 @@
-import { FC, useMemo } from 'react';
+import { FC } from 'react';
 import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
@@ -8,15 +8,12 @@ import {
   IconType,
   LoadingPage,
   useListAutomations,
-  theme,
   Flex,
-  useListSources,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useHistory } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
-import { getGitRepos } from '../Clusters';
 
 interface Size {
   size?: 'small';
@@ -30,12 +27,7 @@ const ActionsWrapper = styled(Flex)<Size>`
 const WGApplicationsDashboard: FC = () => {
   const { data: automations, isLoading } = useListAutomations();
   const history = useHistory();
-  const { data: sources } = useListSources();
 
-  const gitRepos = useMemo(
-    () => getGitRepos(sources?.result),
-    [sources?.result],
-  );
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (

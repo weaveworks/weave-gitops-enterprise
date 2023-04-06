@@ -50,7 +50,6 @@ import {
   Rancher,
   Vsphere,
 } from '../../utils/icons';
-import { openLinkHandler } from '../../utils/link-checker';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import PoliciesViolations from '../PolicyViolations';
