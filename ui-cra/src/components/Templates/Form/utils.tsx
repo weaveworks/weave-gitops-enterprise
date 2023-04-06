@@ -107,14 +107,10 @@ export function getInitialGitRepo(
     }
   }
 
-  // FIXME: return getDefaultGitRepo(gitRepos, config);
-  return null;
+  return getDefaultGitRepo(gitRepos);
 }
 
-export function getDefaultGitRepo(
-  gitRepos: GitRepository[],
-  config: GetConfigResponse,
-) {
+export function getDefaultGitRepo(gitRepos: GitRepository[]) {
   const annoRepo = gitRepos.find(
     repo =>
       repo?.obj?.metadata?.annotations?.['weave.works/repo-role'] === 'default',
@@ -125,7 +121,8 @@ export function getDefaultGitRepo(
 
   const mainRepo = gitRepos.find(
     repo =>
-      repo.clusterName === config.managementClusterName &&
+      // FIXME: we should also be checking the management cluster name
+      // repo.clusterName === config.managementClusterName &&
       repo?.obj?.metadata?.name === 'flux-system' &&
       repo?.obj?.metadata?.namespace === 'flux-system',
   );

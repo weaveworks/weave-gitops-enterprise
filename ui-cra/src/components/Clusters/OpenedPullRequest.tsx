@@ -82,7 +82,7 @@ export default function OpenedPullRequest() {
     return <div>Git Repos not found</div>;
   }
 
-  const defaultRepo = getDefaultGitRepo(gitRepos, config);
+  const defaultRepo = getDefaultGitRepo(gitRepos);
 
   const handleToggle = () => {
     setOpen(prevOpen => !prevOpen);
