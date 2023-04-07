@@ -13,7 +13,14 @@ import {
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
-import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
+import React, {
+  Dispatch,
+  FC,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
 import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { debounce } from 'lodash';
@@ -264,42 +271,31 @@ export const useValidateFormData = (
   setSubmitType?: Dispatch<React.SetStateAction<string>>,
   provider?: GitProvider,
 ) => {
-  const { isAuthenticated, req: check } = useIsAuthenticated();
+  const {
+    isAuthenticated,
+    req: check,
+    loading: checkingAuthToken,
+  } = useIsAuthenticated();
   const { setNotifications } = useNotifications();
 
-  const validateFormData = (
-    event: any,
-    onSubmit: any,
-    setFormError: Dispatch<React.SetStateAction<any>>,
-    setSubmitType?: Dispatch<React.SetStateAction<string>>,
-  ) => {
-    const requiredButEmptyInputs = Array.from(event.target).filter(
-      (element: any) =>
-        element.type === 'text' && element.required && element.value === '',
-    );
-    if (requiredButEmptyInputs.length === 0) {
-      onSubmit();
-    } else {
-      const [firstEmpty] = requiredButEmptyInputs;
-      (firstEmpty as HTMLInputElement).focus();
-      setFormError((firstEmpty as HTMLInputElement).name);
+  const validateFormData = useCallback(() => {
+    console.log('isAuthenticated', isAuthenticated);
+    if (isAuthenticated) {
+      const requiredButEmptyInputs = Array.from(event.target).filter(
+        (element: any) =>
+          element.type === 'text' && element.required && element.value === '',
+      );
+      if (requiredButEmptyInputs.length === 0) {
+        onSubmit();
+      } else {
+        const [firstEmpty] = requiredButEmptyInputs;
+        (firstEmpty as HTMLInputElement).focus();
+        setFormError((firstEmpty as HTMLInputElement).name);
+      }
+      setSubmitType && setSubmitType('');
     }
-    setSubmitType && setSubmitType('');
-  };
 
-  useEffect(() => {
-    if (event) {
-      check(provider || ('' as GitProvider));
-    }
-  }, [provider, check, event]);
-
-  useEffect(() => {
-    console.log(isAuthenticated, event);
-    if (isAuthenticated && event) {
-      // setEnableCreatePR
-      validateFormData(event, onSubmit, setFormError, setSubmitType);
-    } else {
-      // removeToken
+    if (!isAuthenticated && event?.target) {
       setNotifications([
         {
           message: {
@@ -311,16 +307,49 @@ export const useValidateFormData = (
       ]);
     }
   }, [
+    event?.target,
     isAuthenticated,
-    event,
     onSubmit,
     setFormError,
-    setNotifications,
     setSubmitType,
-    // setEnableCreatePR
+    setNotifications,
   ]);
 
-  return { error: null };
+  useEffect(() => {
+    if (event) {
+      console.log('auth check starting');
+      check(provider || ('' as GitProvider));
+    }
+  }, [provider, check, event]);
+
+  // useEffect(() => {
+  //   console.log(isAuthenticated, event);
+  //   if (isAuthenticated && event) {
+  //     // setEnableCreatePR
+  //     validateFormData(event, onSubmit, setFormError, setSubmitType);
+  //   } else {
+  //     // removeToken
+  //     setNotifications([
+  //       {
+  //         message: {
+  //           text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
+  //         },
+  //         severity: 'error',
+  //         display: 'bottom',
+  //       },
+  //     ]);
+  //   }
+  // }, [
+  //   isAuthenticated,
+  //   event,
+  //   onSubmit,
+  //   setFormError,
+  //   setNotifications,
+  //   setSubmitType,
+  // setEnableCreatePR
+  // ]);
+
+  return { validateFormData, checkingAuthToken };
 };
 
 // remove the below; only in place to prevent other forms from crashing

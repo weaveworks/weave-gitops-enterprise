@@ -540,7 +540,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const [event, setEvent] = useState<any>();
 
-  const { error } = useValidateFormData(
+  const { validateFormData, checkingAuthToken } = useValidateFormData(
     event,
     getSubmitFunction(submitType),
     setFormError,
@@ -548,10 +548,16 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formData.provider,
   );
 
-  const handleSubmit = useCallback(event => {
-    event.preventDefault();
-    setEvent(event);
-  }, []);
+  const handleSubmit = useCallback(
+    event => {
+      event.preventDefault();
+      setEvent(event);
+      validateFormData();
+    },
+    [validateFormData],
+  );
+
+  // setNotifications([]);
 
   return useMemo(() => {
     return (
@@ -650,7 +656,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 !(resource && initialGitRepo?.createPRRepo)
               }
             />
-            {loading ? (
+            {loading || checkingAuthToken ? (
               <LoadingPage className="create-loading" />
             ) : (
               <Flex end className="create-cta">
@@ -697,6 +703,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     resource,
     initialGitRepo,
     handleSubmit,
+    checkingAuthToken,
   ]);
 };
 
