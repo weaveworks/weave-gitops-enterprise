@@ -211,6 +211,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			//TODO see 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
 			g.Expect(store.StoreObjects(ctx, tt.addObjects)).To(Succeed())
 			err := store.DeleteAllObjects(ctx, tt.deleteClusters)
 			if tt.errPattern != "" {

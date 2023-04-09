@@ -68,6 +68,8 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 }
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	deleteAll := []string{}
+
 	roles := []models.Role{}
 	rolesToDelete := []models.Role{}
 
@@ -75,6 +77,13 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	bindingsToDelete := []models.RoleBinding{}
 
 	for _, obj := range objectRecords {
+
+		// Handle delete all tx first as does not hold objects
+		if obj.TransactionType() == models.TransactionTypeDeleteAll {
+			deleteAll = append(deleteAll, obj.ClusterName())
+			continue
+		}
+
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
 
 		if kind == "ClusterRole" || kind == "Role" {
@@ -133,6 +142,15 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	if len(bindingsToDelete) > 0 {
 		if err := store.DeleteRoleBindings(ctx, bindingsToDelete); err != nil {
 			return fmt.Errorf("cannot delete role bindings: %w", err)
+		}
+	}
+
+	if len(deleteAll) > 0 {
+		if err := store.DeleteAllRoles(ctx, deleteAll); err != nil {
+			return fmt.Errorf("failed to delete all roles: %w", err)
+		}
+		if err := store.DeleteAllRoleBindings(ctx, deleteAll); err != nil {
+			return fmt.Errorf("failed to delete all role bindings: %w", err)
 		}
 	}
 

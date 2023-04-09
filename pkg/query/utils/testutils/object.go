@@ -53,6 +53,13 @@ func NewRole(name string, namespace string, opts ...func(*rbacv1.Role)) *rbacv1.
 			Name:      name,
 			Namespace: namespace,
 		},
+		Rules: []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{"kustomize.toolkit.fluxcd.io"},
+				Resources: []string{"kustomizations"},
+				Verbs:     []string{"get"},
+			},
+		},
 	}
 
 	for _, opt := range opts {

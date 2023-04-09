@@ -2,7 +2,6 @@ package rolecollector
 
 import (
 	"context"
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
