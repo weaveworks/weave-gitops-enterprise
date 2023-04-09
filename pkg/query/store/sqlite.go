@@ -24,13 +24,32 @@ type SQLiteStore struct {
 }
 
 func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
-	//TODO implement me
-	panic("implement me")
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Role{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
 }
 
 func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) error {
-	//TODO implement me
-	panic("implement me")
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.RoleBinding{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+	return nil
 }
 
 func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
@@ -56,9 +75,6 @@ func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 }
 
 func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
-	if len(roles) == 0 {
-		return fmt.Errorf("empty role list")
-	}
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
