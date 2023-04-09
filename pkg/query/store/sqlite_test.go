@@ -315,6 +315,95 @@ func TestSQLiteStore_DeleteAllRoles(t *testing.T) {
 	}
 }
 
+func TestSQLiteStore_DeleteAllRoleBindings(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name              string
+		roleBindingsToAdd []models.RoleBinding // objects to add before deleting
+		deleteClusters    []string
+		errPattern        string
+	}{
+		{
+			name:              "should do nothing for empty request",
+			roleBindingsToAdd: []models.RoleBinding{},
+			deleteClusters:    []string{},
+			errPattern:        "",
+		},
+		{
+			name: "should do nothing if no objects for cluster to delete",
+			roleBindingsToAdd: []models.RoleBinding{
+				{
+					Cluster:   "cluster-a",
+					Name:      "binding-a",
+					Namespace: "ns-a",
+					Kind:      "RoleBinding",
+					Subjects: []models.Subject{{
+						Kind: "Group",
+						Name: "group-a",
+					}},
+					RoleRefName: "role-a",
+					RoleRefKind: "Role",
+				},
+			},
+			deleteClusters: []string{"cluster-without-objects"},
+			errPattern:     "",
+		},
+		{
+			name: "should have deleted all for a cluster with objects",
+			roleBindingsToAdd: []models.RoleBinding{
+				{
+					Cluster:   "cluster-a",
+					Name:      "binding-a",
+					Namespace: "ns-a",
+					Kind:      "RoleBinding",
+					Subjects: []models.Subject{{
+						Kind: "Group",
+						Name: "group-a",
+					}},
+					RoleRefName: "role-a",
+					RoleRefKind: "Role",
+				},
+				{
+					Cluster:   "cluster-a",
+					Name:      "binding-b",
+					Namespace: "ns-a",
+					Kind:      "RoleBinding",
+					Subjects: []models.Subject{{
+						Kind: "Group",
+						Name: "group-a",
+					}},
+					RoleRefName: "role-a",
+					RoleRefKind: "Role",
+				},
+			},
+			deleteClusters: []string{"cluster-a"},
+			errPattern:     "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			//TODO see 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+			g.Expect(store.StoreRoleBindings(ctx, tt.roleBindingsToAdd)).To(Succeed())
+			err := store.DeleteAllRoleBindings(ctx, tt.deleteClusters)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			for _, deleteCluster := range tt.deleteClusters {
+				var numResources int
+				g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM role_bindings WHERE cluster = ?", deleteCluster).Scan(&numResources)).To(Succeed())
+				g.Expect(numResources).To(Equal(0))
+			}
+		})
+	}
+}
+
 func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	// This is a sanity check test to prove that policy rules get upserted along with their roles
 	g := NewGomegaWithT(t)

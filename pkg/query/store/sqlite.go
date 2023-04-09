@@ -114,10 +114,6 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 }
 
 func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
-	if len(roleBindings) == 0 {
-		return fmt.Errorf("empty role binding list")
-	}
-
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)
