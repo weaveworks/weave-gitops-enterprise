@@ -29,7 +29,6 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { useIsAuthenticated } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -329,6 +328,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   useEffect(() => {
     clearCallbackState();
+    setCreatingPR(false);
+    setSendPR(false);
   }, []);
 
   useEffect(() => {
@@ -539,21 +540,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
-  const {
-    isAuthenticated,
-    req: check,
-    loading: checkingAuthToken,
-  } = useIsAuthenticated();
-
-  useEffect(() => {
-    if (formData.provider) {
-      console.log(formData.provider);
-      check(formData.provider);
-    }
-  }, [formData.provider, check]);
+  const [creatingPR, setCreatingPR] = useState<boolean>(false);
+  const [sendPR, setSendPR] = useState<boolean>(false);
 
   return useMemo(() => {
-    console.log(isAuthenticated);
     return (
       <CallbackStateContextProvider
         callbackState={{
@@ -567,15 +557,16 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       >
         <FormWrapper
           noValidate
-          onSubmit={event =>
-            validateFormData(
-              event,
-              getSubmitFunction(submitType),
-              setFormError,
-              setSubmitType,
-              isAuthenticated,
-            )
-          }
+          onSubmit={event => {
+            if (sendPR) {
+              validateFormData(
+                event,
+                getSubmitFunction(submitType),
+                setFormError,
+                setSubmitType,
+              );
+            }
+          }}
         >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper align>
@@ -660,14 +651,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               enableGitRepoSelection={
                 !(resource && initialGitRepo?.createPRRepo)
               }
+              creatingPR={creatingPR}
+              setSendPR={setSendPR}
             />
-            {loading || checkingAuthToken ? (
+            {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
               <Flex end className="create-cta">
                 <Button
                   type="submit"
-                  onClick={() => setSubmitType('Create resource')}
+                  onClick={() => {
+                    setSubmitType('Create resource');
+                    setCreatingPR(true);
+                  }}
                   disabled={!enableCreatePR}
                 >
                   CREATE PULL REQUEST
@@ -707,8 +703,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     getSubmitFunction,
     resource,
     initialGitRepo,
-    checkingAuthToken,
-    isAuthenticated,
+    creatingPR,
+    sendPR,
+    setSendPR,
   ]);
 };
 

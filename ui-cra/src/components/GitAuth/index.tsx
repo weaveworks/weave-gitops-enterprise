@@ -5,6 +5,7 @@ import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
+import useNotifications from './../../contexts/Notifications';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
@@ -26,6 +27,8 @@ const GitAuth: FC<{
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   enableGitRepoSelection?: boolean;
+  creatingPR?: boolean;
+  setSendPR?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
   setFormData,
@@ -33,24 +36,52 @@ const GitAuth: FC<{
   setShowAuthDialog,
   setEnableCreatePR,
   enableGitRepoSelection,
+  creatingPR,
+  setSendPR,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
-  const { isAuthenticated, req: check } = useIsAuthenticated();
+  const { isAuthenticated, loading, req: check } = useIsAuthenticated();
+  const { setNotifications } = useNotifications();
 
   useEffect(() => {
     if (!formData.provider) {
       return;
     }
+
     check(formData.provider);
-  }, [formData.provider, authSuccess, check]);
+  }, [formData.provider, authSuccess, creatingPR, check]);
 
   useEffect(() => {
     if (isAuthenticated) {
       setEnableCreatePR(true);
+      if (creatingPR) {
+        // set(gitAuthCheckCompleted);
+        setSendPR && setSendPR(true);
+      }
     } else {
       setEnableCreatePR(false);
     }
-  }, [authSuccess, isAuthenticated, setEnableCreatePR]);
+    if (!isAuthenticated && !loading && creatingPR) {
+      setNotifications([
+        {
+          message: {
+            text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
+          },
+          severity: 'error',
+          display: 'bottom',
+        },
+      ]);
+      return;
+    }
+  }, [
+    authSuccess,
+    isAuthenticated,
+    setEnableCreatePR,
+    loading,
+    setNotifications,
+    creatingPR,
+    setSendPR,
+  ]);
 
   return (
     <>
