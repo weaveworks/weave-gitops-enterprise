@@ -2,7 +2,6 @@ package testutils
 
 import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
-	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,11 +29,7 @@ func NewHelmRelease(name string, namespace string, opts ...func(*v2beta1.HelmRel
 }
 
 var (
-	namespaceTypeMeta      = typeMeta("Namespace", "v1")
-	serviceAccountTypeMeta = typeMeta("ServiceAccount", "v1")
-	roleBindingTypeMeta    = typeMeta("RoleBinding", "rbac.authorization.k8s.io/v1")
-	policyTypeMeta         = typeMeta(pacv2beta2.PolicyKind, pacv2beta2.GroupVersion.String())
-	roleTypeMeta           = typeMeta("Role", "rbac.authorization.k8s.io/v1")
+	roleTypeMeta = typeMeta("Role", "rbac.authorization.k8s.io/v1")
 )
 
 func typeMeta(kind, apiVersion string) metav1.TypeMeta {
@@ -67,22 +62,6 @@ func NewRole(name string, namespace string, opts ...func(*rbacv1.Role)) *rbacv1.
 	}
 
 	return role
-}
-
-func NewRoleBinding(name string, namespace string, opts ...func(*rbacv1.RoleBinding)) *rbacv1.RoleBinding {
-	rb := &rbacv1.RoleBinding{
-		TypeMeta: roleBindingTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
-
-	for _, opt := range opts {
-		opt(rb)
-	}
-
-	return rb
 }
 
 func NewObjectTransaction(clusterName string, object client.Object, txType models.TransactionType) models.ObjectTransaction {

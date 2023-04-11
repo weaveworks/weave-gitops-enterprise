@@ -17,7 +17,7 @@ import (
 
 func (c *watchingCollector) Start() error {
 	c.log.Info("starting watcher", "kinds", c.kinds)
-	//TODO add context
+	//TODO review context
 	ctx := context.Background()
 	cw := c.clusterManager.Subscribe()
 	c.objectsChannel = make(chan []models.ObjectTransaction)
@@ -161,7 +161,7 @@ func (w *watchingCollector) Unwatch(clusterName string) error {
 	if clusterWatcher == nil {
 		return fmt.Errorf("cluster watcher not found")
 	}
-	err := clusterWatcher.Stop(nil)
+	err := clusterWatcher.Stop(context.Background())
 	if err != nil {
 		return fmt.Errorf("failed to stop watcher for cluster %s: %w", clusterName, err)
 	}
