@@ -540,24 +540,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const [event, setEvent] = useState<any>();
 
-  const { validateFormData, checkingAuthToken } = useValidateFormData(
+  const { checkingAuthToken } = useValidateFormData(
     event,
-    getSubmitFunction(submitType),
+    handleAddResource,
     setFormError,
     setSubmitType,
     formData.provider,
+    setEnableCreatePR,
   );
 
-  const handleSubmit = useCallback(
-    event => {
-      event.preventDefault();
-      setEvent(event);
-      validateFormData();
-    },
-    [validateFormData],
-  );
-
-  // setNotifications([]);
+  const handleSubmit = useCallback(event => {
+    event.preventDefault();
+    setEvent(event);
+  }, []);
 
   return useMemo(() => {
     return (

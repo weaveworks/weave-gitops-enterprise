@@ -270,6 +270,7 @@ export const useValidateFormData = (
   setFormError: Dispatch<React.SetStateAction<any>>,
   setSubmitType?: Dispatch<React.SetStateAction<string>>,
   provider?: GitProvider,
+  setEnableCreatePR?: Dispatch<React.SetStateAction<boolean>>,
 ) => {
   const {
     isAuthenticated,
@@ -278,8 +279,14 @@ export const useValidateFormData = (
   } = useIsAuthenticated();
   const { setNotifications } = useNotifications();
 
+  useEffect(() => {
+    if (event) {
+      check(provider || ('' as GitProvider));
+    }
+  }, [provider, check, event]);
+
   const validateFormData = useCallback(() => {
-    console.log('isAuthenticated', isAuthenticated);
+    console.log('validateFormData is running');
     if (isAuthenticated) {
       const requiredButEmptyInputs = Array.from(event.target).filter(
         (element: any) =>
@@ -294,8 +301,17 @@ export const useValidateFormData = (
       }
       setSubmitType && setSubmitType('');
     }
+  }, [event?.target, isAuthenticated, onSubmit, setFormError, setSubmitType]);
 
-    if (!isAuthenticated && event?.target) {
+  useEffect(() => {
+    if (isAuthenticated && !checkingAuthToken) {
+      setEnableCreatePR && setEnableCreatePR(true);
+      validateFormData();
+      return;
+    }
+
+    if (!isAuthenticated && event?.target && !checkingAuthToken) {
+      console.log(!isAuthenticated, event?.target, !checkingAuthToken);
       setNotifications([
         {
           message: {
@@ -307,47 +323,13 @@ export const useValidateFormData = (
       ]);
     }
   }, [
-    event?.target,
+    event,
     isAuthenticated,
-    onSubmit,
-    setFormError,
-    setSubmitType,
+    validateFormData,
     setNotifications,
+    setEnableCreatePR,
+    checkingAuthToken,
   ]);
-
-  useEffect(() => {
-    if (event) {
-      console.log('auth check starting');
-      check(provider || ('' as GitProvider));
-    }
-  }, [provider, check, event]);
-
-  // useEffect(() => {
-  //   console.log(isAuthenticated, event);
-  //   if (isAuthenticated && event) {
-  //     // setEnableCreatePR
-  //     validateFormData(event, onSubmit, setFormError, setSubmitType);
-  //   } else {
-  //     // removeToken
-  //     setNotifications([
-  //       {
-  //         message: {
-  //           text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
-  //         },
-  //         severity: 'error',
-  //         display: 'bottom',
-  //       },
-  //     ]);
-  //   }
-  // }, [
-  //   isAuthenticated,
-  //   event,
-  //   onSubmit,
-  //   setFormError,
-  //   setNotifications,
-  //   setSubmitType,
-  // setEnableCreatePR
-  // ]);
 
   return { validateFormData, checkingAuthToken };
 };
