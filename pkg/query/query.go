@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -49,18 +50,38 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		return nil, fmt.Errorf("principal not found")
 	}
 
-	allObjects, err := q.r.GetObjects(ctx, query, opts)
-	if err != nil {
-		return nil, fmt.Errorf("error getting objects from store: %w", err)
-	}
-
 	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
 
+	iter, err := q.r.GetObjects(ctx, query, opts)
+	if err != nil {
+		return nil, fmt.Errorf("error getting objects from store: %w", err)
+	}
+
+	defer iter.Close()
+
 	result := []models.Object{}
-	for _, obj := range allObjects {
+
+	var limit int32
+
+	if opts != nil {
+		limit = opts.GetLimit()
+	}
+
+	for iter.Next() {
+		if limit > 0 && len(result) == int(limit) {
+			// Limit is set in the query and reached.
+			// If Limit is 0, all objects are returned.
+			break
+		}
+
+		obj, err := iter.Row()
+		if err != nil {
+			return nil, fmt.Errorf("error getting row from iterator: %w", err)
+		}
+
 		ok, err := q.checker.HasAccess(principal, obj, rules)
 		if err != nil {
 			q.log.Error(err, "error checking access")
