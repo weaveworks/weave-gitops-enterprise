@@ -374,31 +374,9 @@ exports[`Applications index test snapshots loading 1`] = `
                 ADD AN APPLICATION
               </span>
             </button>
-            <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label"
-              >
-                <div
-                  class="c8 c13 makeStyles-externalIcon-17"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
-                    />
-                  </svg>
-                </div>
-                GO TO OPEN PULL REQUESTS
-              </span>
-            </button>
+            <div>
+              Loading...
+            </div>
           </div>
         </div>
         <div
@@ -1160,11 +1138,11 @@ exports[`Applications index test snapshots success 1`] = `
         class="c3 c4 test-id-breadcrumbs"
       >
         <div
-          class="makeStyles-path-34"
+          class="makeStyles-path-35"
           style="align-items: center;"
         >
           <span
-            class="c5 makeStyles-labelLink-38"
+            class="c5 makeStyles-labelLink-39"
             title="Applications"
           >
             Applications
@@ -1251,34 +1229,9 @@ exports[`Applications index test snapshots success 1`] = `
                 class="MuiTouchRipple-root"
               />
             </button>
-            <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined c12 MuiButton-outlinedPrimary MuiButton-disableElevation"
-              tabindex="0"
-              type="button"
-            >
-              <span
-                class="MuiButton-label"
-              >
-                <div
-                  class="c8 c13 makeStyles-externalIcon-33"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="MuiSvgIcon-root"
-                    focusable="false"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"
-                    />
-                  </svg>
-                </div>
-                GO TO OPEN PULL REQUESTS
-              </span>
-              <span
-                class="MuiTouchRipple-root"
-              />
-            </button>
+            <div>
+              Git Repos not found
+            </div>
           </div>
         </div>
         <div
@@ -1536,14 +1489,14 @@ exports[`Applications index test snapshots success 1`] = `
                     >
                       <span
                         aria-disabled="false"
-                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-45 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-46 Mui-checked MuiIconButton-colorPrimary"
+                        class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-49 Mui-checked MuiIconButton-colorPrimary"
                       >
                         <span
                           class="MuiIconButton-label"
                         >
                           <input
                             checked=""
-                            class="PrivateSwitchBase-input-48"
+                            class="PrivateSwitchBase-input-51"
                             data-indeterminate="false"
                             type="checkbox"
                             value=""
@@ -1990,14 +1943,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-45 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-47 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-48"
+                                    class="PrivateSwitchBase-input-51"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="clusterName"
@@ -2040,14 +1993,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-45 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-47 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-48"
+                                    class="PrivateSwitchBase-input-51"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="namespace"
@@ -2090,14 +2043,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-45 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-47 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-48"
+                                    class="PrivateSwitchBase-input-51"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="status"
@@ -2140,14 +2093,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-45 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-47 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-48"
+                                    class="PrivateSwitchBase-input-51"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="tenant"
@@ -2190,14 +2143,14 @@ exports[`Applications index test snapshots success 1`] = `
                             >
                               <span
                                 aria-disabled="true"
-                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-45 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-47 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-48 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-50 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                 tabindex="-1"
                               >
                                 <span
                                   class="MuiIconButton-label"
                                 >
                                   <input
-                                    class="PrivateSwitchBase-input-48"
+                                    class="PrivateSwitchBase-input-51"
                                     data-indeterminate="false"
                                     disabled=""
                                     id="type"
