@@ -95,7 +95,7 @@ type FakeStore struct {
 		result1 []models.AccessRule
 		result2 error
 	}
-	GetObjectsStub        func(context.Context, store.Query, store.QueryOption) ([]models.Object, error)
+	GetObjectsStub        func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)
 	getObjectsMutex       sync.RWMutex
 	getObjectsArgsForCall []struct {
 		arg1 context.Context
@@ -103,11 +103,11 @@ type FakeStore struct {
 		arg3 store.QueryOption
 	}
 	getObjectsReturns struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}
 	getObjectsReturnsOnCall map[int]struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}
 	StoreObjectsStub        func(context.Context, []models.Object) error
@@ -616,7 +616,7 @@ func (fake *FakeStore) GetAccessRulesReturnsOnCall(i int, result1 []models.Acces
 	}{result1, result2}
 }
 
-func (fake *FakeStore) GetObjects(arg1 context.Context, arg2 store.Query, arg3 store.QueryOption) ([]models.Object, error) {
+func (fake *FakeStore) GetObjects(arg1 context.Context, arg2 store.Query, arg3 store.QueryOption) (store.Iterator, error) {
 	fake.getObjectsMutex.Lock()
 	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
 	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
@@ -643,7 +643,7 @@ func (fake *FakeStore) GetObjectsCallCount() int {
 	return len(fake.getObjectsArgsForCall)
 }
 
-func (fake *FakeStore) GetObjectsCalls(stub func(context.Context, store.Query, store.QueryOption) ([]models.Object, error)) {
+func (fake *FakeStore) GetObjectsCalls(stub func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = stub
@@ -656,28 +656,28 @@ func (fake *FakeStore) GetObjectsArgsForCall(i int) (context.Context, store.Quer
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeStore) GetObjectsReturns(result1 []models.Object, result2 error) {
+func (fake *FakeStore) GetObjectsReturns(result1 store.Iterator, result2 error) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = nil
 	fake.getObjectsReturns = struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStore) GetObjectsReturnsOnCall(i int, result1 []models.Object, result2 error) {
+func (fake *FakeStore) GetObjectsReturnsOnCall(i int, result1 store.Iterator, result2 error) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = nil
 	if fake.getObjectsReturnsOnCall == nil {
 		fake.getObjectsReturnsOnCall = make(map[int]struct {
-			result1 []models.Object
+			result1 store.Iterator
 			result2 error
 		})
 	}
 	fake.getObjectsReturnsOnCall[i] = struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}{result1, result2}
 }

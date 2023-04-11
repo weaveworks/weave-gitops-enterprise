@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqliterator"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -194,20 +195,14 @@ func toSQLOperand(op QueryOperand) (string, error) {
 	}
 }
 
-func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error) {
-	objects := []models.Object{}
-
-	// If limit or offset are zero, they were not set.
-	// -1 tells GORM to ignore the limit/offset
-	var limit int = -1
+func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
+	// If offset is zero, it was not set.
+	// -1 tells GORM to ignore the offset
 	var offset int = -1
 	var orderBy string = ""
 	useOrLogic := false
 
 	if opts != nil {
-		if opts.GetLimit() != 0 {
-			limit = int(opts.GetLimit())
-		}
 		if opts.GetOffset() != 0 {
 			offset = int(opts.GetOffset())
 		}
@@ -221,7 +216,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 	}
 
-	tx := i.db.Limit(limit)
+	tx := i.db.Model(&models.Object{})
 	tx = tx.Offset(offset)
 	tx = tx.Order(orderBy)
 
@@ -240,9 +235,11 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		stmt = strings.TrimSuffix(stmt, " OR ")
 		tx = tx.Raw(fmt.Sprintf("SELECT * FROM objects WHERE %s", stmt))
 
-		result := tx.Find(&objects)
+		if tx.Error != nil {
+			return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+		}
 
-		return objects, result.Error
+		return sqliterator.New(tx)
 	}
 
 	if len(q) > 0 {
@@ -264,9 +261,11 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 	}
 
-	result := tx.Find(&objects)
+	if tx.Error != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+	}
 
-	return objects, result.Error
+	return sqliterator.New(tx)
 }
 
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {

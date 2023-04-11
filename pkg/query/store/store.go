@@ -66,8 +66,23 @@ type QueryClause interface {
 //
 //counterfeiter:generate . StoreReader
 type StoreReader interface {
-	GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error)
+	GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
+}
+
+// Iterator provides an iterable interface for requesting the next row of an object.
+// Since we are doing the access filtering outside of the database, we need to
+// ensure we are "filling" up the limit of the query.
+type Iterator interface {
+	// Next returns true if there is another row to be read
+	Next() bool
+	// Row returns the next row of the iterator
+	Row() (models.Object, error)
+	// All returns all rows of the iterator
+	All() ([]models.Object, error)
+
+	// Close closes the iterator
+	Close() error
 }
 
 type StorageBackend string
