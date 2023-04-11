@@ -47,20 +47,24 @@ const GitAuth: FC<{
     if (!formData.provider) {
       return;
     }
-
     check(formData.provider);
   }, [formData.provider, authSuccess, creatingPR, check]);
 
   useEffect(() => {
+    // if user is authenticated enable the create PR button
     if (isAuthenticated) {
       setEnableCreatePR(true);
-      if (creatingPR) {
-        // set(gitAuthCheckCompleted);
-        setSendPR && setSendPR(true);
-      }
     } else {
       setEnableCreatePR(false);
     }
+
+    // if user is authenticated and in the process of sending the PR, send the PR data to the api
+    /// sendPR will trigger validateFormData and then submit in form
+    if (isAuthenticated && creatingPR) {
+      setSendPR && setSendPR(true);
+    }
+    // if the user is not authenticated, checking of the token has finished and the user has already clicked the Create PR button
+    // show notification informing user they need to authenticate again as the token has expired
     if (!isAuthenticated && !loading && creatingPR) {
       setNotifications([
         {
@@ -71,8 +75,8 @@ const GitAuth: FC<{
           display: 'bottom',
         },
       ]);
-      return;
     }
+    return;
   }, [
     authSuccess,
     isAuthenticated,
