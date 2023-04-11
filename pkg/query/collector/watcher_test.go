@@ -161,5 +161,5 @@ func assertClusterWatcher(g *WithT, watcher Watcher, expectedStatus ClusterWatch
 	g.Expect(watcher).NotTo(BeNil())
 	status, err := watcher.Status()
 	g.Expect(err).To(BeNil())
-	g.Expect(ClusterWatchingStatus(status) == expectedStatus).To(BeTrue())
+	g.Expect(expectedStatus).To(BeIdenticalTo(ClusterWatchingStatus(status)))
 }

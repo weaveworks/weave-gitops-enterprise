@@ -27,7 +27,7 @@ func (c *watchingCollector) Start() error {
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
-		c.log.Info("watching cluster", "cluster", cluster.GetName())
+		c.log.Info("watching watcher", "watcher", cluster.GetName())
 	}
 
 	//watch on clusters
@@ -40,19 +40,18 @@ func (c *watchingCollector) Start() error {
 				for _, cluster := range updates.Added {
 					err := c.Watch(context.Background(), cluster)
 					if err != nil {
-						c.log.Error(err, "cannot watch cluster")
+						c.log.Error(err, "cannot watch watcher")
 					}
-					c.log.Info("watching cluster", "cluster", cluster.GetName())
+					c.log.Info("watching watcher", "watcher", cluster.GetName())
 				}
 
 				for _, cluster := range updates.Removed {
 					err := c.Unwatch(cluster.GetName())
 					if err != nil {
-						c.log.Error(err, "cannot unwatch cluster")
+						c.log.Error(err, "cannot unwatch watcher")
 					}
-					c.log.Info("unwatching cluster", "cluster", cluster.GetName())
+					c.log.Info("unwatched watcher", "watcher", cluster.GetName())
 				}
-
 			}
 		}
 	}()
@@ -139,7 +138,7 @@ func (w *watchingCollector) Watch(ctx context.Context, cluster cluster.Cluster) 
 
 	clusterName := cluster.GetName()
 	if clusterName == "" {
-		return fmt.Errorf("cluster name is empty")
+		return fmt.Errorf("watcher name is empty")
 	}
 
 	watcher, err := w.newWatcherFunc(config, clusterName, w.objectsChannel, w.kinds, w.log)
@@ -149,44 +148,39 @@ func (w *watchingCollector) Watch(ctx context.Context, cluster cluster.Cluster) 
 	//TODO it might not be enough to avoid clashes
 	w.clusterWatchers[clusterName] = watcher
 
-	go func() {
-		err = watcher.Start(ctx)
-		if err != nil {
-			w.log.Error(err, "failed to start watcher", "cluster", cluster.GetName())
-		}
-	}()
+	err = watcher.Start(ctx)
+	if err != nil {
+		w.log.Error(err, "failed to start watcher", "watcher", cluster.GetName())
+	}
 
 	return nil
 }
 
 func (w *watchingCollector) Unwatch(clusterName string) error {
 	if clusterName == "" {
-		return fmt.Errorf("cluster name is empty")
+		return fmt.Errorf("watcher name is empty")
 	}
 	clusterWatcher := w.clusterWatchers[clusterName]
 	if clusterWatcher == nil {
-		return fmt.Errorf("cluster watcher not found")
+		return fmt.Errorf("watcher watcher not found")
 	}
 	err := clusterWatcher.Stop(nil)
 	if err != nil {
-		return fmt.Errorf("cannot stop cluster watcher: %w", err)
+		return fmt.Errorf("cannot stop watcher watcher: %w", err)
 	}
 	w.clusterWatchers[clusterName] = nil
 	return nil
 }
 
-func (w *watchingCollector) Status(cluster cluster.Cluster) (string, error) {
-	if cluster == nil {
-		return "", fmt.Errorf("invalid clusterName")
-	}
-	if cluster.GetName() == "" {
+// Status returns a cluster watcher status for the cluster named as clusterName.
+// It returns an error if empty, cluster does not exist or the status cannot be retrieved.
+func (w *watchingCollector) Status(clusterName string) (string, error) {
+	if clusterName == "" {
 		return "", fmt.Errorf("cluster name is empty")
 	}
-
-	watcher := w.clusterWatchers[cluster.GetName()]
+	watcher := w.clusterWatchers[clusterName]
 	if watcher == nil {
-		return "", fmt.Errorf("clusterName not found: %s", cluster.GetName())
+		return "", fmt.Errorf("cluster not found: %s", clusterName)
 	}
-	//TODO review whether we need a new layer here
 	return watcher.Status()
 }

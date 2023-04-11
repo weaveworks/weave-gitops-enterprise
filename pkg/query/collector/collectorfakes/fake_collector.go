@@ -20,10 +20,10 @@ type FakeCollector struct {
 	startReturnsOnCall map[int]struct {
 		result1 error
 	}
-	StatusStub        func(cluster.Cluster) (string, error)
+	StatusStub        func(string) (string, error)
 	statusMutex       sync.RWMutex
 	statusArgsForCall []struct {
-		arg1 cluster.Cluster
+		arg1 string
 	}
 	statusReturns struct {
 		result1 string
@@ -123,11 +123,11 @@ func (fake *FakeCollector) StartReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Status(arg1 cluster.Cluster) (string, error) {
+func (fake *FakeCollector) Status(arg1 string) (string, error) {
 	fake.statusMutex.Lock()
 	ret, specificReturn := fake.statusReturnsOnCall[len(fake.statusArgsForCall)]
 	fake.statusArgsForCall = append(fake.statusArgsForCall, struct {
-		arg1 cluster.Cluster
+		arg1 string
 	}{arg1})
 	stub := fake.StatusStub
 	fakeReturns := fake.statusReturns
@@ -148,13 +148,13 @@ func (fake *FakeCollector) StatusCallCount() int {
 	return len(fake.statusArgsForCall)
 }
 
-func (fake *FakeCollector) StatusCalls(stub func(cluster.Cluster) (string, error)) {
+func (fake *FakeCollector) StatusCalls(stub func(string) (string, error)) {
 	fake.statusMutex.Lock()
 	defer fake.statusMutex.Unlock()
 	fake.StatusStub = stub
 }
 
-func (fake *FakeCollector) StatusArgsForCall(i int) cluster.Cluster {
+func (fake *FakeCollector) StatusArgsForCall(i int) string {
 	fake.statusMutex.RLock()
 	defer fake.statusMutex.RUnlock()
 	argsForCall := fake.statusArgsForCall[i]

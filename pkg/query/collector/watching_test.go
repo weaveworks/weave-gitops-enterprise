@@ -15,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"testing"
 
@@ -142,21 +141,22 @@ func TestClusterWatcher_Watch(t *testing.T) {
 		errPattern string
 	}{
 		{
-			name:       "can watch cluster",
+			name:       "can watch watcher",
 			cluster:    c,
 			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			g.Expect(err).To(BeNil())
 			err = collector.Watch(ctx, tt.cluster)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
-			assertClusterWatcher(g, collector.clusterWatchers[tt.cluster.GetName()], ClusterWatchingStarted)
+			status, err := collector.Status(tt.cluster.GetName())
+			g.Expect(err).To(BeNil())
+			g.Expect(ClusterWatchingStarted).To(BeIdenticalTo(ClusterWatchingStatus(status)))
 		})
 	}
 }
@@ -182,39 +182,50 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 		Host: "http://idontexist",
 	}
 	clusterName := "testCluster"
-
 	c := makeCluster(clusterName, config, log)
 	g.Expect(collector.Watch(ctx, c)).To(Succeed())
+	watcher := collector.clusterWatchers[clusterName]
 	tests := []struct {
 		name        string
+		watcher     Watcher
 		clusterName string
 		errPattern  string
 	}{
 		{
-			name:        "unwatch empty cluster throws error",
+			name:        "unwatch empty watcher throws error",
+			watcher:     nil,
 			clusterName: "",
-			errPattern:  "cluster name is empty",
+			errPattern:  "watcher name is empty",
 		},
 		{
-			name:        "unwatch non-existing cluster throws error",
+			name:        "unwatch non-existing watcher throws error",
+			watcher:     nil,
 			clusterName: "idontexist",
-			errPattern:  "cluster watcher not found",
+			errPattern:  "watcher watcher not found",
 		},
 		{
-			name:        "unwatch existing cluster unwatches it",
+			name:        "unwatch existing watcher unwatches it",
+			watcher:     watcher,
 			clusterName: clusterName,
 			errPattern:  "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.watcher != nil {
+				s, err := tt.watcher.Status()
+				g.Expect(err).To(BeNil())
+				g.Expect(ClusterWatchingStarted).To(BeIdenticalTo(ClusterWatchingStatus(s)))
+			}
 			err = collector.Unwatch(tt.clusterName)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
-			g.Expect(err).To(BeNil())
 			g.Expect(collector.clusterWatchers[tt.clusterName]).To(BeNil())
+			s, err := tt.watcher.Status()
+			g.Expect(err).To(BeNil())
+			g.Expect(ClusterWatchingStopped).To(BeIdenticalTo(ClusterWatchingStatus(s)))
 		})
 	}
 }
@@ -223,7 +234,7 @@ func makeCluster(name string, config *rest.Config, log logr.Logger) cluster.Clus
 	cluster := clusterfakes.FakeCluster{}
 	cluster.GetNameReturns(name)
 	cluster.GetServerConfigReturns(config, nil)
-	log.Info("fake cluster created", "cluster", cluster.GetName())
+	log.Info("fake watcher created", "watcher", cluster.GetName())
 	return &cluster
 }
 
@@ -245,48 +256,38 @@ func TestClusterWatcher_Status(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
-	clusterName := types.NamespacedName{
-		Name: "test",
-	}
-	config := &rest.Config{
+	existingClusterName := "test"
+	c := makeCluster(existingClusterName, &rest.Config{
 		Host: "http://idontexist",
-	}
-
-	c := makeCluster(clusterName.Name, config, log)
+	}, log)
 	err = collector.Watch(ctx, c)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
 		name           string
-		clusterName    types.NamespacedName
+		clusterName    string
 		errPattern     string
 		expectedStatus string
 	}{
 		{
-			name:        "cannot get status for cluster without name",
-			clusterName: types.NamespacedName{},
+			name:        "cannot get status for non existing cluster",
+			clusterName: "",
 			errPattern:  "cluster name is empty",
 		},
 		{
-			name: "could get status for existing cluster",
-			clusterName: types.NamespacedName{
-				Name: "test",
-			},
-			expectedStatus: string(ClusterWatchingStopped),
+			name:        "could not get status for non existing cluster",
+			clusterName: "dontexist",
+			errPattern:  "cluster not found",
 		},
 		{
-			name: "could not get status for non existing clusterName",
-			clusterName: types.NamespacedName{
-				Name:      "dontexist",
-				Namespace: "dontexist",
-			},
-			errPattern: "clusterName not found",
+			name:           "could get status for existing cluster",
+			clusterName:    existingClusterName,
+			expectedStatus: string(ClusterWatchingStarted),
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := makeCluster(tt.clusterName.Name, nil, log)
-			status, err := collector.Status(c)
+			status, err := collector.Status(tt.clusterName)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -311,16 +312,16 @@ type fakeWatcher struct {
 	status ClusterWatchingStatus
 }
 
-func (f fakeWatcher) Start(ctx context.Context) error {
+func (f *fakeWatcher) Start(ctx context.Context) error {
 	f.status = ClusterWatchingStarted
 	return nil
 }
 
-func (f fakeWatcher) Stop(context.Context) error {
+func (f *fakeWatcher) Stop(context.Context) error {
 	f.status = ClusterWatchingStopped
 	return nil
 }
 
-func (f fakeWatcher) Status() (string, error) {
+func (f *fakeWatcher) Status() (string, error) {
 	return string(f.status), nil
 }

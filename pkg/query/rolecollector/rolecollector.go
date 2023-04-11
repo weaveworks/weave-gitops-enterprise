@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/go-logr/logr"
@@ -155,12 +154,4 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	}
 
 	return nil
-}
-
-func (a *RoleCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
-	return a.col.Watch(ctx, cluster)
-}
-
-func (a *RoleCollector) Status(cluster cluster.Cluster) (string, error) {
-	return a.col.Status(cluster)
 }

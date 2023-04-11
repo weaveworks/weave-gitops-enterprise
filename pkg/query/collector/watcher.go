@@ -87,7 +87,7 @@ type WatcherManagerOptions struct {
 
 func (o WatcherManagerOptions) Validate() error {
 	if o.ClusterName == "" {
-		return fmt.Errorf("invalid cluster name")
+		return fmt.Errorf("invalid watcher name")
 	}
 
 	if o.Rest == nil {
@@ -222,14 +222,14 @@ func (w *DefaultWatcher) Start(ctx context.Context) error {
 }
 
 // Default stop function will gracefully stop watching the cluste r
-// and emmits a stop cluster watching event for upstreaming processing
+// and emmits a stop watcher watching event for upstreaming processing
 func (w *DefaultWatcher) Stop(context.Context) error {
 	// stop watcher manager via cancelling context
 	if w.stopFn == nil {
 		return fmt.Errorf("cannot stop watcher without stop manager function")
 	}
 	w.stopFn()
-	//emit delete all objects from cluster
+	//emit delete all objects from watcher
 	transactions := []models.ObjectTransaction{deleteAllTransaction{
 		clusterName: w.cluster.GetName(),
 	}}
@@ -238,6 +238,10 @@ func (w *DefaultWatcher) Stop(context.Context) error {
 	w.objectsChannel <- transactions
 	w.status = ClusterWatchingStopped
 	return nil
+}
+
+func (w *DefaultWatcher) Status() (string, error) {
+	return string(w.status), nil
 }
 
 type deleteAllTransaction struct {
@@ -254,8 +258,4 @@ func (r deleteAllTransaction) Object() client.Object {
 
 func (r deleteAllTransaction) TransactionType() models.TransactionType {
 	return models.TransactionTypeDeleteAll
-}
-
-func (w *DefaultWatcher) Status() (string, error) {
-	return string(w.status), nil
 }

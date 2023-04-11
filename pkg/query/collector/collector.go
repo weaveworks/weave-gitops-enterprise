@@ -13,12 +13,14 @@ import (
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// Interface for watching clusters via kuberentes api
-// https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
+// ClusterWatcher defines an interface to watch gitops clusters via kubernetes https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
+	// Watch starts watching the cluster passed as input
 	Watch(ctx context.Context, cluster cluster.Cluster) error
+	// Unwatch stops watching the cluster identified by input clusterName.
 	Unwatch(clusterName string) error
-	Status(cluster cluster.Cluster) (string, error)
+	// Status return the watcher status for the cluster identified as clusterName.
+	Status(clusterName string) (string, error)
 }
 
 //counterfeiter:generate . Collector
@@ -41,7 +43,7 @@ func (o *CollectorOpts) Validate() error {
 		return fmt.Errorf("invalid object kinds")
 	}
 	if o.ClusterManager == nil {
-		return fmt.Errorf("invalid cluster manager")
+		return fmt.Errorf("invalid watcher manager")
 	}
 	if o.ProcessRecordsFunc == nil {
 		return fmt.Errorf("process records func is nil")
