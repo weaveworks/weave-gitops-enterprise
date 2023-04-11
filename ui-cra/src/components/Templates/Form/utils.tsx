@@ -8,6 +8,8 @@ import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb'
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
+import URI from 'urijs';
+import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 
 const yamlConverter = require('js-yaml');
 
@@ -50,23 +52,36 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
   return maybeParseJSON(getAnnotation(resource));
 };
 
-export const getRepositoryUrl = (repo: GitRepository) => {
+export function getRepositoryUrl(repo: GitRepository) {
   // the https url can be overridden with an annotation
   const httpsUrl =
     repo?.obj?.metadata?.annotations?.['weave.works/repo-https-url'];
   if (httpsUrl) {
     return httpsUrl;
   }
-  let repositoryUrl = repo?.obj?.spec?.url;
-  let parsedUrl = GitUrlParse(repositoryUrl);
-  if (parsedUrl?.protocol === 'ssh') {
-    repositoryUrl = parsedUrl.href.replace('ssh://git@', 'https://');
+  let uri = URI(repo?.obj?.spec?.url);
+  if (uri.hostname() === 'ssh.dev.azure.com') {
+    uri = azureSshToHttps(uri.toString());
   }
-  // flux does not support "git@github.com:org/repo.git" style urls
-  // so we return the original url, the BE handler will fail and return
-  // an error to the user
-  return repositoryUrl;
-};
+  return uri.protocol('https').port('').userinfo('').toString();
+}
+
+function azureSshToHttps(sshUrl: string) {
+  const parts = sshUrl.split('/');
+  const organization = parts[4];
+  const project = parts[5];
+  const repository = parts[6];
+
+  const httpsUrl = `https://dev.azure.com/${organization}/${project}/_git/${repository}`;
+
+  return URI(httpsUrl);
+}
+
+export function getProvider(repo: GitRepository, config: GetConfigResponse) {
+  const url = getRepositoryUrl(repo);
+  const domain = URI(url).hostname();
+  return config?.gitHostTypes?.[domain] || 'github';
+}
 
 export function getInitialGitRepo(
   initialUrl: string | null,
@@ -92,6 +107,10 @@ export function getInitialGitRepo(
     }
   }
 
+  return getDefaultGitRepo(gitRepos);
+}
+
+export function getDefaultGitRepo(gitRepos: GitRepository[]) {
   const annoRepo = gitRepos.find(
     repo =>
       repo?.obj?.metadata?.annotations?.['weave.works/repo-role'] === 'default',
@@ -102,9 +121,12 @@ export function getInitialGitRepo(
 
   const mainRepo = gitRepos.find(
     repo =>
+      // FIXME: we should also be checking the management cluster name
+      // repo.clusterName === config.managementClusterName &&
       repo?.obj?.metadata?.name === 'flux-system' &&
       repo?.obj?.metadata?.namespace === 'flux-system',
   );
+
   if (mainRepo) {
     return mainRepo;
   }

@@ -1,6 +1,6 @@
 import { FC, useEffect, useState } from 'react';
 import { ListError } from '../../cluster-services/cluster_services.pb';
-import { theme } from '@weaveworks/weave-gitops';
+import { Flex, theme } from '@weaveworks/weave-gitops';
 import {
   Button,
   createStyles,
@@ -73,12 +73,6 @@ const BoxWrapper = styled(Box)`
   }
 `;
 
-const FlexCenter = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-`;
-
 export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
   const [index, setIndex] = useState<number>(0);
   const [filteredErrors, setFilteredErrors] = useState<ListError[]>([]);
@@ -107,14 +101,14 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
       <Collapse in={show}>
         {!!filteredErrors[index] && (
           <Alert severity="error" onClose={() => setShow(false)}>
-            <FlexCenter>
+            <Flex align center>
               <ErrorIcon className={classes.alertIcon} />
               <div className={classes.errorMessage} data-testid="error-message">
                 {filteredErrors[index].clusterName}:&nbsp;
                 {filteredErrors[index].message}
               </div>
-            </FlexCenter>
-            <FlexCenter>
+            </Flex>
+            <Flex align center>
               <Button
                 disabled={index === 0}
                 className={classes.navigationBtn}
@@ -135,7 +129,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
               >
                 <ArrowForwardIosOutlined className={classes.arrowIcon} />
               </Button>
-            </FlexCenter>
+            </Flex>
           </Alert>
         )}
       </Collapse>

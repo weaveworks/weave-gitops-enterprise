@@ -22,9 +22,11 @@ type Checker interface {
 	RelevantRulesForUser(user *auth.UserPrincipal, rules []models.AccessRule) []models.AccessRule
 }
 
-type defaultAccessChecker struct{}
+type defaultAccessChecker struct {
+	kindByResourceMap map[string]string
+}
 
-// HasAccess checks if a principal has access to a resource.
+// HasAccess checks if a principal has access to an object given principal access rules
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
@@ -41,48 +43,37 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			continue
 		}
 
-		//Checks whether the rule allows object's kind
-		//It will be allowed if the rule allows the apigroup and kind
-		for _, gvk := range rule.AccessibleKinds {
+		// A RBAC policyRule includes a set of <ApiGroup,Resource> https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
+		// It will allow access if both apiGroups and resources allow access
+		for _, gr := range rule.AccessibleKinds {
 
-			var ruleKind string
+			var resourceName string
 			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
 			// Sometimes the version is not present, so we need to handle that case.
-			parts := strings.Split(gvk, "/")
+			parts := strings.Split(gr, "/")
 
 			if len(parts) == 3 {
-				ruleKind = parts[2]
+				resourceName = parts[2]
 			} else if len(parts) == 2 {
-				ruleKind = parts[1]
+				resourceName = parts[1]
 			} else {
-				return false, fmt.Errorf("invalid GVK: %s", gvk)
+				return false, fmt.Errorf("invalid GVK: %s", gr)
 			}
 			ruleGroup := parts[0]
 
+			//apigroups should be the same
 			if ruleGroup != object.APIGroup {
 				continue
 			}
 
-			objectGVK := object.GroupVersionKind()
-
-			if strings.Contains(ruleKind, "*") {
-				// If the rule contains a wildcard, then the user has access to all kinds.
+			//wildcard allows any
+			if strings.Contains(resourceName, "*") {
 				return true, nil
 			}
-
-			//given roles rule contains apigroups https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
-			// but not version, any version would work
-			// we match on kind
-			if ruleKind == object.Kind {
+			//find whether resource allows kind
+			if a.kindByResourceMap[resourceName] == object.Kind {
 				return true, nil
 			}
-
-			//TODO: review with jordan when we match here
-			// Check for an exact group/version/kind match.
-			if gvk == objectGVK {
-				return true, nil
-			}
-
 		}
 	}
 
@@ -115,7 +106,10 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 	return matchingRules
 }
 
-// NewAccessChecker returns a new AccessChecker.
-func NewAccessChecker() Checker {
-	return &defaultAccessChecker{}
+// NewAccessChecker returns a new AccessChecker configured with a set of allowed resources
+// and kinds it could check access to
+func NewAccessChecker(kindByResourceMap map[string]string) (Checker, error) {
+	return &defaultAccessChecker{
+		kindByResourceMap: kindByResourceMap,
+	}, nil
 }

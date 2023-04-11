@@ -13,8 +13,8 @@ const { extraLarge } = theme.fontSizes;
 
 const Pad = styled(Flex)`
   padding: 8px 0;
-  align-items: center;
 `;
+
 const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   const { data } = useGetGithubAuthStatus(codeRes);
   if (!!data) {
@@ -23,10 +23,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   return (
     <div className={className}>
       <Pad wide center>
-        <div
-          className="github-code-container"
-          data-testid="github-code-container"
-        >
+        <Flex align data-testid="github-code-container">
           <p className="code-text" data-testid="github-code">
             {codeRes.userCode}
           </p>
@@ -34,7 +31,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
             value={codeRes.userCode as string}
             className="copy-code"
           />
-        </div>
+        </Flex>
       </Pad>
       <Pad wide center>
         <a target="_blank" href={codeRes.validationURI} rel="noreferrer">
@@ -65,10 +62,6 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   .code-text {
     font-size: ${extraLarge};
     margin: 0px 5px 0px 0px;
-  }
-  .github-code-container {
-    display: flex;
-    align-items: center;
   }
 `;
 export default ModalContent;

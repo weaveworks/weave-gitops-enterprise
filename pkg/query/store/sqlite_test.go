@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
 	"testing"
@@ -81,14 +82,85 @@ func TestNewSQLiteStore(t *testing.T) {
 	}
 }
 
+func TestSQLiteStore_StoreObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name       string
+		objects    []models.Object
+		errPattern string
+	}{
+		{
+			name:       "should ignore when empty objects",
+			objects:    []models.Object{},
+			errPattern: "",
+		},
+		{
+			name: "should store with one object",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			errPattern: "",
+		},
+		{
+			name: "should store with more than one object",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := store.StoreObjects(ctx, tt.objects)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			var storedObjectsNum int
+			g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects").Scan(&storedObjectsNum)).To(Succeed())
+			g.Expect(storedObjectsNum == len(tt.objects)).To(BeTrue())
+		})
+	}
+}
+
 func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	// This is a sanity check test to prove that policy rules get upserted along with their roles
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
 	store, db := createStore(t)
-
-	check := accesschecker.NewAccessChecker()
+	resourcesMap, err := testutils.CreateDefaultResourceKindMap()
+	g.Expect(err).To(BeNil())
+	check, err := accesschecker.NewAccessChecker(resourcesMap)
+	g.Expect(err).To(BeNil())
 
 	role := models.Role{
 		Cluster:   "test-cluster",
@@ -98,7 +170,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 		PolicyRules: []models.PolicyRule{
 			{
 				APIGroups: strings.Join([]string{"example.com"}, ","),
-				Resources: strings.Join([]string{"SomeKind"}, ","),
+				Resources: strings.Join([]string{"helmreleases"}, ","),
 				Verbs:     strings.Join([]string{"get", "list"}, ","),
 			},
 		},
@@ -125,7 +197,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	obj := models.Object{
 		Cluster:    "test-cluster",
 		Namespace:  "namespace",
-		Kind:       "SomeKind",
+		Kind:       "HelmRelease",
 		APIGroup:   "example.com",
 		APIVersion: "",
 	}
@@ -144,7 +216,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	var resources1 string
 	g.Expect(sqlDB.QueryRow("SELECT id, resources FROM policy_rules WHERE role_id = ?", roleID).Scan(&id, &resources1)).To(Succeed())
 
-	g.Expect(resources1).To(Equal("SomeKind"))
+	g.Expect(resources1).To(Equal("helmreleases"))
 
 	rules1, err := store.GetAccessRules(ctx)
 	g.Expect(err).To(BeNil())

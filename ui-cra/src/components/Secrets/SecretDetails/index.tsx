@@ -1,10 +1,15 @@
+import SyncIcon from '@material-ui/icons/Sync';
+import { Button, theme } from '@weaveworks/weave-gitops';
+import moment from 'moment';
+import { useState } from 'react';
+import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import moment from 'moment';
+import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
+import { syncSecret } from './SyncSecret';
 
 const SecretDetails = ({
   externalSecretName,
@@ -34,25 +39,46 @@ const SecretDetails = ({
       value: moment(secretDetails?.timestamp).fromNow(),
     },
   ];
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { setNotifications } = useNotifications();
 
   return (
-      <PageTemplate
-        documentTitle="Secrets"
-        path={[
-          { label: 'Secrets', url: Routes.Secrets },
-          { label: secretDetails?.externalSecretName || '' },
-        ]}
-      >
-        <ContentWrapper loading={isSecretDetailsLoading}>
-          {generateRowHeaders(defaultHeaders)}
-          <SecretDetailsTabs
-            externalSecretName={externalSecretName}
-            clusterName={clusterName}
-            namespace={namespace}
-            secretDetails={secretDetails || {}}
-          />
-        </ContentWrapper>
-      </PageTemplate>
+    <PageTemplate
+      documentTitle="Secrets"
+      path={[
+        { label: 'Secrets', url: Routes.Secrets },
+        { label: secretDetails?.externalSecretName || '' },
+      ]}
+    >
+      <ContentWrapper loading={isSecretDetailsLoading}>
+        <Button
+          id="create-secrets"
+          loading={isLoading}
+          startIcon={<SyncIcon />}
+          style={{ marginBottom: theme.spacing.medium }}
+          onClick={() => {
+            syncSecret(
+              {
+                clusterName,
+                namespace,
+                externalSecretName,
+              },
+              setNotifications,
+              setIsLoading,
+            );
+          }}
+        >
+          Sync
+        </Button>
+        {generateRowHeaders(defaultHeaders)}
+        <SecretDetailsTabs
+          externalSecretName={externalSecretName}
+          clusterName={clusterName}
+          namespace={namespace}
+          secretDetails={secretDetails || {}}
+        />
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

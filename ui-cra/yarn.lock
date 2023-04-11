@@ -2224,6 +2224,11 @@
   resolved "https://registry.npmjs.org/@types/unist/-/unist-2.0.6.tgz"
   integrity sha512-PBjIUxZHOuj0R15/xuwJYjFi+KZdNFrehocChv4g5hu6aFroHue8m0lBP0POdK2nKzbw0cgV1mws8+V/JAcEkQ==
 
+"@types/urijs@^1.19.19":
+  version "1.19.19"
+  resolved "https://registry.yarnpkg.com/@types/urijs/-/urijs-1.19.19.tgz#2789369799907fc11e2bc6e3a00f6478c2281b95"
+  integrity sha512-FDJNkyhmKLw7uEvTxx5tSXfPeQpO0iy73Ry+PmYZJvQy0QIWX8a7kJ4kLWRf+EbTPJEPDSgPXHaM7pzr5lmvCg==
+
 "@types/ws@^8.2.2":
   version "8.5.1"
   resolved "https://registry.npmjs.org/@types/ws/-/ws-8.5.1.tgz"
@@ -2335,10 +2340,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops-main@0.19.0-32-g3db84ae3":
-  version "0.19.0-32-g3db84ae3"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.19.0-32-g3db84ae3/bd535d981ef012e3055456bb4545908ca1a812a3#bd535d981ef012e3055456bb4545908ca1a812a3"
-  integrity sha512-2OzQ8B80lN3BUPimZK3HA4681F2KjokxOsEOk1Tcno7fU4juLWY4qTVvtHij5fg0NLn1JMCjQCU8thQ4g52fGw==
+"@weaveworks/weave-gitops-main@0.20.0-12-gccf5178b":
+  version "0.20.0-12-gccf5178b"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-12-gccf5178b/a3502c8190bbc3d0e734d13054a5b56574100630#a3502c8190bbc3d0e734d13054a5b56574100630"
+  integrity sha512-IiyxygyeN1hwQy8RfAs0pT1a5XZH4ILoz8dNo7/oBS1R6Qsus2HzlG+OCmWt4NMx3E0STcKzH9swulETFz3gDQ==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2366,10 +2371,10 @@
     styled-components "^5.3.0"
     yaml "^1.10.2"
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-2-g15becb29":
-  version "0.20.0-2-g15becb29"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-2-g15becb29/4e39fd7e403f35d8cacf19c19a0d92d9a48a88ff#4e39fd7e403f35d8cacf19c19a0d92d9a48a88ff"
-  integrity sha512-ez6OVxosr4dOP/4EO3dIesgVRDSfsS6ClFC9vuhHQ9QrIOKjtCNIWSmqmnRPWQDA6U79G6LSztHSWiy4+byVEQ==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-7-gb6d3961f":
+  version "0.20.0-7-gb6d3961f"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-7-gb6d3961f/b26b24a2294714870539342648b227955fddc58e#b26b24a2294714870539342648b227955fddc58e"
+  integrity sha512-IkPTClLIaK/POrwC7jn+mUiUO9LgkM2PlbdkMlRGynTvcrJi38pGKh7sspd00uhR/StIHGMroggH+cPoosuXyA==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -10503,6 +10508,11 @@ uri-js@^4.2.2:
   integrity sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==
   dependencies:
     punycode "^2.1.0"
+
+urijs@^1.19.11:
+  version "1.19.11"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.11.tgz#204b0d6b605ae80bea54bea39280cdb7c9f923cc"
+  integrity sha512-HXgFDgDommxn5/bIv0cnQZsPhHDA90NPHD6+c/v21U5+Sx5hoP8+dP9IZXBU1gIfvdRfhG8cel9QNPeionfcCQ==
 
 util-deprecate@^1.0.1, util-deprecate@^1.0.2, util-deprecate@~1.0.1:
   version "1.0.2"
