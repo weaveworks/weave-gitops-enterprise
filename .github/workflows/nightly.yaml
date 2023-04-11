@@ -1,6 +1,6 @@
 on:
-  schedule:
-    - cron: "10 0 * * 1-5"
+  # schedule:
+  #   - cron: "10 0 * * 1-5"
   workflow_dispatch:
 
 name: nightly
@@ -32,7 +32,7 @@ jobs:
       cluster_resource_set: true
       management-cluster-kind: kind
       capi_provider: capd
-      gitops-bin-path: /usr/local/bin/gitops      
+      gitops-bin-path: /usr/local/bin/gitops
       test-artifact-name: acceptance-tests-kind-gitlab-on-prem
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -64,7 +64,7 @@ jobs:
       cluster_resource_set: false
       management-cluster-kind: eks
       capi_provider: capa
-      gitops-bin-path: /usr/local/bin/gitops      
+      gitops-bin-path: /usr/local/bin/gitops
       test-artifact-name: acceptance-tests-eks-github
     secrets:
       WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
@@ -125,4 +125,4 @@ jobs:
       check-name: "Acceptance Tests"
       slack-notification: true
     secrets:
-      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }} 
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
