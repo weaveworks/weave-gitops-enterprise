@@ -29,6 +29,7 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import { useIsAuthenticated } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -538,7 +539,21 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
+  const {
+    isAuthenticated,
+    req: check,
+    loading: checkingAuthToken,
+  } = useIsAuthenticated();
+
+  useEffect(() => {
+    if (formData.provider) {
+      console.log(formData.provider);
+      check(formData.provider);
+    }
+  }, [formData.provider, check]);
+
   return useMemo(() => {
+    console.log(isAuthenticated);
     return (
       <CallbackStateContextProvider
         callbackState={{
@@ -558,6 +573,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               getSubmitFunction(submitType),
               setFormError,
               setSubmitType,
+              isAuthenticated,
             )
           }
         >
@@ -645,7 +661,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 !(resource && initialGitRepo?.createPRRepo)
               }
             />
-            {loading ? (
+            {loading || checkingAuthToken ? (
               <LoadingPage className="create-loading" />
             ) : (
               <Flex end className="create-cta">
@@ -691,6 +707,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     getSubmitFunction,
     resource,
     initialGitRepo,
+    checkingAuthToken,
+    isAuthenticated,
   ]);
 };
 

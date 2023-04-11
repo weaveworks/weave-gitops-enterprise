@@ -250,8 +250,14 @@ export const validateFormData = (
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
   setSubmitType?: Dispatch<React.SetStateAction<string>>,
+  isAuthenticated?: boolean,
 ) => {
   event.preventDefault();
+
+  if (!isAuthenticated) {
+    console.log('set notif');
+    return;
+  }
   const requiredButEmptyInputs = Array.from(event.target).filter(
     (element: any) =>
       element.type === 'text' && element.required && element.value === '',
