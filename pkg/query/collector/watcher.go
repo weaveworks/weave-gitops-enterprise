@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -54,9 +55,9 @@ func (o WatcherOptions) Validate() error {
 }
 
 type Watcher interface {
-	Start(ctx context.Context, log logr.Logger) error
+	Start(ctx context.Context) error
+	Stop(ctx context.Context) error
 	Status() (string, error)
-	Stop() error
 }
 
 type DefaultWatcher struct {
@@ -65,14 +66,15 @@ type DefaultWatcher struct {
 	scheme            *runtime.Scheme
 	clusterRef        types.NamespacedName
 	cluster           cluster.Cluster
-	stopFn            context.CancelFunc
 	log               logr.Logger
 	status            ClusterWatchingStatus
 	newWatcherManager WatcherManagerFunc
 	objectsChannel    chan []models.ObjectTransaction
+	stopFn            context.CancelFunc
 }
 
 type WatcherManagerFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
+type WatcherStopFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
 
 type WatcherManagerOptions struct {
 	Log            logr.Logger
@@ -159,6 +161,7 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		status:            ClusterWatchingStopped,
 		newWatcherManager: opts.ManagerFunc,
 		objectsChannel:    opts.ObjectChannel,
+		log:               opts.Log,
 	}, nil
 }
 
@@ -179,9 +182,7 @@ func newDefaultScheme() (*runtime.Scheme, error) {
 	return sc, nil
 }
 
-func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
-	w.log = log.WithName("watcher")
-
+func (w *DefaultWatcher) Start(ctx context.Context) error {
 	ctx, cancel := context.WithCancel(ctx)
 	w.stopFn = cancel
 
@@ -211,7 +212,7 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 
 	go func() {
 		if err := w.watcherManager.Start(ctx); err != nil {
-			log.Error(err, "cannot start watcher")
+			w.log.Error(err, "cannot start watcher")
 		}
 	}()
 
@@ -220,14 +221,41 @@ func (w *DefaultWatcher) Start(ctx context.Context, log logr.Logger) error {
 	return nil
 }
 
-func (w *DefaultWatcher) Stop() error {
+// Default stop function will gracefully stop watching the cluste r
+// and emmits a stop watcher watching event for upstreaming processing
+func (w *DefaultWatcher) Stop(context.Context) error {
+	// stop watcher manager via cancelling context
 	if w.stopFn == nil {
-		return fmt.Errorf("Stop function not set yet")
+		return fmt.Errorf("cannot stop watcher without stop manager function")
 	}
 	w.stopFn()
+	//emit delete all objects from watcher
+	transactions := []models.ObjectTransaction{deleteAllTransaction{
+		clusterName: w.cluster.GetName(),
+	}}
+
+	//TODO manage error
+	w.objectsChannel <- transactions
+	w.status = ClusterWatchingStopped
 	return nil
 }
 
 func (w *DefaultWatcher) Status() (string, error) {
 	return string(w.status), nil
+}
+
+type deleteAllTransaction struct {
+	clusterName string
+}
+
+func (r deleteAllTransaction) ClusterName() string {
+	return r.clusterName
+}
+
+func (r deleteAllTransaction) Object() client.Object {
+	return nil
+}
+
+func (r deleteAllTransaction) TransactionType() models.TransactionType {
+	return models.TransactionTypeDeleteAll
 }

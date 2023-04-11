@@ -115,6 +115,5 @@ func (f fakeControllerManager) GetControllerOptions() v1alpha1.ControllerConfigu
 
 func NewControllerManager(config *rest.Config, options ctrl.Options) (ctrl.Manager, error) {
 	options.Logger.Info("created fake watcher")
-
 	return fakeControllerManager{log: options.Logger, scheme: options.Scheme}, nil
 }

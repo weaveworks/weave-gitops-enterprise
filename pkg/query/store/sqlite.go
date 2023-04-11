@@ -24,6 +24,50 @@ type SQLiteStore struct {
 	log logr.Logger
 }
 
+func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Role{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
+func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.RoleBinding{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+	return nil
+}
+
+func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Object{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
 		db:  db,
@@ -32,9 +76,6 @@ func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 }
 
 func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
-	if len(roles) == 0 {
-		return fmt.Errorf("empty role list")
-	}
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
@@ -74,10 +115,6 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 }
 
 func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
-	if len(roleBindings) == 0 {
-		return fmt.Errorf("empty role binding list")
-	}
-
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)
