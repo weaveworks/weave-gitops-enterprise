@@ -87,7 +87,7 @@ type WatcherManagerOptions struct {
 
 func (o WatcherManagerOptions) Validate() error {
 	if o.ClusterName == "" {
-		return fmt.Errorf("invalid watcher name")
+		return fmt.Errorf("invalid cluster name")
 	}
 
 	if o.Rest == nil {

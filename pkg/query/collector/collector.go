@@ -43,7 +43,7 @@ func (o *CollectorOpts) Validate() error {
 		return fmt.Errorf("invalid object kinds")
 	}
 	if o.ClusterManager == nil {
-		return fmt.Errorf("invalid watcher manager")
+		return fmt.Errorf("invalid cluster manager")
 	}
 	if o.ProcessRecordsFunc == nil {
 		return fmt.Errorf("process records func is nil")

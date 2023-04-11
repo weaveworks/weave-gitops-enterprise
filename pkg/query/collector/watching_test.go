@@ -141,7 +141,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 		errPattern string
 	}{
 		{
-			name:       "can watch watcher",
+			name:       "can watch cluster",
 			cluster:    c,
 			errPattern: "",
 		},
@@ -192,19 +192,19 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 		errPattern  string
 	}{
 		{
-			name:        "unwatch empty watcher throws error",
+			name:        "unwatch empty cluster throws error",
 			watcher:     nil,
 			clusterName: "",
-			errPattern:  "watcher name is empty",
+			errPattern:  "cluster name is empty",
 		},
 		{
-			name:        "unwatch non-existing watcher throws error",
+			name:        "unwatch non-existing cluster throws error",
 			watcher:     nil,
 			clusterName: "idontexist",
-			errPattern:  "watcher watcher not found",
+			errPattern:  "cluster watcher not found",
 		},
 		{
-			name:        "unwatch existing watcher unwatches it",
+			name:        "unwatch existing cluster unwatches it",
 			watcher:     watcher,
 			clusterName: clusterName,
 			errPattern:  "",

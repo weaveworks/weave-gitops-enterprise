@@ -212,7 +212,6 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//TODO see 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
 			g.Expect(store.StoreObjects(ctx, tt.addObjects)).To(Succeed())
 			err := store.DeleteAllObjects(ctx, tt.deleteClusters)
 			if tt.errPattern != "" {
@@ -298,7 +297,6 @@ func TestSQLiteStore_DeleteAllRoles(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//TODO see 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
 			g.Expect(store.StoreRoles(ctx, tt.rolesToAdd)).To(Succeed())
 			err := store.DeleteAllRoles(ctx, tt.deleteClusters)
 			if tt.errPattern != "" {
@@ -387,7 +385,6 @@ func TestSQLiteStore_DeleteAllRoleBindings(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//TODO see 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
 			g.Expect(store.StoreRoleBindings(ctx, tt.roleBindingsToAdd)).To(Succeed())
 			err := store.DeleteAllRoleBindings(ctx, tt.deleteClusters)
 			if tt.errPattern != "" {
