@@ -1,4 +1,4 @@
-import { MenuItem } from '@material-ui/core';
+import { CircularProgress, MenuItem } from '@material-ui/core';
 import {
   Button,
   Flex,
@@ -31,6 +31,7 @@ type Props = SelectProps & {
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   enableGitRepoSelection?: boolean;
   value: string;
+  loading: boolean;
 };
 
 export function RepoInputWithAuth({
@@ -42,6 +43,7 @@ export function RepoInputWithAuth({
   setFormData,
   enableGitRepoSelection,
   value,
+  loading,
   ...props
 }: Props) {
   const parsedValue = value && JSON.parse(value);
@@ -121,18 +123,23 @@ export function RepoInputWithAuth({
       <div className="auth-message">
         {isAuthenticated && (
           <Flex align>
-            <Icon
-              size="medium"
-              color="successOriginal"
-              type={IconType.CheckMark}
-            />{' '}
-            {res?.provider} credentials detected
+            {loading && <CircularProgress />}
+            {!loading && (
+              <>
+                <Icon
+                  size="medium"
+                  color="successOriginal"
+                  type={IconType.CheckMark}
+                />{' '}
+                {res?.provider} credentials detected
+              </>
+            )}
           </Flex>
         )}
-        {!isAuthenticated && !res && (
+        {!isAuthenticated && !res && !loading && (
           <Button disabled>Authenticate with your Git Provider</Button>
         )}
-        {renderProviderAuthButton && (
+        {renderProviderAuthButton && !loading && (
           <AuthButton provider={res?.provider} onClick={onAuthClick} />
         )}
       </div>
