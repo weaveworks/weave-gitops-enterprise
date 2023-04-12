@@ -33,6 +33,15 @@ export function useIsAuthenticated() {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       [gitAuthClient],
     ),
+    check: useCallback(
+      (provider: GitProvider) => {
+        //@ts-ignore
+        const headers = makeHeaders(_.bind(getProviderToken, this, provider));
+        return gitAuthClient.ValidateProviderToken({ provider }, { headers });
+      },
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      [gitAuthClient],
+    ),
   };
 }
 

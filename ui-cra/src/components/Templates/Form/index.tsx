@@ -652,6 +652,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 !(resource && initialGitRepo?.createPRRepo)
               }
               creatingPR={creatingPR}
+              setCreatingPR={setCreatingPR}
               setSendPR={setSendPR}
             />
             {loading ? (

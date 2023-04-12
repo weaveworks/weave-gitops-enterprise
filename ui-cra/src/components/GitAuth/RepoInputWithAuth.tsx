@@ -123,8 +123,9 @@ export function RepoInputWithAuth({
       <div className="auth-message">
         {isAuthenticated && (
           <Flex align>
-            {loading && <CircularProgress />}
-            {!loading && (
+            {loading ? (
+              <CircularProgress />
+            ) : (
               <>
                 <Icon
                   size="medium"

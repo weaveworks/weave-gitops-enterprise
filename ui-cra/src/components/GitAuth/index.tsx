@@ -28,6 +28,7 @@ const GitAuth: FC<{
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   enableGitRepoSelection?: boolean;
   creatingPR?: boolean;
+  setCreatingPR?: Dispatch<React.SetStateAction<boolean>>;
   setSendPR?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
@@ -37,55 +38,101 @@ const GitAuth: FC<{
   setEnableCreatePR,
   enableGitRepoSelection,
   creatingPR,
+  setCreatingPR,
   setSendPR,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
-  const { isAuthenticated, loading, req: check } = useIsAuthenticated();
+  const { isAuthenticated, loading, check } = useIsAuthenticated();
   const { setNotifications } = useNotifications();
 
   useEffect(() => {
     if (!formData.provider) {
       return;
     }
-    check(formData.provider);
-  }, [formData.provider, authSuccess, creatingPR, check]);
+    // result is {valid: true}
+    check(formData.provider)
+      .then(result => {
+        if (isAuthenticated) {
+          setEnableCreatePR(true);
+        } else {
+          setEnableCreatePR(false);
+        }
+        if (!isAuthenticated && creatingPR) {
+          setCreatingPR && setCreatingPR(false);
+          setNotifications([
+            {
+              message: {
+                text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
+              },
+              severity: 'error',
+              display: 'bottom',
+            },
+          ]);
+          return;
+        }
 
-  useEffect(() => {
-    // if user is authenticated enable the create PR button
-    if (isAuthenticated) {
-      setEnableCreatePR(true);
-    } else {
-      setEnableCreatePR(false);
-    }
-
-    // if user is authenticated and in the process of sending the PR, send the PR data to the api
-    /// sendPR will trigger validateFormData and then submit in form
-    if (isAuthenticated && creatingPR) {
-      setSendPR && setSendPR(true);
-    }
-    // if the user is not authenticated, checking of the token has finished and the user has already clicked the Create PR button
-    // show notification informing user they need to authenticate again as the token has expired
-    if (!isAuthenticated && !loading && creatingPR) {
-      setNotifications([
-        {
-          message: {
-            text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
-          },
-          severity: 'error',
-          display: 'bottom',
-        },
-      ]);
-    }
-    return;
+        if (isAuthenticated && creatingPR) {
+          setSendPR && setSendPR(true);
+        }
+        return;
+      })
+      .catch(error => console.log(error));
   }, [
+    formData.provider,
     authSuccess,
-    isAuthenticated,
-    setEnableCreatePR,
-    loading,
-    setNotifications,
     creatingPR,
+    check,
+    isAuthenticated,
+    setCreatingPR,
+    setEnableCreatePR,
+    setNotifications,
     setSendPR,
   ]);
+
+  // useEffect(() => {
+  //   // if user is authenticated enable the create PR button
+  //   if (isAuthenticated) {
+  //     setEnableCreatePR(true);
+  //   } else {
+  //     setEnableCreatePR(false);
+  //   }
+
+  //   // if the user is not authenticated, checking of the token has finished and the user has already clicked the Create PR button
+  //   // show notification informing user they need to authenticate again as the token has expired
+  //   if (!isAuthenticated && creatingPR) {
+  //     setCreatingPR && setCreatingPR(false);
+  //     setNotifications([
+  //       {
+  //         message: {
+  //           text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
+  //         },
+  //         severity: 'error',
+  //         display: 'bottom',
+  //       },
+  //     ]);
+  //     return;
+  //   }
+
+  //   // if user is authenticated and in the process of sending the PR, send the PR data to the api
+  //   /// sendPR will trigger validateFormData and then submit in form
+  //   if (isAuthenticated && creatingPR) {
+  //     console.log('this is running', 'loading is', loading);
+  //     setSendPR && setSendPR(true);
+  //   }
+
+  //   // return () => {
+  //   //   setCreatingPR && setCreatingPR(false);
+  //   // };
+  // }, [
+  //   authSuccess,
+  //   isAuthenticated,
+  //   setEnableCreatePR,
+  //   loading,
+  //   setNotifications,
+  //   creatingPR,
+  //   setCreatingPR,
+  //   setSendPR,
+  // ]);
 
   return (
     <>
