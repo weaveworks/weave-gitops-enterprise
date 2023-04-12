@@ -51,6 +51,7 @@ import {
   GetWorkspaceRoleBindingsResponse,
   GetWorkspaceRolesResponse,
   GetWorkspaceServiceAccountsResponse,
+  ListEventsResponse,
   ListExternalSecretsResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
@@ -305,7 +306,6 @@ export class PolicyClientMock {
   }
 }
 
-
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
@@ -317,7 +317,6 @@ export class PolicyConfigsClientMock {
   GetPolicyConfig() {
     return promisify(this.GetPolicyConfigReturns);
   }
-
 }
 export class PipelinesClientMock implements Pipelines {
   constructor() {
@@ -401,18 +400,19 @@ export class WorkspaceClientMock {
 }
 
 export class SecretsClientMock {
-  constructor() {
-    this.ListExternalSecrets = this.ListExternalSecrets.bind(this);
-    this.GetSecret = this.GetSecret.bind(this);
-  }
   ListSecretsReturns: ListExternalSecretsResponse = {};
-  GetSecretReturns: GetExternalSecretResponse = {};
+  GetExternalSecretReturns: GetExternalSecretResponse = {};
+  ListEventsReturns: ListEventsResponse = {};
 
   ListExternalSecrets() {
     return promisify(this.ListSecretsReturns);
   }
-  GetSecret() {
-    return promisify(this.GetSecretReturns);
+
+  GetExternalSecret() {
+    return promisify(this.GetExternalSecretReturns);
+  }
+  ListEvents() {
+    return promisify(this.ListEventsReturns);
   }
 }
 
