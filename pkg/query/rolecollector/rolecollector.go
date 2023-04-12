@@ -3,6 +3,7 @@ package rolecollector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	rbacv1 "k8s.io/api/rbac/v1"
 
@@ -59,14 +60,14 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}
 	return &RoleCollector{
 		col:       col,
-		log:       opts.Log,
+		log:       opts.Log.WithName("roles-collector"),
 		converter: runtime.DefaultUnstructuredConverter,
 		w:         w,
 		verbs:     DefaultVerbsRequiredForAccess,
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(ctx context.Context, objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
 	deleteAll := []string{}
 
 	roles := []models.Role{}
@@ -75,7 +76,9 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	bindings := []models.RoleBinding{}
 	bindingsToDelete := []models.RoleBinding{}
 
-	for _, obj := range objectRecords {
+	for _, obj := range objectTransactions {
+
+		log.V(logger.LogLevelDebug).Info("processing object tx", "tx", obj.String())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {

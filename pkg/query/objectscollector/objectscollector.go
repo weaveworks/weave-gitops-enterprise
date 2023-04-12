@@ -53,7 +53,7 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	}
 	return &ObjectsCollector{
 		col:   col,
-		log:   opts.Log,
+		log:   opts.Log.WithName("objects-collector"),
 		store: w,
 	}, nil
 }

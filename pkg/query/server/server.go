@@ -127,7 +127,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 		return nil, nil, fmt.Errorf("cannot resources mapper:%w", err)
 	}
 
-	checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
+	checker, err := accesschecker.NewAccessChecker(kindByResourceMap, log)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}

@@ -3,7 +3,6 @@ package collector
 import (
 	"context"
 	"fmt"
-
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
@@ -15,19 +14,16 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-func (c *watchingCollector) Start() error {
-	c.log.Info("starting watcher", "kinds", c.kinds)
-	//TODO review context
-	ctx := context.Background()
+func (c *watchingCollector) Start(ctx context.Context) error {
 	cw := c.clusterManager.Subscribe()
 	c.objectsChannel = make(chan []models.ObjectTransaction)
 
 	for _, cluster := range c.clusterManager.GetClusters() {
-		err := c.Watch(context.Background(), cluster)
+		err := c.Watch(ctx, cluster)
 		if err != nil {
 			return fmt.Errorf("cannot watch clusterName: %w", err)
 		}
-		c.log.Info("watching", "cluster", cluster.GetName())
+		c.log.Info("cluster watching", "cluster", cluster.GetName())
 	}
 
 	//watch on clusters
@@ -42,7 +38,7 @@ func (c *watchingCollector) Start() error {
 					if err != nil {
 						c.log.Error(err, "cannot watch cluster")
 					}
-					c.log.Info("watching", "cluster", cluster.GetName())
+					c.log.Info("cluster watching", "cluster", cluster.GetName())
 				}
 
 				for _, cluster := range updates.Removed {
@@ -50,7 +46,7 @@ func (c *watchingCollector) Start() error {
 					if err != nil {
 						c.log.Error(err, "cannot unwatch cluster")
 					}
-					c.log.Info("unwatched", "cluster", cluster.GetName())
+					c.log.Info("cluster unwatching", "cluster", cluster.GetName())
 				}
 			}
 		}
@@ -58,20 +54,25 @@ func (c *watchingCollector) Start() error {
 
 	go func() {
 		for {
-			objectTransactions := <-c.objectsChannel
-			err := c.processRecordsFunc(ctx, objectTransactions, c.store, c.log)
-			if err != nil {
-				c.log.Error(err, "cannot process records")
+			select {
+			case <-ctx.Done():
+				return
+			case objectTransactions := <-c.objectsChannel:
+				err := c.processRecordsFunc(ctx, objectTransactions, c.store, c.log)
+				if err != nil {
+					c.log.Error(err, "cannot process records")
+				}
 			}
 		}
 	}()
 
+	c.log.Info("watcher started", "kinds", c.kinds)
 	return nil
 }
 
+// TODO this does nothing?
 func (c *watchingCollector) Stop() error {
 	c.log.Info("stopping collector")
-
 	return nil
 }
 
@@ -99,7 +100,7 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 		newWatcherFunc:     opts.NewWatcherFunc,
 		store:              store,
 		kinds:              opts.ObjectKinds,
-		log:                opts.Log.WithName("collector"),
+		log:                opts.Log,
 		processRecordsFunc: opts.ProcessRecordsFunc,
 	}, nil
 }
