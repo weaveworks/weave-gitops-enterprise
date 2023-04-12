@@ -3,6 +3,8 @@ package rolecollector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
+
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/go-logr/logr"
@@ -28,23 +30,17 @@ type RoleCollector struct {
 	quit      chan struct{}
 }
 
-func (a *RoleCollector) Start() error {
+func (a *RoleCollector) Start(ctx context.Context) error {
 	err := a.col.Start()
 	if err != nil {
-		return fmt.Errorf("could not start role collector: %w", err)
+		return fmt.Errorf("could not start access collector: %w", err)
 	}
-	a.log.Info("role collector started")
 	return nil
 }
 
 func (a *RoleCollector) Stop() error {
 	a.quit <- struct{}{}
-	err := a.col.Stop()
-	if err != nil {
-		return fmt.Errorf("could not stop role collector: %w", err)
-	}
-	a.log.Info("role collector stopped")
-	return nil
+	return a.col.Stop()
 }
 
 func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
@@ -71,8 +67,7 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
-	ctx := context.Background()
+func defaultProcessRecords(ctx context.Context, objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
 	deleteAll := []string{}
 
 	roles := []models.Role{}
@@ -83,7 +78,7 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 
 	for _, obj := range objectTransactions {
 
-		debug.Info("processing object tx", "tx", obj.ClusterName())
+		log.V(logger.LogLevelDebug).Info("processing object tx", "tx", obj.String())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {
@@ -161,6 +156,5 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 		}
 	}
 
-	debug.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
 	return nil
 }

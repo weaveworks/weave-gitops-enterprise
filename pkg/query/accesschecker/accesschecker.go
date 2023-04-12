@@ -2,6 +2,8 @@ package accesschecker
 
 import (
 	"fmt"
+	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -24,24 +26,36 @@ type Checker interface {
 
 type defaultAccessChecker struct {
 	kindByResourceMap map[string]string
+	log               logr.Logger
 }
 
 // HasAccess checks if a principal has access to an object given principal access rules
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
-	for _, rule := range rules {
+	a.log.V(logger.LogLevelDebug).Info("has access", "user", user.String(), "object", object.String())
+	// Contains all the rules that are relevant to this user.
+	// This is based on their ID and the groups they belong to.
+	matchingRules := a.RelevantRulesForUser(user, rules)
+
+	for _, rule := range matchingRules {
+		a.log.V(logger.LogLevelDebug).Info("matching rule", "rule", rule.String())
+
 		if rule.Cluster != object.Cluster {
 			// Not the same cluster, so not relevant.
+			a.log.V(logger.LogLevelDebug).Info("no access: no matching cluster")
 			continue
 		}
 
 		if rule.Namespace != "" && rule.Namespace != object.Namespace {
 			// ClusterRoles and ClusterRoleBindings are not namespaced, so we only check if the field is
+			a.log.V(logger.LogLevelDebug).Info("no access: no matching namespace")
 			continue
 		}
 
 		// A RBAC policyRule includes a set of <ApiGroup,Resource> https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
 		// It will allow access if both apiGroups and resources allow access
 		for _, gr := range rule.AccessibleKinds {
+			a.log.V(logger.LogLevelDebug).Info("matching GroupResource", "gr", gr)
+
 			var resourceName string
 			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
 			// Sometimes the version is not present, so we need to handle that case.
@@ -58,6 +72,7 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 
 			//apigroups should be the same
 			if ruleGroup != object.APIGroup {
+				a.log.V(logger.LogLevelDebug).Info("no access: no matching apigroup")
 				continue
 			}
 
@@ -69,8 +84,12 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			if a.kindByResourceMap[resourceName] == object.Kind {
 				return true, nil
 			}
+			a.log.V(logger.LogLevelDebug).Info("no access: no matching resource")
+
 		}
 	}
+
+	a.log.V(logger.LogLevelDebug).Info("no access", "user", user.String(), "object", object.String())
 	return false, nil
 }
 
@@ -102,8 +121,9 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 
 // NewAccessChecker returns a new AccessChecker configured with a set of allowed resources
 // and kinds it could check access to
-func NewAccessChecker(kindByResourceMap map[string]string) (Checker, error) {
+func NewAccessChecker(kindByResourceMap map[string]string, log logr.Logger) (Checker, error) {
 	return &defaultAccessChecker{
 		kindByResourceMap: kindByResourceMap,
+		log:               log.WithName("query-access-checker"),
 	}, nil
 }

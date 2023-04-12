@@ -74,4 +74,5 @@ type ObjectTransaction interface {
 	ClusterName() string
 	Object() client.Object
 	TransactionType() TransactionType
+	String() string
 }
