@@ -18,11 +18,6 @@ import (
 	"text/template"
 	"time"
 
-	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
@@ -34,19 +29,27 @@ import (
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/yaml"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/charts"
 	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git/gitfakes"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
 func TestListGitopsClusters(t *testing.T) {
@@ -1504,6 +1507,7 @@ func simpleTemplate(t *testing.T, templateString string, data interface{}) strin
 func TestGetKubeconfig(t *testing.T) {
 	testCases := []struct {
 		name                    string
+		client                  client.Client
 		clusterState            []runtime.Object
 		clusterObjectsNamespace string // Namespace that cluster objects are created in
 		req                     *capiv1_protos.GetKubeconfigRequest
@@ -1624,10 +1628,33 @@ func TestGetKubeconfig(t *testing.T) {
 			expected: []byte("bar"),
 		},
 		{
+			name: "no access to additional secrets",
+			client: fake.NewClientBuilder().WithScheme(newTestScheme(t)).WithObjectTracker(&mockTracker{
+				getImpl: func(gvr schema.GroupVersionResource, ns, name string) (runtime.Object, error) {
+					if name == "dev" && ns == "default" {
+						return makeTestGitopsCluster(func(o *gitopsv1alpha1.GitopsCluster) {
+							o.ObjectMeta.Name = "dev"
+							o.ObjectMeta.Namespace = "default"
+						}), nil
+					}
+					if name == "dev-user-kubeconfig" && ns == "default" {
+						return makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"), nil
+					}
+
+					return nil, apierrors.NewForbidden(gvr.GroupResource(), name, errors.New("forbidden"))
+
+				}}).Build(),
+			clusterObjectsNamespace: "default",
+			req: &capiv1_protos.GetKubeconfigRequest{
+				ClusterName: "dev",
+			},
+			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
+			expected: []byte("bar"),
+		},
+		{
 			name: "kubeconfig override exists merges with existing secret",
 			clusterState: []runtime.Object{
 				makeSecret("dev-kubeconfig", "default", "value.yaml", `{"apiVersion":"v1","clusters":[{"cluster":{"certificate-authority-data":"anVzdCB0ZXN0aW5n","server":"https://example.com"},"name":"example-com"}],"contexts":[{"context":{"cluster":"example-com","user":"example-com-admin"},"name":"example-com"}],"current-context":"example-com","kind":"Config","preferences":{},"users":[{"name":"example-com-admin","user":{"token":"token"}}]}`),
-				// makeSecret("dev-user-kubeconfig", "default", "value.yaml", "bar"),
 				makeSecret("cluster-kubeconfig-override", "default", "value.yaml", `
 apiVersion: v1
 kind: Config
@@ -1735,6 +1762,7 @@ users:
 
 			s := createServer(t, serverOptions{
 				clusterState: tt.clusterState,
+				client:       tt.client,
 				namespace:    "default",
 				ns:           tt.clusterObjectsNamespace,
 			})
