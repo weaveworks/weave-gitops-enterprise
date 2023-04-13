@@ -71,6 +71,7 @@ import (
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -497,8 +498,10 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		estimator = est
 	}
 
+	healthChecker := health.NewHealthChecker()
+
 	coreCfg, err := core_core.NewCoreConfig(
-		log, rest, clusterName, clustersManager,
+		log, rest, clusterName, clustersManager, healthChecker,
 	)
 	if err != nil {
 		return err
