@@ -2340,41 +2340,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops-main@0.20.0-12-gccf5178b":
-  version "0.20.0-12-gccf5178b"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-12-gccf5178b/a3502c8190bbc3d0e734d13054a5b56574100630#a3502c8190bbc3d0e734d13054a5b56574100630"
-  integrity sha512-IiyxygyeN1hwQy8RfAs0pT1a5XZH4ILoz8dNo7/oBS1R6Qsus2HzlG+OCmWt4NMx3E0STcKzH9swulETFz3gDQ==
-  dependencies:
-    "@material-ui/core" "^4.12.3"
-    "@material-ui/icons" "^4.11.2"
-    "@material-ui/lab" "^4.0.0-alpha.58"
-    d3 "^7.6.1"
-    d3-dag "^0.11.5"
-    history "^5.0.0"
-    http-proxy-middleware "^2.0.3"
-    jest-canvas-mock "^2.4.0"
-    jest-fail-on-console "^3.0.1"
-    jest-worker "^27.5.1"
-    js-sha3 "0.8.0"
-    lodash "^4.17.21"
-    luxon "^3.2.1"
-    mnemonic-browser "^0.0.1"
-    postcss "^8.3.11"
-    query-string "^4.3.4"
-    react "^17.0.2"
-    react-dom "^17.0.2"
-    react-lottie-player "^1.4.3"
-    react-query "^3.34.7"
-    react-router-dom "^5.2.0"
-    react-toastify "^7.0.4"
-    sha3 "^2.1.4"
-    styled-components "^5.3.0"
-    yaml "^1.10.2"
-
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.20.0-7-gb6d3961f":
-  version "0.20.0-7-gb6d3961f"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.20.0-7-gb6d3961f/b26b24a2294714870539342648b227955fddc58e#b26b24a2294714870539342648b227955fddc58e"
-  integrity sha512-IkPTClLIaK/POrwC7jn+mUiUO9LgkM2PlbdkMlRGynTvcrJi38pGKh7sspd00uhR/StIHGMroggH+cPoosuXyA==
+"@weaveworks/weave-gitops@0.21.2":
+  version "0.21.2"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.21.2/e6b78a411aab6dace0028c84efeb72ec4cc3b3ad#e6b78a411aab6dace0028c84efeb72ec4cc3b3ad"
+  integrity sha512-uizc2baVOUGvcDmsUqCreE7/7FrRaX88d+GCVN8Scuc6BqjLq4WwH8U2eQXqDpzzTWwpGGMJTXbKuPe/CTU0Og==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"

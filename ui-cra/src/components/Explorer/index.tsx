@@ -9,7 +9,7 @@ import {
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
 // @ts-ignore
-import { DataTable } from '@weaveworks/weave-gitops-main';
+import { DataTable } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import qs from 'query-string';
 import * as React from 'react';
@@ -22,6 +22,7 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import AccessRulesDebugger from './AccessRulesDebugger';
 import QueryBuilder from './QueryBuilder';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 
 type Props = {
   className?: string;
@@ -45,12 +46,6 @@ function initialTerms(search: string) {
 }
 
 const DEFAULT_LIMIT = 25;
-
-type DataTableField = {
-  label: string;
-  value: string | ((o: Object) => React.ReactNode);
-  sortValue?: (o: any) => string;
-};
 
 // ?clusterName=management&name=flux-system&namespace=flux-system
 
@@ -218,7 +213,7 @@ function Explorer({ className }: Props) {
                   ]}
                   rows={data?.objects}
                   disableSort
-                  onColumnHeaderClick={(field: DataTableField) => {
+                  onColumnHeaderClick={(field: Field) => {
                     const col = _.isFunction(field.value)
                       ? field.sortValue && field.sortValue(field.value)
                       : field.value;
