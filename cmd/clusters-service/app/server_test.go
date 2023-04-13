@@ -209,7 +209,6 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithAuthConfig(
 				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
 				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
-				"cluster-user-auth",
 			),
 			app.WithKubernetesClientSet(clientSet),
 			app.WithClustersManager(grpctesting.MakeClustersManager(k)),
