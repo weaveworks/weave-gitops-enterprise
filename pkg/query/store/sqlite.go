@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqliterator"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -23,6 +24,50 @@ type SQLiteStore struct {
 	log logr.Logger
 }
 
+func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Role{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
+func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.RoleBinding{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+	return nil
+}
+
+func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Object{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
 		db:  db,
@@ -31,9 +76,6 @@ func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 }
 
 func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
-	if len(roles) == 0 {
-		return fmt.Errorf("empty role list")
-	}
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
@@ -73,10 +115,6 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 }
 
 func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
-	if len(roleBindings) == 0 {
-		return fmt.Errorf("empty role binding list")
-	}
-
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)
@@ -157,20 +195,14 @@ func toSQLOperand(op QueryOperand) (string, error) {
 	}
 }
 
-func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error) {
-	objects := []models.Object{}
-
-	// If limit or offset are zero, they were not set.
-	// -1 tells GORM to ignore the limit/offset
-	var limit int = -1
+func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
+	// If offset is zero, it was not set.
+	// -1 tells GORM to ignore the offset
 	var offset int = -1
 	var orderBy string = ""
 	useOrLogic := false
 
 	if opts != nil {
-		if opts.GetLimit() != 0 {
-			limit = int(opts.GetLimit())
-		}
 		if opts.GetOffset() != 0 {
 			offset = int(opts.GetOffset())
 		}
@@ -184,7 +216,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 	}
 
-	tx := i.db.Limit(limit)
+	tx := i.db.Model(&models.Object{})
 	tx = tx.Offset(offset)
 	tx = tx.Order(orderBy)
 
@@ -203,9 +235,11 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		stmt = strings.TrimSuffix(stmt, " OR ")
 		tx = tx.Raw(fmt.Sprintf("SELECT * FROM objects WHERE %s", stmt))
 
-		result := tx.Find(&objects)
+		if tx.Error != nil {
+			return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+		}
 
-		return objects, result.Error
+		return sqliterator.New(tx)
 	}
 
 	if len(q) > 0 {
@@ -227,9 +261,11 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 	}
 
-	result := tx.Find(&objects)
+	if tx.Error != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+	}
 
-	return objects, result.Error
+	return sqliterator.New(tx)
 }
 
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {

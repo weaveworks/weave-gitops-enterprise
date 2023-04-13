@@ -435,7 +435,7 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		Name:      "cluster-kubeconfig-override",
 	}
 	sec, err := secretByName(ctx, cl, overrideSecretName)
-	if err != nil && !apierrors.IsNotFound(err) {
+	if err != nil && !(apierrors.IsNotFound(err) || apierrors.IsForbidden(err)) {
 		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
 	}
 	if sec != nil {
@@ -451,7 +451,7 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
 	}
 	sec, err = secretByName(ctx, cl, userSecretName)
-	if err != nil && !apierrors.IsNotFound(err) {
+	if err != nil && !(apierrors.IsNotFound(err) || apierrors.IsForbidden(err)) {
 		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
 	}
 	if sec != nil {

@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -117,8 +118,8 @@ func TestReconciler_Reconcile(t *testing.T) {
 
 	clusterName := "anyCluster"
 	//setup data
-	createdOrUpdatedHelmRelease := newHelmRelease("createdOrUpdatedHelmRelease", clusterName)
-	deleteHelmRelease := newHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
+	createdOrUpdatedHelmRelease := testutils.NewHelmRelease("createdOrUpdatedHelmRelease", clusterName)
+	deleteHelmRelease := testutils.NewHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
 		now := metav1.Now()
 		hr.DeletionTimestamp = &now
 	})
@@ -192,25 +193,6 @@ func TestReconciler_Reconcile(t *testing.T) {
 			assertObjectTransaction(t, objectTransactions[0], tt.expectedTx)
 		})
 	}
-}
-
-func newHelmRelease(name string, namespace string, opts ...func(*v2beta1.HelmRelease)) *v2beta1.HelmRelease {
-	helmRelease := &v2beta1.HelmRelease{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: v2beta1.GroupVersion.Version,
-			Kind:       v2beta1.HelmReleaseKind,
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-	}
-
-	for _, opt := range opts {
-		opt(helmRelease)
-	}
-
-	return helmRelease
 }
 
 func assertObjectTransaction(t *testing.T, actual models.ObjectTransaction, expected models.ObjectTransaction) {

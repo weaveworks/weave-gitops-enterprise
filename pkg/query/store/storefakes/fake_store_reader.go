@@ -23,7 +23,7 @@ type FakeStoreReader struct {
 		result1 []models.AccessRule
 		result2 error
 	}
-	GetObjectsStub        func(context.Context, store.Query, store.QueryOption) ([]models.Object, error)
+	GetObjectsStub        func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)
 	getObjectsMutex       sync.RWMutex
 	getObjectsArgsForCall []struct {
 		arg1 context.Context
@@ -31,11 +31,11 @@ type FakeStoreReader struct {
 		arg3 store.QueryOption
 	}
 	getObjectsReturns struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}
 	getObjectsReturnsOnCall map[int]struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}
 	invocations      map[string][][]interface{}
@@ -106,7 +106,7 @@ func (fake *FakeStoreReader) GetAccessRulesReturnsOnCall(i int, result1 []models
 	}{result1, result2}
 }
 
-func (fake *FakeStoreReader) GetObjects(arg1 context.Context, arg2 store.Query, arg3 store.QueryOption) ([]models.Object, error) {
+func (fake *FakeStoreReader) GetObjects(arg1 context.Context, arg2 store.Query, arg3 store.QueryOption) (store.Iterator, error) {
 	fake.getObjectsMutex.Lock()
 	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
 	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
@@ -133,7 +133,7 @@ func (fake *FakeStoreReader) GetObjectsCallCount() int {
 	return len(fake.getObjectsArgsForCall)
 }
 
-func (fake *FakeStoreReader) GetObjectsCalls(stub func(context.Context, store.Query, store.QueryOption) ([]models.Object, error)) {
+func (fake *FakeStoreReader) GetObjectsCalls(stub func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = stub
@@ -146,28 +146,28 @@ func (fake *FakeStoreReader) GetObjectsArgsForCall(i int) (context.Context, stor
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeStoreReader) GetObjectsReturns(result1 []models.Object, result2 error) {
+func (fake *FakeStoreReader) GetObjectsReturns(result1 store.Iterator, result2 error) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = nil
 	fake.getObjectsReturns = struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeStoreReader) GetObjectsReturnsOnCall(i int, result1 []models.Object, result2 error) {
+func (fake *FakeStoreReader) GetObjectsReturnsOnCall(i int, result1 store.Iterator, result2 error) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = nil
 	if fake.getObjectsReturnsOnCall == nil {
 		fake.getObjectsReturnsOnCall = make(map[int]struct {
-			result1 []models.Object
+			result1 store.Iterator
 			result2 error
 		})
 	}
 	fake.getObjectsReturnsOnCall[i] = struct {
-		result1 []models.Object
+		result1 store.Iterator
 		result2 error
 	}{result1, result2}
 }

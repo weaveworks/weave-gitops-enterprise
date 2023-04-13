@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/go-logr/logr"
@@ -68,6 +67,8 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 }
 
 func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	deleteAll := []string{}
+
 	roles := []models.Role{}
 	rolesToDelete := []models.Role{}
 
@@ -75,6 +76,13 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	bindingsToDelete := []models.RoleBinding{}
 
 	for _, obj := range objectRecords {
+
+		// Handle delete all tx first as does not hold objects
+		if obj.TransactionType() == models.TransactionTypeDeleteAll {
+			deleteAll = append(deleteAll, obj.ClusterName())
+			continue
+		}
+
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
 
 		if kind == "ClusterRole" || kind == "Role" {
@@ -136,13 +144,14 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 		}
 	}
 
+	if len(deleteAll) > 0 {
+		if err := store.DeleteAllRoles(ctx, deleteAll); err != nil {
+			return fmt.Errorf("failed to delete all roles: %w", err)
+		}
+		if err := store.DeleteAllRoleBindings(ctx, deleteAll); err != nil {
+			return fmt.Errorf("failed to delete all role bindings: %w", err)
+		}
+	}
+
 	return nil
-}
-
-func (a *RoleCollector) Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error {
-	return a.col.Watch(cluster, objectsChannel, ctx, log)
-}
-
-func (a *RoleCollector) Status(cluster cluster.Cluster) (string, error) {
-	return a.col.Status(cluster)
 }
