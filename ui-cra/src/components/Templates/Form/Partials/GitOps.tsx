@@ -19,7 +19,6 @@ const GitOps: FC<{
   formError?: string;
   enableGitRepoSelection?: boolean;
   creatingPR?: boolean;
-  setCreatingPR?: Dispatch<React.SetStateAction<boolean>>;
   setSendPR?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
@@ -30,7 +29,6 @@ const GitOps: FC<{
   formError,
   enableGitRepoSelection,
   creatingPR,
-  setCreatingPR,
   setSendPR,
 }) => {
   const {
@@ -129,7 +127,6 @@ const GitOps: FC<{
         setShowAuthDialog={setShowAuthDialog}
         enableGitRepoSelection={enableGitRepoSelection}
         creatingPR={creatingPR}
-        setCreatingPR={setCreatingPR}
         setSendPR={setSendPR}
       />
     </GitOpsWrapper>

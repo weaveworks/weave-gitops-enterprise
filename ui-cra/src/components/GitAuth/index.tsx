@@ -5,7 +5,6 @@ import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
-import useNotifications from './../../contexts/Notifications';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
@@ -28,7 +27,6 @@ const GitAuth: FC<{
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   enableGitRepoSelection?: boolean;
   creatingPR?: boolean;
-  setCreatingPR?: Dispatch<React.SetStateAction<boolean>>;
   setSendPR?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
@@ -38,15 +36,14 @@ const GitAuth: FC<{
   setEnableCreatePR,
   enableGitRepoSelection,
   creatingPR,
-  setCreatingPR,
   setSendPR,
 }) => {
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, loading } = useIsAuthenticated(
     formData.provider,
     creatingPR,
+    setSendPR,
   );
-  const { setNotifications } = useNotifications();
 
   useEffect(() => {
     if (!formData.provider) {
@@ -55,45 +52,12 @@ const GitAuth: FC<{
   }, [formData.provider]);
 
   useEffect(() => {
-    // if user is authenticated enable the create PR button
     if (isAuthenticated) {
       setEnableCreatePR(true);
     } else {
       setEnableCreatePR(false);
     }
-
-    // if the user is not authenticated, checking of the token has finished and the user has already clicked the Create PR button
-    // show notification informing user they need to authenticate again as the token has expired
-    if (!isAuthenticated && creatingPR) {
-      setCreatingPR && setCreatingPR(false);
-      setNotifications([
-        {
-          message: {
-            text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
-          },
-          severity: 'error',
-          display: 'bottom',
-        },
-      ]);
-      return;
-    }
-
-    // if user is authenticated and in the process of sending the PR, send the PR data to the api
-    /// sendPR will trigger validateFormData and then submit in form
-    if (isAuthenticated && creatingPR) {
-      console.log('isAuthenticated', isAuthenticated, 'creatingPR', creatingPR);
-      setSendPR && setSendPR(true);
-    }
-  }, [
-    authSuccess,
-    isAuthenticated,
-    setEnableCreatePR,
-    loading,
-    setNotifications,
-    creatingPR,
-    setCreatingPR,
-    setSendPR,
-  ]);
+  }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
   return (
     <>
