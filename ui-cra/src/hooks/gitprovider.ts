@@ -45,24 +45,20 @@ export function useIsAuthenticated(
 
     setLoading(true);
 
-    const validateProviderToken = async () => {
-      const res = await gitAuthClient.ValidateProviderToken(
-        { provider },
-        { headers },
-      );
-      if (res?.valid) {
-        setIsAuthenticated(true);
-        setSendPR && setSendPR(true);
-      } else {
-        setIsAuthenticated(false);
-        if (creatingPR) {
-          setNotifications([expiredTokenNotification]);
+    gitAuthClient
+      .ValidateProviderToken({ provider }, { headers })
+      .then(res => {
+        if (res?.valid) {
+          setIsAuthenticated(true);
+          setSendPR && setSendPR(true);
+        } else {
+          setIsAuthenticated(false);
+          if (creatingPR) {
+            setNotifications([expiredTokenNotification]);
+          }
+          return;
         }
-        return;
-      }
-    };
-
-    validateProviderToken()
+      })
       .catch(() => {
         setIsAuthenticated(false);
         if (creatingPR) {
