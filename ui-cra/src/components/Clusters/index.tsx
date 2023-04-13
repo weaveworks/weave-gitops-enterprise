@@ -58,7 +58,7 @@ import { EditButton } from '../Templates/Edit/EditButton';
 import { GitRepositoryEnriched } from '../Templates/Form';
 import {
   getCreateRequestAnnotation,
-  getInitialGitRepo,
+  useGetInitialGitRepo,
 } from '../Templates/Form/utils';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
@@ -286,9 +286,8 @@ const MCCP: FC<{
   const initialUrl =
     selectedCapiCluster &&
     getCreateRequestAnnotation(selectedCapiCluster)?.repository_url;
-  const initialGitRepo =
-    selectedCapiCluster &&
-    (getInitialGitRepo(initialUrl, gitRepos) as GitRepositoryEnriched);
+  const { initialGitRepo } = useGetInitialGitRepo(initialUrl, gitRepos);
+
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {
@@ -349,7 +348,7 @@ const MCCP: FC<{
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo,
+        repo: initialGitRepo as GitRepositoryEnriched,
       }));
     }
   }, [initialGitRepo, formData.repo]);

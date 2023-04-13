@@ -35,7 +35,7 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
@@ -141,10 +141,7 @@ const CreateSecret = () => {
 
   const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
-  const initialGitRepo = getInitialGitRepo(
-    null,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const { initialGitRepo } = useGetInitialGitRepo(null, gitRepos);
 
   const [formError, setFormError] = useState<string>('');
   const automation = formData.clusterAutomations[0];
@@ -169,7 +166,7 @@ const CreateSecret = () => {
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo,
+        repo: initialGitRepo as GitRepositoryEnriched,
       }));
     }
     if (targetCluster) {

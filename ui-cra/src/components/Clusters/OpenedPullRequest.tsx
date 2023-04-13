@@ -23,6 +23,7 @@ import {
   getRepositoryUrl,
 } from '../Templates/Form/utils';
 import { useGitRepos } from '../../hooks/gitrepos';
+import { useListConfigContext } from '../../contexts/ListConfig';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -59,6 +60,9 @@ function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
 
 export default function OpenedPullRequest() {
   const [open, setOpen] = React.useState(false);
+  const configResponse = useListConfigContext();
+  const mgCluster = configResponse?.data?.managementClusterName;
+
   const anchorRef = React.useRef<HTMLDivElement>(null);
 
   const { gitRepos } = useGitRepos();
@@ -87,7 +91,7 @@ export default function OpenedPullRequest() {
     return <div>Git Repos not found</div>;
   }
 
-  const defaultRepo = getDefaultGitRepo(gitRepos);
+  const defaultRepo = getDefaultGitRepo(gitRepos, mgCluster);
 
   const handleToggle = () => {
     setOpen(prevOpen => !prevOpen);

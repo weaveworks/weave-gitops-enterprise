@@ -40,7 +40,7 @@ import GitOps from '../../Templates/Form/Partials/GitOps';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import {
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
 import { GitRepositoryEnriched } from '../../Templates/Form';
@@ -213,10 +213,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     () => getGitRepos(data?.result),
     [data?.result],
   );
-  const initialGitRepo = getInitialGitRepo(
-    null,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const { initialGitRepo } = useGetInitialGitRepo(null, gitRepos);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -322,7 +319,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo,
+        repo: initialGitRepo as GitRepositoryEnriched,
       }));
     }
   }, [initialGitRepo, formData.repo]);

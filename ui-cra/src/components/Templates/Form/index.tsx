@@ -62,7 +62,7 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
   getCreateRequestAnnotation,
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from './utils';
 
@@ -289,10 +289,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
-  const initialGitRepo = getInitialGitRepo(
-    initialUrl,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const { initialGitRepo } = useGetInitialGitRepo(initialUrl, gitRepos);
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -642,7 +639,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setEnableCreatePR={setEnableCreatePR}
               formError={formError}
               enableGitRepoSelection={
-                !(resource && initialGitRepo?.createPRRepo)
+                !(
+                  resource &&
+                  (initialGitRepo as GitRepositoryEnriched)?.createPRRepo
+                )
               }
             />
             {loading ? (

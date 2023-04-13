@@ -32,7 +32,7 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
@@ -160,10 +160,7 @@ const CreatePolicyConfig = () => {
 
   const { data } = useListSources('', '', { retry: false });
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
-  const initialGitRepo = getInitialGitRepo(
-    null,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const { initialGitRepo } = useGetInitialGitRepo(null, gitRepos);
 
   const [formError, setFormError] = useState<string>('');
 
@@ -183,7 +180,7 @@ const CreatePolicyConfig = () => {
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo,
+        repo: initialGitRepo as GitRepositoryEnriched,
       }));
     }
   }, [initialGitRepo, formData.repo, clusterName]);
