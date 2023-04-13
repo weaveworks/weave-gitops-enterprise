@@ -1,6 +1,6 @@
 import { poller, useRequestState } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useCallback, useState, useContext } from 'react';
+import { useCallback, useState, useContext, useEffect } from 'react';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
@@ -15,33 +15,50 @@ import {
 } from '../components/GitAuth/utils';
 import { GitAuth } from '../contexts/GitAuth';
 
-export function useIsAuthenticated() {
-  const [res, loading, error, req] =
-    useRequestState<ValidateProviderTokenResponse>();
+const providerTokenHeaderName = 'Git-Provider-Token';
+
+export function useIsAuthenticated(
+  provider: GitProvider,
+  creatingPR?: boolean,
+) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
+  const [loading, setLoading] = useState<boolean>(false);
   const { gitAuthClient } = useContext(GitAuth);
+  const token = getProviderToken(provider);
+
+  useEffect(() => {
+    const makeHeaders = () =>
+      new Headers({
+        [providerTokenHeaderName]: `token ${token}`,
+      });
+    const headers = makeHeaders();
+
+    setLoading(true);
+
+    const validateProviderToken = async () => {
+      const res = await gitAuthClient.ValidateProviderToken(
+        { provider },
+        { headers },
+      );
+      if (res?.valid) {
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+    };
+
+    validateProviderToken()
+      .catch(error => {
+        console.log('this is an error', error);
+        setIsAuthenticated(false);
+      })
+      .finally(() => setLoading(false));
+  }, [gitAuthClient, provider, creatingPR, token]);
 
   return {
-    isAuthenticated: error ? false : res?.valid,
+    isAuthenticated,
     loading,
-    error,
-    req: useCallback(
-      (provider: GitProvider) => {
-        //@ts-ignore
-        const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-        req(gitAuthClient.ValidateProviderToken({ provider }, { headers }));
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [gitAuthClient],
-    ),
-    check: useCallback(
-      (provider: GitProvider) => {
-        //@ts-ignore
-        const headers = makeHeaders(_.bind(getProviderToken, this, provider));
-        return gitAuthClient.ValidateProviderToken({ provider }, { headers });
-      },
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      [gitAuthClient],
-    ),
+    // error,
   };
 }
 
