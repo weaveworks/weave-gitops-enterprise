@@ -1478,6 +1478,8 @@ github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4 h1:RR
 github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4/go.mod h1:VK60b9WR7XEK1DvQNOpKEOlIQ56Qcy5KlAIFksQmUxI=
 github.com/weaveworks/weave-gitops v0.20.1-0.20230403133805-b6d3961f1792 h1:oXm6aXqdyCUHvMUvnLCdu8W0lF9JSqtkgep9Tbr5ZQM=
 github.com/weaveworks/weave-gitops v0.20.1-0.20230403133805-b6d3961f1792/go.mod h1:kKCud3Y98o9HuvCm+mNtw1d52YUDhTUYPkfs8UUfmDE=
+github.com/weaveworks/weave-gitops v0.21.1 h1:t+HKPQ5JmpfApEVax54Pn5HlYBgmfiXmoIqb7hadI0Y=
+github.com/weaveworks/weave-gitops v0.21.1/go.mod h1:kKCud3Y98o9HuvCm+mNtw1d52YUDhTUYPkfs8UUfmDE=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.78.0 h1:8jUHfQVAprG04Av5g0PxVd3CNsZ5hCbojIax7Hba1mE=
