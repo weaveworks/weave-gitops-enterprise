@@ -42,6 +42,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
 	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/services/auth"
@@ -242,7 +243,8 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	clustersManager.GetImpersonatedClientReturns(client, nil)
 	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	hc := health.NewHealthChecker()
+	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager, hc)
 	if err != nil {
 		t.Fatal(err)
 	}

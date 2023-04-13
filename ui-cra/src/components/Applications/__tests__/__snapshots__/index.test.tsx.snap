@@ -86,6 +86,12 @@ exports[`Applications index test snapshots loading 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c9 svg path.stroke-fill {
+  stroke: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c9 svg rect.rect-height {
   height: 24px;
   width: 24px;
@@ -94,10 +100,6 @@ exports[`Applications index test snapshots loading 1`] = `
 .c9 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c9 svg.no-fill {
-  fill: none !important;
 }
 
 .c9.downward {
@@ -131,6 +133,12 @@ exports[`Applications index test snapshots loading 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c13 svg path.stroke-fill {
+  stroke: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c13 svg rect.rect-height {
   height: 16px;
   width: 16px;
@@ -139,10 +147,6 @@ exports[`Applications index test snapshots loading 1`] = `
 .c13 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c13 svg.no-fill {
-  fill: none !important;
 }
 
 .c13.downward {
@@ -633,6 +637,12 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c9 svg path.stroke-fill {
+  stroke: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c9 svg rect.rect-height {
   height: 24px;
   width: 24px;
@@ -641,10 +651,6 @@ exports[`Applications index test snapshots success 1`] = `
 .c9 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c9 svg.no-fill {
-  fill: none !important;
 }
 
 .c9.downward {
@@ -678,6 +684,12 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c13 svg path.stroke-fill {
+  stroke: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c13 svg rect.rect-height {
   height: 16px;
   width: 16px;
@@ -686,10 +698,6 @@ exports[`Applications index test snapshots success 1`] = `
 .c13 svg rect.rect-stroke {
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c13 svg.no-fill {
-  fill: none !important;
 }
 
 .c13.downward {
@@ -724,6 +732,12 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c27 svg path.stroke-fill {
+  stroke: #737373 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c27 svg rect.rect-height {
   height: 24px;
   width: 24px;
@@ -733,10 +747,6 @@ exports[`Applications index test snapshots success 1`] = `
   stroke: #737373;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c27 svg.no-fill {
-  fill: none !important;
 }
 
 .c27.downward {
@@ -772,6 +782,12 @@ exports[`Applications index test snapshots success 1`] = `
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
+.c32 svg path.stroke-fill {
+  stroke: #d8d8d8 !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
 .c32 svg rect.rect-height {
   height: 16px;
   width: 16px;
@@ -781,10 +797,6 @@ exports[`Applications index test snapshots success 1`] = `
   stroke: #d8d8d8;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c32 svg.no-fill {
-  fill: none !important;
 }
 
 .c32.downward {
@@ -937,10 +949,6 @@ exports[`Applications index test snapshots success 1`] = `
   width: 200px;
 }
 
-.c31 td {
-  text-align: center;
-}
-
 .c30.MuiButton-root {
   margin: 0;
   text-transform: none;
@@ -960,6 +968,10 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c30.arrow {
   min-width: 0px;
+}
+
+.c31 td {
+  text-align: center;
 }
 
 .c18 {
@@ -1525,7 +1537,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1558,7 +1570,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1591,7 +1603,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1624,7 +1636,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1657,7 +1669,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1690,7 +1702,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1723,7 +1735,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1767,7 +1779,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1800,7 +1812,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
@@ -1833,7 +1845,7 @@ exports[`Applications index test snapshots success 1`] = `
                         class="c19"
                       >
                         <button
-                          class="MuiButtonBase-root MuiButton-root MuiButton-text c12 c30 MuiButton-colorInherit MuiButton-disableElevation"
+                          class="MuiButtonBase-root MuiButton-root MuiButton-text c30 MuiButton-colorInherit"
                           tabindex="0"
                           type="button"
                         >
