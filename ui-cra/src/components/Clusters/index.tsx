@@ -205,7 +205,7 @@ export const getGitRepos = (sources: Source[] | undefined) =>
       ),
       repo => repo?.obj?.spec?.url,
     ),
-    ['name'],
+    ['url'],
     ['asc'],
   );
 
