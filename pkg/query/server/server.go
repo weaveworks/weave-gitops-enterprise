@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
 	"os"
 
@@ -32,17 +31,17 @@ type server struct {
 	objs *objectscollector.ObjectsCollector
 }
 
-func (s *server) StopCollection() error {
+func (s *server) StopCollection(ctx context.Context) error {
 	// These collectors can be nil if we are doing collection elsewhere.
 	// Controlled by the opts.SkipCollection flag.
 	if s.arc != nil {
-		if err := s.arc.Stop(); err != nil {
+		if err := s.arc.Stop(ctx); err != nil {
 			return fmt.Errorf("failed to stop access rules collection: %w", err)
 		}
 	}
 
 	if s.objs != nil {
-		if err := s.objs.Stop(); err != nil {
+		if err := s.objs.Stop(ctx); err != nil {
 			return fmt.Errorf("failed to stop object collection: %w", err)
 		}
 	}
@@ -110,8 +109,8 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 	return kindByResourceMap, nil
 }
 
-func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
-	debug := opts.Logger.WithName("query-server").V(logger.LogLevelDebug)
+func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx context.Context) error, error) {
+	log := opts.Logger.WithName("query-server")
 
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
@@ -132,17 +131,15 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}
-	debug.Info("access checker created")
-
-	qs, err := query.NewQueryService(query.QueryServiceOpts{
-		Log:           debug,
+	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
+		Log:           log,
 		StoreReader:   s,
 		AccessChecker: checker,
 	})
+
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
-	debug.Info("query service created")
 
 	serv := &server{qs: qs, ac: checker}
 
@@ -158,7 +155,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
 
-		if err = rulesCollector.Start(); err != nil {
+		if err = rulesCollector.Start(ctx); err != nil {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
@@ -167,20 +164,20 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
-		if err = objsCollector.Start(); err != nil {
+		if err = objsCollector.Start(ctx); err != nil {
 			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
 		}
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
-		debug.Info("collectors started")
+		log.Info("collectors created")
 	}
-	debug.Info("query server created")
+
 	return serv, serv.StopCollection, nil
 }
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
-	s, stop, err := NewServer(opts)
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func(ctx context.Context) error, error) {
+	s, stop, err := NewServer(ctx, opts)
 	if err != nil {
 		return nil, err
 	}

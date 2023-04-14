@@ -3,6 +3,7 @@ package objectscollector
 import (
 	"context"
 	"fmt"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -10,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -24,23 +24,17 @@ type ObjectsCollector struct {
 	quit  chan struct{}
 }
 
-func (a *ObjectsCollector) Start() error {
-	err := a.col.Start()
+func (a *ObjectsCollector) Start(ctx context.Context) error {
+	err := a.col.Start(ctx)
 	if err != nil {
-		return fmt.Errorf("could not start objects collector: %w", err)
+		return fmt.Errorf("could not start access collector: %store", err)
 	}
-	a.log.Info("objects collector started")
 	return nil
 }
 
-func (a *ObjectsCollector) Stop() error {
+func (a *ObjectsCollector) Stop(ctx context.Context) error {
 	a.quit <- struct{}{}
-	err := a.col.Stop()
-	if err != nil {
-		return fmt.Errorf("could not stop objects collector: %w", err)
-	}
-	a.log.Info("objects collector stopped")
-	return nil
+	return a.col.Stop(ctx)
 }
 
 func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
@@ -64,12 +58,11 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	}, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
-	ctx := context.Background()
+func defaultProcessRecords(ctx context.Context, objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+
 	upsert := []models.Object{}
 	delete := []models.Object{}
 	deleteAll := []string{} //holds the cluster names to delete all resources
-	debug := log.V(logger.LogLevelDebug)
 
 	for _, objTx := range objectTransactions {
 		// Handle delete all tx first as does not hold objects
@@ -121,6 +114,5 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 		}
 	}
 
-	debug.Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
 	return nil
 }
