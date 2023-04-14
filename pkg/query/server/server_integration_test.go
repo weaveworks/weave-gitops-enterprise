@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/test"
 	l "github.com/weaveworks/weave-gitops/core/logger"
 	"go.uber.org/zap/zapcore"
-	"io"
 	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
@@ -27,9 +26,9 @@ func TestServerIntegrationTest_Debug(t *testing.T) {
 	testLog := testr.New(t)
 	ctx := context.Background()
 
-	appLog, err := l.New("debug", false)
+	//appLog, err := l.New("debug", false)
 
-	//appLog, r, w := createDebugLogger(t)
+	appLog, loggerPath := createDebugLogger(t)
 	//appLog, r, w := createDebugLogger(t)
 
 	// setup app server
@@ -68,13 +67,19 @@ func TestServerIntegrationTest_Debug(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			g.Expect(len(query.Objects)).To(BeIdenticalTo(10))
 			//then processing events are found
-			//g.Expect(assertLogs(t, r, w, tt.expectedEvents)).To(Succeed())
+			g.Expect(assertLogs(t, loggerPath, tt.expectedEvents)).To(Succeed())
 		})
 	}
 }
 
-func assertLogs(t *testing.T, r *os.File, w *os.File, events []string) error {
-	logs := getLogs(t, r, w)
+func assertLogs(t *testing.T, loggerPath string, events []string) error {
+	//get logs
+	logs, err := os.ReadFile(loggerPath)
+	if err != nil {
+		return fmt.Errorf("cannot read logger file: %w", err)
+
+	}
+
 	logLines := strings.Split(string(logs), "\n")
 	for _, event := range events {
 		found := false
@@ -91,50 +96,29 @@ func assertLogs(t *testing.T, r *os.File, w *os.File, events []string) error {
 	return nil
 }
 
-func createDebugLogger(t *testing.T) (logr.Logger, *os.File, *os.File) {
+func createDebugLogger(t *testing.T) (logr.Logger, string) {
 	g := NewGomegaWithT(t)
+
+	file, err := os.CreateTemp(os.TempDir(), "query-server-log")
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	name := file.Name()
+	g.Expect(err).ShouldNot(HaveOccurred())
 
 	level, err := zapcore.ParseLevel("debug")
 	cfg := l.BuildConfig(
 		l.WithLogLevel(level),
 		l.WithMode(false),
 		l.WithOutAndErrPaths("stdout", "stderr"),
+		l.WithOutAndErrPaths(name, name),
 	)
-
-	r, w := redirectStdout(t)
 
 	log, err := l.NewFromConfig(cfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
-	return log, r, w
-
-}
-
-func redirectStdout(t *testing.T) (*os.File, *os.File) {
-	g := NewGomegaWithT(t)
-	t.Helper()
-
-	oldStdout := os.Stdout
-	r, w, err := os.Pipe()
-	g.Expect(err).NotTo(HaveOccurred())
-
-	os.Stdout = w
-
 	t.Cleanup(func() {
-		os.Stdout = oldStdout
+		os.Remove(file.Name())
 	})
 
-	return r, w
-}
-
-func getLogs(t *testing.T, r, w *os.File) []byte {
-	g := NewGomegaWithT(t)
-	t.Helper()
-
-	w.Close()
-
-	out, err := io.ReadAll(r)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	return out
+	return log, name
 }
