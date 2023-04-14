@@ -1,5 +1,5 @@
 import { poller } from '@weaveworks/weave-gitops';
-import { useState, useContext, useEffect, Dispatch } from 'react';
+import { useState, useContext, useEffect, Dispatch, useCallback } from 'react';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
@@ -27,49 +27,44 @@ const expiredTokenNotification = {
 
 export function useIsAuthenticated(
   provider: GitProvider,
-  creatingPR?: boolean,
-  setSendPR?: Dispatch<React.SetStateAction<boolean>>,
+  token: string | null,
 ) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
   const [loading, setLoading] = useState<boolean>(false);
   const { gitAuthClient } = useContext(GitAuth);
-  const token = getProviderToken(provider);
-  const { setNotifications } = useNotifications();
 
-  useEffect(() => {
+  const validateToken = useCallback(() => {
     const makeHeaders = () =>
       new Headers({
         [providerTokenHeaderName]: `token ${token}`,
       });
     const headers = makeHeaders();
 
-    setLoading(true);
+    return gitAuthClient.ValidateProviderToken({ provider }, { headers });
+  }, [gitAuthClient, provider, token]);
 
-    gitAuthClient
-      .ValidateProviderToken({ provider }, { headers })
+  useEffect(() => {
+    setLoading(true);
+    validateToken()
       .then(res => {
-        if (res?.valid) {
-          setIsAuthenticated(true);
-          setSendPR && setSendPR(true);
-        } else {
-          setIsAuthenticated(false);
-          if (creatingPR) {
-            setNotifications([expiredTokenNotification]);
-          }
-          return;
-        }
+        setIsAuthenticated(res?.valid ? true : false);
+        return;
       })
       .catch(() => {
         setIsAuthenticated(false);
-        if (creatingPR) {
-          setNotifications([expiredTokenNotification]);
-          return;
-        }
+        return;
       })
       .finally(() => setLoading(false));
-  }, [gitAuthClient, provider, creatingPR, token, setNotifications, setSendPR]);
+  }, [
+    validateToken,
+    // token,
+    // provider
+  ]);
+
+  console.log(isAuthenticated);
 
   return {
+    validateToken,
     isAuthenticated,
     loading,
   };

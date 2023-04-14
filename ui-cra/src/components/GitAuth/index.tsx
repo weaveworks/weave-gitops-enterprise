@@ -5,6 +5,7 @@ import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
+import { getProviderToken } from './utils';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
@@ -26,8 +27,6 @@ const GitAuth: FC<{
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   enableGitRepoSelection?: boolean;
-  creatingPR?: boolean;
-  setSendPR?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
   setFormData,
@@ -35,14 +34,12 @@ const GitAuth: FC<{
   setShowAuthDialog,
   setEnableCreatePR,
   enableGitRepoSelection,
-  creatingPR,
-  setSendPR,
 }) => {
+  const token = getProviderToken(formData.provider);
   const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, loading } = useIsAuthenticated(
     formData.provider,
-    creatingPR,
-    setSendPR,
+    token,
   );
 
   useEffect(() => {

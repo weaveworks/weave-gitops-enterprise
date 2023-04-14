@@ -17,7 +17,14 @@ import {
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  FC,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -50,6 +57,7 @@ import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
+import { GitAuth } from './../../../contexts/GitAuth';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { getLink } from '../Edit/EditButton';
 import useNotifications from './../../../contexts/Notifications';
@@ -65,6 +73,7 @@ import {
   getInitialGitRepo,
   getRepositoryUrl,
 } from './utils';
+import { useIsAuthenticated } from '../../../hooks/gitprovider';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -287,6 +296,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     () => getGitRepos(data?.result),
     [data?.result],
   );
+  const { gitAuthClient } = useContext(GitAuth);
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
   const initialGitRepo = getInitialGitRepo(
@@ -326,11 +336,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
-  useEffect(() => {
-    clearCallbackState();
-    setCreatingPR(false);
-    setSendPR(false);
-  }, []);
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -435,6 +441,14 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
   ]);
 
+  const token = getProviderToken(formData.provider);
+
+  const {
+    isAuthenticated,
+    loading: validatingToken,
+    validateToken,
+  } = useIsAuthenticated(formData.provider, token);
+
   const handleAddResource = useCallback(() => {
     let createReqAnnot;
     if (resource !== undefined) {
@@ -453,37 +467,45 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     );
 
     setLoading(true);
-    return addResource(payload, getProviderToken(formData.provider))
-      .then(response => {
-        setPRPreview(null);
-        history.push(Routes.Templates);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
+
+    return validateToken()
+      .then(() =>
+        addResource(payload, getProviderToken(formData.provider))
+          .then(response => {
+            setPRPreview(null);
+            history.push(Routes.Templates);
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error => {
+            setNotifications([
+              {
+                message: { text: error.message },
+                severity: 'error',
+                display: 'bottom',
+              },
+            ]);
+            if (isUnauthenticated(error.code)) {
+              removeToken(formData.provider);
+            }
+          })
+          .finally(() => setLoading(false)),
+      )
       .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
-      })
-      .finally(() => setLoading(false));
+        console.log(error);
+        return;
+      });
   }, [
     updatedProfiles,
     addResource,
@@ -496,6 +518,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
     history,
     resource,
+    validateToken,
   ]);
 
   useEffect(() => {
@@ -540,9 +563,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     [handleAddResource, handleCostEstimation, handlePRPreview],
   );
 
-  const [creatingPR, setCreatingPR] = useState<boolean>(false);
-  const [sendPR, setSendPR] = useState<boolean>(false);
-
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -558,14 +578,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         <FormWrapper
           noValidate
           onSubmit={event => {
-            if (sendPR) {
-              validateFormData(
-                event,
-                getSubmitFunction(submitType),
-                setFormError,
-                setSubmitType,
-              );
-            }
+            validateFormData(
+              event,
+              getSubmitFunction(submitType),
+              setFormError,
+              setSubmitType,
+            );
           }}
         >
           <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -651,8 +669,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               enableGitRepoSelection={
                 !(resource && initialGitRepo?.createPRRepo)
               }
-              creatingPR={creatingPR}
-              setSendPR={setSendPR}
             />
             {loading ? (
               <LoadingPage className="create-loading" />
@@ -662,9 +678,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                   type="submit"
                   onClick={() => {
                     setSubmitType('Create resource');
-                    setCreatingPR(true);
                   }}
-                  disabled={!enableCreatePR}
+                  disabled={!enableCreatePR || !isAuthenticated}
                 >
                   CREATE PULL REQUEST
                 </Button>
@@ -703,9 +718,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     getSubmitFunction,
     resource,
     initialGitRepo,
-    creatingPR,
-    sendPR,
-    setSendPR,
+    isAuthenticated,
   ]);
 };
 

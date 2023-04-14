@@ -18,8 +18,6 @@ const GitOps: FC<{
   setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   formError?: string;
   enableGitRepoSelection?: boolean;
-  creatingPR?: boolean;
-  setSendPR?: Dispatch<React.SetStateAction<boolean>>;
 }> = ({
   formData,
   setFormData,
@@ -28,8 +26,6 @@ const GitOps: FC<{
   setEnableCreatePR,
   formError,
   enableGitRepoSelection,
-  creatingPR,
-  setSendPR,
 }) => {
   const {
     branchName,
@@ -126,8 +122,6 @@ const GitOps: FC<{
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
         enableGitRepoSelection={enableGitRepoSelection}
-        creatingPR={creatingPR}
-        setSendPR={setSendPR}
       />
     </GitOpsWrapper>
   );
