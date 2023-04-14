@@ -170,9 +170,9 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx c
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
-		log.Info("collectors created")
+		log.Info("collectors started")
 	}
-
+	log.Info("query server created")
 	return serv, serv.StopCollection, nil
 }
 

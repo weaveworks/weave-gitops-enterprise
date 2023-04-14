@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -66,6 +67,7 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 		}
 	}()
 
+	c.log.V(logger.LogLevelDebug).Info("debug message")
 	c.log.Info("watcher started", "kinds", c.kinds)
 	return nil
 }

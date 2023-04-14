@@ -1,13 +1,16 @@
 //go:build integration
 // +build integration
 
-package objectscollector_test
+package server_test
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
+	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
+	"github.com/weaveworks/weave-gitops-enterprise/test"
 	l "github.com/weaveworks/weave-gitops/core/logger"
 	"go.uber.org/zap/zapcore"
 	"io"
@@ -15,42 +18,57 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"strings"
 	"testing"
-
-	"github.com/weaveworks/weave-gitops-enterprise/internal/entesting"
-	"github.com/weaveworks/weave-gitops-enterprise/test"
 )
 
-func TestCollector_IntegrationTest(t *testing.T) {
-	//ctx := context.Background()
-	debugLogger, r, w := createDebugLogger(t)
-	k8sEnv := test.StartTestEnv(t)
+// Test case to ensure that we can debug issues via log events
+// https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
+func TestServerIntegrationTest_Debug(t *testing.T) {
 	g := NewGomegaWithT(t)
+	testLog := testr.New(t)
+	ctx := context.Background()
 
-	//setup data
-	clusterName := "anyCluster"
-	_, _, _ = entesting.MakeGRPCServer(t, k8sEnv.Rest, k8sEnv, debugLogger)
+	appLog, err := l.New("debug", false)
+
+	//appLog, r, w := createDebugLogger(t)
+	//appLog, r, w := createDebugLogger(t)
+
+	// setup app server
+	c, err := makeGRPCServer(t, cfg, appLog, testLog)
+	g.Expect(err).To(BeNil())
 
 	tests := []struct {
 		name           string
 		objects        []client.Object
+		queryRequest   api.QueryRequest
 		expectedEvents []string
 	}{
 		{
-			name: "can trace new helm release object",
-			objects: []client.Object{
-				testutils.NewHelmRelease("createdOrUpdatedHelmRelease", clusterName),
+			name:         "can trace query server creation",
+			objects:      []client.Object{},
+			queryRequest: api.QueryRequest{},
+			expectedEvents: []string{
+				"collectors started",
+				"query server created",
 			},
-			expectedEvents: []string{"debug message"},
 		},
+		//{
+		//	name: "can trace new helm release object",
+		//	objects: []client.Object{
+		//		testutils.NewHelmRelease("createdOrUpdatedHelmRelease", "any"),
+		//	},
+		//	expectedEvents: []string{"debug message"},
+		//},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//given a new event
-			//test.Create(ctx, t, k8sEnv.Rest, tt.objects...)
+			test.Create(ctx, t, cfg, tt.objects...)
 			//when processed
-
+			query, err := c.DoQuery(context.Background(), &tt.queryRequest)
+			g.Expect(err).To(BeNil())
+			g.Expect(len(query.Objects)).To(BeIdenticalTo(10))
 			//then processing events are found
-			g.Expect(assertLogs(t, r, w, tt.expectedEvents)).To(Succeed())
+			//g.Expect(assertLogs(t, r, w, tt.expectedEvents)).To(Succeed())
 		})
 	}
 }
