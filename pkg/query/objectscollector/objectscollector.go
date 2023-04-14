@@ -3,7 +3,6 @@ package objectscollector
 import (
 	"context"
 	"fmt"
-
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"

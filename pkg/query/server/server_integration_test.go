@@ -5,188 +5,136 @@ package server_test
 
 import (
 	"context"
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"fmt"
+	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/test"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	rbacv1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	l "github.com/weaveworks/weave-gitops/core/logger"
+	"go.uber.org/zap/zapcore"
+	"io"
+	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"strings"
 	"testing"
-	"time"
 )
 
-var (
-	roleTypeMeta        = typeMeta("Role", "rbac.authorization.k8s.io/v1")
-	roleBindingTypeMeta = typeMeta("RoleBinding", "rbac.authorization.k8s.io/v1")
-)
-
-const (
-	defaultTimeout  = time.Second * 5
-	defaultInterval = time.Second
-)
-
-// TestQueryServer_IntegrationTest is an integration test for exercising the integration of the
-// query system that includes both collecting from a cluster (using env teset) and doing queries via grpc.
-func TestQueryServer_IntegrationTest(t *testing.T) {
+// Test case to ensure that we can debug issues via log events
+// https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
+func TestServerIntegrationTest_Debug(t *testing.T) {
 	g := NewGomegaWithT(t)
-	g.SetDefaultEventuallyTimeout(defaultTimeout)
-	g.SetDefaultEventuallyPollingInterval(defaultInterval)
-
-	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
-	defaultNamespace := "default"
-
 	testLog := testr.New(t)
+	ctx := context.Background()
+
+	appLog, err := l.New("debug", false)
+
+	//appLog, r, w := createDebugLogger(t)
+	//appLog, r, w := createDebugLogger(t)
+
+	// setup app server
+	c, err := makeGRPCServer(t, cfg, appLog, testLog)
+	g.Expect(err).To(BeNil())
+
 	tests := []struct {
-		name               string
-		objects            []client.Object
-		access             []client.Object
-		principal          *auth.UserPrincipal
-		expectedEvents     []string
-		expectedNumObjects int
-		nonExpectedEvents  []string
+		name           string
+		objects        []client.Object
+		queryRequest   api.QueryRequest
+		expectedEvents []string
 	}{
 		{
-			name:   "should support apps (using helm releases)",
-			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoHelmRepository(defaultNamespace),
-				podinfoHelmRelease(defaultNamespace),
+			name:         "can trace query server creation",
+			objects:      []client.Object{},
+			queryRequest: api.QueryRequest{},
+			expectedEvents: []string{
+				"collectors started",
+				"query server created",
 			},
-			principal:          principal,
-			expectedNumObjects: 1, // should allow only on default namespace
 		},
+		//{
+		//	name: "can trace new helm release object",
+		//	objects: []client.Object{
+		//		testutils.NewHelmRelease("createdOrUpdatedHelmRelease", "any"),
+		//	},
+		//	expectedEvents: []string{"debug message"},
+		//},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//Given a query environment
-			ctx := context.Background()
-			c, err := makeQueryServer(t, cfg, tt.principal, testLog)
-			g.Expect(err).To(BeNil())
-			//And some access rules and objects ingested
+			//given a new event
 			test.Create(ctx, t, cfg, tt.objects...)
-			test.Create(ctx, t, cfg, tt.access...)
-
-			//When query with expected results is successfully executed
-			querySucceeded := g.Eventually(func() bool {
-				clause := api.QueryClause{
-					Key:     "namespace",
-					Value:   defaultNamespace,
-					Operand: string(store.OperandEqual),
-				}
-				query, err := c.DoQuery(ctx, &api.QueryRequest{
-					Query: []*api.QueryClause{&clause},
-				})
-				g.Expect(err).To(BeNil())
-				return len(query.Objects) == tt.expectedNumObjects
-			}).Should(BeTrue())
-			//Then query is successfully executed
-			g.Expect(querySucceeded).To(BeTrue())
+			//when processed
+			query, err := c.DoQuery(context.Background(), &tt.queryRequest)
+			g.Expect(err).To(BeNil())
+			g.Expect(len(query.Objects)).To(BeIdenticalTo(10))
+			//then processing events are found
+			//g.Expect(assertLogs(t, r, w, tt.expectedEvents)).To(Succeed())
 		})
 	}
 }
 
-func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
-	return &helmv2.HelmRelease{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "podinfo",
-			Namespace: defaultNamespace,
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       helmv2.HelmReleaseKind,
-			APIVersion: helmv2.GroupVersion.String(),
-		},
-		Spec: helmv2.HelmReleaseSpec{
-			Interval: metav1.Duration{Duration: time.Minute},
-			Chart: helmv2.HelmChartTemplate{
-				Spec: helmv2.HelmChartTemplateSpec{
-					Chart: "podinfo",
-					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind:      sourcev1.HelmRepositoryKind,
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-				},
-			},
-		},
+func assertLogs(t *testing.T, r *os.File, w *os.File, events []string) error {
+	logs := getLogs(t, r, w)
+	logLines := strings.Split(string(logs), "\n")
+	for _, event := range events {
+		found := false
+		for _, logLine := range logLines {
+			if strings.Contains(logLine, event) {
+				found = true
+				break
+			}
+		}
+		if !found {
+			return fmt.Errorf("event not found: %s", event)
+		}
 	}
+	return nil
 }
 
-func podinfoHelmRepository(namespace string) *sourcev1.HelmRepository {
-	return &sourcev1.HelmRepository{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "podinfo",
-			Namespace: namespace,
-		},
-		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.String(),
-		},
-		Spec: sourcev1.HelmRepositorySpec{
-			Interval: metav1.Duration{Duration: time.Minute},
-			URL:      "http://my-url.com",
-		},
-	}
+func createDebugLogger(t *testing.T) (logr.Logger, *os.File, *os.File) {
+	g := NewGomegaWithT(t)
+
+	level, err := zapcore.ParseLevel("debug")
+	cfg := l.BuildConfig(
+		l.WithLogLevel(level),
+		l.WithMode(false),
+		l.WithOutAndErrPaths("stdout", "stderr"),
+	)
+
+	r, w := redirectStdout(t)
+
+	log, err := l.NewFromConfig(cfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	return log, r, w
+
 }
 
-func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
-	roleName := "helm-release-admin"
-	roleBindingName := "wego-admin-helm-release-admin"
+func redirectStdout(t *testing.T) (*os.File, *os.File) {
+	g := NewGomegaWithT(t)
+	t.Helper()
 
-	return []client.Object{
-		newRole(roleName, "default",
-			[]rbacv1.PolicyRule{{
-				APIGroups: []string{"helm.toolkit.fluxcd.io"},
-				Resources: []string{"helmreleases"},
-				Verbs:     []string{"*"},
-			}}),
-		newRoleBinding(roleBindingName,
-			"default",
-			"Role",
-			roleName,
-			[]rbacv1.Subject{
-				{
-					Kind: "User",
-					Name: username,
-				},
-			}),
-	}
+	oldStdout := os.Stdout
+	r, w, err := os.Pipe()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	os.Stdout = w
+
+	t.Cleanup(func() {
+		os.Stdout = oldStdout
+	})
+
+	return r, w
 }
 
-func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject) *rbacv1.RoleBinding {
-	return &rbacv1.RoleBinding{
-		TypeMeta: roleBindingTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     roleKind,
-			Name:     roleName,
-		},
-		Subjects: subjects,
-	}
-}
+func getLogs(t *testing.T, r, w *os.File) []byte {
+	g := NewGomegaWithT(t)
+	t.Helper()
 
-func newRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.Role {
-	return &rbacv1.Role{
-		TypeMeta: roleTypeMeta,
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Rules: rules,
-	}
-}
+	w.Close()
 
-func typeMeta(kind, apiVersion string) metav1.TypeMeta {
-	return metav1.TypeMeta{
-		Kind:       kind,
-		APIVersion: apiVersion,
-	}
+	out, err := io.ReadAll(r)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	return out
 }

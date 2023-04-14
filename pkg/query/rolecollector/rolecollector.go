@@ -78,7 +78,6 @@ func defaultProcessRecords(ctx context.Context, objectTransactions []models.Obje
 
 	for _, obj := range objectTransactions {
 
-		//TODO i am here
 		log.V(logger.LogLevelDebug).Info("processing object tx", "tx", obj.ClusterName())
 
 		// Handle delete all tx first as does not hold objects

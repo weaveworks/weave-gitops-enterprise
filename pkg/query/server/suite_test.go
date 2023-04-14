@@ -6,7 +6,6 @@ package server_test
 import (
 	"context"
 	"fmt"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -27,9 +26,6 @@ import (
 	"log"
 	"net"
 	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
 	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
@@ -46,16 +42,15 @@ var clientset *kubernetes.Clientset
 var cfg *rest.Config
 
 func TestMain(m *testing.M) {
+	var err error
 	// setup testEnvironment
-	cmdOut, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
-	repoRoot := strings.TrimSpace(string(cmdOut))
-	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
-	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
+	useExistingCluster := true
 	testEnv := &envtest.Environment{
-		CRDDirectoryPaths: []string{
-			filepath.Join("testdata", "crds"),
-		},
+		//CRDDirectoryPaths: []string{
+		//	filepath.Join("..", "..", "..", "tools", "testcrds"),
+		//},
 		ErrorIfCRDPathMissing: true,
+		UseExistingCluster:    &useExistingCluster,
 	}
 
 	cfg, err = testEnv.Start()
@@ -64,11 +59,6 @@ func TestMain(m *testing.M) {
 	}
 
 	log.Println("environment started")
-
-	err = sourcev1.AddToScheme(scheme.Scheme)
-	if err != nil {
-		log.Fatalf("add helm to schema failed: %s", err)
-	}
 
 	err = v2beta1.AddToScheme(scheme.Scheme)
 	if err != nil {
@@ -112,11 +102,11 @@ func TestMain(m *testing.M) {
 	os.Exit(retCode)
 }
 
-func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincipal, testLog logr.Logger) (api.QueryClient, error) {
+func makeGRPCServer(t *testing.T, cfg *rest.Config, queryLog, testLog logr.Logger) (api.QueryClient, error) {
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 
-	fakeCluster, err := cluster.NewSingleCluster("envtest", cfg, scheme.Scheme)
+	fakeCluster, err := cluster.NewSingleCluster("Default", cfg, scheme.Scheme)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create cluster:%w", err)
 	}
@@ -142,8 +132,9 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 
 	enServer := server.NewClusterServer(opts)
 	lis := bufconn.Listen(1024 * 1024)
+	principal := auth.NewUserPrincipal(auth.ID("wego-admin"), auth.Token("1234"))
 	s := grpc.NewServer(
-		withClientsPoolInterceptor(clustersManager, principal),
+		withClientsPoolInterceptor(clustersManager, cfg, principal),
 	)
 
 	pb.RegisterClustersServiceServer(s, enServer)
@@ -151,13 +142,13 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
 
 	opts2 := queryserver.ServerOpts{
-		Logger:          testLog,
+		Logger:          queryLog,
 		DiscoveryClient: dc,
 		ClustersManager: clustersManager,
 		SkipCollection:  false,
 	}
 
-	qs, _, err := queryserver.NewServer(opts2)
+	qs, _, err := queryserver.NewServer(context.Background(), opts2)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create query server:%w", err)
 	}
@@ -195,7 +186,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 	return api.NewQueryClient(conn), nil
 }
 
-func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, principal *auth.UserPrincipal) grpc.ServerOption {
+func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, config *rest.Config, user *auth.UserPrincipal) grpc.ServerOption {
 	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
 		if err := clustersManager.UpdateClusters(ctx); err != nil {
 			return nil, fmt.Errorf("failed to update clusters: %w", err)
@@ -204,10 +195,11 @@ func withClientsPoolInterceptor(clustersManager clustersmngr.ClustersManager, pr
 			return nil, fmt.Errorf("failed to update namespaces: %w", err)
 		}
 
-		clustersManager.UpdateUserNamespaces(ctx, principal)
-		ctx = auth.WithPrincipal(ctx, principal)
+		clustersManager.UpdateUserNamespaces(ctx, user)
 
-		clusterClient, err := clustersManager.GetImpersonatedClient(ctx, principal)
+		ctx = auth.WithPrincipal(ctx, user)
+
+		clusterClient, err := clustersManager.GetImpersonatedClient(ctx, user)
 		if err != nil {
 			return nil, fmt.Errorf("failed to get impersonating client: %w", err)
 		}
