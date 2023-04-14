@@ -31,16 +31,16 @@ type RoleCollector struct {
 }
 
 func (a *RoleCollector) Start(ctx context.Context) error {
-	err := a.col.Start()
+	err := a.col.Start(ctx)
 	if err != nil {
 		return fmt.Errorf("could not start access collector: %w", err)
 	}
 	return nil
 }
 
-func (a *RoleCollector) Stop() error {
+func (a *RoleCollector) Stop(ctx context.Context) error {
 	a.quit <- struct{}{}
-	return a.col.Stop()
+	return a.col.Stop(ctx)
 }
 
 func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
@@ -78,7 +78,8 @@ func defaultProcessRecords(ctx context.Context, objectTransactions []models.Obje
 
 	for _, obj := range objectTransactions {
 
-		log.V(logger.LogLevelDebug).Info("processing object tx", "tx", obj.String())
+		//TODO i am here
+		log.V(logger.LogLevelDebug).Info("processing object tx", "tx", obj.ClusterName())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {

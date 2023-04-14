@@ -71,7 +71,7 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 }
 
 // TODO this does nothing?
-func (c *watchingCollector) Stop() error {
+func (c *watchingCollector) Stop(ctx context.Context) error {
 	c.log.Info("stopping collector")
 	return nil
 }

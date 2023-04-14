@@ -31,17 +31,17 @@ type server struct {
 	objs *objectscollector.ObjectsCollector
 }
 
-func (s *server) StopCollection() error {
+func (s *server) StopCollection(ctx context.Context) error {
 	// These collectors can be nil if we are doing collection elsewhere.
 	// Controlled by the opts.SkipCollection flag.
 	if s.arc != nil {
-		if err := s.arc.Stop(); err != nil {
+		if err := s.arc.Stop(ctx); err != nil {
 			return fmt.Errorf("failed to stop access rules collection: %w", err)
 		}
 	}
 
 	if s.objs != nil {
-		if err := s.objs.Stop(); err != nil {
+		if err := s.objs.Stop(ctx); err != nil {
 			return fmt.Errorf("failed to stop object collection: %w", err)
 		}
 	}
@@ -109,7 +109,7 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 	return kindByResourceMap, nil
 }
 
-func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
+func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx context.Context) error, error) {
 	log := opts.Logger.WithName("query-server")
 
 	dbDir, err := os.MkdirTemp("", "db")
@@ -176,7 +176,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	return serv, serv.StopCollection, nil
 }
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func(ctx context.Context) error, error) {
 	s, stop, err := NewServer(ctx, opts)
 	if err != nil {
 		return nil, err

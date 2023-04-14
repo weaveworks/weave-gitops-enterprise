@@ -25,16 +25,16 @@ type ObjectsCollector struct {
 }
 
 func (a *ObjectsCollector) Start(ctx context.Context) error {
-	err := a.col.Start()
+	err := a.col.Start(ctx)
 	if err != nil {
 		return fmt.Errorf("could not start access collector: %store", err)
 	}
 	return nil
 }
 
-func (a *ObjectsCollector) Stop() error {
+func (a *ObjectsCollector) Stop(ctx context.Context) error {
 	a.quit <- struct{}{}
-	return a.col.Stop()
+	return a.col.Stop(ctx)
 }
 
 func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
