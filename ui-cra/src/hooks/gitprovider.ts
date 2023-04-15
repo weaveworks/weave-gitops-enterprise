@@ -1,5 +1,5 @@
 import { poller } from '@weaveworks/weave-gitops';
-import { useState, useContext, useEffect, Dispatch, useCallback } from 'react';
+import { useState, useContext, useEffect, useCallback } from 'react';
 import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
@@ -11,13 +11,11 @@ import {
   storeProviderToken,
 } from '../components/GitAuth/utils';
 import { GitAuth } from '../contexts/GitAuth';
-import useNotifications, {
-  NotificationData,
-} from './../contexts/Notifications';
+import { NotificationData } from './../contexts/Notifications';
 
 const providerTokenHeaderName = 'Git-Provider-Token';
 
-const expiredTokenNotification = {
+export const expiredTokenNotification = {
   message: {
     text: 'Your token seems to have expired. Please go through the authentication process again and then submit your create PR request.',
   },
@@ -60,8 +58,6 @@ export function useIsAuthenticated(
     // token,
     // provider
   ]);
-
-  console.log(isAuthenticated);
 
   return {
     validateToken,

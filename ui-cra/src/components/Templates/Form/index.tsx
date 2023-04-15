@@ -17,14 +17,7 @@ import {
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, {
-  FC,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { Redirect, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
@@ -57,7 +50,6 @@ import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
-import { GitAuth } from './../../../contexts/GitAuth';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { getLink } from '../Edit/EditButton';
 import useNotifications from './../../../contexts/Notifications';
@@ -73,7 +65,10 @@ import {
   getInitialGitRepo,
   getRepositoryUrl,
 } from './utils';
-import { useIsAuthenticated } from '../../../hooks/gitprovider';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -296,7 +291,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     () => getGitRepos(data?.result),
     [data?.result],
   );
-  const { gitAuthClient } = useContext(GitAuth);
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
   const initialGitRepo = getInitialGitRepo(
@@ -443,11 +437,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const token = getProviderToken(formData.provider);
 
-  const {
-    isAuthenticated,
-    loading: validatingToken,
-    validateToken,
-  } = useIsAuthenticated(formData.provider, token);
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
 
   const handleAddResource = useCallback(() => {
     let createReqAnnot;
@@ -503,9 +496,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           .finally(() => setLoading(false)),
       )
       .catch(error => {
-        console.log(error);
+        setNotifications([expiredTokenNotification]);
         return;
-      });
+      })
+      .finally(() => setLoading(false));
   }, [
     updatedProfiles,
     addResource,
