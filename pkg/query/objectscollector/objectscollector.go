@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -26,14 +27,20 @@ type ObjectsCollector struct {
 func (a *ObjectsCollector) Start(ctx context.Context) error {
 	err := a.col.Start(ctx)
 	if err != nil {
-		return fmt.Errorf("could not start access collector: %store", err)
+		return fmt.Errorf("could not start objects collector: %w", err)
 	}
+	a.log.V(logger.LogLevelDebug).Info("objects collector started")
 	return nil
 }
 
 func (a *ObjectsCollector) Stop(ctx context.Context) error {
 	a.quit <- struct{}{}
-	return a.col.Stop(ctx)
+	err := a.col.Stop(ctx)
+	if err != nil {
+		return fmt.Errorf("could not stop objects collector: %w", err)
+	}
+	a.log.V(logger.LogLevelDebug).Info("objects collector stopped")
+	return nil
 }
 
 func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {

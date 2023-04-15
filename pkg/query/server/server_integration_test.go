@@ -26,40 +26,61 @@ func TestServerIntegrationTest_Debug(t *testing.T) {
 	testLog := testr.New(t)
 	ctx := context.Background()
 
-	//appLog, err := l.New("debug", false)
-
-	appLog, loggerPath := createDebugLogger(t)
-	//appLog, r, w := createDebugLogger(t)
-
-	// setup app server
-	c, err := makeGRPCServer(t, cfg, appLog, testLog)
-	g.Expect(err).To(BeNil())
-
 	tests := []struct {
-		name           string
-		objects        []client.Object
-		queryRequest   api.QueryRequest
-		expectedEvents []string
+		name              string
+		objects           []client.Object
+		queryRequest      api.QueryRequest
+		logLevel          string
+		expectedEvents    []string
+		nonExpectedEvents []string
 	}{
 		{
-			name:         "can trace query server creation",
-			objects:      []client.Object{},
-			queryRequest: api.QueryRequest{},
+			name:              "can follow write path happy path with debug level",
+			objects:           []client.Object{},
+			queryRequest:      api.QueryRequest{},
+			logLevel:          "debug",
+			nonExpectedEvents: []string{},
 			expectedEvents: []string{
-				"collectors started",
+				"objects collector started",
+				"role collector started",
+				"collectors started", //potential duplicate
+				"watcher started",    //potential duplicate
 				"query server created",
+				"watching cluster",
+				"object transaction received",
+				"storing object",
+				"objects stored",
+				"rolebinding stored",
+				"role stored",
+				"object transactions processed",
 			},
 		},
-		//{
-		//	name: "can trace new helm release object",
-		//	objects: []client.Object{
-		//		testutils.NewHelmRelease("createdOrUpdatedHelmRelease", "any"),
-		//	},
-		//	expectedEvents: []string{"debug message"},
-		//},
+		{
+			name:           "cannot follow write path happy path without debug level",
+			objects:        []client.Object{},
+			queryRequest:   api.QueryRequest{},
+			logLevel:       "info",
+			expectedEvents: []string{},
+			nonExpectedEvents: []string{
+				"objects collector started",
+				"role collector started",
+				"object transaction received",
+				"storing object",
+				"objects stored",
+				"rolebinding stored",
+				"role stored",
+				"object transactions processed",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
+			appLog, loggerPath := newLoggerWithLevel(t, tt.logLevel)
+			// setup app server
+			c, err := makeGRPCServer(t, cfg, appLog, testLog)
+			g.Expect(err).To(BeNil())
+
 			//given a new event
 			test.Create(ctx, t, cfg, tt.objects...)
 			//when processed
@@ -67,21 +88,21 @@ func TestServerIntegrationTest_Debug(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			g.Expect(len(query.Objects)).To(BeIdenticalTo(10))
 			//then processing events are found
-			g.Expect(assertLogs(t, loggerPath, tt.expectedEvents)).To(Succeed())
+			g.Expect(assertLogs(t, loggerPath, tt.expectedEvents, tt.nonExpectedEvents)).To(Succeed())
 		})
 	}
 }
 
-func assertLogs(t *testing.T, loggerPath string, events []string) error {
+func assertLogs(t *testing.T, loggerPath string, expectedEvents []string, nonExpectedEvents []string) error {
 	//get logs
 	logs, err := os.ReadFile(loggerPath)
 	if err != nil {
 		return fmt.Errorf("cannot read logger file: %w", err)
 
 	}
-
-	logLines := strings.Split(string(logs), "\n")
-	for _, event := range events {
+	logss := string(logs)
+	logLines := strings.Split(logss, "\n")
+	for _, event := range expectedEvents {
 		found := false
 		for _, logLine := range logLines {
 			if strings.Contains(logLine, event) {
@@ -93,10 +114,17 @@ func assertLogs(t *testing.T, loggerPath string, events []string) error {
 			return fmt.Errorf("event not found: %s", event)
 		}
 	}
+
+	for _, nonExpectedEvent := range nonExpectedEvents {
+		if strings.Contains(logss, nonExpectedEvent) {
+			return fmt.Errorf("non expected event found:%s", nonExpectedEvent)
+		}
+	}
+
 	return nil
 }
 
-func createDebugLogger(t *testing.T) (logr.Logger, string) {
+func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
 	g := NewGomegaWithT(t)
 
 	file, err := os.CreateTemp(os.TempDir(), "query-server-log")
@@ -105,7 +133,7 @@ func createDebugLogger(t *testing.T) (logr.Logger, string) {
 	name := file.Name()
 	g.Expect(err).ShouldNot(HaveOccurred())
 
-	level, err := zapcore.ParseLevel("debug")
+	level, err := zapcore.ParseLevel(logLevel)
 	cfg := l.BuildConfig(
 		l.WithLogLevel(level),
 		l.WithMode(false),

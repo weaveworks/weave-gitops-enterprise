@@ -116,7 +116,7 @@ func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, erro
 		return nil, fmt.Errorf("cannot create controller manager: %v", err)
 	}
 
-	//create reconcilers for kinds
+	//create reconciler for kinds
 	for _, kind := range opts.Kinds {
 		rec, err := reconciler.NewReconciler(opts.ClusterName, kind, mgr.GetClient(), opts.ObjectsChannel, opts.Log)
 		if err != nil {

@@ -33,14 +33,20 @@ type RoleCollector struct {
 func (a *RoleCollector) Start(ctx context.Context) error {
 	err := a.col.Start(ctx)
 	if err != nil {
-		return fmt.Errorf("could not start access collector: %w", err)
+		return fmt.Errorf("could not start role collector: %w", err)
 	}
+	a.log.V(logger.LogLevelDebug).Info("role collector started")
 	return nil
 }
 
 func (a *RoleCollector) Stop(ctx context.Context) error {
 	a.quit <- struct{}{}
-	return a.col.Stop(ctx)
+	err := a.col.Stop(ctx)
+	if err != nil {
+		return fmt.Errorf("could not stop role collector: %w", err)
+	}
+	a.log.V(logger.LogLevelDebug).Info("role collector stopped")
+	return nil
 }
 
 func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {

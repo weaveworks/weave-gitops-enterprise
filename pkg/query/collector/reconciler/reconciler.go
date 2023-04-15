@@ -3,11 +3,11 @@ package reconciler
 import (
 	"context"
 	"fmt"
-
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -40,7 +40,7 @@ func NewReconciler(clusterName string, gvk schema.GroupVersionKind, client clien
 		gvk:            gvk,
 		client:         client,
 		objectsChannel: objectsChannel,
-		log:            logger,
+		log:            logger.WithName("query-collector-reconciler"),
 		clusterName:    clusterName,
 	}, nil
 }
@@ -105,11 +105,15 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		txType = models.TransactionTypeDelete
 	}
 
-	transactions := []models.ObjectTransaction{transaction{
+	tx := transaction{
 		clusterName:     r.clusterName,
 		object:          clientObject,
 		transactionType: txType,
-	}}
+	}
+
+	transactions := []models.ObjectTransaction{tx}
+
+	r.log.V(logger.LogLevelDebug).Info("object transaction received", "transaction", tx.String())
 
 	//TODO manage error
 	r.objectsChannel <- transactions
@@ -133,4 +137,8 @@ func (r transaction) Object() client.Object {
 
 func (r transaction) TransactionType() models.TransactionType {
 	return r.transactionType
+}
+
+func (r transaction) String() string {
+	return fmt.Sprintf("%s/%s/%s/%s", r.clusterName, r.object.GetNamespace(), r.object.GetName(), r.transactionType)
 }
