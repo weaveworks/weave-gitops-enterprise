@@ -131,15 +131,17 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx c
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}
+	log.Info("access checker created")
+
 	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
 		Log:           log,
 		StoreReader:   s,
 		AccessChecker: checker,
 	})
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
+	log.Info("query service created")
 
 	serv := &server{qs: qs, ac: checker}
 

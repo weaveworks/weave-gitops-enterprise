@@ -266,7 +266,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
 	}
-
+	i.log.V(logger.LogLevelDebug).Info("objects retrieved")
 	return sqliterator.New(tx)
 }
 
