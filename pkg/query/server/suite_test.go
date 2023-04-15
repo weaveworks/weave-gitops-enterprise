@@ -102,7 +102,7 @@ func TestMain(m *testing.M) {
 	os.Exit(retCode)
 }
 
-func makeGRPCServer(t *testing.T, cfg *rest.Config, queryLog, testLog logr.Logger) (api.QueryClient, error) {
+func makeQueryServer(t *testing.T, cfg *rest.Config, principalId string, queryLog, testLog logr.Logger) (api.QueryClient, error) {
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 
@@ -132,7 +132,7 @@ func makeGRPCServer(t *testing.T, cfg *rest.Config, queryLog, testLog logr.Logge
 
 	enServer := server.NewClusterServer(opts)
 	lis := bufconn.Listen(1024 * 1024)
-	principal := auth.NewUserPrincipal(auth.ID("wego-admin"), auth.Token("1234"))
+	principal := auth.NewUserPrincipal(auth.ID(principalId), auth.Token("1234"))
 	s := grpc.NewServer(
 		withClientsPoolInterceptor(clustersManager, cfg, principal),
 	)

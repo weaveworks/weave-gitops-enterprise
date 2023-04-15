@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
@@ -29,7 +30,7 @@ const (
 
 func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, error) {
 	return &qs{
-		log:     opts.Log,
+		log:     opts.Log.WithName("query-service"),
 		r:       opts.StoreReader,
 		checker: opts.AccessChecker,
 	}, nil
@@ -45,10 +46,11 @@ type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule,
 
 func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOption) ([]models.Object, error) {
 	principal := auth.Principal(ctx)
-
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
+
+	q.log.V(logger.LogLevelDebug).Info("query received", "query", query, "principal", principal.ID)
 
 	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
@@ -89,10 +91,15 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		}
 
 		if ok {
+			//authorised is returned
 			result = append(result, obj)
+		} else {
+			//unauthorised is logged for debugging
+			q.log.V(logger.LogLevelDebug).Info("unauthorised access", "principal", principal.ID, "object", obj.ID)
 		}
 	}
 
+	q.log.V(logger.LogLevelDebug).Info("query processed", "query", query, "principal", principal.ID, "numResult", len(result))
 	return result, nil
 }
 

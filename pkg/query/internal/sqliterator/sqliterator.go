@@ -14,7 +14,6 @@ type iterator struct {
 }
 
 func New(result *gorm.DB) (*iterator, error) {
-
 	rows, err := result.Rows()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get rows: %w", err)
