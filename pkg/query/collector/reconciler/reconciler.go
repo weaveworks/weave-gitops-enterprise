@@ -22,7 +22,7 @@ type Reconciler interface {
 	Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error)
 }
 
-func NewReconciler(clusterName string, gvk schema.GroupVersionKind, client client.Client, objectsChannel chan []models.ObjectTransaction, log logr.Logger) (Reconciler, error) {
+func NewReconciler(clusterName string, gvk schema.GroupVersionKind, client client.Client, objectsChannel chan []models.ObjectTransaction, logger logr.Logger) (Reconciler, error) {
 
 	if client == nil {
 		return nil, fmt.Errorf("invalid client")
@@ -40,8 +40,7 @@ func NewReconciler(clusterName string, gvk schema.GroupVersionKind, client clien
 		gvk:            gvk,
 		client:         client,
 		objectsChannel: objectsChannel,
-		log:            log.WithName("query-collector-reconciler"),
-		debug:          log.WithName("query-collector-reconciler").V(logger.LogLevelDebug),
+		log:            logger.WithName("query-collector-reconciler"),
 		clusterName:    clusterName,
 	}, nil
 }
@@ -52,7 +51,6 @@ type GenericReconciler struct {
 	client         client.Client
 	gvk            schema.GroupVersionKind
 	log            logr.Logger
-	debug          logr.Logger
 	clusterName    string
 }
 
@@ -115,7 +113,7 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 
 	transactions := []models.ObjectTransaction{tx}
 
-	r.debug.Info("object transaction received", "transaction", tx.String())
+	r.log.V(logger.LogLevelDebug).Info("object transaction received", "transaction", tx.String())
 
 	//TODO manage error
 	r.objectsChannel <- transactions

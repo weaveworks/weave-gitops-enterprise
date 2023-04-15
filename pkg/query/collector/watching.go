@@ -3,13 +3,12 @@ package collector
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/logger"
-
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -22,12 +21,12 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 	for _, cluster := range c.clusterManager.GetClusters() {
 		err := c.Watch(ctx, cluster)
 		if err != nil {
-			return fmt.Errorf("cannot watch clusterName: %w", err)
+			return fmt.Errorf("cannot watch cluster: %w", err)
 		}
-		c.log.Info("cluster watching", "cluster", cluster.GetName())
+		c.log.Info("watching cluster", "cluster", cluster.GetName())
 	}
 
-	//watch on clusters
+	//watch clusters
 	go func() {
 		for {
 			select {
@@ -39,7 +38,7 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 					if err != nil {
 						c.log.Error(err, "cannot watch cluster")
 					}
-					c.log.Info("cluster watching", "cluster", cluster.GetName())
+					c.log.Info("watching cluster", "cluster", cluster.GetName())
 				}
 
 				for _, cluster := range updates.Removed {
@@ -47,12 +46,13 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 					if err != nil {
 						c.log.Error(err, "cannot unwatch cluster")
 					}
-					c.log.Info("cluster unwatching", "cluster", cluster.GetName())
+					c.log.Info("unwatched cluster", "cluster", cluster.GetName())
 				}
 			}
 		}
 	}()
 
+	//watch object events
 	go func() {
 		for {
 			select {
@@ -63,11 +63,12 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 				if err != nil {
 					c.log.Error(err, "cannot process records")
 				}
+				//TODO review format
+				c.log.V(logger.LogLevelDebug).Info("object transactions processed", "transaction", objectTransactions)
 			}
 		}
 	}()
 
-	c.log.V(logger.LogLevelDebug).Info("debug message")
 	c.log.Info("watcher started", "kinds", c.kinds)
 	return nil
 }
