@@ -123,9 +123,7 @@ export function RepoInputWithAuth({
       <div className="auth-message">
         {isAuthenticated && (
           <Flex align>
-            {loading ? (
-              <CircularProgress />
-            ) : (
+            {!loading ? (
               <>
                 <Icon
                   size="medium"
@@ -133,6 +131,11 @@ export function RepoInputWithAuth({
                   type={IconType.CheckMark}
                 />{' '}
                 {res?.provider} credentials detected
+              </>
+            ) : (
+              <>
+                <CircularProgress size={20} />
+                &nbsp; checking credentials
               </>
             )}
           </Flex>

@@ -495,9 +495,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           })
           .finally(() => setLoading(false)),
       )
-      .catch(error => {
+      .catch(() => {
         setNotifications([expiredTokenNotification]);
-        return;
       })
       .finally(() => setLoading(false));
   }, [
