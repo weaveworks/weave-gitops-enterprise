@@ -33,6 +33,7 @@ const ClusterDashboard = ({
   ) => Promise<void>;
 }) => {
   const labels = currentCluster?.labels || {};
+  const annotations = currentCluster?.annotations || {};
   const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
 
   const [disabled, setDisabled] = useState<boolean>(false);
@@ -107,7 +108,24 @@ const ClusterDashboard = ({
                 </Typography>
                 {Object.entries(labels).map(([key, value]) => (
                   <Chip
-                    style={{ marginRight: theme.spacing.small }}
+                    style={{ marginRight: theme.spacing.small, marginBottom: theme.spacing.small }}
+                    key={key}
+                    label={`${key}: ${value}`}
+                  />
+                ))}
+              </Box>
+              <Divider variant="middle" />
+            </>
+          ) : null}
+          {Object.keys(annotations).length > 0 ? (
+            <>
+              <Box margin={2}>
+                <Typography variant="h6" gutterBottom component="div">
+                  Annotations
+                </Typography>
+                {Object.entries(annotations).map(([key, value]) => (
+                  <Chip
+                    style={{ marginRight: theme.spacing.small, marginBottom: theme.spacing.small }}
                     key={key}
                     label={`${key}: ${value}`}
                   />
