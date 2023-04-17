@@ -28,7 +28,6 @@ import (
 	"net"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -51,11 +50,13 @@ func TestMain(m *testing.M) {
 	repoRoot := strings.TrimSpace(string(cmdOut))
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
+	existingCluster := true
 	testEnv := &envtest.Environment{
-		CRDDirectoryPaths: []string{
-			filepath.Join("testdata", "crds"),
-		},
-		ErrorIfCRDPathMissing: true,
+		//CRDDirectoryPaths: []string{
+		//	filepath.Join("testdata", "crds"),
+		//},
+		//ErrorIfCRDPathMissing: true,
+		UseExistingCluster: &existingCluster,
 	}
 
 	cfg, err = testEnv.Start()
@@ -116,7 +117,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 
-	fakeCluster, err := cluster.NewSingleCluster("envtest", cfg, scheme.Scheme)
+	fakeCluster, err := cluster.NewSingleCluster("management", cfg, scheme.Scheme)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create cluster:%w", err)
 	}

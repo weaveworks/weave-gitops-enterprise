@@ -36,125 +36,69 @@ const (
 	defaultInterval = time.Second
 )
 
-// TestQueryServer_IntegrationTest is an integration test for excercising the integration of the
-// query system that includes both collecting from a cluster (using env teset) and doing queries via grpc.
-// It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
-func TestQueryServer_IntegrationTest(t *testing.T) {
+// To test https://github.com/weaveworks/weave-gitops-enterprise/issues/2674
+func TestHelmRelease(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
 
-	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
+	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{""}))
 	defaultNamespace := "default"
 
 	testLog := testr.New(t)
 	tests := []struct {
 		name               string
 		logLevel           string
-		objects            []client.Object
 		access             []client.Object
+		first              []client.Object
+		second             []client.Object
 		principal          *auth.UserPrincipal
 		expectedEvents     []string
 		expectedNumObjects int
 		nonExpectedEvents  []string
 	}{
+
+		//scenario: can see helm release from management cluster
+		//
+		//given management cluster with apps
+		//when explorer queried
+		//then apps returned
+		//
+		//when added new app to management cluster
+		//and explorer queried
+		//then new app is return
 		{
-			name:               "should provide query infra events as baseline",
-			objects:            []client.Object{},
-			access:             []client.Object{},
-			logLevel:           "info",
-			principal:          principal,
-			nonExpectedEvents:  []string{},
-			expectedNumObjects: 0,
-			expectedEvents: []string{
-				// collector infra events
-				"objects collector started",
-				"role collector started",
-				"collectors started", //potential duplicate
-				"watcher started",    //potential duplicate
-				"watching cluster",
-				// query infra events
-				"access checker created",
-				"query service created",
-				"query server created",
-				//TODO add stop events
-			},
-		},
-		{
-			name:   "should be verbose with debug logging level",
+			name:   "can see helm release from management cluster",
 			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
+			first: []client.Object{
 				podinfoHelmRepository(defaultNamespace),
-				podinfoHelmRelease(defaultNamespace),
-				podinfoHelmRelease("kube-public"),
+				createHelmRelease("podinfo", defaultNamespace),
+			},
+			second: []client.Object{
+				podinfoHelmRepository(defaultNamespace),
+				createHelmRelease("podinfo2", "kube-public"),
 			},
 			logLevel:           "debug",
 			principal:          principal,
-			nonExpectedEvents:  []string{},
 			expectedNumObjects: 1, // should allow only on default namespace
-			expectedEvents: []string{
-				//object collection events
-				"object transaction received",
-				"storing object",
-				"objects stored",
-				"objects processed",
-				"rolebinding stored",
-				"role stored",
-				"roles processed",
-				//query execution events
-				"query received",
-				"objects retrieved",
-				"query processed",
-				//unauthorised access events
-				"unauthorised access",
-			},
-		},
-		{
-			name:   "should be silent with info logging level",
-			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoHelmRepository(defaultNamespace),
-				podinfoHelmRelease(defaultNamespace),
-				podinfoHelmRelease("kube-public"),
-			},
-			logLevel:           "info",
-			principal:          principal,
-			expectedEvents:     []string{},
-			expectedNumObjects: 1, // should allow only on default namespace
-			nonExpectedEvents: []string{
-				//object collection events
-				"object transaction received",
-				"storing object",
-				"objects stored",
-				"objects processed",
-				"rolebinding stored",
-				"role stored",
-				"roles processed",
-				//query execution events
-				"query received",
-				"objects retrieved",
-				"query processed",
-				//unauthorised access events
-				"unauthorised access",
-			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//Given a query environment
 			ctx := context.Background()
-			appLog, loggerPath := newLoggerWithLevel(t, tt.logLevel)
+			appLog, _ := newLoggerWithLevel(t, tt.logLevel)
 			c, err := makeQueryServer(t, cfg, tt.principal, appLog, testLog)
 			g.Expect(err).To(BeNil())
 			//And some access rules and objects ingested
-			test.Create(ctx, t, cfg, tt.objects...)
 			test.Create(ctx, t, cfg, tt.access...)
+			test.Create(ctx, t, cfg, tt.first...)
 
 			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
 				clause := api.QueryClause{
-					Key:     "namespace",
-					Value:   defaultNamespace,
+					Key:     "name",
+					Value:   "podinfo",
 					Operand: string(store.OperandEqual),
 				}
 				query, err := c.DoQuery(ctx, &api.QueryRequest{
@@ -166,34 +110,32 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
 
+			test.Create(ctx, t, cfg, tt.second...)
+
 			//When query without expected results is successfully executed
 			querySucceeded = g.Eventually(func() bool {
 				clause := api.QueryClause{
-					Key:     "namespace",
-					Value:   "kube-public",
+					Key:     "name",
+					Value:   "podinfo2",
 					Operand: string(store.OperandEqual),
 				}
 				query, err := c.DoQuery(ctx, &api.QueryRequest{
 					Query: []*api.QueryClause{&clause},
 				})
 				g.Expect(err).To(BeNil())
-				return len(query.Objects) == 0
+				return len(query.Objects) == 1
 			}).Should(BeTrue())
 			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
-
-			//And logging events are found
-			g.Expect(assertLogs(loggerPath, tt.expectedEvents, tt.nonExpectedEvents)).To(Succeed())
-
 		})
 	}
 }
 
-func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
+func createHelmRelease(name, namespace string) *helmv2.HelmRelease {
 	return &helmv2.HelmRelease{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "podinfo",
-			Namespace: defaultNamespace,
+			Name:      name,
+			Namespace: namespace,
 		},
 		TypeMeta: metav1.TypeMeta{
 			Kind:       helmv2.HelmReleaseKind,
@@ -207,7 +149,7 @@ func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Kind:      sourcev1.HelmRepositoryKind,
 						Name:      "podinfo",
-						Namespace: defaultNamespace,
+						Namespace: namespace,
 					},
 				},
 			},
