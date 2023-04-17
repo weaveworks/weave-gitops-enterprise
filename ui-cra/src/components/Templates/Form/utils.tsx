@@ -10,7 +10,6 @@ import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
 import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
-import useClusters from '../../../hooks/clusters';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 
 const yamlConverter = require('js-yaml');
