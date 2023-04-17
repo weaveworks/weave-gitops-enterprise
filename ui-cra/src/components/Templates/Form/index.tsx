@@ -289,7 +289,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
-  const { initialGitRepo } = useGetInitialGitRepo(initialUrl, gitRepos);
+  const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,

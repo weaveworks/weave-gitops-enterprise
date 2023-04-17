@@ -160,7 +160,7 @@ const CreatePolicyConfig = () => {
 
   const { data } = useListSources('', '', { retry: false });
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
-  const { initialGitRepo } = useGetInitialGitRepo(null, gitRepos);
+  const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
 
   const [formError, setFormError] = useState<string>('');
 

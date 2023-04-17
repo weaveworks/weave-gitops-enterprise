@@ -286,7 +286,7 @@ const MCCP: FC<{
   const initialUrl =
     selectedCapiCluster &&
     getCreateRequestAnnotation(selectedCapiCluster)?.repository_url;
-  const { initialGitRepo } = useGetInitialGitRepo(initialUrl, gitRepos);
+  const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
 
   const history = useHistory();
 

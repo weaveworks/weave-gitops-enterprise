@@ -213,7 +213,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     () => getGitRepos(data?.result),
     [data?.result],
   );
-  const { initialGitRepo } = useGetInitialGitRepo(null, gitRepos);
+  const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
 
   useEffect(() => {
     setUpdatedProfiles({

@@ -111,7 +111,7 @@ export function useGetInitialGitRepo(
     }
   }
 
-  return { initialGitRepo: getDefaultGitRepo(gitRepos, mgCluster) };
+  return getDefaultGitRepo(gitRepos, mgCluster);
 }
 
 export function getDefaultGitRepo(

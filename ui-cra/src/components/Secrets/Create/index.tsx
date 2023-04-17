@@ -141,7 +141,7 @@ const CreateSecret = () => {
 
   const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
-  const { initialGitRepo } = useGetInitialGitRepo(null, gitRepos);
+  const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
 
   const [formError, setFormError] = useState<string>('');
   const automation = formData.clusterAutomations[0];
