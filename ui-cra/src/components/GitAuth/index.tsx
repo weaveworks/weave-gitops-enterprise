@@ -1,4 +1,4 @@
-import React, { Dispatch, FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect } from 'react';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
@@ -25,7 +25,7 @@ const GitAuth: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
-  setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  setEnableCreatePR?: Dispatch<React.SetStateAction<boolean>>;
   enableGitRepoSelection?: boolean;
 }> = ({
   formData,
@@ -36,7 +36,6 @@ const GitAuth: FC<{
   enableGitRepoSelection,
 }) => {
   const token = getProviderToken(formData.provider);
-  const [authSuccess, setAuthSuccess] = useState<boolean>(false);
   const { isAuthenticated, loading } = useIsAuthenticated(
     formData.provider,
     token,
@@ -47,14 +46,6 @@ const GitAuth: FC<{
       return;
     }
   }, [formData.provider]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      setEnableCreatePR(true);
-    } else {
-      setEnableCreatePR(false);
-    }
-  }, [authSuccess, isAuthenticated, setEnableCreatePR]);
 
   return (
     <>
@@ -89,10 +80,7 @@ const GitAuth: FC<{
         <GithubDeviceAuthModal
           bodyClassName="GithubDeviceAuthModal"
           onClose={() => setShowAuthDialog(false)}
-          onSuccess={() => {
-            setShowAuthDialog(false);
-            setAuthSuccess(true);
-          }}
+          onSuccess={() => setShowAuthDialog(false)}
           open={showAuthDialog}
           repoName="config"
         />

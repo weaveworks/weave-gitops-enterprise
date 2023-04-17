@@ -15,7 +15,7 @@ const GitOps: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
-  setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  setEnableCreatePR?: Dispatch<React.SetStateAction<boolean>>;
   formError?: string;
   enableGitRepoSelection?: boolean;
 }> = ({

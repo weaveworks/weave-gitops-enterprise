@@ -356,7 +356,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
+  // const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
   const handlePRPreview = useCallback(() => {
@@ -658,7 +658,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
-              setEnableCreatePR={setEnableCreatePR}
+              // setEnableCreatePR={setEnableCreatePR}
               formError={formError}
               enableGitRepoSelection={
                 !(resource && initialGitRepo?.createPRRepo)
@@ -671,7 +671,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 <Button
                   type="submit"
                   onClick={() => setSubmitType('Create resource')}
-                  disabled={!enableCreatePR || !isAuthenticated}
+                  disabled={!isAuthenticated}
                 >
                   CREATE PULL REQUEST
                 </Button>
@@ -696,7 +696,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     updatedProfiles,
     previewLoading,
     loading,
-    enableCreatePR,
+    // enableCreatePR,
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,
