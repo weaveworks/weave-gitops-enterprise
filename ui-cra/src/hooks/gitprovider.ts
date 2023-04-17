@@ -11,9 +11,7 @@ import {
   storeProviderToken,
 } from '../components/GitAuth/utils';
 import { GitAuth } from '../contexts/GitAuth';
-import useNotifications, {
-  NotificationData,
-} from './../contexts/Notifications';
+import { NotificationData } from './../contexts/Notifications';
 
 const providerTokenHeaderName = 'Git-Provider-Token';
 
@@ -32,7 +30,6 @@ export function useIsAuthenticated(
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>();
   const [loading, setLoading] = useState<boolean>(false);
   const { gitAuthClient } = useContext(GitAuth);
-  const { notifications } = useNotifications();
 
   const validateToken = useCallback(() => {
     const makeHeaders = () =>
@@ -50,7 +47,9 @@ export function useIsAuthenticated(
       .then(res => setIsAuthenticated(res?.valid ? true : false))
       .catch(() => setIsAuthenticated(false))
       .finally(() => setLoading(false));
-  }, [validateToken, token, notifications]);
+  }, [validateToken, token]);
+
+  console.log(isAuthenticated);
 
   return {
     validateToken,

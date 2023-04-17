@@ -1,4 +1,4 @@
-import { CircularProgress, MenuItem } from '@material-ui/core';
+import { MenuItem } from '@material-ui/core';
 import {
   Button,
   Flex,
@@ -133,10 +133,7 @@ export function RepoInputWithAuth({
                 {res?.provider} credentials detected
               </>
             ) : (
-              <>
-                <CircularProgress size={20} />
-                &nbsp; checking credentials
-              </>
+              'Checking credentials ...'
             )}
           </Flex>
         )}

@@ -496,6 +496,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           .finally(() => setLoading(false)),
       )
       .catch(() => {
+        removeToken(formData.provider);
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
