@@ -36,8 +36,9 @@ const (
 	defaultInterval = time.Second
 )
 
-// Test case to ensure that we can debug issues via log events
-// https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
+// TestQueryServer_IntegrationTest is an integration test for excercising the integration of the
+// query system that includes both collecting from a cluster (using env teset) and doing queries via grpc.
+// It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
 func TestQueryServer_IntegrationTest(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
@@ -58,7 +59,7 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 		nonExpectedEvents  []string
 	}{
 		{
-			name:               "should log query and collector infra start and stop events",
+			name:               "should provide query infra events as baseline",
 			objects:            []client.Object{},
 			access:             []client.Object{},
 			logLevel:           "info",
@@ -80,75 +81,46 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 			},
 		},
 		{
-			name:   "should collect and query objects with full visibility when debug level",
-			access: adminHelmReleasesOnDefaultNamespace(principal.ID),
+			name:   "should be verbose with debug logging level",
+			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1.HelmRepository{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1.HelmRepositoryKind,
-						APIVersion: sourcev1.GroupVersion.String(),
-					},
-					Spec: sourcev1.HelmRepositorySpec{
-						Interval: metav1.Duration{Duration: time.Minute},
-						URL:      "http://my-url.com",
-					},
-				},
-				&helmv2.HelmRelease{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       helmv2.HelmReleaseKind,
-						APIVersion: helmv2.GroupVersion.String(),
-					},
-					Spec: helmv2.HelmReleaseSpec{
-						Interval: metav1.Duration{Duration: time.Minute},
-						Chart: helmv2.HelmChartTemplate{
-							Spec: helmv2.HelmChartTemplateSpec{
-								Chart: "podinfo",
-								SourceRef: helmv2.CrossNamespaceObjectReference{
-									Kind:      sourcev1.HelmRepositoryKind,
-									Name:      "podinfo",
-									Namespace: defaultNamespace,
-								},
-							},
-						},
-					},
-				},
-				&helmv2.HelmRelease{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: "kube-public",
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       helmv2.HelmReleaseKind,
-						APIVersion: helmv2.GroupVersion.String(),
-					},
-					Spec: helmv2.HelmReleaseSpec{
-						Interval: metav1.Duration{Duration: time.Minute},
-						Chart: helmv2.HelmChartTemplate{
-							Spec: helmv2.HelmChartTemplateSpec{
-								Chart: "podinfo",
-								SourceRef: helmv2.CrossNamespaceObjectReference{
-									Kind:      sourcev1.HelmRepositoryKind,
-									Name:      "podinfo",
-									Namespace: defaultNamespace,
-								},
-							},
-						},
-					},
-				},
+				podinfoHelmRepository(defaultNamespace),
+				podinfoHelmRelease(defaultNamespace),
+				podinfoHelmRelease("kube-public"),
 			},
 			logLevel:           "debug",
 			principal:          principal,
 			nonExpectedEvents:  []string{},
-			expectedNumObjects: 1,
+			expectedNumObjects: 1, // should allow only on default namespace
 			expectedEvents: []string{
+				//object collection events
+				"object transaction received",
+				"storing object",
+				"objects stored",
+				"rolebinding stored",
+				"role stored",
+				"object transactions processed",
+				//query execution events
+				"query received",
+				"objects retrieved",
+				"query processed",
+				//unauthorised access events
+				"unauthorised access",
+			},
+		},
+		{
+			name:   "should be silent with info logging level",
+			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				podinfoHelmRepository(defaultNamespace),
+				podinfoHelmRelease(defaultNamespace),
+				podinfoHelmRelease("kube-public"),
+			},
+			logLevel:           "info",
+			principal:          principal,
+			expectedEvents:     []string{},
+			expectedNumObjects: 1, // should allow only on default namespace
+			nonExpectedEvents: []string{
 				//object collection events
 				"object transaction received",
 				"storing object",
@@ -213,7 +185,50 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 	}
 }
 
-func adminHelmReleasesOnDefaultNamespace(username string) []client.Object {
+func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
+	return &helmv2.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "podinfo",
+			Namespace: defaultNamespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       helmv2.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.String(),
+		},
+		Spec: helmv2.HelmReleaseSpec{
+			Interval: metav1.Duration{Duration: time.Minute},
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: "podinfo",
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind:      sourcev1.HelmRepositoryKind,
+						Name:      "podinfo",
+						Namespace: defaultNamespace,
+					},
+				},
+			},
+		},
+	}
+}
+
+func podinfoHelmRepository(namespace string) *sourcev1.HelmRepository {
+	return &sourcev1.HelmRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "podinfo",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.String(),
+		},
+		Spec: sourcev1.HelmRepositorySpec{
+			Interval: metav1.Duration{Duration: time.Minute},
+			URL:      "http://my-url.com",
+		},
+	}
+}
+
+func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
 	roleName := "helm-release-admin"
 	roleBindingName := "wego-admin-helm-release-admin"
 
