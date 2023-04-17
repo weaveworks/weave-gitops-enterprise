@@ -39,20 +39,33 @@ C4Context
       System(weaveGitopsEnterprise, "Weave Gitops Enterprise")
 
       Rel(platformOperator, weaveGitopsEnterprise, "Manages Platform")
+      UpdateRelStyle(platformOperator, weaveGitopsEnterprise, $offsetY="-10")
+
       Rel(applicationDeveloper, weaveGitopsEnterprise, "Delivers Application")
+      UpdateRelStyle(applicationDeveloper, weaveGitopsEnterprise, $offsetX="50", $offsetY="-10")
+
       Rel(weaveGitopsEnterprise, Github, "gitops flows")
+      UpdateRelStyle(weaveGitopsEnterprise, Github, $offsetX="-220", $offsetY="-20")
       Rel(weaveGitopsEnterprise, KubernetesCluster, "read resources via api")
+      UpdateRelStyle(weaveGitopsEnterprise, KubernetesCluster, $offsetX="-130", $offsetY="-20")
       Rel(weaveGitopsEnterprise, idp, "authenticate users via OIDC")
+      UpdateRelStyle(weaveGitopsEnterprise, idp, $offsetX="-220", $offsetY="-40")
+
 
       Container_Boundary(runtime, "runtime") {
          System_Ext(KubernetesCluster, "Kubernetes Cluster", "run customer applications")
 
-         System_Ext(Flagger, "Flagger", "controller for progressive delivery capabilities")
-         Rel(Flagger, KubernetesCluster, "manage canary resources from")
-
          System_Ext(Flux, "Flux", "deploy customer applications")
          Rel(Flux, KubernetesCluster, "deploy apps to")
+         UpdateRelStyle(Flux, KubernetesCluster, $offsetX="-40", $offsetY="-20")
          Rel(Flux, Github, "read apps from")        
+         UpdateRelStyle(Flux, Github, $offsetX="-40", $offsetY="-10")
+
+
+         System_Ext(Flagger, "Flagger", "controller for progressive delivery capabilities")
+         Rel(Flagger, KubernetesCluster, "manage canary resources from")
+         UpdateRelStyle(Flagger, KubernetesCluster, $offsetX="10", $offsetY="0")
+
       }
 
       Container_Boundary(git, "git") {
@@ -64,7 +77,7 @@ C4Context
       }
 
 
-      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")    
+      UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")     
 ```
 
 ## Weave Gitops Enterprise as Application Tiers
