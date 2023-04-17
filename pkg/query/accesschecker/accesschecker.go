@@ -2,7 +2,6 @@ package accesschecker
 
 import (
 	"fmt"
-	"github.com/go-logr/logr"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -25,7 +24,6 @@ type Checker interface {
 
 type defaultAccessChecker struct {
 	kindByResourceMap map[string]string
-	log               logr.Logger
 }
 
 // HasAccess checks if a principal has access to an object given principal access rules
@@ -104,9 +102,8 @@ func (a *defaultAccessChecker) RelevantRulesForUser(user *auth.UserPrincipal, ru
 
 // NewAccessChecker returns a new AccessChecker configured with a set of allowed resources
 // and kinds it could check access to
-func NewAccessChecker(kindByResourceMap map[string]string, log logr.Logger) (Checker, error) {
+func NewAccessChecker(kindByResourceMap map[string]string) (Checker, error) {
 	return &defaultAccessChecker{
 		kindByResourceMap: kindByResourceMap,
-		log:               log.WithName("query-access-checker"),
 	}, nil
 }

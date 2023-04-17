@@ -97,9 +97,10 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 				"object transaction received",
 				"storing object",
 				"objects stored",
+				"objects processed",
 				"rolebinding stored",
 				"role stored",
-				"object transactions processed",
+				"roles processed",
 				//query execution events
 				"query received",
 				"objects retrieved",
@@ -125,13 +126,15 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 				"object transaction received",
 				"storing object",
 				"objects stored",
+				"objects processed",
 				"rolebinding stored",
 				"role stored",
-				"object transactions processed",
+				"roles processed",
 				//query execution events
 				"query received",
 				"objects retrieved",
 				"query processed",
+				//unauthorised access events
 				"unauthorised access",
 			},
 		},

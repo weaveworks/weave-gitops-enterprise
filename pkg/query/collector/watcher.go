@@ -256,6 +256,10 @@ func (r deleteAllTransaction) Object() client.Object {
 	return nil
 }
 
+func (r deleteAllTransaction) String() string {
+	return fmt.Sprintf("%s/%s", r.clusterName, r.TransactionType())
+}
+
 func (r deleteAllTransaction) TransactionType() models.TransactionType {
 	return models.TransactionTypeDeleteAll
 }

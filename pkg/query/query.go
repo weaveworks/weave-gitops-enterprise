@@ -53,7 +53,6 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
-	//TODO refactor me
 	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)

@@ -4,7 +4,6 @@ import (
 	"context"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/logr/testr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
@@ -402,7 +401,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			kindByResourceMap, err := testutils.CreateDefaultResourceKindMap()
 			assert.NoError(t, err)
 
-			checker, err := accesschecker.NewAccessChecker(kindByResourceMap, testr.New(t))
+			checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
 			assert.NoError(t, err)
 
 			qs, err := NewQueryService(ctx, QueryServiceOpts{

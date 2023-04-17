@@ -162,5 +162,6 @@ func defaultProcessRecords(ctx context.Context, objectTransactions []models.Obje
 		}
 	}
 
+	log.V(logger.LogLevelDebug).Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
 	return nil
 }

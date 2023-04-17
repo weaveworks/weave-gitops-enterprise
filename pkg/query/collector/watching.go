@@ -8,7 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -63,8 +62,6 @@ func (c *watchingCollector) Start(ctx context.Context) error {
 				if err != nil {
 					c.log.Error(err, "cannot process records")
 				}
-				//TODO review format
-				c.log.V(logger.LogLevelDebug).Info("object transactions processed", "transaction", objectTransactions)
 			}
 		}
 	}()
