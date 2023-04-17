@@ -571,14 +571,14 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       >
         <FormWrapper
           noValidate
-          onSubmit={event => {
+          onSubmit={event =>
             validateFormData(
               event,
               getSubmitFunction(submitType),
               setFormError,
               setSubmitType,
-            );
-          }}
+            )
+          }
         >
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <CredentialsWrapper align>
@@ -670,9 +670,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               <Flex end className="create-cta">
                 <Button
                   type="submit"
-                  onClick={() => {
-                    setSubmitType('Create resource');
-                  }}
+                  onClick={() => setSubmitType('Create resource')}
                   disabled={!enableCreatePR || !isAuthenticated}
                 >
                   CREATE PULL REQUEST

@@ -49,8 +49,6 @@ export function useIsAuthenticated(
       .finally(() => setLoading(false));
   }, [validateToken, token]);
 
-  console.log(isAuthenticated);
-
   return {
     validateToken,
     isAuthenticated,
