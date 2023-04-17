@@ -4,6 +4,7 @@ import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
   GitProvider,
+  ValidateProviderTokenResponse,
 } from '../api/gitauth/gitauth.pb';
 import {
   getProviderToken,
@@ -42,12 +43,15 @@ export function useIsAuthenticated(
   }, [gitAuthClient, provider, token]);
 
   useEffect(() => {
+    if (provider === ('' as GitProvider)) {
+      return;
+    }
     setLoading(true);
-    validateToken()
+    (validateToken() as Promise<ValidateProviderTokenResponse>)
       .then(res => setIsAuthenticated(res?.valid ? true : false))
       .catch(() => setIsAuthenticated(false))
       .finally(() => setLoading(false));
-  }, [validateToken, token]);
+  }, [validateToken, token, provider]);
 
   return {
     validateToken,
