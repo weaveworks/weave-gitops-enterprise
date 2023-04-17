@@ -10,6 +10,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
@@ -119,5 +120,6 @@ func defaultProcessRecords(ctx context.Context, objectTransactions []models.Obje
 		}
 	}
 
+	log.V(logger.LogLevelDebug).Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
 	return nil
 }
