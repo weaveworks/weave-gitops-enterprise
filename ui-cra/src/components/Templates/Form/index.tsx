@@ -658,7 +658,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
-              // setEnableCreatePR={setEnableCreatePR}
               formError={formError}
               enableGitRepoSelection={
                 !(resource && initialGitRepo?.createPRRepo)
@@ -696,7 +695,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     updatedProfiles,
     previewLoading,
     loading,
-    // enableCreatePR,
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,
