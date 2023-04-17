@@ -157,7 +157,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 		SkipCollection:  false,
 	}
 
-	qs, _, err := queryserver.NewServer(context.Background(), opts2)
+	qs, _, err := queryserver.NewServer(opts2)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create query server:%w", err)
 	}

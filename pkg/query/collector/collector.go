@@ -25,8 +25,8 @@ type ClusterWatcher interface {
 //counterfeiter:generate . Collector
 type Collector interface {
 	ClusterWatcher
-	Start(ctx context.Context) error
-	Stop(ctx context.Context) error
+	Start() error
+	Stop() error
 }
 
 type CollectorOpts struct {

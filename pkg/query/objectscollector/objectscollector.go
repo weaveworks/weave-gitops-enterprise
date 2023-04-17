@@ -24,8 +24,8 @@ type ObjectsCollector struct {
 	quit  chan struct{}
 }
 
-func (a *ObjectsCollector) Start(ctx context.Context) error {
-	err := a.col.Start(ctx)
+func (a *ObjectsCollector) Start() error {
+	err := a.col.Start()
 	if err != nil {
 		return fmt.Errorf("could not start objects collector: %w", err)
 	}
@@ -33,9 +33,9 @@ func (a *ObjectsCollector) Start(ctx context.Context) error {
 	return nil
 }
 
-func (a *ObjectsCollector) Stop(ctx context.Context) error {
+func (a *ObjectsCollector) Stop() error {
 	a.quit <- struct{}{}
-	err := a.col.Stop(ctx)
+	err := a.col.Stop()
 	if err != nil {
 		return fmt.Errorf("could not stop objects collector: %w", err)
 	}
@@ -64,8 +64,8 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
-
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	ctx := context.Background()
 	upsert := []models.Object{}
 	delete := []models.Object{}
 	deleteAll := []string{} //holds the cluster names to delete all resources

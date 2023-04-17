@@ -9,10 +9,9 @@ import (
 )
 
 type FakeCollector struct {
-	StartStub        func(context.Context) error
+	StartStub        func() error
 	startMutex       sync.RWMutex
 	startArgsForCall []struct {
-		arg1 context.Context
 	}
 	startReturns struct {
 		result1 error
@@ -33,10 +32,9 @@ type FakeCollector struct {
 		result1 string
 		result2 error
 	}
-	StopStub        func(context.Context) error
+	StopStub        func() error
 	stopMutex       sync.RWMutex
 	stopArgsForCall []struct {
-		arg1 context.Context
 	}
 	stopReturns struct {
 		result1 error
@@ -70,18 +68,17 @@ type FakeCollector struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeCollector) Start(arg1 context.Context) error {
+func (fake *FakeCollector) Start() error {
 	fake.startMutex.Lock()
 	ret, specificReturn := fake.startReturnsOnCall[len(fake.startArgsForCall)]
 	fake.startArgsForCall = append(fake.startArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
+	}{})
 	stub := fake.StartStub
 	fakeReturns := fake.startReturns
-	fake.recordInvocation("Start", []interface{}{arg1})
+	fake.recordInvocation("Start", []interface{}{})
 	fake.startMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
@@ -95,17 +92,10 @@ func (fake *FakeCollector) StartCallCount() int {
 	return len(fake.startArgsForCall)
 }
 
-func (fake *FakeCollector) StartCalls(stub func(context.Context) error) {
+func (fake *FakeCollector) StartCalls(stub func() error) {
 	fake.startMutex.Lock()
 	defer fake.startMutex.Unlock()
 	fake.StartStub = stub
-}
-
-func (fake *FakeCollector) StartArgsForCall(i int) context.Context {
-	fake.startMutex.RLock()
-	defer fake.startMutex.RUnlock()
-	argsForCall := fake.startArgsForCall[i]
-	return argsForCall.arg1
 }
 
 func (fake *FakeCollector) StartReturns(result1 error) {
@@ -195,18 +185,17 @@ func (fake *FakeCollector) StatusReturnsOnCall(i int, result1 string, result2 er
 	}{result1, result2}
 }
 
-func (fake *FakeCollector) Stop(arg1 context.Context) error {
+func (fake *FakeCollector) Stop() error {
 	fake.stopMutex.Lock()
 	ret, specificReturn := fake.stopReturnsOnCall[len(fake.stopArgsForCall)]
 	fake.stopArgsForCall = append(fake.stopArgsForCall, struct {
-		arg1 context.Context
-	}{arg1})
+	}{})
 	stub := fake.StopStub
 	fakeReturns := fake.stopReturns
-	fake.recordInvocation("Stop", []interface{}{arg1})
+	fake.recordInvocation("Stop", []interface{}{})
 	fake.stopMutex.Unlock()
 	if stub != nil {
-		return stub(arg1)
+		return stub()
 	}
 	if specificReturn {
 		return ret.result1
@@ -220,17 +209,10 @@ func (fake *FakeCollector) StopCallCount() int {
 	return len(fake.stopArgsForCall)
 }
 
-func (fake *FakeCollector) StopCalls(stub func(context.Context) error) {
+func (fake *FakeCollector) StopCalls(stub func() error) {
 	fake.stopMutex.Lock()
 	defer fake.stopMutex.Unlock()
 	fake.StopStub = stub
-}
-
-func (fake *FakeCollector) StopArgsForCall(i int) context.Context {
-	fake.stopMutex.RLock()
-	defer fake.stopMutex.RUnlock()
-	argsForCall := fake.stopArgsForCall[i]
-	return argsForCall.arg1
 }
 
 func (fake *FakeCollector) StopReturns(result1 error) {

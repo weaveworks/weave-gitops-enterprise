@@ -30,8 +30,8 @@ type RoleCollector struct {
 	quit      chan struct{}
 }
 
-func (a *RoleCollector) Start(ctx context.Context) error {
-	err := a.col.Start(ctx)
+func (a *RoleCollector) Start() error {
+	err := a.col.Start()
 	if err != nil {
 		return fmt.Errorf("could not start role collector: %w", err)
 	}
@@ -39,9 +39,9 @@ func (a *RoleCollector) Start(ctx context.Context) error {
 	return nil
 }
 
-func (a *RoleCollector) Stop(ctx context.Context) error {
+func (a *RoleCollector) Stop() error {
 	a.quit <- struct{}{}
-	err := a.col.Stop(ctx)
+	err := a.col.Stop()
 	if err != nil {
 		return fmt.Errorf("could not stop role collector: %w", err)
 	}
@@ -73,7 +73,8 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	ctx := context.Background()
 	deleteAll := []string{}
 
 	roles := []models.Role{}
