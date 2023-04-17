@@ -98,7 +98,7 @@ describe('getInitialGitRepo', () => {
     const { result } = renderHook(() =>
       useGetInitialGitRepo(initialUrl, gitRepos),
     );
-    expect(result.current.initialGitRepo).toStrictEqual({
+    expect(result.current).toStrictEqual({
       obj: {
         spec: {
           url: 'https://github.com/org/repo.git',
@@ -113,7 +113,7 @@ describe('getInitialGitRepo', () => {
     const { result } = renderHook(() =>
       useGetInitialGitRepo(initialUrl, gitRepos),
     );
-    expect(result.current.initialGitRepo).toStrictEqual({
+    expect(result.current).toStrictEqual({
       obj: {
         spec: {
           url: 'ssh://git@github.com/org/repo',
@@ -128,7 +128,7 @@ describe('getInitialGitRepo', () => {
     const { result } = renderHook(() =>
       useGetInitialGitRepo(initialUrl, gitRepos),
     );
-    expect(result.current.initialGitRepo).toStrictEqual({
+    expect(result.current).toStrictEqual({
       obj: {
         metadata: {
           annotations: {
@@ -167,7 +167,7 @@ describe('getInitialGitRepo', () => {
     const { result } = renderHook(() =>
       useGetInitialGitRepo(initialUrl, gitRepos),
     );
-    expect(result.current.initialGitRepo).toStrictEqual({
+    expect(result.current).toStrictEqual({
       obj: {
         metadata: {
           name: 'flux-system',
@@ -182,7 +182,7 @@ describe('getInitialGitRepo', () => {
 
   it('should return the repo containing the annotation if there is no initialUrl', () => {
     const { result } = renderHook(() => useGetInitialGitRepo('', gitRepos));
-    expect(result.current.initialGitRepo).toStrictEqual({
+    expect(result.current).toStrictEqual({
       obj: {
         metadata: {
           annotations: {
@@ -207,7 +207,7 @@ describe('getInitialGitRepo', () => {
       },
     ] as GitRepository[];
     const { result } = renderHook(() => useGetInitialGitRepo('', repos));
-    expect(result.current.initialGitRepo).toStrictEqual({
+    expect(result.current).toStrictEqual({
       obj: {
         spec: {
           url: 'https://github.com/test/repo.git',
