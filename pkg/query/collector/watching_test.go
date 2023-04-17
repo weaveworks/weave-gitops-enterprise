@@ -55,7 +55,7 @@ func TestStart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Start()
+			err := collector.Start(context.Background())
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -88,7 +88,7 @@ func TestStop(t *testing.T) {
 	}
 	collector, err := newWatchingCollector(opts, fakeStore)
 	g.Expect(err).To(BeNil())
-	err = collector.Start()
+	err = collector.Start(context.Background())
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -102,7 +102,7 @@ func TestStop(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Stop()
+			err := collector.Stop(context.Background())
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

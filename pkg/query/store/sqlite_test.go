@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/go-logr/logr/testr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
@@ -409,7 +410,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	store, db := createStore(t)
 	resourcesMap, err := testutils.CreateDefaultResourceKindMap()
 	g.Expect(err).To(BeNil())
-	check, err := accesschecker.NewAccessChecker(resourcesMap)
+	check, err := accesschecker.NewAccessChecker(resourcesMap, testr.New(t))
 	g.Expect(err).To(BeNil())
 
 	role := models.Role{
