@@ -138,16 +138,16 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			//Given a query environment
 			ctx := context.Background()
 			appLog, loggerPath := newLoggerWithLevel(t, tt.logLevel)
-			//Given an  app server
 			c, err := makeQueryServer(t, cfg, tt.principal, appLog, testLog)
 			g.Expect(err).To(BeNil())
-			//And a new event
+			//And some access rules and objects ingested
 			test.Create(ctx, t, cfg, tt.objects...)
 			test.Create(ctx, t, cfg, tt.access...)
 
-			//When executed with authorised users
+			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
 				clause := api.QueryClause{
 					Key:     "namespace",
@@ -160,9 +160,10 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == tt.expectedNumObjects
 			}).Should(BeTrue())
-			//Then query executed successfully
+			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
 
+			//When query without expected results is successfully executed
 			querySucceeded = g.Eventually(func() bool {
 				clause := api.QueryClause{
 					Key:     "namespace",
@@ -175,10 +176,10 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == 0
 			}).Should(BeTrue())
-			//then query executed successfully
+			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
 
-			//And processing events are found
+			//And logging events are found
 			g.Expect(assertLogs(loggerPath, tt.expectedEvents, tt.nonExpectedEvents)).To(Succeed())
 
 		})
