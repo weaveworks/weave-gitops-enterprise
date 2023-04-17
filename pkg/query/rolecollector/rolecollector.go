@@ -35,7 +35,7 @@ func (a *RoleCollector) Start(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not start role collector: %w", err)
 	}
-	a.log.V(logger.LogLevelDebug).Info("role collector started")
+	a.log.Info("role collector started")
 	return nil
 }
 
@@ -45,7 +45,7 @@ func (a *RoleCollector) Stop(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("could not stop role collector: %w", err)
 	}
-	a.log.V(logger.LogLevelDebug).Info("role collector stopped")
+	a.log.Info("role collector stopped")
 	return nil
 }
 

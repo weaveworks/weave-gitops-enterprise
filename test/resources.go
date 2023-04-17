@@ -31,4 +31,29 @@ func Create(ctx context.Context, t *testing.T, cfg *rest.Config, state ...client
 			t.Errorf("failed to create object: %s", err)
 		}
 	}
+	t.Cleanup(func() {
+		for _, o := range state {
+			err := k.Delete(ctx, o)
+			if err != nil {
+				t.Logf("failed to cleanup object: %s", err)
+			}
+		}
+	})
+
+}
+
+func Delete(ctx context.Context, t *testing.T, cfg *rest.Config, state ...client.Object) {
+	t.Helper()
+	k, err := client.New(cfg, client.Options{})
+	if err != nil {
+		t.Errorf("failed to create client: %s", err)
+	}
+
+	for _, o := range state {
+		err := k.Delete(ctx, o)
+		if err != nil {
+			t.Errorf("failed to delete object: %s", err)
+		}
+	}
+
 }
