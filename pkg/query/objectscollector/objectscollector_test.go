@@ -1,7 +1,6 @@
 package objectscollector
 
 import (
-	"context"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
@@ -19,7 +18,6 @@ func TestObjectsCollector(t *testing.T) {
 func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 
 	//setup data
@@ -65,7 +63,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(ctx, tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

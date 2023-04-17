@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"context"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
@@ -55,7 +54,7 @@ func TestStart(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Start(context.Background())
+			err := collector.Start()
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -88,7 +87,7 @@ func TestStop(t *testing.T) {
 	}
 	collector, err := newWatchingCollector(opts, fakeStore)
 	g.Expect(err).To(BeNil())
-	err = collector.Start(context.Background())
+	err = collector.Start()
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -102,7 +101,7 @@ func TestStop(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Stop(context.Background())
+			err := collector.Stop()
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -115,7 +114,6 @@ func TestStop(t *testing.T) {
 func TestClusterWatcher_Watch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
 		Log: log,
@@ -148,7 +146,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err = collector.Watch(ctx, tt.cluster)
+			err = collector.Watch(tt.cluster)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -164,7 +162,6 @@ func TestClusterWatcher_Watch(t *testing.T) {
 func TestClusterWatcher_Unwatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
 		Log: log,
@@ -183,7 +180,7 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	}
 	clusterName := "testCluster"
 	c := makeCluster(clusterName, config, log)
-	g.Expect(collector.Watch(ctx, c)).To(Succeed())
+	g.Expect(collector.Watch(c)).To(Succeed())
 	watcher := collector.clusterWatchers[clusterName]
 	tests := []struct {
 		name        string
@@ -241,7 +238,6 @@ func makeCluster(name string, config *rest.Config, log logr.Logger) cluster.Clus
 func TestClusterWatcher_Status(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 	options := CollectorOpts{
 		Log: log,
@@ -260,7 +256,7 @@ func TestClusterWatcher_Status(t *testing.T) {
 	c := makeCluster(existingClusterName, &rest.Config{
 		Host: "http://idontexist",
 	}, log)
-	err = collector.Watch(ctx, c)
+	err = collector.Watch(c)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
@@ -302,7 +298,7 @@ func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan
 	return &fakeWatcher{log: log}, nil
 }
 
-func fakeProcessRecordFunc(ctx context.Context, records []models.ObjectTransaction, s store.Store, logger logr.Logger) error {
+func fakeProcessRecordFunc(records []models.ObjectTransaction, s store.Store, logger logr.Logger) error {
 	log.Info("fake process record")
 	return nil
 }
@@ -312,12 +308,12 @@ type fakeWatcher struct {
 	status ClusterWatchingStatus
 }
 
-func (f *fakeWatcher) Start(ctx context.Context) error {
+func (f *fakeWatcher) Start() error {
 	f.status = ClusterWatchingStarted
 	return nil
 }
 
-func (f *fakeWatcher) Stop(context.Context) error {
+func (f *fakeWatcher) Stop() error {
 	f.status = ClusterWatchingStopped
 	return nil
 }

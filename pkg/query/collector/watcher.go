@@ -55,8 +55,8 @@ func (o WatcherOptions) Validate() error {
 }
 
 type Watcher interface {
-	Start(ctx context.Context) error
-	Stop(ctx context.Context) error
+	Start() error
+	Stop() error
 	Status() (string, error)
 }
 
@@ -182,8 +182,8 @@ func newDefaultScheme() (*runtime.Scheme, error) {
 	return sc, nil
 }
 
-func (w *DefaultWatcher) Start(ctx context.Context) error {
-	ctx, cancel := context.WithCancel(ctx)
+func (w *DefaultWatcher) Start() error {
+	ctx, cancel := context.WithCancel(context.Background())
 	w.stopFn = cancel
 
 	cfg, err := w.cluster.GetServerConfig()
@@ -223,7 +223,7 @@ func (w *DefaultWatcher) Start(ctx context.Context) error {
 
 // Default stop function will gracefully stop watching the cluste r
 // and emmits a stop watcher watching event for upstreaming processing
-func (w *DefaultWatcher) Stop(context.Context) error {
+func (w *DefaultWatcher) Stop() error {
 	// stop watcher manager via cancelling context
 	if w.stopFn == nil {
 		return fmt.Errorf("cannot stop watcher without stop manager function")

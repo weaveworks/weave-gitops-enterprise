@@ -31,17 +31,17 @@ type server struct {
 	objs *objectscollector.ObjectsCollector
 }
 
-func (s *server) StopCollection(ctx context.Context) error {
+func (s *server) StopCollection() error {
 	// These collectors can be nil if we are doing collection elsewhere.
 	// Controlled by the opts.SkipCollection flag.
 	if s.arc != nil {
-		if err := s.arc.Stop(ctx); err != nil {
+		if err := s.arc.Stop(); err != nil {
 			return fmt.Errorf("failed to stop access rules collection: %w", err)
 		}
 	}
 
 	if s.objs != nil {
-		if err := s.objs.Stop(ctx); err != nil {
+		if err := s.objs.Stop(); err != nil {
 			return fmt.Errorf("failed to stop object collection: %w", err)
 		}
 	}
@@ -109,7 +109,7 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 	return kindByResourceMap, nil
 }
 
-func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx context.Context) error, error) {
+func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	log := opts.Logger.WithName("query-server")
 
 	dbDir, err := os.MkdirTemp("", "db")
@@ -133,7 +133,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx c
 	}
 	log.Info("access checker created")
 
-	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
+	qs, err := query.NewQueryService(query.QueryServiceOpts{
 		Log:           log,
 		StoreReader:   s,
 		AccessChecker: checker,
@@ -157,7 +157,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx c
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
 
-		if err = rulesCollector.Start(ctx); err != nil {
+		if err = rulesCollector.Start(); err != nil {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
@@ -166,7 +166,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx c
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
-		if err = objsCollector.Start(ctx); err != nil {
+		if err = objsCollector.Start(); err != nil {
 			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
 		}
 
@@ -178,8 +178,8 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func(ctx c
 	return serv, serv.StopCollection, nil
 }
 
-func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func(ctx context.Context) error, error) {
-	s, stop, err := NewServer(ctx, opts)
+func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
+	s, stop, err := NewServer(opts)
 	if err != nil {
 		return nil, err
 	}

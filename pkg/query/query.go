@@ -28,7 +28,7 @@ const (
 	OperandIncludes = "includes"
 )
 
-func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, error) {
+func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
 	return &qs{
 		log:     opts.Log.WithName("query-service"),
 		r:       opts.StoreReader,

@@ -1,7 +1,6 @@
 package rolecollector
 
 import (
-	"context"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -20,7 +19,6 @@ func TestRoleCollector(t *testing.T) {
 func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 
 	//setup data
@@ -66,7 +64,7 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(ctx, tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

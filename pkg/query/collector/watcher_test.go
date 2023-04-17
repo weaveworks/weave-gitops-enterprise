@@ -57,7 +57,7 @@ func TestWatcher_Start(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := watcher.Start(tt.ctx)
+			err := watcher.Start()
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -71,7 +71,6 @@ func TestWatcher_Start(t *testing.T) {
 
 func TestWatcher_Stop(t *testing.T) {
 	g := NewGomegaWithT(t)
-	ctx := context.Background()
 	//setup watcher
 	fakeObjectsChannel := make(chan []models.ObjectTransaction)
 	watcher := makeWatcherAndStart(g, fakeObjectsChannel, testr.New(t))
@@ -92,7 +91,7 @@ func TestWatcher_Stop(t *testing.T) {
 			var err error
 			//TODO review deadlocks
 			go func() {
-				err = watcher.Stop(ctx)
+				err = watcher.Stop()
 			}()
 			objectTransactions := <-fakeObjectsChannel
 			if tt.errPattern != "" {
@@ -126,7 +125,7 @@ func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransactio
 
 	watcher, err := NewWatcher(options)
 	g.Expect(err).To(BeNil())
-	g.Expect(watcher.Start(context.Background())).To(Succeed())
+	g.Expect(watcher.Start()).To(Succeed())
 	return watcher
 }
 
