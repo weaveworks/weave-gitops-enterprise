@@ -60,7 +60,7 @@ C4Component
 - [API](https://github.com/weaveworks/policy-agent/tree/dev/api)
 - [code](https://github.com/weaveworks/weave-gitops-enterprise)
 - [policy agent repo](https://github.com/weaveworks/policy-agent)
-- [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
+- [user documentation](https://docs.gitops.weave.works/docs/policy/intro/)
 
 
 

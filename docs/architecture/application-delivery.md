@@ -51,13 +51,14 @@ C4Component
 - Pipeline: ability to define deployment pipelines for applications that you could follow across environments.  
 
 **In Action**
-- In development
+- Available via weave gitops enterprise [pipelines](https://demo-01.wge.dev.weave.works/pipelines)
 
 **Documentation and Next Steps**
 
-- [api](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/api/pipelines/pipelines.proto)
-- [code](https://github.com/weaveworks/weave-gitops-enterprise)
-- [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
+- [API](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/api/pipelines/pipelines.proto)
+- [Code](https://github.com/weaveworks/weave-gitops-enterprise)
+- [User Documentation](https://docs.gitops.weave.works/docs/pipelines/intro/)
+
 
 ### Progressive Delivery Domain
 
@@ -95,7 +96,7 @@ C4Component
 - [API](https://github.com/weaveworks/progressive-delivery/blob/main/api/prog/prog.proto)
 - [progressive delivery repo](https://github.com/weaveworks/progressive-delivery)
 - [weave gitops enterprise](https://github.com/weaveworks/weave-gitops-enterprise)
-- [user documentation](https://docs.gitops.weave.works/docs/guides/delivery/0)
+- [User documentation](https://docs.gitops.weave.works/docs/guides/delivery/)
 
 
 

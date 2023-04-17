@@ -10,12 +10,9 @@ Our cluster-management functionality sets up a collaboration between CAPI, Flux 
 
 ## Glossary
 
-- Cluster Management
+TBA
 
 ## Cluster Management Domains
-
-Diagrams are based on [C4 Model](https://c4model.com/). Note that there are some limitations with the visualization of 
-diagrams due to c4models integration with mermaid and markdown.
 
 ### Cluster Domain
 
@@ -64,8 +61,7 @@ Rel(capiAWSController, capiController, "Update cluster state")
 **In Action**
 - Available via weave gitops enterprise [clusters experience](https://demo-01.wge.dev.weave.works/clusters)
 
-
 **Documentation and Next Steps**
 - [API](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/cmd/clusters-service/api/cluster_services.proto)
-- [code](https://github.com/weaveworks/weave-gitops-enterprise)
-- [user documentation](https://docs.gitops.weave.works/docs/enterprise/intro/index.html)
+- [Code](https://github.com/weaveworks/weave-gitops-enterprise)
+- [User documentation](https://docs.gitops.weave.works/docs/cluster-management/intro/)

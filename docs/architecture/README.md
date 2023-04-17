@@ -20,14 +20,19 @@ Diagrams aim to be self-explanatory however:
    or  [watch this](https://www.youtube.com/watch?v=x2-rSnhpw0g).
 2. They are using concepts from Domain Driven Design. If it gets difficult to read, please have a look to
    the following [article](https://medium.com/@ruxijitianu/summary-of-the-domain-driven-design-concepts-9dd1a6f90091).
-3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagramming. It currently has an early support 
-   for [C4](https://mermaid-js.github.io/mermaid/#/c4c) with known limitations like markdown rendering via github. 
+3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagramming. It currently has support 
+   for [C4](https://mermaid.js.org/syntax/c4c.html) in early stage with limitations on editing experience or features. 
 
-## Glossary
 
-TBA
+## Weave Gitops Enterprise
 
-## Weave Gitops Enterprise as System
+This outer layer provides a look to Weave Gitops Enterprise (wge) in three views:
+
+1. As a System including its wider context and external dependencies.
+2. As Tiers that provides a high level overview of the application tiers. 
+3. As Domains to provide an overview of the problem spaces that WGE addresses. 
+
+### System
 
 It aims to represent Weave Gitops Enterprise as a whole system and how it fits into the world around it.
 
@@ -80,7 +85,7 @@ C4Context
       UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="3")     
 ```
 
-## Weave Gitops Enterprise as Application Tiers
+### Tiers
 
 Weave Gitops Enterprise as tiered application that could be seen in the following diagram
 
@@ -140,16 +145,15 @@ C4Container
   }
 
  Container_Boundary(cloud, "cloud") {
-          System_Ext(aws, "AWS", "aws cloud or any other public or private infra layer")
+    System_Ext(aws, "AWS", "aws cloud or any other public or private infra layer")
  }
 
 UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2") 
 ```
 
-## Weave Gitops Enterprise as Business Domains
+### Domains
 
-From the previous view, we could go a level deeper to understand the different 
-business domains provided weave gitops enterprise.
+From the previous view, we could go a level deeper to understand the different business domains that weave gitops enterprise.
 
 ```mermaid
 C4Container
@@ -163,7 +167,7 @@ C4Container
             Component(Pipelines, "Pipelines Domain",, "continuous delivery pipeline capabilities based on flux")
           }
           Container_Boundary(trustedDelivery, "Trusted Delivery") {
-            Component(Policy, "Policy Domain", "golang", "poilcy deifnition and enforcement capabilities based on magalix policy agent")
+            Component(Policy, "Policy Domain", "golang", "policy definition and enforcement capabilities based on magalix policy agent")
           }
     }
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="1")               
