@@ -30,11 +30,7 @@ type defaultAccessChecker struct {
 
 // HasAccess checks if a principal has access to an object given principal access rules
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
-	// Contains all the rules that are relevant to this user.
-	// This is based on their ID and the groups they belong to.
-	matchingRules := a.RelevantRulesForUser(user, rules)
-
-	for _, rule := range matchingRules {
+	for _, rule := range rules {
 		if rule.Cluster != object.Cluster {
 			// Not the same cluster, so not relevant.
 			continue

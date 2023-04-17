@@ -49,13 +49,16 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
-
 	q.log.V(logger.LogLevelDebug).Info("query received", "query", query, "principal", principal.ID)
 
+	// Contains all the rules that are relevant to this user.
+	// This is based on their ID and the groups they belong to.
+	//TODO refactor me
 	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
+	rules = q.checker.RelevantRulesForUser(principal, rules)
 
 	iter, err := q.r.GetObjects(ctx, query, opts)
 	if err != nil {
@@ -95,7 +98,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 			result = append(result, obj)
 		} else {
 			//unauthorised is logged for debugging
-			q.log.V(logger.LogLevelDebug).Info("unauthorised access", "principal", principal.ID, "object", obj.ID)
+			q.log.V(logger.LogLevelDebug).Info("unauthorised access", "principal", principal.ID, "object", obj.ID, "rules", rules)
 		}
 	}
 
