@@ -9,7 +9,7 @@ import { InputDebounced, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import {
-  CreateDeploymentObjects,
+  createDeploymentObjects,
   encryptSopsSecret,
 } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
@@ -53,7 +53,7 @@ const CreateSOPS = () => {
     try {
       const { encryptionPayload, cluster } = getFormattedPayload(formData);
       const encrypted = await encryptSopsSecret(encryptionPayload);
-      const response = await CreateDeploymentObjects(
+      const response = await createDeploymentObjects(
         {
           head_branch: formData.branchName,
           title: formData.pullRequestTitle,

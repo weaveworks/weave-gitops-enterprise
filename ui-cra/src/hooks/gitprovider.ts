@@ -4,7 +4,6 @@ import {
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
   GitProvider,
-  ValidateProviderTokenResponse,
 } from '../api/gitauth/gitauth.pb';
 import {
   getProviderToken,
@@ -47,7 +46,7 @@ export function useIsAuthenticated(
       return;
     }
     setLoading(true);
-    (validateToken() as Promise<ValidateProviderTokenResponse>)
+    validateToken()
       .then(res => setIsAuthenticated(res?.valid ? true : false))
       .catch(() => setIsAuthenticated(false))
       .finally(() => setLoading(false));

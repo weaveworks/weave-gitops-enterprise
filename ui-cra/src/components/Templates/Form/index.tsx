@@ -48,7 +48,7 @@ import {
 import { validateFormData } from '../../../utils/form';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { getLink } from '../Edit/EditButton';
@@ -356,7 +356,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
-  // const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
   const handlePRPreview = useCallback(() => {
@@ -447,7 +446,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     if (resource !== undefined) {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
-
     const payload = toPayload(
       formData,
       infraCredential,
@@ -458,9 +456,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       createReqAnnot,
       getRepositoryUrl(formData.repo),
     );
-
     setLoading(true);
-
     return validateToken()
       .then(() =>
         addResource(payload, getProviderToken(formData.provider))
@@ -481,18 +477,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               },
             ]);
           })
-          .catch(error => {
+          .catch(error =>
             setNotifications([
               {
                 message: { text: error.message },
                 severity: 'error',
                 display: 'bottom',
               },
-            ]);
-            if (isUnauthenticated(error.code)) {
-              removeToken(formData.provider);
-            }
-          })
+            ]),
+          )
           .finally(() => setLoading(false)),
       )
       .catch(() => {

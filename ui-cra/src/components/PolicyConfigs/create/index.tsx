@@ -24,7 +24,7 @@ import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { isUnauthenticated, removeToken } from '../../../utils/request';
-import { CreateDeploymentObjects } from '../../Applications/utils';
+import { createDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -265,7 +265,7 @@ const CreatePolicyConfig = () => {
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
-    return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
+    return createDeploymentObjects(payload, getProviderToken(formData.provider))
       .then(response => {
         history.push(Routes.PolicyConfigs);
         setNotifications([
