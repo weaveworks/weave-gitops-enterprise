@@ -90,7 +90,7 @@ C4Component
 
 
 **In Action**
-- Available via weave gitops enterprise [delivery experience](https://demo-01.wge.dev.weave.works/applications/delivery)
+- Available via Weave Gitops Enterprise [delivery experience](https://demo-01.wge.dev.weave.works/applications/delivery)
 
 **Documentation and Next Steps**
 - [API](https://github.com/weaveworks/progressive-delivery/blob/main/api/prog/prog.proto)
