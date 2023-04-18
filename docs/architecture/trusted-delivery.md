@@ -51,7 +51,7 @@ C4Component
       Rel(Kibana,ElasticSearch, "read validation events")
    }         
 ```
-- Policy: ability to define policies to enforce at runtime for any workload running in kubernetes. 
+- Policy: ability to define policies to enforce at runtime for any workload running in Kubernetes. 
 
 **In Action**
 - Available via Weave Gitops Enterprise [policy experience](https://demo-01.wge.dev.weave.works/policies)
