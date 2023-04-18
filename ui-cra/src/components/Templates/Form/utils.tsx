@@ -10,6 +10,8 @@ import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
 import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
+import { useListConfigContext } from '../../../contexts/ListConfig';
+import { GitRepositoryEnriched } from '.';
 
 const yamlConverter = require('js-yaml');
 
@@ -83,10 +85,13 @@ export function getProvider(repo: GitRepository, config: GetConfigResponse) {
   return config?.gitHostTypes?.[domain] || 'github';
 }
 
-export function getInitialGitRepo(
+export function useGetInitialGitRepo(
   initialUrl: string | null,
   gitRepos: GitRepository[],
 ) {
+  const configResponse = useListConfigContext();
+  const mgCluster = configResponse?.data?.managementClusterName;
+
   // if there is a repository url in the create-pr annotation, go through the gitrepos and compare it to their links;
   // if no result, parse it and check for the protocol; if ssh, convert it to https and try again to compare it to the gitrepos links
   // createPRRepo signals that this refers to a pre-existing resource
@@ -107,10 +112,13 @@ export function getInitialGitRepo(
     }
   }
 
-  return getDefaultGitRepo(gitRepos);
+  return getDefaultGitRepo(gitRepos, mgCluster) as GitRepositoryEnriched;
 }
 
-export function getDefaultGitRepo(gitRepos: GitRepository[]) {
+export function getDefaultGitRepo(
+  gitRepos: GitRepository[],
+  mgCluster: string,
+) {
   const annoRepo = gitRepos.find(
     repo =>
       repo?.obj?.metadata?.annotations?.['weave.works/repo-role'] === 'default',
@@ -121,8 +129,7 @@ export function getDefaultGitRepo(gitRepos: GitRepository[]) {
 
   const mainRepo = gitRepos.find(
     repo =>
-      // FIXME: we should also be checking the management cluster name
-      // repo.clusterName === config.managementClusterName &&
+      repo.clusterName === mgCluster &&
       repo?.obj?.metadata?.name === 'flux-system' &&
       repo?.obj?.metadata?.namespace === 'flux-system',
   );
