@@ -74,7 +74,7 @@ C4Context
       }
 
       Container_Boundary(git, "git") {
-          System_Ext(Github, "GitHub", "Source storage in Git")      
+          System_Ext(Github, "GitHub", "source storage in Git")      
       }
 
       Container_Boundary(auth, "auth") {
