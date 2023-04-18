@@ -69,6 +69,7 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 	upsert := []models.Object{}
 	delete := []models.Object{}
 	deleteAll := []string{} //holds the cluster names to delete all resources
+	debug := log.V(logger.LogLevelDebug)
 
 	for _, objTx := range objectTransactions {
 		// Handle delete all tx first as does not hold objects
@@ -120,6 +121,6 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 		}
 	}
 
-	log.V(logger.LogLevelDebug).Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
+	debug.Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
 	return nil
 }
