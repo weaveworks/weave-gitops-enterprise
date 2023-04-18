@@ -45,11 +45,15 @@ export function useIsAuthenticated(
     if (provider === ('' as GitProvider)) {
       return;
     }
-    setLoading(true);
-    validateToken()
-      .then(res => setIsAuthenticated(res?.valid ? true : false))
-      .catch(() => setIsAuthenticated(false))
-      .finally(() => setLoading(false));
+    if (token) {
+      setLoading(true);
+      validateToken()
+        .then(res => setIsAuthenticated(res?.valid ? true : false))
+        .catch(() => setIsAuthenticated(false))
+        .finally(() => setLoading(false));
+    } else {
+      setIsAuthenticated(false);
+    }
   }, [validateToken, token, provider]);
 
   return {

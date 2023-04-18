@@ -32,7 +32,6 @@ const GitAuth: FC<{
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
-  setEnableCreatePR,
   enableGitRepoSelection,
 }) => {
   const token = getProviderToken(formData.provider);
@@ -51,7 +50,7 @@ const GitAuth: FC<{
     <>
       <RepoInputWithAuthWrapper
         loading={loading}
-        isAuthenticated={isAuthenticated}
+        isAuthenticated={isAuthenticated || false}
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
