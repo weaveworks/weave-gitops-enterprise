@@ -49,7 +49,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
-	q.log.V(logger.LogLevelDebug).Info("query received", "query", query, "principal", principal.ID)
+	q.debug.Info("...")
 
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
