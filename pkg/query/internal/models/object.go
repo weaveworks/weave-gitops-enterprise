@@ -60,8 +60,9 @@ func (o Object) GroupVersionKind() string {
 type TransactionType string
 
 const (
-	TransactionTypeUpsert TransactionType = "upsert"
-	TransactionTypeDelete TransactionType = "delete"
+	TransactionTypeUpsert    TransactionType = "upsert"
+	TransactionTypeDelete    TransactionType = "delete"
+	TransactionTypeDeleteAll TransactionType = "deleteAll"
 )
 
 //counterfeiter:generate . ObjectTransaction

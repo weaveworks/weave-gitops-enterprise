@@ -34,8 +34,10 @@ service Query {
 
 message QueryRequest {
     repeated QueryClause query = 1;
-    int32 offset  = 2;
-    int32 limit   = 3;
+    int32    offset            = 2;
+    int32    limit             = 3;
+    string   orderBy           = 4;
+    string   globalOperand     = 5;
 }
 
 message QueryClause {
@@ -57,6 +59,7 @@ message Object {
     string status     = 5;
     string apiGroup   = 6;
     string apiVersion = 7;
+    string message    = 8;
 }
 
 message DebugGetAccessRulesRequest {

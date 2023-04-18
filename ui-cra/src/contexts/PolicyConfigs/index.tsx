@@ -3,6 +3,8 @@ import { useQuery } from 'react-query';
 import {
   GetPolicyConfigRequest,
   GetPolicyConfigResponse,
+    ListGitopsClustersRequest,
+    ListGitopsClustersResponse,
     ListPolicyConfigsRequest,
     ListPolicyConfigsResponse
 } from '../../cluster-services/cluster_services.pb';
@@ -36,4 +38,20 @@ export function useGetPolicyConfigDetails(req: GetPolicyConfigRequest) {
     () => api.GetPolicyConfig(req),
     { onError },
   );
+}
+
+
+
+const LIST_CLUSTERS_QUERY_KEY = 'clusters';
+
+export function useGetClustersList(req: ListGitopsClustersRequest) {
+  const { api } = useContext(EnterpriseClientContext);
+  const { setNotifications } = useNotifications();
+  const onError = (error: Error) => setNotifications(formatError(error));
+  return useQuery<ListGitopsClustersResponse, Error>(
+    [LIST_CLUSTERS_QUERY_KEY, req],
+    () => api.ListGitopsClusters(req),
+    {onError },
+  );
+
 }

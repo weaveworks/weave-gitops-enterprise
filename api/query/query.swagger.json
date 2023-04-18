@@ -166,6 +166,9 @@
         },
         "apiVersion": {
           "type": "string"
+        },
+        "message": {
+          "type": "string"
         }
       }
     },
@@ -199,6 +202,12 @@
         "limit": {
           "type": "integer",
           "format": "int32"
+        },
+        "orderBy": {
+          "type": "string"
+        },
+        "globalOperand": {
+          "type": "string"
         }
       }
     },

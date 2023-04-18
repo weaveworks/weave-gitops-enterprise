@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
+	"reflect"
 	"sort"
 	"strings"
 	"time"
@@ -17,6 +18,7 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/imdario/mergo"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -31,6 +33,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
@@ -424,18 +428,40 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		return val, nil
 	}
 
+	// Used to override the secret that we discover
+	var overrideSecret []byte
+	overrideSecretName := client.ObjectKey{
+		Namespace: getClusterNamespace(cluster.Namespace),
+		Name:      "cluster-kubeconfig-override",
+	}
+	sec, err := secretByName(ctx, cl, overrideSecretName)
+	if err != nil && !(apierrors.IsNotFound(err) || apierrors.IsForbidden(err)) {
+		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
+	}
+	if sec != nil {
+		val, ok := kubeConfigFromSecret(sec)
+		if !ok {
+			return nil, fmt.Errorf("secret %q was found but is missing key %q", overrideSecret, "value")
+		}
+		overrideSecret = val
+	}
+
 	userSecretName := client.ObjectKey{
 		Namespace: getClusterNamespace(cluster.Namespace),
 		Name:      fmt.Sprintf("%s-user-kubeconfig", cluster.Name),
 	}
-	sec, err := secretByName(ctx, cl, userSecretName)
-	if err != nil && !apierrors.IsNotFound(err) {
+	sec, err = secretByName(ctx, cl, userSecretName)
+	if err != nil && !(apierrors.IsNotFound(err) || apierrors.IsForbidden(err)) {
 		return nil, fmt.Errorf("failed to get secret for cluster %s: %w", cluster, err)
 	}
 	if sec != nil {
 		val, ok := kubeConfigFromSecret(sec)
 		if !ok {
 			return nil, fmt.Errorf("secret %q was found but is missing key %q", userSecretName, "value")
+		}
+
+		if overrideSecret != nil {
+			return mergeKubeConfigs(val, overrideSecret)
 		}
 		return val, nil
 	}
@@ -452,6 +478,10 @@ func (s *server) kubeConfigForCluster(ctx context.Context, cluster types.Namespa
 		val, ok := kubeConfigFromSecret(sec)
 		if !ok {
 			return nil, fmt.Errorf("secret %q was found but is missing key %q", clusterSecretName, "value")
+		}
+
+		if overrideSecret != nil {
+			return mergeKubeConfigs(val, overrideSecret)
 		}
 		return val, nil
 	}
@@ -1193,4 +1223,56 @@ func getDeletedFiles(prevFiles *GetFilesReturn, newFiles *GetFilesReturn) []git.
 	deletedFiles = append(deletedFiles, removedRenderedTemplates...)
 
 	return deletedFiles
+}
+
+func mergeKubeConfigs(main, overrides []byte) ([]byte, error) {
+	mainCfg, err := clientcmd.Load(main)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the KubeConfig: %w", err)
+	}
+
+	overrideCfg, err := clientcmd.Load(overrides)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse the override KubeConfig: %w", err)
+	}
+
+	if err := mergo.Merge(mainCfg, overrideCfg, mergo.WithOverride, mergo.WithTransformers(authInfoTransformer{})); err != nil {
+		return nil, fmt.Errorf("failed to merge override config: %w", err)
+	}
+
+	// This will replace the context user with the authinfo user if only one
+	// context and user exist.
+	// This allows complete replacement of the authinfos from the merged secret.
+	authUsers := []string{}
+	for name := range mainCfg.AuthInfos {
+		authUsers = append(authUsers, name)
+	}
+	var replaceUser string
+	if len(authUsers) == 1 {
+		replaceUser = authUsers[0]
+	}
+
+	if len(mainCfg.Contexts) == 1 && mainCfg.CurrentContext != "" {
+		mainCfg.Contexts[mainCfg.CurrentContext].AuthInfo = replaceUser
+	}
+
+	return clientcmd.Write(*mainCfg)
+}
+
+type authInfoTransformer struct {
+}
+
+// the AuthInfo transformer entirely overwrites the AuthInfos, this causes the
+// users in the overrides to replace the users in the main list
+func (t authInfoTransformer) Transformer(typ reflect.Type) func(dst, src reflect.Value) error {
+	if typ == reflect.TypeOf(map[string]*clientcmdapi.AuthInfo{}) {
+		return func(dst, src reflect.Value) error {
+			srcAuthInfo := src.Interface().(map[string]*clientcmdapi.AuthInfo)
+			dst.Set(reflect.ValueOf(srcAuthInfo))
+
+			return nil
+		}
+	}
+
+	return nil
 }

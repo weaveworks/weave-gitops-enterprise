@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"fmt"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
 	"testing"
@@ -81,14 +83,334 @@ func TestNewSQLiteStore(t *testing.T) {
 	}
 }
 
+func TestSQLiteStore_StoreObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name       string
+		objects    []models.Object
+		errPattern string
+	}{
+		{
+			name:       "should ignore when empty objects",
+			objects:    []models.Object{},
+			errPattern: "",
+		},
+		{
+			name: "should store with one object",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			errPattern: "",
+		},
+		{
+			name: "should store with more than one object",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := store.StoreObjects(ctx, tt.objects)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			var storedObjectsNum int
+			g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects").Scan(&storedObjectsNum)).To(Succeed())
+			g.Expect(storedObjectsNum == len(tt.objects)).To(BeTrue())
+		})
+	}
+}
+
+func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name           string
+		addObjects     []models.Object // objects to add before deleting
+		deleteClusters []string
+		errPattern     string
+	}{
+		{
+			name:           "should do nothing for empty request",
+			addObjects:     []models.Object{},
+			deleteClusters: []string{},
+			errPattern:     "",
+		},
+		{
+			name: "should do nothing if no objects for cluster to delete",
+			addObjects: []models.Object{
+				{
+					Cluster:    "test-cluster",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			deleteClusters: []string{"cluster-without-objects"},
+			errPattern:     "",
+		},
+		{
+			name: "should have deleted all for a cluster with objects",
+			addObjects: []models.Object{
+				{
+					Cluster:    "cluster-with-objects",
+					Name:       "obj-cluster-1",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "cluster-with-objects",
+					Name:       "obj-cluster-2",
+					Namespace:  "namespace",
+					Kind:       "ValidKind",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			deleteClusters: []string{"cluster-with-objects"},
+			errPattern:     "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g.Expect(store.StoreObjects(ctx, tt.addObjects)).To(Succeed())
+			err := store.DeleteAllObjects(ctx, tt.deleteClusters)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			for _, deleteCluster := range tt.deleteClusters {
+				var numResources int
+				g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects WHERE cluster = ?", deleteCluster).Scan(&numResources)).To(Succeed())
+				g.Expect(numResources).To(Equal(0))
+			}
+		})
+	}
+}
+
+func TestSQLiteStore_DeleteAllRoles(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name           string
+		rolesToAdd     []models.Role // objects to add before deleting
+		deleteClusters []string
+		errPattern     string
+	}{
+		{
+			name:           "should do nothing for empty request",
+			rolesToAdd:     []models.Role{},
+			deleteClusters: []string{},
+			errPattern:     "",
+		},
+		{
+			name: "should do nothing if no objects for cluster to delete",
+			rolesToAdd: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			deleteClusters: []string{"cluster-without-objects"},
+			errPattern:     "",
+		},
+		{
+			name: "should have deleted all for a cluster with objects",
+			rolesToAdd: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+				{
+					Name:      "wego-cluster-role2",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			deleteClusters: []string{"flux-system/leaf-cluster-1"},
+			errPattern:     "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g.Expect(store.StoreRoles(ctx, tt.rolesToAdd)).To(Succeed())
+			err := store.DeleteAllRoles(ctx, tt.deleteClusters)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			for _, deleteCluster := range tt.deleteClusters {
+				var numResources int
+				g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM roles WHERE cluster = ?", deleteCluster).Scan(&numResources)).To(Succeed())
+				g.Expect(numResources).To(Equal(0))
+			}
+		})
+	}
+}
+
+func TestSQLiteStore_DeleteAllRoleBindings(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name              string
+		roleBindingsToAdd []models.RoleBinding // objects to add before deleting
+		deleteClusters    []string
+		errPattern        string
+	}{
+		{
+			name:              "should do nothing for empty request",
+			roleBindingsToAdd: []models.RoleBinding{},
+			deleteClusters:    []string{},
+			errPattern:        "",
+		},
+		{
+			name: "should do nothing if no objects for cluster to delete",
+			roleBindingsToAdd: []models.RoleBinding{
+				{
+					Cluster:   "cluster-a",
+					Name:      "binding-a",
+					Namespace: "ns-a",
+					Kind:      "RoleBinding",
+					Subjects: []models.Subject{{
+						Kind: "Group",
+						Name: "group-a",
+					}},
+					RoleRefName: "role-a",
+					RoleRefKind: "Role",
+				},
+			},
+			deleteClusters: []string{"cluster-without-objects"},
+			errPattern:     "",
+		},
+		{
+			name: "should have deleted all for a cluster with objects",
+			roleBindingsToAdd: []models.RoleBinding{
+				{
+					Cluster:   "cluster-a",
+					Name:      "binding-a",
+					Namespace: "ns-a",
+					Kind:      "RoleBinding",
+					Subjects: []models.Subject{{
+						Kind: "Group",
+						Name: "group-a",
+					}},
+					RoleRefName: "role-a",
+					RoleRefKind: "Role",
+				},
+				{
+					Cluster:   "cluster-a",
+					Name:      "binding-b",
+					Namespace: "ns-a",
+					Kind:      "RoleBinding",
+					Subjects: []models.Subject{{
+						Kind: "Group",
+						Name: "group-a",
+					}},
+					RoleRefName: "role-a",
+					RoleRefKind: "Role",
+				},
+			},
+			deleteClusters: []string{"cluster-a"},
+			errPattern:     "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g.Expect(store.StoreRoleBindings(ctx, tt.roleBindingsToAdd)).To(Succeed())
+			err := store.DeleteAllRoleBindings(ctx, tt.deleteClusters)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			for _, deleteCluster := range tt.deleteClusters {
+				var numResources int
+				g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM role_bindings WHERE cluster = ?", deleteCluster).Scan(&numResources)).To(Succeed())
+				g.Expect(numResources).To(Equal(0))
+			}
+		})
+	}
+}
+
 func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	// This is a sanity check test to prove that policy rules get upserted along with their roles
 	g := NewGomegaWithT(t)
 	ctx := context.Background()
 
 	store, db := createStore(t)
-
-	check := accesschecker.NewAccessChecker()
+	resourcesMap, err := testutils.CreateDefaultResourceKindMap()
+	g.Expect(err).To(BeNil())
+	check, err := accesschecker.NewAccessChecker(resourcesMap)
+	g.Expect(err).To(BeNil())
 
 	role := models.Role{
 		Cluster:   "test-cluster",
@@ -98,7 +420,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 		PolicyRules: []models.PolicyRule{
 			{
 				APIGroups: strings.Join([]string{"example.com"}, ","),
-				Resources: strings.Join([]string{"SomeKind"}, ","),
+				Resources: strings.Join([]string{"helmreleases"}, ","),
 				Verbs:     strings.Join([]string{"get", "list"}, ","),
 			},
 		},
@@ -125,7 +447,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	obj := models.Object{
 		Cluster:    "test-cluster",
 		Namespace:  "namespace",
-		Kind:       "SomeKind",
+		Kind:       "HelmRelease",
 		APIGroup:   "example.com",
 		APIVersion: "",
 	}
@@ -144,7 +466,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 	var resources1 string
 	g.Expect(sqlDB.QueryRow("SELECT id, resources FROM policy_rules WHERE role_id = ?", roleID).Scan(&id, &resources1)).To(Succeed())
 
-	g.Expect(resources1).To(Equal("SomeKind"))
+	g.Expect(resources1).To(Equal("helmreleases"))
 
 	rules1, err := store.GetAccessRules(ctx)
 	g.Expect(err).To(BeNil())

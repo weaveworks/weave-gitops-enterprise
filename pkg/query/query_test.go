@@ -173,6 +173,80 @@ func TestRunQuery(t *testing.T) {
 			},
 			want: []string{"obj-a", "obj-b"},
 		},
+		{
+			name: "`or` clause query",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster-1",
+					Name:       "podinfo",
+					Namespace:  "namespace-a",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "podinfo",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "name",
+					value:   "podinfo",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				globalOperand: string(store.GlobalOperandOr),
+			},
+			want: []string{"podinfo", "podinfo"},
+		},
+		{
+			name: "`or` clause with clusters",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo",
+					Namespace:  "namespace-a",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "name",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+				&clause{
+					key:     "namespace",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+				&clause{
+					key:     "cluster",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				globalOperand: string(store.GlobalOperandOr),
+			},
+			want: []string{"podinfo", "podinfo"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -221,10 +295,109 @@ func TestRunQuery(t *testing.T) {
 
 }
 
+func TestQueryIteration(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	checker := &accesscheckerfakes.FakeChecker{}
+	checker.HasAccessReturns(true, nil)
+
+	dir, err := os.MkdirTemp("", "test")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	db, err := store.CreateSQLiteDB(dir)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := store.NewSQLiteStore(db, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+		ID: "test",
+	})
+
+	objects := []models.Object{
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-1",
+			Namespace:  "namespace-a",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-2",
+			Namespace:  "namespace-b",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-3",
+			Namespace:  "namespace-a",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+		{
+			Cluster:    "test-cluster-1",
+			Name:       "obj-4",
+			Namespace:  "namespace-a",
+			Kind:       "Deployment",
+			APIGroup:   "apps",
+			APIVersion: "v1",
+		},
+	}
+
+	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+
+	q := &qs{
+		log:     logr.Discard(),
+		r:       s,
+		checker: checker,
+	}
+
+	r, err := db.Model(&models.Object{}).Rows()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	var count int
+
+	for r.Next() {
+		count += 1
+	}
+
+	r.Close()
+
+	g.Expect(count).To(Equal(4))
+
+	checker.HasAccessReturnsOnCall(0, true, nil)
+	checker.HasAccessReturnsOnCall(1, false, nil)
+	checker.HasAccessReturnsOnCall(2, true, nil)
+	checker.HasAccessReturnsOnCall(3, true, nil)
+
+	qy := &query{
+		clauses: []clause{
+			{
+				key:     "cluster",
+				value:   "test-cluster-1",
+				operand: string(store.OperandEqual),
+			},
+		},
+		limit: 3,
+	}
+
+	got, err := q.RunQuery(ctx, []store.QueryClause{&qy.clauses[0]}, qy)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	g.Expect(got).To(HaveLen(3))
+}
+
 type query struct {
-	clauses []clause
-	offset  int32
-	limit   int32
+	clauses       []clause
+	offset        int32
+	limit         int32
+	orderBy       string
+	globalOperand string
 }
 
 func (q *query) GetQuery() []store.QueryClause {
@@ -243,6 +416,14 @@ func (q *query) GetOffset() int32 {
 
 func (q *query) GetLimit() int32 {
 	return q.limit
+}
+
+func (q *query) GetOrderBy() string {
+	return q.orderBy
+}
+
+func (q *query) GetGlobalOperand() string {
+	return q.globalOperand
 }
 
 type clause struct {

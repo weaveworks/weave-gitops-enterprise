@@ -32,10 +32,9 @@ import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
@@ -141,10 +140,7 @@ const CreateSecret = () => {
 
   const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
-  const initialGitRepo = getInitialGitRepo(
-    null,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
 
   const [formError, setFormError] = useState<string>('');
   const automation = formData.clusterAutomations[0];
@@ -319,7 +315,7 @@ const CreateSecret = () => {
         documentTitle="Secrets"
         path={[
           { label: 'Secrets', url: Routes.Secrets },
-          { label: 'Create new secret' },
+          { label: 'Create new external secret' },
         ]}
       >
         <CallbackStateContextProvider

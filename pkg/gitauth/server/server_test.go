@@ -886,6 +886,84 @@ func TestAuthorizeAzureDevOps(t *testing.T) {
 	})
 }
 
+func TestValidateProviderToken(t *testing.T) {
+	ctx := context.Background()
+	state := uuid.NewString()
+
+	tests := []struct {
+		name           string
+		statusCode     int
+		setEnvVarsFunc func(t *testing.T, u *url.URL)
+		provider       pb.GitProvider
+		errString      string
+		valid          bool
+	}{
+		{
+			name:       "bitbucket server invalid",
+			statusCode: 401,
+			setEnvVarsFunc: func(t *testing.T, u *url.URL) {
+				t.Setenv("BITBUCKET_SERVER_HOSTNAME", u.Host)
+			},
+			provider:  pb.GitProvider_BitBucketServer,
+			errString: "token is invalid",
+		},
+		{
+			name:       "bitbucket server valid",
+			statusCode: 200,
+			setEnvVarsFunc: func(t *testing.T, u *url.URL) {
+				t.Setenv("BITBUCKET_SERVER_HOSTNAME", u.Host)
+			},
+			provider: pb.GitProvider_BitBucketServer,
+			valid:    true,
+		},
+		{
+			name:       "azure devops invalid",
+			statusCode: 401,
+			setEnvVarsFunc: func(t *testing.T, u *url.URL) {
+				t.Setenv("AZURE_DEVOPS_HOSTNAME", u.Host)
+			},
+			provider:  pb.GitProvider_AzureDevOps,
+			errString: "token is invalid",
+		},
+		{
+			name:       "azure devops valid",
+			statusCode: 200,
+			setEnvVarsFunc: func(t *testing.T, u *url.URL) {
+				t.Setenv("AZURE_DEVOPS_HOSTNAME", u.Host)
+			},
+			provider: pb.GitProvider_AzureDevOps,
+			valid:    true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			ts := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				w.WriteHeader(tt.statusCode)
+			}))
+
+			authClient := newGitAuthClient(t, ts.Client(), state)
+			u, _ := url.Parse(ts.URL)
+
+			tt.setEnvVarsFunc(t, u)
+
+			res, err := authClient.ValidateProviderToken(contextWithAuth(ctx), &pb.ValidateProviderTokenRequest{
+				Provider: tt.provider,
+			})
+
+			if tt.errString != "" && !strings.Contains(err.Error(), tt.errString) {
+				t.Errorf("expected error %q but got instead %v", tt.errString, err)
+			}
+			if tt.errString == "" && res == nil {
+				t.Error("expected non-nil response")
+			}
+			if tt.errString == "" && tt.valid != res.Valid {
+				t.Errorf("expected valid to be %t but was %t", tt.valid, res.Valid)
+			}
+		})
+	}
+}
+
 func newGitAuthClient(t *testing.T, c *http.Client, state string) pb.GitAuthClient {
 	t.Helper()
 

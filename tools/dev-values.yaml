@@ -27,6 +27,8 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
+  - name: DEV_MODE
+    value: "true"
 
 extraEnvVarsSecret: ""
 

@@ -9,6 +9,8 @@ export type QueryRequest = {
   query?: QueryClause[]
   offset?: number
   limit?: number
+  orderBy?: string
+  globalOperand?: string
 }
 
 export type QueryClause = {
@@ -29,6 +31,7 @@ export type Object = {
   status?: string
   apiGroup?: string
   apiVersion?: string
+  message?: string
 }
 
 export type DebugGetAccessRulesRequest = {

@@ -2,12 +2,15 @@ package query
 
 import (
 	"context"
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
 	"testing"
 
 	"github.com/alecthomas/assert"
-	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
@@ -16,7 +19,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-// We test access rules here to get to get coverage on the store logic as well as the query service.
+// We test access rules here to get coverage on the store logic as well as the query service.
 // Mocking the store here wouldn't really be testing anything.
 func TestRunQuery_AccessRules(t *testing.T) {
 	tests := []struct {
@@ -35,17 +38,17 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				{
 					Cluster:    "cluster-a",
 					Namespace:  "ns-a",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-					Kind:       "somekind",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
 				},
 				{
 					Cluster:    "cluster-a",
 					Namespace:  "ns-b",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-					Kind:       "somekind",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
 				},
 			},
@@ -55,8 +58,8 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				Namespace: "ns-a",
 				Kind:      "Role",
 				PolicyRules: []models.PolicyRule{{
-					APIGroups: strings.Join([]string{"example.com/v1"}, ","),
-					Resources: strings.Join([]string{"somekind"}, ","),
+					APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+					Resources: strings.Join([]string{"helmreleases"}, ","),
 					Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
 				}},
 			}},
@@ -76,9 +79,9 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				{
 					Cluster:    "cluster-a",
 					Namespace:  "ns-a",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-					Kind:       "somekind",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
 				},
 			},
@@ -90,9 +93,9 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				{
 					Cluster:    "cluster-a",
 					Namespace:  "ns-a",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-					Kind:       "somekind",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
 				},
 			},
@@ -102,8 +105,8 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				Namespace: "",
 				Kind:      "ClusterRole",
 				PolicyRules: []models.PolicyRule{{
-					APIGroups: strings.Join([]string{"example.com/v1"}, ","),
-					Resources: strings.Join([]string{"somekind"}, ","),
+					APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+					Resources: strings.Join([]string{"helmreleases"}, ","),
 					Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
 				}},
 			}},
@@ -123,9 +126,9 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				{
 					Cluster:    "cluster-a",
 					Namespace:  "ns-a",
-					APIGroup:   "example.com",
-					APIVersion: "v1",
-					Kind:       "somekind",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
 				},
 			},
@@ -180,8 +183,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 		},
 		{
-			name: "cluster roles with unspecified api version",
-
+			name: "cluster roles with unspecified api version with wildcard",
 			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
 			objects: []models.Object{
 				{
@@ -230,7 +232,96 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			},
 		},
 		{
-			name: "policy rule with * permissions",
+			name: "cluster roles with supported resource",
+			user: auth.NewUserPrincipal(auth.ID("wego"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "nginx-113",
+				},
+			},
+			roles: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "flux-system/leaf-cluster-1",
+				Name:      "wego-cluster-role",
+				Namespace: "",
+				Kind:      "ClusterRoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "User",
+					Name: "wego",
+				}},
+				RoleRefName: "wego-cluster-role",
+				RoleRefKind: "ClusterRole",
+			}},
+			expected: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "nginx-113",
+				},
+			},
+		},
+		{
+			name: "deny for unsupported kind",
+			user: auth.NewUserPrincipal(auth.ID("wego"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "flux-system/leaf-cluster-1",
+					Namespace:  "flux-stress",
+					APIGroup:   "apiGroup",
+					APIVersion: "v1",
+					Kind:       "notSupportedKind",
+					Name:       "nginx-113",
+				},
+			},
+			roles: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "flux-system/leaf-cluster-1",
+				Name:      "wego-cluster-role",
+				Namespace: "",
+				Kind:      "ClusterRoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "User",
+					Name: "wego",
+				}},
+				RoleRefName: "wego-cluster-role",
+				RoleRefKind: "ClusterRole",
+			}},
+			expected: []models.Object{},
+		},
+		{
+			name: "policy rule with wildcard",
 			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
 			roles: []models.Role{
 				{
@@ -306,9 +397,17 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			g.Expect(store.StoreRoles(context.Background(), tt.roles)).To(Succeed())
 			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
 
+			//create gvks and resources configuration
+			kindByResourceMap, err := testutils.CreateDefaultResourceKindMap()
+			assert.NoError(t, err)
+
+			checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
+			assert.NoError(t, err)
+
 			qs, err := NewQueryService(ctx, QueryServiceOpts{
-				Log:         logr.Discard(),
-				StoreReader: store,
+				Log:           logr.Discard(),
+				StoreReader:   store,
+				AccessChecker: checker,
 			})
 
 			assert.NoError(t, err)

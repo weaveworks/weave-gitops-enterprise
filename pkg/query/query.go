@@ -18,8 +18,9 @@ type QueryService interface {
 }
 
 type QueryServiceOpts struct {
-	Log         logr.Logger
-	StoreReader store.StoreReader
+	Log           logr.Logger
+	StoreReader   store.StoreReader
+	AccessChecker accesschecker.Checker
 }
 
 const (
@@ -30,7 +31,7 @@ func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, 
 	return &qs{
 		log:     opts.Log,
 		r:       opts.StoreReader,
-		checker: accesschecker.NewAccessChecker(),
+		checker: opts.AccessChecker,
 	}, nil
 }
 
@@ -49,18 +50,38 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		return nil, fmt.Errorf("principal not found")
 	}
 
-	allObjects, err := q.r.GetObjects(ctx, query, opts)
-	if err != nil {
-		return nil, fmt.Errorf("error getting objects from store: %w", err)
-	}
-
 	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
 
+	iter, err := q.r.GetObjects(ctx, query, opts)
+	if err != nil {
+		return nil, fmt.Errorf("error getting objects from store: %w", err)
+	}
+
+	defer iter.Close()
+
 	result := []models.Object{}
-	for _, obj := range allObjects {
+
+	var limit int32
+
+	if opts != nil {
+		limit = opts.GetLimit()
+	}
+
+	for iter.Next() {
+		if limit > 0 && len(result) == int(limit) {
+			// Limit is set in the query and reached.
+			// If Limit is 0, all objects are returned.
+			break
+		}
+
+		obj, err := iter.Row()
+		if err != nil {
+			return nil, fmt.Errorf("error getting row from iterator: %w", err)
+		}
+
 		ok, err := q.checker.HasAccess(principal, obj, rules)
 		if err != nil {
 			q.log.Error(err, "error checking access")

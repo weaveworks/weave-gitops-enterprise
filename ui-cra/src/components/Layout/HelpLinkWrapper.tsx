@@ -1,4 +1,4 @@
-import { Link, theme } from '@weaveworks/weave-gitops';
+import { Flex, Link, theme } from '@weaveworks/weave-gitops';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -14,7 +14,7 @@ import React from 'react';
 
 const { xxs, xs, medium } = theme.spacing;
 
-const HelpLink = styled.div<{
+const HelpLink = styled(Flex)<{
   backgroundColor?: string;
   textColor?: string;
 }>`
@@ -23,12 +23,12 @@ const HelpLink = styled.div<{
     props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
   color: ${props => props.textColor || theme.colors.neutral30};
   border-radius: 0 0 ${xs} ${xs};
-  display: flex;
   justify-content: space-between;
   a {
     color: ${({ theme }) => theme.colors.primary};
   }
 `;
+
 const useStyles = makeStyles(() =>
   createStyles({
     editor: {
@@ -64,7 +64,7 @@ const Footer = ({ version }: { version: string }) => {
       ) : (
         <div>
           Need help? Raise a&nbsp;
-          <Link newTab href="https://weavesupport.zendesk.com/">
+          <Link newTab href="https://support.weave.works/helpdesk/">
             support ticket
           </Link>
         </div>

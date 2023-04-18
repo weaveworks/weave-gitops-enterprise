@@ -1,6 +1,11 @@
 package reconciler
 
 import (
+	"context"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
+	"gotest.tools/v3/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
@@ -104,4 +109,95 @@ func TestSetup(t *testing.T) {
 			g.Expect(reconciler).NotTo(BeNil())
 		})
 	}
+}
+
+func TestReconciler_Reconcile(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	logger := testr.New(t)
+
+	clusterName := "anyCluster"
+	//setup data
+	createdOrUpdatedHelmRelease := testutils.NewHelmRelease("createdOrUpdatedHelmRelease", clusterName)
+	deleteHelmRelease := testutils.NewHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
+		now := metav1.Now()
+		hr.DeletionTimestamp = &now
+	})
+	objects := []runtime.Object{createdOrUpdatedHelmRelease, deleteHelmRelease}
+
+	//setup reconciler
+	s := runtime.NewScheme()
+	if err := v2beta1.AddToScheme(s); err != nil {
+		t.Fatalf("could not add v2beta1 to scheme: %v", err)
+	}
+	fakeClient := fake.NewClientBuilder().WithRuntimeObjects(objects...).WithScheme(s).Build()
+
+	tests := []struct {
+		name       string
+		object     client.Object
+		request    ctrl.Request
+		expectedTx transaction
+		errPattern string
+	}{
+		{
+			name:   "can reconcile created or updated resource requests",
+			object: createdOrUpdatedHelmRelease,
+			request: ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      createdOrUpdatedHelmRelease.GetName(),
+					Namespace: createdOrUpdatedHelmRelease.GetNamespace(),
+				},
+			},
+			expectedTx: transaction{
+				clusterName:     "anyCluster",
+				object:          createdOrUpdatedHelmRelease,
+				transactionType: models.TransactionTypeUpsert,
+			},
+			errPattern: "",
+		},
+		{
+			name:   "can reconcile delete resource requests",
+			object: deleteHelmRelease,
+			request: ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      deleteHelmRelease.GetName(),
+					Namespace: deleteHelmRelease.GetNamespace(),
+				},
+			},
+			expectedTx: transaction{
+				clusterName:     "anyCluster",
+				object:          deleteHelmRelease,
+				transactionType: models.TransactionTypeDelete,
+			},
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var reconcileError error
+			objectsChannel := make(chan []models.ObjectTransaction)
+			defer close(objectsChannel)
+			gvk := v2beta1.GroupVersion.WithKind("HelmRelease")
+			reconciler, err := NewReconciler(clusterName, gvk, fakeClient, objectsChannel, logger)
+			g.Expect(err).To(BeNil())
+			g.Expect(reconciler).NotTo(BeNil())
+			go func() {
+				_, reconcileError = reconciler.Reconcile(ctx, tt.request)
+			}()
+			objectTransactions := <-objectsChannel
+			if tt.errPattern != "" {
+				g.Expect(reconcileError).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(reconcileError).To(BeNil())
+			assertObjectTransaction(t, objectTransactions[0], tt.expectedTx)
+		})
+	}
+}
+
+func assertObjectTransaction(t *testing.T, actual models.ObjectTransaction, expected models.ObjectTransaction) {
+
+	assert.Assert(t, expected.ClusterName() == actual.ClusterName(), "different cluster")
+	assert.Assert(t, expected.TransactionType() == actual.TransactionType(), "different tx type")
+	assert.Assert(t, expected.Object().GetName() == actual.Object().GetName(), "different object")
 }
