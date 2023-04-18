@@ -23,6 +23,16 @@ Diagrams aim to be self-explanatory however:
 3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagramming. It currently has support 
    for [C4](https://mermaid.js.org/syntax/c4c.html) in early stage with limitations on editing experience or features. 
 
+## Getting Started
+
+It depends on your expected outcome. This section assumes that you are an engineering within Weave Gitops and you are onboarding
+to the product within a particular business domain. We suggest you use this documentation as part of the onboarding to get started:
+
+1. Head to [Weave Gitops System](#system) as it provides you a high-level understanding on who are the users and weave Gitops Dependencies.
+2. Review [Weave Gitops Tiers](#tiers) as it provides with the layering of the application and access to the codebase by tier. 
+3. Select the [Weave Gitops Domain](#domains) that you would be using to ramp up and review its diagram as well follow the UI, API and Backend. 
+
+This outside-in approach should provide you some structure when you face your first ticket.   
 
 ## Weave Gitops Enterprise
 
@@ -150,6 +160,10 @@ C4Container
 
 UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2") 
 ```
+**Futher Reference**
+- [Frontend](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/ui-cra)
+- [API](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/api)
+- [Backend](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/pkg)
 
 ### Domains
 
