@@ -55,7 +55,7 @@ import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
 import CreateSOPS from './components/Secrets/SOPS';
 import ClusterDetails from './components/Clusters/ClusterDetails';
-import CreatePolicyConfig from './components/PolicyConfigs/create';
+import CreatePolicyConfig from './components/PolicyConfigs/Create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -299,9 +299,16 @@ const AppRoutes = () => {
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
-      <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
-
+      <Route
+        exact
+        path={Routes.PolicyConfigsDetails}
+        component={withSearchParams(PolicyConfigsDetails)}
+      />
+      <Route
+        exact
+        path={Routes.CreatePolicyConfig}
+        component={CreatePolicyConfig}
+      />
 
       <Route
         path={Routes.TerraformDetail}
@@ -326,7 +333,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
-              state=''
+              state=""
             />
           );
         }}
