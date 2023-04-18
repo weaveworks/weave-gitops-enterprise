@@ -43,7 +43,6 @@ import {
   useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
-import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
 
 const FormWrapper = styled.form`
@@ -319,7 +318,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo as GitRepositoryEnriched,
+        repo: initialGitRepo,
       }));
     }
   }, [initialGitRepo, formData.repo]);

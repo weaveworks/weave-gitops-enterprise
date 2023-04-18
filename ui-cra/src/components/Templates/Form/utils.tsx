@@ -11,6 +11,7 @@ import GitUrlParse from 'git-url-parse';
 import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
+import { GitRepositoryEnriched } from '.';
 
 const yamlConverter = require('js-yaml');
 
@@ -111,7 +112,7 @@ export function useGetInitialGitRepo(
     }
   }
 
-  return getDefaultGitRepo(gitRepos, mgCluster);
+  return getDefaultGitRepo(gitRepos, mgCluster) as GitRepositoryEnriched;
 }
 
 export function getDefaultGitRepo(

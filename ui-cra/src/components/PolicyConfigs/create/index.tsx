@@ -29,7 +29,6 @@ import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { GitRepositoryEnriched } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   useGetInitialGitRepo,
@@ -180,7 +179,7 @@ const CreatePolicyConfig = () => {
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo as GitRepositoryEnriched,
+        repo: initialGitRepo,
       }));
     }
   }, [initialGitRepo, formData.repo, clusterName]);

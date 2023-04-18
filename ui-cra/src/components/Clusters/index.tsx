@@ -55,7 +55,6 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import PoliciesViolations from '../PolicyViolations';
 import { TableWrapper, Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
-import { GitRepositoryEnriched } from '../Templates/Form';
 import {
   getCreateRequestAnnotation,
   useGetInitialGitRepo,
@@ -348,7 +347,7 @@ const MCCP: FC<{
     if (!formData.repo) {
       setFormData((prevState: any) => ({
         ...prevState,
-        repo: initialGitRepo as GitRepositoryEnriched,
+        repo: initialGitRepo,
       }));
     }
   }, [initialGitRepo, formData.repo]);
