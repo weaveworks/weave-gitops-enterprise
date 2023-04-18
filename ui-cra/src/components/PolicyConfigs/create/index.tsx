@@ -34,13 +34,13 @@ import {
   useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
-import { SelectMatchType } from './Form/Partials/SelectTargetList';
-import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-import { PreviewPRModal } from './PreviewPRModal';
 import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
+import { SelectMatchType } from './Form/Partials/SelectTargetList';
+import { PreviewPRModal } from './PreviewPRModal';
+import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 
 const { large, xs, base, medium, small } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;

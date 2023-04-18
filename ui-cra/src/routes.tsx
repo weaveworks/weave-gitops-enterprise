@@ -55,7 +55,7 @@ import Explorer from './components/Explorer';
 import WGUserInfo from './components/UserInfo';
 import CreateSOPS from './components/Secrets/SOPS';
 import ClusterDetails from './components/Clusters/ClusterDetails';
-import CreatePolicyConfig from './components/PolicyConfigs/Create';
+import CreatePolicyConfig from './components/PolicyConfigs/create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
