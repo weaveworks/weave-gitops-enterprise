@@ -7,7 +7,7 @@ This documentation tries to make visible Weave Gitops Enterprise architecture in
 You would benefit of this documentation is you are in any of the following journeys.
 
 1. I want to understand how Weave Gitops Enterprise looks as a system in a simple way.
-2. I want to understand the high level  building blocks or component within Weave Gitops Enterprise in a simple way. 
+2. I want to understand the high level building blocks or component within Weave Gitops Enterprise in a simple way. 
 3. I want to understand the different business domains served by Weave Gitops Enterprise in a simple way.
 4. For any of the domains, I want to go deeper in terms of behaviour, api or code in. 
 
