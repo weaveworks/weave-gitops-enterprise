@@ -31,6 +31,7 @@ const (
 func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
 	return &qs{
 		log:     opts.Log.WithName("query-service"),
+		debug:   opts.Log.WithName("query-service").V(logger.LogLevelDebug),
 		r:       opts.StoreReader,
 		checker: opts.AccessChecker,
 	}, nil
@@ -38,6 +39,7 @@ func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
 
 type qs struct {
 	log     logr.Logger
+	debug   logr.Logger
 	r       store.StoreReader
 	checker accesschecker.Checker
 }
@@ -49,7 +51,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
-	q.debug.Info("...")
+	q.debug.Info("query received", "query", query, "principal", principal.ID)
 
 	// Contains all the rules that are relevant to this user.
 	// This is based on their ID and the groups they belong to.
@@ -93,15 +95,14 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		}
 
 		if ok {
-			//authorised is returned
 			result = append(result, obj)
 		} else {
 			//unauthorised is logged for debugging
-			q.log.V(logger.LogLevelDebug).Info("unauthorised access", "principal", principal.ID, "object", obj.ID, "rules", rules)
+			q.debug.Info("unauthorised access", "principal", principal.ID, "object", obj.ID, "rules", rules)
 		}
 	}
 
-	q.log.V(logger.LogLevelDebug).Info("query processed", "query", query, "principal", principal.ID, "numResult", len(result))
+	q.debug.Info("query processed", "query", query, "principal", principal.ID, "numResult", len(result))
 	return result, nil
 }
 
