@@ -2,7 +2,7 @@
 
 ## Motivation
 
-This documentation tries to make visible Weave Gitops Enterprise architecture in a simple way. 
+This documentation tries to make the Weave Gitops Enterprise architecture visible in a simple way. 
 
 You would benefit of this documentation is you are in any of the following journeys.
 
