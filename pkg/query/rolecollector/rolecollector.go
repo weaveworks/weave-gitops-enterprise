@@ -3,8 +3,6 @@ package rolecollector
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/core/logger"
-
 	rbacv1 "k8s.io/api/rbac/v1"
 
 	"github.com/go-logr/logr"
@@ -73,7 +71,7 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
 	ctx := context.Background()
 	deleteAll := []string{}
 
@@ -85,7 +83,7 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 
 	for _, obj := range objectTransactions {
 
-		log.V(logger.LogLevelDebug).Info("processing object tx", "tx", obj.ClusterName())
+		debug.Info("processing object tx", "tx", obj.ClusterName())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {
@@ -163,6 +161,6 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 		}
 	}
 
-	log.V(logger.LogLevelDebug).Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
+	debug.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
 	return nil
 }
