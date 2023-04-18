@@ -153,7 +153,7 @@ UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 
 ### Domains
 
-From the previous view, we could go a level deeper to understand the different business domains that weave gitops enterprise.
+From the previous view, we could go a level deeper to understand the different business domains that Weave Gitops Enterprise.
 
 ```mermaid
 C4Container

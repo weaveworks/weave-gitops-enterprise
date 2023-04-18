@@ -29,7 +29,7 @@ C4Context
     System_Ext(github, "GitHub", "Source storage in Git")      
     System_Ext(aws, "Amazon WebServices", "AWS APIs for managing clusters") 
 
-    Boundary(kubernetes, "Kubernetes Cluster") {
+    Boundary(Kubernetes, "Kubernetes Cluster") {
         Boundary(wg, "Weave Gitops Enterprise") {  
             Component(weaveGitopsEnterpriseUI, "Weave Gitops Enterprise UI")
             Component(clusterController, "Cluster Controller")
@@ -59,7 +59,7 @@ Rel(capiAWSController, capiController, "Update cluster state")
 ```
 
 **In Action**
-- Available via weave gitops enterprise [clusters experience](https://demo-01.wge.dev.weave.works/clusters)
+- Available via Weave Gitops Enterprise [clusters experience](https://demo-01.wge.dev.weave.works/clusters)
 
 **Documentation and Next Steps**
 - [API](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/cmd/clusters-service/api/cluster_services.proto)
