@@ -23,7 +23,7 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { removeToken } from '../../../utils/request';
 import {
   createDeploymentObjects,
   useClustersWithSources,
@@ -39,6 +39,10 @@ import {
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PreviewPRModal } from './PreviewPRModal';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 
 const { medium, large } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -136,7 +140,6 @@ const CreateSecret = () => {
   const [formData, setFormData] = useState<any>(initialFormData);
   const [selectedSecretStore, setSelectedSecretStore] =
     useState<ExternalSecretStore>({});
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
@@ -267,6 +270,13 @@ const CreateSecret = () => {
     dataRemoteRef_property,
   ]);
 
+  const token = getProviderToken(formData.provider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
+
   const handleCreateSecret = useCallback(() => {
     const payload = {
       headBranch: formData.branchName,
@@ -277,37 +287,48 @@ const CreateSecret = () => {
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
-    return createDeploymentObjects(payload, getProviderToken(formData.provider))
-      .then(response => {
-        history.push(Routes.Secrets);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
+    return validateToken()
+      .then(() =>
+        createDeploymentObjects(payload, getProviderToken(formData.provider))
+          .then(response => {
+            history.push(Routes.Secrets);
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error =>
+            setNotifications([
+              {
+                message: { text: error.message },
+                severity: 'error',
+                display: 'bottom',
+              },
+            ]),
+          )
+          .finally(() => setLoading(false)),
+      )
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, getClusterAutomations, history, setNotifications]);
+  }, [
+    formData,
+    getClusterAutomations,
+    history,
+    setNotifications,
+    validateToken,
+  ]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -424,7 +445,6 @@ const CreateSecret = () => {
                 setFormData={setFormData}
                 showAuthDialog={showAuthDialog}
                 setShowAuthDialog={setShowAuthDialog}
-                setEnableCreatePR={setEnableCreatePR}
                 formError={formError}
                 enableGitRepoSelection={true}
               />
@@ -433,7 +453,7 @@ const CreateSecret = () => {
                 <LoadingPage className="create-loading" />
               ) : (
                 <div className="create-cta">
-                  <Button type="submit" disabled={!enableCreatePR}>
+                  <Button type="submit" disabled={!isAuthenticated}>
                     CREATE PULL REQUEST
                   </Button>
                 </div>
