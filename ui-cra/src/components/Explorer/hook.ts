@@ -74,7 +74,13 @@ export function useQueryState(
     );
 
     history.replace(`?${q}`);
-  }, [history, queryState.offset, queryState.limit, queryState.pinnedTerms]);
+  }, [
+    history,
+    cfg.enableURLState,
+    queryState.offset,
+    queryState.limit,
+    queryState.pinnedTerms,
+  ]);
 
   return [queryState, setQueryState];
 }

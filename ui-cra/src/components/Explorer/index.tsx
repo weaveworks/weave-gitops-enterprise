@@ -63,21 +63,6 @@ function Explorer({ className }: Props) {
     });
   };
 
-  const handleFilterChange = (val: string) => {
-    let nextVal = [val];
-
-    if (val === '') {
-      nextVal = [];
-    }
-
-    setQueryState({
-      ...queryState,
-      offset: 0,
-      pinnedTerms: nextVal,
-      selectedFilter: val,
-    });
-  };
-
   return (
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
       <ContentWrapper
