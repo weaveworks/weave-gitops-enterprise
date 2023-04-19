@@ -6,8 +6,8 @@ import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { useState } from 'react';
 import styled from 'styled-components';
 import { GitopsClusterEnriched } from '../../types/custom';
-import { CAPIClusterStatus } from './CAPIClusterStatus';
 import { DashboardsList } from './DashboardsList';
+import { ClusterStatus } from './ClusterStatus';
 
 const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
@@ -35,6 +35,8 @@ const ClusterDashboard = ({
   const labels = currentCluster?.labels || {};
   const annotations = currentCluster?.annotations || {};
   const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
+
+  console.log(currentCluster);
 
   const [disabled, setDisabled] = useState<boolean>(false);
   const dashboardAnnotations = getDashboardAnnotations(
@@ -108,7 +110,10 @@ const ClusterDashboard = ({
                 </Typography>
                 {Object.entries(labels).map(([key, value]) => (
                   <Chip
-                    style={{ marginRight: theme.spacing.small, marginBottom: theme.spacing.small }}
+                    style={{
+                      marginRight: theme.spacing.small,
+                      marginBottom: theme.spacing.small,
+                    }}
                     key={key}
                     label={`${key}: ${value}`}
                   />
@@ -125,7 +130,10 @@ const ClusterDashboard = ({
                 </Typography>
                 {Object.entries(annotations).map(([key, value]) => (
                   <Chip
-                    style={{ marginRight: theme.spacing.small, marginBottom: theme.spacing.small }}
+                    style={{
+                      marginRight: theme.spacing.small,
+                      marginBottom: theme.spacing.small,
+                    }}
                     key={key}
                     label={`${key}: ${value}`}
                   />
@@ -135,7 +143,14 @@ const ClusterDashboard = ({
             </>
           ) : null}
           <Box margin={2}>
-            <CAPIClusterStatus
+            <ClusterStatus
+              clusterName={currentCluster.name}
+              conditions={currentCluster?.conditions}
+            />
+          </Box>
+          <Divider variant="middle" />
+          <Box margin={2}>
+            <ClusterStatus
               clusterName={currentCluster.name}
               status={currentCluster?.capiCluster?.status}
             />

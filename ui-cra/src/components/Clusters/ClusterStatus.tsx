@@ -13,6 +13,7 @@ import React, { FC } from 'react';
 import styled from 'styled-components';
 import { Icon, IconType, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { CAPICluster } from '../../types/custom';
+import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
 
 // styles
 
@@ -76,8 +77,8 @@ const defaultRenderer: StatusRenderer = (key, status) => {
   return keyStatus;
 };
 
-const conditionsRenderer: StatusRenderer = (key, status) => {
-  if (!status.conditions) {
+const conditionsRenderer: StatusRenderer = (key, conditions) => {
+  if (!conditions) {
     // Not sure how we get here but...
     return <i>No conditions present</i>;
   }
@@ -91,7 +92,7 @@ const conditionsRenderer: StatusRenderer = (key, status) => {
         </TableRow>
       </TableHead>
       <TableBody>
-        {status.conditions.map((cond: Condition, index: number) => (
+        {conditions.map((cond: Condition, index: number) => (
           <TableRow key={index}>
             {conditionKeys.map(key => (
               <TableCell key={key}>{cond[key]}</TableCell>
@@ -107,44 +108,80 @@ const statusRenderers: { [key: string]: StatusRenderer } = {
   conditions: conditionsRenderer,
 };
 
-export const CAPIClusterStatus: FC<{
+export const ClusterStatus: FC<{
   clusterName: string;
+  conditions?: GitopsCluster['conditions'];
   status?: CAPICluster['status'];
-}> = ({ status }) => {
+}> = ({ status, conditions }) => {
   const classes = useStyles();
 
-  if (!status) {
+  if (!status && !conditions) {
     return null;
   }
 
   // Note: sortBy pushes 'undefined' to end of lists.
-  const sortedKeys = sortBy(Object.keys(status), key => statusKeySortHint[key]);
+  const sortedKeys = (
+    conditions?: GitopsCluster['conditions'],
+    status?: CAPICluster['status'],
+  ) => {
+    if (status) {
+      return sortBy(Object.keys(status), key => statusKeySortHint[key]);
+    } else if (conditions) {
+      return sortBy(Object.keys(conditions), key => statusKeySortHint[key]);
+    }
+    return [];
+  };
 
   return (
     <Box>
       <Typography variant="h6" gutterBottom component="div">
-        CAPI Status
+        {conditions && 'Status'}
+        {status && 'CAPI status'}
       </Typography>
       <Table size="small">
         <TableBody>
-          {sortedKeys.map(key => {
-            const renderer = statusRenderers[key] || defaultRenderer;
-            return (
-              <TableRow key={key}>
-                <TableCell
-                  className={classes.conditionNameCell}
-                  component="th"
-                  scope="row"
-                  style={{ borderBottom: 'unset' }}
-                >
-                  {key}
-                </TableCell>
-                <TableCell style={{ borderBottom: 'unset' }}>
-                  <StatusValue>{renderer(key, status)}</StatusValue>
-                </TableCell>
-              </TableRow>
-            );
-          })}
+          {conditions &&
+            sortedKeys(conditions).map(key => {
+              const renderer = statusRenderers[key] || defaultRenderer;
+              return (
+                <TableRow key={key}>
+                  <TableCell
+                    className={classes.conditionNameCell}
+                    component="th"
+                    scope="row"
+                    style={{ borderBottom: 'unset' }}
+                  >
+                    {key}
+                  </TableCell>
+                  <TableCell style={{ borderBottom: 'unset' }}>
+                    <StatusValue>
+                      {conditions && renderer(key, conditions)}
+                    </StatusValue>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          {status &&
+            sortedKeys(status).map(key => {
+              const renderer = statusRenderers[key] || defaultRenderer;
+              return (
+                <TableRow key={key}>
+                  <TableCell
+                    className={classes.conditionNameCell}
+                    component="th"
+                    scope="row"
+                    style={{ borderBottom: 'unset' }}
+                  >
+                    {key}
+                  </TableCell>
+                  <TableCell style={{ borderBottom: 'unset' }}>
+                    <StatusValue>
+                      {status && renderer(key, status.conditions)}
+                    </StatusValue>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
         </TableBody>
       </Table>
     </Box>
