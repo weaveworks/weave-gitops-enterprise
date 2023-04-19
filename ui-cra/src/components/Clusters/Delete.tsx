@@ -137,7 +137,7 @@ export const DeleteClusterDialog: FC<Props> = ({
       )
       .catch(() => {
         removeToken(formData.provider);
-        setNotifications([expiredTokenNotification]);
+        setNotifications([{ ...expiredTokenNotification, display: 'top' }]);
       });
 
   const cleanUp = useCallback(() => {

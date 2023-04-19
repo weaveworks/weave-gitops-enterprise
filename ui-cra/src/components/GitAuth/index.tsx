@@ -50,7 +50,7 @@ const GitAuth: FC<{
     <>
       <RepoInputWithAuthWrapper
         loading={loading}
-        isAuthenticated={isAuthenticated || false}
+        isAuthenticated={isAuthenticated}
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
         }}
