@@ -155,14 +155,16 @@ type Params struct {
 }
 
 type OIDCAuthenticationOptions struct {
-	IssuerURL     string        `mapstructure:"oidc-issuer-url"`
-	ClientID      string        `mapstructure:"oidc-client-id"`
-	ClientSecret  string        `mapstructure:"oidc-client-secret"`
-	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
-	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
-	ClaimUsername string        `mapstructure:"oidc-claim-username"`
-	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
-	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
+	IssuerURL      string        `mapstructure:"oidc-issuer-url"`
+	ClientID       string        `mapstructure:"oidc-client-id"`
+	ClientSecret   string        `mapstructure:"oidc-client-secret"`
+	RedirectURL    string        `mapstructure:"oidc-redirect-url"`
+	TokenDuration  time.Duration `mapstructure:"oidc-token-duration"`
+	ClaimUsername  string        `mapstructure:"oidc-claim-username"`
+	ClaimGroups    string        `mapstructure:"oidc-claim-groups"`
+	CustomScopes   []string      `mapstructure:"custom-oidc-scopes"`
+	UsernamePrefix string        `mapstructure:"oidc-username-prefix"`
+	GroupsPrefix   string        `mapstructure:"oidc-groups-prefix"`
 }
 
 func NewAPIServerCommand() *cobra.Command {
@@ -232,6 +234,8 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmdFlags.String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 	cmdFlags.StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
+	cmdFlags.String("oidc-username-prefix", "", "If provided, all usernames will be prefixed with this value to prevent conflicts with other authentication strategies")
+	cmdFlags.String("oidc-groups-prefix", "", "If provided, all groups will be prefixed with this value to prevent conflicts with other authentication strategies")
 
 	cmdFlags.Bool("dev-mode", false, "starts the server in development mode")
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
@@ -738,7 +742,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 				Username: args.OIDC.ClaimUsername,
 				Groups:   args.OIDC.ClaimGroups,
 			},
-			Scopes: args.OIDC.CustomScopes,
+			UsernamePrefix: args.OIDC.UsernamePrefix,
+			GroupsPrefix:   args.OIDC.GroupsPrefix,
+			Scopes:         args.OIDC.CustomScopes,
 		},
 		args.KubernetesClient,
 		tsv,
