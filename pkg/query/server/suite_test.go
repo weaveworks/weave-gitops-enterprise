@@ -112,7 +112,7 @@ func TestMain(m *testing.M) {
 	os.Exit(retCode)
 }
 
-func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincipal, queryLog, testLog logr.Logger) (api.QueryClient, error) {
+func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincipal, testLog logr.Logger) (api.QueryClient, error) {
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 
@@ -151,7 +151,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
 
 	opts2 := queryserver.ServerOpts{
-		Logger:          queryLog,
+		Logger:          testLog,
 		DiscoveryClient: dc,
 		ClustersManager: clustersManager,
 		SkipCollection:  false,

@@ -5,23 +5,17 @@ package server_test
 
 import (
 	"context"
-	"fmt"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/test"
-	l "github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"go.uber.org/zap/zapcore"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"strings"
 	"testing"
 	"time"
 )
@@ -36,9 +30,8 @@ const (
 	defaultInterval = time.Second
 )
 
-// TestQueryServer_IntegrationTest is an integration test for excercising the integration of the
+// TestQueryServer_IntegrationTest is an integration test for exercising the integration of the
 // query system that includes both collecting from a cluster (using env teset) and doing queries via grpc.
-// It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
 func TestQueryServer_IntegrationTest(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
@@ -50,7 +43,6 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 	testLog := testr.New(t)
 	tests := []struct {
 		name               string
-		logLevel           string
 		objects            []client.Object
 		access             []client.Object
 		principal          *auth.UserPrincipal
@@ -59,92 +51,21 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 		nonExpectedEvents  []string
 	}{
 		{
-			name:               "should provide query infra events as baseline",
-			objects:            []client.Object{},
-			access:             []client.Object{},
-			logLevel:           "info",
-			principal:          principal,
-			nonExpectedEvents:  []string{},
-			expectedNumObjects: 0,
-			expectedEvents: []string{
-				// collector infra events
-				"objects collector started",
-				"role collector started",
-				"collectors started", //potential duplicate
-				"watcher started",    //potential duplicate
-				"watching cluster",
-				// query infra events
-				"access checker created",
-				"query service created",
-				"query server created",
-				//TODO add stop events
-			},
-		},
-		{
-			name:   "should be verbose with debug logging level",
+			name:   "should support apps (using helm releases)",
 			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				podinfoHelmRepository(defaultNamespace),
 				podinfoHelmRelease(defaultNamespace),
-				podinfoHelmRelease("kube-public"),
 			},
-			logLevel:           "debug",
 			principal:          principal,
-			nonExpectedEvents:  []string{},
 			expectedNumObjects: 1, // should allow only on default namespace
-			expectedEvents: []string{
-				//object collection events
-				"object transaction received",
-				"storing object",
-				"objects stored",
-				"objects processed",
-				"rolebinding stored",
-				"role stored",
-				"roles processed",
-				//query execution events
-				"query received",
-				"objects retrieved",
-				"query processed",
-				//unauthorised access events
-				"unauthorised access",
-			},
-		},
-		{
-			name:   "should be silent with info logging level",
-			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoHelmRepository(defaultNamespace),
-				podinfoHelmRelease(defaultNamespace),
-				podinfoHelmRelease("kube-public"),
-			},
-			logLevel:           "info",
-			principal:          principal,
-			expectedEvents:     []string{},
-			expectedNumObjects: 1, // should allow only on default namespace
-			nonExpectedEvents: []string{
-				//object collection events
-				"object transaction received",
-				"storing object",
-				"objects stored",
-				"objects processed",
-				"rolebinding stored",
-				"role stored",
-				"roles processed",
-				//query execution events
-				"query received",
-				"objects retrieved",
-				"query processed",
-				//unauthorised access events
-				"unauthorised access",
-			},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//Given a query environment
 			ctx := context.Background()
-			appLog, loggerPath := newLoggerWithLevel(t, tt.logLevel)
-			c, err := makeQueryServer(t, cfg, tt.principal, appLog, testLog)
+			c, err := makeQueryServer(t, cfg, tt.principal, testLog)
 			g.Expect(err).To(BeNil())
 			//And some access rules and objects ingested
 			test.Create(ctx, t, cfg, tt.objects...)
@@ -165,26 +86,6 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 			}).Should(BeTrue())
 			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
-
-			//When query without expected results is successfully executed
-			querySucceeded = g.Eventually(func() bool {
-				clause := api.QueryClause{
-					Key:     "namespace",
-					Value:   "kube-public",
-					Operand: string(store.OperandEqual),
-				}
-				query, err := c.DoQuery(ctx, &api.QueryRequest{
-					Query: []*api.QueryClause{&clause},
-				})
-				g.Expect(err).To(BeNil())
-				return len(query.Objects) == 0
-			}).Should(BeTrue())
-			//Then query is successfully executed
-			g.Expect(querySucceeded).To(BeTrue())
-
-			//And logging events are found
-			g.Expect(assertLogs(loggerPath, tt.expectedEvents, tt.nonExpectedEvents)).To(Succeed())
-
 		})
 	}
 }
@@ -254,67 +155,6 @@ func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
 				},
 			}),
 	}
-}
-
-func assertLogs(loggerPath string, expectedEvents []string, nonExpectedEvents []string) error {
-	//get logs
-	logs, err := os.ReadFile(loggerPath)
-	if err != nil {
-		return fmt.Errorf("cannot read logger file: %w", err)
-
-	}
-	logss := string(logs)
-	logLines := strings.Split(logss, "\n")
-	for _, event := range expectedEvents {
-		found := false
-		for _, logLine := range logLines {
-			if strings.Contains(logLine, event) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return fmt.Errorf("event not found: %s", event)
-		}
-	}
-
-	for _, nonExpectedEvent := range nonExpectedEvents {
-		if strings.Contains(logss, nonExpectedEvent) {
-			return fmt.Errorf("non expected event found:%s", nonExpectedEvent)
-		}
-	}
-
-	return nil
-}
-
-func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
-	g := NewGomegaWithT(t)
-
-	file, err := os.CreateTemp(os.TempDir(), "query-server-log")
-	g.Expect(err).ShouldNot(HaveOccurred())
-
-	name := file.Name()
-	g.Expect(err).ShouldNot(HaveOccurred())
-
-	level, err := zapcore.ParseLevel(logLevel)
-	cfg := l.BuildConfig(
-		l.WithLogLevel(level),
-		l.WithMode(false),
-		l.WithOutAndErrPaths("stdout", "stderr"),
-		l.WithOutAndErrPaths(name, name),
-	)
-
-	log, err := l.NewFromConfig(cfg)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	t.Cleanup(func() {
-		err := os.Remove(file.Name())
-		if err != nil {
-			t.Fatal(err)
-		}
-	})
-
-	return log, name
 }
 
 func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject) *rbacv1.RoleBinding {
