@@ -7,7 +7,7 @@ enum QueryOperands {
   notEqual = 'not_equal',
 }
 
-enum GlobalOperand {
+export enum GlobalOperand {
   and = 'and',
   or = 'or',
 }
@@ -88,12 +88,21 @@ function convertToOpts(query: string): {
   return { clauses: out, globalOperand: GlobalOperand.and };
 }
 
-export function useQueryService(
-  query: string,
-  limit: number = 2,
-  offset: number = 0,
-  orderBy?: string,
-) {
+type QueryOpts = {
+  query: string;
+  limit: number;
+  offset: number;
+  orderBy?: string;
+  globalOperandOverride?: GlobalOperand;
+};
+
+export function useQueryService({
+  query,
+  limit,
+  offset,
+  orderBy,
+  globalOperandOverride,
+}: QueryOpts) {
   const api = Query;
 
   return useQuery<QueryResponse, Error>(
@@ -106,7 +115,7 @@ export function useQueryService(
         limit,
         offset,
         orderBy,
-        globalOperand,
+        globalOperand: globalOperandOverride || globalOperand,
       });
     },
     {

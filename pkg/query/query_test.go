@@ -247,6 +247,39 @@ func TestRunQuery(t *testing.T) {
 			},
 			want: []string{"podinfo", "podinfo"},
 		},
+		{
+			name: "`or` clause with order by",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo-a",
+					Namespace:  "namespace-a",
+					Kind:       "A",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-b",
+					Namespace:  "namespace-b",
+					Kind:       "B",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "cluster",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				orderBy:       "kind desc",
+				globalOperand: string(store.GlobalOperandOr),
+			},
+			want: []string{"podinfo-b", "podinfo-a"},
+		},
 	}
 
 	for _, tt := range tests {

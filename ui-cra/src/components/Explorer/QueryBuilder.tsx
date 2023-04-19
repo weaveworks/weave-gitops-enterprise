@@ -27,6 +27,7 @@ type Props = {
   onPin: (val: string[]) => void;
   onBlur?: () => void;
   busy?: boolean;
+  hideTextInput?: boolean;
 };
 
 function QueryBuilder({
@@ -42,6 +43,7 @@ function QueryBuilder({
   onBlur = noOp,
   onFilterSelect,
   busy,
+  hideTextInput,
 }: Props) {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -107,18 +109,20 @@ function QueryBuilder({
 
       <Flex align>
         <Box marginRight={1}>
-          <TextField
-            placeholder={placeholder}
-            style={{ minWidth: 360 }}
-            variant="outlined"
-            onChange={handleInputChange}
-            value={query}
-            onKeyDown={handleInputKeyPress}
-            onBlur={onBlur}
-            onFocus={handleFocus}
-            inputRef={inputRef}
-            disabled={disabled}
-          />
+          {!hideTextInput && (
+            <TextField
+              placeholder={placeholder}
+              style={{ minWidth: 360 }}
+              variant="outlined"
+              onChange={handleInputChange}
+              value={query}
+              onKeyDown={handleInputKeyPress}
+              onBlur={onBlur}
+              onFocus={handleFocus}
+              inputRef={inputRef}
+              disabled={disabled}
+            />
+          )}
         </Box>
         {!_.isEmpty(filters) && (
           <Box>

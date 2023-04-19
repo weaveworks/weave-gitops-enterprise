@@ -220,10 +220,6 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 	}
 
-	tx := i.db.Model(&models.Object{})
-	tx = tx.Offset(offset)
-	tx = tx.Order(orderBy)
-
 	if useOrLogic {
 		stmt := ""
 
@@ -237,14 +233,19 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 
 		stmt = strings.TrimSuffix(stmt, " OR ")
-		tx = tx.Raw(fmt.Sprintf("SELECT * FROM objects WHERE %s", stmt))
 
-		if tx.Error != nil {
-			return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+		orTX := i.db.Model(&models.Object{}).Where(stmt).Order(orderBy).Offset(offset)
+
+		if orTX.Error != nil {
+			return nil, fmt.Errorf("failed to execute query: %w", orTX.Error)
 		}
 
-		return sqliterator.New(tx)
+		return sqliterator.New(orTX)
 	}
+
+	tx := i.db.Model(&models.Object{})
+	tx = tx.Offset(offset)
+	tx = tx.Order(orderBy)
 
 	if len(q) > 0 {
 		for _, c := range q {
