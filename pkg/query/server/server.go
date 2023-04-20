@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
 	"os"
@@ -58,6 +59,7 @@ type ServerOpts struct {
 	StoreType       string
 	// required to map GVRs to GVKs for authz purporses
 	DiscoveryClient discovery.DiscoveryInterface
+	ObjectKinds     []configuration.ObjectKind
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -148,12 +150,14 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 
 	if !opts.SkipCollection {
 
-		optsCollector := collector.CollectorOpts{
-			Log:            opts.Logger,
-			ClusterManager: opts.ClustersManager,
+		if len(opts.ObjectKinds) == 0 {
+			return nil, nil, fmt.Errorf("cannot create collector for empty gvks")
 		}
 
-		rulesCollector, err := rolecollector.NewRoleCollector(s, optsCollector)
+		rulesCollector, err := rolecollector.NewRoleCollector(s, collector.CollectorOpts{
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
+		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
@@ -162,7 +166,11 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		objsCollector, err := objectscollector.NewObjectsCollector(s, optsCollector)
+		objsCollector, err := objectscollector.NewObjectsCollector(s, collector.CollectorOpts{
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
+			ObjectKinds:    opts.ObjectKinds,
+		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}

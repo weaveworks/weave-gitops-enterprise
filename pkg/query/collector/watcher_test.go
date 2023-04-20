@@ -4,12 +4,11 @@ import (
 	"context"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"testing"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -33,9 +32,7 @@ func TestWatcher_Start(t *testing.T) {
 			Name:      "clusterName",
 			Namespace: "clusterNamespace",
 		},
-		Kinds: []schema.GroupVersionKind{
-			v2beta1.GroupVersion.WithKind("HelmRelease"),
-		},
+		Kinds:         configuration.SupportedObjectKinds,
 		ManagerFunc:   newFakeWatcherManagerFunc,
 		ObjectChannel: fakeObjectsChannel,
 		Log:           log,
@@ -115,9 +112,7 @@ func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransactio
 			Name:      "clusterName",
 			Namespace: "clusterNamespace",
 		},
-		Kinds: []schema.GroupVersionKind{
-			v2beta1.GroupVersion.WithKind("HelmRelease"),
-		},
+		Kinds:         configuration.SupportedObjectKinds,
 		ManagerFunc:   newFakeWatcherManagerFunc,
 		ObjectChannel: objectsChannel,
 		Log:           log,
@@ -127,33 +122,6 @@ func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransactio
 	g.Expect(err).To(BeNil())
 	g.Expect(watcher.Start()).To(Succeed())
 	return watcher
-}
-
-func Test_newScheme(t *testing.T) {
-
-	g := NewGomegaWithT(t)
-
-	tests := []struct {
-		name       string
-		errPattern string
-	}{
-		{
-			name:       "can create default scheme",
-			errPattern: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			scheme, err := newDefaultScheme()
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
-			}
-			g.Expect(err).To(BeNil())
-			g.Expect(scheme).NotTo(BeNil())
-		})
-	}
-
 }
 
 func assertClusterWatcher(g *WithT, watcher Watcher, expectedStatus ClusterWatchingStatus) {

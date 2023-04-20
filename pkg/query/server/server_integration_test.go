@@ -30,9 +30,10 @@ const (
 	defaultInterval = time.Second
 )
 
-// TestQueryServer_IntegrationTest is an integration test for exercising the integration of the
+// TestQueryServer is an integration test for excercising the integration of the
 // query system that includes both collecting from a cluster (using env teset) and doing queries via grpc.
-func TestQueryServer_IntegrationTest(t *testing.T) {
+// It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
+func TestQueryServer(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
@@ -46,9 +47,8 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 		objects            []client.Object
 		access             []client.Object
 		principal          *auth.UserPrincipal
-		expectedEvents     []string
+		queryClause        api.QueryClause
 		expectedNumObjects int
-		nonExpectedEvents  []string
 	}{
 		{
 			name:   "should support apps (using helm releases)",
@@ -57,8 +57,134 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 				podinfoHelmRepository(defaultNamespace),
 				podinfoHelmRelease(defaultNamespace),
 			},
-			principal:          principal,
+			principal: principal,
+			queryClause: api.QueryClause{
+				Key:     "kind",
+				Value:   "HelmRelease",
+				Operand: string(store.OperandEqual),
+			},
 			expectedNumObjects: 1, // should allow only on default namespace
+		},
+		{
+			name:   "should support helm repository",
+			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				podinfoHelmRepository(defaultNamespace),
+			},
+			queryClause: api.QueryClause{
+				Key:     "kind",
+				Value:   "HelmRepository",
+				Operand: string(store.OperandEqual),
+			},
+			principal:          principal,
+			expectedNumObjects: 1, // should allow only on default namespace,
+		},
+		{
+			name:   "should support helm chart",
+			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&sourcev1.HelmChart{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "podinfo",
+						Namespace: defaultNamespace,
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       sourcev1.HelmChartKind,
+						APIVersion: sourcev1.GroupVersion.String(),
+					},
+					Spec: sourcev1.HelmChartSpec{
+						Chart:   "podinfo",
+						Version: "v0.0.1",
+						SourceRef: sourcev1.LocalHelmChartSourceReference{
+							Kind: sourcev1.HelmRepositoryKind,
+							Name: "podinfo",
+						},
+					},
+				},
+			},
+			queryClause: api.QueryClause{
+				Key:     "kind",
+				Value:   "HelmChart",
+				Operand: string(store.OperandEqual),
+			},
+			principal:          principal,
+			expectedNumObjects: 1, // should allow only on default namespace,
+		},
+		{
+			name:   "should support git repository chart",
+			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&sourcev1.GitRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "podinfo",
+						Namespace: defaultNamespace,
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       sourcev1.GitRepositoryKind,
+						APIVersion: sourcev1.GroupVersion.String(),
+					},
+					Spec: sourcev1.GitRepositorySpec{
+						URL: "https://example.com/owner/repo",
+					},
+				},
+			},
+			queryClause: api.QueryClause{
+				Key:     "kind",
+				Value:   "GitRepository",
+				Operand: string(store.OperandEqual),
+			},
+			principal:          principal,
+			expectedNumObjects: 1, // should allow only on default namespace,
+		},
+		{
+			name:   "should support oci repository",
+			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&sourcev1.OCIRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "podinfo",
+						Namespace: defaultNamespace,
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       sourcev1.OCIRepositoryKind,
+						APIVersion: sourcev1.GroupVersion.String(),
+					},
+					Spec: sourcev1.OCIRepositorySpec{
+						URL: "oci://example.com/owner/repo",
+					},
+				},
+			},
+			queryClause: api.QueryClause{
+				Key:     "kind",
+				Value:   sourcev1.OCIRepositoryKind,
+				Operand: string(store.OperandEqual),
+			},
+			principal:          principal,
+			expectedNumObjects: 1, // should allow only on default namespace,
+		},
+		{
+			name:   "should support bucket",
+			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&sourcev1.Bucket{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "podinfo",
+						Namespace: defaultNamespace,
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       sourcev1.BucketKind,
+						APIVersion: sourcev1.GroupVersion.String(),
+					},
+					Spec: sourcev1.BucketSpec{},
+				},
+			},
+			queryClause: api.QueryClause{
+				Key:     "kind",
+				Value:   "Bucket",
+				Operand: string(store.OperandEqual),
+			},
+			principal:          principal,
+			expectedNumObjects: 1, // should allow only on default namespace,
 		},
 	}
 	for _, tt := range tests {
@@ -73,19 +199,15 @@ func TestQueryServer_IntegrationTest(t *testing.T) {
 
 			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
-				clause := api.QueryClause{
-					Key:     "namespace",
-					Value:   defaultNamespace,
-					Operand: string(store.OperandEqual),
-				}
 				query, err := c.DoQuery(ctx, &api.QueryRequest{
-					Query: []*api.QueryClause{&clause},
+					Query: []*api.QueryClause{&tt.queryClause},
 				})
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == tt.expectedNumObjects
 			}).Should(BeTrue())
 			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
+
 		})
 	}
 }
@@ -142,6 +264,30 @@ func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
 			[]rbacv1.PolicyRule{{
 				APIGroups: []string{"helm.toolkit.fluxcd.io"},
 				Resources: []string{"helmreleases"},
+				Verbs:     []string{"*"},
+			}}),
+		newRoleBinding(roleBindingName,
+			"default",
+			"Role",
+			roleName,
+			[]rbacv1.Subject{
+				{
+					Kind: "User",
+					Name: username,
+				},
+			}),
+	}
+}
+
+func allowSourcesAnyOnDefaultNamespace(username string) []client.Object {
+	roleName := "helm-release-admin"
+	roleBindingName := "wego-admin-helm-release-admin"
+
+	return []client.Object{
+		newRole(roleName, "default",
+			[]rbacv1.PolicyRule{{
+				APIGroups: []string{"source.toolkit.fluxcd.io"},
+				Resources: []string{"*"},
 				Verbs:     []string{"*"},
 			}}),
 		newRoleBinding(roleBindingName,
