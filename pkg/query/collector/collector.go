@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"context"
 	"fmt"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
@@ -16,7 +15,7 @@ import (
 // ClusterWatcher defines an interface to watch gitops clusters via kubernetes https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
 	// Watch starts watching the cluster passed as input
-	Watch(ctx context.Context, cluster cluster.Cluster) error
+	Watch(cluster cluster.Cluster) error
 	// Unwatch stops watching the cluster identified by input clusterName.
 	Unwatch(clusterName string) error
 	// Status return the watcher status for the cluster identified as clusterName.

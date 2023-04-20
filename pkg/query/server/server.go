@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
 	"os"
 
@@ -109,8 +110,8 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 	return kindByResourceMap, nil
 }
 
-func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
-	log := opts.Logger.WithName("query-server")
+func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
+	debug := opts.Logger.WithName("query-server").V(logger.LogLevelDebug)
 
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
@@ -131,15 +132,17 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}
-	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
-		Log:           log,
+	debug.Info("access checker created")
+
+	qs, err := query.NewQueryService(query.QueryServiceOpts{
+		Log:           debug,
 		StoreReader:   s,
 		AccessChecker: checker,
 	})
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
+	debug.Info("query service created")
 
 	serv := &server{qs: qs, ac: checker}
 
@@ -155,7 +158,7 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
 
-		if err = rulesCollector.Start(ctx); err != nil {
+		if err = rulesCollector.Start(); err != nil {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
@@ -164,20 +167,20 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
-		if err = objsCollector.Start(ctx); err != nil {
+		if err = objsCollector.Start(); err != nil {
 			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
 		}
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
-		log.Info("collectors created")
+		debug.Info("collectors started")
 	}
-
+	debug.Info("query server created")
 	return serv, serv.StopCollection, nil
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
-	s, stop, err := NewServer(ctx, opts)
+	s, stop, err := NewServer(opts)
 	if err != nil {
 		return nil, err
 	}

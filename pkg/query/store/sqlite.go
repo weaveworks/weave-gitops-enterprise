@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"os"
 	"path/filepath"
 	"strings"
@@ -20,8 +21,9 @@ import (
 const dbFile = "resources.db"
 
 type SQLiteStore struct {
-	db  *gorm.DB
-	log logr.Logger
+	db    *gorm.DB
+	log   logr.Logger
+	debug logr.Logger
 }
 
 func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
@@ -70,8 +72,9 @@ func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) e
 
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
-		db:  db,
-		log: log,
+		db:    db,
+		log:   log.WithName("sqllite"),
+		debug: log.WithName("sqllite").V(logger.LogLevelDebug),
 	}, nil
 }
 
@@ -108,7 +111,7 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 			return fmt.Errorf("failed to store role: %w", result.Error)
 		}
 
-		i.log.Info("stored role", "role", fmt.Sprintf("%s/%s/%s/%s", role.Cluster, role.Namespace, role.Kind, role.Name))
+		i.debug.Info("role stored", "role", role.GetID())
 	}
 
 	return nil
@@ -144,7 +147,7 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 		if result.Error != nil {
 			return fmt.Errorf("failed to store role binding: %w", result.Error)
 		}
-		i.log.Info("stored rolebinding", "rolebinding", fmt.Sprintf("%s/%s/%s/%s", roleBinding.Cluster, roleBinding.Namespace, roleBinding.Kind, roleBinding.Name))
+		i.debug.Info("rolebinding stored", "rolebinding", roleBinding.GetID())
 
 	}
 
@@ -166,7 +169,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 
 		object.ID = object.GetID()
 		rows = append(rows, object)
-		i.log.Info("storing object", "object", object.GetID())
+		i.debug.Info("storing object", "object", object.GetID())
 	}
 
 	clauses := i.db.Clauses(clause.OnConflict{
@@ -181,6 +184,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 		return fmt.Errorf("failed to store object: %w", result.Error)
 	}
 
+	i.debug.Info("objects stored", "rows-affected", result.RowsAffected)
 	return nil
 }
 
@@ -264,7 +268,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
 	}
-
+	i.debug.Info("objects retrieved")
 	return sqliterator.New(tx)
 }
 
