@@ -74,101 +74,99 @@ const ClusterDashboard = ({
         ['APIVersion', infrastructureRef.apiVersion],
       ]
     : [];
-  return (
-    <>
-      {currentCluster && (
-        <ClusterDashbordWrapper>
-          {currentCluster?.conditions &&
-          currentCluster?.conditions[0]?.message ? (
-            <div style={{ paddingBottom: theme.spacing.small }}>
-              <KubeStatusIndicator conditions={currentCluster.conditions} />
-            </div>
-          ) : null}
 
-          <Box margin={2}>
-            <InfoList items={info as [string, any][]} />
-          </Box>
-          <Divider variant="middle" />
-          {Object.keys(dashboardAnnotations).length > 0 ? (
-            <>
-              <Box margin={2}>
-                <Typography variant="h6" gutterBottom component="div">
-                  Dashboards
-                </Typography>
-                <DashboardsList
-                  cluster={currentCluster as GitopsClusterEnriched}
+  return (
+    currentCluster && (
+      <ClusterDashbordWrapper>
+        {currentCluster?.conditions &&
+        currentCluster?.conditions[0]?.message ? (
+          <div style={{ paddingBottom: theme.spacing.small }}>
+            <KubeStatusIndicator conditions={currentCluster.conditions} />
+          </div>
+        ) : null}
+        <Box margin={2}>
+          <InfoList items={info as [string, any][]} />
+        </Box>
+        <Divider variant="middle" />
+        {Object.keys(dashboardAnnotations).length > 0 ? (
+          <>
+            <Box margin={2}>
+              <Typography variant="h6" gutterBottom component="div">
+                Dashboards
+              </Typography>
+              <DashboardsList
+                cluster={currentCluster as GitopsClusterEnriched}
+              />
+            </Box>
+            <Divider variant="middle" />
+          </>
+        ) : null}
+        {Object.keys(labels).length > 0 ? (
+          <>
+            <Box margin={2}>
+              <Typography variant="h6" gutterBottom component="div">
+                Labels
+              </Typography>
+              {Object.entries(labels).map(([key, value]) => (
+                <Chip
+                  style={{
+                    marginRight: theme.spacing.small,
+                    marginBottom: theme.spacing.small,
+                  }}
+                  key={key}
+                  label={`${key}: ${value}`}
                 />
-              </Box>
-              <Divider variant="middle" />
-            </>
-          ) : null}
-          {Object.keys(labels).length > 0 ? (
-            <>
-              <Box margin={2}>
-                <Typography variant="h6" gutterBottom component="div">
-                  Labels
-                </Typography>
-                {Object.entries(labels).map(([key, value]) => (
-                  <Chip
-                    style={{
-                      marginRight: theme.spacing.small,
-                      marginBottom: theme.spacing.small,
-                    }}
-                    key={key}
-                    label={`${key}: ${value}`}
-                  />
-                ))}
-              </Box>
-              <Divider variant="middle" />
-            </>
-          ) : null}
-          {Object.keys(annotations).length > 0 ? (
-            <>
-              <Box margin={2}>
-                <Typography variant="h6" gutterBottom component="div">
-                  Annotations
-                </Typography>
-                {Object.entries(annotations).map(([key, value]) => (
-                  <Chip
-                    style={{
-                      marginRight: theme.spacing.small,
-                      marginBottom: theme.spacing.small,
-                    }}
-                    key={key}
-                    label={`${key}: ${value}`}
-                  />
-                ))}
-              </Box>
-              <Divider variant="middle" />
-            </>
-          ) : null}
-          <Box margin={2}>
-            <ClusterStatus
-              clusterName={currentCluster.name}
-              conditions={currentCluster?.conditions}
-            />
-          </Box>
-          <Divider variant="middle" />
-          <Box margin={2}>
-            <ClusterStatus
-              clusterName={currentCluster.name}
-              status={currentCluster?.capiCluster?.status}
-            />
-          </Box>
-          {infrastructureRef ? (
-            <>
-              <Divider variant="middle" />
-              <Box margin={2}>
-                <Typography variant="h6" gutterBottom component="div">
-                  Infrastructure
-                </Typography>
-                <InfoList items={infrastructureRefInfo} />
-              </Box>
-            </>
-          ) : null}
-        </ClusterDashbordWrapper>
-      )}
-    </>
+              ))}
+            </Box>
+            <Divider variant="middle" />
+          </>
+        ) : null}
+        {Object.keys(annotations).length > 0 ? (
+          <>
+            <Box margin={2}>
+              <Typography variant="h6" gutterBottom component="div">
+                Annotations
+              </Typography>
+              {Object.entries(annotations).map(([key, value]) => (
+                <Chip
+                  style={{
+                    marginRight: theme.spacing.small,
+                    marginBottom: theme.spacing.small,
+                  }}
+                  key={key}
+                  label={`${key}: ${value}`}
+                />
+              ))}
+            </Box>
+            <Divider variant="middle" />
+          </>
+        ) : null}
+        <Box margin={2}>
+          <ClusterStatus
+            clusterName={currentCluster.name}
+            conditions={currentCluster?.conditions}
+          />
+        </Box>
+        <Divider variant="middle" />
+        <Box margin={2}>
+          <ClusterStatus
+            clusterName={currentCluster.name}
+            status={currentCluster?.capiCluster?.status}
+          />
+        </Box>
+        {infrastructureRef ? (
+          <>
+            <Divider variant="middle" />
+            <Box margin={2}>
+              <Typography variant="h6" gutterBottom component="div">
+                Infrastructure
+              </Typography>
+              <InfoList items={infrastructureRefInfo} />
+            </Box>
+          </>
+        ) : null}
+      </ClusterDashbordWrapper>
+    )
   );
 };
 
