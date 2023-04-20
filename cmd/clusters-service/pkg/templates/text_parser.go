@@ -33,7 +33,7 @@ func listNodeFields(nodes []parse.Node) []string {
 		case parse.NodeIf, parse.NodeWith, parse.NodeRange:
 			items := listNodeFieldsFromBranch(node)
 			if items[0] == "params" {
-				res = append(res, strings.Join(items[1:], "."))
+				res = append(res, items[1:]...)
 			}
 		case parse.NodeField:
 			res = append(res, node.(*parse.FieldNode).Ident...)
