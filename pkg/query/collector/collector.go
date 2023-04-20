@@ -2,12 +2,12 @@ package collector
 
 import (
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -31,7 +31,7 @@ type Collector interface {
 
 type CollectorOpts struct {
 	Log                logr.Logger
-	ObjectKinds        []schema.GroupVersionKind
+	ObjectKinds        []configuration.ObjectKind
 	ClusterManager     clustersmngr.ClustersManager
 	ProcessRecordsFunc ProcessRecordsFunc
 	NewWatcherFunc     NewWatcherFunc

@@ -1,10 +1,9 @@
 package collector
 
 import (
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
@@ -12,8 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
-	rbacv1 "k8s.io/api/rbac/v1"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/rest"
 	"testing"
 
@@ -30,11 +27,9 @@ func TestStart(t *testing.T) {
 	}
 	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
-		Log:            log,
-		ClusterManager: &cm,
-		ObjectKinds: []schema.GroupVersionKind{
-			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
-		},
+		Log:                log,
+		ClusterManager:     &cm,
+		ObjectKinds:        configuration.SupportedObjectKinds,
 		ProcessRecordsFunc: fakeProcessRecordFunc,
 		NewWatcherFunc:     newFakeWatcher,
 	}
@@ -77,11 +72,9 @@ func TestStop(t *testing.T) {
 	}
 	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
-		Log:            log,
-		ClusterManager: &cm,
-		ObjectKinds: []schema.GroupVersionKind{
-			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
-		},
+		Log:                log,
+		ClusterManager:     &cm,
+		ObjectKinds:        configuration.SupportedObjectKinds,
 		ProcessRecordsFunc: fakeProcessRecordFunc,
 		NewWatcherFunc:     newFakeWatcher,
 	}
@@ -116,10 +109,8 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
-		Log: log,
-		ObjectKinds: []schema.GroupVersionKind{
-			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
-		},
+		Log:                log,
+		ObjectKinds:        configuration.SupportedObjectKinds,
 		ProcessRecordsFunc: fakeProcessRecordFunc,
 		NewWatcherFunc:     newFakeWatcher,
 	}
@@ -164,10 +155,8 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
-		Log: log,
-		ObjectKinds: []schema.GroupVersionKind{
-			rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
-		},
+		Log:                log,
+		ObjectKinds:        configuration.SupportedObjectKinds,
 		ProcessRecordsFunc: fakeProcessRecordFunc,
 		NewWatcherFunc:     newFakeWatcher,
 	}
@@ -240,11 +229,8 @@ func TestClusterWatcher_Status(t *testing.T) {
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
 	options := CollectorOpts{
-		Log: log,
-		ObjectKinds: []schema.GroupVersionKind{
-			v2beta1.GroupVersion.WithKind(v2beta1.HelmReleaseKind),
-			v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
-		},
+		Log:                log,
+		ObjectKinds:        configuration.SupportedObjectKinds,
 		ProcessRecordsFunc: fakeProcessRecordFunc,
 		NewWatcherFunc:     newFakeWatcher,
 	}
@@ -293,7 +279,7 @@ func TestClusterWatcher_Status(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }

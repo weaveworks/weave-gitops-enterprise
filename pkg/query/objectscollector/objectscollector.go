@@ -3,15 +3,12 @@ package objectscollector
 import (
 	"context"
 	"fmt"
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/logger"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 // ObjectsCollector is responsible for collecting flux application resources from all clusters
@@ -44,19 +41,19 @@ func (a *ObjectsCollector) Stop() error {
 }
 
 func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
-
-	opts.ObjectKinds = []schema.GroupVersionKind{
-		v2beta1.GroupVersion.WithKind("HelmRelease"),
-		v1beta2.GroupVersion.WithKind("Kustomization"),
+	if opts.ProcessRecordsFunc == nil {
+		opts.ProcessRecordsFunc = defaultProcessRecords
 	}
 
-	opts.ProcessRecordsFunc = defaultProcessRecords
+	if err := opts.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid collector options: %w", err)
+	}
 
 	col, err := collector.NewCollector(opts, w)
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %store", err)
 	}
+
 	return &ObjectsCollector{
 		col:   col,
 		log:   opts.Log.WithName("objects-collector"),

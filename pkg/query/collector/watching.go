@@ -3,11 +3,11 @@ package collector
 import (
 	"fmt"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
@@ -69,7 +69,7 @@ func (c *watchingCollector) Stop() error {
 type watchingCollector struct {
 	clusterManager     clustersmngr.ClustersManager
 	clusterWatchers    map[string]Watcher
-	kinds              []schema.GroupVersionKind
+	kinds              []configuration.ObjectKind
 	store              store.Store
 	objectsChannel     chan []models.ObjectTransaction
 	newWatcherFunc     NewWatcherFunc
@@ -95,12 +95,12 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error)
 
 type ProcessRecordsFunc = func(objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []schema.GroupVersionKind, log logr.Logger) (Watcher, error) {
+func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
 	w, err := NewWatcher(WatcherOptions{
 		ClusterRef: types.NamespacedName{
 			Name:      clusterName,

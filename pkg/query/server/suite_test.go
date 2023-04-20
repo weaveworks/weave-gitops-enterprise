@@ -11,6 +11,7 @@ import (
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -155,6 +156,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 		DiscoveryClient: dc,
 		ClustersManager: clustersManager,
 		SkipCollection:  false,
+		ObjectKinds:     configuration.SupportedObjectKinds,
 	}
 
 	qs, _, err := queryserver.NewServer(opts2)

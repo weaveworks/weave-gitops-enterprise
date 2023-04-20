@@ -3,15 +3,13 @@ package rolecollector
 import (
 	"context"
 	"fmt"
-	rbacv1 "k8s.io/api/rbac/v1"
-
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var DefaultVerbsRequiredForAccess = []string{"list"}
@@ -48,12 +46,7 @@ func (a *RoleCollector) Stop() error {
 }
 
 func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
-	opts.ObjectKinds = []schema.GroupVersionKind{
-		rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
-		rbacv1.SchemeGroupVersion.WithKind("Role"),
-		rbacv1.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
-		rbacv1.SchemeGroupVersion.WithKind("RoleBinding"),
-	}
+	opts.ObjectKinds = configuration.SupportedRbacKinds
 
 	opts.ProcessRecordsFunc = defaultProcessRecords
 

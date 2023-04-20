@@ -3,17 +3,14 @@ package collector
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/reconciler"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
@@ -34,7 +31,7 @@ type WatcherOptions struct {
 	ObjectChannel chan []models.ObjectTransaction
 	ClusterRef    types.NamespacedName
 	ClientConfig  *rest.Config
-	Kinds         []schema.GroupVersionKind
+	Kinds         []configuration.ObjectKind
 	ManagerFunc   WatcherManagerFunc
 }
 
@@ -61,7 +58,7 @@ type Watcher interface {
 }
 
 type DefaultWatcher struct {
-	kinds             []schema.GroupVersionKind
+	kinds             []configuration.ObjectKind
 	watcherManager    manager.Manager
 	scheme            *runtime.Scheme
 	clusterRef        types.NamespacedName
@@ -79,7 +76,7 @@ type WatcherStopFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
 type WatcherManagerOptions struct {
 	Log            logr.Logger
 	Rest           *rest.Config
-	Kinds          []schema.GroupVersionKind
+	Kinds          []configuration.ObjectKind
 	ObjectsChannel chan []models.ObjectTransaction
 	ManagerOptions manager.Options
 	ClusterName    string
@@ -144,9 +141,11 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		opts.ManagerFunc = defaultNewWatcherManager
 	}
 
-	scheme, err := newDefaultScheme()
-	if err != nil {
-		return nil, fmt.Errorf("cannot crete default scheme: %w", err)
+	scheme := runtime.NewScheme()
+	for _, objectKind := range opts.Kinds {
+		if err := objectKind.AddToSchemeFunc(scheme); err != nil {
+			return nil, fmt.Errorf("cannot create runtime scheme: %w", err)
+		}
 	}
 
 	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.Name, opts.ClientConfig, scheme)
@@ -163,23 +162,6 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		objectsChannel:    opts.ObjectChannel,
 		log:               opts.Log,
 	}, nil
-}
-
-func newDefaultScheme() (*runtime.Scheme, error) {
-	sc := runtime.NewScheme()
-	// if err := clientgoscheme.AddToScheme(sc); err != nil {
-	// 	return nil, err
-	// }
-	if err := helmv2beta1.AddToScheme(sc); err != nil {
-		return nil, err
-	}
-	if err := kustomizev1beta2.AddToScheme(sc); err != nil {
-		return nil, err
-	}
-	if err := rbacv1.AddToScheme(sc); err != nil {
-		return nil, err
-	}
-	return sc, nil
 }
 
 func (w *DefaultWatcher) Start() error {
