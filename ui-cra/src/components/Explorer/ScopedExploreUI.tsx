@@ -7,7 +7,8 @@ import {
   columnHeaderHandler,
   filterChangeHandler,
   useQueryState,
-} from './hook';
+} from './hooks';
+import PaginationControls from './PaginationControls';
 import QueryBuilder from './QueryBuilder';
 
 type Props = {
@@ -18,13 +19,7 @@ type Props = {
 function ScopedExploreUI({ className, scopedKinds }: Props) {
   const [queryState, setQueryState] = useQueryState({
     enableURLState: false,
-    filters: [
-      {
-        label: 'Failed',
-        value: 'status:Failed',
-      },
-      ..._.map(scopedKinds, k => ({ label: k, value: `kind:${k}` })),
-    ],
+    filters: [..._.map(scopedKinds, k => ({ label: k, value: `kind:${k}` }))],
   });
 
   // If kind filter is selected, we have to change some query logic.
@@ -81,6 +76,11 @@ function ScopedExploreUI({ className, scopedKinds }: Props) {
         className={className}
         rows={data?.objects || []}
         onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
+      />
+      <PaginationControls
+        queryState={queryState}
+        setQueryState={setQueryState}
+        count={data?.objects?.length || 0}
       />
     </div>
   );

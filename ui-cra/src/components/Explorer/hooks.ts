@@ -4,7 +4,7 @@ import qs from 'query-string';
 import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
-type QueryState = {
+export type QueryState = {
   query: string;
   pinnedTerms: string[];
   filters: { label: string; value: any }[];

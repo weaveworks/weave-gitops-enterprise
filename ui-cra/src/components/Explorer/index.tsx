@@ -1,11 +1,4 @@
-import { Box, IconButton } from '@material-ui/core';
-import {
-  Flex,
-  Icon,
-  IconType,
-  RouterTab,
-  SubRouterTabs,
-} from '@weaveworks/weave-gitops';
+import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 // @ts-ignore
 import styled from 'styled-components';
 import { useQueryService } from '../../hooks/query';
@@ -18,14 +11,13 @@ import {
   columnHeaderHandler,
   filterChangeHandler,
   useQueryState,
-} from './hook';
+} from './hooks';
+import PaginationControls from './PaginationControls';
 import QueryBuilder from './QueryBuilder';
 
 type Props = {
   className?: string;
 };
-
-// ?clusterName=management&name=flux-system&namespace=flux-system
 
 function Explorer({ className }: Props) {
   const [queryState, setQueryState] = useQueryState({
@@ -48,20 +40,6 @@ function Explorer({ className }: Props) {
       queryState.orderDescending ? 'desc' : 'asc'
     }`,
   });
-
-  const handlePageForward = () => {
-    setQueryState({
-      ...queryState,
-      offset: queryState.offset + queryState.limit,
-    });
-  };
-
-  const handlePageBack = () => {
-    setQueryState({
-      ...queryState,
-      offset: Math.max(0, queryState.offset - queryState.limit),
-    });
-  };
 
   return (
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
@@ -105,25 +83,11 @@ function Explorer({ className }: Props) {
                     setQueryState,
                   )}
                 />
-                <Flex wide center>
-                  <Box p={2}>
-                    <IconButton
-                      disabled={queryState.offset === 0}
-                      onClick={handlePageBack}
-                    >
-                      <Icon size={24} type={IconType.NavigateBeforeIcon} />
-                    </IconButton>
-                    <IconButton
-                      disabled={
-                        data?.objects &&
-                        data?.objects?.length < queryState.limit
-                      }
-                      onClick={handlePageForward}
-                    >
-                      <Icon size={24} type={IconType.NavigateNextIcon} />
-                    </IconButton>
-                  </Box>
-                </Flex>
+                <PaginationControls
+                  queryState={queryState}
+                  setQueryState={setQueryState}
+                  count={data?.objects?.length || 0}
+                />
               </>
             </RouterTab>
             <RouterTab name="Access Rules" path={`${Routes.Explorer}/access`}>
