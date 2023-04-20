@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
 	"os"
 
@@ -110,7 +111,7 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 }
 
 func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
-	log := opts.Logger.WithName("query-server")
+	debug := opts.Logger.WithName("query-server").V(logger.LogLevelDebug)
 
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
@@ -131,17 +132,17 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}
-	log.Info("access checker created")
+	debug.Info("access checker created")
 
 	qs, err := query.NewQueryService(query.QueryServiceOpts{
-		Log:           log,
+		Log:           debug,
 		StoreReader:   s,
 		AccessChecker: checker,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
-	log.Info("query service created")
+	debug.Info("query service created")
 
 	serv := &server{qs: qs, ac: checker}
 
@@ -172,9 +173,9 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
-		log.Info("collectors started")
+		debug.Info("collectors started")
 	}
-	log.Info("query server created")
+	debug.Info("query server created")
 	return serv, serv.StopCollection, nil
 }
 
