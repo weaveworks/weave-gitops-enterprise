@@ -75,8 +75,8 @@ func TestParamNames(t *testing.T) {
 		},
 		{
 			name: "2 param with a branch",
-			data: `foo: "{{ if .params.bar }}{{ .params.bar.value }}{{ else }}{{ .params.foo }}{{ end }}"`,
-			want: []string{"bar", "bar.value", "foo"},
+			data: `foo: "{{ if .params.bar }}{{ .params.barValue }}{{ else }}{{ .params.foo }}{{ end }}"`,
+			want: []string{"bar", "barValue", "foo"},
 		},
 	}
 
