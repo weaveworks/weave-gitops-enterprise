@@ -1,0 +1,19 @@
+apiVersion: capi.weave.works/v1alpha2
+kind: CAPITemplate
+metadata:
+  name: cluster-template-2
+spec:
+  description: this is test template 2
+  renderType: templating
+  resourcetemplates:
+  - content:
+    - apiVersion: gitops.weave.works/v1alpha1
+      kind: GitopsCluster
+      metadata:
+        labels:
+          weave.works/capi: bootstrap
+        name: "{{ .params.CLUSTER_NAME }}"
+        namespace: "{{ .params.NAMESPACE }}"
+      spec:
+        capiClusterRef:
+          name: "{{ .params.NEW_PARAM }}-{{ .params.OTHER_PARAM }}"
