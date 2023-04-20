@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/stretchr/testify/assert"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 )
@@ -41,6 +42,51 @@ func TestNewProcessorForTemplate(t *testing.T) {
 
 			if reflect.TypeOf(v.Processor) != reflect.TypeOf(tt.want) {
 				t.Fatalf("got %T, want %T", v.Processor, tt.want)
+			}
+		})
+	}
+}
+
+func TestParamNames(t *testing.T) {
+	paramTests := []struct {
+		name string
+		data string
+		want []string
+	}{
+		{
+			name: "no params",
+			data: "foo: bar",
+			want: []string{},
+		},
+		{
+			name: "one param",
+			data: `foo: "{{ .params.bar }}"`,
+			want: []string{"bar"},
+		},
+		{
+			name: "two params",
+			data: `foo: "{{ .params.bar }}-{{ .params.baz }}"`,
+			want: []string{"bar", "baz"},
+		},
+		{
+			name: "param with a pipe",
+			data: `foo: "{{ .params.bar | quote }}"`,
+			want: []string{"bar"},
+		},
+		{
+			name: "2 param with a branch",
+			data: `foo: "{{ if .params.bar }}{{ .params.barValue }}{{ else }}{{ .params.foo }}{{ end }}"`,
+			want: []string{"bar", "barValue", "foo"},
+		},
+	}
+
+	for _, tt := range paramTests {
+		t.Run(tt.name, func(t *testing.T) {
+			proc := NewTextTemplateProcessor(&gapiv1.GitOpsTemplate{})
+			got, err := proc.ParamNames([]byte(tt.data))
+			assert.NoError(t, err)
+			if diff := cmp.Diff(got, tt.want); diff != "" {
+				t.Fatalf("(-got, +want): %s", diff)
 			}
 		})
 	}
@@ -250,6 +296,15 @@ func TestProcessor_Params(t *testing.T) {
 				{Name: "NAMESPACE", Required: true},
 				{Name: "CONTROL_PLANE_MACHINE_COUNT", Required: true},
 				{Name: "KUBERNETES_VERSION", Required: true},
+			},
+		},
+		{
+			filename: "testdata/text-template7.yaml",
+			want: []Param{
+				{Name: "CLUSTER_NAME"},
+				{Name: "NAMESPACE"},
+				{Name: "NEW_PARAM"},
+				{Name: "OTHER_PARAM"},
 			},
 		},
 	}
