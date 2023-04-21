@@ -77,41 +77,43 @@ const defaultRenderer: StatusRenderer = (key, status) => {
   return keyStatus;
 };
 
-const conditionsRenderer: StatusRenderer = (key, conditions) => {
-  if (!conditions) {
+const conditionsRenderer = (conditions: Condition[]) => (
+  <Table size="small">
+    <TableHead style={{ backgroundColor: 'unset' }}>
+      <TableRow>
+        {conditionKeys.map(key => (
+          <TableCell key={key}>{key}</TableCell>
+        ))}
+      </TableRow>
+    </TableHead>
+    <TableBody>
+      {conditions.map((cond: Condition, index: number) => (
+        <TableRow key={index}>
+          {conditionKeys.map(key => (
+            <TableCell key={key}>{cond[key]}</TableCell>
+          ))}
+        </TableRow>
+      ))}
+    </TableBody>
+  </Table>
+);
+
+const capiConditionsRenderer: StatusRenderer = (key, status) => {
+  if (!status.conditions) {
     // Not sure how we get here but...
     return <i>No conditions present</i>;
   }
-  return (
-    <Table size="small">
-      <TableHead style={{ backgroundColor: 'unset' }}>
-        <TableRow>
-          {conditionKeys.map(key => (
-            <TableCell key={key}>{key}</TableCell>
-          ))}
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {conditions.map((cond: Condition, index: number) => (
-          <TableRow key={index}>
-            {conditionKeys.map(key => (
-              <TableCell key={key}>{cond[key]}</TableCell>
-            ))}
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
-  );
+  return conditionsRenderer(status.conditions);
 };
 
 const statusRenderers: { [key: string]: StatusRenderer } = {
-  conditions: conditionsRenderer,
+  conditions: capiConditionsRenderer,
 };
 
 export const ClusterStatus: FC<{
   clusterName: string;
-  conditions?: GitopsCluster['conditions'];
   status?: CAPICluster['status'];
+  conditions?: GitopsCluster['conditions'];
 }> = ({ status, conditions }) => {
   const classes = useStyles();
 
@@ -120,70 +122,59 @@ export const ClusterStatus: FC<{
   }
 
   // Note: sortBy pushes 'undefined' to end of lists.
-  const sortedKeys = (
-    conditions?: GitopsCluster['conditions'],
-    status?: CAPICluster['status'],
-  ) => {
-    if (status) {
-      return sortBy(Object.keys(status), key => statusKeySortHint[key]);
-    } else if (conditions) {
-      return sortBy(Object.keys(conditions), key => statusKeySortHint[key]);
-    }
-    return [];
-  };
+  const sortedKeys = sortBy(
+    status && Object.keys(status),
+    key => statusKeySortHint[key],
+  );
 
   return (
-    <Box>
-      <Typography variant="h6" gutterBottom component="div">
-        {conditions && 'Status'}
-        {status && 'CAPI status'}
-      </Typography>
-      <Table size="small">
-        <TableBody>
-          {conditions &&
-            sortedKeys(conditions).map(key => {
-              const renderer = statusRenderers[key] || defaultRenderer;
-              return (
-                <TableRow key={key}>
-                  <TableCell
-                    className={classes.conditionNameCell}
-                    component="th"
-                    scope="row"
-                    style={{ borderBottom: 'unset' }}
-                  >
-                    {key}
-                  </TableCell>
-                  <TableCell style={{ borderBottom: 'unset' }}>
-                    <StatusValue>
-                      {conditions && renderer(key, conditions)}
-                    </StatusValue>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          {status &&
-            sortedKeys(status).map(key => {
-              const renderer = statusRenderers[key] || defaultRenderer;
-              return (
-                <TableRow key={key}>
-                  <TableCell
-                    className={classes.conditionNameCell}
-                    component="th"
-                    scope="row"
-                    style={{ borderBottom: 'unset' }}
-                  >
-                    {key}
-                  </TableCell>
-                  <TableCell style={{ borderBottom: 'unset' }}>
-                    <StatusValue>
-                      {status && renderer(key, status.conditions)}
-                    </StatusValue>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-        </TableBody>
-      </Table>
-    </Box>
+    <>
+      {status && (
+        <Box>
+          <Typography variant="h6" gutterBottom component="div">
+            CAPI Status
+          </Typography>
+          <Table size="small">
+            <TableBody>
+              {sortedKeys.map(key => {
+                // statusRenderes e pentru conditii
+                const renderer = statusRenderers[key] || defaultRenderer;
+                return (
+                  <TableRow key={key}>
+                    <TableCell
+                      className={classes.conditionNameCell}
+                      component="th"
+                      scope="row"
+                      style={{ borderBottom: 'unset' }}
+                    >
+                      {key}
+                    </TableCell>
+                    <TableCell style={{ borderBottom: 'unset' }}>
+                      <StatusValue>{renderer(key, status)}</StatusValue>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </Box>
+      )}
+      {conditions && (
+        <Box>
+          <Typography variant="h6" gutterBottom component="div">
+            Status
+          </Typography>
+          <Table size="small">
+            <TableBody>
+              <TableRow key="conditions">
+                <TableCell style={{ borderBottom: 'unset' }}>
+                  <StatusValue>{conditionsRenderer(conditions)}</StatusValue>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+        </Box>
+      )}
+    </>
   );
 };

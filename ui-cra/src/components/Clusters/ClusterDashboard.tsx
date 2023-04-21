@@ -75,6 +75,37 @@ const ClusterDashboard = ({
       ]
     : [];
 
+  const renderer = (
+    labels?: GitopsClusterEnriched['labels'],
+    annotations?: GitopsClusterEnriched['annotations'],
+  ) => {
+    const getObjects = () => {
+      if (labels) return Object.entries(labels);
+      if (annotations) return Object.entries(annotations);
+      return [];
+    };
+    return (
+      <Box margin={2}>
+        <Typography variant="h6" gutterBottom component="div">
+          {labels && 'Labels'}
+          {annotations && 'Annotations'}
+        </Typography>
+        {getObjects().map(([key, value]) => (
+          <Chip
+            title={value}
+            style={{
+              maxWidth: '650px',
+              marginRight: theme.spacing.small,
+              marginBottom: theme.spacing.small,
+            }}
+            key={key}
+            label={`${key}: ${value}`}
+          />
+        ))}
+      </Box>
+    );
+  };
+
   return (
     currentCluster && (
       <ClusterDashbordWrapper>
@@ -103,42 +134,12 @@ const ClusterDashboard = ({
         ) : null}
         {Object.keys(labels).length > 0 ? (
           <>
-            <Box margin={2}>
-              <Typography variant="h6" gutterBottom component="div">
-                Labels
-              </Typography>
-              {Object.entries(labels).map(([key, value]) => (
-                <Chip
-                  style={{
-                    marginRight: theme.spacing.small,
-                    marginBottom: theme.spacing.small,
-                  }}
-                  key={key}
-                  label={`${key}: ${value}`}
-                />
-              ))}
-            </Box>
-            <Divider variant="middle" />
+            {renderer(labels)} <Divider variant="middle" />
           </>
         ) : null}
         {Object.keys(annotations).length > 0 ? (
           <>
-            <Box margin={2}>
-              <Typography variant="h6" gutterBottom component="div">
-                Annotations
-              </Typography>
-              {Object.entries(annotations).map(([key, value]) => (
-                <Chip
-                  style={{
-                    marginRight: theme.spacing.small,
-                    marginBottom: theme.spacing.small,
-                  }}
-                  key={key}
-                  label={`${key}: ${value}`}
-                />
-              ))}
-            </Box>
-            <Divider variant="middle" />
+            {renderer(annotations)} <Divider variant="middle" />
           </>
         ) : null}
         <Box margin={2}>
