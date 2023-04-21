@@ -267,6 +267,7 @@ func TestRunQuery(t *testing.T) {
 
 			q := &qs{
 				log:     logr.Discard(),
+				debug:   logr.Discard(),
 				r:       s,
 				checker: checker,
 			}
@@ -353,6 +354,7 @@ func TestQueryIteration(t *testing.T) {
 
 	q := &qs{
 		log:     logr.Discard(),
+		debug:   logr.Discard(),
 		r:       s,
 		checker: checker,
 	}

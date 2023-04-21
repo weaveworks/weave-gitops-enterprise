@@ -3,6 +3,8 @@ package server
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
 	"os"
 
@@ -57,6 +59,7 @@ type ServerOpts struct {
 	StoreType       string
 	// required to map GVRs to GVKs for authz purporses
 	DiscoveryClient discovery.DiscoveryInterface
+	ObjectKinds     []configuration.ObjectKind
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -109,8 +112,8 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 	return kindByResourceMap, nil
 }
 
-func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() error, error) {
-	log := opts.Logger.WithName("query-server")
+func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
+	debug := opts.Logger.WithName("query-server").V(logger.LogLevelDebug)
 
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
@@ -131,53 +134,61 @@ func NewServer(ctx context.Context, opts ServerOpts) (pb.QueryServer, func() err
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
 	}
-	qs, err := query.NewQueryService(ctx, query.QueryServiceOpts{
-		Log:           log,
+	debug.Info("access checker created")
+
+	qs, err := query.NewQueryService(query.QueryServiceOpts{
+		Log:           debug,
 		StoreReader:   s,
 		AccessChecker: checker,
 	})
-
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
+	debug.Info("query service created")
 
 	serv := &server{qs: qs, ac: checker}
 
 	if !opts.SkipCollection {
 
-		optsCollector := collector.CollectorOpts{
-			Log:            opts.Logger,
-			ClusterManager: opts.ClustersManager,
+		if len(opts.ObjectKinds) == 0 {
+			return nil, nil, fmt.Errorf("cannot create collector for empty gvks")
 		}
 
-		rulesCollector, err := rolecollector.NewRoleCollector(s, optsCollector)
+		rulesCollector, err := rolecollector.NewRoleCollector(s, collector.CollectorOpts{
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
+		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
 
-		if err = rulesCollector.Start(ctx); err != nil {
+		if err = rulesCollector.Start(); err != nil {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		objsCollector, err := objectscollector.NewObjectsCollector(s, optsCollector)
+		objsCollector, err := objectscollector.NewObjectsCollector(s, collector.CollectorOpts{
+			Log:            opts.Logger,
+			ClusterManager: opts.ClustersManager,
+			ObjectKinds:    opts.ObjectKinds,
+		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
-		if err = objsCollector.Start(ctx); err != nil {
+		if err = objsCollector.Start(); err != nil {
 			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
 		}
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
-		log.Info("collectors created")
+		debug.Info("collectors started")
 	}
-
+	debug.Info("query server created")
 	return serv, serv.StopCollection, nil
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func() error, error) {
-	s, stop, err := NewServer(ctx, opts)
+	s, stop, err := NewServer(opts)
 	if err != nil {
 		return nil, err
 	}

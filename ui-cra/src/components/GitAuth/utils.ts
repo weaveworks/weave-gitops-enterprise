@@ -64,16 +64,6 @@ export enum GrpcErrorCodes {
   NotFound = 5,
 }
 
-const providerTokenHeaderName = 'Git-Provider-Token';
-
-export function makeHeaders(tokenGetter: () => string) {
-  const token = tokenGetter();
-
-  return new Headers({
-    [providerTokenHeaderName]: `token ${token}`,
-  });
-}
-
 export const navigate = (url: string) => {
   if (process.env.NODE_ENV === 'test') {
     return;

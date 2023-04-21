@@ -2,7 +2,6 @@
 package collectorfakes
 
 import (
-	"context"
 	"sync"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
@@ -54,11 +53,10 @@ type FakeCollector struct {
 	unwatchReturnsOnCall map[int]struct {
 		result1 error
 	}
-	WatchStub        func(context.Context, cluster.Cluster) error
+	WatchStub        func(cluster.Cluster) error
 	watchMutex       sync.RWMutex
 	watchArgsForCall []struct {
-		arg1 context.Context
-		arg2 cluster.Cluster
+		arg1 cluster.Cluster
 	}
 	watchReturns struct {
 		result1 error
@@ -301,19 +299,18 @@ func (fake *FakeCollector) UnwatchReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeCollector) Watch(arg1 context.Context, arg2 cluster.Cluster) error {
+func (fake *FakeCollector) Watch(arg1 cluster.Cluster) error {
 	fake.watchMutex.Lock()
 	ret, specificReturn := fake.watchReturnsOnCall[len(fake.watchArgsForCall)]
 	fake.watchArgsForCall = append(fake.watchArgsForCall, struct {
-		arg1 context.Context
-		arg2 cluster.Cluster
-	}{arg1, arg2})
+		arg1 cluster.Cluster
+	}{arg1})
 	stub := fake.WatchStub
 	fakeReturns := fake.watchReturns
-	fake.recordInvocation("Watch", []interface{}{arg1, arg2})
+	fake.recordInvocation("Watch", []interface{}{arg1})
 	fake.watchMutex.Unlock()
 	if stub != nil {
-		return stub(arg1, arg2)
+		return stub(arg1)
 	}
 	if specificReturn {
 		return ret.result1
@@ -327,17 +324,17 @@ func (fake *FakeCollector) WatchCallCount() int {
 	return len(fake.watchArgsForCall)
 }
 
-func (fake *FakeCollector) WatchCalls(stub func(context.Context, cluster.Cluster) error) {
+func (fake *FakeCollector) WatchCalls(stub func(cluster.Cluster) error) {
 	fake.watchMutex.Lock()
 	defer fake.watchMutex.Unlock()
 	fake.WatchStub = stub
 }
 
-func (fake *FakeCollector) WatchArgsForCall(i int) (context.Context, cluster.Cluster) {
+func (fake *FakeCollector) WatchArgsForCall(i int) cluster.Cluster {
 	fake.watchMutex.RLock()
 	defer fake.watchMutex.RUnlock()
 	argsForCall := fake.watchArgsForCall[i]
-	return argsForCall.arg1, argsForCall.arg2
+	return argsForCall.arg1
 }
 
 func (fake *FakeCollector) WatchReturns(result1 error) {

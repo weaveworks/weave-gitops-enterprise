@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
@@ -27,9 +28,10 @@ const (
 	OperandIncludes = "includes"
 )
 
-func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, error) {
+func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
 	return &qs{
-		log:     opts.Log,
+		log:     opts.Log.WithName("query-service"),
+		debug:   opts.Log.WithName("query-service").V(logger.LogLevelDebug),
 		r:       opts.StoreReader,
 		checker: opts.AccessChecker,
 	}, nil
@@ -37,6 +39,7 @@ func NewQueryService(ctx context.Context, opts QueryServiceOpts) (QueryService, 
 
 type qs struct {
 	log     logr.Logger
+	debug   logr.Logger
 	r       store.StoreReader
 	checker accesschecker.Checker
 }
@@ -45,15 +48,18 @@ type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule,
 
 func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOption) ([]models.Object, error) {
 	principal := auth.Principal(ctx)
-
 	if principal == nil {
 		return nil, fmt.Errorf("principal not found")
 	}
+	q.debug.Info("query received", "query", query, "principal", principal.ID)
 
+	// Contains all the rules that are relevant to this user.
+	// This is based on their ID and the groups they belong to.
 	rules, err := q.r.GetAccessRules(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("error getting access rules: %w", err)
 	}
+	rules = q.checker.RelevantRulesForUser(principal, rules)
 
 	iter, err := q.r.GetObjects(ctx, query, opts)
 	if err != nil {
@@ -90,9 +96,13 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 
 		if ok {
 			result = append(result, obj)
+		} else {
+			//unauthorised is logged for debugging
+			q.debug.Info("unauthorised access", "principal", principal.ID, "object", obj.ID, "rules", rules)
 		}
 	}
 
+	q.debug.Info("query processed", "query", query, "principal", principal.ID, "numResult", len(result))
 	return result, nil
 }
 
