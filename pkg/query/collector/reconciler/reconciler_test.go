@@ -2,6 +2,7 @@ package reconciler
 
 import (
 	"context"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -14,7 +15,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -28,7 +28,7 @@ func TestNewReconciler(t *testing.T) {
 	fakeClient := fake.NewClientBuilder().WithScheme(s).Build()
 	tests := []struct {
 		name           string
-		gvk            schema.GroupVersionKind
+		objectKind     configuration.ObjectKind
 		client         client.Client
 		objectsChannel chan []models.ObjectTransaction
 		errPattern     string
@@ -40,25 +40,25 @@ func TestNewReconciler(t *testing.T) {
 		{
 			name:       "cannot create reconciler without gvk",
 			client:     fakeClient,
-			errPattern: "invalid gvk",
+			errPattern: "missing gvk",
 		},
 		{
 			name:       "cannot create reconciler without object channel",
 			client:     fakeClient,
-			gvk:        v2beta1.GroupVersion.WithKind("HelmRelease"),
+			objectKind: configuration.HelmReleaseObjectKind,
 			errPattern: "invalid objects channel",
 		},
 		{
 			name:           "could create reconciler with valid arguments",
 			client:         fakeClient,
-			gvk:            v2beta1.GroupVersion.WithKind("HelmRelease"),
+			objectKind:     configuration.HelmReleaseObjectKind,
 			objectsChannel: make(chan []models.ObjectTransaction),
 			errPattern:     "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reconciler, err := NewReconciler("test-cluster", tt.gvk, tt.client, tt.objectsChannel, log)
+			reconciler, err := NewReconciler("test-cluster", tt.objectKind, tt.client, tt.objectsChannel, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -85,8 +85,8 @@ func TestSetup(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(fakeManager).NotTo(BeNil())
 	objectsChannel := make(chan []models.ObjectTransaction)
-	gvk := v2beta1.GroupVersion.WithKind("HelmRelease")
-	reconciler, err := NewReconciler("test-cluster", gvk, fakeClient, objectsChannel, logger)
+
+	reconciler, err := NewReconciler("test-cluster", configuration.HelmReleaseObjectKind, fakeClient, objectsChannel, logger)
 	g.Expect(err).To(BeNil())
 	g.Expect(reconciler).NotTo(BeNil())
 
@@ -177,8 +177,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 			var reconcileError error
 			objectsChannel := make(chan []models.ObjectTransaction)
 			defer close(objectsChannel)
-			gvk := v2beta1.GroupVersion.WithKind("HelmRelease")
-			reconciler, err := NewReconciler(clusterName, gvk, fakeClient, objectsChannel, logger)
+			reconciler, err := NewReconciler(clusterName, configuration.HelmReleaseObjectKind, fakeClient, objectsChannel, logger)
 			g.Expect(err).To(BeNil())
 			g.Expect(reconciler).NotTo(BeNil())
 			go func() {
