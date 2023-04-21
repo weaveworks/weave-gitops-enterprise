@@ -35,9 +35,6 @@ const ClusterDashboard = ({
   const labels = currentCluster?.labels || {};
   const annotations = currentCluster?.annotations || {};
   const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
-
-  console.log(currentCluster);
-
   const [disabled, setDisabled] = useState<boolean>(false);
   const dashboardAnnotations = getDashboardAnnotations(
     currentCluster as GitopsClusterEnriched,

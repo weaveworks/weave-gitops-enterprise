@@ -98,7 +98,7 @@ const conditionsRenderer = (conditions: Condition[]) => (
   </Table>
 );
 
-const capiConditionsRenderer: StatusRenderer = (key, status) => {
+const capiConditionsRenderer: StatusRenderer = (_, status) => {
   if (!status.conditions) {
     // Not sure how we get here but...
     return <i>No conditions present</i>;
@@ -137,7 +137,6 @@ export const ClusterStatus: FC<{
           <Table size="small">
             <TableBody>
               {sortedKeys.map(key => {
-                // statusRenderes e pentru conditii
                 const renderer = statusRenderers[key] || defaultRenderer;
                 return (
                   <TableRow key={key}>
