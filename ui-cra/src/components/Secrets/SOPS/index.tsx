@@ -9,7 +9,7 @@ import { InputDebounced, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import {
-  CreateDeploymentObjects,
+  createDeploymentObjects,
   encryptSopsSecret,
 } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
@@ -29,6 +29,10 @@ import {
   getInitialData,
   SOPS,
 } from './utils';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();
@@ -36,7 +40,6 @@ const CreateSOPS = () => {
   const { initialFormData } = getInitialData(callbackState, random);
 
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
 
   const [formError, setFormError] = useState<string>('');
   const [validateForm, setValidateForm] = useState<boolean>(false);
@@ -47,54 +50,69 @@ const CreateSOPS = () => {
   const { setNotifications } = useNotifications();
 
   const [loading, setLoading] = useState<boolean>(false);
-  const handleCreateSecret = useCallback(async () => {
+  const token = getProviderToken(formData.provider as GitProvider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider as GitProvider,
+    token,
+  );
+
+  const handleCreateSecret = useCallback(() => {
     setLoading(true);
 
-    try {
-      const { encryptionPayload, cluster } = getFormattedPayload(formData);
-      const encrypted = await encryptSopsSecret(encryptionPayload);
-      const response = await CreateDeploymentObjects(
-        {
-          head_branch: formData.branchName,
-          title: formData.pullRequestTitle,
-          description: formData.pullRequestDescription,
-          commitMessage: formData.commitMessage,
-          repositoryUrl: getRepositoryUrl(formData.repo as GitRepository),
-          clusterAutomations: [
+    validateToken()
+      .then(async () => {
+        try {
+          const { encryptionPayload, cluster } = getFormattedPayload(formData);
+          const encrypted = await encryptSopsSecret(encryptionPayload);
+          const response = await createDeploymentObjects(
             {
-              cluster,
-              isControlPlane: cluster.namespace ? true : false,
-              sops_secret: {
-                ...encrypted.encryptedSecret,
-              },
-              file_path: encrypted.path,
+              head_branch: formData.branchName,
+              title: formData.pullRequestTitle,
+              description: formData.pullRequestDescription,
+              commitMessage: formData.commitMessage,
+              repositoryUrl: getRepositoryUrl(formData.repo as GitRepository),
+              clusterAutomations: [
+                {
+                  cluster,
+                  isControlPlane: cluster.namespace ? true : false,
+                  sops_secret: {
+                    ...encrypted.encryptedSecret,
+                  },
+                  file_path: encrypted.path,
+                },
+              ],
             },
-          ],
-        },
-        getProviderToken(formData.provider as GitProvider),
-      );
-      setNotifications([
-        {
-          message: {
-            component: (
-              <Link href={response.webUrl} newTab>
-                PR created successfully, please review and merge the pull
-                request to apply the changes to the cluster.
-              </Link>
-            ),
-          },
-          severity: 'success',
-        },
-      ]);
-      scrollToAlertSection();
-    } catch (error: any) {
-      handleError(error, setNotifications);
-    } finally {
-      setLoading(false);
-      removeToken(formData.provider);
-      clearCallbackState();
-    }
-  }, [formData, setNotifications]);
+            token,
+          );
+          setNotifications([
+            {
+              message: {
+                component: (
+                  <Link href={response.webUrl} newTab>
+                    PR created successfully, please review and merge the pull
+                    request to apply the changes to the cluster.
+                  </Link>
+                ),
+              },
+              severity: 'success',
+            },
+          ]);
+          scrollToAlertSection();
+        } catch (error: any) {
+          handleError(error, setNotifications);
+        } finally {
+          setLoading(false);
+          removeToken(formData.provider);
+          clearCallbackState();
+        }
+      })
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([expiredTokenNotification]);
+      })
+      .finally(() => setLoading(false));
+  }, [formData, setNotifications, token, validateToken]);
 
   const authRedirectPage = Routes.CreateSopsSecret;
 
@@ -195,13 +213,12 @@ const CreateSOPS = () => {
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
-              setEnableCreatePR={setEnableCreatePR}
               formError={formError}
               enableGitRepoSelection={true}
             />
 
             <div className="create-cta">
-              <Button type="submit" disabled={!enableCreatePR || loading}>
+              <Button type="submit" disabled={!isAuthenticated || loading}>
                 CREATE PULL REQUEST
                 {loading && (
                   <CircularProgress

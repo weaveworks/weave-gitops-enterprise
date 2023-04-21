@@ -1,10 +1,11 @@
-import React, { Dispatch, FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC, useEffect } from 'react';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
+import { getProviderToken } from './utils';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
@@ -24,37 +25,31 @@ const GitAuth: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
-  setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
+  setEnableCreatePR?: Dispatch<React.SetStateAction<boolean>>;
   enableGitRepoSelection?: boolean;
 }> = ({
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
-  setEnableCreatePR,
   enableGitRepoSelection,
 }) => {
-  const [authSuccess, setAuthSuccess] = useState<boolean>(false);
-  const { isAuthenticated, req: check } = useIsAuthenticated();
+  const token = getProviderToken(formData.provider);
+  const { isAuthenticated, loading } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
 
   useEffect(() => {
     if (!formData.provider) {
       return;
     }
-    check(formData.provider);
-  }, [formData.provider, authSuccess, check]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      setEnableCreatePR(true);
-    } else {
-      setEnableCreatePR(false);
-    }
-  }, [authSuccess, isAuthenticated, setEnableCreatePR]);
+  }, [formData.provider]);
 
   return (
     <>
       <RepoInputWithAuthWrapper
+        loading={loading}
         isAuthenticated={isAuthenticated}
         onProviderChange={(provider: GitProvider) => {
           setFormData({ ...formData, provider });
@@ -84,10 +79,7 @@ const GitAuth: FC<{
         <GithubDeviceAuthModal
           bodyClassName="GithubDeviceAuthModal"
           onClose={() => setShowAuthDialog(false)}
-          onSuccess={() => {
-            setShowAuthDialog(false);
-            setAuthSuccess(true);
-          }}
+          onSuccess={() => setShowAuthDialog(false)}
           open={showAuthDialog}
           repoName="config"
         />
