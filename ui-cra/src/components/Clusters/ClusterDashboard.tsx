@@ -73,8 +73,8 @@ const ClusterDashboard = ({
     : [];
 
   const renderer = (
-    labels?: GitopsClusterEnriched['labels'],
-    annotations?: GitopsClusterEnriched['annotations'],
+    labels: GitopsClusterEnriched['labels'] | null,
+    annotations: GitopsClusterEnriched['annotations'] | null,
   ) => {
     const getObjects = () => {
       if (labels) return Object.entries(labels);
@@ -131,12 +131,12 @@ const ClusterDashboard = ({
         ) : null}
         {Object.keys(labels).length > 0 ? (
           <>
-            {renderer(labels)} <Divider variant="middle" />
+            {renderer(labels, null)} <Divider variant="middle" />
           </>
         ) : null}
         {Object.keys(annotations).length > 0 ? (
           <>
-            {renderer(annotations)} <Divider variant="middle" />
+            {renderer(null, annotations)} <Divider variant="middle" />
           </>
         ) : null}
         <Box margin={2}>
