@@ -1,6 +1,5 @@
 import { Box, Button, Typography } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
-import Divider from '@material-ui/core/Divider';
 import { InfoList, KubeStatusIndicator, theme } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { useState } from 'react';
@@ -8,6 +7,17 @@ import styled from 'styled-components';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { DashboardsList } from './DashboardsList';
 import { ClusterStatus } from './ClusterStatus';
+
+export const sectionTitle = (title: string) => (
+  <Typography
+    style={{ fontWeight: 'bold', marginTop: theme.spacing.medium }}
+    variant="h6"
+    gutterBottom
+    component="div"
+  >
+    {title}
+  </Typography>
+);
 
 const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
@@ -34,6 +44,8 @@ const ClusterDashboard = ({
 }) => {
   const labels = currentCluster?.labels || {};
   const annotations = currentCluster?.annotations || {};
+  const capiClusterAnnotations = currentCluster?.capiCluster?.annotations || {};
+  const capiClusterLabels = currentCluster?.capiCluster?.labels || {};
   const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
   const [disabled, setDisabled] = useState<boolean>(false);
   const dashboardAnnotations = getDashboardAnnotations(
@@ -82,8 +94,8 @@ const ClusterDashboard = ({
       return [];
     };
     return (
-      <Box margin={2}>
-        <Typography variant="h6" gutterBottom component="div">
+      <Box>
+        <Typography variant="body1" gutterBottom component="div">
           {labels && 'Labels'}
           {annotations && 'Annotations'}
         </Typography>
@@ -115,54 +127,44 @@ const ClusterDashboard = ({
         <Box margin={2}>
           <InfoList items={info as [string, any][]} />
         </Box>
-        <Divider variant="middle" />
-        {Object.keys(dashboardAnnotations).length > 0 ? (
-          <>
-            <Box margin={2}>
-              <Typography variant="h6" gutterBottom component="div">
-                Dashboards
-              </Typography>
-              <DashboardsList
-                cluster={currentCluster as GitopsClusterEnriched}
-              />
-            </Box>
-            <Divider variant="middle" />
-          </>
-        ) : null}
-        {Object.keys(labels).length > 0 ? (
-          <>
-            {renderer(labels, null)} <Divider variant="middle" />
-          </>
-        ) : null}
-        {Object.keys(annotations).length > 0 ? (
-          <>
-            {renderer(null, annotations)} <Divider variant="middle" />
-          </>
-        ) : null}
-        <Box margin={2}>
+        {Object.keys(dashboardAnnotations).length > 0 && (
+          <Box margin={2}>
+            <Typography variant="h6" gutterBottom component="div">
+              Dashboards
+            </Typography>
+            <DashboardsList cluster={currentCluster as GitopsClusterEnriched} />
+          </Box>
+        )}
+
+        {/* GitOpsCluster */}
+        {sectionTitle('GitOps Cluster')}
+        {Object.keys(labels).length > 0 && renderer(labels, null)}
+        {Object.keys(annotations).length > 0 && renderer(null, annotations)}
+        <Box>
           <ClusterStatus
             clusterName={currentCluster.name}
             conditions={currentCluster?.conditions}
           />
         </Box>
-        <Divider variant="middle" />
-        <Box margin={2}>
+
+        {/* CapiCluster */}
+        {sectionTitle('CAPI Cluster')}
+        {Object.keys(capiClusterLabels).length > 0 &&
+          renderer(capiClusterLabels, null)}
+        {Object.keys(capiClusterAnnotations).length > 0 &&
+          renderer(null, capiClusterAnnotations)}
+        <Box>
           <ClusterStatus
             clusterName={currentCluster.name}
             status={currentCluster?.capiCluster?.status}
           />
         </Box>
-        {infrastructureRef ? (
-          <>
-            <Divider variant="middle" />
-            <Box margin={2}>
-              <Typography variant="h6" gutterBottom component="div">
-                Infrastructure
-              </Typography>
-              <InfoList items={infrastructureRefInfo} />
-            </Box>
-          </>
-        ) : null}
+        {infrastructureRef && (
+          <Box>
+            {sectionTitle('Infrastructure')}
+            <InfoList items={infrastructureRefInfo} />
+          </Box>
+        )}
       </ClusterDashbordWrapper>
     )
   );

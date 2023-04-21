@@ -6,7 +6,6 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  Typography,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
@@ -14,6 +13,7 @@ import styled from 'styled-components';
 import { Icon, IconType, theme as weaveTheme } from '@weaveworks/weave-gitops';
 import { CAPICluster } from '../../types/custom';
 import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
+import { sectionTitle } from './ClusterDashboard';
 
 // styles
 
@@ -24,6 +24,7 @@ const useStyles = makeStyles(() =>
     },
     section: {
       marginTop: `${weaveTheme.spacing.medium}`,
+      fontWeight: 'bold',
     },
   }),
 );
@@ -131,9 +132,7 @@ export const ClusterStatus: FC<{
     <>
       {status && (
         <Box>
-          <Typography variant="h6" gutterBottom component="div">
-            CAPI Status
-          </Typography>
+          {sectionTitle('CAPI Status')}
           <Table size="small">
             <TableBody>
               {sortedKeys.map(key => {
@@ -160,9 +159,7 @@ export const ClusterStatus: FC<{
       )}
       {conditions && (
         <Box>
-          <Typography variant="h6" gutterBottom component="div">
-            Status
-          </Typography>
+          {sectionTitle('Status')}
           <Table size="small">
             <TableBody>
               <TableRow key="conditions">
