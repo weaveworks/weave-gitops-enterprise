@@ -23,8 +23,8 @@ import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
-import { CreateDeploymentObjects } from '../../Applications/utils';
+import { removeToken } from '../../../utils/request';
+import { createDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -34,9 +34,13 @@ import {
   useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
-import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { PreviewPRModal } from './PreviewPRModal';
+import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 
 const { large, xs, base, medium, small } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -155,8 +159,6 @@ const CreatePolicyConfig = () => {
   const [showAuthDialog, setShowAuthDialog] = useState<boolean>(false);
   const [formData, setFormData] = useState<any>(initialFormData);
 
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-
   const { data } = useListSources('', '', { retry: false });
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
   const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
@@ -251,6 +253,13 @@ const CreatePolicyConfig = () => {
     matchType,
   ]);
 
+  const token = getProviderToken(formData.provider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
+
   const handleCreatePolicyConfig = useCallback(() => {
     const payload = {
       headBranch: formData.branchName,
@@ -261,37 +270,48 @@ const CreatePolicyConfig = () => {
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
-    return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
-      .then(response => {
-        history.push(Routes.PolicyConfigs);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
+    return validateToken()
+      .then(() =>
+        createDeploymentObjects(payload, getProviderToken(formData.provider))
+          .then(response => {
+            history.push(Routes.PolicyConfigs);
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error =>
+            setNotifications([
+              {
+                message: { text: error.message },
+                severity: 'error',
+                display: 'bottom',
+              },
+            ]),
+          )
+          .finally(() => setLoading(false)),
+      )
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, getClusterAutomations, history, setNotifications]);
+  }, [
+    formData,
+    getClusterAutomations,
+    history,
+    setNotifications,
+    validateToken,
+  ]);
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
@@ -383,7 +403,6 @@ const CreatePolicyConfig = () => {
                 setFormData={setFormData}
                 showAuthDialog={showAuthDialog}
                 setShowAuthDialog={setShowAuthDialog}
-                setEnableCreatePR={setEnableCreatePR}
                 formError={formError}
                 enableGitRepoSelection={true}
               />
@@ -392,7 +411,7 @@ const CreatePolicyConfig = () => {
                 <LoadingPage className="create-loading" />
               ) : (
                 <div className="create-cta">
-                  <Button type="submit" disabled={!enableCreatePR}>
+                  <Button type="submit" disabled={!isAuthenticated}>
                     CREATE PULL REQUEST
                   </Button>
                 </div>

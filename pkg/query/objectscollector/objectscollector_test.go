@@ -1,25 +1,70 @@
 package objectscollector
 
 import (
-	"context"
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
-func TestObjectsCollector(t *testing.T) {
-	// TODD: We need to test the objects collector with a "running" cluster using the envtest library
+func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
+	g := NewWithT(t)
+	tests := []struct {
+		name       string
+		store      store.Store
+		opts       collector.CollectorOpts
+		errPattern string
+	}{
+		{
+			name:       "cannot create collector without kinds",
+			store:      &storefakes.FakeStore{},
+			opts:       collector.CollectorOpts{},
+			errPattern: "invalid object kind",
+		},
+		{
+			name:  "cannot create collector without manager",
+			store: &storefakes.FakeStore{},
+			opts: collector.CollectorOpts{
+				ObjectKinds: configuration.SupportedObjectKinds,
+			},
+			errPattern: "invalid cluster manager",
+		},
+		{
+			name:  "can create object collector with valid arguments",
+			store: &storefakes.FakeStore{},
+			opts: collector.CollectorOpts{
+				ObjectKinds:    configuration.SupportedObjectKinds,
+				ClusterManager: &clustersmngrfakes.FakeClustersManager{},
+				Log:            testr.New(t),
+			},
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			collector, err := NewObjectsCollector(tt.store, tt.opts)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).ShouldNot(HaveOccurred())
+			g.Expect(collector).ShouldNot(BeNil())
+			g.Expect(collector.store).To(Equal(tt.store))
+		})
+	}
 }
 
 func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 
 	//setup data
@@ -65,7 +110,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(ctx, tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

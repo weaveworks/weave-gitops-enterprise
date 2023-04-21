@@ -1,7 +1,10 @@
 import { useListSources } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useMemo } from 'react';
-import { EncryptSopsSecretResponse, GitopsCluster } from '../../cluster-services/cluster_services.pb';
+import {
+  EncryptSopsSecretResponse,
+  GitopsCluster,
+} from '../../cluster-services/cluster_services.pb';
 import { request } from '../../utils/request';
 
 const toCluster = (clusterName: string): GitopsCluster => {
@@ -32,7 +35,7 @@ export const useIsClusterWithSources = (clusterName: string): boolean => {
   return clusters?.some((c: GitopsCluster) => c.name === clusterName) || false;
 };
 
-export const CreateDeploymentObjects = ({ ...data }, token: string | null) => {
+export const createDeploymentObjects = ({ ...data }, token: string | null) => {
   return request('POST', `/v1/enterprise/automations`, {
     body: JSON.stringify(data),
     headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
@@ -45,9 +48,10 @@ export const renderKustomization = (data: any) => {
   });
 };
 
-export const encryptSopsSecret = (payload: any):Promise<EncryptSopsSecretResponse> => {
+export const encryptSopsSecret = (
+  payload: any,
+): Promise<EncryptSopsSecretResponse> => {
   return request('POST', `/v1/encrypt-sops-secret`, {
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 };
- 

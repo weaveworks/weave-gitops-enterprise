@@ -48,7 +48,7 @@ import {
 import { validateFormData } from '../../../utils/form';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { getLink } from '../Edit/EditButton';
@@ -65,6 +65,10 @@ import {
   useGetInitialGitRepo,
   getRepositoryUrl,
 } from './utils';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -323,9 +327,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
-  useEffect(() => {
-    clearCallbackState();
-  }, []);
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -351,7 +353,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
   const handlePRPreview = useCallback(() => {
@@ -430,12 +431,18 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
   ]);
 
+  const token = getProviderToken(formData.provider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
+
   const handleAddResource = useCallback(() => {
     let createReqAnnot;
     if (resource !== undefined) {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
-
     const payload = toPayload(
       formData,
       infraCredential,
@@ -446,37 +453,41 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       createReqAnnot,
       getRepositoryUrl(formData.repo),
     );
-
     setLoading(true);
-    return addResource(payload, getProviderToken(formData.provider))
-      .then(response => {
-        setPRPreview(null);
-        history.push(Routes.Templates);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
+    return validateToken()
+      .then(() =>
+        addResource(payload, getProviderToken(formData.provider))
+          .then(response => {
+            setPRPreview(null);
+            history.push(Routes.Templates);
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error =>
+            setNotifications([
+              {
+                message: { text: error.message },
+                severity: 'error',
+                display: 'bottom',
+              },
+            ]),
+          )
+          .finally(() => setLoading(false)),
+      )
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
   }, [
@@ -491,6 +502,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
     history,
     resource,
+    validateToken,
   ]);
 
   useEffect(() => {
@@ -636,7 +648,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
-              setEnableCreatePR={setEnableCreatePR}
               formError={formError}
               enableGitRepoSelection={
                 !(
@@ -652,7 +663,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 <Button
                   type="submit"
                   onClick={() => setSubmitType('Create resource')}
-                  disabled={!enableCreatePR}
+                  disabled={!isAuthenticated}
                 >
                   CREATE PULL REQUEST
                 </Button>
@@ -677,7 +688,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     updatedProfiles,
     previewLoading,
     loading,
-    enableCreatePR,
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,
@@ -691,6 +701,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     getSubmitFunction,
     resource,
     initialGitRepo,
+    isAuthenticated,
   ]);
 };
 
