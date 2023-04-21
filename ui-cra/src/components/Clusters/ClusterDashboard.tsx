@@ -52,6 +52,8 @@ const ClusterDashboard = ({
     currentCluster as GitopsClusterEnriched,
   );
 
+  console.log(currentCluster);
+
   const handleClick = () => {
     setDisabled(true);
     getKubeconfig(
@@ -124,7 +126,7 @@ const ClusterDashboard = ({
             <KubeStatusIndicator conditions={currentCluster.conditions} />
           </div>
         ) : null}
-        <Box margin={2}>
+        <Box>
           <InfoList items={info as [string, any][]} />
         </Box>
         {Object.keys(dashboardAnnotations).length > 0 && (
@@ -149,6 +151,9 @@ const ClusterDashboard = ({
 
         {/* CapiCluster */}
         {sectionTitle('CAPI Cluster')}
+        <Box>
+          <InfoList items={[['Name', currentCluster?.capiCluster?.name]]} />
+        </Box>
         {Object.keys(capiClusterLabels).length > 0 &&
           renderer(capiClusterLabels, null)}
         {Object.keys(capiClusterAnnotations).length > 0 &&

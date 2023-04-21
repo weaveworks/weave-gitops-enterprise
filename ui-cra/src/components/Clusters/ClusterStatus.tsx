@@ -7,6 +7,7 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
+import moment from 'moment';
 import { createStyles, makeStyles } from '@material-ui/styles';
 import React, { FC } from 'react';
 import styled from 'styled-components';
@@ -128,6 +129,14 @@ export const ClusterStatus: FC<{
     key => statusKeySortHint[key],
   );
 
+  const cdts =
+    conditions?.map(condition => {
+      return {
+        ...condition,
+        ['lastTransitionTime' as string]: moment(condition.timestamp).fromNow(),
+      };
+    }) || [];
+
   return (
     <>
       {status && (
@@ -164,7 +173,7 @@ export const ClusterStatus: FC<{
             <TableBody>
               <TableRow key="conditions">
                 <TableCell style={{ borderBottom: 'unset' }}>
-                  <StatusValue>{conditionsRenderer(conditions)}</StatusValue>
+                  <StatusValue>{conditionsRenderer(cdts)}</StatusValue>
                 </TableCell>
               </TableRow>
             </TableBody>
