@@ -47,6 +47,10 @@ func (o *Object) GetID() string {
 	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.GroupVersionKind(), o.Name)
 }
 
+func (o *Object) String() string {
+	return o.GetID()
+}
+
 func (o Object) GroupVersionKind() string {
 	s := []string{o.APIGroup, o.APIVersion, o.Kind}
 

@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"math/big"
 	"net"
 	"net/http"
@@ -652,6 +653,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			DiscoveryClient: args.DiscoveryClient,
 			ClustersManager: args.ClustersManager,
 			SkipCollection:  false,
+			ObjectKinds:     configuration.SupportedObjectKinds,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)

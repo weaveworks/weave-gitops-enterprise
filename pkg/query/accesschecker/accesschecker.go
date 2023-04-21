@@ -28,11 +28,7 @@ type defaultAccessChecker struct {
 
 // HasAccess checks if a principal has access to an object given principal access rules
 func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models.Object, rules []models.AccessRule) (bool, error) {
-	// Contains all the rules that are relevant to this user.
-	// This is based on their ID and the groups they belong to.
-	matchingRules := a.RelevantRulesForUser(user, rules)
-
-	for _, rule := range matchingRules {
+	for _, rule := range rules {
 		if rule.Cluster != object.Cluster {
 			// Not the same cluster, so not relevant.
 			continue
@@ -46,7 +42,6 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 		// A RBAC policyRule includes a set of <ApiGroup,Resource> https://kubernetes.io/docs/reference/kubernetes-api/authorization-resources/role-v1/
 		// It will allow access if both apiGroups and resources allow access
 		for _, gr := range rule.AccessibleKinds {
-
 			var resourceName string
 			// The GVK is in the format <group>/<version>/<kind>, so we need to split it and check for `*`.
 			// Sometimes the version is not present, so we need to handle that case.
@@ -76,7 +71,6 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			}
 		}
 	}
-
 	return false, nil
 }
 
