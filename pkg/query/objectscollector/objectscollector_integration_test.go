@@ -60,6 +60,10 @@ func TestObjectsCollector(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			// given a collector
 			// and a cluster without any particular configuration
+			//TODO change this to modify the ns to watch for clusters
+			// as test parameter to test various scenarios of remote clusters
+			// to test we have the right configuration
+			// ex remote vs vcluster
 			oc, store, err := makeObjectsCollector(t, cfg, testLog)
 			g.Expect(err).To(BeNil())
 			// when collected
