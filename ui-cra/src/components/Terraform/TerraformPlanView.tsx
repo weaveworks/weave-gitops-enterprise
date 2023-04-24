@@ -1,12 +1,6 @@
 import styled from 'styled-components';
-import {
-  Flex,
-  Link,
-  MessageBox,
-  YamlView,
-  Text,
-  Spacer,
-} from '@weaveworks/weave-gitops';
+import { Flex, Link, MessageBox, Text, Spacer } from '@weaveworks/weave-gitops';
+import CodeView from '../CodeView';
 
 type Props = {
   plan?: string;
@@ -17,7 +11,11 @@ function TerraformPlanView({ plan, error }: Props) {
   return (
     <Flex align wide tall column>
       {plan && !error ? (
-        <YamlView yaml={plan.trimStart() || ''} />
+        <CodeView
+          kind="Terraform"
+          code={plan.trimStart() || ''}
+          colorizeChanges
+        />
       ) : (
         <MessageBox>
           <Spacer padding="small" />
