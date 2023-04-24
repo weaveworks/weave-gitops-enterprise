@@ -12,14 +12,30 @@ import { getKindRoute } from '../../utils/nav';
 // @ts-ignore
 import { DataTable } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
+import _ from 'lodash';
 
 type Props = {
   className?: string;
   onColumnHeaderClick?: (field: Field) => void;
   rows: Object[];
+  enableBatchSync?: boolean;
 };
 
-function ExplorerTable({ className, onColumnHeaderClick, rows }: Props) {
+function ExplorerTable({
+  className,
+  onColumnHeaderClick,
+  rows,
+  enableBatchSync,
+}: Props) {
+  const r: Object[] = _.map(rows, o => ({
+    // Doing some things here to make this work with the DataTable.
+    // It handles rendering the sync/pause buttons.
+    ...o,
+    uid: `${o.apiGroup}/${o.kind}/${o.namespace}/${o.name}`,
+    clusterName: o.cluster,
+    type: o.kind,
+  }));
+
   return (
     <DataTable
       className={className}
@@ -41,7 +57,7 @@ function ExplorerTable({ className, onColumnHeaderClick, rows }: Props) {
         },
         { label: 'Kind', value: 'kind' },
         { label: 'Namespace', value: 'namespace' },
-        { label: 'Cluster', value: 'cluster' },
+        { label: 'Cluster', value: 'clusterName' },
         {
           label: 'Status',
           sortValue: () => 'status',
@@ -69,9 +85,10 @@ function ExplorerTable({ className, onColumnHeaderClick, rows }: Props) {
         },
         { label: 'Message', value: 'message' },
       ]}
-      rows={rows}
+      rows={r}
       disableSort
       onColumnHeaderClick={onColumnHeaderClick}
+      hasCheckboxes={enableBatchSync}
     />
   );
 }

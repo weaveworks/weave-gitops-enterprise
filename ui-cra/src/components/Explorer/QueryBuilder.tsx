@@ -99,14 +99,6 @@ function QueryBuilder({
 
   return (
     <div className={className}>
-      <Box marginBottom={1}>
-        <ChipGroup
-          chips={pinnedTerms}
-          onChipRemove={handleRemoveSearchTerm}
-          onClearAll={handleRemoveAll}
-        />
-      </Box>
-
       <Flex align>
         <Box marginRight={1}>
           {!hideTextInput && (
@@ -125,25 +117,36 @@ function QueryBuilder({
           )}
         </Box>
         {!_.isEmpty(filters) && (
-          <Box>
-            <FormControl variant="outlined" style={{ minWidth: 124 }}>
-              <InputLabel id="demo-simple-select-label">Filters</InputLabel>
-              <Select
-                label="Filters"
-                placeholder="Filters"
-                onChange={handleFilterChange}
-                value={selectedFilter}
+          <Box marginTop={2}>
+            <Flex align>
+              <FormControl
+                variant="outlined"
+                style={{ minWidth: 240, marginRight: 16 }}
               >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {_.map(filters, filter => (
-                  <MenuItem key={filter.label} value={filter.value}>
-                    {filter.label}
+                <InputLabel id="demo-simple-select-label">Filters</InputLabel>
+                <Select
+                  label="Filters"
+                  placeholder="Filters"
+                  onChange={handleFilterChange}
+                  value={selectedFilter}
+                >
+                  <MenuItem value="">
+                    <em>None</em>
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  {_.map(filters, filter => (
+                    <MenuItem key={filter.label} value={filter.value}>
+                      {filter.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <ChipGroup
+                chips={pinnedTerms}
+                onChipRemove={handleRemoveSearchTerm}
+                onClearAll={handleRemoveAll}
+              />
+            </Flex>
           </Box>
         )}
         {busy && (

@@ -40,6 +40,7 @@ const WGApplicationsSources: FC = () => {
       <ContentWrapper errors={sources?.errors} loading={isLoading}>
         {useQueryServiceBackend ? (
           <ScopedExploreUI
+            enableBatchSync
             scopedKinds={[
               'GitRepository',
               'Bucket',

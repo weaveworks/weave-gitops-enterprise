@@ -14,9 +14,10 @@ import QueryBuilder from './QueryBuilder';
 type Props = {
   className?: string;
   scopedKinds: string[];
+  enableBatchSync?: boolean;
 };
 
-function ScopedExploreUI({ className, scopedKinds }: Props) {
+function ScopedExploreUI({ className, scopedKinds, enableBatchSync }: Props) {
   const [queryState, setQueryState] = useQueryState({
     enableURLState: false,
     filters: [..._.map(scopedKinds, k => ({ label: k, value: `kind:${k}` }))],
@@ -76,6 +77,7 @@ function ScopedExploreUI({ className, scopedKinds }: Props) {
         className={className}
         rows={data?.objects || []}
         onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
+        enableBatchSync={enableBatchSync}
       />
       <PaginationControls
         queryState={queryState}
