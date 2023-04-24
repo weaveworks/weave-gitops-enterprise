@@ -4,30 +4,39 @@
 package objectscollector_test
 
 import (
-	"context"
 	"fmt"
+	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	"github.com/go-logr/logr"
-	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopssetsv1alpha1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	pipelinev1alpha1 "github.com/weaveworks/pipeline-controller/api/v1alpha1"
+	pacv2beta1 "github.com/weaveworks/policy-agent/api/v2beta1"
+	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
+	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
-	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	v1 "k8s.io/api/core/v1"
-	"k8s.io/client-go/kubernetes/scheme"
-	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"os"
+	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"testing"
 	"time"
 )
 
 const (
-	defaultTimeout  = time.Second * 5
+	defaultTimeout  = time.Second * 30
 	defaultInterval = time.Second
 )
 
@@ -37,7 +46,9 @@ func TestObjectsCollector(t *testing.T) {
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
 
-	testLog := testr.New(t)
+	testLog, err := logger.New("debug", false)
+	g.Expect(err).To(BeNil())
+
 	tests := []struct {
 		name string
 	}{
@@ -58,6 +69,7 @@ func TestObjectsCollector(t *testing.T) {
 				objectsIterator, err := store.GetObjects(ctx, nil, nil)
 				g.Expect(err).To(BeNil())
 				all, err := objectsIterator.All()
+				testLog.Info("num objects:", "numObjects", len(all))
 				g.Expect(err).To(BeNil())
 				return len(all) > 0
 			}).Should(BeTrue())
@@ -69,28 +81,36 @@ func TestObjectsCollector(t *testing.T) {
 }
 
 func makeObjectsCollector(t *testing.T, cfg *rest.Config, testLog logr.Logger) (*objectscollector.ObjectsCollector, store.Store, error) {
-
-	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
-
-	fakeCluster, err := cluster.NewSingleCluster("envtest", cfg, scheme.Scheme)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create cluster:%w", err)
+	clustersManagerScheme := runtime.NewScheme()
+	builder := runtime.NewSchemeBuilder(
+		capiv1.AddToScheme,
+		pacv2beta1.AddToScheme,
+		pacv2beta2.AddToScheme,
+		esv1beta1.AddToScheme,
+		flaggerv1beta1.AddToScheme,
+		pipelinev1alpha1.AddToScheme,
+		tfctrl.AddToScheme,
+		gitopsv1alpha1.AddToScheme,
+		gitopssetsv1alpha1.AddToScheme,
+		clusterv1.AddToScheme,
+		gapiv1.AddToScheme,
+		v1.AddToScheme,
+	)
+	if err := builder.AddToScheme(clustersManagerScheme); err != nil {
+		return nil, nil, err
 	}
 
-	fetcher.FetchReturns([]cluster.Cluster{fakeCluster}, nil)
+	mgmtCluster, err := cluster.NewSingleCluster("management", cfg, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 
-	nsChecker := nsaccessfakes.FakeChecker{}
-	nsChecker.FilterAccessibleNamespacesStub = func(ctx context.Context, client typedauth.AuthorizationV1Interface, n []v1.Namespace) ([]v1.Namespace, error) {
-		// Pretend the user has access to everything
-		return n, nil
-	}
+	gcf := fetcher.NewGitopsClusterFetcher(testLog, mgmtCluster, "flux-system",
+		clustersManagerScheme, false, cluster.DefaultKubeConfigOptions...)
+	fetchers := []clustersmngr.ClusterFetcher{gcf}
 
 	clustersManager := clustersmngr.NewClustersManager(
-		[]clustersmngr.ClusterFetcher{fetcher},
-		&nsChecker,
+		fetchers,
+		nsaccess.NewChecker(nsaccess.DefautltWegoAppRules),
 		testLog,
 	)
-
 	dbDir, err := os.MkdirTemp("", "db")
 	if err != nil {
 		return nil, nil, err
@@ -112,10 +132,10 @@ func makeObjectsCollector(t *testing.T, cfg *rest.Config, testLog logr.Logger) (
 		return nil, nil, fmt.Errorf("cannot create collector:%w", err)
 	}
 
-	err = oc.Start()
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create start collector:%w", err)
-	}
+	//watch object events
+	go func() {
+		clustersManager.Start(ctx)
+	}()
 
 	t.Cleanup(func() {
 		oc.Stop()
