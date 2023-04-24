@@ -50,21 +50,23 @@ func TestObjectsCollector(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
-		name string
+		name              string
+		clustersNamespace string
 	}{
 		{
-			name: "should support apps (using helm releases)",
+			name:              "should collect apps from remote cluster",
+			clustersNamespace: "flux-system",
+		},
+		{
+			name:              "should collect apps from vcluster",
+			clustersNamespace: "vcluster-leaf-cluster-02",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// given a collector
 			// and a cluster without any particular configuration
-			//TODO change this to modify the ns to watch for clusters
-			// as test parameter to test various scenarios of remote clusters
-			// to test we have the right configuration
-			// ex remote vs vcluster
-			oc, store, err := makeObjectsCollector(t, cfg, testLog)
+			oc, store, err := makeObjectsCollector(t, cfg, tt.clustersNamespace, testLog)
 			g.Expect(err).To(BeNil())
 			// when collected
 			g.Expect(oc.Start()).To(Succeed())
@@ -84,7 +86,7 @@ func TestObjectsCollector(t *testing.T) {
 	}
 }
 
-func makeObjectsCollector(t *testing.T, cfg *rest.Config, testLog logr.Logger) (*objectscollector.ObjectsCollector, store.Store, error) {
+func makeObjectsCollector(t *testing.T, cfg *rest.Config, clustersNamespace string, testLog logr.Logger) (*objectscollector.ObjectsCollector, store.Store, error) {
 	clustersManagerScheme := runtime.NewScheme()
 	builder := runtime.NewSchemeBuilder(
 		capiv1.AddToScheme,
@@ -106,7 +108,7 @@ func makeObjectsCollector(t *testing.T, cfg *rest.Config, testLog logr.Logger) (
 
 	mgmtCluster, err := cluster.NewSingleCluster("management", cfg, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
 
-	gcf := fetcher.NewGitopsClusterFetcher(testLog, mgmtCluster, "flux-system",
+	gcf := fetcher.NewGitopsClusterFetcher(testLog, mgmtCluster, clustersNamespace,
 		clustersManagerScheme, false, cluster.DefaultKubeConfigOptions...)
 	fetchers := []clustersmngr.ClusterFetcher{gcf}
 
@@ -142,7 +144,8 @@ func makeObjectsCollector(t *testing.T, cfg *rest.Config, testLog logr.Logger) (
 	}()
 
 	t.Cleanup(func() {
-		oc.Stop()
+		//TODO add this
+		//oc.Stop()
 	})
 
 	return oc, s, nil
