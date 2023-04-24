@@ -52,8 +52,6 @@ const ClusterDashboard = ({
     currentCluster as GitopsClusterEnriched,
   );
 
-  console.log(currentCluster);
-
   const handleClick = () => {
     setDisabled(true);
     getKubeconfig(
