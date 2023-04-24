@@ -3,10 +3,11 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -205,6 +206,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	var offset int = -1
 	var orderBy string = ""
 	useOrLogic := false
+	var scopedKinds []string
 
 	if opts != nil {
 		if opts.GetOffset() != 0 {
@@ -218,6 +220,8 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		if opts.GetGlobalOperand() == string(GlobalOperandOr) {
 			useOrLogic = true
 		}
+
+		scopedKinds = opts.GetScopedKinds()
 	}
 
 	if useOrLogic {
@@ -234,7 +238,14 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 
 		stmt = strings.TrimSuffix(stmt, " OR ")
 
-		orTX := i.db.Model(&models.Object{}).Where(stmt).Order(orderBy).Offset(offset)
+		orTX := i.db.Model(&models.Object{})
+
+		if scopedKinds != nil {
+			dbScope := kindScope(scopedKinds)
+			orTX = orTX.Scopes(dbScope)
+		}
+
+		orTX = orTX.Where(stmt).Order(orderBy).Offset(offset)
 
 		if orTX.Error != nil {
 			return nil, fmt.Errorf("failed to execute query: %w", orTX.Error)
@@ -244,6 +255,12 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	}
 
 	tx := i.db.Model(&models.Object{})
+
+	if scopedKinds != nil {
+		dbScopes := kindScope(scopedKinds)
+		tx = tx.Scopes(dbScopes)
+	}
+
 	tx = tx.Offset(offset)
 	tx = tx.Order(orderBy)
 
@@ -374,4 +391,10 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func kindScope(kinds []string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("kind IN ?", kinds)
+	}
 }

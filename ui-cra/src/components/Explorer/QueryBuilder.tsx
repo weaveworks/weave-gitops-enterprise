@@ -117,7 +117,7 @@ function QueryBuilder({
           )}
         </Box>
         {!_.isEmpty(filters) && (
-          <Box marginTop={2}>
+          <Box>
             <Flex align>
               <FormControl
                 variant="outlined"

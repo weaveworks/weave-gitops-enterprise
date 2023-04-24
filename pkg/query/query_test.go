@@ -280,6 +280,90 @@ func TestRunQuery(t *testing.T) {
 			},
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
+		{
+			name: "scoped query",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo-a",
+					Namespace:  "namespace-a",
+					Kind:       "Kustomization",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-b",
+					Namespace:  "namespace-a",
+					Kind:       "Kustomization",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-c",
+					Namespace:  "namespace-a",
+					Kind:       "HelmRelease",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "cluster",
+					value:   "management",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				orderBy:       "kind desc",
+				globalOperand: string(store.GlobalOperandAnd),
+				scopes:        []string{"Kustomization"},
+			},
+			want: []string{"podinfo-a", "podinfo-b"},
+		},
+		{
+			name: "scoped query with `or`",
+			objects: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Name:       "podinfo",
+					Namespace:  "namespace-a",
+					Kind:       "Kustomization",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "cluster-a",
+					Name:       "podinfo",
+					Namespace:  "namespace-b",
+					Kind:       "Kustomization",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "cluster-b",
+					Name:       "podinfo",
+					Namespace:  "namespace-c",
+					Kind:       "HelmRelease",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: []store.QueryClause{
+				&clause{
+					key:     "name",
+					value:   "podinfo",
+					operand: string(store.OperandEqual),
+				},
+			},
+			opts: &query{
+				orderBy:       "kind desc",
+				globalOperand: string(store.GlobalOperandOr),
+				scopes:        []string{"Kustomization"},
+			},
+			want: []string{"podinfo", "podinfo"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -433,6 +517,7 @@ type query struct {
 	limit         int32
 	orderBy       string
 	globalOperand string
+	scopes        []string
 }
 
 func (q *query) GetQuery() []store.QueryClause {
@@ -459,6 +544,10 @@ func (q *query) GetOrderBy() string {
 
 func (q *query) GetGlobalOperand() string {
 	return q.globalOperand
+}
+
+func (q *query) GetScopedKinds() []string {
+	return q.scopes
 }
 
 type clause struct {

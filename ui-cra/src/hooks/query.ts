@@ -94,6 +94,7 @@ type QueryOpts = {
   offset: number;
   orderBy?: string;
   globalOperandOverride?: GlobalOperand;
+  scopedKinds?: string[];
 };
 
 export function useQueryService({
@@ -102,6 +103,7 @@ export function useQueryService({
   offset,
   orderBy,
   globalOperandOverride,
+  scopedKinds,
 }: QueryOpts) {
   const api = Query;
 
@@ -116,6 +118,7 @@ export function useQueryService({
         offset,
         orderBy,
         globalOperand: globalOperandOverride || globalOperand,
+        scopedKinds,
       });
     },
     {

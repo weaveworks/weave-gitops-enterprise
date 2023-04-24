@@ -1,7 +1,8 @@
+import { Box } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { GlobalOperand, useQueryService } from '../../hooks/query';
+import { useQueryService } from '../../hooks/query';
 import ExplorerTable from './ExplorerTable';
 import {
   columnHeaderHandler,
@@ -23,29 +24,15 @@ function ScopedExploreUI({ className, scopedKinds, enableBatchSync }: Props) {
     filters: [..._.map(scopedKinds, k => ({ label: k, value: `kind:${k}` }))],
   });
 
-  // If kind filter is selected, we have to change some query logic.
-  const filterSelected = !!_.find(
-    queryState.pinnedTerms,
-    t => _.includes(t, 'kind:') || _.includes(t, 'status:'),
-  );
-
-  // Always add the kind filter since we are "scoped",
-  // unless the user has already selected a kind filter.
-  const terms = _.concat(
-    queryState.pinnedTerms,
-    filterSelected ? [] : _.map(scopedKinds, k => `kind:${k}`),
-  );
-
   const { data, error, isLoading } = useQueryService({
-    query: terms.join(','),
+    query: queryState.pinnedTerms.join(','),
     limit: queryState.limit,
     offset: queryState.offset,
     orderBy: `${queryState.orderBy} ${
       queryState.orderDescending ? 'desc' : 'asc'
     }`,
-    globalOperandOverride: filterSelected
-      ? GlobalOperand.and
-      : GlobalOperand.or,
+
+    scopedKinds,
   });
 
   if (isLoading) {
@@ -58,21 +45,23 @@ function ScopedExploreUI({ className, scopedKinds, enableBatchSync }: Props) {
 
   return (
     <div className={className}>
-      <QueryBuilder
-        busy={isLoading}
-        query={queryState.query}
-        filters={queryState.filters}
-        selectedFilter={queryState.selectedFilter}
-        pinnedTerms={queryState.pinnedTerms}
-        onChange={(query, pinnedTerms) => {
-          setQueryState({ ...queryState, query, pinnedTerms });
-        }}
-        onPin={pinnedTerms => {
-          setQueryState({ ...queryState, pinnedTerms });
-        }}
-        onFilterSelect={filterChangeHandler(queryState, setQueryState)}
-        hideTextInput
-      />
+      <Box marginY={2}>
+        <QueryBuilder
+          busy={isLoading}
+          query={queryState.query}
+          filters={queryState.filters}
+          selectedFilter={queryState.selectedFilter}
+          pinnedTerms={queryState.pinnedTerms}
+          onChange={(query, pinnedTerms) => {
+            setQueryState({ ...queryState, query, pinnedTerms });
+          }}
+          onPin={pinnedTerms => {
+            setQueryState({ ...queryState, pinnedTerms });
+          }}
+          onFilterSelect={filterChangeHandler(queryState, setQueryState)}
+        />
+      </Box>
+
       <ExplorerTable
         className={className}
         rows={data?.objects || []}
