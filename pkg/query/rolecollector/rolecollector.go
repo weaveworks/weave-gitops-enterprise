@@ -3,16 +3,13 @@ package rolecollector
 import (
 	"context"
 	"fmt"
-
-	rbacv1 "k8s.io/api/rbac/v1"
-
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 var DefaultVerbsRequiredForAccess = []string{"list"}
@@ -29,26 +26,27 @@ type RoleCollector struct {
 	quit      chan struct{}
 }
 
-func (a *RoleCollector) Start(ctx context.Context) error {
+func (a *RoleCollector) Start() error {
 	err := a.col.Start()
 	if err != nil {
-		return fmt.Errorf("could not start access collector: %w", err)
+		return fmt.Errorf("could not start role collector: %w", err)
 	}
+	a.log.Info("role collector started")
 	return nil
 }
 
 func (a *RoleCollector) Stop() error {
 	a.quit <- struct{}{}
-	return a.col.Stop()
+	err := a.col.Stop()
+	if err != nil {
+		return fmt.Errorf("could not stop role collector: %w", err)
+	}
+	a.log.Info("role collector stopped")
+	return nil
 }
 
 func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
-	opts.ObjectKinds = []schema.GroupVersionKind{
-		rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
-		rbacv1.SchemeGroupVersion.WithKind("Role"),
-		rbacv1.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
-		rbacv1.SchemeGroupVersion.WithKind("RoleBinding"),
-	}
+	opts.ObjectKinds = configuration.SupportedRbacKinds
 
 	opts.ProcessRecordsFunc = defaultProcessRecords
 
@@ -59,14 +57,15 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}
 	return &RoleCollector{
 		col:       col,
-		log:       opts.Log,
+		log:       opts.Log.WithName("roles-collector"),
 		converter: runtime.DefaultUnstructuredConverter,
 		w:         w,
 		verbs:     DefaultVerbsRequiredForAccess,
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
+	ctx := context.Background()
 	deleteAll := []string{}
 
 	roles := []models.Role{}
@@ -75,7 +74,9 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 	bindings := []models.RoleBinding{}
 	bindingsToDelete := []models.RoleBinding{}
 
-	for _, obj := range objectRecords {
+	for _, obj := range objectTransactions {
+
+		debug.Info("processing object tx", "tx", obj.ClusterName())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {
@@ -153,5 +154,6 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 		}
 	}
 
+	debug.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
 	return nil
 }

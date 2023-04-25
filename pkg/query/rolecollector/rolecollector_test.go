@@ -1,26 +1,63 @@
 package rolecollector
 
 import (
-	"context"
+	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"testing"
 )
 
-func TestRoleCollector(t *testing.T) {
-	// TODO: we need to test upserting and deleting access rules
-
+func TestRolesCollector_NewRoleCollector(t *testing.T) {
+	g := NewWithT(t)
+	tests := []struct {
+		name       string
+		store      store.Store
+		opts       collector.CollectorOpts
+		errPattern string
+	}{
+		{
+			name:  "cannot create collector without manager",
+			store: &storefakes.FakeStore{},
+			opts: collector.CollectorOpts{
+				Log: logr.Discard(),
+			},
+			errPattern: "invalid cluster manager",
+		},
+		{
+			name:  "can create object collector with valid arguments",
+			store: &storefakes.FakeStore{},
+			opts: collector.CollectorOpts{
+				Log:            logr.Discard(),
+				ClusterManager: &clustersmngrfakes.FakeClustersManager{},
+			},
+			errPattern: "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			collector, err := NewRoleCollector(tt.store, tt.opts)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).ShouldNot(HaveOccurred())
+			g.Expect(collector).ShouldNot(BeNil())
+			g.Expect(collector.w).To(Equal(tt.store))
+		})
+	}
 }
 
 func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
-	ctx := context.Background()
 	fakeStore := &storefakes.FakeStore{}
 
 	//setup data
@@ -66,7 +103,7 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(ctx, tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

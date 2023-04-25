@@ -299,9 +299,16 @@ const AppRoutes = () => {
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
       <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
-      <Route exact path={Routes.CreatePolicyConfig} component={CreatePolicyConfig} />
-
+      <Route
+        exact
+        path={Routes.PolicyConfigsDetails}
+        component={withSearchParams(PolicyConfigsDetails)}
+      />
+      <Route
+        exact
+        path={Routes.CreatePolicyConfig}
+        component={CreatePolicyConfig}
+      />
 
       <Route
         path={Routes.TerraformDetail}
@@ -326,7 +333,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
-              state=''
+              state=""
             />
           );
         }}

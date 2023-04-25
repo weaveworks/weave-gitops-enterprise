@@ -404,7 +404,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
 			assert.NoError(t, err)
 
-			qs, err := NewQueryService(ctx, QueryServiceOpts{
+			qs, err := NewQueryService(QueryServiceOpts{
 				Log:           logr.Discard(),
 				StoreReader:   store,
 				AccessChecker: checker,
