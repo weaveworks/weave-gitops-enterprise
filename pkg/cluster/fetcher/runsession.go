@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	mngrcluster "github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -26,15 +27,17 @@ type runSessionFetcher struct {
 	scheme            *runtime.Scheme
 	isDelegating      bool
 	kubeConfigOptions []mngrcluster.KubeConfigOption
+	userPrefixes      kube.UserPrefixes
 }
 
-func NewRunSessionFetcher(log logr.Logger, hostCluster cluster.Cluster, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) clustersmngr.ClusterFetcher {
+func NewRunSessionFetcher(log logr.Logger, hostCluster cluster.Cluster, scheme *runtime.Scheme, isDelegating bool, userPrefixes kube.UserPrefixes, kubeConfigOptions ...mngrcluster.KubeConfigOption) clustersmngr.ClusterFetcher {
 	return runSessionFetcher{
 		log:               log.WithName("run-session-fetcher"),
 		cluster:           hostCluster,
 		scheme:            scheme,
 		isDelegating:      isDelegating,
 		kubeConfigOptions: kubeConfigOptions,
+		userPrefixes:      kube.UserPrefixes{},
 	}
 }
 
@@ -104,7 +107,7 @@ func (f *runSessionFetcher) runSessions(ctx context.Context) ([]cluster.Cluster,
 				Name:      ss.Name,
 				Namespace: ss.Namespace,
 			}.String(),
-			restConfig, f.scheme, f.kubeConfigOptions...)
+			restConfig, f.scheme, f.userPrefixes, f.kubeConfigOptions...)
 		if err != nil {
 			f.log.Error(err, "Failed to connect to run session", "cluster", ss.Name)
 			continue

@@ -16,6 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/multiwatcher/controller"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 )
 
 type Options struct {
@@ -49,7 +50,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		return nil, err
 	}
 
-	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.String(), opts.ClientConfig, scheme)
+	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.String(), opts.ClientConfig, scheme, kube.UserPrefixes{})
 	if err != nil {
 		return nil, err
 	}

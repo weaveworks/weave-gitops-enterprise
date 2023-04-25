@@ -11,6 +11,7 @@ import (
 	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	mngrcluster "github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -174,6 +175,7 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 			}.String(),
 			restCfg,
 			f.scheme,
+			kube.UserPrefixes{},
 			f.kubeConfigOptions...,
 		)
 		// TODO: the DefaultKubeConfigOptions will throw an error if the cluster can't be reached

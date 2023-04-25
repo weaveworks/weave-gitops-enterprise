@@ -3,6 +3,7 @@ package collector
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/reconciler"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -148,7 +150,7 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		}
 	}
 
-	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.Name, opts.ClientConfig, scheme)
+	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.Name, opts.ClientConfig, scheme, kube.UserPrefixes{})
 	if err != nil {
 		return nil, err
 	}
