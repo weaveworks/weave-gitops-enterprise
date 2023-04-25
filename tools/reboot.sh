@@ -54,7 +54,7 @@ do_capi(){
   tool_check "clusterctl"
 
   EXP_CLUSTER_RESOURCE_SET=true ${TOOLS}/clusterctl init \
-    --infrastructure docker
+    --infrastructure vcluster
 }
 
 do_flux(){
