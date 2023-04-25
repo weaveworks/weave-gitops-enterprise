@@ -95,7 +95,7 @@ func TestArtifactUpdatePredicate_Update(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			he := ArtifactUpdatePredicate{}
-			assert.Equalf(t, tt.want, he.Update(tt.event), "Update(old: %+v, new: %+v)", tt.event.ObjectOld, tt.event.ObjectNew)
+			assert.Equalf(t, tt.want, he.Update(tt.event), "Update(\nold:\n%+v\nnew:\n%+v\n)", tt.event.ObjectOld, tt.event.ObjectNew)
 		})
 	}
 }
