@@ -108,7 +108,10 @@ export function useQueryService({
   const api = Query;
 
   return useQuery<QueryResponse, Error>(
-    ['query', { query, limit, offset, orderBy }],
+    [
+      'query',
+      { query, limit, offset, orderBy, scopedKinds, globalOperandOverride },
+    ],
     () => {
       const { clauses: q, globalOperand } = convertToOpts(query);
 

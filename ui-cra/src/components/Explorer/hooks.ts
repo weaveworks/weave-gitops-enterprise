@@ -88,9 +88,14 @@ export function useQueryState(
 export const columnHeaderHandler =
   (queryState: QueryState, setQueryState: (next: QueryState) => void) =>
   (field: Field) => {
-    const col = _.isFunction(field.value)
+    let col = _.isFunction(field.value)
       ? field.sortValue && field.sortValue(field.value)
       : field.value;
+
+    // Override column name to maintain compatibility with the DataTable sync buttons
+    if (col === 'clusterName') {
+      col = 'cluster';
+    }
 
     setQueryState({
       ...queryState,
