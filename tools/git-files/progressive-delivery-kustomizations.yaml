@@ -1,0 +1,74 @@
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: progressive-delivery-ns
+  namespace: flux-system
+spec:
+  interval: 1m
+  path: ./apps/progressive-delivery/ns
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: progressive-delivery-istio
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: progressive-delivery-ns
+  interval: 1m
+  path: ./apps/progressive-delivery/istio
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: progressive-delivery-prometheus
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: progressive-delivery-ns
+  interval: 1m
+  path: ./apps/progressive-delivery/prometheus
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: progressive-delivery-flagger
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: progressive-delivery-ns
+  interval: 1m
+  path: ./apps/progressive-delivery/flagger
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+kind: Kustomization
+metadata:
+  name: progressive-delivery-canary
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: progressive-delivery-istio
+    - name: progressive-delivery-prometheus
+    - name: progressive-delivery-flagger
+  interval: 1m
+  path: ./apps/progressive-delivery/canary
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-system
