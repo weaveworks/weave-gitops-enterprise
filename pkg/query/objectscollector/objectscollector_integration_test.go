@@ -36,7 +36,7 @@ import (
 )
 
 const (
-	defaultTimeout  = time.Second * 30
+	defaultTimeout  = time.Second * 5
 	defaultInterval = time.Second
 )
 
@@ -60,6 +60,10 @@ func TestObjectsCollector(t *testing.T) {
 		{
 			name:              "should collect apps from vcluster",
 			clustersNamespace: "vcluster-leaf-cluster-02",
+		},
+		{
+			name:              "should collect apps from leaf cluster without rbac",
+			clustersNamespace: "scaling-leaf-2",
 		},
 	}
 	for _, tt := range tests {
