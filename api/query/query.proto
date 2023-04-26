@@ -33,11 +33,12 @@ service Query {
 }
 
 message QueryRequest {
-    repeated QueryClause query = 1;
-    int32    offset            = 2;
-    int32    limit             = 3;
-    string   orderBy           = 4;
-    string   globalOperand     = 5;
+    repeated QueryClause query    = 1;
+    int32    offset               = 2;
+    int32    limit                = 3;
+    string   orderBy              = 4;
+    string   globalOperand        = 5;
+    repeated string   scopedKinds = 6;
 }
 
 message QueryClause {

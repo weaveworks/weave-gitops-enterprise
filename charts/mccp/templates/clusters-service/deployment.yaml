@@ -85,6 +85,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
               value: "true"
             {{- end }}
+            {{- if .Values.useQueryServiceBackend }}
+            - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
+              value: "true"
+            {{- end }}
             {{- if .Values.enableRunUI }}
             - name: WEAVE_GITOPS_FEATURE_RUN_UI
               value: "true"

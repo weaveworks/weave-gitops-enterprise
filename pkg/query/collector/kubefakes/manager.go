@@ -24,12 +24,10 @@ type fakeControllerManager struct {
 }
 
 func (f fakeControllerManager) SetFields(i interface{}) error {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) GetConfig() *rest.Config {
-	f.log.Info("faked")
 	return nil
 }
 
@@ -44,47 +42,38 @@ func (f fakeControllerManager) GetClient() client.Client {
 }
 
 func (f fakeControllerManager) GetFieldIndexer() client.FieldIndexer {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) GetCache() cache.Cache {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) GetEventRecorderFor(name string) record.EventRecorder {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) GetRESTMapper() meta.RESTMapper {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) GetAPIReader() client.Reader {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) Start(ctx context.Context) error {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) Add(runnable manager.Runnable) error {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) Elected() <-chan struct{} {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) AddMetricsExtraHandler(path string, handler http.Handler) error {
-	f.log.Info("faked")
 	return nil
 }
 
@@ -99,17 +88,14 @@ func (f fakeControllerManager) AddReadyzCheck(name string, check healthz.Checker
 }
 
 func (f fakeControllerManager) GetWebhookServer() *webhook.Server {
-	f.log.Info("faked")
 	return nil
 }
 
 func (f fakeControllerManager) GetLogger() logr.Logger {
-	f.log.Info("faked")
 	return f.log
 }
 
 func (f fakeControllerManager) GetControllerOptions() v1alpha1.ControllerConfigurationSpec {
-	f.log.Info("faked")
 	return v1alpha1.ControllerConfigurationSpec{}
 }
 
