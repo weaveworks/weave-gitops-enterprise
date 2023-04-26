@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"gorm.io/gorm"
 	"k8s.io/kubectl/pkg/util/slice"
@@ -69,6 +70,7 @@ type QueryClause interface {
 type StoreReader interface {
 	GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
+	GetObjectByID(ctx context.Context, id string) (models.Object, error)
 }
 
 // Iterator provides an iterable interface for requesting the next row of an object.
@@ -89,18 +91,36 @@ type Iterator interface {
 type StorageBackend string
 
 const (
-	StorageBackendSQLite StorageBackend = "sqlite"
+	StorageBackendSQLite  StorageBackend = "sqlite"
+	StorageBackendIndexer StorageBackend = "indexer"
 )
 
 // factory method that by default creates a in memory store
 func NewStore(backend StorageBackend, uri string, log logr.Logger) (Store, error) {
+	var s Store
+
 	switch backend {
 	case StorageBackendSQLite:
 		db, err := CreateSQLiteDB(uri)
 		if err != nil {
 			return nil, fmt.Errorf("error creating sqlite db: %w", err)
 		}
+
 		return NewSQLiteStore(db, log)
+
+	case StorageBackendIndexer:
+		db, err := CreateSQLiteDB(uri)
+		if err != nil {
+			return nil, fmt.Errorf("error creating sqlite db for indexer: %w", err)
+		}
+
+		s, err = NewSQLiteStore(db, log)
+		if err != nil {
+			return nil, fmt.Errorf("error creating sqlite store for indexer: %w", err)
+		}
+
+		return NewIndexer(s)
+
 	default:
 		return nil, fmt.Errorf("unknown storage backend: %s", backend)
 	}

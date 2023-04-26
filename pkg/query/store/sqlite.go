@@ -290,6 +290,17 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	return sqliterator.New(tx)
 }
 
+func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (models.Object, error) {
+	var object models.Object
+
+	result := i.db.First(&object, "id = ?", id)
+	if result.Error != nil {
+		return models.Object{}, fmt.Errorf("failed to get object: %w", result.Error)
+	}
+
+	return object, nil
+}
+
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	roles := []models.Role{}
 	bindings := []models.RoleBinding{}
