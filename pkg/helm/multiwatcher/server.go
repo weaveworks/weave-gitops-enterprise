@@ -50,6 +50,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		return nil, err
 	}
 
+	// userPrefixes is not used in this watcher, but is required by the cluster.NewSingleCluster function
 	cluster, err := cluster.NewSingleCluster(opts.ClusterRef.String(), opts.ClientConfig, scheme, kube.UserPrefixes{})
 	if err != nil {
 		return nil, err

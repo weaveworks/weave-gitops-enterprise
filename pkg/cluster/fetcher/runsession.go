@@ -37,7 +37,7 @@ func NewRunSessionFetcher(log logr.Logger, hostCluster cluster.Cluster, scheme *
 		scheme:            scheme,
 		isDelegating:      isDelegating,
 		kubeConfigOptions: kubeConfigOptions,
-		userPrefixes:      kube.UserPrefixes{},
+		userPrefixes:      userPrefixes,
 	}
 }
 

@@ -32,9 +32,10 @@ type gitopsClusterFetcher struct {
 	namespace         string
 	isDelegating      bool
 	kubeConfigOptions []mngrcluster.KubeConfigOption
+	userPrefixes      kube.UserPrefixes
 }
 
-func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
+func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, userPrefixes kube.UserPrefixes, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
 	return gitopsClusterFetcher{
 		log:               log.WithName("gitops-cluster-fetcher"),
 		cluster:           managementCluster,
@@ -42,6 +43,7 @@ func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Clus
 		namespace:         namespace,
 		isDelegating:      isDelegating,
 		kubeConfigOptions: kubeConfigOptions,
+		userPrefixes:      userPrefixes,
 	}
 }
 
@@ -175,7 +177,7 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 			}.String(),
 			restCfg,
 			f.scheme,
-			kube.UserPrefixes{},
+			f.userPrefixes,
 			f.kubeConfigOptions...,
 		)
 		// TODO: the DefaultKubeConfigOptions will throw an error if the cluster can't be reached

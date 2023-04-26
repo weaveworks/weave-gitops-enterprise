@@ -469,7 +469,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		log.Info("Using un-cached clients")
 	}
 
-	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, userPrefixes, cluster.DefaultKubeConfigOptions...)
 	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
 	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
