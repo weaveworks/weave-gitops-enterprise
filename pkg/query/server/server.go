@@ -150,6 +150,12 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 
 	if !opts.SkipCollection {
 
+		//TODO extract me as configuration
+		collectorServiceAccount := collector.ImpersonateServiceAccount{
+			Name:      "collector",
+			Namespace: "flux-system",
+		}
+
 		if len(opts.ObjectKinds) == 0 {
 			return nil, nil, fmt.Errorf("cannot create collector for empty gvks")
 		}
@@ -157,6 +163,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 		rulesCollector, err := rolecollector.NewRoleCollector(s, collector.CollectorOpts{
 			Log:            opts.Logger,
 			ClusterManager: opts.ClustersManager,
+			ServiceAccount: collectorServiceAccount,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
@@ -170,6 +177,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			Log:            opts.Logger,
 			ClusterManager: opts.ClustersManager,
 			ObjectKinds:    opts.ObjectKinds,
+			ServiceAccount: collectorServiceAccount,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
