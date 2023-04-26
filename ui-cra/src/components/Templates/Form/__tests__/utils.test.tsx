@@ -1,9 +1,5 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
-import {
-  Renderer,
-  renderHook,
-  RenderHookResult,
-} from '@testing-library/react-hooks';
+import { renderHook } from '@testing-library/react-hooks';
 import { useGetInitialGitRepo, getRepositoryUrl } from '../utils';
 
 describe('getRepositoryUrl', () => {
