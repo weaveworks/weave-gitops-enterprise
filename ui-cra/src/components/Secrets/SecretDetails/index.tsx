@@ -82,7 +82,7 @@ const SecretDetails = ({
       <ContentWrapper loading={isSecretDetailsLoading}>
         <Box paddingBottom={3}>
           <Button
-            id="sync-secrets"
+            id="sync-secret"
             loading={syncing}
             variant="outlined"
             onClick={handleSyncClick}

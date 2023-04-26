@@ -7,7 +7,7 @@ interface DetailParams {
   externalSecretName: string;
 }
 
-const SECRETS_KEY = 'gitopssets';
+const SECRETS_KEY = 'external-secrets';
 
 function invalidate(
   qc: QueryClient,
