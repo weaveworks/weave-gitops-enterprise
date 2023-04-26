@@ -1113,7 +1113,7 @@ message GetExternalSecretResponse{
   string version = 9;
   string status = 10;
   string timestamp = 11;
-  string yaml = string;
+  string yaml = 12;
 }
   
 message ExternalSecretStore {
