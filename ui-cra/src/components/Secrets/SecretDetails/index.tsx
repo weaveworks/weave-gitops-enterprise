@@ -1,5 +1,4 @@
-import SyncIcon from '@material-ui/icons/Sync';
-import { Button, theme } from '@weaveworks/weave-gitops';
+import { Button } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
@@ -9,7 +8,8 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
-import { syncSecret } from './SyncSecret';
+import { useSyncSecret } from './SyncSecret';
+import { Box } from '@material-ui/core';
 
 const SecretDetails = ({
   externalSecretName,
@@ -39,8 +39,37 @@ const SecretDetails = ({
       value: moment(secretDetails?.timestamp).fromNow(),
     },
   ];
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [syncing, setSyncing] = useState(false);
   const { setNotifications } = useNotifications();
+
+  const sync = useSyncSecret({
+    clusterName,
+    namespace,
+    externalSecretName,
+  });
+
+  const handleSyncClick = () => {
+    setSyncing(true);
+
+    return sync()
+      .then(() => {
+        setNotifications([
+          {
+            message: { text: 'Sync successful' },
+            severity: 'success',
+          },
+        ]);
+      })
+      .catch(err => {
+        setNotifications([
+          {
+            message: { text: err?.message },
+            severity: 'error',
+          },
+        ]);
+      })
+      .finally(() => setSyncing(false));
+  };
 
   return (
     <PageTemplate
@@ -51,25 +80,17 @@ const SecretDetails = ({
       ]}
     >
       <ContentWrapper loading={isSecretDetailsLoading}>
-        <Button
-          id="create-secrets"
-          loading={isLoading}
-          startIcon={<SyncIcon />}
-          style={{ marginBottom: theme.spacing.medium }}
-          onClick={() => {
-            syncSecret(
-              {
-                clusterName,
-                namespace,
-                externalSecretName,
-              },
-              setNotifications,
-              setIsLoading,
-            );
-          }}
-        >
-          Sync
-        </Button>
+        <Box paddingBottom={3}>
+          <Button
+            id="sync-secrets"
+            loading={syncing}
+            variant="outlined"
+            onClick={handleSyncClick}
+            style={{ marginRight: 0, textTransform: 'uppercase' }}
+          >
+            Sync
+          </Button>
+        </Box>
         {generateRowHeaders(defaultHeaders)}
         <SecretDetailsTabs
           externalSecretName={externalSecretName}
