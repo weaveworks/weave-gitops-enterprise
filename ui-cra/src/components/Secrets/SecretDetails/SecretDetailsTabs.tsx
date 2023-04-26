@@ -90,8 +90,8 @@ const SecretDetailsTabs = ({
             YAML.stringify(JSON.parse(secretDetails?.yaml as string))
           }
           object={{
-            kind: secretDetails?.type,
-            name: secretDetails?.name,
+            kind: 'Secret',
+            name: secretDetails?.secretName,
             namespace: secretDetails?.namespace,
           }}
         />
