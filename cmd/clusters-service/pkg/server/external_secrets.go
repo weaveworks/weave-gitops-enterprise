@@ -1,6 +1,7 @@
 package server
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -15,6 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"golang.org/x/sync/errgroup"
 	v1 "k8s.io/api/core/v1"
+	k8s_json "k8s.io/apimachinery/pkg/runtime/serializer/json"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -126,6 +128,13 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 		}
 
+		var buf bytes.Buffer
+
+		serializer := k8s_json.NewSerializer(k8s_json.DefaultMetaFactory, nil, nil, false)
+		if err := serializer.Encode(&externalSecret, &buf); err != nil {
+			return nil, err
+		}
+
 		response := capiv1_proto.GetExternalSecretResponse{
 			SecretName:         externalSecret.Spec.Target.Name,
 			ExternalSecretName: externalSecret.GetName(),
@@ -134,6 +143,8 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			SecretStore:        externalSecret.Spec.SecretStoreRef.Name,
 			Status:             getExternalSecretStatus(&externalSecret),
 			Timestamp:          externalSecret.CreationTimestamp.Format(time.RFC3339),
+			Yaml:               buf.String(),
+
 		}
 
 		if externalSecret.Spec.Data != nil {
