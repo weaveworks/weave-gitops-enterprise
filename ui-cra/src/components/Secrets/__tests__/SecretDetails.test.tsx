@@ -74,7 +74,7 @@ describe('SecretDetails', () => {
     expect(tabs).toHaveLength(3);
     expect(tabs[0]).toHaveTextContent('Details');
     expect(tabs[1]).toHaveTextContent('Events');
-    expect(tabs[2]).toHaveTextContent('YAML');
+    expect(tabs[2]).toHaveTextContent('Yaml');
 
     expect(screen.getByTestId('Status')).toHaveTextContent(secret.status);
     expect(screen.getByTestId('Last Updated')).toHaveTextContent(
