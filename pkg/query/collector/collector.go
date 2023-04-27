@@ -35,6 +35,7 @@ type CollectorOpts struct {
 	ClusterManager     clustersmngr.ClustersManager
 	ProcessRecordsFunc ProcessRecordsFunc
 	NewWatcherFunc     NewWatcherFunc
+	ServiceAccount     ImpersonateServiceAccount
 }
 
 func (o *CollectorOpts) Validate() error {
@@ -47,7 +48,12 @@ func (o *CollectorOpts) Validate() error {
 	if o.ProcessRecordsFunc == nil {
 		return fmt.Errorf("process records func is nil")
 	}
-
+	if o.ServiceAccount.Name == "" {
+		return fmt.Errorf("invalid service account name")
+	}
+	if o.ServiceAccount.Namespace == "" {
+		return fmt.Errorf("invalid service account namespace")
+	}
 	return nil
 }
 

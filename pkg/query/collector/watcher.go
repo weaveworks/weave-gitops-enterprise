@@ -29,12 +29,13 @@ const (
 )
 
 type WatcherOptions struct {
-	Log           logr.Logger
-	ObjectChannel chan []models.ObjectTransaction
-	ClusterRef    types.NamespacedName
-	ClientConfig  *rest.Config
-	Kinds         []configuration.ObjectKind
-	ManagerFunc   WatcherManagerFunc
+	Log            logr.Logger
+	ObjectChannel  chan []models.ObjectTransaction
+	ClusterRef     types.NamespacedName
+	ClientConfig   *rest.Config
+	Kinds          []configuration.ObjectKind
+	ManagerFunc    WatcherManagerFunc
+	ServiceAccount ImpersonateServiceAccount
 }
 
 func (o WatcherOptions) Validate() error {
@@ -48,6 +49,14 @@ func (o WatcherOptions) Validate() error {
 
 	if o.ManagerFunc == nil {
 		return fmt.Errorf("invalid manager func")
+	}
+
+	if o.ServiceAccount.Name == "" {
+		return fmt.Errorf("invalid service account name")
+	}
+
+	if o.ServiceAccount.Namespace == "" {
+		return fmt.Errorf("invalid service account namespace")
 	}
 
 	return nil
@@ -70,10 +79,16 @@ type DefaultWatcher struct {
 	newWatcherManager WatcherManagerFunc
 	objectsChannel    chan []models.ObjectTransaction
 	stopFn            context.CancelFunc
+	serviceAccount    ImpersonateServiceAccount
 }
 
 type WatcherManagerFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
 type WatcherStopFunc = func(opts WatcherManagerOptions) (manager.Manager, error)
+
+type ImpersonateServiceAccount struct {
+	Name      string
+	Namespace string
+}
 
 type WatcherManagerOptions struct {
 	Log            logr.Logger
@@ -82,6 +97,7 @@ type WatcherManagerOptions struct {
 	ObjectsChannel chan []models.ObjectTransaction
 	ManagerOptions manager.Options
 	ClusterName    string
+	ServiceAccount ImpersonateServiceAccount
 }
 
 func (o WatcherManagerOptions) Validate() error {
@@ -97,7 +113,36 @@ func (o WatcherManagerOptions) Validate() error {
 		return fmt.Errorf("invalid scheme")
 	}
 
+	if o.ServiceAccount.Name == "" {
+		return fmt.Errorf("invalid service account name")
+	}
+
+	if o.ServiceAccount.Namespace == "" {
+		return fmt.Errorf("invalid service account namespace")
+	}
+
 	return nil
+}
+
+// makeServiceAccountImpersonationConfig when creating a reconciler for watcher we will need to impersonate
+// a user to dont use the default one to enhance security. This method creates a new rest.config from the input parameters
+// with impersonation configuration pointing to the service account
+func makeServiceAccountImpersonationConfig(config *rest.Config, namespace, serviceAccountName string) (*rest.Config, error) {
+
+	if config == nil {
+		return nil, fmt.Errorf("invalid rest config")
+	}
+
+	if namespace == "" || serviceAccountName == "" {
+		return nil, fmt.Errorf("service acccount cannot be empty")
+	}
+
+	copyCfg := rest.CopyConfig(config)
+	copyCfg.Impersonate = rest.ImpersonationConfig{
+		UserName: fmt.Sprintf("system:serviceaccount:%s:%s", namespace, serviceAccountName),
+	}
+
+	return copyCfg, nil
 }
 
 func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, error) {
@@ -105,7 +150,12 @@ func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, erro
 		return nil, err
 	}
 
-	mgr, err := ctrl.NewManager(opts.Rest, ctrl.Options{
+	config, err := makeServiceAccountImpersonationConfig(opts.Rest, opts.ServiceAccount.Namespace, opts.ServiceAccount.Name)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create impersonation config: %v", err)
+	}
+
+	mgr, err := ctrl.NewManager(config, ctrl.Options{
 		Scheme:             opts.ManagerOptions.Scheme,
 		Logger:             opts.Log,
 		LeaderElection:     false,
@@ -163,6 +213,7 @@ func NewWatcher(opts WatcherOptions) (Watcher, error) {
 		newWatcherManager: opts.ManagerFunc,
 		objectsChannel:    opts.ObjectChannel,
 		log:               opts.Log,
+		serviceAccount:    opts.ServiceAccount,
 	}, nil
 }
 
@@ -187,6 +238,7 @@ func (w *DefaultWatcher) Start() error {
 			LeaderElection:     false,
 			MetricsBindAddress: "0",
 		},
+		ServiceAccount: w.serviceAccount,
 	}
 
 	w.watcherManager, err = w.newWatcherManager(opts)

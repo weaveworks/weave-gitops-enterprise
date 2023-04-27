@@ -33,6 +33,9 @@ enableExplorer: false
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
 
+# Uses the query service for Applications and Sources views
+useQueryServiceBackend: false
+
 # Turns on UI elements for GitOps Run
 enableRunUI: false
 

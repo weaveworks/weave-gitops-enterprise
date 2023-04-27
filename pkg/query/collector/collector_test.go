@@ -42,6 +42,10 @@ func TestNewCollector(t *testing.T) {
 				ProcessRecordsFunc: fakeProcessRecordFunc,
 				NewWatcherFunc:     newFakeWatcher,
 				ClusterManager:     clustersManager,
+				ServiceAccount: ImpersonateServiceAccount{
+					Namespace: "anyNs",
+					Name:      "anyName",
+				},
 			},
 			store:      fakeStore,
 			errPattern: "",
