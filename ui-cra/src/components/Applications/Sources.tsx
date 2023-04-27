@@ -19,7 +19,11 @@ const WGApplicationsSources: FC = () => {
     data: sources,
     isLoading,
     error,
-  } = useListSources('', '', { enabled: !useQueryServiceBackend });
+  } = useListSources('', '', {
+    enabled: !useQueryServiceBackend,
+    retry: false,
+    refetchInterval: 5000,
+  });
   const { setNotifications } = useNotifications();
 
   useEffect(() => {
