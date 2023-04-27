@@ -13,6 +13,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/test"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -21,8 +22,12 @@ import (
 )
 
 var (
-	roleTypeMeta        = typeMeta("Role", "rbac.authorization.k8s.io/v1")
-	roleBindingTypeMeta = typeMeta("RoleBinding", "rbac.authorization.k8s.io/v1")
+	namespaceTypeMeta          = typeMeta("Namespace", "v1")
+	serviceAccountTypeMeta     = typeMeta("ServiceAccount", "v1")
+	roleTypeMeta               = typeMeta("Role", "rbac.authorization.k8s.io/v1")
+	roleBindingTypeMeta        = typeMeta("RoleBinding", "rbac.authorization.k8s.io/v1")
+	clusterRoleTypeMeta        = typeMeta("ClusterRole", "rbac.authorization.k8s.io/v1")
+	clusterRoleBindingTypeMeta = typeMeta("ClusterRoleBinding", "rbac.authorization.k8s.io/v1")
 )
 
 const (
@@ -40,6 +45,8 @@ func TestQueryServer(t *testing.T) {
 
 	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
 	defaultNamespace := "default"
+
+	test.Create(context.Background(), t, cfg, newNamespace("flux-system"))
 
 	testLog := testr.New(t)
 	tests := []struct {
@@ -255,11 +262,34 @@ func podinfoHelmRepository(namespace string) *sourcev1.HelmRepository {
 	}
 }
 
+func createCollectorSecurityContext() []client.Object {
+
+	return []client.Object{
+		newServiceAccount("collector", "flux-system"),
+		newClusterRole("collector",
+			[]rbacv1.PolicyRule{{
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
+				Verbs:     []string{"*"},
+			}}),
+		newClusterRoleBinding("collector",
+			"ClusterRole",
+			"collector",
+			[]rbacv1.Subject{
+				{
+					Kind:      "ServiceAccount",
+					Name:      "collector",
+					Namespace: "flux-system",
+				},
+			}),
+	}
+}
+
 func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
 	roleName := "helm-release-admin"
 	roleBindingName := "wego-admin-helm-release-admin"
 
-	return []client.Object{
+	return append(createCollectorSecurityContext(),
 		newRole(roleName, "default",
 			[]rbacv1.PolicyRule{{
 				APIGroups: []string{"helm.toolkit.fluxcd.io"},
@@ -275,15 +305,14 @@ func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
 					Kind: "User",
 					Name: username,
 				},
-			}),
-	}
+			}))
 }
 
 func allowSourcesAnyOnDefaultNamespace(username string) []client.Object {
 	roleName := "helm-release-admin"
 	roleBindingName := "wego-admin-helm-release-admin"
 
-	return []client.Object{
+	return append(createCollectorSecurityContext(),
 		newRole(roleName, "default",
 			[]rbacv1.PolicyRule{{
 				APIGroups: []string{"source.toolkit.fluxcd.io"},
@@ -300,7 +329,7 @@ func allowSourcesAnyOnDefaultNamespace(username string) []client.Object {
 					Name: username,
 				},
 			}),
-	}
+	)
 }
 
 func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject) *rbacv1.RoleBinding {
@@ -319,6 +348,21 @@ func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv
 	}
 }
 
+func newClusterRoleBinding(name, roleKind, roleName string, subjects []rbacv1.Subject) *rbacv1.ClusterRoleBinding {
+	return &rbacv1.ClusterRoleBinding{
+		TypeMeta: clusterRoleBindingTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     roleKind,
+			Name:     roleName,
+		},
+		Subjects: subjects,
+	}
+}
+
 func newRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.Role {
 	return &rbacv1.Role{
 		TypeMeta: roleTypeMeta,
@@ -327,6 +371,35 @@ func newRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.Role {
 			Namespace: namespace,
 		},
 		Rules: rules,
+	}
+}
+
+func newClusterRole(name string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
+	return &rbacv1.ClusterRole{
+		TypeMeta: clusterRoleTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Rules: rules,
+	}
+}
+
+func newNamespace(name string) *v1.Namespace {
+	return &v1.Namespace{
+		TypeMeta: namespaceTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+	}
+}
+
+func newServiceAccount(name, namespace string) *v1.ServiceAccount {
+	return &v1.ServiceAccount{
+		TypeMeta: serviceAccountTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
 	}
 }
 
