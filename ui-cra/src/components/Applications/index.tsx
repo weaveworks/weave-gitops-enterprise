@@ -33,6 +33,8 @@ const WGApplicationsDashboard: FC = () => {
 
   const { data: automations, isLoading } = useListAutomations('', {
     enabled: !useQueryServiceBackend,
+    retry: false,
+    refetchInterval: 5000,
   });
 
   const history = useHistory();
