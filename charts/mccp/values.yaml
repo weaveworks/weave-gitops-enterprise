@@ -74,6 +74,7 @@ config:
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
     # NOTE: these cannot contains spaces between the elements.
     # customScopes: "groups,email,profile"
+    customScopes: ""
   auth:
     userAccount:
       enabled: true
