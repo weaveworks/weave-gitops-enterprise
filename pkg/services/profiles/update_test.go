@@ -11,7 +11,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 	"sigs.k8s.io/yaml"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -26,13 +25,11 @@ var _ = Describe("Update Profile(s)", func() {
 		gitProviders *gitprovidersfakes.FakeGitProvider
 		profilesSvc  *profiles.ProfilesSvc
 		fakeLogger   logger.Logger
-		fakePR       *fakegitprovider.PullRequest
 	)
 
 	BeforeEach(func() {
 		gitProviders = &gitprovidersfakes.FakeGitProvider{}
 		fakeLogger = logger.From(logr.Discard())
-		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(fakeLogger)
 
 		updateOptions = profiles.Options{
@@ -79,10 +76,7 @@ var _ = Describe("Update Profile(s)", func() {
 						})
 
 						It("opens a PR to update the profiles HelmRelease version", func() {
-							fakePR.GetReturns(gitprovider.PullRequestInfo{
-								WebURL: "url",
-							})
-							gitProviders.CreatePullRequestReturns(fakePR, nil)
+							gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 							Expect(profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)).To(Succeed())
 							Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 							_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
@@ -110,10 +104,7 @@ var _ = Describe("Update Profile(s)", func() {
 									Description: "so cool",
 								}
 
-								fakePR.GetReturns(gitprovider.PullRequestInfo{
-									WebURL: "url",
-								})
-								gitProviders.CreatePullRequestReturns(fakePR, nil)
+								gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 								Expect(profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)).To(Succeed())
 								Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
 								_, repoURL, prInfo := gitProviders.CreatePullRequestArgsForCall(0)
@@ -130,10 +121,13 @@ var _ = Describe("Update Profile(s)", func() {
 
 						When("auto-merge is enabled", func() {
 							It("merges the PR that was created", func() {
-								fakePR.GetReturns(gitprovider.PullRequestInfo{
-									WebURL: "url",
-									Number: 42,
-								})
+								fakePR := &mockPullRequest{
+									info: &gitprovider.PullRequestInfo{
+										WebURL: "url",
+										Number: 42,
+									},
+								}
+
 								gitProviders.CreatePullRequestReturns(fakePR, nil)
 								updateOptions.AutoMerge = true
 								Expect(profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)).Should(Succeed())
@@ -142,10 +136,7 @@ var _ = Describe("Update Profile(s)", func() {
 
 							When("the PR fails to be merged", func() {
 								It("returns an error", func() {
-									fakePR.GetReturns(gitprovider.PullRequestInfo{
-										WebURL: "url",
-									})
-									gitProviders.CreatePullRequestReturns(fakePR, nil)
+									gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 									gitProviders.MergePullRequestReturns(fmt.Errorf("err"))
 									updateOptions.AutoMerge = true
 									err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
@@ -157,10 +148,7 @@ var _ = Describe("Update Profile(s)", func() {
 						When("a version other than 'latest' is specified", func() {
 							It("creates a helm release with that version", func() {
 								updateOptions.Version = "6.0.1"
-								fakePR.GetReturns(gitprovider.PullRequestInfo{
-									WebURL: "url",
-								})
-								gitProviders.CreatePullRequestReturns(fakePR, nil)
+								gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 								err := profilesSvc.Update(context.TODO(), client, gitProviders, updateOptions)
 								Expect(err).To(BeNil())
 							})

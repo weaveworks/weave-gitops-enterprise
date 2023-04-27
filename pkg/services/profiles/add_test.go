@@ -10,7 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/git"
 	"github.com/weaveworks/weave-gitops/pkg/gitproviders/gitprovidersfakes"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"github.com/weaveworks/weave-gitops/pkg/vendorfakes/fakegitprovider"
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	. "github.com/onsi/ginkgo/v2"
@@ -21,18 +20,34 @@ import (
 
 var addOptions profiles.Options
 
+type mockPullRequest struct {
+	info *gitprovider.PullRequestInfo
+}
+
+func (m *mockPullRequest) Get() gitprovider.PullRequestInfo {
+	if m.info == nil {
+		return gitprovider.PullRequestInfo{
+			WebURL: "url",
+		}
+	}
+
+	return *m.info
+}
+
+func (m *mockPullRequest) APIObject() interface{} {
+	return nil
+}
+
 var _ = Describe("Add", func() {
 	var (
 		gitProviders *gitprovidersfakes.FakeGitProvider
 		profilesSvc  *profiles.ProfilesSvc
 		fakeLogger   logger.Logger
-		fakePR       *fakegitprovider.PullRequest
 	)
 
 	BeforeEach(func() {
 		gitProviders = &gitprovidersfakes.FakeGitProvider{}
 		fakeLogger = logger.From(logr.Discard())
-		fakePR = &fakegitprovider.PullRequest{}
 		profilesSvc = profiles.NewService(fakeLogger)
 
 		addOptions = profiles.Options{
@@ -56,9 +71,8 @@ var _ = Describe("Add", func() {
 				})
 
 				It("creates a helm release with the latest available version of the profile via a PR", func() {
-					fakePR.GetReturns(gitprovider.PullRequestInfo{
-						WebURL: "url",
-					})
+
+					fakePR := &mockPullRequest{}
 					gitProviders.CreatePullRequestReturns(fakePR, nil)
 					Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
 					Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
@@ -90,10 +104,7 @@ var _ = Describe("Add", func() {
 							Description: "so cool",
 						}
 
-						fakePR.GetReturns(gitprovider.PullRequestInfo{
-							WebURL: "url",
-						})
-						gitProviders.CreatePullRequestReturns(fakePR, nil)
+						gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 
 						Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
 						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
@@ -114,10 +125,13 @@ var _ = Describe("Add", func() {
 
 				When("auto-merge is enabled", func() {
 					It("merges the PR that was created", func() {
-						fakePR.GetReturns(gitprovider.PullRequestInfo{
-							WebURL: "url",
-							Number: 42,
-						})
+
+						fakePR := &mockPullRequest{
+							info: &gitprovider.PullRequestInfo{
+								WebURL: "url",
+								Number: 42,
+							},
+						}
 						gitProviders.CreatePullRequestReturns(fakePR, nil)
 						addOptions.AutoMerge = true
 						Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
@@ -128,10 +142,7 @@ var _ = Describe("Add", func() {
 
 					When("the PR fails to be merged", func() {
 						It("returns an error", func() {
-							fakePR.GetReturns(gitprovider.PullRequestInfo{
-								WebURL: "url",
-							})
-							gitProviders.CreatePullRequestReturns(fakePR, nil)
+							gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 							gitProviders.MergePullRequestReturns(fmt.Errorf("err"))
 							addOptions.AutoMerge = true
 							err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
@@ -143,10 +154,7 @@ var _ = Describe("Add", func() {
 				When("an existing version other than 'latest' is specified", func() {
 					It("creates a helm release with that version", func() {
 						addOptions.Version = "6.0.0"
-						fakePR.GetReturns(gitprovider.PullRequestInfo{
-							WebURL: "url",
-						})
-						gitProviders.CreatePullRequestReturns(fakePR, nil)
+						gitProviders.CreatePullRequestReturns(&mockPullRequest{}, nil)
 						err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
 						Expect(err).NotTo(HaveOccurred())
 						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
