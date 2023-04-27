@@ -146,7 +146,6 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			Status:             getExternalSecretStatus(&externalSecret),
 			Timestamp:          externalSecret.CreationTimestamp.Format(time.RFC3339),
 			Yaml:               buf.String(),
-
 		}
 
 		if externalSecret.Spec.Data != nil {
