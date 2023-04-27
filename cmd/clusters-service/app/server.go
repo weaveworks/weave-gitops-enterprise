@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"math/big"
 	"net"
 	"net/http"
@@ -22,6 +21,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 
 	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 
@@ -654,6 +655,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClustersManager: args.ClustersManager,
 			SkipCollection:  false,
 			ObjectKinds:     configuration.SupportedObjectKinds,
+			StoreType:       "indexer",
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)

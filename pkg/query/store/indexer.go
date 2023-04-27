@@ -45,6 +45,10 @@ func (i *indexerWriter) GetObjects(ctx context.Context, q Query, opts QueryOptio
 
 	val := q[0].GetValue()
 
+	if val == "" {
+		return i.Store.GetObjects(ctx, q, opts)
+	}
+
 	query := bleve.NewMatchQuery(val)
 	search := bleve.NewSearchRequest(query)
 	searchResults, err := i.mapping.Search(search)

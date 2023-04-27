@@ -121,7 +121,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 		return nil, nil, err
 	}
 
-	s, err := store.NewStore(store.StorageBackendSQLite, dbDir, opts.Logger)
+	s, err := store.NewStore(store.StorageBackend(opts.StoreType), dbDir, opts.Logger)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)
 	}
