@@ -11,6 +11,7 @@ export type QueryRequest = {
   limit?: number
   orderBy?: string
   globalOperand?: string
+  scopedKinds?: string[]
 }
 
 export type QueryClause = {

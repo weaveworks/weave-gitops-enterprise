@@ -4,7 +4,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 )
 
 // ArtifactUpdatePredicate triggers an update event when a HelmRepository artifact revision changes.
@@ -18,12 +18,12 @@ func (ArtifactUpdatePredicate) Update(e event.UpdateEvent) bool {
 		return false
 	}
 
-	oldSource, ok := e.ObjectOld.(sourcev1.Source)
+	oldSource, ok := e.ObjectOld.(*sourcev1beta2.HelmRepository)
 	if !ok {
 		return false
 	}
 
-	newSource, ok := e.ObjectNew.(sourcev1.Source)
+	newSource, ok := e.ObjectNew.(*sourcev1beta2.HelmRepository)
 	if !ok {
 		return false
 	}

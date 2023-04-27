@@ -42,6 +42,8 @@ data:
   OIDC_CLAIM_USERNAME: {{ .Values.config.oidc.claimUsername | quote }}
   CUSTOM_OIDC_SCOPES: {{ .Values.config.oidc.customScopes | quote }}
   OIDC_CLAIM_GROUPS: {{ .Values.config.oidc.claimGroups | quote }}
+  OIDC_USERNAME_PREFIX: {{ .Values.config.oidc.usernamePrefix | quote }}
+  OIDC_GROUPS_PREFIX: {{ .Values.config.oidc.groupsPrefix | quote }}
   {{- end }}
   NO_TLS: {{ not .Values.tls.enabled | quote }}
   {{- if and .Values.tls.enabled .Values.tls.secretName }}

@@ -37,6 +37,10 @@ func TestRolesCollector_NewRoleCollector(t *testing.T) {
 			opts: collector.CollectorOpts{
 				Log:            logr.Discard(),
 				ClusterManager: &clustersmngrfakes.FakeClustersManager{},
+				ServiceAccount: collector.ImpersonateServiceAccount{
+					Name:      "anyName",
+					Namespace: "anyNamespace",
+				},
 			},
 			errPattern: "",
 		},

@@ -221,7 +221,7 @@ func TestGitopsFetcher(t *testing.T) {
 			cluster.GetNameReturns("management")
 			cluster.GetServerClientReturns(client, nil)
 
-			fetcher := fetcher.NewGitopsClusterFetcher(testr.New(t), cluster, "default", scheme, false)
+			fetcher := fetcher.NewGitopsClusterFetcher(testr.New(t), cluster, "default", scheme, false, kube.UserPrefixes{})
 
 			clusters, err := fetcher.Fetch(context.TODO())
 			g.Expect(err).NotTo(HaveOccurred())

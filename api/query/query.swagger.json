@@ -208,6 +208,12 @@
         },
         "globalOperand": {
           "type": "string"
+        },
+        "scopedKinds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

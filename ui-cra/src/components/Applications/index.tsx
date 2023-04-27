@@ -1,19 +1,20 @@
-import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   AutomationsTable,
   Button,
+  Flex,
   Icon,
   IconType,
-  LoadingPage,
+  useFeatureFlags,
   useListAutomations,
-  Flex,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
+import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
+import ScopedExploreUI from '../Explorer/ScopedExploreUI';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 interface Size {
   size?: 'small';
@@ -25,7 +26,15 @@ const ActionsWrapper = styled(Flex)<Size>`
 `;
 
 const WGApplicationsDashboard: FC = () => {
-  const { data: automations, isLoading } = useListAutomations();
+  const { isFlagEnabled } = useFeatureFlags();
+  const useQueryServiceBackend = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  );
+
+  const { data: automations, isLoading } = useListAutomations('', {
+    enabled: !useQueryServiceBackend,
+  });
+
   const history = useHistory();
 
   const handleAddApplication = () => history.push(Routes.AddApplication);
@@ -39,7 +48,7 @@ const WGApplicationsDashboard: FC = () => {
         },
       ]}
     >
-      <ContentWrapper errors={automations?.errors}>
+      <ContentWrapper loading={isLoading} errors={automations?.errors}>
         <div
           style={{
             display: 'flex',
@@ -59,8 +68,12 @@ const WGApplicationsDashboard: FC = () => {
             <OpenedPullRequest />
           </ActionsWrapper>
         </div>
-        {isLoading ? (
-          <LoadingPage />
+
+        {useQueryServiceBackend ? (
+          <ScopedExploreUI
+            scopedKinds={['Kustomization', 'HelmRelease']}
+            enableBatchSync
+          />
         ) : (
           <AutomationsTable automations={automations?.result} />
         )}

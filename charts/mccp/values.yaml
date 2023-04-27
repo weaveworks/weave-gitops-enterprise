@@ -33,6 +33,9 @@ enableExplorer: false
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
 
+# Uses the query service for Applications and Sources views
+useQueryServiceBackend: false
+
 # Turns on UI elements for GitOps Run
 enableRunUI: false
 
@@ -62,13 +65,15 @@ config:
     issuerURL: ""
     redirectURL: ""
     cookieDuration: 1h
-    claimUsername: "email"
-    claimGroups: "groups"
-    clientID: "github"
+    claimUsername: ""
+    claimGroups: ""
+    usernamePrefix: ""
+    groupsPrefix: ""
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
-    clientCredentialsSecret: "github-client"
+    clientCredentialsSecret: ""
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
-    customScopes: "groups, openid, email, profile"
+    # NOTE: these cannot contains spaces between the elements.
+    # customScopes: "groups,email,profile"
   auth:
     userAccount:
       enabled: true
