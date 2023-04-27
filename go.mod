@@ -42,7 +42,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.30.0
 	github.com/fluxcd/kustomize-controller/api v0.34.0
 	github.com/fluxcd/pkg/apis/meta v1.0.0
-	github.com/fluxcd/pkg/runtime v0.32.0
+	github.com/fluxcd/pkg/runtime v0.33.0
 	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/source-controller/api v1.0.0-rc.1
 	github.com/go-resty/resty/v2 v2.7.0
@@ -66,7 +66,7 @@ require (
 	github.com/weaveworks/gitopssets-controller v0.9.0
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
-	github.com/weaveworks/templates-controller v0.1.4
+	github.com/weaveworks/templates-controller v0.2.0
 	github.com/xanzy/go-gitlab v0.78.0
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.7.0

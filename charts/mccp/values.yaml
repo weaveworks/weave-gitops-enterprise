@@ -183,7 +183,7 @@ templates-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.1.4
+        tag: v0.2.0
 
 gitopssets-controller:
   enabled: true
