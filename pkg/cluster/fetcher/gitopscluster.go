@@ -11,6 +11,7 @@ import (
 	mngr "github.com/weaveworks/weave-gitops/core/clustersmngr"
 	mngrcluster "github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	v1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -31,9 +32,10 @@ type gitopsClusterFetcher struct {
 	namespace         string
 	isDelegating      bool
 	kubeConfigOptions []mngrcluster.KubeConfigOption
+	userPrefixes      kube.UserPrefixes
 }
 
-func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
+func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Cluster, namespace string, scheme *runtime.Scheme, isDelegating bool, userPrefixes kube.UserPrefixes, kubeConfigOptions ...mngrcluster.KubeConfigOption) mngr.ClusterFetcher {
 	return gitopsClusterFetcher{
 		log:               log.WithName("gitops-cluster-fetcher"),
 		cluster:           managementCluster,
@@ -41,6 +43,7 @@ func NewGitopsClusterFetcher(log logr.Logger, managementCluster mngrcluster.Clus
 		namespace:         namespace,
 		isDelegating:      isDelegating,
 		kubeConfigOptions: kubeConfigOptions,
+		userPrefixes:      userPrefixes,
 	}
 }
 
@@ -174,6 +177,7 @@ func (f gitopsClusterFetcher) leafClusters(ctx context.Context) ([]mngrcluster.C
 			}.String(),
 			restCfg,
 			f.scheme,
+			f.userPrefixes,
 			f.kubeConfigOptions...,
 		)
 		// TODO: the DefaultKubeConfigOptions will throw an error if the cluster can't be reached
