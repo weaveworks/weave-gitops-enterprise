@@ -17,6 +17,10 @@ type ObjectKind struct {
 	AddToSchemeFunc     func(*runtime.Scheme) error
 }
 
+func (ok ObjectKind) String() string {
+	return ok.Gvk.String()
+}
+
 func (o ObjectKind) Validate() error {
 	if o.Gvk.Kind == "" {
 		return fmt.Errorf("missing gvk")

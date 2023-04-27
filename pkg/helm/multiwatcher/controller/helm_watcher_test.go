@@ -7,7 +7,8 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	"helm.sh/helm/v3/pkg/chart"
@@ -127,7 +128,7 @@ func TestReconcileDelete(t *testing.T) {
 	)
 	fakeCache := helmfakes.NewFakeChartCache(helmfakes.WithCharts(key, repo1Charts))
 	reconciler := setupReconcileAndFakes(
-		makeTestHelmRepo(func(hr *sourcev1.HelmRepository) {
+		makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
 			newTime := metav1.NewTime(time.Now())
 			hr.ObjectMeta.DeletionTimestamp = &newTime
 		}),
@@ -148,7 +149,7 @@ func TestReconcileDelete(t *testing.T) {
 }
 
 func TestReconcileDeletingTheCacheFails(t *testing.T) {
-	deletedHelmRepo := makeTestHelmRepo(func(hr *sourcev1.HelmRepository) {
+	deletedHelmRepo := makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
 		newTime := metav1.NewTime(time.Now())
 		hr.ObjectMeta.DeletionTimestamp = &newTime
 	})
@@ -257,7 +258,7 @@ func TestLoadIndex(t *testing.T) {
 
 func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetcher, fakeCache helm.ChartsCacheWriter) *HelmWatcherReconciler {
 	scheme := runtime.NewScheme()
-	utilruntime.Must(sourcev1.AddToScheme(scheme))
+	utilruntime.Must(sourcev1beta2.AddToScheme(scheme))
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme)
 	if helmRepo != nil {
@@ -273,22 +274,21 @@ func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetch
 }
 
 // makeTestHelmRepo creates a HelmRepository object and accepts a list of options to modify it.
-func makeTestHelmRepo(opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {
-	repo := &sourcev1.HelmRepository{
+func makeTestHelmRepo(opts ...func(*sourcev1beta2.HelmRepository)) *sourcev1beta2.HelmRepository {
+	repo := &sourcev1beta2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
+			Kind:       sourcev1beta2.HelmRepositoryKind,
 			APIVersion: "source.toolkit.fluxcd.io/v1beta2",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "test-name",
 			Namespace: "test-namespace",
 		},
-		Status: sourcev1.HelmRepositoryStatus{
+		Status: sourcev1beta2.HelmRepositoryStatus{
 			Artifact: &sourcev1.Artifact{
 				Path:     "relative/path",
 				URL:      "https://github.com",
 				Revision: "revision",
-				Checksum: "checksum",
 			},
 		},
 	}

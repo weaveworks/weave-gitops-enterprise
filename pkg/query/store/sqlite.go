@@ -3,10 +3,11 @@ package store
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -205,6 +206,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	var offset int = -1
 	var orderBy string = ""
 	useOrLogic := false
+	var scopedKinds []string
 
 	if opts != nil {
 		if opts.GetOffset() != 0 {
@@ -218,11 +220,9 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		if opts.GetGlobalOperand() == string(GlobalOperandOr) {
 			useOrLogic = true
 		}
-	}
 
-	tx := i.db.Model(&models.Object{})
-	tx = tx.Offset(offset)
-	tx = tx.Order(orderBy)
+		scopedKinds = opts.GetScopedKinds()
+	}
 
 	if useOrLogic {
 		stmt := ""
@@ -237,14 +237,32 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 
 		stmt = strings.TrimSuffix(stmt, " OR ")
-		tx = tx.Raw(fmt.Sprintf("SELECT * FROM objects WHERE %s", stmt))
 
-		if tx.Error != nil {
-			return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+		orTX := i.db.Model(&models.Object{})
+
+		if scopedKinds != nil {
+			dbScope := kindScope(scopedKinds)
+			orTX = orTX.Scopes(dbScope)
 		}
 
-		return sqliterator.New(tx)
+		orTX = orTX.Where(stmt).Order(orderBy).Offset(offset)
+
+		if orTX.Error != nil {
+			return nil, fmt.Errorf("failed to execute query: %w", orTX.Error)
+		}
+
+		return sqliterator.New(orTX)
 	}
+
+	tx := i.db.Model(&models.Object{})
+
+	if scopedKinds != nil {
+		dbScopes := kindScope(scopedKinds)
+		tx = tx.Scopes(dbScopes)
+	}
+
+	tx = tx.Offset(offset)
+	tx = tx.Order(orderBy)
 
 	if len(q) > 0 {
 		for _, c := range q {
@@ -268,7 +286,7 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
 	}
-	i.debug.Info("objects retrieved")
+	i.debug.Info("objects retrieved", "numResults", tx.RowsAffected)
 	return sqliterator.New(tx)
 }
 
@@ -373,4 +391,10 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func kindScope(kinds []string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("kind IN ?", kinds)
+	}
 }
