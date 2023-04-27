@@ -42,7 +42,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.30.0
 	github.com/fluxcd/kustomize-controller/api v0.34.0
 	github.com/fluxcd/pkg/apis/meta v1.0.0
-	github.com/fluxcd/pkg/runtime v0.32.0
+	github.com/fluxcd/pkg/runtime v0.33.0
 	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/source-controller/api v1.0.0-rc.1
 	github.com/go-resty/resty/v2 v2.7.0
