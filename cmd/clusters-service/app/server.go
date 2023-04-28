@@ -666,7 +666,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ObjectKinds:     configuration.SupportedObjectKinds,
 		})
 		if err != nil {
-			return fmt.Errorf("hydrating pipelines server: %w", err)
+			return fmt.Errorf("hydrating query server: %w", err)
 		}
 	}
 

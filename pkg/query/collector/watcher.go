@@ -152,7 +152,7 @@ func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, erro
 
 	config, err := makeServiceAccountImpersonationConfig(opts.Rest, opts.ServiceAccount.Namespace, opts.ServiceAccount.Name)
 	if err != nil {
-		return nil, fmt.Errorf("cannot create impersonation config: %v", err)
+		return nil, fmt.Errorf("cannot create impersonation config: %w", err)
 	}
 
 	mgr, err := ctrl.NewManager(config, ctrl.Options{
@@ -162,23 +162,23 @@ func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, erro
 		MetricsBindAddress: "0",
 	})
 	if err != nil {
-		return nil, fmt.Errorf("cannot create controller manager: %v", err)
+		return nil, fmt.Errorf("cannot create controller manager: %w", err)
 	}
 
 	//create reconciler for kinds
 	for _, kind := range opts.Kinds {
 		rec, err := reconciler.NewReconciler(opts.ClusterName, kind, mgr.GetClient(), opts.ObjectsChannel, opts.Log)
 		if err != nil {
-			return nil, fmt.Errorf("cannot create reconciler: %v", err)
+			return nil, fmt.Errorf("cannot create reconciler: %w", err)
 		}
 		err = rec.Setup(mgr)
 		if err != nil {
-			return nil, fmt.Errorf("cannot setup reconciler: %v", err)
+			return nil, fmt.Errorf("cannot setup reconciler: %w", err)
 		}
 
 	}
 	if err != nil {
-		return nil, fmt.Errorf("cannot setup reconciler: %v", err)
+		return nil, fmt.Errorf("cannot setup reconciler: %w", err)
 	}
 
 	return mgr, nil
@@ -243,7 +243,7 @@ func (w *DefaultWatcher) Start() error {
 
 	w.watcherManager, err = w.newWatcherManager(opts)
 	if err != nil {
-		return fmt.Errorf("cannot create watcher manager: %v", err)
+		return fmt.Errorf("cannot create watcher manager: %w", err)
 	}
 
 	go func() {

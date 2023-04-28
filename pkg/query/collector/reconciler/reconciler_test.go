@@ -72,7 +72,7 @@ func TestSetup(t *testing.T) {
 	g := NewGomegaWithT(t)
 	s := runtime.NewScheme()
 	if err := v2beta1.AddToScheme(s); err != nil {
-		t.Fatalf("could not add v2beta1 to scheme: %v", err)
+		t.Fatalf("could not add v2beta1 to scheme: %w", err)
 	}
 	logger := testr.New(t)
 	fakeClient := fake.NewClientBuilder().WithScheme(s).Build()
@@ -128,7 +128,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 	//setup reconciler
 	s := runtime.NewScheme()
 	if err := v2beta1.AddToScheme(s); err != nil {
-		t.Fatalf("could not add v2beta1 to scheme: %v", err)
+		t.Fatalf("could not add v2beta1 to scheme: %w", err)
 	}
 	fakeClient := fake.NewClientBuilder().WithRuntimeObjects(objects...).WithScheme(s).Build()
 
