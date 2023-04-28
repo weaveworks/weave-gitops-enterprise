@@ -118,10 +118,10 @@ const GitopsSets: FC = () => {
 
   return (
     <PageTemplate
-      documentTitle="GitopsSets"
+      documentTitle="GitOpsSets"
       path={[
         {
-          label: 'GitopsSets',
+          label: 'GitOpsSets',
         },
       ]}
     >
