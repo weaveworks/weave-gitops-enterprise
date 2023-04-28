@@ -27,13 +27,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: collector
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
     namespace: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
 roleRef:
   kind: ClusterRole
-  name: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
