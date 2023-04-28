@@ -6,6 +6,7 @@ package server_test
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"log"
 	"net"
 	"os"
@@ -159,6 +160,10 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 		ClustersManager: clustersManager,
 		SkipCollection:  false,
 		ObjectKinds:     configuration.SupportedObjectKinds,
+		ServiceAccount: collector.ImpersonateServiceAccount{
+			Name:      "collector",
+			Namespace: "flux-system",
+		},
 	}
 
 	qs, _, err := queryserver.NewServer(opts2)
