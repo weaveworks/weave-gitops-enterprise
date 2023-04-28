@@ -7,6 +7,8 @@
 # the given kind cluster (if it exists) and its GitOps repository and recreate them 
 # both, installing everything from scratch.
 
+set -euo pipefail
+
 export KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-wge-dev}"
 export GITHUB_REPO="${GITHUB_REPO:-wge-dev}"
 export DELETE_GITOPS_DEV_REPO="${DELETE_GITOPS_DEV_REPO:-0}"

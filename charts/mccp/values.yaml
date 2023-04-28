@@ -9,7 +9,7 @@ fullnameOverride: ""
 images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.5.0
+  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -74,6 +74,7 @@ config:
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
     # NOTE: these cannot contains spaces between the elements.
     # customScopes: "groups,email,profile"
+    customScopes: ""
   auth:
     userAccount:
       enabled: true
@@ -183,7 +184,7 @@ templates-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.1.4
+        tag: v0.2.0
 
 gitopssets-controller:
   enabled: true
@@ -192,4 +193,4 @@ gitopssets-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.8.0
+        tag: v0.9.0
