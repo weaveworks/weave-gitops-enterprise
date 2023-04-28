@@ -192,15 +192,14 @@ gitopssets-controller:
 
 
 #### Explorer
-
 # Turns on explorer to true
 enableExplorer: false
-
 # Uses the query service for Applications and Sources views
 useQueryServiceBackend: false
 
 explorer:
   collector:
+    # ServiceAccount that explorer will use to watch clusters for resources
     serviceAccount:
       name: "collector"
       namespace: "flux-system"
