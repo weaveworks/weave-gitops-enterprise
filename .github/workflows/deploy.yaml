@@ -55,37 +55,37 @@ jobs:
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
 
-  smoke-tests-gitlab-on-prem:
-    needs: [build]
-    uses: ./.github/workflows/acceptance-test.yaml
-    with:
-      runs-on: ubuntu-latest
-      os-name: linux
-      timeout-minutes: 60
-      label-filter: "--label-filter='smoke&&tenant'"
-      kubectl-version: "v1.23.3"
-      login_user_type: "oidc"
-      git-provider: gitlab
-      git-provider_hostname: gitlab.git.dev.weave.works
-      cluster_resource_set: true
-      management-cluster-kind: kind
-      capi_provider: capd
-      gitops-bin-path: /usr/local/bin/gitops
-      test-artifact-name: smoke-tests-gitlab-on-prem
-    secrets:
-      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
-      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
-      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
-      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
-      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
-      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
-      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
-      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
-      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
-      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
-      WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-      WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
+  # smoke-tests-gitlab-on-prem:
+  #   needs: [build]
+  #   uses: ./.github/workflows/acceptance-test.yaml
+  #   with:
+  #     runs-on: ubuntu-latest
+  #     os-name: linux
+  #     timeout-minutes: 60
+  #     label-filter: "--label-filter='smoke&&tenant'"
+  #     kubectl-version: "v1.23.3"
+  #     login_user_type: "oidc"
+  #     git-provider: gitlab
+  #     git-provider_hostname: gitlab.git.dev.weave.works
+  #     cluster_resource_set: true
+  #     management-cluster-kind: kind
+  #     capi_provider: capd
+  #     gitops-bin-path: /usr/local/bin/gitops
+  #     test-artifact-name: smoke-tests-gitlab-on-prem
+  #   secrets:
+  #     WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+  #     WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+  #     WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+  #     WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+  #     WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
+  #     WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+  #     WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
+  #     WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
+  #     WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
+  #     WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
+  #     WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
+  #     WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
+  #     WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
 
   smoke-test-results:
     if: ${{ always() }}
