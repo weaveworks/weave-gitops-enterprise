@@ -68,6 +68,10 @@ function getParentNavRouteValueExtended(
     case Routes.GitOpsRun:
     case Routes.GitOpsRunDetail:
       return Routes.GitOpsRun;
+    //GitOps Sets
+    case Routes.GitOpsSets:
+    case Routes.GitOpsSetDetail:
+      return Routes.GitOpsSets;
 
     case Routes.Explorer:
     case Routes.ExplorerAccessRules:

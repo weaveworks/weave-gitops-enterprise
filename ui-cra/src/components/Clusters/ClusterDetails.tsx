@@ -73,7 +73,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
       >
         <ContentWrapper loading={isLoading}>
           {currentCluster && (
-            <>
+            <div style={{ overflowX: 'auto' }}>
               <ActionsWrapper>
                 <WeaveButton
                   id="cluster-application"
@@ -128,7 +128,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                   />
                 </RouterTab>
               </SubRouterTabs>
-            </>
+            </div>
           )}
         </ContentWrapper>
       </PageTemplate>
