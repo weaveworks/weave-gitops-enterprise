@@ -65,12 +65,7 @@ type ServerOpts struct {
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
-	clauses := []store.QueryClause{}
-	for _, c := range msg.Query {
-		clauses = append(clauses, c)
-	}
-
-	objs, err := s.qs.RunQuery(ctx, clauses, msg)
+	objs, err := s.qs.RunQuery(ctx, store.Query(msg.Query), msg)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
@@ -161,10 +156,21 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	}
 	debug.Info("access checker created")
 
+	idxDir, err := os.MkdirTemp("", "index")
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create index dir: %w", err)
+	}
+
+	idx, err := store.NewIndexer(s, idxDir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create indexer: %w", err)
+	}
+
 	qs, err := query.NewQueryService(query.QueryServiceOpts{
 		Log:           debug,
 		StoreReader:   s,
 		AccessChecker: checker,
+		IndexReader:   idx,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
@@ -192,7 +198,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		objsCollector, err := objectscollector.NewObjectsCollector(s, collector.CollectorOpts{
+		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, collector.CollectorOpts{
 			Log:            opts.Logger,
 			ClusterManager: opts.ClustersManager,
 			ObjectKinds:    opts.ObjectKinds,

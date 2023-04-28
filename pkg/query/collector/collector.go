@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
@@ -36,6 +37,7 @@ type CollectorOpts struct {
 	ProcessRecordsFunc ProcessRecordsFunc
 	NewWatcherFunc     NewWatcherFunc
 	ServiceAccount     ImpersonateServiceAccount
+	IndexWriter        store.IndexWriter
 }
 
 func (o *CollectorOpts) Validate() error {
@@ -54,6 +56,7 @@ func (o *CollectorOpts) Validate() error {
 	if o.ServiceAccount.Namespace == "" {
 		return fmt.Errorf("invalid service account namespace")
 	}
+
 	return nil
 }
 

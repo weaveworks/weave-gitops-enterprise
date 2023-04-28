@@ -33,7 +33,7 @@ service Query {
 }
 
 message QueryRequest {
-    repeated QueryClause query    = 1;
+    string   query                = 1;
     int32    offset               = 2;
     int32    limit                = 3;
     string   orderBy              = 4;
@@ -41,16 +41,9 @@ message QueryRequest {
     repeated string   scopedKinds = 6;
 }
 
-message QueryClause {
-    string key     = 1;
-    string value   = 2;
-    string operand = 3;
-}
-
 message QueryResponse {
   repeated Object objects = 1;
 }
-
 
 message Object {
     string cluster    = 1;

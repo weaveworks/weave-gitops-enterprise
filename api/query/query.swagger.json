@@ -175,29 +175,11 @@
         }
       }
     },
-    "v1QueryClause": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        },
-        "operand": {
-          "type": "string"
-        }
-      }
-    },
     "v1QueryRequest": {
       "type": "object",
       "properties": {
         "query": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1QueryClause"
-          }
+          "type": "string"
         },
         "offset": {
           "type": "integer",

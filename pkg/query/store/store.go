@@ -47,27 +47,21 @@ const (
 	GlobalOperandOr  GlobalOperand = "or"
 )
 
-type Query []QueryClause
+type Query string
 
 type QueryOption interface {
 	GetLimit() int32
 	GetOffset() int32
 	GetOrderBy() string
-	GetGlobalOperand() string
 	GetScopedKinds() []string
-}
-
-type QueryClause interface {
-	GetKey() string
-	GetOperand() string
-	GetValue() string
 }
 
 // StoreReader is an interface for querying objects
 //
 //counterfeiter:generate . StoreReader
 type StoreReader interface {
-	GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error)
+	GetObjectByID(ctx context.Context, id string) (models.Object, error)
+	GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 

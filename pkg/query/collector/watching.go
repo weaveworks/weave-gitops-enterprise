@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -54,7 +55,7 @@ func (c *watchingCollector) Start() error {
 	//watch object events
 	go func() {
 		for objectTransactions := range c.objectsChannel {
-			err := c.processRecordsFunc(objectTransactions, c.store, c.log)
+			err := c.processRecordsFunc(objectTransactions, c.store, c.idx, c.log)
 			if err != nil {
 				c.log.Error(err, "cannot process records")
 			}
@@ -77,6 +78,7 @@ type watchingCollector struct {
 	clusterWatchers    map[string]Watcher
 	kinds              []configuration.ObjectKind
 	store              store.Store
+	idx                store.IndexWriter
 	objectsChannel     chan []models.ObjectTransaction
 	newWatcherFunc     NewWatcherFunc
 	log                logr.Logger
@@ -99,13 +101,14 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 		log:                opts.Log,
 		processRecordsFunc: opts.ProcessRecordsFunc,
 		serviceAccount:     opts.ServiceAccount,
+		idx:                opts.IndexWriter,
 	}, nil
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
 type NewWatcherFunc = func(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error)
 
-type ProcessRecordsFunc = func(objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error
+type ProcessRecordsFunc = func(objectRecords []models.ObjectTransaction, store store.Store, idx store.IndexWriter, log logr.Logger) error
 
 // TODO add unit tests
 func defaultNewWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction,

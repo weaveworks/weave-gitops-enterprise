@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
@@ -22,6 +23,7 @@ type QueryServiceOpts struct {
 	Log           logr.Logger
 	StoreReader   store.StoreReader
 	AccessChecker accesschecker.Checker
+	IndexReader   store.IndexReader
 }
 
 const (
@@ -34,6 +36,7 @@ func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
 		debug:   opts.Log.WithName("query-service").V(logger.LogLevelDebug),
 		r:       opts.StoreReader,
 		checker: opts.AccessChecker,
+		index:   opts.IndexReader,
 	}, nil
 }
 
@@ -42,6 +45,7 @@ type qs struct {
 	debug   logr.Logger
 	r       store.StoreReader
 	checker accesschecker.Checker
+	index   store.IndexReader
 }
 
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object
@@ -61,7 +65,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	}
 	rules = q.checker.RelevantRulesForUser(principal, rules)
 
-	iter, err := q.r.GetObjects(ctx, query, opts)
+	iter, err := q.index.Search(ctx, query, opts)
 	if err != nil {
 		return nil, fmt.Errorf("error getting objects from store: %w", err)
 	}

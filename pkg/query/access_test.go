@@ -2,13 +2,14 @@ package query
 
 import (
 	"context"
+	"os"
+	"strings"
+	"testing"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
-	"os"
-	"strings"
-	"testing"
 
 	"github.com/alecthomas/assert"
 	"github.com/google/go-cmp/cmp"
@@ -412,7 +413,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 
 			assert.NoError(t, err)
 
-			actual, err := qs.RunQuery(ctx, nil, nil)
+			actual, err := qs.RunQuery(ctx, "", nil)
 			assert.NoError(t, err)
 
 			opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt")

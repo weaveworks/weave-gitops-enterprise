@@ -1,6 +1,8 @@
 package objectscollector
 
 import (
+	"testing"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
@@ -12,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
@@ -20,12 +21,14 @@ func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
 	tests := []struct {
 		name       string
 		store      store.Store
+		index      store.IndexWriter
 		opts       collector.CollectorOpts
 		errPattern string
 	}{
 		{
 			name:       "cannot create collector without kinds",
 			store:      &storefakes.FakeStore{},
+			index:      &storefakes.FakeIndexWriter{},
 			opts:       collector.CollectorOpts{},
 			errPattern: "invalid object kind",
 		},
@@ -54,7 +57,7 @@ func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			collector, err := NewObjectsCollector(tt.store, tt.opts)
+			collector, err := NewObjectsCollector(tt.store, tt.index, tt.opts)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -70,6 +73,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
+	fakeIndex := &storefakes.FakeIndexWriter{}
 
 	//setup data
 	clusterName := "anyCluster"
@@ -114,7 +118,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, fakeIndex, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
