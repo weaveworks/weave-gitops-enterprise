@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.22.0-rc.1.0.20230426093452-4ec2f9b8e109
+	github.com/weaveworks/weave-gitops v0.22.1-0.20230428070221-b6255c55a72c
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -39,7 +39,7 @@ require (
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.21.0
 	github.com/fluxcd/go-git-providers v0.15.0
-	github.com/fluxcd/helm-controller/api v0.32.1
+	github.com/fluxcd/helm-controller/api v0.32.2
 	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.1
 	github.com/fluxcd/pkg/apis/meta v1.0.0
 	github.com/fluxcd/pkg/runtime v0.35.0
