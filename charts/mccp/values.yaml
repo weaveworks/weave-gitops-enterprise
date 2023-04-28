@@ -27,14 +27,9 @@ listOCIRepositories: false
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: true
 
-# Turns on explorer to true
-enableExplorer: false
-
 # Turns on UI elements for Terraform objects
-enableTerraformUI: false
 
-# Uses the query service for Applications and Sources views
-useQueryServiceBackend: false
+enableTerraformUI: false
 
 # Turns on UI elements for GitOps Run
 enableRunUI: false
@@ -194,3 +189,18 @@ gitopssets-controller:
     manager:
       image:
         tag: v0.9.0
+
+
+#### Explorer
+
+# Turns on explorer to true
+enableExplorer: false
+
+# Uses the query service for Applications and Sources views
+useQueryServiceBackend: false
+
+explorer:
+  collector:
+    serviceAccount:
+      name: "collector"
+      namespace: "flux-system"

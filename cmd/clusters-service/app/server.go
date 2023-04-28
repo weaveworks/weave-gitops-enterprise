@@ -154,6 +154,8 @@ type Params struct {
 	GitProviderCSRFCookieDomain       string                    `mapstructure:"git-provider-csrf-cookie-domain"`
 	GitProviderCSRFCookiePath         string                    `mapstructure:"git-provider-csrf-cookie-path"`
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
+	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
+	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -251,6 +253,9 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("git-provider-csrf-cookie-domain", "", "The domain of the CSRF cookie")
 	cmdFlags.String("git-provider-csrf-cookie-path", "", "The path of the CSRF cookie")
 	cmdFlags.Duration("git-provider-csrf-cookie-duration", 5*time.Minute, "The duration of the CSRF cookie before it expires")
+	// Explorer configuration
+	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
+	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -549,6 +554,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithTemplateCostEstimator(estimator),
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
+		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 	)
 }
 
@@ -664,6 +670,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClustersManager: args.ClustersManager,
 			SkipCollection:  false,
 			ObjectKinds:     configuration.SupportedObjectKinds,
+			ServiceAccount:  args.CollectorServiceAccount,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating query server: %w", err)

@@ -51,3 +51,6 @@ data:
   TLS_PRIVATE_KEY: /etc/clusters-service-tls/tls.key
   {{- end }}
   UI_CONFIG: {{ .Values.config.ui | toJson | quote }}
+  GIT_PROVIDER_TYPE: {{ .Values.config.git.type }}
+  COLLECTOR_SERVICEACCOUNT_NAME: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+  COLLECTOR_SERVICEACCOUNT_NAMESPACE: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
