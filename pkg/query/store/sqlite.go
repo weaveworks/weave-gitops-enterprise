@@ -7,8 +7,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops/core/logger"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/sqliterator"
 
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -19,21 +22,64 @@ import (
 const dbFile = "resources.db"
 
 type SQLiteStore struct {
-	db  *gorm.DB
-	log logr.Logger
+	db    *gorm.DB
+	log   logr.Logger
+	debug logr.Logger
+}
+
+func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Role{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
+}
+
+func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.RoleBinding{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+	return nil
+}
+
+func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
+	for _, cluster := range clusters {
+		where := i.db.Where(
+			"cluster = ? ",
+			cluster,
+		)
+		result := i.db.Unscoped().Delete(&models.Object{}, where)
+		if result.Error != nil {
+			return fmt.Errorf("failed to delete all objects: %w", result.Error)
+		}
+	}
+
+	return nil
 }
 
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
-		db:  db,
-		log: log,
+		db:    db,
+		log:   log.WithName("sqllite"),
+		debug: log.WithName("sqllite").V(logger.LogLevelDebug),
 	}, nil
 }
 
 func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
-	if len(roles) == 0 {
-		return fmt.Errorf("empty role list")
-	}
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
@@ -66,17 +112,13 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 			return fmt.Errorf("failed to store role: %w", result.Error)
 		}
 
-		i.log.Info("stored role", "role", fmt.Sprintf("%s/%s/%s/%s", role.Cluster, role.Namespace, role.Kind, role.Name))
+		i.debug.Info("role stored", "role", role.GetID())
 	}
 
 	return nil
 }
 
 func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
-	if len(roleBindings) == 0 {
-		return fmt.Errorf("empty role binding list")
-	}
-
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)
@@ -106,7 +148,7 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 		if result.Error != nil {
 			return fmt.Errorf("failed to store role binding: %w", result.Error)
 		}
-		i.log.Info("stored rolebinding", "rolebinding", fmt.Sprintf("%s/%s/%s/%s", roleBinding.Cluster, roleBinding.Namespace, roleBinding.Kind, roleBinding.Name))
+		i.debug.Info("rolebinding stored", "rolebinding", roleBinding.GetID())
 
 	}
 
@@ -128,7 +170,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 
 		object.ID = object.GetID()
 		rows = append(rows, object)
-		i.log.Info("storing object", "object", object.GetID())
+		i.debug.Info("storing object", "object", object.GetID())
 	}
 
 	clauses := i.db.Clauses(clause.OnConflict{
@@ -143,6 +185,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 		return fmt.Errorf("failed to store object: %w", result.Error)
 	}
 
+	i.debug.Info("objects stored", "rows-affected", result.RowsAffected)
 	return nil
 }
 
@@ -157,20 +200,15 @@ func toSQLOperand(op QueryOperand) (string, error) {
 	}
 }
 
-func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) ([]models.Object, error) {
-	objects := []models.Object{}
-
-	// If limit or offset are zero, they were not set.
-	// -1 tells GORM to ignore the limit/offset
-	var limit int = -1
+func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
+	// If offset is zero, it was not set.
+	// -1 tells GORM to ignore the offset
 	var offset int = -1
 	var orderBy string = ""
 	useOrLogic := false
+	var scopedKinds []string
 
 	if opts != nil {
-		if opts.GetLimit() != 0 {
-			limit = int(opts.GetLimit())
-		}
 		if opts.GetOffset() != 0 {
 			offset = int(opts.GetOffset())
 		}
@@ -182,11 +220,9 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		if opts.GetGlobalOperand() == string(GlobalOperandOr) {
 			useOrLogic = true
 		}
-	}
 
-	tx := i.db.Limit(limit)
-	tx = tx.Offset(offset)
-	tx = tx.Order(orderBy)
+		scopedKinds = opts.GetScopedKinds()
+	}
 
 	if useOrLogic {
 		stmt := ""
@@ -201,12 +237,32 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 
 		stmt = strings.TrimSuffix(stmt, " OR ")
-		tx = tx.Raw(fmt.Sprintf("SELECT * FROM objects WHERE %s", stmt))
 
-		result := tx.Find(&objects)
+		orTX := i.db.Model(&models.Object{})
 
-		return objects, result.Error
+		if scopedKinds != nil {
+			dbScope := kindScope(scopedKinds)
+			orTX = orTX.Scopes(dbScope)
+		}
+
+		orTX = orTX.Where(stmt).Order(orderBy).Offset(offset)
+
+		if orTX.Error != nil {
+			return nil, fmt.Errorf("failed to execute query: %w", orTX.Error)
+		}
+
+		return sqliterator.New(orTX)
 	}
+
+	tx := i.db.Model(&models.Object{})
+
+	if scopedKinds != nil {
+		dbScopes := kindScope(scopedKinds)
+		tx = tx.Scopes(dbScopes)
+	}
+
+	tx = tx.Offset(offset)
+	tx = tx.Order(orderBy)
 
 	if len(q) > 0 {
 		for _, c := range q {
@@ -227,9 +283,11 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		}
 	}
 
-	result := tx.Find(&objects)
-
-	return objects, result.Error
+	if tx.Error != nil {
+		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
+	}
+	i.debug.Info("objects retrieved", "numResults", tx.RowsAffected)
+	return sqliterator.New(tx)
 }
 
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
@@ -333,4 +391,10 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	}
 
 	return db, nil
+}
+
+func kindScope(kinds []string) func(db *gorm.DB) *gorm.DB {
+	return func(db *gorm.DB) *gorm.DB {
+		return db.Where("kind IN ?", kinds)
+	}
 }

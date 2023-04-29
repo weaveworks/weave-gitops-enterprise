@@ -31,7 +31,6 @@ data:
   {{- if .Values.config.auth.tokenPassthrough.enabled -}}{{- $authMethods = append $authMethods "token-passthrough" -}}{{- end }}
   {{- if .Values.config.oidc.enabled -}}{{- $authMethods = append $authMethods "oidc"  -}}{{- end }}
   AUTH_METHODS: {{ join "," $authMethods | quote }}
-  ADMIN_SECRET: {{ .Values.config.auth.userAccount.secretName | quote }}
   CAPI_ENABLED: {{ .Values.global.capiEnabled | quote }}
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1
@@ -43,6 +42,8 @@ data:
   OIDC_CLAIM_USERNAME: {{ .Values.config.oidc.claimUsername | quote }}
   CUSTOM_OIDC_SCOPES: {{ .Values.config.oidc.customScopes | quote }}
   OIDC_CLAIM_GROUPS: {{ .Values.config.oidc.claimGroups | quote }}
+  OIDC_USERNAME_PREFIX: {{ .Values.config.oidc.usernamePrefix | quote }}
+  OIDC_GROUPS_PREFIX: {{ .Values.config.oidc.groupsPrefix | quote }}
   {{- end }}
   NO_TLS: {{ not .Values.tls.enabled | quote }}
   {{- if and .Values.tls.enabled .Values.tls.secretName }}

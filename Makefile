@@ -168,6 +168,7 @@ integration-tests:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/test-dependencies.toml
 	go test -v ./cmd/clusters-service/... -tags=integration
 	go test -v ./pkg/git/... -tags=integration
+	go test -v ./pkg/query/... -tags=integration
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true

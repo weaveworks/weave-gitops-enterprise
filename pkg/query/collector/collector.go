@@ -1,25 +1,25 @@
 package collector
 
 import (
-	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// Interface for watching clusters via kuberentes api
-// https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
+// ClusterWatcher defines an interface to watch gitops clusters via kubernetes https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
 type ClusterWatcher interface {
-	Watch(cluster cluster.Cluster, objectsChannel chan []models.ObjectTransaction, ctx context.Context, log logr.Logger) error
-	Unwatch(cluster cluster.Cluster) error
-	Status(cluster cluster.Cluster) (string, error)
+	// Watch starts watching the cluster passed as input
+	Watch(cluster cluster.Cluster) error
+	// Unwatch stops watching the cluster identified by input clusterName.
+	Unwatch(clusterName string) error
+	// Status return the watcher status for the cluster identified as clusterName.
+	Status(clusterName string) (string, error)
 }
 
 //counterfeiter:generate . Collector
@@ -31,10 +31,11 @@ type Collector interface {
 
 type CollectorOpts struct {
 	Log                logr.Logger
-	ObjectKinds        []schema.GroupVersionKind
+	ObjectKinds        []configuration.ObjectKind
 	ClusterManager     clustersmngr.ClustersManager
 	ProcessRecordsFunc ProcessRecordsFunc
 	NewWatcherFunc     NewWatcherFunc
+	ServiceAccount     ImpersonateServiceAccount
 }
 
 func (o *CollectorOpts) Validate() error {
@@ -47,7 +48,12 @@ func (o *CollectorOpts) Validate() error {
 	if o.ProcessRecordsFunc == nil {
 		return fmt.Errorf("process records func is nil")
 	}
-
+	if o.ServiceAccount.Name == "" {
+		return fmt.Errorf("invalid service account name")
+	}
+	if o.ServiceAccount.Namespace == "" {
+		return fmt.Errorf("invalid service account namespace")
+	}
 	return nil
 }
 

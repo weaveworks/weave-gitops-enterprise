@@ -232,7 +232,7 @@ func TestValuesFetching(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cl, err := cluster.NewSingleCluster("test", config, scheme)
+	cl, err := cluster.NewSingleCluster("test", config, scheme, kube.UserPrefixes{})
 	if err != nil {
 		t.Fatal(err)
 	}

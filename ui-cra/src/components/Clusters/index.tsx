@@ -55,10 +55,9 @@ import { PageTemplate } from '../Layout/PageTemplate';
 import PoliciesViolations from '../PolicyViolations';
 import { TableWrapper, Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
-import { GitRepositoryEnriched } from '../Templates/Form';
 import {
   getCreateRequestAnnotation,
-  getInitialGitRepo,
+  useGetInitialGitRepo,
 } from '../Templates/Form/utils';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
@@ -205,7 +204,7 @@ export const getGitRepos = (sources: Source[] | undefined) =>
       ),
       repo => repo?.obj?.spec?.url,
     ),
-    ['name'],
+    ['url'],
     ['asc'],
   );
 
@@ -286,9 +285,8 @@ const MCCP: FC<{
   const initialUrl =
     selectedCapiCluster &&
     getCreateRequestAnnotation(selectedCapiCluster)?.repository_url;
-  const initialGitRepo =
-    selectedCapiCluster &&
-    (getInitialGitRepo(initialUrl, gitRepos) as GitRepositoryEnriched);
+  const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
+
   const history = useHistory();
 
   const handleAddCluster = useCallback(() => {

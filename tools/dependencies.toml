@@ -1,5 +1,5 @@
 [flux]
-version="0.35.0"
+version="0.41.2"
 special_tarpath="https://github.com/fluxcd/flux2/releases/download/v${version}/flux_${version}_${goos}_${goarch}.tar.gz;flux"
 
 [envtest]
@@ -7,7 +7,7 @@ version="1.19.2"
 special_tarpath="https://storage.googleapis.com/kubebuilder-tools/kubebuilder-tools-${version}-${goos}-${goarch}.tar.gz;kubebuilder/bin"
 
 [tilt]
-version="0.23.8"
+version="0.32.2"
 special_tarpath="https://github.com/tilt-dev/tilt/releases/download/v${version}/tilt.${version}.${goos}.${arch}.tar.gz;tilt"
 
 [helm]
@@ -15,15 +15,15 @@ version="3.8.2"
 special_tarpath="https://get.helm.sh/helm-v${version}-${goos}-${goarch}.tar.gz;${goos}-${goarch}/helm"
 
 [gh]
-version="2.10.1"
+version="2.27.0"
 special_tarpath="https://github.com/cli/cli/releases/download/v${version}/gh_${version}_${goos}_${goarch}.tar.gz;gh_${version}_${goos}_amd64/bin/gh"
 
 [kind]
-version="0.14.0"
+version="0.18.0"
 binarypath="https://kind.sigs.k8s.io/dl/v${version}/kind-${goos}-${goarch}"
 
 [clusterctl]
-version="1.1.3"
+version="1.4.1"
 binarypath="https://github.com/kubernetes-sigs/cluster-api/releases/download/v${version}/clusterctl-${goos}-${goarch}"
 
 [yq]

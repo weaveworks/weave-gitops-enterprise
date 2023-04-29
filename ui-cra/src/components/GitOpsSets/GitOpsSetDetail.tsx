@@ -20,7 +20,6 @@ import {
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import { getInventory } from '.';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
@@ -36,6 +35,7 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
+import { getInventory } from '.';
 
 const YAML = require('yaml');
 

@@ -2,13 +2,13 @@ package collector
 
 import (
 	"context"
+	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"testing"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/kubefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -20,7 +20,7 @@ func newFakeWatcherManagerFunc(opts WatcherManagerOptions) (manager.Manager, err
 	return kubefakes.NewControllerManager(opts.Rest, opts.ManagerOptions)
 }
 
-func TestStartWatcher(t *testing.T) {
+func TestWatcher_Start(t *testing.T) {
 	g := NewGomegaWithT(t)
 	//setup watcher
 	fakeObjectsChannel := make(chan []models.ObjectTransaction)
@@ -32,12 +32,14 @@ func TestStartWatcher(t *testing.T) {
 			Name:      "clusterName",
 			Namespace: "clusterNamespace",
 		},
-		Kinds: []schema.GroupVersionKind{
-			v2beta1.GroupVersion.WithKind("HelmRelease"),
-		},
+		Kinds:         configuration.SupportedObjectKinds,
 		ManagerFunc:   newFakeWatcherManagerFunc,
 		ObjectChannel: fakeObjectsChannel,
 		Log:           log,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 
 	watcher, err := NewWatcher(options)
@@ -56,40 +58,183 @@ func TestStartWatcher(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := watcher.Start(tt.ctx, logr.Discard())
+			err := watcher.Start()
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
+			assertClusterWatcher(g, watcher, ClusterWatchingStarted)
 		})
 	}
 
 }
 
-func Test_newScheme(t *testing.T) {
-
+func TestWatcher_Stop(t *testing.T) {
 	g := NewGomegaWithT(t)
+	//setup watcher
+	fakeObjectsChannel := make(chan []models.ObjectTransaction)
+	watcher := makeWatcherAndStart(g, fakeObjectsChannel, testr.New(t))
+	assertClusterWatcher(g, watcher, ClusterWatchingStarted)
 
 	tests := []struct {
 		name       string
 		errPattern string
 	}{
 		{
-			name:       "can create default scheme",
+			name:       "could stop watcher with valid arguments",
 			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scheme, err := newDefaultScheme()
+			defer close(fakeObjectsChannel)
+			var err error
+			//TODO review deadlocks
+			go func() {
+				err = watcher.Stop()
+			}()
+			objectTransactions := <-fakeObjectsChannel
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(err).To(BeNil())
-			g.Expect(scheme).NotTo(BeNil())
+			assertClusterWatcher(g, watcher, ClusterWatchingStopped)
+			g.Expect(objectTransactions[0].TransactionType() == models.TransactionTypeDeleteAll).To(BeTrue())
 		})
 	}
 
+}
+
+func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransaction, log logr.Logger) Watcher {
+	options := WatcherOptions{
+		ClientConfig: &rest.Config{
+			Host: "http://idontexist",
+		},
+		ClusterRef: types.NamespacedName{
+			Name:      "clusterName",
+			Namespace: "clusterNamespace",
+		},
+		Kinds:         configuration.SupportedObjectKinds,
+		ManagerFunc:   newFakeWatcherManagerFunc,
+		ObjectChannel: objectsChannel,
+		Log:           log,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
+	}
+
+	watcher, err := NewWatcher(options)
+	g.Expect(err).To(BeNil())
+	g.Expect(watcher.Start()).To(Succeed())
+	return watcher
+}
+
+func assertClusterWatcher(g *WithT, watcher Watcher, expectedStatus ClusterWatchingStatus) {
+	g.Expect(watcher).NotTo(BeNil())
+	status, err := watcher.Status()
+	g.Expect(err).To(BeNil())
+	g.Expect(expectedStatus).To(BeIdenticalTo(ClusterWatchingStatus(status)))
+}
+
+func TestWatcher_makeImpersonateConfig(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	tests := []struct {
+		name               string
+		config             *rest.Config
+		namespace          string
+		serviceAccountName string
+		errPattern         string
+	}{
+		{
+			name: "cannot create impersonation config if invalid params",
+			config: &rest.Config{
+				Host: "http://idontexist",
+			},
+			errPattern: "service acccount cannot be empty",
+		},
+		{
+			name: "cannot create impersonation config if invalid params",
+			config: &rest.Config{
+				Host: "http://idontexist",
+			},
+			namespace:          "flux-system",
+			serviceAccountName: "collector",
+			errPattern:         "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config, err := makeServiceAccountImpersonationConfig(tt.config, tt.namespace, tt.serviceAccountName)
+			if err != nil {
+				return
+			}
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(config.Impersonate.UserName).To(ContainSubstring(tt.serviceAccountName))
+		})
+	}
+}
+
+func TestWatcher_defaultNewWatcherManager(t *testing.T) {
+	g := NewGomegaWithT(t)
+	fakeObjectsChannel := make(chan []models.ObjectTransaction)
+	defer close(fakeObjectsChannel)
+
+	tests := []struct {
+		name       string
+		opts       WatcherManagerOptions
+		errPattern string
+	}{
+		{
+			name: "cannot create default watcher manager with invalid params",
+			opts: WatcherManagerOptions{
+				Log: log,
+				Rest: &rest.Config{
+					Host: "http://idontexist",
+				},
+				Kinds:          configuration.SupportedObjectKinds,
+				ObjectsChannel: fakeObjectsChannel,
+				ClusterName:    "anyCluster",
+				ManagerOptions: manager.Options{},
+			},
+			errPattern: "invalid service account name",
+		},
+		{
+			name: "cannot create default watcher manager with valid params",
+			opts: WatcherManagerOptions{
+				Log: log,
+				Rest: &rest.Config{
+					Host: "http://idontexist",
+				},
+				Kinds:          configuration.SupportedObjectKinds,
+				ObjectsChannel: fakeObjectsChannel,
+				ClusterName:    "anyCluster",
+				ManagerOptions: manager.Options{},
+				ServiceAccount: ImpersonateServiceAccount{
+					Namespace: "flux-system",
+					Name:      "collector",
+				},
+			},
+			errPattern: "invalid service account name",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			manager, err := defaultNewWatcherManager(tt.opts)
+			if err != nil {
+				return
+			}
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(manager).NotTo(BeNil())
+		})
+	}
 }

@@ -3,15 +3,12 @@ package objectscollector
 import (
 	"context"
 	"fmt"
-
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"k8s.io/apimachinery/pkg/runtime/schema"
+	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
 // ObjectsCollector is responsible for collecting flux application resources from all clusters
@@ -24,58 +21,71 @@ type ObjectsCollector struct {
 	quit  chan struct{}
 }
 
-func (a *ObjectsCollector) Start(ctx context.Context) error {
+func (a *ObjectsCollector) Start() error {
 	err := a.col.Start()
 	if err != nil {
-		return fmt.Errorf("could not start access collector: %store", err)
+		return fmt.Errorf("could not start objects collector: %w", err)
 	}
+	a.log.Info("objects collector started")
 	return nil
 }
 
 func (a *ObjectsCollector) Stop() error {
 	a.quit <- struct{}{}
-	return a.col.Stop()
+	err := a.col.Stop()
+	if err != nil {
+		return fmt.Errorf("could not stop objects collector: %w", err)
+	}
+	a.log.Info("objects collector stopped")
+	return nil
 }
 
 func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
-
-	opts.ObjectKinds = []schema.GroupVersionKind{
-		v2beta1.GroupVersion.WithKind("HelmRelease"),
-		v1beta2.GroupVersion.WithKind("Kustomization"),
+	if opts.ProcessRecordsFunc == nil {
+		opts.ProcessRecordsFunc = defaultProcessRecords
 	}
 
-	opts.ProcessRecordsFunc = defaultProcessRecords
+	if err := opts.Validate(); err != nil {
+		return nil, fmt.Errorf("invalid collector options: %w", err)
+	}
 
 	col, err := collector.NewCollector(opts, w)
-
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %store", err)
 	}
+
 	return &ObjectsCollector{
 		col:   col,
-		log:   opts.Log,
+		log:   opts.Log.WithName("objects-collector"),
 		store: w,
 	}, nil
 }
 
-func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error {
-
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+	ctx := context.Background()
 	upsert := []models.Object{}
 	delete := []models.Object{}
+	deleteAll := []string{} //holds the cluster names to delete all resources
+	debug := log.V(logger.LogLevelDebug)
 
-	for _, obj := range objectRecords {
-		gvk := obj.Object().GetObjectKind().GroupVersionKind()
+	for _, objTx := range objectTransactions {
+		// Handle delete all tx first as does not hold objects
+		if objTx.TransactionType() == models.TransactionTypeDeleteAll {
+			deleteAll = append(deleteAll, objTx.ClusterName())
+			continue
+		}
+		gvk := objTx.Object().GetObjectKind().GroupVersionKind()
 
-		o, err := adapters.ToFluxObject(obj.Object())
+		o, err := adapters.ToFluxObject(objTx.Object())
 		if err != nil {
 			log.Error(err, "failed to convert object to flux object")
 			continue
 		}
 
 		object := models.Object{
-			Cluster:    obj.ClusterName(),
-			Name:       obj.Object().GetName(),
-			Namespace:  obj.Object().GetNamespace(),
+			Cluster:    objTx.ClusterName(),
+			Name:       objTx.Object().GetName(),
+			Namespace:  objTx.Object().GetNamespace(),
 			APIGroup:   gvk.Group,
 			APIVersion: gvk.Version,
 			Kind:       gvk.Kind,
@@ -83,20 +93,31 @@ func defaultProcessRecords(ctx context.Context, objectRecords []models.ObjectTra
 			Message:    adapters.Message(o),
 		}
 
-		if obj.TransactionType() == models.TransactionTypeDelete {
+		if objTx.TransactionType() == models.TransactionTypeDelete {
 			delete = append(delete, object)
 		} else {
 			upsert = append(upsert, object)
 		}
 	}
 
-	if err := store.StoreObjects(ctx, upsert); err != nil {
-		return fmt.Errorf("failed to store objects: %w", err)
+	if len(upsert) > 0 {
+		if err := store.StoreObjects(ctx, upsert); err != nil {
+			return fmt.Errorf("failed to store objects: %w", err)
+		}
 	}
 
-	if err := store.DeleteObjects(ctx, delete); err != nil {
-		return fmt.Errorf("failed to delete objects: %w", err)
+	if len(delete) > 0 {
+		if err := store.DeleteObjects(ctx, delete); err != nil {
+			return fmt.Errorf("failed to delete objects: %w", err)
+		}
 	}
 
+	if len(deleteAll) > 0 {
+		if err := store.DeleteAllObjects(ctx, deleteAll); err != nil {
+			return fmt.Errorf("failed to delete all objects: %w", err)
+		}
+	}
+
+	debug.Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
 	return nil
 }

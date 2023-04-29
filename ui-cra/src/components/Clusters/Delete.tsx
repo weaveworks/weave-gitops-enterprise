@@ -13,13 +13,17 @@ import useNotifications from '../../contexts/Notifications';
 import { Input } from '../../utils/form';
 import { Loader } from '../Loader';
 import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
-import { isUnauthenticated, removeToken } from '../../utils/request';
+import { removeToken } from '../../utils/request';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import { PRDefaults } from '../../types/custom';
 import { localEEMuiTheme } from '../../muiTheme';
 import GitAuth from '../GitAuth';
 import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
 import { getRepositoryUrl } from '../Templates/Form/utils';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../hooks/gitprovider';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {
@@ -49,8 +53,6 @@ export const DeleteClusterDialog: FC<Props> = ({
   prDefaults,
 }) => {
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
-
   const { deleteCreatedClusters, loading } = useClusters();
   const { setNotifications } = useNotifications();
 
@@ -90,41 +92,52 @@ export const DeleteClusterDialog: FC<Props> = ({
     [setFormData],
   );
 
+  const token = getProviderToken(formData.provider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
+
   const handleClickRemove = () =>
-    deleteCreatedClusters(
-      {
-        clusterNamespacedNames: [selectedCapiCluster],
-        headBranch: formData.branchName,
-        title: formData.pullRequestTitle,
-        commitMessage: formData.commitMessage,
-        description: formData.pullRequestDescription,
-        repositoryUrl: getRepositoryUrl(formData.repo),
-      },
-      getProviderToken(formData.provider),
-    )
-      .then(response => {
-        cleanUp();
-        setNotifications([
+    validateToken()
+      .then(() =>
+        deleteCreatedClusters(
           {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
+            clusterNamespacedNames: [selectedCapiCluster],
+            headBranch: formData.branchName,
+            title: formData.pullRequestTitle,
+            commitMessage: formData.commitMessage,
+            description: formData.pullRequestDescription,
+            repositoryUrl: getRepositoryUrl(formData.repo),
           },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          { message: { text: error.message }, severity: 'error' },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
+          getProviderToken(formData.provider),
+        )
+          .then(response => {
+            cleanUp();
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error =>
+            setNotifications([
+              { message: { text: error.message }, severity: 'error' },
+            ]),
+          ),
+      )
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([{ ...expiredTokenNotification, display: 'top' }]);
       });
 
   const cleanUp = useCallback(() => {
@@ -172,7 +185,6 @@ export const DeleteClusterDialog: FC<Props> = ({
                 <GitAuth
                   formData={formData}
                   setFormData={setFormData}
-                  setEnableCreatePR={setEnableCreatePR}
                   showAuthDialog={showAuthDialog}
                   setShowAuthDialog={setShowAuthDialog}
                   enableGitRepoSelection={!formData?.repo?.createPRRepo}
@@ -182,7 +194,7 @@ export const DeleteClusterDialog: FC<Props> = ({
                   color="secondary"
                   startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
                   onClick={handleClickRemove}
-                  disabled={!enableCreatePR}
+                  disabled={!isAuthenticated}
                 >
                   REMOVE CLUSTERS FROM THE MCCP
                 </Button>

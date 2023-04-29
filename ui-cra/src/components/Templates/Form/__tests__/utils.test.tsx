@@ -1,5 +1,6 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
-import { getInitialGitRepo, getRepositoryUrl } from '../utils';
+import { renderHook } from '@testing-library/react-hooks';
+import { useGetInitialGitRepo, getRepositoryUrl } from '../utils';
 
 describe('getRepositoryUrl', () => {
   it("should return something, but we don't care what it is as git@github.com: style url as flux does not support these", () => {
@@ -90,7 +91,10 @@ describe('getInitialGitRepo', () => {
 
   it('should return the repo containing the initial url if they are the same', () => {
     const initialUrl = 'https://github.com/org/repo.git';
-    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+    const { result } = renderHook(() =>
+      useGetInitialGitRepo(initialUrl, gitRepos),
+    );
+    expect(result.current).toStrictEqual({
       obj: {
         spec: {
           url: 'https://github.com/org/repo.git',
@@ -102,7 +106,10 @@ describe('getInitialGitRepo', () => {
 
   it('should return the repo containing the initial url if the initial url is in https format and the gitrepo url is in ssh format', () => {
     const initialUrl = 'https://github.com/org/repo';
-    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+    const { result } = renderHook(() =>
+      useGetInitialGitRepo(initialUrl, gitRepos),
+    );
+    expect(result.current).toStrictEqual({
       obj: {
         spec: {
           url: 'ssh://git@github.com/org/repo',
@@ -114,7 +121,10 @@ describe('getInitialGitRepo', () => {
 
   it('should return the repo containing the annotation if the initial url repo isnt found and there is a repo with anno', () => {
     const initialUrl = 'https://github.com/test/anno';
-    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+    const { result } = renderHook(() =>
+      useGetInitialGitRepo(initialUrl, gitRepos),
+    );
+    expect(result.current).toStrictEqual({
       obj: {
         metadata: {
           annotations: {
@@ -150,7 +160,10 @@ describe('getInitialGitRepo', () => {
         },
       },
     ] as GitRepository[];
-    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+    const { result } = renderHook(() =>
+      useGetInitialGitRepo(initialUrl, gitRepos),
+    );
+    expect(result.current).toStrictEqual({
       obj: {
         metadata: {
           name: 'flux-system',
@@ -164,8 +177,8 @@ describe('getInitialGitRepo', () => {
   });
 
   it('should return the repo containing the annotation if there is no initialUrl', () => {
-    const initialUrl = '';
-    expect(getInitialGitRepo(initialUrl, gitRepos)).toStrictEqual({
+    const { result } = renderHook(() => useGetInitialGitRepo('', gitRepos));
+    expect(result.current).toStrictEqual({
       obj: {
         metadata: {
           annotations: {
@@ -189,7 +202,8 @@ describe('getInitialGitRepo', () => {
         },
       },
     ] as GitRepository[];
-    expect(getInitialGitRepo('', repos)).toStrictEqual({
+    const { result } = renderHook(() => useGetInitialGitRepo('', repos));
+    expect(result.current).toStrictEqual({
       obj: {
         spec: {
           url: 'https://github.com/test/repo.git',

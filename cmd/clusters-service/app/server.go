@@ -22,6 +22,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+
 	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 
 	"github.com/NYTimes/gziphandler"
@@ -71,6 +73,7 @@ import (
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
 	core "github.com/weaveworks/weave-gitops/pkg/server"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -137,7 +140,6 @@ type Params struct {
 	RuntimeNamespace                  string                    `mapstructure:"runtime-namespace"`
 	GitProviderToken                  string                    `mapstructure:"git-provider-token"`
 	AuthMethods                       []string                  `mapstructure:"auth-methods"`
-	AdminSecret                       string                    `mapstructure:"admin-secret"`
 	TLSCert                           string                    `mapstructure:"tls-cert"`
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
@@ -155,14 +157,16 @@ type Params struct {
 }
 
 type OIDCAuthenticationOptions struct {
-	IssuerURL     string        `mapstructure:"oidc-issuer-url"`
-	ClientID      string        `mapstructure:"oidc-client-id"`
-	ClientSecret  string        `mapstructure:"oidc-client-secret"`
-	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
-	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
-	ClaimUsername string        `mapstructure:"oidc-claim-username"`
-	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
-	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
+	IssuerURL      string        `mapstructure:"oidc-issuer-url"`
+	ClientID       string        `mapstructure:"oidc-client-id"`
+	ClientSecret   string        `mapstructure:"oidc-client-secret"`
+	RedirectURL    string        `mapstructure:"oidc-redirect-url"`
+	TokenDuration  time.Duration `mapstructure:"oidc-token-duration"`
+	ClaimUsername  string        `mapstructure:"oidc-claim-username"`
+	ClaimGroups    string        `mapstructure:"oidc-claim-groups"`
+	CustomScopes   []string      `mapstructure:"custom-oidc-scopes"`
+	UsernamePrefix string        `mapstructure:"oidc-username-prefix"`
+	GroupsPrefix   string        `mapstructure:"oidc-groups-prefix"`
 }
 
 func NewAPIServerCommand() *cobra.Command {
@@ -224,7 +228,6 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("cluster-name", "management", "name of the management cluster")
 
 	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
-	cmdFlags.String("admin-secret", "cluster-user-auth", "Name of the secret that contains admin credentials")
 	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
 	cmdFlags.String("oidc-client-id", "", "The client ID for the OpenID Connect client")
 	cmdFlags.String("oidc-client-secret", "", "The client secret to use with OpenID Connect issuer")
@@ -233,6 +236,8 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmdFlags.String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 	cmdFlags.StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
+	cmdFlags.String("oidc-username-prefix", "", "If provided, all usernames will be prefixed with this value to prevent conflicts with other authentication strategies")
+	cmdFlags.String("oidc-groups-prefix", "", "If provided, all groups will be prefixed with this value to prevent conflicts with other authentication strategies")
 
 	cmdFlags.Bool("dev-mode", false, "starts the server in development mode")
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
@@ -394,7 +399,11 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		}
 	}()
 
-	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
+	userPrefixes := kube.UserPrefixes{
+		UsernamePrefix: p.OIDC.UsernamePrefix,
+		GroupsPrefix:   p.OIDC.GroupsPrefix,
+	}
+	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false, userPrefixes)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
 		pacv2beta1.AddToScheme,
@@ -439,7 +448,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		return err
 	}
 
-	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
+	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, userPrefixes, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
@@ -460,11 +469,11 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		log.Info("Using un-cached clients")
 	}
 
-	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, userPrefixes, cluster.DefaultKubeConfigOptions...)
 	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
 	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
-		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, userPrefixes, cluster.DefaultKubeConfigOptions...)
 		fetchers = append(fetchers, sessionFetcher)
 	}
 
@@ -497,8 +506,10 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		estimator = est
 	}
 
+	healthChecker := health.NewHealthChecker()
+
 	coreCfg, err := core_core.NewCoreConfig(
-		log, rest, clusterName, clustersManager,
+		log, rest, clusterName, clustersManager, healthChecker,
 	)
 	if err != nil {
 		return err
@@ -526,7 +537,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithCAPIClustersNamespace(p.CAPIClustersNamespace),
 		WithHtmlRootPath(p.HtmlRootPath),
 		WithClientGetter(clientGetter),
-		WithAuthConfig(authMethods, p.OIDC, p.AdminSecret),
+		WithAuthConfig(authMethods, p.OIDC),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
@@ -586,7 +597,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to create informer cache for namespaces: %w", err)
 	}
 
-	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
+	userPrefixes := kube.UserPrefixes{UsernamePrefix: args.OIDC.UsernamePrefix, GroupsPrefix: args.OIDC.GroupsPrefix}
+	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster, userPrefixes)
 	if err != nil {
 		return fmt.Errorf("failed to set up auth client getter")
 	}
@@ -651,6 +663,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			DiscoveryClient: args.DiscoveryClient,
 			ClustersManager: args.ClustersManager,
 			SkipCollection:  false,
+			ObjectKinds:     configuration.SupportedObjectKinds,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating pipelines server: %w", err)
@@ -737,13 +750,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 				Username: args.OIDC.ClaimUsername,
 				Groups:   args.OIDC.ClaimGroups,
 			},
-			Scopes: args.OIDC.CustomScopes,
+			UsernamePrefix: args.OIDC.UsernamePrefix,
+			GroupsPrefix:   args.OIDC.GroupsPrefix,
+			Scopes:         args.OIDC.CustomScopes,
 		},
 		args.KubernetesClient,
 		tsv,
 		args.RuntimeNamespace,
 		args.AuthMethods,
-		args.AdminSecret,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)

@@ -9,7 +9,7 @@ fullnameOverride: ""
 images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.5.0
+  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -32,6 +32,9 @@ enableExplorer: false
 
 # Turns on UI elements for Terraform objects
 enableTerraformUI: false
+
+# Uses the query service for Applications and Sources views
+useQueryServiceBackend: false
 
 # Turns on UI elements for GitOps Run
 enableRunUI: false
@@ -62,17 +65,19 @@ config:
     issuerURL: ""
     redirectURL: ""
     cookieDuration: 1h
-    claimUsername: "email"
-    claimGroups: "groups"
-    clientID: "github"
+    claimUsername: ""
+    claimGroups: ""
+    usernamePrefix: ""
+    groupsPrefix: ""
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
-    clientCredentialsSecret: "github-client"
+    clientCredentialsSecret: ""
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
-    customScopes: "groups, openid, email, profile"
+    # NOTE: these cannot contains spaces between the elements.
+    # customScopes: "groups,email,profile"
+    customScopes: ""
   auth:
     userAccount:
       enabled: true
-      secretName: "cluster-user-auth"
     tokenPassthrough:
       enabled: true
   ui:
@@ -179,7 +184,7 @@ templates-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.1.4
+        tag: v0.2.0
 
 gitopssets-controller:
   enabled: true
@@ -188,4 +193,4 @@ gitopssets-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.7.0
+        tag: v0.9.0
