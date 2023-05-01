@@ -242,6 +242,7 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 			ApiGroup:   o.APIGroup,
 			ApiVersion: o.APIVersion,
 			Message:    o.Message,
+			Category:   string(o.Category),
 		})
 	}
 

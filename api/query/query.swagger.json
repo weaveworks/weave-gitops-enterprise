@@ -172,6 +172,9 @@
         },
         "message": {
           "type": "string"
+        },
+        "category": {
+          "type": "string"
         }
       }
     },
@@ -192,14 +195,8 @@
         "orderBy": {
           "type": "string"
         },
-        "globalOperand": {
-          "type": "string"
-        },
-        "scopedKinds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "ascending": {
+          "type": "boolean"
         }
       }
     },

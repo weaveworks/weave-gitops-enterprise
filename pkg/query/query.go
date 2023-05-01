@@ -67,7 +67,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 
 	iter, err := q.index.Search(ctx, query, opts)
 	if err != nil {
-		return nil, fmt.Errorf("error getting objects from store: %w", err)
+		return nil, fmt.Errorf("error getting objects from indexer: %w", err)
 	}
 
 	defer iter.Close()

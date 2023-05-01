@@ -10,8 +10,7 @@ export type QueryRequest = {
   offset?: number
   limit?: number
   orderBy?: string
-  globalOperand?: string
-  scopedKinds?: string[]
+  ascending?: boolean
 }
 
 export type QueryResponse = {
@@ -27,6 +26,7 @@ export type Object = {
   apiGroup?: string
   apiVersion?: string
   message?: string
+  category?: string
 }
 
 export type DebugGetAccessRulesRequest = {

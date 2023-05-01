@@ -72,10 +72,7 @@ const WGApplicationsDashboard: FC = () => {
         </div>
 
         {useQueryServiceBackend ? (
-          <ScopedExploreUI
-            scopedKinds={['Kustomization', 'HelmRelease']}
-            enableBatchSync
-          />
+          <ScopedExploreUI category="automation" enableBatchSync />
         ) : (
           <AutomationsTable automations={automations?.result} />
         )}

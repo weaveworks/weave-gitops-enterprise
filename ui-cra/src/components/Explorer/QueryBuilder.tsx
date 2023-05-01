@@ -7,7 +7,7 @@ import {
   Select,
   TextField,
 } from '@material-ui/core';
-import { ChipGroup, Flex, Input } from '@weaveworks/weave-gitops';
+import { Flex, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import * as React from 'react';
 import styled from 'styled-components';
@@ -24,7 +24,7 @@ type Props = {
   pinnedTerms: string[];
   onChange: (val: string, pinnedTerms: string[]) => void;
   onFilterSelect: (val: string) => void;
-  onPin: (val: string[]) => void;
+  onSubmit: (val: string[]) => void;
   onBlur?: () => void;
   busy?: boolean;
   hideTextInput?: boolean;
@@ -32,14 +32,14 @@ type Props = {
 
 function QueryBuilder({
   query,
-  pinnedTerms,
+  // pinnedTerms,
   filters,
   selectedFilter,
   disabled,
   className,
   placeholder,
   onChange,
-  onPin,
+  onSubmit,
   onBlur = noOp,
   onFilterSelect,
   busy,
@@ -48,42 +48,19 @@ function QueryBuilder({
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const handleAddSearchTerm = (value: string) => {
-    let nextPinnedTerms = pinnedTerms;
-    // only push unique values
-    if (!_.includes(nextPinnedTerms, value)) {
-      nextPinnedTerms = [...nextPinnedTerms, value];
-      onPin(nextPinnedTerms);
-    }
-    onChange('', nextPinnedTerms);
-  };
-
-  const handleRemoveSearchTerm = (value: string[]) => {
-    const nextPinnedTerms = _.without(pinnedTerms, value[0]);
-    onChange(query, nextPinnedTerms);
-  };
-
-  const handleRemoveAll = () => {
-    onChange('', []);
-    onFilterSelect('');
+    onSubmit([value]);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value, pinnedTerms);
+    onChange(e.target.value, []);
   };
 
-  const handleInputKeyPress = (ev: React.KeyboardEvent<HTMLInputElement>) => {
-    if (ev.key === 'Enter' && query.length > 0) {
-      ev.preventDefault();
-      handleAddSearchTerm(query);
-    } else if (ev.key === 'Backspace' && query === '') {
-      ev.preventDefault();
-      const term = _.last(pinnedTerms);
-      if (term) {
-        // Allow the user to edit the text of the last term instead of removing the whole thing.
-        handleRemoveSearchTerm([term]);
-      }
-    }
-  };
+  // const handleInputKeyPress = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+  //   if (ev.key === 'Enter' && query.length > 0) {
+  //     ev.preventDefault();
+  //     handleAddSearchTerm(query);
+  //   }
+  // };
 
   const handleFocus = () => {};
 
@@ -108,11 +85,12 @@ function QueryBuilder({
               variant="outlined"
               onChange={handleInputChange}
               value={query}
-              onKeyDown={handleInputKeyPress}
+              // onKeyDown={handleInputKeyPress}
               onBlur={onBlur}
               onFocus={handleFocus}
               inputRef={inputRef}
               disabled={disabled}
+              onSubmit={e => onSubmit([query])}
             />
           )}
         </Box>
@@ -141,11 +119,11 @@ function QueryBuilder({
                 </Select>
               </FormControl>
 
-              <ChipGroup
+              {/* <ChipGroup
                 chips={pinnedTerms}
                 onChipRemove={handleRemoveSearchTerm}
                 onClearAll={handleRemoveAll}
-              />
+              /> */}
             </Flex>
           </Box>
         )}

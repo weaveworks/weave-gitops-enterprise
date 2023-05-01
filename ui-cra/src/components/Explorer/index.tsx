@@ -36,9 +36,8 @@ function Explorer({ className }: Props) {
     query: queryState.pinnedTerms.join(','),
     limit: queryState.limit,
     offset: queryState.offset,
-    orderBy: `${queryState.orderBy} ${
-      queryState.orderDescending ? 'desc' : 'asc'
-    }`,
+    orderBy: queryState.orderBy,
+    ascending: queryState.orderAscending,
   });
 
   return (
@@ -67,7 +66,7 @@ function Explorer({ className }: Props) {
                     onChange={(query, pinnedTerms) => {
                       setQueryState({ ...queryState, query, pinnedTerms });
                     }}
-                    onPin={pinnedTerms => {
+                    onSubmit={pinnedTerms => {
                       setQueryState({ ...queryState, pinnedTerms });
                     }}
                     onFilterSelect={filterChangeHandler(

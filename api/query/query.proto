@@ -33,12 +33,11 @@ service Query {
 }
 
 message QueryRequest {
-    string   query                = 1;
-    int32    offset               = 2;
-    int32    limit                = 3;
-    string   orderBy              = 4;
-    string   globalOperand        = 5;
-    repeated string   scopedKinds = 6;
+    string query     = 1;
+    int32  offset    = 2;
+    int32  limit     = 3;
+    string orderBy   = 4;
+    bool   ascending = 5;
 }
 
 message QueryResponse {
@@ -54,6 +53,7 @@ message Object {
     string apiGroup   = 6;
     string apiVersion = 7;
     string message    = 8;
+    string category   = 9;
 }
 
 message DebugGetAccessRulesRequest {

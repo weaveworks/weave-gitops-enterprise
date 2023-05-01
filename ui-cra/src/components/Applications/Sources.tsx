@@ -43,16 +43,7 @@ const WGApplicationsSources: FC = () => {
     >
       <ContentWrapper errors={sources?.errors} loading={isLoading}>
         {useQueryServiceBackend ? (
-          <ScopedExploreUI
-            enableBatchSync
-            scopedKinds={[
-              'GitRepository',
-              'Bucket',
-              'HelmChart',
-              'HelmRepository',
-              'OCIRepository',
-            ]}
-          />
+          <ScopedExploreUI enableBatchSync category="source" />
         ) : (
           <SourcesTable sources={sources?.result} />
         )}

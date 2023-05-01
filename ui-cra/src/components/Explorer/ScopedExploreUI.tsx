@@ -14,25 +14,41 @@ import QueryBuilder from './QueryBuilder';
 
 type Props = {
   className?: string;
-  scopedKinds: string[];
   enableBatchSync?: boolean;
+  category: string;
 };
 
-function ScopedExploreUI({ className, scopedKinds, enableBatchSync }: Props) {
+const categoryKinds = {
+  automation: ['Kustomization', 'HelmRelease'],
+  source: [
+    'GitRepository',
+    'HelmRepository',
+    'Bucket',
+    'HelmChart',
+    'OCIRepository',
+  ],
+};
+
+function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
+  const kinds = (categoryKinds as any)[category];
+
   const [queryState, setQueryState] = useQueryState({
     enableURLState: false,
-    filters: [..._.map(scopedKinds, k => ({ label: k, value: `kind:${k}` }))],
+    filters: [
+      ..._.map(kinds, k => ({
+        label: k,
+        value: `+kind:${k}`,
+      })),
+    ],
   });
 
   const { data, error, isLoading } = useQueryService({
     query: queryState.pinnedTerms.join(','),
     limit: queryState.limit,
     offset: queryState.offset,
-    orderBy: `${queryState.orderBy} ${
-      queryState.orderDescending ? 'desc' : 'asc'
-    }`,
-
-    scopedKinds,
+    orderBy: queryState.orderBy,
+    ascending: queryState.orderAscending,
+    category,
   });
 
   if (isLoading) {
@@ -55,7 +71,7 @@ function ScopedExploreUI({ className, scopedKinds, enableBatchSync }: Props) {
           onChange={(query, pinnedTerms) => {
             setQueryState({ ...queryState, query, pinnedTerms });
           }}
-          onPin={pinnedTerms => {
+          onSubmit={pinnedTerms => {
             setQueryState({ ...queryState, pinnedTerms });
           }}
           onFilterSelect={filterChangeHandler(queryState, setQueryState)}

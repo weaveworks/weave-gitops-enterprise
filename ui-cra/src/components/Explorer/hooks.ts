@@ -12,7 +12,7 @@ export type QueryState = {
   offset: number;
   selectedFilter: string;
   orderBy: string;
-  orderDescending: boolean;
+  orderAscending: boolean;
 };
 
 function initialTerms(search: string) {
@@ -43,7 +43,7 @@ export function useQueryState(
     filters: cfg.filters || [],
     selectedFilter: '',
     orderBy: 'name',
-    orderDescending: false,
+    orderAscending: true,
   });
 
   useEffect(() => {
@@ -69,6 +69,7 @@ export function useQueryState(
         q: queryState.pinnedTerms.join(','),
         limit,
         offset,
+        ascending: queryState.orderAscending,
       },
       { skipNull: true },
     );
@@ -80,6 +81,7 @@ export function useQueryState(
     queryState.offset,
     queryState.limit,
     queryState.pinnedTerms,
+    queryState.orderAscending,
   ]);
 
   return [queryState, setQueryState];
@@ -100,8 +102,8 @@ export const columnHeaderHandler =
     setQueryState({
       ...queryState,
       orderBy: col as string,
-      orderDescending:
-        queryState.orderBy === col ? !queryState.orderDescending : false,
+      orderAscending:
+        queryState.orderBy === col ? !queryState.orderAscending : false,
     });
   };
 

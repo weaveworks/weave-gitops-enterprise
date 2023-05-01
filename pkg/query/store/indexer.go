@@ -84,7 +84,13 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 
 	if opts != nil {
 		// `-` reverses the order
-		req.SortBy([]string{fmt.Sprintf("-%v", opts.GetOrderBy())})
+		tmpl := "-%v"
+		if !opts.GetAscending() {
+			tmpl = "%v"
+		}
+		req.SortBy([]string{fmt.Sprintf(tmpl, opts.GetOrderBy())})
+
+		req.Size = int(opts.GetLimit())
 	}
 
 	searchResults, err := i.idx.Search(req)

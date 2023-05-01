@@ -414,11 +414,11 @@ func TestQueryIteration(t *testing.T) {
 }
 
 type query struct {
-	q       string
-	offset  int32
-	limit   int32
-	orderBy string
-	scopes  []string
+	q         string
+	offset    int32
+	limit     int32
+	orderBy   string
+	ascending bool
 }
 
 func (q *query) GetQuery() store.Query {
@@ -437,6 +437,6 @@ func (q *query) GetOrderBy() string {
 	return q.orderBy
 }
 
-func (q *query) GetScopedKinds() []string {
-	return q.scopes
+func (q *query) GetAscending() bool {
+	return q.ascending
 }

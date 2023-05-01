@@ -87,6 +87,12 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 			continue
 		}
 
+		cat, err := adapters.Category(o)
+		if err != nil {
+			log.Error(err, "failed to get category from flux object")
+			continue
+		}
+
 		object := models.Object{
 			Cluster:    objTx.ClusterName(),
 			Name:       objTx.Object().GetName(),
@@ -96,6 +102,7 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 			Kind:       gvk.Kind,
 			Status:     string(adapters.Status(o)),
 			Message:    adapters.Message(o),
+			Category:   cat,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {

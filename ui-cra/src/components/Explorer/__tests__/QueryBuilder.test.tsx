@@ -21,7 +21,7 @@ describe('QueryBuilder', () => {
           filters={[]}
           selectedFilter=""
           onChange={onChange}
-          onPin={onPin}
+          onSubmit={onPin}
           onFilterSelect={onFilterSelect}
         />,
       ),
@@ -43,7 +43,7 @@ describe('QueryBuilder', () => {
           filters={[]}
           selectedFilter=""
           onChange={onChange}
-          onPin={onPin}
+          onSubmit={onPin}
           onFilterSelect={onFilterSelect}
         />,
       ),
@@ -70,7 +70,7 @@ describe('QueryBuilder', () => {
           filters={[{ value: 'name:Kustomization', label: 'Kustomizations' }]}
           selectedFilter=""
           onChange={onChange}
-          onPin={onPin}
+          onSubmit={onPin}
           onFilterSelect={onFilterSelect}
         />,
       ),
@@ -94,7 +94,7 @@ describe('QueryBuilder', () => {
           filters={[{ value: 'kind:Kustomization', label: 'Kustomizations' }]}
           selectedFilter="kind:Kustomization"
           onChange={onChange}
-          onPin={onPin}
+          onSubmit={onPin}
           onFilterSelect={onFilterSelect}
         />,
       ),

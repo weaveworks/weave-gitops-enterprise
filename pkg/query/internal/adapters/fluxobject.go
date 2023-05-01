@@ -2,7 +2,9 @@ package adapters
 
 import (
 	"fmt"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
@@ -65,4 +67,25 @@ func Message(fo FluxObject) string {
 	}
 
 	return ""
+}
+
+func Category(fo FluxObject) (models.ObjectCategory, error) {
+	switch fo.(type) {
+	case *v2beta1.HelmRelease:
+		return models.CategoryAutomation, nil
+	case *kustomizev1.Kustomization:
+		return models.CategoryAutomation, nil
+	case *sourcev1.HelmRepository:
+		return models.CategorySource, nil
+	case *sourcev1.HelmChart:
+		return models.CategorySource, nil
+	case *sourcev1.Bucket:
+		return models.CategorySource, nil
+	case *sourcev1.GitRepository:
+		return models.CategorySource, nil
+	case *sourcev1.OCIRepository:
+		return models.CategorySource, nil
+	}
+
+	return "", fmt.Errorf("unknown object type: %T", fo)
 }

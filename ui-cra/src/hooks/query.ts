@@ -6,7 +6,8 @@ type QueryOpts = {
   limit: number;
   offset: number;
   orderBy?: string;
-  scopedKinds?: string[];
+  category?: string;
+  ascending?: boolean;
 };
 
 export function useQueryService({
@@ -14,26 +15,26 @@ export function useQueryService({
   limit,
   offset,
   orderBy,
-  scopedKinds,
+  category,
+  ascending,
 }: QueryOpts) {
   const api = Query;
 
   let q = query;
 
-  if (scopedKinds) {
-    for (const k of scopedKinds) {
-      q += `+kind:${k}`;
-    }
+  if (category) {
+    q += ' +category:' + category;
   }
 
   return useQuery<QueryResponse, Error>(
-    ['query', { query, limit, offset, orderBy }],
+    ['query', { query, limit, offset, orderBy, ascending }],
     () => {
       return api.DoQuery({
         query: q,
         limit,
         offset,
         orderBy,
+        ascending,
       });
     },
     {
