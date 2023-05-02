@@ -3,13 +3,13 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: collector
-  namespace: flux-system
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+  namespace: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
-  name: collector
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
 rules:
   - apiGroups: [ "rbac.authorization.k8s.io" ]
     resources: [ "roles", "clusterroles", "rolebindings", "clusterrolebindings" ]
@@ -27,13 +27,13 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
-  name: wge-collector
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
 subjects:
   - kind: ServiceAccount
-    name: collector
-    namespace: flux-system
+    name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
+    namespace: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
 roleRef:
   kind: ClusterRole
-  name: collector
+  name: {{ .Values.explorer.collector.serviceAccount.name | quote }}
   apiGroup: rbac.authorization.k8s.io
 {{- end }}
