@@ -50,7 +50,7 @@ const SecretDetails = ({
 
   const handleSyncClick = () => {
     setSyncing(true);
-
+    setNotifications([]);
     return sync()
       .then(() => {
         setNotifications([
