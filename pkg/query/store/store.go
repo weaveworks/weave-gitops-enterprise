@@ -54,6 +54,7 @@ type QueryOption interface {
 	GetOffset() int32
 	GetOrderBy() string
 	GetGlobalOperand() string
+	GetScopedKinds() []string
 }
 
 type QueryClause interface {

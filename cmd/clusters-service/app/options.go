@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
@@ -52,6 +53,7 @@ type Options struct {
 	Estimator                 estimation.Estimator
 	UIConfig                  string
 	PipelineControllerAddress string
+	CollectorServiceAccount   collector.ImpersonateServiceAccount
 }
 
 type Option func(*Options)
@@ -251,5 +253,15 @@ func WithUIConfig(uiConfig string) Option {
 func WithPipelineControllerAddress(address string) Option {
 	return func(o *Options) {
 		o.PipelineControllerAddress = address
+	}
+}
+
+// WithCollectorServiceAccount configures the service account to use for explorer collector
+func WithCollectorServiceAccount(name, namespace string) Option {
+	return func(o *Options) {
+		o.CollectorServiceAccount = collector.ImpersonateServiceAccount{
+			Name:      name,
+			Namespace: namespace,
+		}
 	}
 }

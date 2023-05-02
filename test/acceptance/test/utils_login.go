@@ -229,19 +229,26 @@ func authenticateWithGitProvider(webDriver *agouti.Page, gitProvider, gitProvide
 
 			browserCompatibility := false
 			if !pages.ElementExist(authenticate.Username) {
+				logger.Info("Username field not found, checking for browser compatibility...")
 				if pages.ElementExist(authenticate.CheckBrowser) {
+					logger.Info("Found browser compatibility check, opening gitlab in a separate window...")
 					// Opening the gitlab in a separate window not controlled by webdriver redirects gitlab to login page (DDOS workaround for gitlab)
 					pages.OpenWindowInBg(webDriver, `http://`+gitProviderEnv.Hostname+`/users/sign_in`, "gitlab")
 					gomega.Eventually(authenticate.CheckBrowser, ASSERTION_30SECONDS_TIME_OUT).ShouldNot(matchers.BeFound())
 					browserCompatibility = true
+				} else {
+					logger.Info("Browser compatibility check not found")
 				}
 
 				if pages.ElementExist(authenticate.AcceptCookies, 10) {
 					gomega.Eventually(authenticate.AcceptCookies.Click).Should(gomega.Succeed())
 				}
+			} else {
+				logger.Info("Username field found")
 			}
 
 			if pages.ElementExist(authenticate.Username) {
+				logger.Info("Username field re-found")
 				gomega.Eventually(authenticate.Username).Should(matchers.BeVisible())
 				gomega.Expect(authenticate.Username.SendKeys(gitProviderEnv.Username)).To(gomega.Succeed())
 				gomega.Expect(authenticate.Password.SendKeys(gitProviderEnv.Password)).To(gomega.Succeed())

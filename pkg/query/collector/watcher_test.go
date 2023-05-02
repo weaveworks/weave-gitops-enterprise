@@ -36,6 +36,10 @@ func TestWatcher_Start(t *testing.T) {
 		ManagerFunc:   newFakeWatcherManagerFunc,
 		ObjectChannel: fakeObjectsChannel,
 		Log:           log,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 
 	watcher, err := NewWatcher(options)
@@ -116,6 +120,10 @@ func makeWatcherAndStart(g *WithT, objectsChannel chan []models.ObjectTransactio
 		ManagerFunc:   newFakeWatcherManagerFunc,
 		ObjectChannel: objectsChannel,
 		Log:           log,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 
 	watcher, err := NewWatcher(options)
@@ -129,4 +137,104 @@ func assertClusterWatcher(g *WithT, watcher Watcher, expectedStatus ClusterWatch
 	status, err := watcher.Status()
 	g.Expect(err).To(BeNil())
 	g.Expect(expectedStatus).To(BeIdenticalTo(ClusterWatchingStatus(status)))
+}
+
+func TestWatcher_makeImpersonateConfig(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	tests := []struct {
+		name               string
+		config             *rest.Config
+		namespace          string
+		serviceAccountName string
+		errPattern         string
+	}{
+		{
+			name: "cannot create impersonation config if invalid params",
+			config: &rest.Config{
+				Host: "http://idontexist",
+			},
+			errPattern: "service acccount cannot be empty",
+		},
+		{
+			name: "cannot create impersonation config if invalid params",
+			config: &rest.Config{
+				Host: "http://idontexist",
+			},
+			namespace:          "flux-system",
+			serviceAccountName: "collector",
+			errPattern:         "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config, err := makeServiceAccountImpersonationConfig(tt.config, tt.namespace, tt.serviceAccountName)
+			if err != nil {
+				return
+			}
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(config.Impersonate.UserName).To(ContainSubstring(tt.serviceAccountName))
+		})
+	}
+}
+
+func TestWatcher_defaultNewWatcherManager(t *testing.T) {
+	g := NewGomegaWithT(t)
+	fakeObjectsChannel := make(chan []models.ObjectTransaction)
+	defer close(fakeObjectsChannel)
+
+	tests := []struct {
+		name       string
+		opts       WatcherManagerOptions
+		errPattern string
+	}{
+		{
+			name: "cannot create default watcher manager with invalid params",
+			opts: WatcherManagerOptions{
+				Log: log,
+				Rest: &rest.Config{
+					Host: "http://idontexist",
+				},
+				Kinds:          configuration.SupportedObjectKinds,
+				ObjectsChannel: fakeObjectsChannel,
+				ClusterName:    "anyCluster",
+				ManagerOptions: manager.Options{},
+			},
+			errPattern: "invalid service account name",
+		},
+		{
+			name: "cannot create default watcher manager with valid params",
+			opts: WatcherManagerOptions{
+				Log: log,
+				Rest: &rest.Config{
+					Host: "http://idontexist",
+				},
+				Kinds:          configuration.SupportedObjectKinds,
+				ObjectsChannel: fakeObjectsChannel,
+				ClusterName:    "anyCluster",
+				ManagerOptions: manager.Options{},
+				ServiceAccount: ImpersonateServiceAccount{
+					Namespace: "flux-system",
+					Name:      "collector",
+				},
+			},
+			errPattern: "invalid service account name",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			manager, err := defaultNewWatcherManager(tt.opts)
+			if err != nil {
+				return
+			}
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(manager).NotTo(BeNil())
+		})
+	}
 }

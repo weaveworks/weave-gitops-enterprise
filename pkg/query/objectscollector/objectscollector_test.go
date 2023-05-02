@@ -44,6 +44,10 @@ func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
 				ObjectKinds:    configuration.SupportedObjectKinds,
 				ClusterManager: &clustersmngrfakes.FakeClustersManager{},
 				Log:            testr.New(t),
+				ServiceAccount: collector.ImpersonateServiceAccount{
+					Name:      "anyName",
+					Namespace: "anyNamespace",
+				},
 			},
 			errPattern: "",
 		},

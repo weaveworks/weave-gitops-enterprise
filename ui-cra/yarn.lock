@@ -2348,10 +2348,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.21.2":
-  version "0.21.2"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.21.2/e6b78a411aab6dace0028c84efeb72ec4cc3b3ad#e6b78a411aab6dace0028c84efeb72ec4cc3b3ad"
-  integrity sha512-uizc2baVOUGvcDmsUqCreE7/7FrRaX88d+GCVN8Scuc6BqjLq4WwH8U2eQXqDpzzTWwpGGMJTXbKuPe/CTU0Og==
+"@weaveworks/weave-gitops@0.22.0":
+  version "0.22.0"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.22.0/b6af0fb9b13d39e89e06a04cb28f5969bb01a035#b6af0fb9b13d39e89e06a04cb28f5969bb01a035"
+  integrity sha512-jfvTrD/p9jsVzuYsJj4Y9i31Sblwygy8ubtOQfkyXNsVHbZlzhETwoX1alnOUy3ERTy+s3twBwxoXIEvLM3YoQ==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2377,7 +2377,7 @@
     react-toastify "^7.0.4"
     sha3 "^2.1.4"
     styled-components "^5.3.0"
-    yaml "^1.10.2"
+    yaml "^2.2.2"
 
 "@webassemblyjs/ast@1.11.1":
   version "1.11.1"
@@ -11054,10 +11054,10 @@ yaml@^1.10.0, yaml@^1.10.2, yaml@^1.7.2:
   resolved "https://registry.npmjs.org/yaml/-/yaml-1.10.2.tgz"
   integrity sha512-r3vXyErRCYJ7wg28yvBY5VSoAF8ZvlcW9/BwUzEtUsjvX/DKs24dIkuwjtuprwJJHsbyUbLApepYTR1BN4uHrg==
 
-yaml@^2.2.1:
-  version "2.2.1"
-  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.2.1.tgz#3014bf0482dcd15147aa8e56109ce8632cd60ce4"
-  integrity sha512-e0WHiYql7+9wr4cWMx3TVQrNwejKaEe7/rHNmQmqRjazfOP5W8PB6Jpebb5o6fIapbz9o9+2ipcaTM2ZwDI6lw==
+yaml@^2.2.2:
+  version "2.2.2"
+  resolved "https://registry.yarnpkg.com/yaml/-/yaml-2.2.2.tgz#ec551ef37326e6d42872dad1970300f8eb83a073"
+  integrity sha512-CBKFWExMn46Foo4cldiChEzn7S7SRV+wqiluAb6xmueD/fGyRHIhX8m14vVGgeFWjN540nKCNVj6P21eQjgTuA==
 
 yargs-parser@^20.2.2:
   version "20.2.9"
