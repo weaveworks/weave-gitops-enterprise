@@ -5,6 +5,7 @@ import {
   EncryptSopsSecretResponse,
   GitopsCluster,
 } from '../../cluster-services/cluster_services.pb';
+import { RequestHook } from '../../contexts/Request';
 import { request } from '../../utils/request';
 
 const toCluster = (clusterName: string): GitopsCluster => {
@@ -35,8 +36,12 @@ export const useIsClusterWithSources = (clusterName: string): boolean => {
   return clusters?.some((c: GitopsCluster) => c.name === clusterName) || false;
 };
 
-export const createDeploymentObjects = ({ ...data }, token: string | null) => {
-  return request('POST', `/v1/enterprise/automations`, {
+export const createDeploymentObjects = (
+  { ...data },
+  token: string | null,
+  req?: RequestHook,
+) => {
+  return (req?.request || request)('POST', `/v1/enterprise/automations`, {
     body: JSON.stringify(data),
     headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
   });

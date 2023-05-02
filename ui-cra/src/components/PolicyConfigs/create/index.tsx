@@ -19,6 +19,11 @@ import {
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
+import { useRequest } from '../../../contexts/Request';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
@@ -31,16 +36,12 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
-  useGetInitialGitRepo,
   getRepositoryUrl,
+  useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
-import {
-  expiredTokenNotification,
-  useIsAuthenticated,
-} from '../../../hooks/gitprovider';
+import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { PreviewPRModal } from './PreviewPRModal';
-import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 
 const { large, xs, base, medium, small } = theme.spacing;
 const { neutral20, neutral10 } = theme.colors;
@@ -165,6 +166,8 @@ const CreatePolicyConfig = () => {
 
   const [formError, setFormError] = useState<string>('');
 
+  const req = useRequest();
+
   const {
     clusterName,
     policyConfigName,
@@ -261,6 +264,7 @@ const CreatePolicyConfig = () => {
   );
 
   const handleCreatePolicyConfig = useCallback(() => {
+    console.log(formData);
     const payload = {
       headBranch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -272,7 +276,11 @@ const CreatePolicyConfig = () => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        createDeploymentObjects(payload, getProviderToken(formData.provider))
+        createDeploymentObjects(
+          payload,
+          getProviderToken(formData.provider),
+          req,
+        )
           .then(response => {
             history.push(Routes.PolicyConfigs);
             setNotifications([

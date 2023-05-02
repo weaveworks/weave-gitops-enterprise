@@ -1,19 +1,12 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen
-} from '@testing-library/react';
-import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import RequestContextProvider from '../../../contexts/Request';
 import {
-  PolicyConfigsClientMock,
-  WorkspaceClientMock,
   defaultContexts,
+  PolicyConfigsClientMock,
   withContext,
+  WorkspaceClientMock,
 } from '../../../utils/test-utils';
-import { createDeploymentObjects } from '../../Applications/utils';
-import { getProviderToken } from '../../GitAuth/utils';
 import CreatePolicyConfig from '../create';
 
 const formDataMock = {
@@ -21,7 +14,7 @@ const formDataMock = {
   title: '',
   description: '',
   commitMessage: 'commit',
-  repositoryUrl: 'https://gitlab.git.dev.weave.works/wge/demo-01',
+  repo: 'https://gitlab.git.dev.weave.works/wge/demo-01',
   clusterAutomations: [
     {
       cluster: {
@@ -114,12 +107,18 @@ describe('CreatePolicyConfig', () => {
   let api: PolicyConfigsClientMock;
   let WSapi: WorkspaceClientMock;
 
+  let fetch: jest.Mock;
+
   beforeEach(() => {
     api = new PolicyConfigsClientMock();
     WSapi = new WorkspaceClientMock();
 
+    fetch = jest.fn();
+
     wrap = withContext([
       ...defaultContexts(),
+      [RequestContextProvider, { fetch }],
+
       [EnterpriseClientProvider, { api }],
     ]);
   });
@@ -169,6 +168,7 @@ describe('CreatePolicyConfig', () => {
     const policies = document.querySelector(
       "input[name='policies']",
     ) as HTMLElement;
+
     expect(await screen.findByText('Create New PolicyConfig')).toBeTruthy();
     fireEvent.change(policyConfigName, {
       target: { value: 'policyConfigName' },
@@ -200,13 +200,27 @@ describe('CreatePolicyConfig', () => {
         ],
       },
     });
- 
-    await expect(
-      createDeploymentObjects(
-        formDataMock,
-        getProviderToken(GitProvider.GitLab),
-      ),
-    ).resolves.toHaveProperty('webUrl');
+
+    const form = document.querySelector('form') as HTMLElement;
+
+    await act(async () => {
+      fireEvent.submit(form, { target: form });
+    });
+
+    expect(fetch).toHaveBeenCalledWith('/v1/enterprise/automations', {
+      method: 'POST',
+      body: JSON.stringify(formData),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // await expect(
+    //   createDeploymentObjects(
+    //     formDataMock,
+    //     getProviderToken(GitProvider.GitLab),
+    //   ),
+    // ).resolves.toHaveProperty('webUrl');
   });
 
   //   it('test match Type field', async () => {

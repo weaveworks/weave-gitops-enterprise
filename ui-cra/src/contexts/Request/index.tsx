@@ -23,11 +23,18 @@ const injectFetchArg = (fetch: Fetch, args: any) => {
   return [args[0], args[1], args[2], fetch];
 };
 
-export const useRequest = () => {
+export type RequestHook = {
+  request: typeof request;
+  requestWithCountHeader: typeof requestWithCountHeader;
+  requestWithEntitlementHeader: typeof requestWithEntitlementHeader;
+};
+
+export const useRequest = (): RequestHook => {
   const { fetch } = useContext(RequestContext);
 
   return {
     request: (...args: Parameters<typeof request>) => {
+      console.log('called!');
       const next: Parameters<typeof request> = injectFetchArg(fetch, args);
       return request(...next);
     },

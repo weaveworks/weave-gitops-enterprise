@@ -3,15 +3,15 @@ import {
   GitRepository,
   Source,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Pipeline } from '../../../api/pipelines/types.pb';
-import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { GitopsClusterEnriched } from '../../../types/custom';
-import { Resource } from '../Edit/EditButton';
 import GitUrlParse from 'git-url-parse';
 import URI from 'urijs';
+import { GitRepositoryEnriched } from '.';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
-import { GitRepositoryEnriched } from '.';
+import { GitopsClusterEnriched } from '../../../types/custom';
+import { Resource } from '../Edit/EditButton';
 
 const yamlConverter = require('js-yaml');
 
@@ -61,7 +61,12 @@ export function getRepositoryUrl(repo: GitRepository) {
   if (httpsUrl) {
     return httpsUrl;
   }
-  let uri = URI(repo?.obj?.spec?.url);
+  const url = repo?.obj?.spec?.url;
+  if (!url) {
+    return '';
+  }
+
+  let uri = URI(url);
   if (uri.hostname() === 'ssh.dev.azure.com') {
     uri = azureSshToHttps(uri.toString());
   }
