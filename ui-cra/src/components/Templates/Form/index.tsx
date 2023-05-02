@@ -69,6 +69,8 @@ import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -79,6 +81,9 @@ const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
 const small = weaveTheme.spacing.small;
+const primary = weaveTheme.colors.primary;
+const neutral10 = weaveTheme.colors.neutral10;
+const xs = weaveTheme.spacing.xs;
 
 const FormWrapper = styled.form`
   .create-cta {
@@ -142,6 +147,22 @@ const useStyles = makeStyles(theme =>
     },
     previewLoading: {
       padding: base,
+    },
+    editor: {
+      '& a': {
+        color: primary,
+      },
+      '& > *:first-child': {
+        marginTop: 0,
+      },
+      '& > *:last-child': {
+        marginBottom: 0,
+      },
+      marginTop: xs,
+      background: neutral10,
+      padding: small,
+      maxHeight: '300px',
+      overflow: 'scroll',
     },
   }),
 );
@@ -582,6 +603,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 />
               ) : null}
             </CredentialsWrapper>
+            {template.description ? (
+              <Flex column>
+                <div>Description:</div>
+                <ReactMarkdown
+                  children={template.description || ''}
+                  className={`editor ${classes.editor}`}
+                  remarkPlugins={[remarkGfm]}
+                />
+              </Flex>
+            ) : null}
+
             <Divider
               className={
                 !isLargeScreen ? classes.divider : classes.largeDivider
