@@ -22,7 +22,7 @@ import MCCP from './components/Clusters';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
-import GitopsSets from './components/GitOpsSets';
+import GitOpsSets from './components/GitOpsSets';
 import GitOpsSetDetail from './components/GitOpsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
@@ -318,7 +318,7 @@ const AppRoutes = () => {
       <Route
         exact
         path={Routes.GitOpsSets}
-        component={withSearchParams(GitopsSets)}
+        component={withSearchParams(GitOpsSets)}
       />
       <Route
         path={Routes.GitOpsSetDetail}
