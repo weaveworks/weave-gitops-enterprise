@@ -6,6 +6,15 @@ package server_test
 import (
 	"context"
 	"fmt"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"log"
+	"net"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -17,6 +26,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"github.com/weaveworks/weave-gitops/core/nsaccess/nsaccessfakes"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -25,13 +35,6 @@ import (
 	"k8s.io/client-go/discovery"
 	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
-	"log"
-	"net"
-	"os"
-	"os/exec"
-	"path/filepath"
-	"strings"
-	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/onsi/gomega"
@@ -117,7 +120,7 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 
 	fetcher := &clustersmngrfakes.FakeClusterFetcher{}
 
-	fakeCluster, err := cluster.NewSingleCluster("envtest", cfg, scheme.Scheme)
+	fakeCluster, err := cluster.NewSingleCluster("envtest", cfg, scheme.Scheme, kube.UserPrefixes{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot create cluster:%w", err)
 	}
@@ -157,6 +160,10 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 		ClustersManager: clustersManager,
 		SkipCollection:  false,
 		ObjectKinds:     configuration.SupportedObjectKinds,
+		ServiceAccount: collector.ImpersonateServiceAccount{
+			Name:      "collector",
+			Namespace: "flux-system",
+		},
 	}
 
 	qs, _, err := queryserver.NewServer(opts2)

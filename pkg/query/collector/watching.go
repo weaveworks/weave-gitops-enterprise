@@ -75,6 +75,7 @@ type watchingCollector struct {
 	newWatcherFunc     NewWatcherFunc
 	log                logr.Logger
 	processRecordsFunc ProcessRecordsFunc
+	serviceAccount     ImpersonateServiceAccount
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
@@ -91,26 +92,29 @@ func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingColle
 		kinds:              opts.ObjectKinds,
 		log:                opts.Log,
 		processRecordsFunc: opts.ProcessRecordsFunc,
+		serviceAccount:     opts.ServiceAccount,
 	}, nil
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error)
 
 type ProcessRecordsFunc = func(objectRecords []models.ObjectTransaction, store store.Store, log logr.Logger) error
 
 // TODO add unit tests
-func defaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
+func defaultNewWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction,
+	kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
 	w, err := NewWatcher(WatcherOptions{
 		ClusterRef: types.NamespacedName{
 			Name:      clusterName,
 			Namespace: "default",
 		},
-		ClientConfig:  config,
-		Kinds:         kinds,
-		ObjectChannel: objectsChannel,
-		Log:           log,
-		ManagerFunc:   defaultNewWatcherManager,
+		ClientConfig:   config,
+		Kinds:          kinds,
+		ObjectChannel:  objectsChannel,
+		Log:            log,
+		ManagerFunc:    defaultNewWatcherManager,
+		ServiceAccount: serviceAccount,
 	})
 
 	if err != nil {
@@ -130,7 +134,7 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 		return fmt.Errorf("cluster name is empty")
 	}
 
-	watcher, err := w.newWatcherFunc(config, clusterName, w.objectsChannel, w.kinds, w.log)
+	watcher, err := w.newWatcherFunc(config, w.serviceAccount, clusterName, w.objectsChannel, w.kinds, w.log)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.GetName(), err)
 	}

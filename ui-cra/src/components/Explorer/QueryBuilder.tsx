@@ -27,6 +27,7 @@ type Props = {
   onPin: (val: string[]) => void;
   onBlur?: () => void;
   busy?: boolean;
+  hideTextInput?: boolean;
 };
 
 function QueryBuilder({
@@ -42,6 +43,7 @@ function QueryBuilder({
   onBlur = noOp,
   onFilterSelect,
   busy,
+  hideTextInput,
 }: Props) {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
@@ -97,49 +99,54 @@ function QueryBuilder({
 
   return (
     <div className={className}>
-      <Box marginBottom={1}>
-        <ChipGroup
-          chips={pinnedTerms}
-          onChipRemove={handleRemoveSearchTerm}
-          onClearAll={handleRemoveAll}
-        />
-      </Box>
-
       <Flex align>
         <Box marginRight={1}>
-          <TextField
-            placeholder={placeholder}
-            style={{ minWidth: 360 }}
-            variant="outlined"
-            onChange={handleInputChange}
-            value={query}
-            onKeyDown={handleInputKeyPress}
-            onBlur={onBlur}
-            onFocus={handleFocus}
-            inputRef={inputRef}
-            disabled={disabled}
-          />
+          {!hideTextInput && (
+            <TextField
+              placeholder={placeholder}
+              style={{ minWidth: 360 }}
+              variant="outlined"
+              onChange={handleInputChange}
+              value={query}
+              onKeyDown={handleInputKeyPress}
+              onBlur={onBlur}
+              onFocus={handleFocus}
+              inputRef={inputRef}
+              disabled={disabled}
+            />
+          )}
         </Box>
         {!_.isEmpty(filters) && (
           <Box>
-            <FormControl variant="outlined" style={{ minWidth: 124 }}>
-              <InputLabel id="demo-simple-select-label">Filters</InputLabel>
-              <Select
-                label="Filters"
-                placeholder="Filters"
-                onChange={handleFilterChange}
-                value={selectedFilter}
+            <Flex align>
+              <FormControl
+                variant="outlined"
+                style={{ minWidth: 240, marginRight: 16 }}
               >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {_.map(filters, filter => (
-                  <MenuItem key={filter.label} value={filter.value}>
-                    {filter.label}
+                <InputLabel id="demo-simple-select-label">Filters</InputLabel>
+                <Select
+                  label="Filters"
+                  placeholder="Filters"
+                  onChange={handleFilterChange}
+                  value={selectedFilter}
+                >
+                  <MenuItem value="">
+                    <em>None</em>
                   </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+                  {_.map(filters, filter => (
+                    <MenuItem key={filter.label} value={filter.value}>
+                      {filter.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <ChipGroup
+                chips={pinnedTerms}
+                onChipRemove={handleRemoveSearchTerm}
+                onClearAll={handleRemoveAll}
+              />
+            </Flex>
           </Box>
         )}
         {busy && (

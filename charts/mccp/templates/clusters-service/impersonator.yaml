@@ -6,6 +6,13 @@ rules:
   - apiGroups: [""]
     resources: ["users", "groups"]
     verbs: ["impersonate"]
+{{- if .Values.enableExplorer }}
+  - apiGroups: [ "" ]
+    resources: [ "serviceaccounts" ]
+    verbs: [ "impersonate" ]
+    resourceNames:
+      - {{ .Values.explorer.collector.serviceAccount.name | quote }}
+{{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
