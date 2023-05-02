@@ -14,6 +14,8 @@ import {
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
+import { createDeploymentObjects } from '../../Applications/utils';
+import { getProviderToken } from '../../GitAuth/utils';
 import CreatePolicyConfig from '../create';
 
 const formDataMock = {
