@@ -128,7 +128,7 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			return nil, fmt.Errorf("error getting external secret %s from cluster %s: %w", req.ExternalSecretName, req.ClusterName, err)
 		}
 
-		externalSecret.GetObjectKind().SetGroupVersionKind(esv1beta1.SchemeGroupVersion.WithKind("Secret"))
+		externalSecret.GetObjectKind().SetGroupVersionKind(esv1beta1.SchemeGroupVersion.WithKind("ExternalSecret"))
 
 		var buf bytes.Buffer
 
