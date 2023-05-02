@@ -90,9 +90,9 @@ const SecretDetailsTabs = ({
             YAML.stringify(JSON.parse(secretDetails?.yaml as string))
           }
           object={{
-            kind: 'Secret',
-            name: secretDetails?.secretName,
-            namespace: secretDetails?.namespace,
+            kind: 'ExternalSecret',
+            name: externalSecretName,
+            namespace,
           }}
         />
       </RouterTab>
