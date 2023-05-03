@@ -23,7 +23,7 @@ import (
 
 func TestStart(t *testing.T) {
 	g := NewGomegaWithT(t)
-	log, loggerPath := newLoggerWithLevel(t, "DEBUG")
+	log, loggerPath := newLoggerWithLevel(t, "INFO")
 
 	fakeStore := &storefakes.FakeStore{}
 	cm := clustersmngrfakes.FakeClustersManager{}
@@ -43,24 +43,28 @@ func TestStart(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 
 	tests := []struct {
-		name             string
-		clusters         []cluster.Cluster
-		expectedLogError string
+		name                string
+		clusters            []cluster.Cluster
+		expectedLogError    string
+		expectedNumClusters int
 	}{
 		{
-			name:             "can start collector for empty collection",
-			clusters:         []cluster.Cluster{},
-			expectedLogError: "",
+			name:                "can start collector for empty collection",
+			clusters:            []cluster.Cluster{},
+			expectedLogError:    "",
+			expectedNumClusters: 0,
 		},
 		{
-			name:             "can start collector with not watchable clusters",
-			clusters:         []cluster.Cluster{makeInvalidFakeCluster("test-cluster")},
-			expectedLogError: "cannot watch cluster",
+			name:                "can start collector with not watchable clusters",
+			clusters:            []cluster.Cluster{makeInvalidFakeCluster("test-cluster")},
+			expectedLogError:    "cannot watch cluster",
+			expectedNumClusters: 0,
 		},
 		{
-			name:             "can start collector with watchable clusters",
-			clusters:         []cluster.Cluster{makeValidFakeCluster("test-cluster")},
-			expectedLogError: "",
+			name:                "can start collector with watchable clusters",
+			clusters:            []cluster.Cluster{makeValidFakeCluster("test-cluster")},
+			expectedLogError:    "",
+			expectedNumClusters: 1,
 		},
 	}
 	for _, tt := range tests {
@@ -71,15 +75,14 @@ func TestStart(t *testing.T) {
 			// assert error has been logged
 			if tt.expectedLogError != "" {
 				logs, err := os.ReadFile(loggerPath)
-				if err != nil {
-					t.Fatalf("cannot get logs: %v", err)
-				}
+				g.Expect(err).To(BeNil())
 				logss := string(logs)
 				g.Expect(logss).To(MatchRegexp(tt.expectedLogError))
 			}
 
 			g.Expect(err).To(BeNil())
 			g.Expect(fakeStore).NotTo(BeNil())
+			g.Expect(len(collector.clusterWatchers)).To(BeIdenticalTo(tt.expectedNumClusters))
 
 		})
 	}
@@ -343,6 +346,7 @@ func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
 	g.Expect(err).ShouldNot(HaveOccurred())
 
 	level, err := zapcore.ParseLevel(logLevel)
+	g.Expect(err).ShouldNot(HaveOccurred())
 	cfg := l.BuildConfig(
 		l.WithLogLevel(level),
 		l.WithMode(false),
