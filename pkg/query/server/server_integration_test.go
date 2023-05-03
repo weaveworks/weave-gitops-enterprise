@@ -5,20 +5,21 @@ package server_test
 
 import (
 	"context"
+	"fmt"
+	"testing"
+	"time"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/test"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"testing"
-	"time"
 )
 
 var (
@@ -54,7 +55,7 @@ func TestQueryServer(t *testing.T) {
 		objects            []client.Object
 		access             []client.Object
 		principal          *auth.UserPrincipal
-		queryClause        api.QueryClause
+		query              string
 		expectedNumObjects int
 	}{
 		{
@@ -64,12 +65,8 @@ func TestQueryServer(t *testing.T) {
 				podinfoHelmRepository(defaultNamespace),
 				podinfoHelmRelease(defaultNamespace),
 			},
-			principal: principal,
-			queryClause: api.QueryClause{
-				Key:     "kind",
-				Value:   "HelmRelease",
-				Operand: string(store.OperandEqual),
-			},
+			principal:          principal,
+			query:              "kind:HelmRelease",
 			expectedNumObjects: 1, // should allow only on default namespace
 		},
 		{
@@ -78,11 +75,7 @@ func TestQueryServer(t *testing.T) {
 			objects: []client.Object{
 				podinfoHelmRepository(defaultNamespace),
 			},
-			queryClause: api.QueryClause{
-				Key:     "kind",
-				Value:   "HelmRepository",
-				Operand: string(store.OperandEqual),
-			},
+			query:              "kind:HelmRepository",
 			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
@@ -109,11 +102,7 @@ func TestQueryServer(t *testing.T) {
 					},
 				},
 			},
-			queryClause: api.QueryClause{
-				Key:     "kind",
-				Value:   "HelmChart",
-				Operand: string(store.OperandEqual),
-			},
+			query:              "kind:HelmChart",
 			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
@@ -135,11 +124,7 @@ func TestQueryServer(t *testing.T) {
 					},
 				},
 			},
-			queryClause: api.QueryClause{
-				Key:     "kind",
-				Value:   "GitRepository",
-				Operand: string(store.OperandEqual),
-			},
+			query:              "kind:GitRepository",
 			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
@@ -161,11 +146,7 @@ func TestQueryServer(t *testing.T) {
 					},
 				},
 			},
-			queryClause: api.QueryClause{
-				Key:     "kind",
-				Value:   sourcev1.OCIRepositoryKind,
-				Operand: string(store.OperandEqual),
-			},
+			query:              fmt.Sprintf("kind:%s", sourcev1.OCIRepositoryKind),
 			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
@@ -185,11 +166,7 @@ func TestQueryServer(t *testing.T) {
 					Spec: sourcev1.BucketSpec{},
 				},
 			},
-			queryClause: api.QueryClause{
-				Key:     "kind",
-				Value:   "Bucket",
-				Operand: string(store.OperandEqual),
-			},
+			query:              fmt.Sprintf("kind:%s", sourcev1.BucketKind),
 			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
@@ -206,9 +183,7 @@ func TestQueryServer(t *testing.T) {
 
 			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
-				query, err := c.DoQuery(ctx, &api.QueryRequest{
-					Query: []*api.QueryClause{&tt.queryClause},
-				})
+				query, err := c.DoQuery(ctx, &api.QueryRequest{Query: tt.query})
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == tt.expectedNumObjects
 			}).Should(BeTrue())
