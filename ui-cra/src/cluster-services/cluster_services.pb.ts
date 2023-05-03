@@ -805,6 +805,7 @@ export type GetExternalSecretResponse = {
   version?: string
   status?: string
   timestamp?: string
+  yaml?: string
 }
 
 export type ExternalSecretStore = {
