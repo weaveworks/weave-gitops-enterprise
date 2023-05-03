@@ -54,13 +54,13 @@ func TestStart(t *testing.T) {
 		},
 		{
 			name:             "can start collector with not watchable clusters",
-			clusters:         []cluster.Cluster{newNonWatchableCluster()},
+			clusters:         []cluster.Cluster{makeInvalidFakeCluster("test-cluster")},
 			expectedLogError: "cannot watch cluster",
 		},
 		{
 			name:             "can start collector with watchable clusters",
-			clusters:         []cluster.Cluster{newWatchableCluster()},
-			expectedLogError: "cannot watch cluster",
+			clusters:         []cluster.Cluster{makeValidFakeCluster("test-cluster")},
+			expectedLogError: "",
 		},
 	}
 	for _, tt := range tests {
@@ -85,16 +85,21 @@ func TestStart(t *testing.T) {
 	}
 }
 
-func newNonWatchableCluster() cluster.Cluster {
+func makeInvalidFakeCluster(name string) cluster.Cluster {
 	cluster := new(clusterfakes.FakeCluster)
-	cluster.GetNameReturns("non-watchable")
+	cluster.GetNameReturns(name)
 	return cluster
 }
 
-func newWatchableCluster() cluster.Cluster {
-	cluster := new(clusterfakes.FakeCluster)
-	cluster.GetNameReturns("non-watchable")
-	return cluster
+func makeValidFakeCluster(name string) cluster.Cluster {
+	config := &rest.Config{
+		Host: "http://idontexist",
+	}
+
+	cluster := clusterfakes.FakeCluster{}
+	cluster.GetNameReturns(name)
+	cluster.GetServerConfigReturns(config, nil)
+	return &cluster
 }
 
 func TestStop(t *testing.T) {
@@ -155,11 +160,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
-	config := &rest.Config{
-		Host: "http://idontexist",
-	}
-
-	c := makeCluster("testcluster", config, log)
+	c := makeValidFakeCluster("testcluster")
 
 	tests := []struct {
 		name       string
@@ -201,11 +202,8 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
-	config := &rest.Config{
-		Host: "http://idontexist",
-	}
 	clusterName := "testCluster"
-	c := makeCluster(clusterName, config, log)
+	c := makeValidFakeCluster(clusterName)
 	g.Expect(collector.Watch(c)).To(Succeed())
 	watcher := collector.clusterWatchers[clusterName]
 	tests := []struct {
@@ -253,14 +251,6 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	}
 }
 
-func makeCluster(name string, config *rest.Config, log logr.Logger) cluster.Cluster {
-	cluster := clusterfakes.FakeCluster{}
-	cluster.GetNameReturns(name)
-	cluster.GetServerConfigReturns(config, nil)
-	log.Info("fake watcher created", "watcher", cluster.GetName())
-	return &cluster
-}
-
 func TestClusterWatcher_Status(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
@@ -276,9 +266,7 @@ func TestClusterWatcher_Status(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
 	existingClusterName := "test"
-	c := makeCluster(existingClusterName, &rest.Config{
-		Host: "http://idontexist",
-	}, log)
+	c := makeValidFakeCluster(existingClusterName)
 	err = collector.Watch(c)
 	g.Expect(err).To(BeNil())
 
