@@ -6,7 +6,6 @@ import { useHistory } from 'react-router-dom';
 
 export type QueryState = {
   query: string;
-  pinnedTerms: string[];
   filters: { label: string; value: any }[];
   limit: number;
   offset: number;
@@ -14,12 +13,6 @@ export type QueryState = {
   orderBy: string;
   orderAscending: boolean;
 };
-
-function initialTerms(search: string) {
-  const parsed: { q?: string } = qs.parse(search);
-
-  return parsed.q ? parsed.q.split(',') : [];
-}
 
 const DEFAULT_LIMIT = 25;
 
@@ -33,56 +26,46 @@ export function useQueryState(
 ): [QueryState, (s: QueryState) => void] {
   const history = useHistory();
 
+  const { q, limit, orderBy, selectedFilter, ascending, offset } = qs.parse(
+    history.location.search,
+  );
+
+  const l = parseInt(limit as string);
+  const o = parseInt(offset as string);
+
   const [queryState, setQueryState] = useState<QueryState>({
-    query: '',
-    pinnedTerms: cfg.enableURLState
-      ? initialTerms(history.location.search)
-      : [],
-    limit: DEFAULT_LIMIT,
-    offset: 0,
+    query: (q as string) || '',
+    limit: !_.isNaN(l) ? l : DEFAULT_LIMIT,
+    offset: !_.isNaN(o) ? o : 0,
     filters: cfg.filters || [],
-    selectedFilter: '',
-    orderBy: 'name',
-    orderAscending: true,
+    selectedFilter: (selectedFilter as string) || '',
+    orderBy: (orderBy as string) || '',
+    orderAscending: ascending === 'true',
   });
 
   useEffect(() => {
     if (!cfg.enableURLState) {
       return;
     }
-
-    if (queryState.pinnedTerms.length === 0 && queryState.offset === 0) {
-      history.replace(history.location.pathname);
-      return;
-    }
-
     let offset: any = queryState.offset;
     let limit: any = queryState.limit;
-
     if (queryState.offset === 0) {
       offset = null;
       limit = null;
     }
-
     const q = qs.stringify(
       {
-        q: queryState.pinnedTerms.join(','),
+        q: queryState.query,
         limit,
         offset,
         ascending: queryState.orderAscending,
+        orderBy: queryState.orderBy,
+        selectedFilter: queryState.selectedFilter,
       },
-      { skipNull: true },
+      { skipNull: true, skipEmptyString: true },
     );
-
     history.replace(`?${q}`);
-  }, [
-    history,
-    cfg.enableURLState,
-    queryState.offset,
-    queryState.limit,
-    queryState.pinnedTerms,
-    queryState.orderAscending,
-  ]);
+  }, [history, cfg.enableURLState, queryState]);
 
   return [queryState, setQueryState];
 }
@@ -110,16 +93,10 @@ export const columnHeaderHandler =
 export const filterChangeHandler =
   (queryState: QueryState, setQueryState: (next: QueryState) => void) =>
   (val: string) => {
-    let nextVal = [val];
-
-    if (val === '') {
-      nextVal = [];
-    }
-
     setQueryState({
       ...queryState,
+      query: val,
       offset: 0,
-      pinnedTerms: nextVal,
       selectedFilter: val,
     });
   };

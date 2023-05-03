@@ -1,5 +1,6 @@
 import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 // @ts-ignore
+import * as React from 'react';
 import styled from 'styled-components';
 import { useQueryService } from '../../hooks/query';
 import { Routes } from '../../utils/nav';
@@ -31,9 +32,10 @@ function Explorer({ className }: Props) {
       },
     ],
   });
+  const [queryInput, setQueryInput] = React.useState(queryState.query);
 
   const { data, error, isFetching } = useQueryService({
-    query: queryState.pinnedTerms.join(','),
+    query: queryState.query,
     limit: queryState.limit,
     offset: queryState.offset,
     orderBy: queryState.orderBy,
@@ -59,15 +61,15 @@ function Explorer({ className }: Props) {
                   <QueryBuilder
                     busy={isFetching}
                     disabled={false}
-                    query={queryState.query}
+                    query={queryInput}
                     filters={queryState.filters}
                     selectedFilter={queryState.selectedFilter}
-                    pinnedTerms={queryState.pinnedTerms}
-                    onChange={(query, pinnedTerms) => {
-                      setQueryState({ ...queryState, query, pinnedTerms });
+                    onChange={query => {
+                      setQueryInput(query);
                     }}
-                    onSubmit={pinnedTerms => {
-                      setQueryState({ ...queryState, pinnedTerms });
+                    onSubmit={query => {
+                      console.log(query);
+                      setQueryState({ ...queryState, query });
                     }}
                     onFilterSelect={filterChangeHandler(
                       queryState,

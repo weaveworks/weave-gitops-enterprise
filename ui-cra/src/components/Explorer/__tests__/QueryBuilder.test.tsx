@@ -10,18 +10,17 @@ describe('QueryBuilder', () => {
   });
   it('returns pinned terms', () => {
     const onChange = jest.fn();
-    const onPin = jest.fn();
+    const onSubmit = jest.fn();
     const onFilterSelect = jest.fn();
 
     const { rerender } = render(
       wrap(
         <QueryBuilder
           query=""
-          pinnedTerms={[]}
           filters={[]}
           selectedFilter=""
           onChange={onChange}
-          onSubmit={onPin}
+          onSubmit={onSubmit}
           onFilterSelect={onFilterSelect}
         />,
       ),
@@ -33,44 +32,42 @@ describe('QueryBuilder', () => {
       fireEvent.change(input as Element, { target: { value: 'test' } });
     });
 
-    expect(onChange).toHaveBeenCalledWith('test', []);
+    expect(onChange).toHaveBeenCalledWith('test');
 
     rerender(
       wrap(
         <QueryBuilder
           query={onChange.mock.calls[0][0]}
-          pinnedTerms={[]}
           filters={[]}
           selectedFilter=""
           onChange={onChange}
-          onSubmit={onPin}
+          onSubmit={onSubmit}
           onFilterSelect={onFilterSelect}
         />,
       ),
     );
 
-    input = document.querySelector('input');
+    const form = document.querySelector('form');
 
     act(() => {
-      fireEvent.keyDown(input as Element, { key: 'Enter', code: 'Enter' });
+      fireEvent.submit(form as Element);
     });
 
-    expect(onPin).toHaveBeenCalledWith(['test']);
+    expect(onSubmit).toHaveBeenCalledWith('test');
   });
   it('selects filters', () => {
     const onChange = jest.fn();
-    const onPin = jest.fn();
+    const onSubmit = jest.fn();
     const onFilterSelect = jest.fn();
 
     const c = render(
       wrap(
         <QueryBuilder
           query=""
-          pinnedTerms={[]}
           filters={[{ value: 'name:Kustomization', label: 'Kustomizations' }]}
           selectedFilter=""
           onChange={onChange}
-          onSubmit={onPin}
+          onSubmit={onSubmit}
           onFilterSelect={onFilterSelect}
         />,
       ),
@@ -85,23 +82,5 @@ describe('QueryBuilder', () => {
     });
 
     expect(onFilterSelect).toHaveBeenCalledWith('name:Kustomization');
-
-    c.rerender(
-      wrap(
-        <QueryBuilder
-          query=""
-          pinnedTerms={['kind:Kustomization']}
-          filters={[{ value: 'kind:Kustomization', label: 'Kustomizations' }]}
-          selectedFilter="kind:Kustomization"
-          onChange={onChange}
-          onSubmit={onPin}
-          onFilterSelect={onFilterSelect}
-        />,
-      ),
-    );
-
-    const chips = document.querySelector('.MuiChip-root');
-
-    expect(chips).toHaveTextContent('kind:Kustomization');
   });
 });

@@ -1,6 +1,7 @@
 import { Box } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import _ from 'lodash';
+import * as React from 'react';
 import styled from 'styled-components';
 import { useQueryService } from '../../hooks/query';
 import ExplorerTable from './ExplorerTable';
@@ -33,7 +34,7 @@ function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
   const kinds = (categoryKinds as any)[category];
 
   const [queryState, setQueryState] = useQueryState({
-    enableURLState: false,
+    enableURLState: true,
     filters: [
       ..._.map(kinds, k => ({
         label: k,
@@ -42,8 +43,10 @@ function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
     ],
   });
 
+  const [queryInput, setQueryInput] = React.useState(queryState.query);
+
   const { data, error, isLoading } = useQueryService({
-    query: queryState.pinnedTerms.join(','),
+    query: queryState.query,
     limit: queryState.limit,
     offset: queryState.offset,
     orderBy: queryState.orderBy,
@@ -64,15 +67,18 @@ function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
       <Box marginY={2}>
         <QueryBuilder
           busy={isLoading}
-          query={queryState.query}
+          query={queryInput}
           filters={queryState.filters}
           selectedFilter={queryState.selectedFilter}
-          pinnedTerms={queryState.pinnedTerms}
-          onChange={(query, pinnedTerms) => {
-            setQueryState({ ...queryState, query, pinnedTerms });
+          onChange={query => {
+            setQueryInput(query);
           }}
-          onSubmit={pinnedTerms => {
-            setQueryState({ ...queryState, pinnedTerms });
+          onSubmit={query => {
+            let q = query;
+            if (queryState.selectedFilter) {
+              q = `${query} ${queryState.selectedFilter}`;
+            }
+            setQueryState({ ...queryState, query: q });
           }}
           onFilterSelect={filterChangeHandler(queryState, setQueryState)}
         />
@@ -83,6 +89,7 @@ function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
         rows={data?.objects || []}
         onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
         enableBatchSync={enableBatchSync}
+        sortField={queryState.orderBy}
       />
       <PaginationControls
         queryState={queryState}

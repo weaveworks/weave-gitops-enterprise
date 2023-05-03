@@ -1,13 +1,19 @@
 import { act, renderHook } from '@testing-library/react-hooks';
+import { MemoryRouter } from 'react-router-dom';
 import { filterChangeHandler, useQueryState } from '../hooks';
 
 describe('useQueryState', () => {
   it('returns initial state', () => {
-    const { result } = renderHook(() =>
-      useQueryState({
-        enableURLState: false,
-        filters: [{ label: 'kind', value: 'kind:foo' }],
-      }),
+    const wrapper = ({ children }: any) => (
+      <MemoryRouter>{children}</MemoryRouter>
+    );
+    const { result } = renderHook(
+      () =>
+        useQueryState({
+          enableURLState: false,
+          filters: [{ label: 'kind', value: 'kind:foo' }],
+        }),
+      { wrapper },
     );
 
     const initial = result.current[0];
@@ -16,47 +22,24 @@ describe('useQueryState', () => {
       filters: [{ label: 'kind', value: 'kind:foo' }],
       limit: 25,
       offset: 0,
-      orderBy: 'name',
-      orderAscending: true,
-      pinnedTerms: [],
+      orderBy: '',
+      orderAscending: false,
       query: '',
       selectedFilter: '',
     });
   });
-  it('pins terms', () => {
-    const { result } = renderHook(() =>
-      useQueryState({
-        enableURLState: false,
-        filters: [{ label: 'kind', value: 'kind:foo' }],
-      }),
+  it('filterChangeHandler', () => {
+    const wrapper = ({ children }: any) => (
+      <MemoryRouter>{children}</MemoryRouter>
     );
 
-    act(() => {
-      const setState = result.current[1];
-      setState({
-        ...result.current[0],
-        query: 'test',
-      });
-    });
-
-    const state = result.current[0];
-    expect(state).toEqual({
-      filters: [{ label: 'kind', value: 'kind:foo' }],
-      limit: 25,
-      offset: 0,
-      orderBy: 'name',
-      orderAscending: true,
-      pinnedTerms: [],
-      query: 'test',
-      selectedFilter: '',
-    });
-  });
-  it('filterChangeHandler', () => {
-    const { result } = renderHook(() =>
-      useQueryState({
-        enableURLState: false,
-        filters: [{ label: 'kind', value: 'kind:foo' }],
-      }),
+    const { result } = renderHook(
+      () =>
+        useQueryState({
+          enableURLState: false,
+          filters: [{ label: 'kind', value: 'kind:foo' }],
+        }),
+      { wrapper },
     );
 
     const handler = filterChangeHandler(result.current[0], result.current[1]);
@@ -70,10 +53,9 @@ describe('useQueryState', () => {
       filters: [{ label: 'kind', value: 'kind:foo' }],
       limit: 25,
       offset: 0,
-      orderBy: 'name',
-      orderAscending: true,
-      pinnedTerms: ['kind:bar'],
-      query: '',
+      orderBy: '',
+      orderAscending: false,
+      query: 'kind:bar',
       selectedFilter: 'kind:bar',
     });
   });

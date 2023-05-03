@@ -7,7 +7,7 @@ import {
   Select,
   TextField,
 } from '@material-ui/core';
-import { Flex, Input } from '@weaveworks/weave-gitops';
+import { Button, Flex, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import * as React from 'react';
 import styled from 'styled-components';
@@ -21,10 +21,9 @@ type Props = {
   selectedFilter: string;
   disabled?: boolean;
   placeholder?: string;
-  pinnedTerms: string[];
-  onChange: (val: string, pinnedTerms: string[]) => void;
+  onChange: (val: string) => void;
   onFilterSelect: (val: string) => void;
-  onSubmit: (val: string[]) => void;
+  onSubmit: (val: string) => void;
   onBlur?: () => void;
   busy?: boolean;
   hideTextInput?: boolean;
@@ -32,7 +31,6 @@ type Props = {
 
 function QueryBuilder({
   query,
-  // pinnedTerms,
   filters,
   selectedFilter,
   disabled,
@@ -47,20 +45,9 @@ function QueryBuilder({
 }: Props) {
   const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const handleAddSearchTerm = (value: string) => {
-    onSubmit([value]);
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value, []);
+    onChange(e.target.value);
   };
-
-  // const handleInputKeyPress = (ev: React.KeyboardEvent<HTMLInputElement>) => {
-  //   if (ev.key === 'Enter' && query.length > 0) {
-  //     ev.preventDefault();
-  //     handleAddSearchTerm(query);
-  //   }
-  // };
 
   const handleFocus = () => {};
 
@@ -70,7 +57,7 @@ function QueryBuilder({
     if (inputRef.current) {
       inputRef.current.focus();
     }
-
+    onChange('');
     onFilterSelect(ev.target.value);
   };
 
@@ -79,19 +66,35 @@ function QueryBuilder({
       <Flex align>
         <Box marginRight={1}>
           {!hideTextInput && (
-            <TextField
-              placeholder={placeholder}
-              style={{ minWidth: 360 }}
-              variant="outlined"
-              onChange={handleInputChange}
-              value={query}
-              // onKeyDown={handleInputKeyPress}
-              onBlur={onBlur}
-              onFocus={handleFocus}
-              inputRef={inputRef}
-              disabled={disabled}
-              onSubmit={e => onSubmit([query])}
-            />
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                onSubmit(query);
+              }}
+            >
+              <Flex>
+                <FormControl>
+                  <TextField
+                    placeholder={placeholder}
+                    style={{ minWidth: 360 }}
+                    variant="outlined"
+                    onChange={handleInputChange}
+                    value={query}
+                    // onKeyDown={handleInputKeyPress}
+                    onBlur={onBlur}
+                    onFocus={handleFocus}
+                    inputRef={inputRef}
+                    disabled={disabled}
+                    onSubmit={e => {}}
+                  />
+                </FormControl>
+                <Box marginLeft={1}>
+                  <Button style={{ height: 56 }} type="submit">
+                    Submit
+                  </Button>
+                </Box>
+              </Flex>
+            </form>
           )}
         </Box>
         {!_.isEmpty(filters) && (
@@ -118,12 +121,6 @@ function QueryBuilder({
                   ))}
                 </Select>
               </FormControl>
-
-              {/* <ChipGroup
-                chips={pinnedTerms}
-                onChipRemove={handleRemoveSearchTerm}
-                onClearAll={handleRemoveAll}
-              /> */}
             </Flex>
           </Box>
         )}

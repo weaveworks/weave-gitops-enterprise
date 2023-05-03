@@ -75,7 +75,7 @@ func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) erro
 
 func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
 	if q == "" {
-		return i.store.GetObjects(ctx, nil, opts)
+		q = "*" // match all
 	}
 
 	query := bleve.NewQueryStringQuery(string(q))

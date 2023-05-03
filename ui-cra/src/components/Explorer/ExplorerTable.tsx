@@ -19,6 +19,7 @@ type Props = {
   onColumnHeaderClick?: (field: Field) => void;
   rows: Object[];
   enableBatchSync?: boolean;
+  sortField?: string;
 };
 
 function ExplorerTable({
@@ -26,6 +27,7 @@ function ExplorerTable({
   onColumnHeaderClick,
   rows,
   enableBatchSync,
+  sortField,
 }: Props) {
   const r: Object[] = _.map(rows, o => ({
     // Doing some things here to make this work with the DataTable.
@@ -54,13 +56,23 @@ function ExplorerTable({
             return <Link to={url}>{o.name}</Link>;
           },
           sortValue: () => 'name',
+          defaultSort: sortField === 'name',
         },
-        { label: 'Kind', value: 'kind' },
-        { label: 'Namespace', value: 'namespace' },
-        { label: 'Cluster', value: 'clusterName' },
+        { label: 'Kind', value: 'kind', defaultSort: sortField === 'kind' },
+        {
+          label: 'Namespace',
+          value: 'namespace',
+          defaultSort: sortField === 'namespace',
+        },
+        {
+          label: 'Cluster',
+          value: 'clusterName',
+          defaultSort: sortField === 'clusterName',
+        },
         {
           label: 'Status',
           sortValue: () => 'status',
+          defaultSort: sortField === 'status',
           value: (o: Object) => (
             <Flex align>
               <Box marginRight={1}>
@@ -83,7 +95,11 @@ function ExplorerTable({
             </Flex>
           ),
         },
-        { label: 'Message', value: 'message' },
+        {
+          label: 'Message',
+          value: 'message',
+          defaultSort: sortField === 'message',
+        },
       ]}
       rows={r}
       disableSort
