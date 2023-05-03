@@ -10,6 +10,7 @@ import { PageTemplate } from '../../Layout/PageTemplate';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { syncSecret } from './SyncSecret';
+import { Box } from '@material-ui/core';
 
 const SecretDetails = ({
   externalSecretName,
@@ -70,7 +71,7 @@ const SecretDetails = ({
         >
           Sync
         </Button>
-        {generateRowHeaders(defaultHeaders)}
+        <Box paddingBottom={3}>{generateRowHeaders(defaultHeaders)}</Box>
         <SecretDetailsTabs
           externalSecretName={externalSecretName}
           clusterName={clusterName}
