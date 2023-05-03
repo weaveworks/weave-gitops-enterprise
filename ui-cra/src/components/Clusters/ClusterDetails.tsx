@@ -16,13 +16,14 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
 import { CircularProgress, createStyles, makeStyles } from '@material-ui/core';
+import qs from 'query-string';
 import { useEffect, useState } from 'react';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { useIsClusterWithSources } from '../Applications/utils';
 import { Tooltip } from '../Shared';
+
 import ClusterDashboard from './ClusterDashboard';
-import { toFilterQueryString } from '../../utils/FilterQueryString';
 type Props = {
   className?: string;
   name: string;
@@ -80,13 +81,11 @@ const ClusterDetails = ({ clusterName }: Props) => {
                   className={classes.clusterApplicationBtn}
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}
                   onClick={() => {
-                    const filtersValues = toFilterQueryString([
-                      {
-                        key: 'clusterName',
-                        value: `${currentCluster?.namespace}/${currentCluster?.name}`,
-                      },
-                    ]);
-                    history.push(`/applications?filters=${filtersValues}`);
+                    const search = qs.stringify({
+                      q: `+cluster:${currentCluster?.name}`,
+                    });
+
+                    history.push(`/applications?${search}`);
                   }}
                 >
                   GO TO APPLICATIONS
