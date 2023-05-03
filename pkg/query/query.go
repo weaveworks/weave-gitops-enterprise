@@ -26,11 +26,28 @@ type QueryServiceOpts struct {
 	IndexReader   store.IndexReader
 }
 
+func (o QueryServiceOpts) Validate() error {
+	if o.StoreReader == nil {
+		return fmt.Errorf("store reader is required")
+	}
+	if o.AccessChecker == nil {
+		return fmt.Errorf("access checker is required")
+	}
+	if o.IndexReader == nil {
+		return fmt.Errorf("index reader is required")
+	}
+	return nil
+}
+
 const (
 	OperandIncludes = "includes"
 )
 
 func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
 	return &qs{
 		log:     opts.Log.WithName("query-service"),
 		debug:   opts.Log.WithName("query-service").V(logger.LogLevelDebug),

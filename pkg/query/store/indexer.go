@@ -82,20 +82,26 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 
 	req := bleve.NewSearchRequest(query)
 
+	sortBy := "name"
+	tmpl := "-%v"
+
 	if opts != nil {
 		// `-` reverses the order
-		tmpl := "-%v"
 		if !opts.GetAscending() {
 			tmpl = "%v"
 		}
-		req.SortBy([]string{fmt.Sprintf(tmpl, opts.GetOrderBy())})
 
-		req.Size = int(opts.GetLimit())
+		sort := opts.GetOrderBy()
+		if sort != "" {
+			sortBy = sort
+		}
 
 		if opts.GetOffset() > 0 {
 			req.From = int(opts.GetOffset())
 		}
 	}
+
+	req.SortBy([]string{fmt.Sprintf(tmpl, sortBy)})
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {

@@ -71,7 +71,7 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name:  "pagination - no offset",
-			opts:  &query{limit: 1, offset: 0},
+			opts:  &query{limit: 1, offset: 0, orderBy: "name", ascending: false},
 			query: "",
 			objects: []models.Object{
 				{
@@ -96,8 +96,10 @@ func TestRunQuery(t *testing.T) {
 		{
 			name: "pagination - with offset",
 			opts: &query{
-				limit:  1,
-				offset: 1,
+				limit:     1,
+				offset:    1,
+				orderBy:   "name",
+				ascending: false,
 			},
 			objects: []models.Object{
 				{
@@ -156,7 +158,6 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: "+kind:Kind1 +namespace:bravo",
-			opts:  &query{orderBy: "name"},
 			want:  []string{"bar"},
 		},
 		{
@@ -225,7 +226,7 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: "management",
+			query: "",
 			opts: &query{
 				orderBy: "kind",
 			},
@@ -260,7 +261,7 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: "+kind:Kustomization",
-			opts:  &query{orderBy: "name"},
+			opts:  &query{orderBy: "name", ascending: true},
 			want:  []string{"podinfo-a", "podinfo-b"},
 		},
 	}
@@ -336,6 +337,9 @@ func TestQueryIteration(t *testing.T) {
 	s, err := store.NewSQLiteStore(db, logr.Discard())
 	g.Expect(err).NotTo(HaveOccurred())
 
+	idx, err := store.NewIndexer(s, dir)
+	g.Expect(err).NotTo(HaveOccurred())
+
 	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
 		ID: "test",
 	})
@@ -376,12 +380,14 @@ func TestQueryIteration(t *testing.T) {
 	}
 
 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
 
 	q := &qs{
 		log:     logr.Discard(),
 		debug:   logr.Discard(),
 		r:       s,
 		checker: checker,
+		index:   idx,
 	}
 
 	r, err := db.Model(&models.Object{}).Rows()

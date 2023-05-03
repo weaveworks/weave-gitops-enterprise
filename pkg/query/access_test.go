@@ -43,6 +43,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-a",
@@ -51,6 +52,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{{
@@ -84,6 +86,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 		},
@@ -98,6 +101,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{{
@@ -131,6 +135,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 		},
@@ -145,6 +150,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -194,6 +200,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -243,6 +250,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "nginx-113",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -292,6 +300,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "notSupportedKind",
 					Name:       "nginx-113",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -359,6 +368,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-a",
@@ -367,6 +377,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "otherkind",
 					Name:       "othername",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			expected: []models.Object{
@@ -377,6 +388,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
+					Category:   models.CategoryAutomation,
 				},
 			},
 		},
@@ -391,12 +403,17 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			dir, err := os.MkdirTemp("", "test")
 			g.Expect(err).NotTo(HaveOccurred())
 
-			store, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
+			s, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
-			g.Expect(store.StoreObjects(context.Background(), tt.objects)).To(Succeed())
-			g.Expect(store.StoreRoles(context.Background(), tt.roles)).To(Succeed())
-			g.Expect(store.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
+			indexer, err := store.NewIndexer(s, dir)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			g.Expect(s.StoreObjects(context.Background(), tt.objects)).To(Succeed())
+			g.Expect(s.StoreRoles(context.Background(), tt.roles)).To(Succeed())
+			g.Expect(s.StoreRoleBindings(context.Background(), tt.bindings)).To(Succeed())
+
+			g.Expect(indexer.Add(context.Background(), tt.objects)).To(Succeed())
 
 			//create gvks and resources configuration
 			kindByResourceMap, err := testutils.CreateDefaultResourceKindMap()
@@ -407,8 +424,9 @@ func TestRunQuery_AccessRules(t *testing.T) {
 
 			qs, err := NewQueryService(QueryServiceOpts{
 				Log:           logr.Discard(),
-				StoreReader:   store,
+				StoreReader:   s,
 				AccessChecker: checker,
+				IndexReader:   indexer,
 			})
 
 			assert.NoError(t, err)
@@ -416,7 +434,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			actual, err := qs.RunQuery(ctx, "", nil)
 			assert.NoError(t, err)
 
-			opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt")
+			opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt", "Category")
 
 			diff := cmp.Diff(tt.expected, actual, opt)
 
