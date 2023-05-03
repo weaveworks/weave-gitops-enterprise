@@ -43,12 +43,19 @@ func TestStart(t *testing.T) {
 		errPattern string
 	}{
 		{
-			name:       "can start collector",
+			name:       "can start collector for empty collection",
+			clusters:   []cluster.Cluster{},
+			errPattern: "",
+		},
+		{
+			name:       "can start collector with not watchable clusters",
+			clusters:   []cluster.Cluster{newNonWatchableCluster()},
 			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			cm.GetClustersReturns(tt.clusters)
 			err := collector.Start()
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
@@ -58,6 +65,13 @@ func TestStart(t *testing.T) {
 			g.Expect(fakeStore).NotTo(BeNil())
 		})
 	}
+}
+
+func newNonWatchableCluster() cluster.Cluster {
+	cluster := new(clusterfakes.FakeCluster)
+	cluster.GetNameReturns("non-watchable")
+
+	return cluster
 }
 
 func TestStop(t *testing.T) {

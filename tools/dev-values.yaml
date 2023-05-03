@@ -20,7 +20,7 @@ enableExplorer: true
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
 
-useQueryServiceBackend: false
+useQueryServiceBackend: true
 
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
