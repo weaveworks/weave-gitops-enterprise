@@ -91,6 +91,10 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 		req.SortBy([]string{fmt.Sprintf(tmpl, opts.GetOrderBy())})
 
 		req.Size = int(opts.GetLimit())
+
+		if opts.GetOffset() > 0 {
+			req.From = int(opts.GetOffset())
+		}
 	}
 
 	searchResults, err := i.idx.Search(req)
