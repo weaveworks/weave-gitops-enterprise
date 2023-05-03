@@ -52,14 +52,6 @@ const SecretDetails = ({
     setSyncing(true);
     setNotifications([]);
     return sync()
-      .then(() => {
-        setNotifications([
-          {
-            message: { text: 'Sync successful' },
-            severity: 'success',
-          },
-        ]);
-      })
       .catch(err => {
         setNotifications([
           {
