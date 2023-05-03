@@ -11,15 +11,20 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/client-go/rest"
+	"os"
 	"testing"
+
+	l "github.com/weaveworks/weave-gitops/core/logger"
 
 	. "github.com/onsi/gomega"
 )
 
 func TestStart(t *testing.T) {
 	g := NewGomegaWithT(t)
-	log := testr.New(t)
+	log, loggerPath := newLoggerWithLevel(t, "DEBUG")
+
 	fakeStore := &storefakes.FakeStore{}
 	cm := clustersmngrfakes.FakeClustersManager{}
 	cmw := clustersmngr.ClustersWatcher{
@@ -38,31 +43,44 @@ func TestStart(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 
 	tests := []struct {
-		name       string
-		clusters   []cluster.Cluster
-		errPattern string
+		name             string
+		clusters         []cluster.Cluster
+		expectedLogError string
 	}{
 		{
-			name:       "can start collector for empty collection",
-			clusters:   []cluster.Cluster{},
-			errPattern: "",
+			name:             "can start collector for empty collection",
+			clusters:         []cluster.Cluster{},
+			expectedLogError: "",
 		},
 		{
-			name:       "can start collector with not watchable clusters",
-			clusters:   []cluster.Cluster{newNonWatchableCluster()},
-			errPattern: "",
+			name:             "can start collector with not watchable clusters",
+			clusters:         []cluster.Cluster{newNonWatchableCluster()},
+			expectedLogError: "cannot watch cluster",
+		},
+		{
+			name:             "can start collector with watchable clusters",
+			clusters:         []cluster.Cluster{newWatchableCluster()},
+			expectedLogError: "cannot watch cluster",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cm.GetClustersReturns(tt.clusters)
 			err := collector.Start()
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
+
+			// assert error has been logged
+			if tt.expectedLogError != "" {
+				logs, err := os.ReadFile(loggerPath)
+				if err != nil {
+					t.Fatalf("cannot get logs: %v", err)
+				}
+				logss := string(logs)
+				g.Expect(logss).To(MatchRegexp(tt.expectedLogError))
 			}
+
 			g.Expect(err).To(BeNil())
 			g.Expect(fakeStore).NotTo(BeNil())
+
 		})
 	}
 }
@@ -70,7 +88,12 @@ func TestStart(t *testing.T) {
 func newNonWatchableCluster() cluster.Cluster {
 	cluster := new(clusterfakes.FakeCluster)
 	cluster.GetNameReturns("non-watchable")
+	return cluster
+}
 
+func newWatchableCluster() cluster.Cluster {
+	cluster := new(clusterfakes.FakeCluster)
+	cluster.GetNameReturns("non-watchable")
 	return cluster
 }
 
@@ -320,4 +343,34 @@ func (f *fakeWatcher) Stop() error {
 
 func (f *fakeWatcher) Status() (string, error) {
 	return string(f.status), nil
+}
+
+func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
+	g := NewGomegaWithT(t)
+
+	file, err := os.CreateTemp(os.TempDir(), "query-server-log")
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	name := file.Name()
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	level, err := zapcore.ParseLevel(logLevel)
+	cfg := l.BuildConfig(
+		l.WithLogLevel(level),
+		l.WithMode(false),
+		l.WithOutAndErrPaths("stdout", "stderr"),
+		l.WithOutAndErrPaths(name, name),
+	)
+
+	log, err := l.NewFromConfig(cfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Cleanup(func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	return log, name
 }
