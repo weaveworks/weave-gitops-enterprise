@@ -15,7 +15,7 @@ import (
 	"strings"
 	"testing"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -69,7 +69,7 @@ func TestMain(m *testing.M) {
 
 	log.Println("environment started")
 
-	err = sourcev1.AddToScheme(scheme.Scheme)
+	err = sourcev1beta2.AddToScheme(scheme.Scheme)
 	if err != nil {
 		log.Fatalf("add helm to schema failed: %s", err)
 	}

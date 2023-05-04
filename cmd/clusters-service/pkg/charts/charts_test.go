@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -91,21 +91,21 @@ func TestScanCharts_errors(t *testing.T) {
 
 }
 
-func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {
-	hr := &sourcev1.HelmRepository{
+func makeTestHelmRepository(base string, opts ...func(*sourcev1beta2.HelmRepository)) *sourcev1beta2.HelmRepository {
+	hr := &sourcev1beta2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
+			Kind:       sourcev1beta2.HelmRepositoryKind,
+			APIVersion: sourcev1beta2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testing",
 			Namespace: "test-ns",
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1beta2.HelmRepositorySpec{
 			URL:      base + "/charts",
 			Interval: metav1.Duration{Duration: time.Minute * 10},
 		},
-		Status: sourcev1.HelmRepositoryStatus{
+		Status: sourcev1beta2.HelmRepositoryStatus{
 			URL: base + "/index.yaml",
 		},
 	}

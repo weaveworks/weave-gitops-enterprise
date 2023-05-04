@@ -19,7 +19,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
@@ -1427,7 +1427,7 @@ metadata:
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := httptest.NewServer(makeServeMux(t))
-			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta2.HelmRepository) {
 				hr.Name = "weaveworks-charts"
 				hr.Namespace = "default"
 			})
@@ -2904,9 +2904,9 @@ func concatYaml(yamls ...string) string {
 
 // generateProfiles takes in a HelmRepo that we are going to write to git,
 // it shouldn't have Status etc set
-func makeTestHelmRepositoryTemplate(base string) *sourcev1.HelmRepository {
-	return makeTestHelmRepository(base, func(hr *sourcev1.HelmRepository) {
-		hr.Status = sourcev1.HelmRepositoryStatus{}
+func makeTestHelmRepositoryTemplate(base string) *sourcev1beta2.HelmRepository {
+	return makeTestHelmRepository(base, func(hr *sourcev1beta2.HelmRepository) {
+		hr.Status = sourcev1beta2.HelmRepositoryStatus{}
 	})
 }
 

@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -46,7 +46,7 @@ func NewWatcher(opts Options) (*Watcher, error) {
 		return nil, err
 	}
 
-	if err := sourcev1.AddToScheme(scheme); err != nil {
+	if err := sourcev1beta2.AddToScheme(scheme); err != nil {
 		return nil, err
 	}
 

@@ -7,7 +7,7 @@ import (
 	"net/url"
 	"os"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	wegohelm "github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/getter"
@@ -40,7 +40,7 @@ var Profiles = func(v *repo.ChartVersion) bool {
 // ScanCharts filters charts using the provided predicate.
 //
 // TODO: Add caching based on the Status Artifact Revision.
-func ScanCharts(ctx context.Context, hr *sourcev1.HelmRepository, pred chartPredicate) ([]*capiv1_proto.Profile, error) {
+func ScanCharts(ctx context.Context, hr *sourcev1beta2.HelmRepository, pred chartPredicate) ([]*capiv1_proto.Profile, error) {
 	chartRepo, err := fetchIndexFile(hr.Status.URL)
 	if err != nil {
 		return nil, fmt.Errorf("fetching profiles from HelmRepository %s/%s %q: %w",

@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/stretchr/testify/assert"
@@ -159,7 +159,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1.AddToScheme,
+		sourcev1beta2.AddToScheme,
 		pipectrl.AddToScheme,
 	}
 

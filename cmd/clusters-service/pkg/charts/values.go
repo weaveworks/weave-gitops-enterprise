@@ -22,7 +22,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 )
 
 const (
@@ -47,7 +47,7 @@ type ChartReference struct {
 type HelmChartClient struct {
 	client.Client
 	Namespace  string
-	Repository *sourcev1.HelmRepository
+	Repository *sourcev1beta2.HelmRepository
 	CacheDir   string
 }
 
@@ -60,7 +60,7 @@ func WithCacheDir(dir string) func(*HelmChartClient) {
 }
 
 // NewHelmChartClient creates and returns a new HelmChartClient.
-func NewHelmChartClient(kc client.Client, ns string, hr *sourcev1.HelmRepository, opts ...func(*HelmChartClient)) *HelmChartClient {
+func NewHelmChartClient(kc client.Client, ns string, hr *sourcev1beta2.HelmRepository, opts ...func(*HelmChartClient)) *HelmChartClient {
 	h := &HelmChartClient{
 		Client:     kc,
 		Namespace:  ns,
@@ -130,7 +130,7 @@ func (h HelmChartClient) FileFromChart(ctx context.Context, c *ChartReference, f
 	return nil, fmt.Errorf("failed to find file: %s", filename)
 }
 
-func credsForRepository(ctx context.Context, kc client.Client, ns string, hr *sourcev1.HelmRepository) (string, string, error) {
+func credsForRepository(ctx context.Context, kc client.Client, ns string, hr *sourcev1beta2.HelmRepository) (string, string, error) {
 	var secret corev1.Secret
 	if err := kc.Get(ctx, types.NamespacedName{Name: hr.Spec.SecretRef.Name, Namespace: ns}, &secret); err != nil {
 		return "", "", fmt.Errorf("repository authentication: %w", err)
@@ -230,8 +230,8 @@ func MakeHelmReleasesInLayers(namespace string, installs []ChartInstall) ([]*hel
 							Chart:   install.Ref.Chart,
 							Version: install.Ref.Version,
 							SourceRef: helmv2.CrossNamespaceObjectReference{
-								APIVersion: sourcev1.GroupVersion.Identifier(),
-								Kind:       sourcev1.HelmRepositoryKind,
+								APIVersion: sourcev1beta2.GroupVersion.Identifier(),
+								Kind:       sourcev1beta2.HelmRepositoryKind,
 								Name:       install.Ref.SourceRef.Name,
 								Namespace:  install.Ref.SourceRef.Namespace,
 							},

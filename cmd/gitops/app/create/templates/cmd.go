@@ -11,7 +11,7 @@ import (
 	"time"
 
 	securejoin "github.com/cyphar/filepath-securejoin"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -245,7 +245,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}
 
-	var helmRepo *sourcev1.HelmRepository
+	var helmRepo *sourcev1beta2.HelmRepository
 	var helmRepoRef types.NamespacedName
 	var chartsCache helm.ProfilesGeneratorCache = helm.NilProfilesGeneratorCache{}
 	if len(profiles) > 0 || templateHasRequiredProfiles {
@@ -315,17 +315,17 @@ func localHelmRepo(repoName string, settings *cli.EnvSettings) (*repo.Entry, *re
 	return r, index, nil
 }
 
-func fluxHelmRepo(r *repo.Entry) *sourcev1.HelmRepository {
-	return &sourcev1.HelmRepository{
+func fluxHelmRepo(r *repo.Entry) *sourcev1beta2.HelmRepository {
+	return &sourcev1beta2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
+			Kind:       sourcev1beta2.HelmRepositoryKind,
+			APIVersion: sourcev1beta2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      r.Name,
 			Namespace: "flux-system",
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1beta2.HelmRepositorySpec{
 			Interval: metav1.Duration{Duration: 10 * time.Minute},
 			URL:      r.URL,
 		},

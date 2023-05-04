@@ -11,7 +11,7 @@ import (
 
 	"github.com/fluxcd/go-git-providers/gitprovider"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
 	"google.golang.org/grpc/codes"
@@ -344,8 +344,8 @@ func createHelmReleaseObject(hr *capiv1_proto.HelmRelease) (*helmv2.HelmRelease,
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: hr.Spec.Chart.Spec.Chart,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						APIVersion: sourcev1.GroupVersion.Identifier(),
-						Kind:       sourcev1.HelmRepositoryKind,
+						APIVersion: sourcev1beta2.GroupVersion.Identifier(),
+						Kind:       sourcev1beta2.HelmRepositoryKind,
 						Name:       hr.Spec.Chart.Spec.SourceRef.Name,
 						Namespace:  hr.Spec.Chart.Spec.SourceRef.Namespace,
 					},

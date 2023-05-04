@@ -14,7 +14,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/fluxcd/pkg/runtime/conditions"
 	"github.com/fluxcd/pkg/untar"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"helm.sh/helm/v3/pkg/repo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -31,7 +31,7 @@ type ValuesFetcher interface {
 }
 
 // use apimachinery wait package to wait for the HelmChart to be ready
-func waitForReady(ctx context.Context, cl client.Client, helmChart *sourcev1.HelmChart) error {
+func waitForReady(ctx context.Context, cl client.Client, helmChart *sourcev1beta2.HelmChart) error {
 	err := util.PollImmediate(1*time.Second, 30*time.Second, func() (bool, error) {
 		err := cl.Get(ctx, types.NamespacedName{Namespace: helmChart.Namespace, Name: helmChart.Name}, helmChart)
 		if err != nil {
@@ -56,7 +56,7 @@ func NewValuesFetcher() ValuesFetcher {
 
 func (v *valuesFetcher) GetIndexFile(ctx context.Context, cluster cluster.Cluster, helmRepo types.NamespacedName, useProxy bool) (*repo.IndexFile, error) {
 	// Get the HelmRepository
-	helmRepoObj := &sourcev1.HelmRepository{}
+	helmRepoObj := &sourcev1beta2.HelmRepository{}
 	cl, err := cluster.GetServerClient()
 	if err != nil {
 		return nil, fmt.Errorf("failed to create client: %w", err)
@@ -110,15 +110,15 @@ func (v *valuesFetcher) GetValuesFile(ctx context.Context, cluster cluster.Clust
 	randomChartName := chartRef.Name + "-" + randString(5)
 
 	// Using a typed object.
-	helmChart := &sourcev1.HelmChart{
+	helmChart := &sourcev1beta2.HelmChart{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: helmRepo.Namespace,
 			Name:      randomChartName,
 		},
-		Spec: sourcev1.HelmChartSpec{
+		Spec: sourcev1beta2.HelmChartSpec{
 			Chart: chartRef.Name,
-			SourceRef: sourcev1.LocalHelmChartSourceReference{
-				Kind: sourcev1.HelmRepositoryKind,
+			SourceRef: sourcev1beta2.LocalHelmChartSourceReference{
+				Kind: sourcev1beta2.HelmRepositoryKind,
 				Name: helmRepo.Name,
 			},
 			Version: chartRef.Version,

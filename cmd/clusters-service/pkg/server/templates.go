@@ -8,7 +8,7 @@ import (
 	"sort"
 	"strings"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/spf13/viper"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
@@ -33,7 +33,7 @@ type GetFilesRequest struct {
 	Profiles         []*capiv1_proto.ProfileValues
 	Kustomizations   []*capiv1_proto.Kustomization
 	ExternalSecrets  []*capiv1_proto.ExternalSecret
-	HelmRepository   *sourcev1.HelmRepository
+	HelmRepository   *sourcev1beta2.HelmRepository
 }
 
 type GetFilesReturn struct {
@@ -428,16 +428,16 @@ func GetFiles(
 // Make a copy of the Helm repository that we can save to git.
 // Copy is just the name/namespace/spec.
 // We don't need the status, annotations or labels etc.
-func copyHelmRepository(ctx context.Context, client client.Client, profileHelmRepository types.NamespacedName) (*sourcev1.HelmRepository, error) {
-	existingHelmRepo := &sourcev1.HelmRepository{}
+func copyHelmRepository(ctx context.Context, client client.Client, profileHelmRepository types.NamespacedName) (*sourcev1beta2.HelmRepository, error) {
+	existingHelmRepo := &sourcev1beta2.HelmRepository{}
 	err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", profileHelmRepository.Name, profileHelmRepository.Namespace, err)
 	}
-	return &sourcev1.HelmRepository{
+	return &sourcev1beta2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
+			Kind:       sourcev1beta2.HelmRepositoryKind,
+			APIVersion: sourcev1beta2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      profileHelmRepository.Name,

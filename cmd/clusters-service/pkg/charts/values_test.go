@@ -10,7 +10,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	fluxmeta "github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/google/go-cmp/cmp"
 	"helm.sh/helm/v3/pkg/chart"
 	"helm.sh/helm/v3/pkg/repo"
@@ -57,7 +57,7 @@ func TestValuesForChart_basic_auth_via_Secret(t *testing.T) {
 	ts := httptest.NewServer(basicAuthHandler(t, makeServeMux(t), "test", "password"))
 	defer ts.Close()
 
-	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta2.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 			Name: testSecretName,
 		}
@@ -90,7 +90,7 @@ func TestUpdateCache_with_missing_missing_secret_for_auth(t *testing.T) {
 	fc := makeTestClient(t)
 	ts := httptest.NewServer(basicAuthHandler(t, makeServeMux(t), "test", "password"))
 	defer ts.Close()
-	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta2.HelmRepository) {
 		hr.Spec.SecretRef = &fluxmeta.LocalObjectReference{
 			Name: testSecretName,
 		}
@@ -209,7 +209,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 		}
 	}
 
-	hr := makeTestHelmRepository("https://example.com/charts", func(h *sourcev1.HelmRepository) {
+	hr := makeTestHelmRepository("https://example.com/charts", func(h *sourcev1beta2.HelmRepository) {
 		h.ObjectMeta.Namespace = "helm-repo-ns"
 	})
 	layeredTests := []struct {
@@ -309,7 +309,7 @@ func TestMakeHelmReleasesInLayers(t *testing.T) {
 	}
 }
 
-func makeTestChartReference(name, version string, hr *sourcev1.HelmRepository) ChartReference {
+func makeTestChartReference(name, version string, hr *sourcev1beta2.HelmRepository) ChartReference {
 	return ChartReference{
 		Chart:     name,
 		Version:   version,
@@ -350,7 +350,7 @@ func makeServeMux(t *testing.T, opts ...func(*repo.IndexFile)) *http.ServeMux {
 	return mux
 }
 
-func referenceForRepository(s *sourcev1.HelmRepository) helmv2.CrossNamespaceObjectReference {
+func referenceForRepository(s *sourcev1beta2.HelmRepository) helmv2.CrossNamespaceObjectReference {
 	return helmv2.CrossNamespaceObjectReference{
 		APIVersion: s.TypeMeta.APIVersion,
 		Kind:       s.TypeMeta.Kind,
@@ -436,7 +436,7 @@ func makeTestSecret(user, pass string) *corev1.Secret {
 	}
 }
 
-func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1.HelmRepository) *HelmChartClient {
+func makeChartClient(t *testing.T, cl client.Client, hr *sourcev1beta2.HelmRepository) *HelmChartClient {
 	t.Helper()
 	tempDir, err := os.MkdirTemp("", "prefix")
 	if err != nil {
@@ -470,8 +470,8 @@ func makeTestHelmRelease(name, repoName, repoNS, chart, version string, opts ...
 					Chart:   chart,
 					Version: version,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						APIVersion: sourcev1.GroupVersion.Identifier(),
-						Kind:       sourcev1.HelmRepositoryKind,
+						APIVersion: sourcev1beta2.GroupVersion.Identifier(),
+						Kind:       sourcev1beta2.HelmRepositoryKind,
 						Name:       repoName,
 						Namespace:  repoNS,
 					},

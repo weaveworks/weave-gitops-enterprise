@@ -8,7 +8,7 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	k8syaml "k8s.io/apimachinery/pkg/util/yaml"
@@ -34,8 +34,8 @@ func MakeHelmRelease(name, version, cluster, namespace string, helmRepository ty
 					Chart:   name,
 					Version: version,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						APIVersion: sourcev1.GroupVersion.Identifier(),
-						Kind:       sourcev1.HelmRepositoryKind,
+						APIVersion: sourcev1beta2.GroupVersion.Identifier(),
+						Kind:       sourcev1beta2.HelmRepositoryKind,
 						Name:       helmRepository.Name,
 						Namespace:  helmRepository.Namespace,
 					},

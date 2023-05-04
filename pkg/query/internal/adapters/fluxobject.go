@@ -3,7 +3,8 @@ package adapters
 import (
 	"fmt"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
@@ -29,15 +30,15 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *kustomizev1.Kustomization:
 		return t, nil
-	case *sourcev1.HelmRepository:
+	case *sourcev1beta2.HelmRepository:
 		return t, nil
-	case *sourcev1.HelmChart:
+	case *sourcev1beta2.HelmChart:
 		return t, nil
-	case *sourcev1.Bucket:
+	case *sourcev1beta2.Bucket:
 		return t, nil
 	case *sourcev1.GitRepository:
 		return t, nil
-	case *sourcev1.OCIRepository:
+	case *sourcev1beta2.OCIRepository:
 		return t, nil
 	}
 

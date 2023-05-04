@@ -6,7 +6,7 @@ package server_test
 import (
 	"context"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
@@ -90,20 +90,20 @@ func TestQueryServer(t *testing.T) {
 			name:   "should support helm chart",
 			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1.HelmChart{
+				&sourcev1beta2.HelmChart{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "podinfo",
 						Namespace: defaultNamespace,
 					},
 					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1.HelmChartKind,
-						APIVersion: sourcev1.GroupVersion.String(),
+						Kind:       sourcev1beta2.HelmChartKind,
+						APIVersion: sourcev1beta2.GroupVersion.String(),
 					},
-					Spec: sourcev1.HelmChartSpec{
+					Spec: sourcev1beta2.HelmChartSpec{
 						Chart:   "podinfo",
 						Version: "v0.0.1",
-						SourceRef: sourcev1.LocalHelmChartSourceReference{
-							Kind: sourcev1.HelmRepositoryKind,
+						SourceRef: sourcev1beta2.LocalHelmChartSourceReference{
+							Kind: sourcev1beta2.HelmRepositoryKind,
 							Name: "podinfo",
 						},
 					},
@@ -121,16 +121,16 @@ func TestQueryServer(t *testing.T) {
 			name:   "should support git repository chart",
 			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1.GitRepository{
+				&sourcev1beta2.GitRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "podinfo",
 						Namespace: defaultNamespace,
 					},
 					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1.GitRepositoryKind,
-						APIVersion: sourcev1.GroupVersion.String(),
+						Kind:       sourcev1beta2.GitRepositoryKind,
+						APIVersion: sourcev1beta2.GroupVersion.String(),
 					},
-					Spec: sourcev1.GitRepositorySpec{
+					Spec: sourcev1beta2.GitRepositorySpec{
 						URL: "https://example.com/owner/repo",
 					},
 				},
@@ -147,23 +147,23 @@ func TestQueryServer(t *testing.T) {
 			name:   "should support oci repository",
 			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1.OCIRepository{
+				&sourcev1beta2.OCIRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "podinfo",
 						Namespace: defaultNamespace,
 					},
 					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1.OCIRepositoryKind,
-						APIVersion: sourcev1.GroupVersion.String(),
+						Kind:       sourcev1beta2.OCIRepositoryKind,
+						APIVersion: sourcev1beta2.GroupVersion.String(),
 					},
-					Spec: sourcev1.OCIRepositorySpec{
+					Spec: sourcev1beta2.OCIRepositorySpec{
 						URL: "oci://example.com/owner/repo",
 					},
 				},
 			},
 			queryClause: api.QueryClause{
 				Key:     "kind",
-				Value:   sourcev1.OCIRepositoryKind,
+				Value:   sourcev1beta2.OCIRepositoryKind,
 				Operand: string(store.OperandEqual),
 			},
 			principal:          principal,
@@ -173,16 +173,16 @@ func TestQueryServer(t *testing.T) {
 			name:   "should support bucket",
 			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1.Bucket{
+				&sourcev1beta2.Bucket{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "podinfo",
 						Namespace: defaultNamespace,
 					},
 					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1.BucketKind,
-						APIVersion: sourcev1.GroupVersion.String(),
+						Kind:       sourcev1beta2.BucketKind,
+						APIVersion: sourcev1beta2.GroupVersion.String(),
 					},
-					Spec: sourcev1.BucketSpec{},
+					Spec: sourcev1beta2.BucketSpec{},
 				},
 			},
 			queryClause: api.QueryClause{
@@ -235,7 +235,7 @@ func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart: "podinfo",
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind:      sourcev1.HelmRepositoryKind,
+						Kind:      sourcev1beta2.HelmRepositoryKind,
 						Name:      "podinfo",
 						Namespace: defaultNamespace,
 					},
@@ -245,17 +245,17 @@ func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
 	}
 }
 
-func podinfoHelmRepository(namespace string) *sourcev1.HelmRepository {
-	return &sourcev1.HelmRepository{
+func podinfoHelmRepository(namespace string) *sourcev1beta2.HelmRepository {
+	return &sourcev1beta2.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "podinfo",
 			Namespace: namespace,
 		},
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.String(),
+			Kind:       sourcev1beta2.HelmRepositoryKind,
+			APIVersion: sourcev1beta2.GroupVersion.String(),
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1beta.HelmRepositorySpec{
 			Interval: metav1.Duration{Duration: time.Minute},
 			URL:      "http://my-url.com",
 		},

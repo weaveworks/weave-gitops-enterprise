@@ -17,7 +17,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/imdario/mergo"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
@@ -653,7 +653,7 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvid
 
 // createProfileYAML creates a map of file paths to YAML bytes for a profile
 // takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
-func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
+func createProfileYAML(helmRepo *sourcev1beta2.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
 	profileObjects := make(map[string][][]byte)
 
 	// Helm repository template
@@ -695,7 +695,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]git.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1beta2.HelmRepository, args generateProfileFilesParams) ([]git.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err

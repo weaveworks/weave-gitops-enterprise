@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	corev1 "k8s.io/api/core/v1"
@@ -53,7 +53,7 @@ func newTestScheme(t *testing.T) *runtime.Scheme {
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		capiv1.AddToScheme,
-		sourcev1.AddToScheme,
+		sourcev1beta2.AddToScheme,
 		pacv2beta2.AddToScheme,
 		pacv2beta1.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
@@ -206,21 +206,21 @@ func makeTestClustersManager(t *testing.T, clusterState ...runtime.Object) *clus
 	return fakeFactory
 }
 
-func makeTestHelmRepository(base string, opts ...func(*sourcev1.HelmRepository)) *sourcev1.HelmRepository {
-	hr := &sourcev1.HelmRepository{
+func makeTestHelmRepository(base string, opts ...func(*sourcev1beta2.HelmRepository)) *sourcev1beta2.HelmRepository {
+	hr := &sourcev1beta2.HelmRepository{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       sourcev1.HelmRepositoryKind,
-			APIVersion: sourcev1.GroupVersion.Identifier(),
+			Kind:       sourcev1beta2.HelmRepositoryKind,
+			APIVersion: sourcev1beta2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "testing",
 			Namespace: "test-ns",
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1beta2.HelmRepositorySpec{
 			URL:      base + "/charts",
 			Interval: metav1.Duration{Duration: time.Minute * 10},
 		},
-		Status: sourcev1.HelmRepositoryStatus{
+		Status: sourcev1beta2.HelmRepositoryStatus{
 			URL: base + "/index.yaml",
 		},
 	}

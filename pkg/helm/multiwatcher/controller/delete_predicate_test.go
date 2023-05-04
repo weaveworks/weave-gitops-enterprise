@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/event"
@@ -25,7 +25,7 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 		{
 			name: "returns false no old",
 			event: event.UpdateEvent{
-				ObjectNew: &sourcev1.HelmRepository{
+				ObjectNew: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 2,
 					},
@@ -36,7 +36,7 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 		{
 			name: "returns false no new",
 			event: event.UpdateEvent{
-				ObjectOld: &sourcev1.HelmRepository{
+				ObjectOld: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 2,
 					},
@@ -47,12 +47,12 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 		{
 			name: "returns false if old source's generation is lower than the new source's but no deletion ts",
 			event: event.UpdateEvent{
-				ObjectNew: &sourcev1.HelmRepository{
+				ObjectNew: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 2,
 					},
 				},
-				ObjectOld: &sourcev1.HelmRepository{
+				ObjectOld: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 1,
 					},
@@ -63,13 +63,13 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 		{
 			name: "returns true if old source's generation is lower than the new source's and deletion ts is set",
 			event: event.UpdateEvent{
-				ObjectNew: &sourcev1.HelmRepository{
+				ObjectNew: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation:        2,
 						DeletionTimestamp: &newTime,
 					},
 				},
-				ObjectOld: &sourcev1.HelmRepository{
+				ObjectOld: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 1,
 					},
@@ -80,12 +80,12 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 		{
 			name: "returns false if old source's generation is higher than the new source's",
 			event: event.UpdateEvent{
-				ObjectNew: &sourcev1.HelmRepository{
+				ObjectNew: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 1,
 					},
 				},
-				ObjectOld: &sourcev1.HelmRepository{
+				ObjectOld: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 2,
 					},
@@ -96,12 +96,12 @@ func TestGenerationUpdateReconcilerPredicate_Update(t *testing.T) {
 		{
 			name: "returns false if old source's generation equals with the new source's",
 			event: event.UpdateEvent{
-				ObjectNew: &sourcev1.HelmRepository{
+				ObjectNew: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 1,
 					},
 				},
-				ObjectOld: &sourcev1.HelmRepository{
+				ObjectOld: &sourcev1beta2.HelmRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Generation: 1,
 					},

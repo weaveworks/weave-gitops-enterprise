@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -81,7 +81,7 @@ func MakeTar(t *testing.T, chartName, content string) []byte {
 func watchForHelmChartAndUpdateStatus(fakeClient client.Client) error {
 	return wait.PollImmediate(time.Second, 10*time.Second, func() (bool, error) {
 		// List all helm charts in the namespace flux-system
-		helmCharts := &sourcev1.HelmChartList{}
+		helmCharts := &sourcev1beta2.HelmChartList{}
 		err := fakeClient.List(context.Background(), helmCharts, client.InNamespace("flux-system"))
 		if err != nil {
 			return false, err
@@ -106,12 +106,12 @@ func watchForHelmChartAndUpdateStatus(fakeClient client.Client) error {
 }
 
 func TestGetIndexFile(t *testing.T) {
-	fakeClient := createFakeClient(t, &sourcev1.HelmRepository{
+	fakeClient := createFakeClient(t, &sourcev1beta2.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weaveworks-charts",
 			Namespace: "flux-system",
 		},
-		Status: sourcev1.HelmRepositoryStatus{
+		Status: sourcev1beta2.HelmRepositoryStatus{
 			URL: "http://source-controller.flux-system.svc.cluster.local./demo-index.yaml/index.yaml",
 		},
 	})
@@ -208,7 +208,7 @@ func createFakeClient(t *testing.T, clusterState ...runtime.Object) client.Clien
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
-		sourcev1.AddToScheme,
+		sourcev1beta2.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {

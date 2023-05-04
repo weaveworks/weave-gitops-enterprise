@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"sort"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	grpcruntime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
@@ -150,7 +150,7 @@ func (s *server) checkUserCanAccessHelmRepo(ctx context.Context, clusterRef type
 	}
 
 	// Get the helmRepo from the cluster
-	hr := sourcev1.HelmRepository{}
+	hr := sourcev1beta2.HelmRepository{}
 	err = client.Get(ctx, fetcher.ToClusterName(clusterRef), types.NamespacedName{Name: repoRef.Name, Namespace: repoRef.Namespace}, &hr)
 	if err != nil {
 		return fmt.Errorf("error getting helm repository: %w", err)

@@ -14,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/delete"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/get"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/update"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/upgrade"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
@@ -129,7 +128,6 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(create.Command())
 	rootCmd.AddCommand(update.Command(options, client))
 	rootCmd.AddCommand(delete.Command(options, client))
-	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))

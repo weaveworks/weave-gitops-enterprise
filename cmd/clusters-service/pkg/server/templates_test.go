@@ -8,7 +8,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/viper"
@@ -1217,7 +1217,7 @@ status: {}
 			viper.SetDefault("capi-repository-clusters-path", "clusters")
 
 			ts := httptest.NewServer(makeServeMux(t))
-			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta2.HelmRepository) {
 				hr.Name = "weaveworks-charts"
 				hr.Namespace = "default"
 			})
@@ -1374,7 +1374,7 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 func TestGetFiles_required_profiles(t *testing.T) {
 	viper.SetDefault("runtime-namespace", "flux-system")
 	ts := httptest.NewServer(makeServeMux(t))
-	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
+	hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1beta2.HelmRepository) {
 		hr.SetName("weaveworks-charts")
 		hr.SetNamespace("flux-system")
 	})

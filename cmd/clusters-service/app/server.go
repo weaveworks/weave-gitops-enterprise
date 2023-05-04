@@ -32,7 +32,7 @@ import (
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
 	"github.com/fluxcd/pkg/runtime/logger"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/spf13/cobra"
@@ -348,7 +348,8 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
 		gapiv1.AddToScheme,
-		sourcev1.AddToScheme,
+		// Only need HelmRepository for now
+		sourcev1beta2.AddToScheme,
 		gitopsv1alpha1.AddToScheme,
 		authv1.AddToScheme,
 	}

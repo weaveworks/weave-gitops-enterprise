@@ -3,7 +3,7 @@ package controller
 import (
 	"context"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"helm.sh/helm/v3/pkg/repo"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -25,7 +25,7 @@ const ProfileAnnotation = "weave.works/profile"
 const RepositoryProfilesAnnotation = "weave.works/profiles"
 
 // Profiles is a predicate for scanning charts with the ProfileAnnotation.
-var Profiles = func(hr *sourcev1.HelmRepository, v *repo.ChartVersion) bool {
+var Profiles = func(hr *sourcev1beta2.HelmRepository, v *repo.ChartVersion) bool {
 	return hasAnnotation(v.Metadata.Annotations, ProfileAnnotation) ||
 		hasAnnotation(hr.ObjectMeta.Annotations, RepositoryProfilesAnnotation)
 }
@@ -52,7 +52,7 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	)
 
 	// get source object
-	var repository sourcev1.HelmRepository
+	var repository sourcev1beta2.HelmRepository
 	if err := r.Get(ctx, req.NamespacedName, &repository); err != nil {
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
@@ -90,12 +90,12 @@ func (r *HelmWatcherReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 
 func (r *HelmWatcherReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&sourcev1.HelmRepository{}).
+		For(&sourcev1beta2.HelmRepository{}).
 		WithEventFilter(predicate.Or(ArtifactUpdatePredicate{}, DeletePredicate{})).
 		Complete(r)
 }
 
-func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository sourcev1.HelmRepository) (ctrl.Result, error) {
+func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository sourcev1beta2.HelmRepository) (ctrl.Result, error) {
 	log := logr.FromContextOrDiscard(ctx).WithValues(
 		"repository", repository,
 		"cluster", r.ClusterRef,
@@ -114,7 +114,7 @@ func (r *HelmWatcherReconciler) reconcileDelete(ctx context.Context, repository 
 }
 
 // LoadIndex loads the index file for a HelmRepository into the charts cache
-func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacheWriter, clusterRef types.NamespacedName, helmRepo *sourcev1.HelmRepository, log logr.Logger) {
+func LoadIndex(index *repo.IndexFile, cache helm.ChartsCacheWriter, clusterRef types.NamespacedName, helmRepo *sourcev1beta2.HelmRepository, log logr.Logger) {
 	for name, versions := range index.Entries {
 		for _, version := range versions {
 			isProfile := Profiles(helmRepo, version)

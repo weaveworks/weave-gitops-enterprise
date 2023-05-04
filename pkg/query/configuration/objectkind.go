@@ -5,7 +5,7 @@ import (
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -52,39 +52,39 @@ var (
 		AddToSchemeFunc: kustomizev1.AddToScheme,
 	}
 	HelmRepositoryObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmRepositoryKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.HelmRepository{}
+			return &sourcev1beta2.HelmRepository{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	HelmChartObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmChartKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.HelmChart{}
+			return &sourcev1beta2.HelmChart{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	GitRepositoryObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.GitRepositoryKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.GitRepository{}
+			return &sourcev1beta2.GitRepository{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	OCIRepositoryObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.OCIRepositoryKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.OCIRepository{}
+			return &sourcev1beta2.OCIRepository{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	BucketObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.BucketKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.BucketKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.Bucket{}
+			return &sourcev1beta2.Bucket{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	RoleObjectKind = ObjectKind{
 		Gvk: rbacv1.SchemeGroupVersion.WithKind("Role"),
