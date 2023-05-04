@@ -255,7 +255,7 @@ func podinfoHelmRepository(namespace string) *sourcev1beta2.HelmRepository {
 			Kind:       sourcev1beta2.HelmRepositoryKind,
 			APIVersion: sourcev1beta2.GroupVersion.String(),
 		},
-		Spec: sourcev1beta.HelmRepositorySpec{
+		Spec: sourcev1beta2.HelmRepositorySpec{
 			Interval: metav1.Duration{Duration: time.Minute},
 			URL:      "http://my-url.com",
 		},
