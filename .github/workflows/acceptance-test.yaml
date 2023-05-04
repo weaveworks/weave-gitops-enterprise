@@ -216,7 +216,7 @@ jobs:
           eksctl get clusters
       - name: Install flux
         run: |
-          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v0.36.0/flux_0.36.0_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
+          curl --silent --location https://github.com/fluxcd/flux2/releases/download/v2.0.0-rc.1/flux_2.0.0-rc.1_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
           sudo mv /tmp/flux /usr/local/bin
           flux version --client
       - name: Install aws-cli
