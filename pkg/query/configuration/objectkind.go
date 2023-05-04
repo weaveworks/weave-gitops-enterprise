@@ -5,6 +5,7 @@ import (
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -66,11 +67,11 @@ var (
 		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	GitRepositoryObjectKind = ObjectKind{
-		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.GitRepositoryKind),
+		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1beta2.GitRepository{}
+			return &sourcev1.GitRepository{}
 		},
-		AddToSchemeFunc: sourcev1beta2.AddToScheme,
+		AddToSchemeFunc: sourcev1.AddToScheme,
 	}
 	OCIRepositoryObjectKind = ObjectKind{
 		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.OCIRepositoryKind),

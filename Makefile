@@ -205,3 +205,13 @@ tools/core-files/charts/gitops-server/Chart.yaml: tools/core-files/Makefile.$(CO
 
 echo-ldflags: tools/core-files/charts/gitops-server/Chart.yaml tools/core-files/Makefile.$(CORE_REVISION)
 	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)" TIER="$(TIER)"
+
+download-test-crds:
+	group_resources="source/helmrepositories source/buckets source/gitrepositories source/helmcharts source/ocirepositories"; \
+	for group_resource in $$group_resources; do \
+		group="$${group_resource%/*}"; resource="$${group_resource#*/}"; \
+		echo "Downloading $${group}.$${resource}"; \
+		curl -sL "https://raw.githubusercontent.com/fluxcd/source-controller/v1.0.0-rc.1/config/crd/bases/$${group}.toolkit.fluxcd.io_$${resource}.yaml" -o "pkg/query/server/testdata/crds/$${group}.toolkit.fluxcd.io_$${resource}.yaml"; \
+	done
+	# curl -sL "https://raw.githubusercontent.com/fluxcd/kustomize-controller/v1.0.0-rc.1/config/crd/bases/kustomize.toolkit.fluxcd.io_kustomizations.yaml" -o "pkg/query/server/testdata/crds/kustomize.toolkit.fluxcd.io_kustomizations.yaml"
+	curl -sL "https://raw.githubusercontent.com/fluxcd/helm-controller/v0.32.1/config/crd/bases/helm.toolkit.fluxcd.io_helmreleases.yaml" -o "pkg/query/server/testdata/crds/helm.toolkit.fluxcd.io_helmreleases.yaml"

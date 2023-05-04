@@ -6,6 +6,7 @@ package server_test
 import (
 	"context"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
@@ -121,16 +122,16 @@ func TestQueryServer(t *testing.T) {
 			name:   "should support git repository chart",
 			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1beta2.GitRepository{
+				&sourcev1.GitRepository{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "podinfo",
 						Namespace: defaultNamespace,
 					},
 					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1beta2.GitRepositoryKind,
-						APIVersion: sourcev1beta2.GroupVersion.String(),
+						Kind:       sourcev1.GitRepositoryKind,
+						APIVersion: sourcev1.GroupVersion.String(),
 					},
-					Spec: sourcev1beta2.GitRepositorySpec{
+					Spec: sourcev1.GitRepositorySpec{
 						URL: "https://example.com/owner/repo",
 					},
 				},
