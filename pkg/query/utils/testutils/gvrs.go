@@ -2,8 +2,9 @@ package testutils
 
 import (
 	"fmt"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 )
 
 const (
@@ -39,7 +40,7 @@ func mapResourceToKind(resource string) (string, error) {
 	case HelmReleaseResourceName:
 		return helmv2.HelmReleaseKind, nil
 	case KustomizationResourceName:
-		return v1beta2.KustomizationKind, nil
+		return kustomizev1.KustomizationKind, nil
 	default:
 		return "", fmt.Errorf("cannot resolve not supported: %s", resource)
 	}

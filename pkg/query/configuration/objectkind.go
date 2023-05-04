@@ -2,8 +2,9 @@ package configuration
 
 import (
 	"fmt"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -44,11 +45,11 @@ var (
 		AddToSchemeFunc: v2beta1.AddToScheme,
 	}
 	KustomizationObjectKind = ObjectKind{
-		Gvk: v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
+		Gvk: kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind),
 		NewClientObjectFunc: func() client.Object {
-			return &v1beta2.Kustomization{}
+			return &kustomizev1.Kustomization{}
 		},
-		AddToSchemeFunc: v1beta2.AddToScheme,
+		AddToSchemeFunc: kustomizev1.AddToScheme,
 	}
 	HelmRepositoryObjectKind = ObjectKind{
 		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind),

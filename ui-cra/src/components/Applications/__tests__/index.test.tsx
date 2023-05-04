@@ -59,7 +59,7 @@ describe('Applications index test', () => {
             uid: 'uid1',
             payload: JSON.stringify({
               // maybe?
-              apiVersion: 'kustomize.toolkit.fluxcd.io/v1beta2',
+              apiVersion: 'kustomize.toolkit.fluxcd.io/v1',
               kind: 'Kustomization',
               metadata: {
                 namespace: 'my-ns',

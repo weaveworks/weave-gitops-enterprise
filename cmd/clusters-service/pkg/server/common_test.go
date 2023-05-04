@@ -43,7 +43,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
-	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
@@ -61,7 +61,7 @@ func newTestScheme(t *testing.T) *runtime.Scheme {
 		clusterv1.AddToScheme,
 		rbacv1.AddToScheme,
 		esv1beta1.AddToScheme,
-		kustomizev1beta2.AddToScheme,
+		kustomizev1.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {

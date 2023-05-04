@@ -529,7 +529,7 @@ func TestCreatePullRequest(t *testing.T) {
 			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/default/foo/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -592,7 +592,7 @@ spec:
 			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/default/foo/sops-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   annotations:
@@ -617,7 +617,7 @@ status: {}
 				},
 				{
 					Path: "clusters/default/foo/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -699,7 +699,7 @@ metadata:
 				},
 				{
 					Path: "clusters/default/dev/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -797,7 +797,7 @@ metadata:
 				},
 				{
 					Path: "clusters/default/foo/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -863,7 +863,7 @@ metadata:
 				},
 				{
 					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -978,7 +978,7 @@ metadata:
 				},
 				{
 					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -996,7 +996,7 @@ status: {}
 				},
 				{
 					Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1016,7 +1016,7 @@ status: {}
 				},
 				{
 					Path: "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1162,7 +1162,7 @@ metadata:
 				},
 				{
 					Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1236,7 +1236,7 @@ status: {}
 			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/clusters-namespace-2/dev/apps-capi-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1256,7 +1256,7 @@ status: {}
 				},
 				{
 					Path: "clusters/clusters-namespace-2/dev/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1354,7 +1354,7 @@ metadata:
 			CommittedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/clusters-namespace-2/dev/apps-capi-2-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1374,7 +1374,7 @@ status: {}
 				},
 				{
 					Path: "clusters/clusters-namespace-2/dev/clusters-bases-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null

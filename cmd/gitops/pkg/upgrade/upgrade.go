@@ -12,7 +12,7 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops/pkg/git"
@@ -160,20 +160,20 @@ func makeAppsCapiKustomization(namespace, repoURL string) ([]runtime.Object, err
 
 	gitRepositoryName := names.CreateClusterSourceName(normalizedURL)
 
-	appsCapiKustomization := &kustomizev2.Kustomization{
+	appsCapiKustomization := &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "apps-capi",
 			Namespace: namespace,
 		},
 		TypeMeta: metav1.TypeMeta{
-			Kind:       kustomizev2.KustomizationKind,
-			APIVersion: kustomizev2.GroupVersion.String(),
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.String(),
 		},
-		Spec: kustomizev2.KustomizationSpec{
+		Spec: kustomizev1.KustomizationSpec{
 			Interval: metav1.Duration{Duration: time.Minute},
 			Path:     "./.weave-gitops/apps/capi",
 			Prune:    true,
-			SourceRef: kustomizev2.CrossNamespaceSourceReference{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
 				Kind: "GitRepository",
 				Name: gitRepositoryName,
 			},
