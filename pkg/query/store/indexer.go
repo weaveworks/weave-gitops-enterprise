@@ -24,9 +24,12 @@ type IndexWriter interface {
 	Remove(ctx context.Context, objects []models.Object) error
 }
 
+type Facets map[string][]string
+
 //counterfeiter:generate . IndexReader
 type IndexReader interface {
 	Search(ctx context.Context, query Query, opts QueryOption) (Iterator, error)
+	ListFacets(ctx context.Context) (Facets, error)
 }
 
 var indexFile = "index.db"
@@ -39,6 +42,8 @@ func NewIndexer(s Store, path string) (Indexer, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create indexer: %w", err)
 	}
+
+	mapping.DefaultAnalyzer = "keyword"
 
 	return &bleveIndexer{
 		idx:   index,
@@ -117,6 +122,33 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 	}
 
 	return iter, nil
+}
+
+func (i *bleveIndexer) ListFacets(ctx context.Context) (Facets, error) {
+	query := bleve.NewMatchAllQuery()
+
+	req := bleve.NewSearchRequest(query)
+
+	req.AddFacet("Kind", bleve.NewFacetRequest("kind", 100))
+	req.AddFacet("Namespace", bleve.NewFacetRequest("namespace", 100))
+	req.AddFacet("Cluster", bleve.NewFacetRequest("cluster", 100))
+
+	searchResults, err := i.idx.Search(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to search for objects: %w", err)
+	}
+
+	facets := map[string][]string{}
+
+	for k, v := range searchResults.Facets {
+		facets[k] = []string{}
+
+		for _, t := range v.Terms.Terms() {
+			facets[k] = append(facets[k], t.Term)
+		}
+	}
+
+	return facets, nil
 }
 
 type indexerIterator struct {

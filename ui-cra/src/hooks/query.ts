@@ -50,3 +50,12 @@ export function useListAccessRules() {
 
   return useQuery(['listAccessRules'], () => api.DebugGetAccessRules({}));
 }
+
+export function useListFacets() {
+  const api = Query;
+
+  return useQuery(['facets'], () => api.ListFacets({}), {
+    refetchIntervalInBackground: false,
+    refetchInterval: Infinity,
+  });
+}

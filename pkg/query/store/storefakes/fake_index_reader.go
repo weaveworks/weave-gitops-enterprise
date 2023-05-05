@@ -9,6 +9,19 @@ import (
 )
 
 type FakeIndexReader struct {
+	ListFacetsStub        func(context.Context) (store.Facets, error)
+	listFacetsMutex       sync.RWMutex
+	listFacetsArgsForCall []struct {
+		arg1 context.Context
+	}
+	listFacetsReturns struct {
+		result1 store.Facets
+		result2 error
+	}
+	listFacetsReturnsOnCall map[int]struct {
+		result1 store.Facets
+		result2 error
+	}
 	SearchStub        func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)
 	searchMutex       sync.RWMutex
 	searchArgsForCall []struct {
@@ -26,6 +39,70 @@ type FakeIndexReader struct {
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
+}
+
+func (fake *FakeIndexReader) ListFacets(arg1 context.Context) (store.Facets, error) {
+	fake.listFacetsMutex.Lock()
+	ret, specificReturn := fake.listFacetsReturnsOnCall[len(fake.listFacetsArgsForCall)]
+	fake.listFacetsArgsForCall = append(fake.listFacetsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListFacetsStub
+	fakeReturns := fake.listFacetsReturns
+	fake.recordInvocation("ListFacets", []interface{}{arg1})
+	fake.listFacetsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeIndexReader) ListFacetsCallCount() int {
+	fake.listFacetsMutex.RLock()
+	defer fake.listFacetsMutex.RUnlock()
+	return len(fake.listFacetsArgsForCall)
+}
+
+func (fake *FakeIndexReader) ListFacetsCalls(stub func(context.Context) (store.Facets, error)) {
+	fake.listFacetsMutex.Lock()
+	defer fake.listFacetsMutex.Unlock()
+	fake.ListFacetsStub = stub
+}
+
+func (fake *FakeIndexReader) ListFacetsArgsForCall(i int) context.Context {
+	fake.listFacetsMutex.RLock()
+	defer fake.listFacetsMutex.RUnlock()
+	argsForCall := fake.listFacetsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeIndexReader) ListFacetsReturns(result1 store.Facets, result2 error) {
+	fake.listFacetsMutex.Lock()
+	defer fake.listFacetsMutex.Unlock()
+	fake.ListFacetsStub = nil
+	fake.listFacetsReturns = struct {
+		result1 store.Facets
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIndexReader) ListFacetsReturnsOnCall(i int, result1 store.Facets, result2 error) {
+	fake.listFacetsMutex.Lock()
+	defer fake.listFacetsMutex.Unlock()
+	fake.ListFacetsStub = nil
+	if fake.listFacetsReturnsOnCall == nil {
+		fake.listFacetsReturnsOnCall = make(map[int]struct {
+			result1 store.Facets
+			result2 error
+		})
+	}
+	fake.listFacetsReturnsOnCall[i] = struct {
+		result1 store.Facets
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeIndexReader) Search(arg1 context.Context, arg2 store.Query, arg3 store.QueryOption) (store.Iterator, error) {
@@ -97,6 +174,8 @@ func (fake *FakeIndexReader) SearchReturnsOnCall(i int, result1 store.Iterator, 
 func (fake *FakeIndexReader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
+	fake.listFacetsMutex.RLock()
+	defer fake.listFacetsMutex.RUnlock()
 	fake.searchMutex.RLock()
 	defer fake.searchMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

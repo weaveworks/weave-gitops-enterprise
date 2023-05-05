@@ -22,6 +22,19 @@ type FakeIndexer struct {
 	addReturnsOnCall map[int]struct {
 		result1 error
 	}
+	ListFacetsStub        func(context.Context) (store.Facets, error)
+	listFacetsMutex       sync.RWMutex
+	listFacetsArgsForCall []struct {
+		arg1 context.Context
+	}
+	listFacetsReturns struct {
+		result1 store.Facets
+		result2 error
+	}
+	listFacetsReturnsOnCall map[int]struct {
+		result1 store.Facets
+		result2 error
+	}
 	RemoveStub        func(context.Context, []models.Object) error
 	removeMutex       sync.RWMutex
 	removeArgsForCall []struct {
@@ -118,6 +131,70 @@ func (fake *FakeIndexer) AddReturnsOnCall(i int, result1 error) {
 	fake.addReturnsOnCall[i] = struct {
 		result1 error
 	}{result1}
+}
+
+func (fake *FakeIndexer) ListFacets(arg1 context.Context) (store.Facets, error) {
+	fake.listFacetsMutex.Lock()
+	ret, specificReturn := fake.listFacetsReturnsOnCall[len(fake.listFacetsArgsForCall)]
+	fake.listFacetsArgsForCall = append(fake.listFacetsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.ListFacetsStub
+	fakeReturns := fake.listFacetsReturns
+	fake.recordInvocation("ListFacets", []interface{}{arg1})
+	fake.listFacetsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeIndexer) ListFacetsCallCount() int {
+	fake.listFacetsMutex.RLock()
+	defer fake.listFacetsMutex.RUnlock()
+	return len(fake.listFacetsArgsForCall)
+}
+
+func (fake *FakeIndexer) ListFacetsCalls(stub func(context.Context) (store.Facets, error)) {
+	fake.listFacetsMutex.Lock()
+	defer fake.listFacetsMutex.Unlock()
+	fake.ListFacetsStub = stub
+}
+
+func (fake *FakeIndexer) ListFacetsArgsForCall(i int) context.Context {
+	fake.listFacetsMutex.RLock()
+	defer fake.listFacetsMutex.RUnlock()
+	argsForCall := fake.listFacetsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeIndexer) ListFacetsReturns(result1 store.Facets, result2 error) {
+	fake.listFacetsMutex.Lock()
+	defer fake.listFacetsMutex.Unlock()
+	fake.ListFacetsStub = nil
+	fake.listFacetsReturns = struct {
+		result1 store.Facets
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIndexer) ListFacetsReturnsOnCall(i int, result1 store.Facets, result2 error) {
+	fake.listFacetsMutex.Lock()
+	defer fake.listFacetsMutex.Unlock()
+	fake.ListFacetsStub = nil
+	if fake.listFacetsReturnsOnCall == nil {
+		fake.listFacetsReturnsOnCall = make(map[int]struct {
+			result1 store.Facets
+			result2 error
+		})
+	}
+	fake.listFacetsReturnsOnCall[i] = struct {
+		result1 store.Facets
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeIndexer) Remove(arg1 context.Context, arg2 []models.Object) error {
@@ -258,6 +335,8 @@ func (fake *FakeIndexer) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.listFacetsMutex.RLock()
+	defer fake.listFacetsMutex.RUnlock()
 	fake.removeMutex.RLock()
 	defer fake.removeMutex.RUnlock()
 	fake.searchMutex.RLock()

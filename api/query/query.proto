@@ -25,6 +25,12 @@ service Query {
         };
     }
 
+    rpc ListFacets(ListFacetsRequest) returns (ListFacetsResponse) {
+        option (google.api.http) = {
+            get: "/v1/facets"
+        };
+    }
+
     rpc DebugGetAccessRules(DebugGetAccessRulesRequest) returns (DebugGetAccessRulesResponse) {
         option (google.api.http) = {
             get: "/v1/debug/access-rules"
@@ -77,4 +83,17 @@ message AccessRule {
 message Subject {
     string kind = 1;
     string name = 2;
+}
+
+message ListFacetsRequest {
+
+}
+
+message ListFacetsResponse {
+    repeated Facet facets = 1;
+}
+
+message Facet {
+    string field = 1;
+    repeated string values = 2;
 }

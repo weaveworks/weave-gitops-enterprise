@@ -90,6 +90,17 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 	}, nil
 }
 
+func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb.ListFacetsResponse, error) {
+	facets, err := s.qs.ListFacets(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list facets: %w", err)
+	}
+
+	return &pb.ListFacetsResponse{
+		Facets: convertToPbFacet(facets),
+	}, nil
+}
+
 // GVKs and GVRs are related. GVKs are served under HTTP paths identified by GVRs.
 // The process of mapping a GVK to a GVR is called REST mapping.
 // This method creates a map <resource,kind> to allow access checker
@@ -275,4 +286,17 @@ func convertToPbAccessRule(rules []models.AccessRule) []*pb.AccessRule {
 
 	}
 	return pbRules
+}
+
+func convertToPbFacet(facets store.Facets) []*pb.Facet {
+	pbFacets := []*pb.Facet{}
+
+	for k, v := range facets {
+		pbFacets = append(pbFacets, &pb.Facet{
+			Field:  k,
+			Values: v,
+		})
+	}
+
+	return pbFacets
 }

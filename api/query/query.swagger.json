@@ -39,6 +39,28 @@
         ]
       }
     },
+    "/v1/facets": {
+      "get": {
+        "operationId": "Query_ListFacets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFacetsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      }
+    },
     "/v1/query": {
       "post": {
         "operationId": "Query_DoQuery",
@@ -142,6 +164,32 @@
           "items": {
             "type": "object",
             "$ref": "#/definitions/v1AccessRule"
+          }
+        }
+      }
+    },
+    "v1Facet": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListFacetsResponse": {
+      "type": "object",
+      "properties": {
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Facet"
           }
         }
       }

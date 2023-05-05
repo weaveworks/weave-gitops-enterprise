@@ -16,6 +16,7 @@ import (
 // QueryService is an all-in-one service that handles managing a collector, writing to the store, and responding to queries
 type QueryService interface {
 	RunQuery(ctx context.Context, q store.Query, opts store.QueryOption) ([]models.Object, error)
+	ListFacets(ctx context.Context) (store.Facets, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
@@ -129,4 +130,8 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 
 func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	return q.r.GetAccessRules(ctx)
+}
+
+func (q *qs) ListFacets(ctx context.Context) (store.Facets, error) {
+	return q.index.ListFacets(ctx)
 }
