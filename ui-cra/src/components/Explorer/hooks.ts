@@ -5,11 +5,10 @@ import { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 export type QueryState = {
-  query: string;
-  filters: { label: string; value: any }[];
+  terms: string;
+  filters: string[];
   limit: number;
   offset: number;
-  selectedFilter: string;
   orderBy: string;
   orderAscending: boolean;
 };
@@ -18,7 +17,7 @@ const DEFAULT_LIMIT = 25;
 
 type Config = {
   enableURLState?: boolean;
-  filters?: { label: string; value: any }[];
+  filters?: string[];
 };
 
 export function useQueryState(
@@ -26,7 +25,7 @@ export function useQueryState(
 ): [QueryState, (s: QueryState) => void] {
   const history = useHistory();
 
-  const { q, limit, orderBy, selectedFilter, ascending, offset } = qs.parse(
+  const { terms, filters, limit, orderBy, ascending, offset } = qs.parse(
     history.location.search,
   );
 
@@ -34,11 +33,10 @@ export function useQueryState(
   const o = parseInt(offset as string);
 
   const [queryState, setQueryState] = useState<QueryState>({
-    query: (q as string) || '',
+    terms: (terms as string) || '',
     limit: !_.isNaN(l) ? l : DEFAULT_LIMIT,
     offset: !_.isNaN(o) ? o : 0,
-    filters: cfg.filters || [],
-    selectedFilter: (selectedFilter as string) || '',
+    filters: (filters as string[]) || [],
     orderBy: (orderBy as string) || '',
     orderAscending: ascending === 'true',
   });
@@ -55,12 +53,12 @@ export function useQueryState(
     }
     const q = qs.stringify(
       {
-        q: queryState.query,
+        terms: queryState.terms,
+        filters: queryState.filters,
         limit,
         offset,
         ascending: queryState.orderAscending,
         orderBy: queryState.orderBy,
-        selectedFilter: queryState.selectedFilter,
       },
       { skipNull: true, skipEmptyString: true },
     );
@@ -92,11 +90,31 @@ export const columnHeaderHandler =
 
 export const filterChangeHandler =
   (queryState: QueryState, setQueryState: (next: QueryState) => void) =>
-  (val: string) => {
+  (filters: { [key: string]: boolean }) => {
+    const existing = [...queryState.filters];
+
+    _.each(filters, (v, k) => {
+      if (_.includes(existing, k) && !v) {
+        _.remove(existing, f => f === k);
+        return;
+      }
+
+      if (v) {
+        existing.push(k);
+      }
+    });
+
     setQueryState({
       ...queryState,
-      query: val,
-      offset: 0,
-      selectedFilter: val,
+      filters: existing,
+    });
+  };
+
+export const textInputHandler =
+  (queryState: QueryState, setQueryState: (next: QueryState) => void) =>
+  (terms: string) => {
+    setQueryState({
+      ...queryState,
+      terms,
     });
   };

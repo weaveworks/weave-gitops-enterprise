@@ -1,22 +1,16 @@
-import { Box } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import _ from 'lodash';
-import * as React from 'react';
 import styled from 'styled-components';
-import { useQueryService } from '../../hooks/query';
+import { useListFacets, useQueryService } from '../../hooks/query';
 import ExplorerTable from './ExplorerTable';
-import {
-  columnHeaderHandler,
-  filterChangeHandler,
-  useQueryState,
-} from './hooks';
 import PaginationControls from './PaginationControls';
-import QueryBuilder from './QueryBuilder';
+import QueryInput from './QueryInput';
+import { columnHeaderHandler, textInputHandler, useQueryState } from './hooks';
 
 type Props = {
   className?: string;
   enableBatchSync?: boolean;
-  category: string;
+  category: 'automation' | 'source';
 };
 
 const categoryKinds = {
@@ -31,22 +25,14 @@ const categoryKinds = {
 };
 
 function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
-  const kinds = (categoryKinds as any)[category];
-
+  const { data: facets } = useListFacets();
   const [queryState, setQueryState] = useQueryState({
-    enableURLState: true,
-    filters: [
-      ..._.map(kinds, k => ({
-        label: k,
-        value: `+kind:${k}`,
-      })),
-    ],
+    enableURLState: false,
   });
 
-  const [queryInput, setQueryInput] = React.useState(queryState.query);
-
   const { data, error, isLoading } = useQueryService({
-    query: queryState.query,
+    terms: queryState.terms,
+    filters: queryState.filters,
     limit: queryState.limit,
     offset: queryState.offset,
     orderBy: queryState.orderBy,
@@ -62,29 +48,26 @@ function ScopedExploreUI({ className, category, enableBatchSync }: Props) {
     return <Alert severity="error">Error: {error.message}</Alert>;
   }
 
+  // We only want certain kinds to show up as facets
+  const withoutKind = _.filter(facets?.facets, facet => {
+    return facet.field?.toLowerCase() !== 'kind';
+  });
+
+  const kindFacets = _.map(categoryKinds[category], k => k.toLowerCase());
+
+  withoutKind.push({
+    field: 'Kind',
+    values: kindFacets,
+  });
+
   return (
     <div className={className}>
-      <Box marginY={2}>
-        <QueryBuilder
-          busy={isLoading}
-          query={queryInput}
-          filters={queryState.filters}
-          selectedFilter={queryState.selectedFilter}
-          onChange={query => {
-            setQueryInput(query);
-          }}
-          onSubmit={query => {
-            let q = query;
-            if (queryState.selectedFilter) {
-              q = `${query} ${queryState.selectedFilter}`;
-            }
-            setQueryState({ ...queryState, query: q });
-          }}
-          onFilterSelect={filterChangeHandler(queryState, setQueryState)}
-        />
-      </Box>
-
+      <QueryInput
+        queryState={queryState}
+        onTextInputChange={textInputHandler(queryState, setQueryState)}
+      />
       <ExplorerTable
+        queryState={queryState}
         className={className}
         rows={data?.objects || []}
         onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}

@@ -62,7 +62,7 @@ function QueryBuilder({
   };
 
   return (
-    <div className={className}>
+    <div style={{ display: 'none' }} className={className}>
       <Flex align>
         <Box marginRight={1}>
           {!hideTextInput && (

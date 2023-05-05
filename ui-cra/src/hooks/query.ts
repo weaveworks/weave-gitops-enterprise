@@ -1,8 +1,10 @@
+import _ from 'lodash';
 import { useQuery } from 'react-query';
 import { Query, QueryResponse } from '../api/query/query.pb';
 
 type QueryOpts = {
-  query: string;
+  terms?: string;
+  filters?: string[];
   limit: number;
   offset: number;
   orderBy?: string;
@@ -11,7 +13,8 @@ type QueryOpts = {
 };
 
 export function useQueryService({
-  query,
+  terms,
+  filters,
   limit,
   offset,
   orderBy,
@@ -20,17 +23,16 @@ export function useQueryService({
 }: QueryOpts) {
   const api = Query;
 
-  let q = query;
-
   if (category) {
-    q += ' +category:' + category;
+    filters = _.concat(filters || [], ['+category:' + category]);
   }
 
   return useQuery<QueryResponse, Error>(
-    ['query', { query, limit, offset, orderBy, ascending }],
+    ['query', { terms, filters, limit, offset, orderBy, ascending }],
     () => {
       return api.DoQuery({
-        query: q,
+        terms,
+        filters,
         limit,
         offset,
         orderBy,
@@ -40,7 +42,7 @@ export function useQueryService({
     {
       keepPreviousData: true,
       retry: false,
-      refetchInterval: 5000,
+      refetchInterval: Infinity,
     },
   );
 }
