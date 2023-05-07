@@ -248,7 +248,7 @@ func (w *DefaultWatcher) Start() error {
 
 	go func() {
 		if err := w.watcherManager.Start(ctx); err != nil {
-			w.log.Error(err, "cannot start watcher")
+			w.log.Error(err, "cannot start watcher", "cluster", w.cluster.GetName())
 		}
 	}()
 

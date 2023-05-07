@@ -11,15 +11,20 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/client-go/rest"
+	"os"
 	"testing"
+
+	l "github.com/weaveworks/weave-gitops/core/logger"
 
 	. "github.com/onsi/gomega"
 )
 
 func TestStart(t *testing.T) {
 	g := NewGomegaWithT(t)
-	log := testr.New(t)
+	log, loggerPath := newLoggerWithLevel(t, "INFO")
+
 	fakeStore := &storefakes.FakeStore{}
 	cm := clustersmngrfakes.FakeClustersManager{}
 	cmw := clustersmngr.ClustersWatcher{
@@ -38,26 +43,66 @@ func TestStart(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 
 	tests := []struct {
-		name       string
-		clusters   []cluster.Cluster
-		errPattern string
+		name                string
+		clusters            []cluster.Cluster
+		expectedLogError    string
+		expectedNumClusters int
 	}{
 		{
-			name:       "can start collector",
-			errPattern: "",
+			name:                "can start collector for empty collection",
+			clusters:            []cluster.Cluster{},
+			expectedLogError:    "",
+			expectedNumClusters: 0,
+		},
+		{
+			name:                "can start collector with not watchable clusters",
+			clusters:            []cluster.Cluster{makeInvalidFakeCluster("test-cluster")},
+			expectedLogError:    "cannot watch cluster",
+			expectedNumClusters: 0,
+		},
+		{
+			name:                "can start collector with watchable clusters",
+			clusters:            []cluster.Cluster{makeValidFakeCluster("test-cluster")},
+			expectedLogError:    "",
+			expectedNumClusters: 1,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			cm.GetClustersReturns(tt.clusters)
 			err := collector.Start()
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
+
+			// assert error has been logged
+			if tt.expectedLogError != "" {
+				logs, err := os.ReadFile(loggerPath)
+				g.Expect(err).To(BeNil())
+				logss := string(logs)
+				g.Expect(logss).To(MatchRegexp(tt.expectedLogError))
 			}
+
 			g.Expect(err).To(BeNil())
 			g.Expect(fakeStore).NotTo(BeNil())
+			g.Expect(len(collector.clusterWatchers)).To(BeIdenticalTo(tt.expectedNumClusters))
+
 		})
 	}
+}
+
+func makeInvalidFakeCluster(name string) cluster.Cluster {
+	cluster := new(clusterfakes.FakeCluster)
+	cluster.GetNameReturns(name)
+	return cluster
+}
+
+func makeValidFakeCluster(name string) cluster.Cluster {
+	config := &rest.Config{
+		Host: "http://idontexist",
+	}
+
+	cluster := clusterfakes.FakeCluster{}
+	cluster.GetNameReturns(name)
+	cluster.GetServerConfigReturns(config, nil)
+	return &cluster
 }
 
 func TestStop(t *testing.T) {
@@ -118,11 +163,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
-	config := &rest.Config{
-		Host: "http://idontexist",
-	}
-
-	c := makeCluster("testcluster", config, log)
+	c := makeValidFakeCluster("testcluster")
 
 	tests := []struct {
 		name       string
@@ -164,11 +205,8 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
-	config := &rest.Config{
-		Host: "http://idontexist",
-	}
 	clusterName := "testCluster"
-	c := makeCluster(clusterName, config, log)
+	c := makeValidFakeCluster(clusterName)
 	g.Expect(collector.Watch(c)).To(Succeed())
 	watcher := collector.clusterWatchers[clusterName]
 	tests := []struct {
@@ -216,14 +254,6 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	}
 }
 
-func makeCluster(name string, config *rest.Config, log logr.Logger) cluster.Cluster {
-	cluster := clusterfakes.FakeCluster{}
-	cluster.GetNameReturns(name)
-	cluster.GetServerConfigReturns(config, nil)
-	log.Info("fake watcher created", "watcher", cluster.GetName())
-	return &cluster
-}
-
 func TestClusterWatcher_Status(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
@@ -239,9 +269,7 @@ func TestClusterWatcher_Status(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
 	existingClusterName := "test"
-	c := makeCluster(existingClusterName, &rest.Config{
-		Host: "http://idontexist",
-	}, log)
+	c := makeValidFakeCluster(existingClusterName)
 	err = collector.Watch(c)
 	g.Expect(err).To(BeNil())
 
@@ -306,4 +334,35 @@ func (f *fakeWatcher) Stop() error {
 
 func (f *fakeWatcher) Status() (string, error) {
 	return string(f.status), nil
+}
+
+func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
+	g := NewGomegaWithT(t)
+
+	file, err := os.CreateTemp(os.TempDir(), "query-server-log")
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	name := file.Name()
+	g.Expect(err).ShouldNot(HaveOccurred())
+
+	level, err := zapcore.ParseLevel(logLevel)
+	g.Expect(err).ShouldNot(HaveOccurred())
+	cfg := l.BuildConfig(
+		l.WithLogLevel(level),
+		l.WithMode(false),
+		l.WithOutAndErrPaths("stdout", "stderr"),
+		l.WithOutAndErrPaths(name, name),
+	)
+
+	log, err := l.NewFromConfig(cfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Cleanup(func() {
+		err := os.Remove(file.Name())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+
+	return log, name
 }
