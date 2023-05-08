@@ -6,7 +6,6 @@ package server_test
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"log"
 	"net"
 	"os"
@@ -15,6 +14,9 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -52,6 +54,9 @@ var cfg *rest.Config
 func TestMain(m *testing.M) {
 	// setup testEnvironment
 	cmdOut, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
+	if err != nil {
+		log.Fatalf("cannot find repo root: %s", err)
+	}
 	repoRoot := strings.TrimSpace(string(cmdOut))
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
@@ -68,6 +73,11 @@ func TestMain(m *testing.M) {
 	}
 
 	log.Println("environment started")
+
+	err = sourcev1.AddToScheme(scheme.Scheme)
+	if err != nil {
+		log.Fatalf("add helm to schema failed: %s", err)
+	}
 
 	err = sourcev1beta2.AddToScheme(scheme.Scheme)
 	if err != nil {
@@ -153,6 +163,9 @@ func makeQueryServer(t *testing.T, cfg *rest.Config, principal *auth.UserPrincip
 	pb.RegisterClustersServiceServer(s, enServer)
 
 	dc, err := discovery.NewDiscoveryClientForConfig(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("cannot create discovery client:%w", err)
+	}
 
 	opts2 := queryserver.ServerOpts{
 		Logger:          testLog,
