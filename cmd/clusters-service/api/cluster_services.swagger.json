@@ -2148,6 +2148,9 @@
         },
         "timestamp": {
           "type": "string"
+        },
+        "yaml": {
+          "type": "string"
         }
       }
     },

@@ -71,9 +71,10 @@ describe('SecretDetails', () => {
     expect(await screen.getByTitle(secret.externalSecretName)).toBeTruthy();
     const tabs = await screen.getAllByRole('tab');
     expect(secret.clusterName).toBeDefined();
-    expect(tabs).toHaveLength(2);
+    expect(tabs).toHaveLength(3);
     expect(tabs[0]).toHaveTextContent('Details');
     expect(tabs[1]).toHaveTextContent('Events');
+    expect(tabs[2]).toHaveTextContent('Yaml');
 
     expect(screen.getByTestId('Status')).toHaveTextContent(secret.status);
     expect(screen.getByTestId('Last Updated')).toHaveTextContent(

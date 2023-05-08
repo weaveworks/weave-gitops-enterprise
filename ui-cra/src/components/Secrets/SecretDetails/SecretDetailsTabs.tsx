@@ -1,10 +1,11 @@
-import { RouterTab } from '@weaveworks/weave-gitops';
+import { RouterTab, SubRouterTabs, YamlView } from '@weaveworks/weave-gitops';
 import { GetExternalSecretResponse } from '../../../cluster-services/cluster_services.pb';
 import styled from 'styled-components';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { Routes } from '../../../utils/nav';
-import { CustomSubRouterTabs } from '../../Workspaces/WorkspaceStyles';
 import ListEvents from './Events/ListEvents';
+
+const YAML = require('yaml');
 
 const ListEventsWrapper = styled.div`
   width: 100%;
@@ -64,26 +65,38 @@ const SecretDetailsTabs = ({
   ];
 
   return (
-      <CustomSubRouterTabs rootPath={`${path}/details`}>
-        <RouterTab name="Details" path={`${path}/details`}>
-          <DetailsHeadersWrapper>
-            {generateRowHeaders(secretDetailsHeaders)}
-          </DetailsHeadersWrapper>
-        </RouterTab>
-
-        <RouterTab name="Events" path={`${path}/events`}>
-          <ListEventsWrapper>
-            <ListEvents
-              involvedObject={{
-                name: externalSecretName,
-                namespace: namespace || '',
-                kind: 'ExternalSecret',
-              }}
-              clusterName={clusterName}
-            />
-          </ListEventsWrapper>
-        </RouterTab>
-      </CustomSubRouterTabs>
+    <SubRouterTabs rootPath={`${path}/details`}>
+      <RouterTab name="Details" path={`${path}/details`}>
+        <DetailsHeadersWrapper>
+          {generateRowHeaders(secretDetailsHeaders)}
+        </DetailsHeadersWrapper>
+      </RouterTab>
+      <RouterTab name="Events" path={`${path}/events`}>
+        <ListEventsWrapper>
+          <ListEvents
+            involvedObject={{
+              name: externalSecretName,
+              namespace: namespace || '',
+              kind: 'ExternalSecret',
+            }}
+            clusterName={clusterName}
+          />
+        </ListEventsWrapper>
+      </RouterTab>
+      <RouterTab name="Yaml" path={`${path}/yaml`}>
+        <YamlView
+          yaml={
+            secretDetails?.yaml &&
+            YAML.stringify(JSON.parse(secretDetails?.yaml as string))
+          }
+          object={{
+            kind: 'ExternalSecret',
+            name: externalSecretName,
+            namespace,
+          }}
+        />
+      </RouterTab>
+    </SubRouterTabs>
   );
 };
 
