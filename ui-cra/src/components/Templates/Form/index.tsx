@@ -162,7 +162,6 @@ const useStyles = makeStyles(theme =>
       background: neutral10,
       padding: small,
       maxHeight: '300px',
-      overflow: 'scroll',
     },
   }),
 );
