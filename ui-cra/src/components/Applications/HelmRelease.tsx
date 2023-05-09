@@ -36,7 +36,12 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         return (
           <div style={{ width: '100%' }}>
             <PolicyViolationsList
-              req={{ clusterName, namespace, application: name }}
+              req={{
+                clusterName,
+                namespace,
+                application: name,
+                kind: Kind.HelmRelease,
+              }}
               tableType={FieldsType.application}
               sourcePath="helm_release"
             />
