@@ -12,9 +12,9 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-// Start the collector by creating watchers on existing gitops clusters and maanging its lifecycle. Managing
-// its lifecyle include events of adding a new cluster, update an existing cluster or deleting an existing cluster.
-// Errors related to a cluster lifecycle are handled in a tolerant way by logging the context.
+// Start the collector by creating watchers on existing gitops clusters and managing its lifecycle. Managing
+// its lifecycle means responding to the events of adding a new cluster, update an existing cluster or deleting an existing cluster.
+// Errors are handled by logging the error and assuming the operation will be retried due to some later event.
 func (c *watchingCollector) Start() error {
 	cw := c.clusterManager.Subscribe()
 	c.objectsChannel = make(chan []models.ObjectTransaction)
