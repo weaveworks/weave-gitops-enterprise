@@ -50,6 +50,7 @@ func (s *server) ListPolicyValidations(ctx context.Context, m *capiv1_proto.List
 
 	if m.Application != "" {
 		fieldSelectorSet["involvedObject.name"] = m.Application
+		fieldSelectorSet["involvedObject.kind"] = m.Kind
 	}
 
 	if m.Namespace != "" {
