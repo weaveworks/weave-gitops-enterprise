@@ -17,7 +17,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.21.2
+	github.com/weaveworks/weave-gitops v0.22.1-0.20230502155650-25d5e57ca04c
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -25,7 +25,7 @@ require (
 	k8s.io/apimachinery v0.26.3
 	k8s.io/cli-runtime v0.26.3
 	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.14.5
+	sigs.k8s.io/controller-runtime v0.14.6
 )
 
 require (
@@ -41,10 +41,10 @@ require (
 	github.com/fluxcd/go-git-providers v0.14.0
 	github.com/fluxcd/helm-controller/api v0.30.0
 	github.com/fluxcd/kustomize-controller/api v0.34.0
-	github.com/fluxcd/pkg/apis/meta v0.19.1
-	github.com/fluxcd/pkg/runtime v0.32.0
+	github.com/fluxcd/pkg/apis/meta v1.0.0
+	github.com/fluxcd/pkg/runtime v0.33.0
 	github.com/fluxcd/pkg/untar v0.2.0
-	github.com/fluxcd/source-controller/api v0.36.0
+	github.com/fluxcd/source-controller/api v1.0.0-rc.1
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-github/v32 v32.1.0
@@ -63,10 +63,10 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.4.1
-	github.com/weaveworks/gitopssets-controller v0.8.0
+	github.com/weaveworks/gitopssets-controller v0.9.0
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20220915081124-d9f0c4063521
-	github.com/weaveworks/templates-controller v0.1.4
+	github.com/weaveworks/templates-controller v0.2.0
 	github.com/xanzy/go-gitlab v0.78.0
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.7.0
@@ -77,7 +77,7 @@ require (
 	google.golang.org/protobuf v1.30.0
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
-	k8s.io/apiextensions-apiserver v0.26.2
+	k8s.io/apiextensions-apiserver v0.26.3
 	sigs.k8s.io/cluster-api v1.4.0-rc.0
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
@@ -227,7 +227,7 @@ require (
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
 	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
-	github.com/acomagu/bufpipe v1.0.3 // indirect
+	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/alecthomas/chroma v0.9.2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
@@ -263,7 +263,7 @@ require (
 	github.com/go-errors/errors v1.4.2 // indirect
 	github.com/go-git/gcfg v1.5.0 // indirect
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
-	github.com/go-git/go-git/v5 v5.6.0
+	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-gorp/gorp/v3 v3.0.2 // indirect
 	github.com/go-logr/zapr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
@@ -339,7 +339,7 @@ require (
 	github.com/spf13/jwalterweatherman v1.1.0 // indirect
 	github.com/subosito/gotenv v1.4.2 // indirect
 	github.com/tomwright/dasel v1.22.1 // indirect
-	github.com/weaveworks/tf-controller/api v0.0.0-20221220150320-3d0f3743ccb4
+	github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4
 	github.com/xanzy/ssh-agent v0.3.3 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20190905194746-02993c407bfb // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect

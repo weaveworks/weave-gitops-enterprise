@@ -7,9 +7,12 @@
 # the given kind cluster (if it exists) and its GitOps repository and recreate them 
 # both, installing everything from scratch.
 
+set -euo pipefail
+
 export KIND_CLUSTER_NAME="${KIND_CLUSTER_NAME:-wge-dev}"
 export GITHUB_REPO="${GITHUB_REPO:-wge-dev}"
 export DELETE_GITOPS_DEV_REPO="${DELETE_GITOPS_DEV_REPO:-0}"
+export PUSH_PROGRESSIVE_DELIVERY_MANIFESTS_TO_GITOPS_DEV_REPO="${PUSH_PROGRESSIVE_DELIVERY_MANIFESTS_TO_GITOPS_DEV_REPO:-0}"
 
 TOOLS="$(pwd)/tools/bin"
 
@@ -54,7 +57,7 @@ do_capi(){
   tool_check "clusterctl"
 
   EXP_CLUSTER_RESOURCE_SET=true ${TOOLS}/clusterctl init \
-    --infrastructure docker
+    --infrastructure vcluster
 }
 
 do_flux(){
@@ -63,7 +66,7 @@ do_flux(){
   if [ "$DELETE_GITOPS_DEV_REPO" == "1" ]; then
     tool_check "gh"
 
-    ${TOOLS}/gh repo delete "$GITHUB_USER/$GITHUB_REPO" --confirm
+    ${TOOLS}/gh repo delete "$GITHUB_USER/$GITHUB_REPO" --yes
   fi
 
   ${TOOLS}/flux bootstrap github \
@@ -102,6 +105,34 @@ follow_capi_user_guide(){
   kubectl create secret generic my-pat --from-literal GITHUB_TOKEN="$GITHUB_TOKEN" --from-literal GITHUB_USER="$GITHUB_USER" --from-literal GITHUB_REPO="$GITHUB_REPO"
 }
 
+push_progressive_delivery_manifests_to_gitops_dev_repo(){
+  if [ "$PUSH_PROGRESSIVE_DELIVERY_MANIFESTS_TO_GITOPS_DEV_REPO" == "1" ]; then
+    if [ ! -d "$(dirname "$0")/../../progressive-delivery" ]; then
+      echo '!!! Missing directory: '${1}
+      echo '    Ensure the "weaveworks/progressive-delivery" repository is checked out in a directory that is adjacent to this repository.'
+
+      exit 1
+    fi
+
+    tool_check "gh"
+
+    # We could use $GITHUB_REPO here, but its rm -rf so we'll be careful
+    rm -rf "/tmp/wge-dev"
+    ${TOOLS}/gh repo clone "$GITHUB_USER/$GITHUB_REPO" "/tmp/$GITHUB_REPO"
+    mkdir -p "/tmp/$GITHUB_REPO/apps/progressive-delivery"
+    cp -r "$(dirname "$0")/../../progressive-delivery/tools/extra-resources/" "/tmp/$GITHUB_REPO/apps/progressive-delivery/"
+    rm "/tmp/$GITHUB_REPO/apps/progressive-delivery/istio/resources/gateway.yaml"
+    cp "$(dirname "$0")/git-files/progressive-delivery-kustomizations.yaml" "/tmp/$GITHUB_REPO/clusters/management/progressive-delivery-kustomizations.yaml"
+    pushd "/tmp/$GITHUB_REPO"
+    git add apps/progressive-delivery
+    git add clusters/management
+    git commit -m "Add progressive-delivery manifests"
+    git push origin main
+    popd
+    ${TOOLS}/flux reconcile source git flux-system -n flux-system
+  fi
+}
+
 run_custom_scripts(){
     pwd
     echo "$(dirname "$0")"
@@ -121,6 +152,7 @@ main() {
   do_flux
   create_local_values_file
   follow_capi_user_guide
+  push_progressive_delivery_manifests_to_gitops_dev_repo
   run_custom_scripts
 }
 

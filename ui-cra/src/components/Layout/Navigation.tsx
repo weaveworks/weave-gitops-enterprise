@@ -68,6 +68,10 @@ function getParentNavRouteValueExtended(
     case Routes.GitOpsRun:
     case Routes.GitOpsRunDetail:
       return Routes.GitOpsRun;
+    //GitOps Sets
+    case Routes.GitOpsSets:
+    case Routes.GitOpsSetDetail:
+      return Routes.GitOpsSets;
 
     case Routes.Explorer:
     case Routes.ExplorerAccessRules:
@@ -147,7 +151,7 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     {
       label: 'Explorer',
       link: { value: Routes.Explorer },
-      icon: IconType.SearchIcon,
+      icon: IconType.ExploreIcon,
       disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER'),
     },
     {

@@ -36,10 +36,17 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-function getPullRequestUrl(gitRepo: GitRepository, config: GetConfigResponse) {
+export function getPullRequestUrl(
+  gitRepo: GitRepository,
+  config: GetConfigResponse,
+) {
   const provider = getProvider(gitRepo, config);
 
-  const baseUrl = getRepositoryUrl(gitRepo);
+  const repoUrl = getRepositoryUrl(gitRepo);
+
+  // remove any trailing .git
+  const baseUrl = repoUrl.replace(/\.git$/, '');
+
   if (provider === 'gitlab') {
     return baseUrl + '/-/merge_requests';
   }

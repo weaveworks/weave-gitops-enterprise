@@ -35,7 +35,7 @@ func MakeGRPCServer(t *testing.T, cfg *rest.Config, k8sEnv *testutils.K8sTestEnv
 		t.Fatal(err)
 	}
 
-	fakeCluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme)
+	fakeCluster, err := cluster.NewSingleCluster("Default", k8sEnv.Rest, scheme, kube.UserPrefixes{})
 	if err != nil {
 		t.Fatal(err)
 	}

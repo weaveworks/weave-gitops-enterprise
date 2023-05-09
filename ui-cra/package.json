@@ -26,7 +26,7 @@
     "@types/styled-components": "^5.1.9",
     "@types/urijs": "^1.19.19",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "0.21.2",
+    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.22.0-7-g25d5e57c",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
     "d3-time": "^3.0.0",
@@ -56,7 +56,7 @@
     "typescript": "^4.1.2",
     "urijs": "^1.19.11",
     "web-vitals": "^1.0.1",
-    "yaml": "^2.2.1"
+    "yaml": "^2.2.2"
   },
   "resolutions": {
     "**/react": "^17.0.2",

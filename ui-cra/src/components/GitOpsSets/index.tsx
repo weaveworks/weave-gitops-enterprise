@@ -35,7 +35,7 @@ export const getInventory = (gs: GitOpsSet | undefined) => {
   );
 };
 
-const GitopsSets: FC = () => {
+const GitOpsSets: FC = () => {
   const { isLoading, data } = useListGitOpsSets();
 
   const gitopssets = data?.gitopssets;
@@ -118,10 +118,10 @@ const GitopsSets: FC = () => {
 
   return (
     <PageTemplate
-      documentTitle="GitopsSets"
+      documentTitle="GitOpsSets"
       path={[
         {
-          label: 'GitopsSets',
+          label: 'GitOpsSets',
         },
       ]}
     >
@@ -142,4 +142,4 @@ const GitopsSets: FC = () => {
   );
 };
 
-export default GitopsSets;
+export default GitOpsSets;

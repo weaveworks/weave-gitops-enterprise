@@ -3,10 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
+	"os"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
-	"os"
 
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -60,6 +61,7 @@ type ServerOpts struct {
 	// required to map GVRs to GVKs for authz purporses
 	DiscoveryClient discovery.DiscoveryInterface
 	ObjectKinds     []configuration.ObjectKind
+	ServiceAccount  collector.ImpersonateServiceAccount
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -112,7 +114,30 @@ func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string
 	return kindByResourceMap, nil
 }
 
+func (so *ServerOpts) Validate() error {
+	if len(so.ObjectKinds) == 0 {
+		return fmt.Errorf("object kinds cannot be empty")
+	}
+	if so.DiscoveryClient == nil {
+		return fmt.Errorf("discovery client cannot be nil")
+	}
+	if so.ClustersManager == nil {
+		return fmt.Errorf("cluster manager cannot be nil")
+	}
+	if so.ServiceAccount.Name == "" {
+		return fmt.Errorf("service account name cannot be empty")
+	}
+	if so.ServiceAccount.Namespace == "" {
+		return fmt.Errorf("service account namespace cannot be empty")
+	}
+	return nil
+}
+
 func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, nil, fmt.Errorf("invalid query server options: %w", err)
+	}
+
 	debug := opts.Logger.WithName("query-server").V(logger.LogLevelDebug)
 
 	dbDir, err := os.MkdirTemp("", "db")
@@ -157,6 +182,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 		rulesCollector, err := rolecollector.NewRoleCollector(s, collector.CollectorOpts{
 			Log:            opts.Logger,
 			ClusterManager: opts.ClustersManager,
+			ServiceAccount: opts.ServiceAccount,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
@@ -170,6 +196,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			Log:            opts.Logger,
 			ClusterManager: opts.ClustersManager,
 			ObjectKinds:    opts.ObjectKinds,
+			ServiceAccount: opts.ServiceAccount,
 		})
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
