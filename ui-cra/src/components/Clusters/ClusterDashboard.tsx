@@ -148,7 +148,7 @@ const ClusterDashboard = ({
         </Box>
 
         {/* CapiCluster */}
-        {Object.keys(currentCluster?.capiCluster || {}).length ? (
+        {Object.keys(currentCluster?.capiCluster || {}).length > 0 ? (
           <>
             {sectionTitle('CAPI Cluster')}
             <Box>
