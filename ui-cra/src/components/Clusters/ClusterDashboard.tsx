@@ -148,26 +148,30 @@ const ClusterDashboard = ({
         </Box>
 
         {/* CapiCluster */}
-        {sectionTitle('CAPI Cluster')}
-        <Box>
-          <InfoList items={[['Name', currentCluster?.capiCluster?.name]]} />
-        </Box>
-        {Object.keys(capiClusterLabels).length > 0 &&
-          renderer(capiClusterLabels, null)}
-        {Object.keys(capiClusterAnnotations).length > 0 &&
-          renderer(null, capiClusterAnnotations)}
-        <Box>
-          <ClusterStatus
-            clusterName={currentCluster.name}
-            status={currentCluster?.capiCluster?.status}
-          />
-        </Box>
-        {infrastructureRef && (
-          <Box>
-            {sectionTitle('Infrastructure')}
-            <InfoList items={infrastructureRefInfo} />
-          </Box>
-        )}
+        {Object.keys(currentCluster?.capiCluster || {}).length > 0 ? (
+          <>
+            {sectionTitle('CAPI Cluster')}
+            <Box>
+              <InfoList items={[['Name', currentCluster?.capiCluster?.name]]} />
+            </Box>
+            {Object.keys(capiClusterLabels).length > 0 &&
+              renderer(capiClusterLabels, null)}
+            {Object.keys(capiClusterAnnotations).length > 0 &&
+              renderer(null, capiClusterAnnotations)}
+            <Box>
+              <ClusterStatus
+                clusterName={currentCluster.name}
+                status={currentCluster?.capiCluster?.status}
+              />
+            </Box>
+            {infrastructureRef && (
+              <Box>
+                {sectionTitle('Infrastructure')}
+                <InfoList items={infrastructureRefInfo} />
+              </Box>
+            )}
+          </>
+        ) : null}
       </ClusterDashbordWrapper>
     )
   );
