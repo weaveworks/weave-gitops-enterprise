@@ -9,6 +9,8 @@ import {
   LinkResolverProvider,
   Pendo,
   theme,
+  SignIn,
+  AuthCheck,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import {
@@ -17,7 +19,7 @@ import {
   QueryClientConfig,
   QueryClientProvider,
 } from 'react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
@@ -25,7 +27,6 @@ import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Terraform } from './api/terraform/terraform.pb';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
-import Layout from './components/Layout/Layout';
 import Compose from './components/ProvidersCompose';
 import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
@@ -38,6 +39,8 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
+import App from './components/Layout/App';
+
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
   /* https://github.com/necolas/normalize.css/issues/694 */
@@ -136,7 +139,7 @@ export const queryOptions: QueryClientConfig = {
 };
 const queryClient = new QueryClient(queryOptions);
 
-const App: FC = () => {
+const AppContainer: FC = () => {
   return (
     <ThemeProvider theme={theme}>
       <MuiThemeProvider theme={muiTheme}>
@@ -159,7 +162,19 @@ const App: FC = () => {
                                   version={process.env.REACT_APP_VERSION}
                                 />
                                 <Compose components={[NotificationsProvider]}>
-                                  <Layout />
+                                  <Switch>
+                                    <Route
+                                      component={() => <SignIn />}
+                                      exact={true}
+                                      path="/sign_in"
+                                    />
+                                    <Route path="*">
+                                      {/* Check we've got a logged in user otherwise redirect back to signin */}
+                                      <AuthCheck>
+                                        <App />
+                                      </AuthCheck>
+                                    </Route>
+                                  </Switch>
                                   <ToastContainer
                                     position="top-center"
                                     autoClose={5000}
@@ -183,4 +198,4 @@ const App: FC = () => {
   );
 };
 
-export default App;
+export default AppContainer;
