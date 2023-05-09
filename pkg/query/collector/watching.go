@@ -23,6 +23,7 @@ func (c *watchingCollector) Start() error {
 		err := c.Watch(cluster)
 		if err != nil {
 			c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
+			continue
 		}
 		c.log.Info("watching cluster", "cluster", cluster.GetName())
 	}
@@ -34,6 +35,7 @@ func (c *watchingCollector) Start() error {
 				err := c.Watch(cluster)
 				if err != nil {
 					c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
+					continue
 				}
 				c.log.Info("watching cluster", "cluster", cluster.GetName())
 			}
@@ -42,6 +44,7 @@ func (c *watchingCollector) Start() error {
 				err := c.Unwatch(cluster.GetName())
 				if err != nil {
 					c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
+					continue
 				}
 				c.log.Info("unwatched cluster", "cluster", cluster.GetName())
 			}
