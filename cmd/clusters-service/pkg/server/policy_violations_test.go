@@ -176,16 +176,6 @@ func TestListPolicyValidations(t *testing.T) {
 		{
 			name: "list application policy violations",
 			clusterState: []runtime.Object{
-				// makeEvent(t, func(e *corev1.Event) {
-				// 	e.ObjectMeta.Name = "Missing Owner Label - fake-event-1"
-				// 	e.InvolvedObject.Namespace = "weave-system"
-				// 	e.InvolvedObject.Name = "app1"
-				// 	e.InvolvedObject.Kind = "Kustomization"
-				// 	e.ObjectMeta.Namespace = "weave-system"
-				// 	e.Annotations["policy_name"] = "Missing Owner Label"
-				// 	e.Annotations["policy_id"] = "weave.policies.missing-app-label"
-				// 	e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979903"
-				// }),
 				makeEvent(t, func(e *corev1.Event) {
 					e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
 					e.InvolvedObject.Namespace = "weave-system"
