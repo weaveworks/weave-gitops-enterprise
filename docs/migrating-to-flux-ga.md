@@ -4,7 +4,7 @@ Release data: 2023-05-11
 
 ## Compatibility
 
-WGE 0.23.0 requires at least Flux `v2.0.0-rc.1`.
+WGE 0.23.0 requires at least Flux `v2.0.0-rc.1` controllers and CRDs to be installed on your leaf clusters and management clusters.
 
 _Note: Flux v2.0.0-rc.1 has the same kubernetes compatibility as Flux 0.41.2_
 
@@ -21,11 +21,11 @@ Below we'll take you through the multiple steps required to migrate to 0.23.0.
 
 After each step the cluster will be in a working state, so you can take your time to complete the migration.
 
-1. Upgrade to WGE 0.22.0
-2. Upgrade to Flux v2.0.0-rc.1 on your leaf clusters and management clusters
-3. Upgrade templates, gitopssets and cluster bootstrap configs
-4. Upgrade to Flux v2.0.0-rc.1 in `ClusterBootstrapConfig`s
-5. Upgrade to WGE 0.23.0
+1. Upgrade / ensure you're running WGE 0.22.0
+2. Upgrade to Flux v2.0.0-rc.1 in `ClusterBootstrapConfig`s
+3. Upgrade to Flux v2.0.0-rc.1 on your leaf clusters and management clusters
+4. Upgrade to WGE 0.23.0
+5. Upgrade templates, gitopssets and cluster bootstrap configs
 
 ### 1. Upgrade to WGE 0.22.0
 
@@ -41,23 +41,11 @@ gitopssets-controller:
         tag: v0.10.0
 ```
 
-### 2. Upgrade to Flux v2.0.0-rc.1 on your leaf clusters and management clusters
+### 2. Upgrade to Flux v2.0.0-rc.1 in `ClusterBootstrapConfig`s
 
-Follow the upgrade instuctions from the [Flux v2.0.0-rc.1 release notes](https://github.com/fluxcd/flux2/releases/tag/v2.0.0-rc.1)
+First we ensure any new clusters are bootstrapped with v2.0.0-rc.1, then we'll upgrade the existing clusters.
 
-### 3. Upgrade templates, gitopssets and cluster bootstrap configs
-
-#### `GitopsTemplate` and `CAPITemplate`
-
-Update `GitRepository` and `Kustomization` CRs in the `spec.resourcetemplates` to `v1` as described in the flux upgrade instructions.
-
-#### `GitopsSets`
-
-Update `GitRepository` and `Kustomization` CRs in the `spec.template` of your `GitopsSet` resources to `v1` as described in the flux upgrade instructions.
-
-#### `ClusterBootstrapConfig`
-
-`ClusterBootstrapConfig` will most often contain an invocation of `flux bootstrap`, make sure the image is using `v2`
+`ClusterBootstrapConfig` will most often contain an invocation of `flux bootstrap`, make sure the image is using `v2`.
 
 ```patch
 diff --git a/tools/dev-resources/user-guide/cluster-bootstrap-config.yaml b/tools/dev-resources/user-guide/cluster-bootstrap-config.yaml
@@ -102,6 +90,17 @@ index bd41ec036..1b21df860 100644
        volumes:
 ```
 
+### 3. Upgrade to Flux v2.0.0-rc.1 on your existing leaf clusters and management clusters
+
+Follow the upgrade instuctions from the [Flux v2.0.0-rc.1 release notes](https://github.com/fluxcd/flux2/releases/tag/v2.0.0-rc.1)
+
+At minimum you'll need to rerun the `flux bootstrap` command on your leaf clusters and management clusters.
+
+You'll also need to bump api versions in your manifests to `v1` as described in the flux upgrade instructions:
+
+> Bumping the APIs version in manifests can be done gradually. It is advised to not delay this procedure as the beta
+> versions will be removed after 6 months.
+
 ### 4. Upgrade to WGE 0.23.0
 
 Upgrade the Weave Gitops Enterprise HelmRelease values to use the new version.
@@ -118,9 +117,22 @@ spec:
       version: 0.22.0
 ```
 
+### 5. Upgrade templates, gitopssets and cluster bootstrap configs
+
+Bumping the APIs version in manifests can be done gradually. It is advised to not delay this procedure as the beta versions will be removed after 6 months.
+
+#### `GitopsTemplate` and `CAPITemplate`
+
+Update `GitRepository` and `Kustomization` CRs in the `spec.resourcetemplates` to `v1` as described in the flux upgrade instructions.
+
+#### `GitopsSets`
+
+Update `GitRepository` and `Kustomization` CRs in the `spec.template` of your `GitopsSet` resources to `v1` as described in the flux upgrade instructions.
+
 ## WGE 0.23.0
 
 WGE 0.23.0's features will now generate `v1` Kustomizations:
 
 - Add app
+- Add secret
 - Common bases Kustomization for `GitopsTemplate` and `CAPITemplate`s.
