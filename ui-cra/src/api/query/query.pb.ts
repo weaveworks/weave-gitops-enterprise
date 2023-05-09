@@ -6,7 +6,8 @@
 
 import * as fm from "../../fetch.pb"
 export type QueryRequest = {
-  query?: string
+  terms?: string
+  filters?: string[]
   offset?: number
   limit?: number
   orderBy?: string

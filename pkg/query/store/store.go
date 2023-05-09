@@ -47,7 +47,10 @@ const (
 	GlobalOperandOr  GlobalOperand = "or"
 )
 
-type Query string
+type Query interface {
+	GetTerms() string
+	GetFilters() []string
+}
 
 type QueryOption interface {
 	GetLimit() int32

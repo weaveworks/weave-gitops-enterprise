@@ -183,7 +183,7 @@ func TestQueryServer(t *testing.T) {
 
 			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
-				query, err := c.DoQuery(ctx, &api.QueryRequest{Query: tt.query})
+				query, err := c.DoQuery(ctx, &api.QueryRequest{Filters: []string{tt.query}})
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == tt.expectedNumObjects
 			}).Should(BeTrue())

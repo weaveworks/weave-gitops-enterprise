@@ -229,8 +229,14 @@
     "v1QueryRequest": {
       "type": "object",
       "properties": {
-        "query": {
+        "terms": {
           "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         },
         "offset": {
           "type": "integer",

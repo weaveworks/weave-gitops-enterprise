@@ -18,13 +18,13 @@ func TestRunQuery(t *testing.T) {
 	tests := []struct {
 		name    string
 		objects []models.Object
-		query   store.Query
+		query   *query
 		opts    store.QueryOption
 		want    []string
 	}{
 		{
 			name:  "get all objects",
-			query: "",
+			query: &query{terms: ""},
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -47,7 +47,7 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name:  "get objects by cluster",
-			query: "my-cluster",
+			query: &query{filters: []string{"+cluster:my-cluster"}},
 
 			objects: []models.Object{
 				{
@@ -72,7 +72,7 @@ func TestRunQuery(t *testing.T) {
 		{
 			name:  "pagination - no offset",
 			opts:  &query{limit: 1, offset: 0, orderBy: "name", ascending: false},
-			query: "",
+			query: &query{},
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -94,7 +94,8 @@ func TestRunQuery(t *testing.T) {
 			want: []string{"obj-cluster-1"},
 		},
 		{
-			name: "pagination - with offset",
+			name:  "pagination - with offset",
+			query: &query{},
 			opts: &query{
 				limit:     1,
 				offset:    1,
@@ -157,8 +158,11 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: "+kind:Kind1 +namespace:bravo",
-			want:  []string{"bar"},
+			query: &query{
+				terms:   "",
+				filters: []string{"+kind:Kind1 +namespace:bravo"},
+			},
+			want: []string{"bar"},
 		},
 		{
 			name: "across clusters",
@@ -179,8 +183,16 @@ func TestRunQuery(t *testing.T) {
 					APIGroup:   "apps",
 					APIVersion: "v1",
 				},
+				{
+					Cluster:    "test-cluster-3",
+					Name:       "foo",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
 			},
-			query: "podinfo",
+			query: &query{terms: "podinfo"},
 			want:  []string{"podinfo", "podinfo"},
 		},
 		{
@@ -203,7 +215,7 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: "namespace:namespace-a",
+			query: &query{filters: []string{"+namespace:namespace-a"}},
 			want:  []string{"podinfo", "podinfo"},
 		},
 		{
@@ -226,7 +238,7 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: "",
+			query: &query{},
 			opts: &query{
 				orderBy: "kind",
 			},
@@ -260,7 +272,7 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: "+kind:Kustomization",
+			query: &query{filters: []string{"+kind:Kustomization"}},
 			opts:  &query{orderBy: "name", ascending: true},
 			want:  []string{"podinfo-a", "podinfo-b"},
 		},
@@ -316,7 +328,7 @@ func TestRunQuery(t *testing.T) {
 				names = append(names, o.Name)
 			}
 
-			g.Expect(names).To(Equal(tt.want), fmt.Sprintf("query: %s", tt.query))
+			g.Expect(names).To(Equal(tt.want), fmt.Sprintf("terms: %s, filters: %s", tt.query.terms, tt.query.filters))
 		})
 	}
 
@@ -409,26 +421,31 @@ func TestQueryIteration(t *testing.T) {
 	checker.HasAccessReturnsOnCall(3, true, nil)
 
 	qy := &query{
-		q:     "cluster:test-cluster-1",
+		terms: "test-cluster-1",
 		limit: 3,
 	}
 
-	got, err := q.RunQuery(ctx, qy.GetQuery(), qy)
+	got, err := q.RunQuery(ctx, qy, qy)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(got).To(HaveLen(3))
 }
 
 type query struct {
-	q         string
+	terms     string
+	filters   []string
 	offset    int32
 	limit     int32
 	orderBy   string
 	ascending bool
 }
 
-func (q *query) GetQuery() store.Query {
-	return store.Query(q.q)
+func (q *query) GetTerms() string {
+	return q.terms
+}
+
+func (q *query) GetFilters() []string {
+	return q.filters
 }
 
 func (q *query) GetOffset() int32 {

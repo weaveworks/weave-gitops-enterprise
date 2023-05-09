@@ -39,11 +39,12 @@ service Query {
 }
 
 message QueryRequest {
-    string query     = 1;
-    int32  offset    = 2;
-    int32  limit     = 3;
-    string orderBy   = 4;
-    bool   ascending = 5;
+    string   terms          = 1;
+    repeated string filters = 2;
+    int32    offset         = 3;
+    int32    limit          = 4;
+    string   orderBy        = 5;
+    bool     ascending      = 6;
 }
 
 message QueryResponse {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	bleve "github.com/blevesearch/bleve/v2"
@@ -79,11 +80,25 @@ func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) erro
 }
 
 func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
-	if q == "" {
-		q = "*" // match all
+	// Match all by default.
+	// Conjunction queries will return results that match all of the subqueries.
+	query := bleve.NewConjunctionQuery(bleve.NewMatchAllQuery())
+
+	terms := q.GetTerms()
+
+	if terms != "" {
+		tq := bleve.NewMatchQuery(terms)
+		query.AddQuery(tq)
 	}
 
-	query := bleve.NewQueryStringQuery(string(q))
+	filters := q.GetFilters()
+
+	if len(filters) > 0 {
+		filterString := strings.Join(q.GetFilters(), " ")
+
+		qs := bleve.NewQueryStringQuery(strings.ToLower(filterString))
+		query.AddQuery(qs)
+	}
 
 	req := bleve.NewSearchRequest(query)
 

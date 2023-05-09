@@ -431,7 +431,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 
 			assert.NoError(t, err)
 
-			actual, err := qs.RunQuery(ctx, "", nil)
+			actual, err := qs.RunQuery(ctx, &query{}, nil)
 			assert.NoError(t, err)
 
 			opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt", "Category")
