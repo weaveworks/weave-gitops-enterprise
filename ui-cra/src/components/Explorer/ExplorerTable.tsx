@@ -118,11 +118,16 @@ function ExplorerTable({
 }
 
 export default styled(ExplorerTable).attrs({ className: ExplorerTable.name })`
-  td:nth-child(6) {
+  td:nth-child(6),
+  td:nth-child(7) {
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-wrap: break-word;
   }
 
   flex: 1;
+  /* Moving the sync/pause buttons to the left */
+  .ExplorerTable > div:first-child {
+    justify-content: flex-start;
+  }
 `;

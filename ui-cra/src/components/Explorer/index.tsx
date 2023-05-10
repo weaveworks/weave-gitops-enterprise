@@ -1,3 +1,3 @@
-import Explorer from './Explorer';
+import Page from './Page';
 
-export default Explorer;
+export default Page;

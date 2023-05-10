@@ -6,7 +6,7 @@ import {
 import { FC, useEffect } from 'react';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
-import ScopedExploreUI from '../Explorer/ScopedExploreUI';
+import Explorer from '../Explorer/Explorer';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
@@ -43,7 +43,7 @@ const WGApplicationsSources: FC = () => {
     >
       <ContentWrapper errors={sources?.errors} loading={isLoading}>
         {useQueryServiceBackend ? (
-          <ScopedExploreUI enableBatchSync category="source" />
+          <Explorer enableBatchSync category="source" />
         ) : (
           <SourcesTable sources={sources?.result} />
         )}

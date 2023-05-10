@@ -12,7 +12,7 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
-import ScopedExploreUI from '../Explorer/ScopedExploreUI';
+import Explorer from '../Explorer/Explorer';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
@@ -22,6 +22,7 @@ interface Size {
 const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
+    margin-bottom: ${({ theme }) => theme.spacing.small};
   }
 `;
 
@@ -72,7 +73,7 @@ const WGApplicationsDashboard: FC = () => {
         </div>
 
         {useQueryServiceBackend ? (
-          <ScopedExploreUI category="automation" enableBatchSync />
+          <Explorer category="automation" enableBatchSync />
         ) : (
           <AutomationsTable automations={automations?.result} />
         )}
