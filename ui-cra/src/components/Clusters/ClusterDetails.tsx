@@ -22,6 +22,8 @@ import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { useIsClusterWithSources } from '../Applications/utils';
+import { QueryState } from '../Explorer/hooks';
+import { linkToExplorer } from '../Explorer/utils';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
 type Props = {
@@ -60,6 +62,11 @@ const ClusterDetails = ({ clusterName }: Props) => {
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
 
+  const { isFlagEnabled } = useFeatureFlags();
+  const useQueryServiceBackend = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  );
+
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
     [clusterName, getCluster],
@@ -76,13 +83,19 @@ const ClusterDetails = ({ clusterName }: Props) => {
         <ContentWrapper loading={isLoading}>
           {currentCluster && (
             <div style={{ overflowX: 'auto' }}>
-              <ActionsWrapper style={{ marginBottom: theme.spacing.medium }}>
-                {!useQueryServiceBackend && (
-                  <WeaveButton
-                    id="cluster-application"
-                    className={classes.addApplicationBtnLoader}
-                    startIcon={<Icon type={IconType.FilterIcon} size="base" />}
-                    onClick={() => {
+              <ActionsWrapper>
+                <WeaveButton
+                  id="cluster-application"
+                  className={classes.clusterApplicationBtn}
+                  startIcon={<Icon type={IconType.FilterIcon} size="base" />}
+                  onClick={() => {
+                    if (useQueryServiceBackend) {
+                      const s = linkToExplorer(`/applications`, {
+                        filters: [`+cluster:${clusterName}`],
+                      } as QueryState);
+
+                      history.push(s);
+                    } else {
                       const filtersValues = toFilterQueryString([
                         {
                           key: 'clusterName',
@@ -90,12 +103,11 @@ const ClusterDetails = ({ clusterName }: Props) => {
                         },
                       ]);
                       history.push(`/applications?filters=${filtersValues}`);
-                    }}
-                  >
-                    GO TO APPLICATIONS
-                  </WeaveButton>
-                )}
-
+                    }
+                  }}
+                >
+                  GO TO APPLICATIONS
+                </WeaveButton>
                 {loading ? (
                   <CircularProgress size={30} />
                 ) : (

@@ -31,13 +31,21 @@ function Filters({ className, onFilterSelect, facets, state }: Props) {
             <h3>{f.field}</h3>
             <ul style={{ listStyle: 'none' }}>
               {_.map(f.values, v => {
+                // Leaving this as uncontrolled for now.
+                // URL state is proving to be a problem and
+                // the PR is already very sprawling.
+                // const key = `${f.field}:${v}`.toLowerCase();
+
                 return (
                   <li key={v}>
                     <FormControlLabel
                       label={v}
                       control={
                         <Checkbox
-                          checked={state[v]}
+                          // Leaving this as uncontrolled for now.
+                          // URL state is proving to be a problem and
+                          // the PR is already very sprawling.
+                          // checked={state[key]}
                           onChange={e => {
                             handleFilterChange(
                               f.field as string,

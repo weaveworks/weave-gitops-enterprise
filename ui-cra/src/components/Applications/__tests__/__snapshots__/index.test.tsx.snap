@@ -981,6 +981,7 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c11 > .actionButton.btn {
   margin-right: 12px;
+  margin-bottom: 12px;
 }
 
 <div>

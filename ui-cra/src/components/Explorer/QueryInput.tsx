@@ -1,5 +1,5 @@
 import { FormControl } from '@material-ui/core';
-import { Flex, Input } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useState } from 'react';
 import styled from 'styled-components';
@@ -31,9 +31,16 @@ function QueryInput({
 
   return (
     <Flex className={className} wide>
-      <FormControl>
-        <Input value={textInput} onChange={handleTextInput} />
-      </FormControl>
+      <Flex align>
+        <Icon size="normal" type={IconType.SearchIcon} />
+        <FormControl>
+          <Input
+            placeholder="Search"
+            value={textInput}
+            onChange={handleTextInput}
+          />
+        </FormControl>
+      </Flex>
     </Flex>
   );
 }

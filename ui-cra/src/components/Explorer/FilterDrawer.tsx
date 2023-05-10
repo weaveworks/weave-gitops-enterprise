@@ -12,9 +12,14 @@ type Props = {
 const SlideContainer = styled.div`
   height: 100%;
   transition-property: width, left;
-  transition-duration: 0.5s;
+  transition-duration: 0.25s;
   transition-timing-function: linear;
   overflow: hidden;
+  width: 0;
+
+  &.open {
+    width: 280px;
+  }
 `;
 
 const SlideContent = styled.div`

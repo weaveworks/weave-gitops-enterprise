@@ -24,8 +24,9 @@ export function useQueryState(
 ): [QueryState, (s: QueryState) => void] {
   const history = useHistory();
 
-  const { terms, filters, limit, orderBy, ascending, offset } = qs.parse(
+  const { terms, qFilters, limit, orderBy, ascending, offset } = qs.parse(
     history.location.search,
+    { arrayFormat: 'comma' },
   );
 
   const l = parseInt(limit as string);
@@ -35,36 +36,47 @@ export function useQueryState(
     terms: (terms as string) || '',
     limit: !_.isNaN(l) ? l : DEFAULT_LIMIT,
     offset: !_.isNaN(o) ? o : 0,
-    filters: (filters as string[]) || [],
+    filters: qFilters ? _.split(qFilters as string, ',') : [],
     orderBy: (orderBy as string) || '',
     orderAscending: ascending === 'true',
   });
 
+  usePersistURL(history, queryState, cfg.enableURLState);
+
+  return [queryState, setQueryState];
+}
+
+export function usePersistURL(
+  history: ReturnType<typeof useHistory>,
+  queryState: QueryState,
+  enabled?: boolean,
+) {
   useEffect(() => {
-    if (!cfg.enableURLState) {
+    if (!enabled) {
       return;
     }
+
     let offset: any = queryState.offset;
     let limit: any = queryState.limit;
     if (queryState.offset === 0) {
       offset = null;
       limit = null;
     }
+
     const q = qs.stringify(
       {
         terms: queryState.terms,
-        filters: queryState.filters,
+        qFilters: queryState.filters,
         limit,
         offset,
         ascending: queryState.orderAscending,
         orderBy: queryState.orderBy,
       },
-      { skipNull: true, skipEmptyString: true },
+      { skipNull: true, skipEmptyString: true, arrayFormat: 'comma' },
     );
-    history.replace(`?${q}`);
-  }, [history, cfg.enableURLState, queryState]);
 
-  return [queryState, setQueryState];
+    history.replace(`?${q}`);
+  }, [enabled, history, queryState]);
 }
 
 export const columnHeaderHandler =

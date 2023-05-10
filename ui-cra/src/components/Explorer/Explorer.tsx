@@ -1,5 +1,6 @@
-import { Flex } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 // @ts-ignore
+import { IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import _ from 'lodash';
 import { useState } from 'react';
@@ -34,20 +35,19 @@ function Explorer({ className, category, enableBatchSync }: Props) {
   const filters = _.reduce(
     queryState.filters,
     (result, f) => {
-      const re = /(.+?):\s(.*)/g;
+      const re = /[%w|+](.+?):(.*)/g;
 
       const matches = re.exec(f);
 
       if (matches) {
         const [, key, value] = matches;
 
-        result[key] = result[key] || [];
-        result[key].push(`${value}`);
+        result[`${key}:${value}`] = true;
       }
 
       return result;
     },
-    {} as any,
+    {} as { [key: string]: boolean },
   );
 
   const { data, error } = useQueryService({
@@ -65,7 +65,11 @@ function Explorer({ className, category, enableBatchSync }: Props) {
   return (
     <div className={className}>
       {error && <Alert severity="error">{error.message}</Alert>}
-
+      <Flex wide end>
+        <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
+          <Icon size="normal" type={IconType.FilterIcon} />
+        </IconButton>
+      </Flex>
       <Flex wide>
         <ExplorerTable
           queryState={queryState}

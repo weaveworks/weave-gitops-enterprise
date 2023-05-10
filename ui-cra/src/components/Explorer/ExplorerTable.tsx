@@ -24,10 +24,6 @@ type Props = {
   sortField?: string;
 };
 
-const debouncedInputHandler = _.debounce((fn, val) => {
-  fn(val);
-}, 500);
-
 function ExplorerTable({
   className,
   rows,
