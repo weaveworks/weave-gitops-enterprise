@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
@@ -130,4 +131,49 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 		})
 	}
 
+}
+
+func TestObjectsCollector_removeAll(t *testing.T) {
+	g := NewWithT(t)
+	log := testr.New(t)
+	fakeStore := &storefakes.FakeStore{}
+	fakeIndex := &storefakes.FakeIndexWriter{}
+
+	//setup data
+	clusterName := "anyCluster"
+
+	tx := []models.ObjectTransaction{
+		&transaction{
+			clusterName:     clusterName,
+			object:          testutils.NewHelmRelease("anyHelmRelease", clusterName),
+			transactionType: models.TransactionTypeDeleteAll,
+		},
+	}
+
+	err := defaultProcessRecords(tx, fakeStore, fakeIndex, log)
+	g.Expect(err).To(BeNil())
+
+	g.Expect(fakeStore.DeleteAllObjectsCallCount()).To(Equal(1))
+
+	_, query := fakeIndex.RemoveByQueryArgsForCall(0)
+	g.Expect(query).To(Equal("+cluster:anyCluster"))
+
+}
+
+type transaction struct {
+	clusterName     string
+	object          client.Object
+	transactionType models.TransactionType
+}
+
+func (t *transaction) Object() client.Object {
+	return t.object
+}
+
+func (t *transaction) ClusterName() string {
+	return t.clusterName
+}
+
+func (t *transaction) TransactionType() models.TransactionType {
+	return t.transactionType
 }

@@ -136,6 +136,12 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 		if err := store.DeleteAllObjects(ctx, deleteAll); err != nil {
 			return fmt.Errorf("failed to delete all objects: %w", err)
 		}
+
+		for _, cluster := range deleteAll {
+			if err := idx.RemoveByQuery(ctx, fmt.Sprintf("+cluster:%s", cluster)); err != nil {
+				return fmt.Errorf("failed to delete all objects for cluster %q: %w", cluster, err)
+			}
+		}
 	}
 
 	debug.Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)

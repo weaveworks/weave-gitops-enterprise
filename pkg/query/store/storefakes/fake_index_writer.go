@@ -34,6 +34,18 @@ type FakeIndexWriter struct {
 	removeReturnsOnCall map[int]struct {
 		result1 error
 	}
+	RemoveByQueryStub        func(context.Context, string) error
+	removeByQueryMutex       sync.RWMutex
+	removeByQueryArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	removeByQueryReturns struct {
+		result1 error
+	}
+	removeByQueryReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -172,6 +184,68 @@ func (fake *FakeIndexWriter) RemoveReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeIndexWriter) RemoveByQuery(arg1 context.Context, arg2 string) error {
+	fake.removeByQueryMutex.Lock()
+	ret, specificReturn := fake.removeByQueryReturnsOnCall[len(fake.removeByQueryArgsForCall)]
+	fake.removeByQueryArgsForCall = append(fake.removeByQueryArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.RemoveByQueryStub
+	fakeReturns := fake.removeByQueryReturns
+	fake.recordInvocation("RemoveByQuery", []interface{}{arg1, arg2})
+	fake.removeByQueryMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	return fakeReturns.result1
+}
+
+func (fake *FakeIndexWriter) RemoveByQueryCallCount() int {
+	fake.removeByQueryMutex.RLock()
+	defer fake.removeByQueryMutex.RUnlock()
+	return len(fake.removeByQueryArgsForCall)
+}
+
+func (fake *FakeIndexWriter) RemoveByQueryCalls(stub func(context.Context, string) error) {
+	fake.removeByQueryMutex.Lock()
+	defer fake.removeByQueryMutex.Unlock()
+	fake.RemoveByQueryStub = stub
+}
+
+func (fake *FakeIndexWriter) RemoveByQueryArgsForCall(i int) (context.Context, string) {
+	fake.removeByQueryMutex.RLock()
+	defer fake.removeByQueryMutex.RUnlock()
+	argsForCall := fake.removeByQueryArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeIndexWriter) RemoveByQueryReturns(result1 error) {
+	fake.removeByQueryMutex.Lock()
+	defer fake.removeByQueryMutex.Unlock()
+	fake.RemoveByQueryStub = nil
+	fake.removeByQueryReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeIndexWriter) RemoveByQueryReturnsOnCall(i int, result1 error) {
+	fake.removeByQueryMutex.Lock()
+	defer fake.removeByQueryMutex.Unlock()
+	fake.RemoveByQueryStub = nil
+	if fake.removeByQueryReturnsOnCall == nil {
+		fake.removeByQueryReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.removeByQueryReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeIndexWriter) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -179,6 +253,8 @@ func (fake *FakeIndexWriter) Invocations() map[string][][]interface{} {
 	defer fake.addMutex.RUnlock()
 	fake.removeMutex.RLock()
 	defer fake.removeMutex.RUnlock()
+	fake.removeByQueryMutex.RLock()
+	defer fake.removeByQueryMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

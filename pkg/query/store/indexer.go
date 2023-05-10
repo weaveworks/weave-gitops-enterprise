@@ -23,6 +23,7 @@ type Indexer interface {
 type IndexWriter interface {
 	Add(ctx context.Context, objects []models.Object) error
 	Remove(ctx context.Context, objects []models.Object) error
+	RemoveByQuery(ctx context.Context, q string) error
 }
 
 type Facets map[string][]string
@@ -72,6 +73,24 @@ func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
 func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) error {
 	for _, obj := range objects {
 		if err := i.idx.Delete(obj.GetID()); err != nil {
+			return fmt.Errorf("failed to delete object: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (i *bleveIndexer) RemoveByQuery(ctx context.Context, q string) error {
+	query := bleve.NewQueryStringQuery(q)
+	req := bleve.NewSearchRequest(query)
+
+	result, err := i.idx.Search(req)
+	if err != nil {
+		return fmt.Errorf("failed to search index: %w", err)
+	}
+
+	for _, hit := range result.Hits {
+		if err := i.idx.Delete(hit.ID); err != nil {
 			return fmt.Errorf("failed to delete object: %w", err)
 		}
 	}
