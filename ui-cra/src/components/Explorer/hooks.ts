@@ -17,7 +17,6 @@ const DEFAULT_LIMIT = 25;
 
 type Config = {
   enableURLState?: boolean;
-  filters?: string[];
 };
 
 export function useQueryState(

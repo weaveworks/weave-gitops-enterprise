@@ -11,7 +11,6 @@ describe('useQueryState', () => {
       () =>
         useQueryState({
           enableURLState: false,
-          filters: [{ label: 'kind', value: 'kind:foo' }],
         }),
       { wrapper },
     );
@@ -19,13 +18,12 @@ describe('useQueryState', () => {
     const initial = result.current[0];
 
     expect(initial).toEqual({
-      filters: [{ label: 'kind', value: 'kind:foo' }],
+      filters: [],
       limit: 25,
       offset: 0,
       orderBy: '',
       orderAscending: false,
-      query: '',
-      selectedFilter: '',
+      terms: '',
     });
   });
   it('filterChangeHandler', () => {
@@ -37,7 +35,6 @@ describe('useQueryState', () => {
       () =>
         useQueryState({
           enableURLState: false,
-          filters: [{ label: 'kind', value: 'kind:foo' }],
         }),
       { wrapper },
     );
@@ -45,18 +42,17 @@ describe('useQueryState', () => {
     const handler = filterChangeHandler(result.current[0], result.current[1]);
 
     act(() => {
-      handler('kind:bar');
+      handler({ 'kind:bar': true });
     });
 
     const state = result.current[0];
     expect(state).toEqual({
-      filters: [{ label: 'kind', value: 'kind:foo' }],
+      filters: ['kind:bar'],
       limit: 25,
       offset: 0,
       orderBy: '',
       orderAscending: false,
-      query: 'kind:bar',
-      selectedFilter: 'kind:bar',
+      terms: '',
     });
   });
 });

@@ -1,16 +1,46 @@
 import _ from 'lodash';
+import { useContext } from 'react';
 import { useQuery } from 'react-query';
-import { Query, QueryResponse } from '../api/query/query.pb';
+import { QueryResponse } from '../api/query/query.pb';
+import { QueryServiceContext } from '../contexts/QueryService';
 
 type QueryOpts = {
   terms?: string;
   filters?: string[];
-  limit: number;
-  offset: number;
+  limit?: number;
+  offset?: number;
   orderBy?: string;
   category?: string;
   ascending?: boolean;
 };
+
+// We want to "OR" filters of the same field, but "AND" filters of different fields.
+// This function takes a list of filters and
+// re-formats them to accomplish this against the query service backend.
+export function formatFilters(filters: string[]) {
+  const commonKinds: { [key: string]: string[] } = {};
+
+  _.each(filters, filter => {
+    const [kind, value] = filter.split(':');
+    if (!commonKinds[kind]) {
+      commonKinds[kind] = [];
+    }
+    commonKinds[kind].push(value);
+  });
+
+  const clauses: string[] = [];
+
+  _.each(commonKinds, (values, kind) => {
+    if (values.length > 1) {
+      clauses.push(`${kind}:(${values.join('|')})`);
+      return;
+    }
+
+    clauses.push(`${kind}:${values[0]}`);
+  });
+
+  return clauses;
+}
 
 export function useQueryService({
   terms,
@@ -21,18 +51,20 @@ export function useQueryService({
   category,
   ascending,
 }: QueryOpts) {
-  const api = Query;
+  const api = useContext(QueryServiceContext);
 
   if (category) {
     filters = _.concat(filters || [], ['+category:' + category]);
   }
+
+  const formatted = formatFilters(filters || []);
 
   return useQuery<QueryResponse, Error>(
     ['query', { terms, filters, limit, offset, orderBy, ascending }],
     () => {
       return api.DoQuery({
         terms,
-        filters,
+        filters: formatted,
         limit,
         offset,
         orderBy,
@@ -48,13 +80,13 @@ export function useQueryService({
 }
 
 export function useListAccessRules() {
-  const api = Query;
+  const api = useContext(QueryServiceContext);
 
   return useQuery(['listAccessRules'], () => api.DebugGetAccessRules({}));
 }
 
 export function useListFacets() {
-  const api = Query;
+  const api = useContext(QueryServiceContext);
 
   return useQuery(['facets'], () => api.ListFacets({}), {
     refetchIntervalInBackground: false,
