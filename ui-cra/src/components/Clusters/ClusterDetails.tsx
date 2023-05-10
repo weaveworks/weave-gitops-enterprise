@@ -91,7 +91,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                   onClick={() => {
                     if (useQueryServiceBackend) {
                       const s = linkToExplorer(`/applications`, {
-                        filters: [`+cluster:${clusterName}`],
+                        filters: [`cluster:${clusterName}`],
                       } as QueryState);
 
                       history.push(s);

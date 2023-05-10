@@ -36,7 +36,7 @@ export function formatFilters(filters: string[]) {
       return;
     }
 
-    clauses.push(`${kind}:${values[0]}`);
+    clauses.push(`+${kind}:${values[0]}`);
   });
 
   return clauses;
@@ -53,11 +53,11 @@ export function useQueryService({
 }: QueryOpts) {
   const api = useContext(QueryServiceContext);
 
-  if (category) {
-    filters = _.concat(filters || [], ['+category:' + category]);
-  }
+  let formatted = formatFilters(filters || []);
 
-  const formatted = formatFilters(filters || []);
+  if (category) {
+    formatted = _.concat(formatted, ['+category:' + category]);
+  }
 
   return useQuery<QueryResponse, Error>(
     ['query', { terms, filters, limit, offset, orderBy, ascending }],

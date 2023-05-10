@@ -40,12 +40,27 @@ func NewIndexer(s Store, path string) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
 	mapping := bleve.NewIndexMapping()
 
+	// We do this to get our facets to appear correctly.
+	// A keyword analyzer gives us the exact value of the field,
+	// rather than splitting up things like `flux-system` into `flux` and `system`.
+	// https://github.com/blevesearch/bleve/issues/639
+	// Following this issue, we can probably expand this to include other fields.
+	objMapping := bleve.NewDocumentMapping()
+	nsMapping := bleve.NewTextFieldMapping()
+	nsMapping.Analyzer = "keyword"
+
+	clusterNameMapping := bleve.NewTextFieldMapping()
+	clusterNameMapping.Analyzer = "keyword"
+	objMapping.AddFieldMappingsAt("cluster", clusterNameMapping)
+
+	objMapping.AddFieldMappingsAt("namespace", nsMapping)
+
+	mapping.AddDocumentMapping("object", objMapping)
+
 	index, err := bleve.New(idxFileLocation, mapping)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create indexer: %w", err)
 	}
-
-	mapping.DefaultAnalyzer = "keyword"
 
 	return &bleveIndexer{
 		idx:   index,
@@ -166,6 +181,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (Facets, error) {
 	req.AddFacet("Kind", bleve.NewFacetRequest("kind", 100))
 	req.AddFacet("Namespace", bleve.NewFacetRequest("namespace", 100))
 	req.AddFacet("Cluster", bleve.NewFacetRequest("cluster", 100))
+	// req.AddFacet("Namespace", bleve.NewFacetRequest("namespace.facet", 100))
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {

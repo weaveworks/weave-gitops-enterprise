@@ -17,7 +17,7 @@ function Filters({ className, onFilterSelect, facets, state }: Props) {
   const handleFilterChange = (field: string, key: string, value: boolean) => {
     const next = {
       ...state,
-      [`+${field}:${key}`]: value,
+      [`${field}:${key}`]: value,
     };
 
     onFilterSelect && onFilterSelect(next);
