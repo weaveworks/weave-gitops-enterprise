@@ -190,6 +190,11 @@ gitopssets-controller:
       image:
         tag: v0.9.0
 
+pipeline-controller:
+  controller:
+    manager:
+      image:
+        tag: pr-180-watches
 
 #### Explorer
 # Turns on explorer to true
