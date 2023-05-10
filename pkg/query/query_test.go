@@ -200,7 +200,7 @@ func TestRunQuery(t *testing.T) {
 			objects: []models.Object{
 				{
 					Cluster:    "management",
-					Name:       "podinfo",
+					Name:       "my-app",
 					Namespace:  "namespace-a",
 					Kind:       "Deployment",
 					APIGroup:   "apps",
@@ -208,7 +208,7 @@ func TestRunQuery(t *testing.T) {
 				},
 				{
 					Cluster:    "management",
-					Name:       "podinfo",
+					Name:       "other-thing",
 					Namespace:  "namespace-b",
 					Kind:       "Deployment",
 					APIGroup:   "apps",
@@ -216,7 +216,7 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{filters: []string{"+namespace:namespace-a"}},
-			want:  []string{"podinfo", "podinfo"},
+			want:  []string{"my-app"},
 		},
 		{
 			name: "order by",

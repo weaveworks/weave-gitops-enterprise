@@ -39,13 +39,13 @@ describe('Filters', () => {
     });
 
     expect(onFilterSelect).toHaveBeenCalledWith({
-      '+kind:Kustomization': true,
+      'kind:Kustomization': true,
     });
 
     rerender(
       <Filters
         facets={facets}
-        state={{ '+kind:Kustomization': true }}
+        state={{ 'kind:Kustomization': true }}
         onFilterSelect={onFilterSelect}
       />,
     );
@@ -59,14 +59,14 @@ describe('Filters', () => {
     });
 
     expect(onFilterSelect).toHaveBeenCalledWith({
-      '+kind:Kustomization': true,
-      '+kind:HelmRelease': true,
+      'kind:Kustomization': true,
+      'kind:HelmRelease': true,
     });
 
     rerender(
       <Filters
         facets={facets}
-        state={{ '+kind:Kustomization': true, '+kind:HelmRelease': true }}
+        state={{ 'kind:Kustomization': true, 'kind:HelmRelease': true }}
         onFilterSelect={onFilterSelect}
       />,
     );

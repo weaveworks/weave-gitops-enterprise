@@ -46,7 +46,7 @@ describe('useQueryService', () => {
     renderHook(() => useQueryService({ filters }), { wrapper });
 
     expect(mock.DoQuery).toHaveBeenCalledWith({
-      filters: ['kind:Kustomization', 'cluster:management'],
+      filters: ['+kind:Kustomization', '+cluster:management'],
     });
   });
   describe('formatFilters', () => {
@@ -62,7 +62,7 @@ describe('useQueryService', () => {
 
       const result = formatFilters(filters);
 
-      expect(result).toEqual(['kind:Kustomization']);
+      expect(result).toEqual(['+kind:Kustomization']);
     });
   });
 });
