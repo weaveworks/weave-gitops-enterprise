@@ -71,31 +71,26 @@ exports[`Applications index test snapshots loading 1`] = `
   width: 24px;
 }
 
-.c9 svg path.path-fill,
-.c9 svg line.path-fill,
-.c9 svg polygon.path-fill,
-.c9 svg rect.path-fill,
-.c9 svg circle.path-fill,
-.c9 svg polyline.path-fill {
+.c9 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg path.stroke-fill,
-.c9 svg line.stroke-fill,
-.c9 svg polygon.stroke-fill,
-.c9 svg rect.stroke-fill,
-.c9 svg circle.stroke-fill,
-.c9 svg polyline.stroke-fill {
+.c9 svg path.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9 svg rect.rect-height {
   height: 24px;
   width: 24px;
+}
+
+.c9 svg rect.rect-stroke {
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9.downward {
@@ -457,31 +452,26 @@ exports[`Applications index test snapshots success 1`] = `
   width: 24px;
 }
 
-.c9 svg path.path-fill,
-.c9 svg line.path-fill,
-.c9 svg polygon.path-fill,
-.c9 svg rect.path-fill,
-.c9 svg circle.path-fill,
-.c9 svg polyline.path-fill {
+.c9 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c9 svg path.stroke-fill,
-.c9 svg line.stroke-fill,
-.c9 svg polygon.stroke-fill,
-.c9 svg rect.stroke-fill,
-.c9 svg circle.stroke-fill,
-.c9 svg polyline.stroke-fill {
+.c9 svg path.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9 svg rect.rect-height {
   height: 24px;
   width: 24px;
+}
+
+.c9 svg rect.rect-stroke {
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c9.downward {
@@ -509,31 +499,26 @@ exports[`Applications index test snapshots success 1`] = `
   width: 16px;
 }
 
-.c13 svg path.path-fill,
-.c13 svg line.path-fill,
-.c13 svg polygon.path-fill,
-.c13 svg rect.path-fill,
-.c13 svg circle.path-fill,
-.c13 svg polyline.path-fill {
+.c13 svg path.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c13 svg path.stroke-fill,
-.c13 svg line.stroke-fill,
-.c13 svg polygon.stroke-fill,
-.c13 svg rect.stroke-fill,
-.c13 svg circle.stroke-fill,
-.c13 svg polyline.stroke-fill {
+.c13 svg path.stroke-fill {
   stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c13 svg rect.rect-height {
   height: 16px;
   width: 16px;
+}
+
+.c13 svg rect.rect-stroke {
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c13.downward {
@@ -562,31 +547,27 @@ exports[`Applications index test snapshots success 1`] = `
   width: 24px;
 }
 
-.c27 svg path.path-fill,
-.c27 svg line.path-fill,
-.c27 svg polygon.path-fill,
-.c27 svg rect.path-fill,
-.c27 svg circle.path-fill,
-.c27 svg polyline.path-fill {
+.c27 svg path.path-fill {
   fill: #737373 !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c27 svg path.stroke-fill,
-.c27 svg line.stroke-fill,
-.c27 svg polygon.stroke-fill,
-.c27 svg rect.stroke-fill,
-.c27 svg circle.stroke-fill,
-.c27 svg polyline.stroke-fill {
+.c27 svg path.stroke-fill {
   stroke: #737373 !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c27 svg rect.rect-height {
   height: 24px;
   width: 24px;
+}
+
+.c27 svg rect.rect-stroke {
+  stroke: #737373;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c27.downward {
@@ -616,31 +597,27 @@ exports[`Applications index test snapshots success 1`] = `
   width: 16px;
 }
 
-.c32 svg path.path-fill,
-.c32 svg line.path-fill,
-.c32 svg polygon.path-fill,
-.c32 svg rect.path-fill,
-.c32 svg circle.path-fill,
-.c32 svg polyline.path-fill {
+.c32 svg path.path-fill {
   fill: #d8d8d8 !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c32 svg path.stroke-fill,
-.c32 svg line.stroke-fill,
-.c32 svg polygon.stroke-fill,
-.c32 svg rect.stroke-fill,
-.c32 svg circle.stroke-fill,
-.c32 svg polyline.stroke-fill {
+.c32 svg path.stroke-fill {
   stroke: #d8d8d8 !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c32 svg rect.rect-height {
   height: 16px;
   width: 16px;
+}
+
+.c32 svg rect.rect-stroke {
+  stroke: #d8d8d8;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
 .c32.downward {
@@ -1256,38 +1233,13 @@ exports[`Applications index test snapshots success 1`] = `
                       class="c8 c27"
                     >
                       <svg
-                        id="explorer"
+                        aria-hidden="true"
+                        class="MuiSvgIcon-root"
+                        focusable="false"
                         viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
                       >
                         <path
-                          class="path-fill"
-                          d="m9.59,5c1.23,0,2.38.48,3.24,1.34.87.87,1.34,2.02,1.34,3.24s-.48,2.38-1.34,3.24-2.02,1.34-3.24,1.34-2.38-.48-3.24-1.34-1.34-2.02-1.34-3.24.48-2.38,1.34-3.24c.87-.87,2.02-1.34,3.24-1.34m0-1c-1.43,0-2.86.55-3.95,1.64-2.18,2.18-2.18,5.72,0,7.9,1.09,1.09,2.52,1.64,3.95,1.64s2.86-.55,3.95-1.64c2.18-2.18,2.18-5.72,0-7.9-1.09-1.09-2.52-1.64-3.95-1.64h0Z"
-                        />
-                        <path
-                          class="path-fill"
-                          d="m7.44,7.91c-.13,0-.25-.04-.34-.14-.2-.2-.21-.49-.02-.69l.04-.04c.2-.2.51-.2.71,0s.2.51,0,.71c-.1.1-.24.16-.38.16Zm3.81-.38c-.09,0-.18-.02-.26-.07l.21-.46.27-.42-.27.42.3-.4c.24.14.31.45.17.69-.09.16-.26.24-.43.24Zm-1.96-.48c-.25,0-.49-.18-.52-.44-.03-.27.14-.52.41-.55h.05c.27-.05.52.16.55.43.03.27-.16.52-.44.55-.02,0-.04,0-.06,0Z"
-                        />
-                        <path
-                          class="path-fill"
-                          d="m11.25,7.53c-.25,0-.49-.18-.52-.44-.03-.27.14-.52.41-.55h.05c.27-.05.52.16.55.43.03.27-.16.52-.44.55-.02,0-.04,0-.06,0Z"
-                        />
-                        <line
-                          class="stroke-fill"
-                          x1="13.24"
-                          x2="14.71"
-                          y1="13.24"
-                          y2="14.71"
-                        />
-                        <rect
-                          class="stroke-fill"
-                          height="6.09"
-                          rx="1"
-                          ry="1"
-                          transform="translate(-7.09 17.13) rotate(-45)"
-                          width="2.03"
-                          x="16.11"
-                          y="14.08"
+                          d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"
                         />
                       </svg>
                     </div>
