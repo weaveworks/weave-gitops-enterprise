@@ -1,15 +1,13 @@
 import {
-  Flex,
   getParentNavRouteValue,
   IconType,
-  Logo,
   Nav,
   NavItem,
   useFeatureFlags,
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { FC, useMemo, useState } from 'react';
+import { Dispatch, FC, SetStateAction, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
@@ -188,21 +186,14 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
   ];
 }
 
-const LogoHeight = styled(Flex)`
-  height: 60px;
-`;
-
-const NavHeight = styled.div`
-  height: calc(100% - 60px);
-`;
-
 const NavContainer = styled.div`
   height: 100vh;
 `;
 
-const Navigation: FC = () => {
-  const [collapsed, setCollapsed] = useState(false);
-
+const Navigation: FC<{
+  collapsed: boolean;
+  setCollapsed: Dispatch<SetStateAction<boolean>>;
+}> = ({ collapsed, setCollapsed }) => {
   const { isFlagEnabled } = useFeatureFlags();
   const navItems = useMemo(() => getNavItems(isFlagEnabled), [isFlagEnabled]);
 
@@ -213,22 +204,13 @@ const Navigation: FC = () => {
 
   return (
     <NavContainer>
-      <LogoHeight align>
-        <Logo
-          className="test-id-home"
-          link={Routes.Clusters}
-          collapsed={collapsed}
-        />
-      </LogoHeight>
-      <NavHeight>
-        <Nav
-          className="test-id-navigation"
-          collapsed={collapsed}
-          setCollapsed={setCollapsed}
-          navItems={navItems}
-          currentPage={routeValue}
-        />
-      </NavHeight>
+      <Nav
+        className="test-id-navigation"
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        navItems={navItems}
+        currentPage={routeValue}
+      />
     </NavContainer>
   );
 };

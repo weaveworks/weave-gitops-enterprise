@@ -21,6 +21,7 @@ import {
   theme,
   useListSources,
   Flex,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
@@ -51,7 +52,6 @@ import {
   Vsphere,
 } from '../../utils/icons';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import PoliciesViolations from '../PolicyViolations';
 import { TableWrapper, Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
@@ -367,7 +367,8 @@ const MCCP: FC<{
   );
 
   return (
-    <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
+    <Page>
+      {/* <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}> */}
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
@@ -541,7 +542,8 @@ const MCCP: FC<{
           </SubRouterTabs>
         </ContentWrapper>
       </CallbackStateContextProvider>
-    </PageTemplate>
+      {/* </PageTemplate> */}
+    </Page>
   );
 };
 
