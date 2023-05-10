@@ -31,7 +31,7 @@ describe('useQueryService', () => {
     renderHook(() => useQueryService({ filters }), { wrapper });
 
     expect(mock.DoQuery).toHaveBeenCalledWith({
-      filters: ['kind:(Kustomization|HelmRelease)'],
+      filters: ['+kind:(Kustomization|HelmRelease)'],
     });
   });
   it('does an AND between filter fields', () => {
@@ -55,7 +55,7 @@ describe('useQueryService', () => {
 
       const result = formatFilters(filters);
 
-      expect(result).toEqual(['kind:(Kustomization|HelmRelease)']);
+      expect(result).toEqual(['+kind:(Kustomization|HelmRelease)']);
     });
     it('does not wrap parens around a single filter', () => {
       const filters = ['kind:Kustomization'];

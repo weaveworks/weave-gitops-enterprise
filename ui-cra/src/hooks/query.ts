@@ -32,7 +32,7 @@ export function formatFilters(filters: string[]) {
 
   _.each(commonKinds, (values, kind) => {
     if (values.length > 1) {
-      clauses.push(`${kind}:(${values.join('|')})`);
+      clauses.push(`+${kind}:(${values.join('|')})`);
       return;
     }
 
