@@ -10,17 +10,19 @@ type Props = {
 };
 
 const SlideContainer = styled.div`
+  position: relative;
   height: 100%;
   transition-property: width, left;
-  transition-duration: 0.25s;
+  transition-duration: 0.5s;
   transition-timing-function: linear;
   overflow: hidden;
-  width: 0;
+  width: 0px;
+  flex: 2;
+  left: 24px;
 
   &.open {
-    transform: translateX(0);
-    left: -320;
-    width: 320px;
+    left: 0;
+    width: 360px;
   }
 `;
 
@@ -49,5 +51,6 @@ function FilterDrawer({ className, children, open, onClose }: Props) {
 }
 
 export default styled(FilterDrawer).attrs({ className: FilterDrawer.name })`
-  overflow: auto;
+  overflow: hidden;
+  white-space: nowrap;
 `;

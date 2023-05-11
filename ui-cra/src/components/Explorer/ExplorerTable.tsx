@@ -41,79 +41,79 @@ function ExplorerTable({
   }));
 
   return (
-    <div className={className}>
-      <DataTable
-        className={className}
-        fields={[
-          {
-            label: 'Name',
-            value: (o: Object) => {
-              const page = getKindRoute(o?.kind as string);
+    <DataTable
+      className={className}
+      fields={[
+        {
+          label: 'Name',
+          value: (o: Object) => {
+            const page = getKindRoute(o?.kind as string);
 
-              const url = formatURL(page, {
-                name: o.name,
-                namespace: o.namespace,
-                clusterName: o.cluster,
-              });
+            const url = formatURL(page, {
+              name: o.name,
+              namespace: o.namespace,
+              clusterName: o.cluster,
+            });
 
-              return <Link to={url}>{o.name}</Link>;
-            },
-            sortValue: () => 'name',
-            defaultSort: sortField === 'name',
+            return <Link to={url}>{o.name}</Link>;
           },
-          { label: 'Kind', value: 'kind', defaultSort: sortField === 'kind' },
-          {
-            label: 'Namespace',
-            value: 'namespace',
-            defaultSort: sortField === 'namespace',
-          },
-          {
-            label: 'Cluster',
-            value: 'clusterName',
-            defaultSort: sortField === 'clusterName',
-          },
-          {
-            label: 'Status',
-            sortValue: () => 'status',
-            defaultSort: sortField === 'status',
-            value: (o: Object) => (
-              <Flex align>
-                <Box marginRight={1}>
-                  <Icon
-                    size={24}
-                    color={
-                      o?.status === 'Success'
-                        ? 'successOriginal'
-                        : 'alertOriginal'
-                    }
-                    type={
-                      o?.status === 'Success'
-                        ? IconType.SuccessIcon
-                        : IconType.ErrorIcon
-                    }
-                  />
-                </Box>
+          sortValue: () => 'name',
+          defaultSort: sortField === 'name',
+        },
+        { label: 'Kind', value: 'kind', defaultSort: sortField === 'kind' },
+        {
+          label: 'Namespace',
+          value: 'namespace',
+          defaultSort: sortField === 'namespace',
+        },
+        {
+          label: 'Cluster',
+          value: 'clusterName',
+          defaultSort: sortField === 'clusterName',
+        },
+        {
+          label: 'Status',
+          sortValue: () => 'status',
+          defaultSort: sortField === 'status',
+          value: (o: Object) => (
+            <Flex align>
+              <Box marginRight={1}>
+                <Icon
+                  size={24}
+                  color={
+                    o?.status === 'Success'
+                      ? 'successOriginal'
+                      : 'alertOriginal'
+                  }
+                  type={
+                    o?.status === 'Success'
+                      ? IconType.SuccessIcon
+                      : IconType.ErrorIcon
+                  }
+                />
+              </Box>
 
-                {o?.status}
-              </Flex>
-            ),
-          },
-          {
-            label: 'Message',
-            value: 'message',
-            defaultSort: sortField === 'message',
-          },
-        ]}
-        rows={r}
-        hideSearchAndFilters
-        onColumnHeaderClick={onColumnHeaderClick}
-        hasCheckboxes={enableBatchSync}
-      />
-    </div>
+              {o?.status}
+            </Flex>
+          ),
+        },
+        {
+          label: 'Message',
+          value: 'message',
+          defaultSort: sortField === 'message',
+        },
+      ]}
+      rows={r}
+      hideSearchAndFilters
+      onColumnHeaderClick={onColumnHeaderClick}
+      hasCheckboxes={enableBatchSync}
+    />
   );
 }
 
 export default styled(ExplorerTable).attrs({ className: ExplorerTable.name })`
+  width: 100%;
+
   td:nth-child(6),
   td:nth-child(7) {
     white-space: pre-wrap;
@@ -121,9 +121,8 @@ export default styled(ExplorerTable).attrs({ className: ExplorerTable.name })`
     word-wrap: break-word;
   }
 
-  flex: 1;
   /* Moving the sync/pause buttons to the left */
-  .ExplorerTable > div:first-child {
+  & > div:first-child {
     justify-content: flex-start;
   }
 `;
