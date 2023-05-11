@@ -26,7 +26,7 @@ const ActionsWrapper = styled(Flex)<Size>`
   }
 `;
 
-const WGApplicationsDashboard: FC = () => {
+const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
@@ -72,14 +72,19 @@ const WGApplicationsDashboard: FC = () => {
           </ActionsWrapper>
         </div>
 
-        {useQueryServiceBackend ? (
-          <Explorer category="automation" enableBatchSync />
-        ) : (
-          <AutomationsTable automations={automations?.result} />
-        )}
+        <div className={className}>
+          {useQueryServiceBackend ? (
+            <Explorer category="automation" enableBatchSync />
+          ) : (
+            <AutomationsTable automations={automations?.result} />
+          )}
+        </div>
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsDashboard;
+export default styled(WGApplicationsDashboard)`
+  width: 100%;
+  overflow: auto;
+`;

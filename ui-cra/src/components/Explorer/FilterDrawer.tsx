@@ -18,7 +18,9 @@ const SlideContainer = styled.div`
   width: 0;
 
   &.open {
-    width: 280px;
+    transform: translateX(0);
+    left: -320;
+    width: 320px;
   }
 `;
 
@@ -46,4 +48,6 @@ function FilterDrawer({ className, children, open, onClose }: Props) {
   );
 }
 
-export default styled(FilterDrawer).attrs({ className: FilterDrawer.name })``;
+export default styled(FilterDrawer).attrs({ className: FilterDrawer.name })`
+  overflow: auto;
+`;
