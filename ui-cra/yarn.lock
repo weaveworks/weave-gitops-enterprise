@@ -2372,10 +2372,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.22.0-7-g25d5e57c":
-  version "0.22.0-7-g25d5e57c"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.22.0-7-g25d5e57c/e5de0c3bd74a391e3efdfc489fb593ec8776ff97#e5de0c3bd74a391e3efdfc489fb593ec8776ff97"
-  integrity sha512-fbfG0RgxUSaFcuhwRdYEop4F2TdMcYofLussEsj//v1Auj5wZXy8C9s8t5hD0WhRWY7K4V1tgWy8fONaDw4N/A==
+"@weaveworks/weave-gitops@0.23.0":
+  version "0.23.0"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.23.0/de5ddccfa13f3f051363703245506dae98aef520#de5ddccfa13f3f051363703245506dae98aef520"
+  integrity sha512-10QVGiIXKkFlGiJGUGGaUqWA45jAdn5nF/DsxrcG8/Xj0Snl9opMAICW1930yBREqtsUtcQzzkOejHZePDVc2w==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2398,6 +2398,7 @@
     react-lottie-player "^1.4.3"
     react-query "^3.34.7"
     react-router-dom "^5.2.0"
+    react-syntax-highlighter "^15.5.0"
     react-toastify "^7.0.4"
     styled-components "^5.3.0"
     yaml "^2.2.2"
