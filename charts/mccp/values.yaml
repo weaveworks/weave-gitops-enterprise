@@ -194,6 +194,16 @@ gitopssets-controller:
     manager:
       image:
         tag: v0.11.0
+cluster-controller:
+  enabled: true
+  # cluster-controller-manager etc
+  fullnameOverride: cluster
+  controllerManager:
+    manager:
+      image:
+        repository: docker.io/weaveworks/cluster-controller
+        tag: v1.5.1
+
 
 #### Explorer
 # Turns on explorer to true
