@@ -63,7 +63,12 @@ const WGApplicationsKustomization: FC<Props> = ({
         return (
           <div style={{ width: '100%' }}>
             <PolicyViolationsList
-              req={{ clusterName, namespace, application: name }}
+              req={{
+                clusterName,
+                namespace,
+                application: name,
+                kind: Kind.Kustomization,
+              }}
               tableType={FieldsType.application}
               sourcePath="kustomization"
             />

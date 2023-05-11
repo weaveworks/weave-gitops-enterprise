@@ -153,6 +153,7 @@ export type ListPolicyValidationsRequest = {
   pagination?: Pagination
   application?: string
   namespace?: string
+  kind?: string
 }
 
 export type ListPolicyValidationsResponse = {
