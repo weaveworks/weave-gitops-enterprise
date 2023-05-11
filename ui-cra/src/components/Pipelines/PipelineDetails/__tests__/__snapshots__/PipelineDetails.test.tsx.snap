@@ -1,5 +1,94 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`PipelineDetails renders pipeline Yaml 1`] = `
+"1apiVersion: pipelines.weave.works/v1alpha1
+2kind: Pipeline
+3metadata:
+4  creationTimestamp: \\"2022-10-25T16:49:48Z\\"
+5  generation: 4
+6  labels:
+7    kustomize.toolkit.fluxcd.io/name: pipelines
+8    kustomize.toolkit.fluxcd.io/namespace: flux-system
+9  managedFields:
+10  - apiVersion: pipelines.weave.works/v1alpha1
+11    fieldsType: FieldsV1
+12    fieldsV1:
+13      f:metadata:
+14        f:labels:
+15          f:kustomize.toolkit.fluxcd.io/name: {}
+16          f:kustomize.toolkit.fluxcd.io/namespace: {}
+17      f:spec:
+18        f:appRef:
+19          f:apiVersion: {}
+20          f:kind: {}
+21          f:name: {}
+22        f:environments: {}
+23        f:promotion:
+24          f:notification: {}
+25          f:secretRef:
+26            f:name: {}
+27    manager: kustomize-controller
+28    operation: Apply
+29    time: \\"2022-12-08T13:29:01Z\\"
+30  - apiVersion: pipelines.weave.works/v1alpha1
+31    fieldsType: FieldsV1
+32    fieldsV1:
+33      f:status:
+34        f:conditions: {}
+35        f:observedGeneration: {}
+36    manager: pipeline-controller
+37    operation: Update
+38    subresource: status
+39    time: \\"2022-10-31T14:30:45Z\\"
+40  name: podinfo-02
+41  namespace: flux-system
+42  resourceVersion: \\"230322663\\"
+43  uid: cb61bc7a-9012-4d72-bedd-288699fbfabb
+44spec:
+45  appRef:
+46    apiVersion: helm.toolkit.fluxcd.io/v2beta1
+47    kind: HelmRelease
+48    name: podinfo
+49  environments:
+50  - name: dev
+51    targets:
+52    - clusterRef:
+53        kind: GitopsCluster
+54        name: dev
+55        namespace: flux-system
+56      namespace: podinfo-02-dev
+57  - name: test
+58    targets:
+59    - clusterRef:
+60        kind: GitopsCluster
+61        name: dev
+62        namespace: flux-system
+63      namespace: podinfo-02-qa
+64    - clusterRef:
+65        kind: GitopsCluster
+66        name: dev
+67        namespace: flux-system
+68      namespace: podinfo-02-perf
+69  - name: prod
+70    targets:
+71    - clusterRef:
+72        kind: GitopsCluster
+73        name: prod
+74        namespace: default
+75      namespace: podinfo-02-prod
+76  promotion:
+77    notification: {}
+78status:
+79  conditions:
+80  - lastTransitionTime: \\"2022-10-31T14:30:45Z\\"
+81    message: All clusters checked
+82    reason: ReconciliationSucceeded
+83    status: \\"True\\"
+84    type: Ready
+85  observedGeneration: 4
+86"
+`;
+
 exports[`PipelineDetails snapshots renders 1`] = `
 .c1 {
   display: -webkit-box;
