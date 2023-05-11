@@ -6,6 +6,7 @@ import {
   RouterTab,
   SubRouterTabs,
   theme,
+  useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useHistory, useRouteMatch } from 'react-router-dom';
@@ -57,6 +58,10 @@ const ClusterDetails = ({ clusterName }: Props) => {
     useState<GitopsClusterEnriched | null>(null);
   const isClusterWithSources = useIsClusterWithSources(clusterName);
   const { isLoading: loading } = useListSources('', '', { retry: false });
+  const { isFlagEnabled } = useFeatureFlags();
+  const useQueryServiceBackend = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  );
 
   useEffect(
     () => setCurrentCluster(getCluster(clusterName)),
@@ -80,13 +85,17 @@ const ClusterDetails = ({ clusterName }: Props) => {
                   className={classes.clusterApplicationBtn}
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}
                   onClick={() => {
-                    const filtersValues = toFilterQueryString([
-                      {
-                        key: 'clusterName',
-                        value: `${currentCluster?.namespace}/${currentCluster?.name}`,
-                      },
-                    ]);
-                    history.push(`/applications?filters=${filtersValues}`);
+                    //TODO remove me when https://github.com/weaveworks/weave-gitops-enterprise/pull/2793
+                    const filtersValues = !useQueryServiceBackend
+                      ? '?filters=' +
+                        toFilterQueryString([
+                          {
+                            key: 'clusterName',
+                            value: `${currentCluster?.namespace}/${currentCluster?.name}`,
+                          },
+                        ])
+                      : '';
+                    history.push('/applications' + filtersValues);
                   }}
                 >
                   GO TO APPLICATIONS
