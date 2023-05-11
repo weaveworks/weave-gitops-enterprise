@@ -87,7 +87,7 @@ add_files_to_git(){
   tool_check "gh"
   # We could use $GITHUB_REPO here, but its rm -rf so we'll be careful
   rm -rf "/tmp/wge-dev"
-  gh repo clone "$GITHUB_USER/$GITHUB_REPO" "/tmp/$GITHUB_REPO"
+  ${TOOLS}/gh repo clone "$GITHUB_USER/$GITHUB_REPO" "/tmp/$GITHUB_REPO"
   mkdir -p "/tmp/$GITHUB_REPO/clusters/bases/rbac"
   mkdir -p "/tmp/$GITHUB_REPO/clusters/bases/networkpolicy"
   cp "$(dirname "$0")/git-files/wego-admin.yaml" "/tmp/$GITHUB_REPO/clusters/bases/rbac/wego-admin.yaml"
