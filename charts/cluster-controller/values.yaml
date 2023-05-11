@@ -13,7 +13,7 @@ controllerManager:
   manager:
     image:
       repository: docker.io/weaveworks/cluster-controller
-      tag: v1.4.1
+      tag: v1.5.1
     resources:
       limits:
         cpu: 500m
