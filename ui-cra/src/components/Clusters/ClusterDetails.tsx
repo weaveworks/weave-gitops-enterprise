@@ -57,10 +57,6 @@ const ClusterDetails = ({ clusterName }: Props) => {
     useState<GitopsClusterEnriched | null>(null);
   const isClusterWithSources = useIsClusterWithSources(clusterName);
   const { isLoading: loading } = useListSources('', '', { retry: false });
-  const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
-  );
 
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
@@ -86,7 +82,6 @@ const ClusterDetails = ({ clusterName }: Props) => {
               <ActionsWrapper>
                 <WeaveButton
                   id="cluster-application"
-                  className={classes.clusterApplicationBtn}
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}
                   onClick={() => {
                     const clusterName = `${currentCluster?.namespace}/${currentCluster?.name}`;
@@ -100,7 +95,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                       const filtersValues = toFilterQueryString([
                         {
                           key: 'clusterName',
-                          value: clusterName,
+                          value: `${currentCluster?.namespace}/${currentCluster?.name}`,
                         },
                       ]);
                       history.push(`/applications?filters=${filtersValues}`);
