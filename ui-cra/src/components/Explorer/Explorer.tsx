@@ -4,6 +4,7 @@ import { IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import _ from 'lodash';
 import { useState } from 'react';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
@@ -12,43 +13,27 @@ import FilterDrawer from './FilterDrawer';
 import Filters from './Filters';
 import PaginationControls from './PaginationControls';
 import QueryInput from './QueryInput';
-import {
-  columnHeaderHandler,
-  filterChangeHandler,
-  textInputHandler,
-  useQueryState,
-} from './hooks';
+import QueryStateChips from './QueryStateChips';
+import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
+import { QueryStateProvider, columnHeaderHandler } from './hooks';
 
 type Props = {
   className?: string;
   category?: 'automation' | 'source';
   enableBatchSync?: boolean;
+  manager?: QueryStateManager;
 };
 
-function Explorer({ className, category, enableBatchSync }: Props) {
+function Explorer({ className, category, enableBatchSync, manager }: Props) {
+  const history = useHistory();
+  if (!manager) {
+    manager = new URLQueryStateManager(history);
+  }
+
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
   const { data: facetsRes } = useListFacets();
-  const [queryState, setQueryState] = useQueryState({
-    enableURLState: false,
-  });
-
-  const filters = _.reduce(
-    queryState.filters,
-    (result, f) => {
-      const re = /[%w|+](.+?):(.*)/g;
-
-      const matches = re.exec(f);
-
-      if (matches) {
-        const [, key, value] = matches;
-
-        result[`${key}:${value}`] = true;
-      }
-
-      return result;
-    },
-    {} as { [key: string]: boolean },
-  );
+  const queryState = manager.read();
+  const setQueryState = manager.write;
 
   const { data, error } = useQueryService({
     terms: queryState.terms,
@@ -63,44 +48,40 @@ function Explorer({ className, category, enableBatchSync }: Props) {
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
 
   return (
-    <div className={className}>
-      {error && <Alert severity="error">{error.message}</Alert>}
-      <Flex wide end>
-        <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
-          <Icon size="normal" type={IconType.FilterIcon} />
-        </IconButton>
-      </Flex>
-      <Flex wide>
-        <ExplorerTable
-          queryState={queryState}
-          rows={data?.objects || []}
-          onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
-          enableBatchSync={enableBatchSync}
-        />
-
-        <FilterDrawer
-          onClose={() => setFilterDrawerOpen(false)}
-          open={filterDrawerOpen}
-        >
-          <QueryInput
+    <QueryStateProvider manager={manager}>
+      <div className={className}>
+        {error && <Alert severity="error">{error.message}</Alert>}
+        <Flex align wide end>
+          <QueryStateChips />
+          <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
+            <Icon size="normal" type={IconType.FilterIcon} />
+          </IconButton>
+        </Flex>
+        <Flex wide>
+          <ExplorerTable
             queryState={queryState}
-            onTextInputChange={textInputHandler(queryState, setQueryState)}
+            rows={data?.objects || []}
+            onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
+            enableBatchSync={enableBatchSync}
           />
 
-          <Filters
-            facets={filteredFacets || []}
-            onFilterSelect={filterChangeHandler(queryState, setQueryState)}
-            state={filters}
-          />
-        </FilterDrawer>
-      </Flex>
+          <FilterDrawer
+            onClose={() => setFilterDrawerOpen(false)}
+            open={filterDrawerOpen}
+          >
+            <QueryInput />
 
-      <PaginationControls
-        queryState={queryState}
-        setQueryState={setQueryState}
-        count={data?.objects?.length || 0}
-      />
-    </div>
+            <Filters facets={filteredFacets || []} />
+          </FilterDrawer>
+        </Flex>
+
+        <PaginationControls
+          queryState={queryState}
+          setQueryState={setQueryState}
+          count={data?.objects?.length || 0}
+        />
+      </div>
+    </QueryStateProvider>
   );
 }
 

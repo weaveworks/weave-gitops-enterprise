@@ -89,9 +89,10 @@ const ClusterDetails = ({ clusterName }: Props) => {
                   className={classes.clusterApplicationBtn}
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}
                   onClick={() => {
+                    const clusterName = `${currentCluster?.namespace}/${currentCluster?.name}`;
                     if (useQueryServiceBackend) {
                       const s = linkToExplorer(`/applications`, {
-                        filters: [`cluster:${clusterName}`],
+                        filters: [`Cluster:${clusterName}`],
                       } as QueryState);
 
                       history.push(s);
@@ -99,7 +100,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                       const filtersValues = toFilterQueryString([
                         {
                           key: 'clusterName',
-                          value: `${currentCluster?.namespace}/${currentCluster?.name}`,
+                          value: clusterName,
                         },
                       ]);
                       history.push(`/applications?filters=${filtersValues}`);

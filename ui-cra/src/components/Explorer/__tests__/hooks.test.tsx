@@ -1,11 +1,6 @@
 import { act, renderHook } from '@testing-library/react-hooks';
 import { MemoryRouter } from 'react-router-dom';
-import {
-  QueryState,
-  filterChangeHandler,
-  usePersistURL,
-  useQueryState,
-} from '../hooks';
+import { QueryState } from '../hooks';
 import { linkToExplorer } from '../utils';
 
 describe('useQueryState', () => {

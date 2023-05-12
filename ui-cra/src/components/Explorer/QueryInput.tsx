@@ -1,32 +1,34 @@
 import { FormControl } from '@material-ui/core';
 import { Flex, Icon, IconType, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { QueryState } from './hooks';
+import { useReadQueryState, useSetQueryState } from './hooks';
 
 type Props = {
   className?: string;
-
-  queryState: QueryState;
-  onTextInputChange?: (value: string) => void;
 };
 
 const debouncedInputHandler = _.debounce((fn, val) => {
   fn(val);
 }, 500);
 
-function QueryInput({
-  className,
-  queryState: state,
-  onTextInputChange,
-}: Props) {
-  const [textInput, setTextInput] = useState(state.terms || '');
+function QueryInput({ className }: Props) {
+  const queryState = useReadQueryState();
+  const setQueryState = useSetQueryState();
+  const [textInput, setTextInput] = useState(queryState.terms || '');
+
+  useEffect(() => {
+    setTextInput(queryState.terms || '');
+  }, [queryState.terms]);
 
   const handleTextInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     setTextInput(e.target.value);
 
-    debouncedInputHandler(onTextInputChange, e.target.value);
+    debouncedInputHandler(
+      (val: string) => setQueryState({ ...queryState, terms: val }),
+      e.target.value,
+    );
   };
 
   return (
