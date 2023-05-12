@@ -74,7 +74,7 @@ export function useQueryService({
     {
       keepPreviousData: true,
       retry: false,
-      refetchInterval: Infinity,
+      refetchInterval: 10000,
     },
   );
 }
