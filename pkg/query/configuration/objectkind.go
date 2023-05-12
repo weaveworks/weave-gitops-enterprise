@@ -12,9 +12,13 @@ import (
 )
 
 type ObjectKind struct {
-	Gvk                 schema.GroupVersionKind
-	NewClientObjectFunc func() client.Object
-	AddToSchemeFunc     func(*runtime.Scheme) error
+	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
+	NewClientObjectFunc func() client.Object        `json:"-"`
+	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
+}
+
+func (ok ObjectKind) String() string {
+	return ok.Gvk.String()
 }
 
 func (o ObjectKind) Validate() error {

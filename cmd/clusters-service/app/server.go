@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"math/big"
 	"net"
 	"net/http"
@@ -22,6 +21,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 
 	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 
@@ -153,17 +154,21 @@ type Params struct {
 	GitProviderCSRFCookieDomain       string                    `mapstructure:"git-provider-csrf-cookie-domain"`
 	GitProviderCSRFCookiePath         string                    `mapstructure:"git-provider-csrf-cookie-path"`
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
+	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
+	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
 }
 
 type OIDCAuthenticationOptions struct {
-	IssuerURL     string        `mapstructure:"oidc-issuer-url"`
-	ClientID      string        `mapstructure:"oidc-client-id"`
-	ClientSecret  string        `mapstructure:"oidc-client-secret"`
-	RedirectURL   string        `mapstructure:"oidc-redirect-url"`
-	TokenDuration time.Duration `mapstructure:"oidc-token-duration"`
-	ClaimUsername string        `mapstructure:"oidc-claim-username"`
-	ClaimGroups   string        `mapstructure:"oidc-claim-groups"`
-	CustomScopes  []string      `mapstructure:"custom-oidc-scopes"`
+	IssuerURL      string        `mapstructure:"oidc-issuer-url"`
+	ClientID       string        `mapstructure:"oidc-client-id"`
+	ClientSecret   string        `mapstructure:"oidc-client-secret"`
+	RedirectURL    string        `mapstructure:"oidc-redirect-url"`
+	TokenDuration  time.Duration `mapstructure:"oidc-token-duration"`
+	ClaimUsername  string        `mapstructure:"oidc-claim-username"`
+	ClaimGroups    string        `mapstructure:"oidc-claim-groups"`
+	CustomScopes   []string      `mapstructure:"custom-oidc-scopes"`
+	UsernamePrefix string        `mapstructure:"oidc-username-prefix"`
+	GroupsPrefix   string        `mapstructure:"oidc-groups-prefix"`
 }
 
 func NewAPIServerCommand() *cobra.Command {
@@ -233,6 +238,8 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("oidc-claim-username", "", "JWT claim to use as the user name. By default email, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as sub or name, depending on their provider")
 	cmdFlags.String("oidc-claim-groups", "", "JWT claim to use as the user's group. If the claim is present it must be an array of strings")
 	cmdFlags.StringSlice("custom-oidc-scopes", auth.DefaultScopes, "Customise the requested scopes for then OIDC authentication flow - openid will always be requested")
+	cmdFlags.String("oidc-username-prefix", "", "If provided, all usernames will be prefixed with this value to prevent conflicts with other authentication strategies")
+	cmdFlags.String("oidc-groups-prefix", "", "If provided, all groups will be prefixed with this value to prevent conflicts with other authentication strategies")
 
 	cmdFlags.Bool("dev-mode", false, "starts the server in development mode")
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
@@ -246,6 +253,9 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("git-provider-csrf-cookie-domain", "", "The domain of the CSRF cookie")
 	cmdFlags.String("git-provider-csrf-cookie-path", "", "The path of the CSRF cookie")
 	cmdFlags.Duration("git-provider-csrf-cookie-duration", 5*time.Minute, "The duration of the CSRF cookie before it expires")
+	// Explorer configuration
+	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
+	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -394,7 +404,11 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		}
 	}()
 
-	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false)
+	userPrefixes := kube.UserPrefixes{
+		UsernamePrefix: p.OIDC.UsernamePrefix,
+		GroupsPrefix:   p.OIDC.GroupsPrefix,
+	}
+	configGetter := kube.NewImpersonatingConfigGetter(kubeClientConfig, false, userPrefixes)
 	clientGetter := kube.NewDefaultClientGetter(configGetter, "",
 		capiv1.AddToScheme,
 		pacv2beta1.AddToScheme,
@@ -439,7 +453,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		return err
 	}
 
-	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, cluster.DefaultKubeConfigOptions...)
+	mgmtCluster, err := cluster.NewSingleCluster(p.Cluster, rest, clustersManagerScheme, userPrefixes, cluster.DefaultKubeConfigOptions...)
 	if err != nil {
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
@@ -460,11 +474,11 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		log.Info("Using un-cached clients")
 	}
 
-	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+	gcf := fetcher.NewGitopsClusterFetcher(log, mgmtCluster, p.CAPIClustersNamespace, clustersManagerScheme, p.UseK8sCachedClients, userPrefixes, cluster.DefaultKubeConfigOptions...)
 	scf := core_fetcher.NewSingleClusterFetcher(mgmtCluster)
 	fetchers := []clustersmngr.ClusterFetcher{scf, gcf}
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_RUN_UI") == "true" {
-		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, cluster.DefaultKubeConfigOptions...)
+		sessionFetcher := fetcher.NewRunSessionFetcher(log, mgmtCluster, clustersManagerScheme, p.UseK8sCachedClients, userPrefixes, cluster.DefaultKubeConfigOptions...)
 		fetchers = append(fetchers, sessionFetcher)
 	}
 
@@ -540,6 +554,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithTemplateCostEstimator(estimator),
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
+		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 	)
 }
 
@@ -588,7 +603,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("failed to create informer cache for namespaces: %w", err)
 	}
 
-	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster)
+	userPrefixes := kube.UserPrefixes{UsernamePrefix: args.OIDC.UsernamePrefix, GroupsPrefix: args.OIDC.GroupsPrefix}
+	authClientGetter, err := mgmtfetcher.NewUserConfigAuth(args.CoreServerConfig.RestCfg, args.Cluster, userPrefixes)
 	if err != nil {
 		return fmt.Errorf("failed to set up auth client getter")
 	}
@@ -654,9 +670,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ClustersManager: args.ClustersManager,
 			SkipCollection:  false,
 			ObjectKinds:     configuration.SupportedObjectKinds,
+			ServiceAccount:  args.CollectorServiceAccount,
 		})
 		if err != nil {
-			return fmt.Errorf("hydrating pipelines server: %w", err)
+			return fmt.Errorf("hydrating query server: %w", err)
 		}
 	}
 
@@ -740,7 +757,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 				Username: args.OIDC.ClaimUsername,
 				Groups:   args.OIDC.ClaimGroups,
 			},
-			Scopes: args.OIDC.CustomScopes,
+			UsernamePrefix: args.OIDC.UsernamePrefix,
+			GroupsPrefix:   args.OIDC.GroupsPrefix,
+			Scopes:         args.OIDC.CustomScopes,
 		},
 		args.KubernetesClient,
 		tsv,

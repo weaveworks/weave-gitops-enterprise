@@ -101,7 +101,7 @@ func TestRunSessionFetcher(t *testing.T) {
 			cluster.GetNameReturns("management")
 			cluster.GetServerClientReturns(client, nil)
 
-			fetcher := fetcher.NewRunSessionFetcher(testr.New(t), cluster, scheme, false)
+			fetcher := fetcher.NewRunSessionFetcher(testr.New(t), cluster, scheme, false, kube.UserPrefixes{})
 
 			clusters, err := fetcher.Fetch(context.TODO())
 			g.Expect(err).NotTo(HaveOccurred())

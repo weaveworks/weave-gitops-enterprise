@@ -2148,6 +2148,9 @@
         },
         "timestamp": {
           "type": "string"
+        },
+        "yaml": {
+          "type": "string"
         }
       }
     },
@@ -2592,6 +2595,9 @@
           "type": "string"
         },
         "namespace": {
+          "type": "string"
+        },
+        "kind": {
           "type": "string"
         }
       }
