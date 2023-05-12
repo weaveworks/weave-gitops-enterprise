@@ -87,8 +87,8 @@ C4Component
     Container_Boundary(PolicyProfile, "Policy Profile Helm Chart") {
       Component(PolicyAgentManifest, "Policy Agent Manifest", "", "policy agent deployment manifests")
       Component(Policy, "Policy CRD", "", "policy CRD manifest")
-      Component(PolicySet, "PolicySet", "", "set of polices to provide customer baseline")
-      Component(PolicyConfig, "Policy Config CRD", "", "policy config CRD manifests")
+      Component(PolicySet, "PolicySet CRD", "", "CRD to group policies to create tailored customer baselines")
+      Component(PolicyConfig, "PolicyConfig CRD", "", "policy config CRD manifests")
     }
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
