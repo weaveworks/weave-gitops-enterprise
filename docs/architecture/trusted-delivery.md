@@ -104,7 +104,7 @@ C4Component
 - [policy agent](https://github.com/weaveworks/policy-agent)
 - [user documentation](https://docs.gitops.weave.works/docs/policy/intro/)
 
-## Tenancy / Workspaces
+## Tenancy/Workspaces
 
 Organizations working with Kubernetes have a tremendous need to manage tenancy for numerous software delivery teams. 
 Weave GitOps Workspaces offers tenancy management for Kubernetes clusters at scale. 
