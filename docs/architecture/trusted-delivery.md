@@ -13,7 +13,7 @@ and 3) Periodically using our audit scans.
 
 ## Glossary
 
-- Trusted Delivery
+- Policy
 - Policy 
 
 ## Policy
