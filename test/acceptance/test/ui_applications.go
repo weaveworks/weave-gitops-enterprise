@@ -191,7 +191,8 @@ func verifyAppPage(app Application) {
 
 	ginkgo.By(fmt.Sprintf("And verify %s application page", app.Name), func() {
 		gomega.Eventually(appDetailPage.Header.Text).Should(gomega.MatchRegexp(app.Name), fmt.Sprintf("Failed to verify dashboard application name %s", app.Name))
-		gomega.Eventually(appDetailPage.Title.Text).Should(gomega.MatchRegexp(app.Name), fmt.Sprintf("Failed to verify application title %s on application page", app.Name))
+		// There is currently no Application Title on the Application Page body..
+		// gomega.Eventually(appDetailPage.Title.Text).Should(gomega.MatchRegexp(app.Name), fmt.Sprintf("Failed to verify application title %s on application page", app.Name))
 		gomega.Eventually(appDetailPage.Sync).Should(matchers.BeEnabled(), fmt.Sprintf("Sync button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Details).Should(matchers.BeEnabled(), fmt.Sprintf("Details tab button is not visible/enable for %s", app.Name))
 		gomega.Eventually(appDetailPage.Events).Should(matchers.BeEnabled(), fmt.Sprintf("Events tab button is not visible/enable for %s", app.Name))
