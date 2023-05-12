@@ -23,7 +23,7 @@ Composed by the following capabilities:
 - Admission: out-of-the-box admission controller that monitors any changes happening to the clusters' deployments and resources, 
   and prevents violating changes at deployment time from being deployed to clusters.
 - Audit: daily scans of your clusters' deployments and resources, then report back any policy violations. 
-  The audit results can be published to different data analytics tools to provide compliance posture analysis of your clusters runtime.
+  The audit results can be published to different data analytics tools to provide compliance posture analysis of your clusters' runtime.
 - Commit/Build Time Checks: early feedback on policy violations at the commit or build time, by reporting policy violations right inside git or other CI tools. 
   This helps developers and operators detect policy violations and fix them before they deploy their changes to the clusters.
 
