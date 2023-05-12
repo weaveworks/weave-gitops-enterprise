@@ -421,7 +421,7 @@ func TestQueryIteration(t *testing.T) {
 	checker.HasAccessReturnsOnCall(3, true, nil)
 
 	qy := &query{
-		terms: "test-cluster-1",
+		terms: "",
 		limit: 3,
 	}
 
