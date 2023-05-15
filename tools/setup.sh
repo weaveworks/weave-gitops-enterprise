@@ -58,15 +58,16 @@ add_files_to_git(){
   cp "$(dirname "$0")/git-files/flux-system-networkpolicy.yaml" "$CLONESDIR/$GITHUB_REPO/clusters/bases/networkpolicy/flux-system-networkpolicy.yaml"
   pushd "$CLONESDIR/$GITHUB_REPO"
   git add clusters/bases
-  git commit -m "Add wego-admin role"
+  git commit -m "Add wego-admin role" || echo "No commit necessary; treating as a no-op"
   git push origin main
   popd
 }
 
 # Steps we ask you to do in https://docs.gitops.weave.works/docs/cluster-management/getting-started/
 follow_capi_user_guide(){
-  add_files_to_git
-  kubectl create secret generic my-pat --from-literal GITHUB_TOKEN="$GITHUB_TOKEN" --from-literal GITHUB_USER="$GITHUB_USER" --from-literal GITHUB_REPO="$GITHUB_REPO"
+    add_files_to_git
+    kubectl delete --ignore-not-found secret my-pat
+    kubectl create secret generic my-pat --from-literal GITHUB_TOKEN="$GITHUB_TOKEN" --from-literal GITHUB_USER="$GITHUB_USER" --from-literal GITHUB_REPO="$GITHUB_REPO"
 }
 
 push_progressive_delivery_manifests_to_gitops_dev_repo(){
@@ -88,7 +89,7 @@ push_progressive_delivery_manifests_to_gitops_dev_repo(){
     pushd "$CLONESDIR/$GITHUB_REPO"
     git add apps/progressive-delivery
     git add clusters/management
-    git commit -m "Add progressive-delivery manifests"
+    git commit -m "Add progressive-delivery manifests" || "No commit necessary; treating as a no-op"
     git push origin main
     popd
     ${TOOLS}/flux reconcile source git flux-system -n flux-system
