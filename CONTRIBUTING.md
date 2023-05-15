@@ -114,8 +114,10 @@ echo $GITHUB_TOKEN | docker login --username $GITHUB_USER --password-stdin ghcr.
 
 To run a local development environment, you need to install
 [Docker](https://www.docker.com) and
-[kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/), other
-dependencies can be installed with `make dependencies`.
+[kubectl](https://kubernetes.io/docs/reference/kubectl/kubectl/).
+
+Run `make dependencies` to download binaries needed by the scripts in
+`tools/`. These are saved in `tools/bin/`.
 
 ### Preparation
 
@@ -134,6 +136,10 @@ This will recreate a local Kind cluster, install CAPD and setup Flux to
 reconcile from a GitOps repository in your personal GitHub account. It will also
 create a file containing local settings such as your GitOps repository that the
 enterprise Helm chart will use in the next step.
+
+> If `reboot.sh` creates the Kind cluster but fails afterwards, you
+> can use _just_ `./tools/setup.sh` to install CAPD and Flux and
+> create the local config file. It is safe to run it repeatedly.
 
 ### Customizing your development environment
 
