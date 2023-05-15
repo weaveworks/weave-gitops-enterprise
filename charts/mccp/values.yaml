@@ -27,14 +27,9 @@ listOCIRepositories: false
 # Turns on pipelines features if set to true. This includes the UI elements.
 enablePipelines: true
 
-# Turns on explorer to true
-enableExplorer: false
-
 # Turns on UI elements for Terraform objects
-enableTerraformUI: false
 
-# Uses the query service for Applications and Sources views
-useQueryServiceBackend: false
+enableTerraformUI: false
 
 # Turns on UI elements for GitOps Run
 enableRunUI: false
@@ -191,6 +186,24 @@ gitopssets-controller:
   # gitops-controller-manager etc
   fullnameOverride: gitopssets
   controllerManager:
+    args:
+      - --health-probe-bind-address=:8081
+      - --metrics-bind-address=127.0.0.1:8080
+      - --leader-elect
+      - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
       image:
-        tag: v0.9.0
+        tag: v0.11.0
+
+#### Explorer
+# Turns on explorer to true
+enableExplorer: false
+# Uses the query service for Applications and Sources views
+useQueryServiceBackend: false
+
+explorer:
+  collector:
+    # ServiceAccount that explorer will use to watch clusters for resources
+    serviceAccount:
+      name: "collector"
+      namespace: "flux-system"

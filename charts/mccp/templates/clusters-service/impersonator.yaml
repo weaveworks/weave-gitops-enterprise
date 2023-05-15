@@ -11,7 +11,7 @@ rules:
     resources: [ "serviceaccounts" ]
     verbs: [ "impersonate" ]
     resourceNames:
-      - "collector"
+      - {{ .Values.explorer.collector.serviceAccount.name | quote }}
 {{- end }}
 ---
 apiVersion: rbac.authorization.k8s.io/v1

@@ -153,6 +153,7 @@ export type ListPolicyValidationsRequest = {
   pagination?: Pagination
   application?: string
   namespace?: string
+  kind?: string
 }
 
 export type ListPolicyValidationsResponse = {
@@ -805,6 +806,7 @@ export type GetExternalSecretResponse = {
   version?: string
   status?: string
   timestamp?: string
+  yaml?: string
 }
 
 export type ExternalSecretStore = {
