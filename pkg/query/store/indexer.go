@@ -136,6 +136,17 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 
 	req := bleve.NewSearchRequest(query)
 
+	count, err := i.idx.DocCount()
+	if err != nil {
+		return nil, fmt.Errorf("failed to get document count: %w", err)
+	}
+
+	// We return all results, because we are filtering out objects AFTER the search with our RBAC rules.
+	// There will be cases where we return a slice of objects based on .GetLimit(), but those
+	// objects will be filtered out by the accesschecker.
+	// The query iterator will handle limiting the page size.
+	req.Size = int(count)
+
 	sortBy := "name"
 	tmpl := "-%v"
 
@@ -154,7 +165,6 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 			req.From = int(opts.GetOffset())
 		}
 
-		req.Size = int(opts.GetLimit())
 	}
 
 	req.SortBy([]string{fmt.Sprintf(tmpl, sortBy)})
