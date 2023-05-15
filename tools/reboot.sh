@@ -7,8 +7,6 @@
 # the given kind cluster (if it exists) and its GitOps repository and recreate them 
 # both, installing everything from scratch.
 
-set -euo pipefail
-
 source $PWD/tools/flags.env
 
 do_kind() {

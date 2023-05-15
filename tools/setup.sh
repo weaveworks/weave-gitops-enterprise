@@ -7,16 +7,13 @@
 # - a CAPI installation that includes the vcluster provider
 #
 # These are (mostly) idempotent -- calling this script repeatedly
-# won't break anything. You will probably need to rm -rf
-# /tmp/$GITHUB_REPO before running, though, because the script plays
-# it safe with deleting that.
+# won't break anything (assuming your custom scripts are also safe to
+# repeat).
 #
 # This script will get called by ./reboot.sh after recreating the kind
 # cluster, and you can call it separately if you don't want to
 # recreate the kind cluster first. This might be useful if ./reboot.sh
 # repeatedly fails to make progress.
-
-set -euo pipefail
 
 source $PWD/tools/flags.env
 
@@ -29,6 +26,7 @@ do_capi(){
 
 do_flux(){
   tool_check "flux"
+  reset_clones_dir
 
   if [ "$DELETE_GITOPS_DEV_REPO" == "1" ]; then
     tool_check "gh"
@@ -52,14 +50,13 @@ create_local_values_file(){
 
 add_files_to_git(){
   tool_check "gh"
-  # We could use $GITHUB_REPO here, but its rm -rf so we'll be careful
-  rm -rf "/tmp/wge-dev"
-  ${TOOLS}/gh repo clone "ssh://git@github.com/$GITHUB_USER/$GITHUB_REPO" "/tmp/$GITHUB_REPO"
-  mkdir -p "/tmp/$GITHUB_REPO/clusters/bases/rbac"
-  mkdir -p "/tmp/$GITHUB_REPO/clusters/bases/networkpolicy"
-  cp "$(dirname "$0")/git-files/wego-admin.yaml" "/tmp/$GITHUB_REPO/clusters/bases/rbac/wego-admin.yaml"
-  cp "$(dirname "$0")/git-files/flux-system-networkpolicy.yaml" "/tmp/$GITHUB_REPO/clusters/bases/networkpolicy/flux-system-networkpolicy.yaml"
-  pushd "/tmp/$GITHUB_REPO"
+  reset_clones_dir
+  ${TOOLS}/gh repo clone "ssh://git@github.com/$GITHUB_USER/$GITHUB_REPO" "$CLONESDIR/$GITHUB_REPO"
+  mkdir -p "$CLONESDIR/$GITHUB_REPO/clusters/bases/rbac"
+  mkdir -p "$CLONESDIR/$GITHUB_REPO/clusters/bases/networkpolicy"
+  cp "$(dirname "$0")/git-files/wego-admin.yaml" "$CLONESDIR/$GITHUB_REPO/clusters/bases/rbac/wego-admin.yaml"
+  cp "$(dirname "$0")/git-files/flux-system-networkpolicy.yaml" "$CLONESDIR/$GITHUB_REPO/clusters/bases/networkpolicy/flux-system-networkpolicy.yaml"
+  pushd "$CLONESDIR/$GITHUB_REPO"
   git add clusters/bases
   git commit -m "Add wego-admin role"
   git push origin main
@@ -82,15 +79,13 @@ push_progressive_delivery_manifests_to_gitops_dev_repo(){
     fi
 
     tool_check "gh"
-
-    # We could use $GITHUB_REPO here, but its rm -rf so we'll be careful
-    rm -rf "/tmp/wge-dev"
-    ${TOOLS}/gh repo clone "ssh://git@github.com/$GITHUB_USER/$GITHUB_REPO" "/tmp/$GITHUB_REPO"
-    mkdir -p "/tmp/$GITHUB_REPO/apps/progressive-delivery"
-    cp -r "$(dirname "$0")/../../progressive-delivery/tools/extra-resources/" "/tmp/$GITHUB_REPO/apps/progressive-delivery/"
-    rm "/tmp/$GITHUB_REPO/apps/progressive-delivery/istio/resources/gateway.yaml"
-    cp "$(dirname "$0")/git-files/progressive-delivery-kustomizations.yaml" "/tmp/$GITHUB_REPO/clusters/management/progressive-delivery-kustomizations.yaml"
-    pushd "/tmp/$GITHUB_REPO"
+    reset_clones_dir
+    ${TOOLS}/gh repo clone "ssh://git@github.com/$GITHUB_USER/$GITHUB_REPO" "$CLONESDIR/$GITHUB_REPO"
+    mkdir -p "$CLONESDIR/$GITHUB_REPO/apps/progressive-delivery"
+    cp -r "$(dirname "$0")/../../progressive-delivery/tools/extra-resources/" "$CLONESDIR/$GITHUB_REPO/apps/progressive-delivery/"
+    rm "$CLONESDIR/$GITHUB_REPO/apps/progressive-delivery/istio/resources/gateway.yaml"
+    cp "$(dirname "$0")/git-files/progressive-delivery-kustomizations.yaml" "$CLONESDIR/$GITHUB_REPO/clusters/management/progressive-delivery-kustomizations.yaml"
+    pushd "$CLONESDIR/$GITHUB_REPO"
     git add apps/progressive-delivery
     git add clusters/management
     git commit -m "Add progressive-delivery manifests"
