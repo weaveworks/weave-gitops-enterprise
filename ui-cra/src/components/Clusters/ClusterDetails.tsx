@@ -5,7 +5,6 @@ import {
   RouterTab,
   SubRouterTabs,
   Button as WeaveButton,
-  theme,
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
@@ -16,7 +15,7 @@ import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
-import { CircularProgress, createStyles, makeStyles } from '@material-ui/core';
+import { CircularProgress } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
@@ -39,18 +38,9 @@ const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    addApplicationBtnLoader: {
-      marginLeft: theme.spacing.xl,
-    },
-  }),
-);
-
 const ClusterDetails = ({ clusterName }: Props) => {
   const { path } = useRouteMatch();
   const history = useHistory();
-  const classes = useStyles();
   const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
     useClusters();
   const [currentCluster, setCurrentCluster] =
@@ -79,7 +69,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
         <ContentWrapper loading={isLoading}>
           {currentCluster && (
             <div style={{ overflowX: 'auto' }}>
-              <ActionsWrapper>
+              <ActionsWrapper style={{ marginBottom: 8 }}>
                 <WeaveButton
                   id="cluster-application"
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}
