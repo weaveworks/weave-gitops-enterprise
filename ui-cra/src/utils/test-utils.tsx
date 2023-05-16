@@ -309,23 +309,13 @@ export class PolicyClientMock {
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
-  ListGitopsClustersReturns: ListGitopsClustersResponse = {};
-  ListPoliciesReturns: ListPoliciesResponse = {};
-
-
+  
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
   }
 
   GetPolicyConfig() {
     return promisify(this.GetPolicyConfigReturns);
-  }
-
-  ListGitopsClusters() {
-    return promisify(this.ListGitopsClustersReturns);
-  }
-  ListPolicies() {
-    return promisify(this.ListPoliciesReturns);
   }
 }
 
