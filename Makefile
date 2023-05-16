@@ -192,7 +192,7 @@ push:
 	done
 
 proto: ## Generate protobuf files
-	./tools/bin/buf generate
+	PATH=${PWD}/tools/bin ./tools/bin/buf generate
 
 fakes: ## Generate testing fakes
 	go generate ./...
