@@ -2596,6 +2596,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "kind": {
+          "type": "string"
         }
       }
     },
