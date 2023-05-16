@@ -167,6 +167,7 @@ func TestHelmChartIndexer_RemoveChart(t *testing.T) {
 	err = indexer.AddChart(context.TODO(), "redis", "1.0.2", "chart", "layer-0",
 		nsn("cluster1", "clusters"),
 		objref("HelmRepository", "", "weave-charts", "team-ns"))
+	assert.NoError(t, err)
 
 	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
 		nsn("cluster1", "clusters"),
