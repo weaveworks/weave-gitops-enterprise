@@ -21,8 +21,12 @@ type Indexer interface {
 
 //counterfeiter:generate . IndexWriter
 type IndexWriter interface {
+	// Add adds the given objects to the index.
 	Add(ctx context.Context, objects []models.Object) error
+	// Remove removes the given objects from the index.
 	Remove(ctx context.Context, objects []models.Object) error
+	// RemoveByQuery removes objects from the index that match the given query.
+	// This is useful for removing objects for a given cluster, namespace, etc.
 	RemoveByQuery(ctx context.Context, q string) error
 }
 
@@ -30,7 +34,12 @@ type Facets map[string][]string
 
 //counterfeiter:generate . IndexReader
 type IndexReader interface {
+	// Search searches the index for objects that match the given query.
+	// The filters are applied, followed by the terms of the query,
+	// so terms search WITHIN a set of filtered objects.
 	Search(ctx context.Context, query Query, opts QueryOption) (Iterator, error)
+	// ListFacets returns a map of facets and their values.
+	// Facets can be used to build a filtering UI or to see what values are available for a given field.
 	ListFacets(ctx context.Context) (Facets, error)
 }
 
@@ -193,7 +202,6 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (Facets, error) {
 	req.AddFacet("Kind", bleve.NewFacetRequest("kind", 100))
 	req.AddFacet("Namespace", bleve.NewFacetRequest("namespace", 100))
 	req.AddFacet("Cluster", bleve.NewFacetRequest("cluster", 100))
-	// req.AddFacet("Namespace", bleve.NewFacetRequest("namespace.facet", 100))
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {

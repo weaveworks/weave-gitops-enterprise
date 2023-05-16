@@ -47,6 +47,10 @@ const (
 	GlobalOperandOr  GlobalOperand = "or"
 )
 
+// Query describes how to filter the results of a search.
+// The filters are applied, and then terms are (logically) ANDed together.
+// Only results that match on both filters and terms are returned.
+// https://blevesearch.com/docs/Query/
 type Query interface {
 	GetTerms() string
 	GetFilters() []string
