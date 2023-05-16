@@ -60,7 +60,7 @@ download_dependency() {
     local tool="${1}"
     local bin_dir="${2}"
     local dependencies_toml="${DEP_FILE}"
-    local localToolVar="\$LOCAL_"${tool}
+    local localToolVar="\$LOCAL_"${tool//-/_}
     local localTool
     localTool=$(eval "echo ${localToolVar}")
 
