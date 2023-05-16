@@ -95,6 +95,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -121,6 +122,7 @@
         "subjects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Subject"
           }
         },
@@ -138,6 +140,7 @@
         "rules": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1AccessRule"
           }
         }
@@ -192,6 +195,7 @@
         "query": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1QueryClause"
           }
         },
@@ -223,6 +227,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
