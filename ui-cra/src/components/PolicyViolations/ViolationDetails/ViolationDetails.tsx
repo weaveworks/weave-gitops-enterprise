@@ -117,8 +117,8 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
           <SyntaxHighlighter
             language="json"
             style={darcula}
-            wrapLongLines="pre-wrap"
-            showLineNumbers={true}
+            wrapLongLines
+            showLineNumbers
             codeTagProps={{
               className: classes.code,
             }}
@@ -132,7 +132,7 @@ function ViolationDetails({ violation, source }: IViolationDetailsProps) {
       </div>
 
       <div className={classes.sectionSeperator}>
-        <PolicyConfigSection parameters={parameters}/>
+        <PolicyConfigSection parameters={parameters} />
       </div>
     </>
   );
