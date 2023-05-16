@@ -140,14 +140,18 @@ func LoadIndex(ctx context.Context, index *repo.IndexFile, cache helm.ChartsCach
 			ref := helm.ObjectReference{Name: helmRepo.Name, Namespace: helmRepo.Namespace}
 
 			if constraint != nil {
-				if v, err := version.ParseVersion(chartVersion.Version); err == nil {
-					if !constraint.Check(v) {
-						if err := cache.RemoveChart(ctx, name, chartVersion.Version, clusterRef, ref); err != nil {
-							log.Error(err, "failed to delete chart from cache", "name", name, "version", chartVersion.Version)
-						}
-						continue
-					}
+				v, err := version.ParseVersion(chartVersion.Version)
+				if err != nil {
+					log.Error(err, "failed to parse version for chart", "name", name, "version", chartVersion.Version)
+					continue
 				}
+				if !constraint.Check(v) {
+					if err := cache.RemoveChart(ctx, name, chartVersion.Version, clusterRef, ref); err != nil {
+						log.Error(err, "failed to delete chart from cache", "name", name, "version", chartVersion.Version)
+					}
+					continue
+				}
+
 			}
 
 			err := cache.AddChart(
