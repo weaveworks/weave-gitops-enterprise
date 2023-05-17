@@ -10,7 +10,7 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/onsi/gomega v1.27.4
+	github.com/onsi/gomega v1.27.5
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.14.0 // indirect
 	github.com/sclevine/agouti v3.0.0+incompatible
@@ -42,7 +42,7 @@ require (
 	github.com/fluxcd/helm-controller/api v0.30.0
 	github.com/fluxcd/kustomize-controller/api v0.34.0
 	github.com/fluxcd/pkg/apis/meta v1.0.0
-	github.com/fluxcd/pkg/runtime v0.33.0
+	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/pkg/version v0.2.1
 	github.com/fluxcd/source-controller/api v1.0.0-rc.1
@@ -59,11 +59,11 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/microsoft/azure-devops-go-api/azuredevops v1.0.0-b5
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo/v2 v2.9.1
+	github.com/onsi/ginkgo/v2 v2.9.2
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
 	github.com/tonglil/buflogr v1.0.1
-	github.com/weaveworks/cluster-controller v1.4.1
+	github.com/weaveworks/cluster-controller v1.5.2
 	github.com/weaveworks/gitopssets-controller v0.9.0
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac
@@ -79,7 +79,7 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.9.4
 	k8s.io/apiextensions-apiserver v0.26.3
-	sigs.k8s.io/cluster-api v1.4.0-rc.0
+	sigs.k8s.io/cluster-api v1.4.1
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -134,7 +134,7 @@ require (
 	github.com/fluxcd/image-automation-controller/api v0.30.0 // indirect
 	github.com/fluxcd/image-reflector-controller/api v0.25.0 // indirect
 	github.com/fluxcd/notification-controller/api v0.32.1 // indirect
-	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
+	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-github/v49 v49.1.0 // indirect

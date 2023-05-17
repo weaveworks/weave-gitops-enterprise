@@ -15,4 +15,4 @@ dependencies:
   repository: file://../gitopssets-controller
   version: 0.1.0
 digest: sha256:39b98bb10c7b44bae6b72255bd763f712373ef21bd9d55dfe54ad0c45aa3aac5
-generated: "2023-05-11T10:06:35.56400872Z"
+generated: "2023-05-15T15:04:52.731543499+03:00"
