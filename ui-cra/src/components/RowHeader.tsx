@@ -1,22 +1,18 @@
 import { TableCell, TableRow } from '@material-ui/core';
-import { Flex, theme } from '@weaveworks/weave-gitops';
+import { Flex } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-
-const { medium } = theme.fontSizes;
-const { xs } = theme.spacing;
-const { neutral30, neutral40 } = theme.colors;
 
 const RowTitle = styled.div`
   font-weight: 600;
-  font-size: ${medium};
-  color: ${neutral30};
+  font-size: ${props => props.theme.fontSizes};
+  color: ${props => props.theme.colors.neutral30};
 `;
 
 const RowBody = styled.div`
   font-weight: 400;
-  font-size: ${medium};
-  margin-left: ${xs};
-  color: ${neutral40};
+  font-size: ${props => props.theme.fontSizes};
+  margin-left: ${props => props.theme.spacing.xs};
+  color: ${props => props.theme.colors.neutral40};
 `;
 
 export interface SectionRowHeader {
@@ -78,7 +74,7 @@ function RowHeader({
   value: string | JSX.Element | undefined;
 }) {
   return (
-    <Flex start style={{ margin: `${xs} 0` }} data-testid={rowkey}>
+    <Flex start style={{ margin: `${8} 0` }} data-testid={rowkey}>
       <RowTitle>{rowkey} :</RowTitle>
       <RowBody>{children || value || '--'}</RowBody>
     </Flex>

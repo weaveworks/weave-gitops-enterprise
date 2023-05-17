@@ -5,7 +5,6 @@ import {
   GitRepository,
   Link,
   LoadingPage,
-  theme,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -19,6 +18,10 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
@@ -34,32 +37,25 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
-  useGetInitialGitRepo,
   getRepositoryUrl,
+  useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PreviewPRModal } from './PreviewPRModal';
-import {
-  expiredTokenNotification,
-  useIsAuthenticated,
-} from '../../../hooks/gitprovider';
-
-const { medium, large } = theme.spacing;
-const { neutral20, neutral10 } = theme.colors;
 
 const FormWrapper = styled.form`
   width: 80%;
-  padding-bottom: ${large} !important;
+  padding-bottom: ${props => props.theme.spacing.large} !important;
   .group-section {
-    border-bottom: 1px dotted ${neutral20};
+    border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
     .form-section {
       width: 50%;
       .Mui-disabled {
-        background: ${neutral10} !important;
-        border-color: ${neutral20} !important;
+        background: ${props => props.theme.colors.neutral10} !important;
+        border-color: ${props => props.theme.colors.neutral20} !important;
       }
       .MuiInputBase-root {
-        margin-right: ${medium};
+        margin-right: ${props => props.theme.spacing.medium};
       }
     }
   }

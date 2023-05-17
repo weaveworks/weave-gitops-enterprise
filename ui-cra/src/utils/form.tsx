@@ -1,22 +1,21 @@
 import {
   Button,
+  InputAdornment,
+  MenuItem,
   Divider as MuiDivider,
   FormControl as MuiFormControl,
+  FormHelperText as MuiFormHelperText,
+  InputBase as MuiInputBase,
   InputLabel as MuiInputLabel,
-  MenuItem,
-  Typography,
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
-  InputBase as MuiInputBase,
-  FormHelperText as MuiFormHelperText,
-  InputAdornment,
+  Typography,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
+import { debounce } from 'lodash';
 import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
 import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { debounce } from 'lodash';
 
 // FIXME: what sure what the type should be to export correctly!
 export const SectionTitle: any = withStyles(() => ({
@@ -138,10 +137,7 @@ export const Input: FC<InputProps> = ({
           maxLength: 256,
         }}
         endAdornment={
-          <InputAdornment
-            position="end"
-            style={{ paddingRight: weaveTheme.spacing.small }}
-          >
+          <InputAdornment position="end" style={{ paddingRight: '12px' }}>
             {error ? <ErrorIcon /> : <></>}
           </InputAdornment>
         }
@@ -150,9 +146,7 @@ export const Input: FC<InputProps> = ({
       />
       <MuiFormHelperText
         style={{
-          color: error
-            ? weaveTheme.colors.alertDark
-            : weaveTheme.colors.neutral30,
+          color: error ? '#9F3119' : '#737373',
         }}
       >
         {!error ? description : 'Please fill this field in.'}
@@ -215,10 +209,7 @@ export const Select: FC<SelectProps> = ({
       variant={variant ?? 'outlined'}
       disabled={disabled}
       endAdornment={
-        <InputAdornment
-          position="end"
-          style={{ paddingRight: weaveTheme.spacing.medium }}
-        >
+        <InputAdornment position="end" style={{ paddingRight: '24px' }}>
           {error ? <ErrorIcon /> : <></>}
         </InputAdornment>
       }
@@ -235,9 +226,7 @@ export const Select: FC<SelectProps> = ({
     </MuiSelect>
     <MuiFormHelperText
       style={{
-        color: error
-          ? weaveTheme.colors.alertDark
-          : weaveTheme.colors.neutral30,
+        color: error ? '#9F3119' : '#737373',
       }}
     >
       {!error ? description : 'Please fill this field in.'}

@@ -1,4 +1,3 @@
-import { fromPairs, sortBy } from 'lodash';
 import {
   Box,
   Table,
@@ -7,13 +6,14 @@ import {
   TableHead,
   TableRow,
 } from '@material-ui/core';
-import moment from 'moment';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { Icon, IconType } from '@weaveworks/weave-gitops';
+import { fromPairs, sortBy } from 'lodash';
+import moment from 'moment';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { Icon, IconType, theme as weaveTheme } from '@weaveworks/weave-gitops';
-import { CAPICluster } from '../../types/custom';
 import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
+import { CAPICluster } from '../../types/custom';
 import { sectionTitle } from './ClusterDashboard';
 
 // styles
@@ -24,7 +24,7 @@ const useStyles = makeStyles(() =>
       width: 100,
     },
     section: {
-      marginTop: `${weaveTheme.spacing.medium}`,
+      marginTop: '24px',
       fontWeight: 'bold',
     },
   }),

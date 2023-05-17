@@ -1,43 +1,36 @@
-import React, { FC } from 'react';
-import styled from 'styled-components';
-import { theme } from '@weaveworks/weave-gitops';
-import Alert from '@material-ui/lab/Alert';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
 import { Box, Collapse } from '@material-ui/core';
+import Alert from '@material-ui/lab/Alert';
+import { FC } from 'react';
+import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 import { ReactComponent as SuccessIcon } from '../../assets/img/success.svg';
 import { ReactComponent as WarningIcon } from '../../assets/img/warning.svg';
-
-const { xs, base } = theme.spacing;
-const {
-  alertLight,
-  feedbackLight,
-  successLight,
-  alertMedium,
-  feedbackMedium,
-  successMedium,
-} = theme.colors;
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
 
 const BoxWrapper = styled(Box)<{ severity: string }>`
   div[class*='MuiAlert-root'] {
-    margin-bottom: ${base};
-    border-radius: ${xs};
+    margin-bottom: ${props => props.theme.spacing.base};
+    border-radius: ${props => props.theme.spacing.xs};
   }
   div[class*='MuiAlert-action'] {
     display: inline;
     color: ${props => {
-      if (props.severity === 'error') return alertLight;
-      else if (props.severity === 'warning') return feedbackLight;
-      else if (props.severity === 'success') return successLight;
+      if (props.severity === 'error') return props.theme.colors.alertLight;
+      else if (props.severity === 'warning')
+        return props.theme.colors.feedbackLight;
+      else if (props.severity === 'success')
+        return props.theme.colors.successLight;
       else return 'transparent';
     }};
     svg {
       fill: ${props => {
-        if (props.severity === 'error') return alertMedium;
-        else if (props.severity === 'warning') return feedbackMedium;
-        else if (props.severity === 'success') return successMedium;
+        if (props.severity === 'error') return props.theme.colors.alertMedium;
+        else if (props.severity === 'warning')
+          return props.theme.colors.feedbackMedium;
+        else if (props.severity === 'success')
+          return props.theme.colors.successMedium;
         else return 'transparent';
       }};
     }
@@ -52,17 +45,17 @@ const BoxWrapper = styled(Box)<{ severity: string }>`
     justify-content: center;
     align-items: center;
     svg {
-      margin-right: ${xs};
+      margin-right: ${props => props.theme.spacing.xs};
     }
   }
   div[class*='MuiAlert-standardError'] {
-    background-color: ${alertLight};
+    background-color: ${props => props.theme.colors.alertLight};
   }
   div[class*='MuiAlert-standardSuccess'] {
-    background-color: ${successLight};
+    background-color: ${props => props.theme.colors.successLight};
   }
   div[class*='MuiAlert-standardWarning'] {
-    background-color: ${alertLight};
+    background-color: ${props => props.theme.colors.alertLight};
   }
 `;
 

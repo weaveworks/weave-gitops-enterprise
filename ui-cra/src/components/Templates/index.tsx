@@ -1,33 +1,32 @@
-import React, { FC, useCallback, useEffect } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import useTemplates from '../../hooks/templates';
+import { FC, useCallback, useEffect } from 'react';
+import styled from 'styled-components';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
+import useTemplates from '../../hooks/templates';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import styled from 'styled-components';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 import {
-  DataTable,
-  filterConfig,
-  IconType,
-  theme,
   Button,
+  DataTable,
   Icon,
+  IconType,
   Link,
+  filterConfig,
 } from '@weaveworks/weave-gitops';
-import { Template } from '../../cluster-services/cluster_services.pb';
 import { useHistory } from 'react-router-dom';
+import { Template } from '../../cluster-services/cluster_services.pb';
 import { TableWrapper } from '../Shared';
 
 const Error = styled.span`
-  color: ${theme.colors.alertOriginal};
+  color: ${props => props.theme.colors.alertOriginal};
 `;
 const CustomEmptyMessage = styled.span`
-  color: ${theme.colors.neutral30};
+  color: ${props => props.theme.colors.neutral30};
 `;
 const DocsLink = styled(Link)`
-  color: ${theme.colors.primary};
+  color: ${props => props.theme.colors.primary};
   padding-right: ${({ theme }) => theme.spacing.xxs};
   padding-left: ${({ theme }) => theme.spacing.xxs};
 `;

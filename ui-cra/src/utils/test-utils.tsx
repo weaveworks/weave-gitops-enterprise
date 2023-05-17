@@ -5,7 +5,11 @@ import {
   ListCanariesResponse,
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
-import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
+import {
+  CoreClientContextProvider,
+  ThemeTypes,
+  theme,
+} from '@weaveworks/weave-gitops';
 import {
   GetObjectRequest,
   GetObjectResponse,
@@ -82,11 +86,14 @@ export type RequestError = Error & {
   code?: number;
 };
 
-export function withTheme(element: any) {
+export function withTheme(element: any, mode: ThemeTypes = ThemeTypes.Light) {
+  const appliedTheme = theme(mode);
   return (
-    <MuiThemeProvider theme={muiTheme}>
-      <ThemeProvider theme={theme}>{element}</ThemeProvider>
-    </MuiThemeProvider>
+    <ThemeProvider theme={appliedTheme}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+        {element}
+      </MuiThemeProvider>
+    </ThemeProvider>
   );
 }
 
