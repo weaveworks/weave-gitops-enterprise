@@ -7,6 +7,7 @@ import (
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 )
 
@@ -90,6 +91,44 @@ func TestArtifactUpdatePredicate_Update(t *testing.T) {
 				},
 			},
 			want: false,
+		},
+		{
+			name: "returns true if old url and new url don't match",
+			event: event.UpdateEvent{
+				ObjectNew: &sourcev1beta2.HelmRepository{
+					Status: sourcev1beta2.HelmRepositoryStatus{
+						Artifact: &sourcev1.Artifact{
+							URL: "http://source-controller.flux-system.svc.cluster.local./gitrepository/default/go-demo-repo/40d6b21b888db0ca794876cf7bdd399e3da2137e.tar.gz",
+						},
+					},
+				},
+				ObjectOld: &sourcev1beta2.HelmRepository{
+					Status: sourcev1beta2.HelmRepositoryStatus{
+						Artifact: &sourcev1.Artifact{
+							URL: "http://source-controller.demo-ns.svc.cluster.local./gitrepository/default/go-demo-repo/40d6b21b888db0ca794876cf7bdd399e3da2137e.tar.gz",
+						},
+					},
+				},
+			},
+			want: true,
+		},
+		{
+			name: "returns true if the filter annotations don't match",
+			event: event.UpdateEvent{
+				ObjectNew: &sourcev1beta2.HelmRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Annotations: map[string]string{
+							HelmVersionFilterAnnotation: "> 0.0.0-0",
+						},
+					},
+				},
+				ObjectOld: &sourcev1beta2.HelmRepository{
+					ObjectMeta: metav1.ObjectMeta{
+						Annotations: map[string]string{},
+					},
+				},
+			},
+			want: true,
 		},
 	}
 	for _, tt := range tests {

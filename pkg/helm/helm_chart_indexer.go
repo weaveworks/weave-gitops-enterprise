@@ -63,6 +63,22 @@ VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`
 	return err
 }
 
+// RemoveChart removes a chart from the helm_charts table if it exists.
+func (i *HelmChartIndexer) RemoveChart(ctx context.Context, name, version string, clusterRef types.NamespacedName, repoRef ObjectReference) error {
+	sqlStatement := `
+DELETE FROM helm_charts WHERE name = $1 AND version = $2
+AND repo_name = $3 AND repo_namespace = $4
+AND cluster_name = $5 AND cluster_namespace = $6
+`
+	_, err := i.CacheDB.ExecContext(
+		ctx,
+		sqlStatement, name, version,
+		repoRef.Name, repoRef.Namespace,
+		clusterRef.Name, clusterRef.Namespace)
+
+	return err
+}
+
 // IsKnownChart returns true if the chart in in a repo is known
 func (i *HelmChartIndexer) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef ObjectReference, chart Chart) (bool, error) {
 	sqlStatement := `

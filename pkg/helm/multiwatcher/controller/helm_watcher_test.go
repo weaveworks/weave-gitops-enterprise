@@ -182,6 +182,7 @@ func TestReconcileGetChartFails(t *testing.T) {
 }
 
 func TestLoadIndex(t *testing.T) {
+	ctx := context.TODO()
 	helmRepo := makeTestHelmRepo()
 
 	index := &repo.IndexFile{
@@ -212,7 +213,7 @@ func TestLoadIndex(t *testing.T) {
 	}
 
 	fakeCache := helmfakes.NewFakeChartCache()
-	LoadIndex(index, fakeCache, clusterRef, helmRepo, logr.Discard())
+	LoadIndex(ctx, index, fakeCache, clusterRef, helmRepo, logr.Discard())
 
 	// Should detect the kind of the chart
 	charts, err := fakeCache.ListChartsByRepositoryAndCluster(
@@ -271,6 +272,280 @@ func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetch
 		Cache:         fakeCache,
 		ValuesFetcher: fakeFetcher,
 	}
+}
+
+func TestLoadIndex_filtering_charts(t *testing.T) {
+	index := &repo.IndexFile{
+		APIVersion: "v1",
+		Generated:  time.Now(),
+		Entries: map[string]repo.ChartVersions{
+			"chart1": {
+				{
+					Metadata: &chart.Metadata{
+						Name:    "chart1",
+						Version: "1.0.0",
+					},
+				},
+			},
+			"chart2": {
+				{
+					Metadata: &chart.Metadata{
+						Name:    "chart2",
+						Version: "2.0.1-rc1",
+					},
+				},
+			},
+
+			"profile1": {
+				{
+					Metadata: &chart.Metadata{
+						Name:    "profile1",
+						Version: "2.0.0",
+						Annotations: map[string]string{
+							"weave.works/profile": "true",
+							"weave.works/layer":   "layer-0",
+						},
+					},
+				},
+			},
+		},
+	}
+	ctx := context.TODO()
+
+	t.Run("simple version filtering", func(t *testing.T) {
+		fakeCache := helmfakes.NewFakeChartCache()
+		helmRepo := makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
+			hr.ObjectMeta.Annotations = map[string]string{
+				HelmVersionFilterAnnotation: ">= 2.0.0",
+			}
+		})
+
+		LoadIndex(ctx, index, fakeCache, clusterRef, helmRepo, logr.Discard())
+
+		// This should filter out the charts
+		charts, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"chart",
+		)
+
+		assert.NoError(t, err)
+		assert.Empty(t, charts)
+
+		// But the profile (being version 2.0.0 should be retained
+		profiles, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"profile",
+		)
+		expected := []helm.Chart{
+			{
+				Name:    "profile1",
+				Version: "2.0.0",
+				Kind:    "profile",
+				Layer:   "layer-0",
+			},
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, profiles)
+	})
+
+	t.Run("rc version filtering", func(t *testing.T) {
+		fakeCache := helmfakes.NewFakeChartCache()
+		helmRepo := makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
+			hr.ObjectMeta.Annotations = map[string]string{
+				HelmVersionFilterAnnotation: ">= 2.0.0-0",
+			}
+		})
+
+		LoadIndex(ctx, index, fakeCache, clusterRef, helmRepo, logr.Discard())
+
+		// This should retain the rc chart
+		charts, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"chart",
+		)
+		assert.NoError(t, err)
+
+		expected := []helm.Chart{
+			{
+				Name:    "chart2",
+				Version: "2.0.1-rc1",
+				Kind:    "chart",
+			},
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, charts)
+
+		// And the profile chart 2.0.0
+		profiles, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"profile",
+		)
+		expected = []helm.Chart{
+			{
+				Name:    "profile1",
+				Version: "2.0.0",
+				Kind:    "profile",
+				Layer:   "layer-0",
+			},
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, profiles)
+	})
+
+	t.Run("bad semantic version ignores filtering and includes everything", func(t *testing.T) {
+		fakeCache := helmfakes.NewFakeChartCache()
+		helmRepo := makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
+			hr.ObjectMeta.Annotations = map[string]string{
+				HelmVersionFilterAnnotation: "BAR >= 1.2.3",
+			}
+		})
+
+		LoadIndex(ctx, index, fakeCache, clusterRef, helmRepo, logr.Discard())
+
+		// This should retain the rc chart
+		charts, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"chart",
+		)
+		assert.NoError(t, err)
+
+		expected := []helm.Chart{
+			{
+				Name:    "chart1",
+				Version: "1.0.0",
+				Kind:    "chart",
+			},
+			{
+				Name:    "chart2",
+				Version: "2.0.1-rc1",
+				Kind:    "chart",
+			},
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, charts)
+
+		// And the profile chart 2.0.0
+		profiles, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"profile",
+		)
+		expected = []helm.Chart{
+			{
+				Name:    "profile1",
+				Version: "2.0.0",
+				Kind:    "profile",
+				Layer:   "layer-0",
+			},
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, profiles)
+	})
+
+	t.Run("updating the cache removes items that have been filtered out", func(t *testing.T) {
+		fakeCache := helmfakes.NewFakeChartCache()
+		helmRepo := makeTestHelmRepo()
+		LoadIndex(ctx, index, fakeCache, clusterRef, helmRepo, logr.Discard())
+
+		// This should include all charts.
+		charts, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"chart",
+		)
+
+		assert.NoError(t, err)
+		expected := []helm.Chart{
+			{
+				Name:    "chart1",
+				Version: "1.0.0",
+				Kind:    "chart",
+			},
+			{
+				Name:    "chart2",
+				Version: "2.0.1-rc1",
+				Kind:    "chart",
+			},
+		}
+		assert.Equal(t, expected, charts)
+
+		helmRepo = makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
+			hr.ObjectMeta.Annotations = map[string]string{
+				HelmVersionFilterAnnotation: ">= 2.0.0",
+			}
+		})
+
+		LoadIndex(ctx, index, fakeCache, clusterRef, helmRepo, logr.Discard())
+
+		// This should now have no charts.
+		charts, err = fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"chart",
+		)
+
+		assert.NoError(t, err)
+		assert.Empty(t, charts)
+
+		// But the profile (being version 2.0.0 should be retained
+		profiles, err := fakeCache.ListChartsByRepositoryAndCluster(
+			context.Background(),
+			clusterRef,
+			helm.ObjectReference{
+				Name:      helmRepo.Name,
+				Namespace: helmRepo.Namespace,
+			},
+			"profile",
+		)
+		expected = []helm.Chart{
+			{
+				Name:    "profile1",
+				Version: "2.0.0",
+				Kind:    "profile",
+				Layer:   "layer-0",
+			},
+		}
+		assert.NoError(t, err)
+		assert.Equal(t, expected, profiles)
+	})
+
 }
 
 // makeTestHelmRepo creates a HelmRepository object and accepts a list of options to modify it.
