@@ -77,7 +77,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.30.0
 	gotest.tools/v3 v3.1.0
-	helm.sh/helm/v3 v3.11.3
+	helm.sh/helm/v3 v3.10.3
 	k8s.io/apiextensions-apiserver v0.26.3
 	sigs.k8s.io/cluster-api v1.4.1
 	sigs.k8s.io/kustomize/kyaml v0.13.9
@@ -88,6 +88,7 @@ require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
+	go.etcd.io/etcd/api/v3 v3.5.6 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.117.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
