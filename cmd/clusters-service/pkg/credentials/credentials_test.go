@@ -29,12 +29,11 @@ func TestMaybeInjectCredentials(t *testing.T) {
 	}
 
 	// Wrong kind
-	templateBit := `
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+	templateBit := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: AWSCluster
 `
 	result, _ = MaybeInjectCredentials([]byte(templateBit), "FooKind", nil)
-	if diff := cmp.Diff(string(result), templateBit); diff != "" {
+	if diff := cmp.Diff(templateBit, string(result)); diff != "" {
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
@@ -51,7 +50,7 @@ spec:
 		Name: "FooName",
 	})
 
-	if diff := cmp.Diff(string(result), expected); diff != "" {
+	if diff := cmp.Diff(expected, string(result)); diff != "" {
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
@@ -131,11 +130,10 @@ kind: AWSCluster
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
-	for _, clusterKind := range []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"} {
+	for _, clusterKind := range []string{"AWSCluster", "AWSManagedControlPlane"} {
 		t.Run(clusterKind, func(t *testing.T) {
 			templateBits := [][]byte{
-				[]byte(fmt.Sprintf(`
-apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+				[]byte(fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: %s
 `, clusterKind)),
 			}
@@ -159,7 +157,59 @@ spec:
     kind: AWSClusterStaticIdentity
     name: FooName
 `, clusterKind)
-			if diff := cmp.Diff(resultStr[0], expected); diff != "" {
+			if diff := cmp.Diff(expected, resultStr[0]); diff != "" {
+				t.Fatalf("expected didn't match result! %v", diff)
+			}
+		})
+	}
+}
+
+func TestInjectCredentials_ignores_types(t *testing.T) {
+	result, _ := InjectCredentials(nil, nil)
+	if diff := cmp.Diff(result, [][]uint8(nil)); diff != "" {
+		t.Fatalf("result wasn't nil! %v", diff)
+	}
+
+	templateBits := [][]byte{
+		[]byte(`
+apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSCluster
+`),
+	}
+
+	// no credentials
+	result, _ = InjectCredentials(templateBits, nil)
+	resultStr := convertToStringArray(result)
+	if diff := cmp.Diff(resultStr[0], string(templateBits[0])); diff != "" {
+		t.Fatalf("expected didn't match result! %v", diff)
+	}
+
+	for _, clusterKind := range []string{"AWSManagedCluster"} {
+		t.Run(clusterKind, func(t *testing.T) {
+			templateBits := [][]byte{
+				[]byte(fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: %s
+spec: {}
+`, clusterKind)),
+			}
+
+			// with creds
+			result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AWSClusterStaticIdentity",
+				Name:    "FooName",
+			})
+			if err != nil {
+				t.Fatalf("unexpected err %v", err)
+			}
+			resultStr = convertToStringArray(result)
+
+			expected := fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: %s
+spec: {}
+`, clusterKind)
+			if diff := cmp.Diff(expected, resultStr[0]); diff != "" {
 				t.Fatalf("expected didn't match result! %v", diff)
 			}
 		})
