@@ -32,6 +32,54 @@ func TestRunQuery_AccessRules(t *testing.T) {
 		user      *auth.UserPrincipal
 		expected  []models.Object
 	}{
+
+		{
+			name: "match some fields but not all",
+			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "somename",
+				},
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-b",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "somename",
+				},
+			},
+			roles: []models.Role{{
+				Name:      "role-a",
+				Cluster:   "cluster-a",
+				Namespace: "ns-a",
+				Kind:      "Role",
+				PolicyRules: []models.PolicyRule{{
+					APIGroups:     strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+					Resources:     strings.Join([]string{"not-helm-release"}, ","),
+					ResourceNames: strings.Join([]string{"somename"}, ","),
+					Verbs:         strings.Join([]string{"get", "list", "watch"}, ","),
+				}},
+			}},
+			bindings: []models.RoleBinding{{
+				Cluster:   "cluster-a",
+				Name:      "binding-a",
+				Namespace: "ns-a",
+				Kind:      "RoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "Group",
+					Name: "group-a",
+				}},
+				RoleRefName: "role-a",
+				RoleRefKind: "Role",
+			}},
+			expected: []models.Object{},
+		},
 		{
 			name: "namespaced roles + groups",
 			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
