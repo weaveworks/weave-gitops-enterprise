@@ -20,8 +20,7 @@ ARG version
 ENV CI=true
 RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
 
-FROM alpine:3.9
-RUN apk add --no-cache bash openssh-client
+FROM alpine:3.17
 
 WORKDIR /
 COPY --from=build /home/node/build /html

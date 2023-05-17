@@ -21,7 +21,9 @@ ARG image_tag
 RUN --mount=type=cache,target=/root/.cache/go-build \
       make cmd/clusters-service/clusters-service WEAVE_GITOPS_VERSION=${version} IMAGE_TAG=${image_tag}
 
-FROM docker.io/governmentpaas/git-ssh
+# Use distroless as minimal base image
+# Refer to https://github.com/GoogleContainerTools/distroless for more details
+FROM gcr.io/distroless/static:nonroot
 
 ARG now
 ARG revision
@@ -35,19 +37,8 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
       org.opencontainers.image.vendor="Weaveworks" \
       org.opencontainers.image.version="${version}"
 
+WORKDIR /
+COPY --from=build /app/cmd/clusters-service/clusters-service .
+USER 65532:65532
 
-RUN apk add --no-cache ca-certificates tini
-
-COPY --from=build /app/cmd/clusters-service/clusters-service /usr/local/bin
-
-RUN addgroup -S clusters-service && adduser -S clusters-service -G clusters-service
-
-#
-# -- FIXME: we can probably avoid this now that sqlite is gone?
-# FIXME: it would be nice not run as root but k8s mounts the sqlite host volume as root:root
-# and then the clusters-service user can't write to it.
-#
-# USER clusters-service
-# RUN mkdir -p /home/clusters-service/.ssh
-
-ENTRYPOINT [ "/sbin/tini", "--", "clusters-service" ]
+ENTRYPOINT ["/cluster-service"]
