@@ -276,10 +276,10 @@ func makePolicyRules(rules []models.PolicyRule) []rbacv1.PolicyRule {
 	rs := make([]rbacv1.PolicyRule, len(rules))
 	for i := range rules {
 		rs[i] = rbacv1.PolicyRule{
-			APIGroups: models.SplitRuleData(rules[i].APIGroups),
-			Resources: models.SplitRuleData(rules[i].Resources),
-			Verbs:     models.SplitRuleData(rules[i].Verbs),
-			// TODO here is where ResourceNames goes I think
+			APIGroups:     models.SplitRuleData(rules[i].APIGroups),
+			Resources:     models.SplitRuleData(rules[i].Resources),
+			Verbs:         models.SplitRuleData(rules[i].Verbs),
+			ResourceNames: models.SplitRuleData(rules[i].ResourceNames),
 		}
 	}
 	return rs

@@ -392,6 +392,68 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			name: "rule with resource name",
+			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "somename",
+					Category:   models.CategoryAutomation,
+				},
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "othername",
+					Category:   models.CategoryAutomation,
+				},
+			},
+			roles: []models.Role{
+				{
+					Name:      "role-a",
+					Cluster:   "cluster-a",
+					Namespace: "ns-a",
+					Kind:      "Role",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups:     strings.Join([]string{helmv2.GroupVersion.Group}, ","),
+						Resources:     strings.Join([]string{"helmreleases"}, ","),
+						Verbs:         strings.Join([]string{"get", "list", "watch"}, ","),
+						ResourceNames: strings.Join([]string{"somename"}, ","),
+					}},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "cluster-a",
+				Name:      "binding-a",
+				Namespace: "ns-a",
+				Kind:      "RoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "Group",
+					Name: "group-a",
+				}},
+				RoleRefName: "role-a",
+				RoleRefKind: "Role",
+			}},
+			expected: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "somename",
+					Category:   models.CategoryAutomation,
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
