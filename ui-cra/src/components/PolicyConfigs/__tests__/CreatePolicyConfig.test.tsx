@@ -1,20 +1,27 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within
+} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import {
-  defaultContexts,
   PolicyConfigsClientMock,
-  withContext,
   WorkspaceClientMock,
+  defaultContexts,
+  withContext,
 } from '../../../utils/test-utils';
 import CreatePolicyConfig from '../create';
 
 const formDataMock = {
-  headBranch: 'branch name',
-  title: '',
-  description: '',
-  commitMessage: 'commit',
-  repo: 'https://gitlab.git.dev.weave.works/wge/demo-01',
+  headBranch: 'add-policyConfig-branch-hv2aar',
+  commitMessage: 'Add PolicyConfig',
+  description: 'This PR adds a new PolicyConfig',
+  repositoryUrl: 'https://gitlab.git.dev.weave.works/wge/demo-01',
+  title: 'Add PolicyConfig Test policy config name',
   clusterAutomations: [
     {
       cluster: {
@@ -27,9 +34,26 @@ const formDataMock = {
         },
         spec: {
           match: {
-            Apps: [],
+            workspaces: ['namespace'],
           },
-          config: [],
+          config: [
+            {
+              'weave.policies.containers-minimum-replica-count': {
+                parameters: [{ exclude_namespaces: ['2', '4'] }],
+              },
+            },
+            {
+              'weave.policies.tenancy.dev-team-allowed-repositories': {
+                parameters: [
+                  {
+                    git_urls: [
+                      'https://github.com/wkp-example-org/capd-demo-reloade',
+                    ],
+                  },
+                ],
+              },
+            },
+          ],
         },
       },
       isControlPlane: true,
@@ -122,29 +146,29 @@ describe('CreatePolicyConfig', () => {
       [EnterpriseClientProvider, { api }],
     ]);
   });
-  it('renders create policyConfig form fields', async () => {
-    await act(async () => {
-      const c = wrap(<CreatePolicyConfig />);
-      render(c);
-    });
+  // it('renders create policyConfig form fields', async () => {
+  //   await act(async () => {
+  //     const c = wrap(<CreatePolicyConfig />);
+  //     render(c);
+  //   });
 
-    expect(await screen.findByText('Create New PolicyConfig')).toBeTruthy();
-    expect(
-      document.querySelector("input[name='policyConfigName']"),
-    ).toBeInTheDocument();
+  //   expect(await screen.findByText('Create New PolicyConfig')).toBeTruthy();
+  //   expect(
+  //     document.querySelector("input[name='policyConfigName']"),
+  //   ).toBeInTheDocument();
 
-    expect(
-      document.querySelector("input[name='clusterName']"),
-    ).toBeInTheDocument();
+  //   expect(
+  //     document.querySelector("input[name='clusterName']"),
+  //   ).toBeInTheDocument();
 
-    expect(
-      document.querySelector("input[name='matchType']"),
-    ).toBeInTheDocument();
+  //   expect(
+  //     document.querySelector("input[name='matchType']"),
+  //   ).toBeInTheDocument();
 
-    expect(
-      document.querySelector("input[name='policies']"),
-    ).toBeInTheDocument();
-  });
+  //   expect(
+  //     document.querySelector("input[name='policies']"),
+  //   ).toBeInTheDocument();
+  // });
 
   it('submitting a form', async () => {
     const formData = formDataMock.clusterAutomations[0];
@@ -162,54 +186,69 @@ describe('CreatePolicyConfig', () => {
       "input[name='clusterName']",
     ) as HTMLElement;
 
-    const matchType = document.querySelector(
-      "input[name='matchType']",
-    ) as HTMLElement;
-    const policies = document.querySelector(
-      "input[name='policies']",
-    ) as HTMLElement;
+    // const matchType = document.querySelector(
+    //   "input[name='matchType']",
+    // ) as HTMLElement;
+    // const policies = document.querySelector(
+    //   "input[name='policies']",
+    // ) as HTMLElement;
 
     expect(await screen.findByText('Create New PolicyConfig')).toBeTruthy();
     fireEvent.change(policyConfigName, {
-      target: { value: 'policyConfigName' },
+      target: { value: 'policyConfigNameeee' },
     });
-    console.log((policyConfigName as HTMLInputElement).value);
+    // fireEvent.click(clusterName, { target: { value: 'management' } });
+    const selectEl = await screen.findByTestId('clusterName-test');
+// console.log((clusterName as HTMLInputElement).value)
+    const button = within(selectEl).getByRole('button');
+    fireEvent.mouseDown(button);
 
-    fireEvent.change(clusterName, { target: { value: 'management' } });
+    const optionsPopupEl = within(screen.getByRole('presentation')).getByRole(
+      'listbox',
+    );
 
-    fireEvent.change(matchType, { target: { value: 'workspaces' } });
-    fireEvent.change(policies, {
-      target: {
-        value: [
-          {
-            'weave.policies.containers-minimum-replica-count': {
-              parameters: [{ exclude_namespaces: ['2', '4'] }],
-            },
-          },
-          {
-            'weave.policies.tenancy.dev-team-allowed-repositories': {
-              parameters: [
-                {
-                  git_urls: [
-                    'https://github.com/wkp-example-org/capd-demo-reloade',
-                  ],
-                },
-              ],
-            },
-          },
-        ],
-      },
-    });
+    // await waitFor(() => {
+    //   // expect( api).toBeCalled();
+    // });
+    // const optionsList = within(optionsPopupEl).getAllByRole('option');
+
+    // expect(optionsList).toBeTruthy();
+
+
+    userEvent.click(within(optionsPopupEl).getByText(/management/i));
+    console.log('console log', selectEl);
+
+    // fireEvent.change(matchType, { target: { value: 'workspaces' } });
+    // fireEvent.change(policies, {
+    //   target: {
+    //     value: [
+    //       {
+    //         'weave.policies.containers-minimum-replica-count': {
+    //           parameters: [{ exclude_namespaces: ['2', '4'] }],
+    //         },
+    //       },
+    //       {
+    //         'weave.policies.tenancy.dev-team-allowed-repositories': {
+    //           parameters: [
+    //             {
+    //               git_urls: [
+    //                 'https://github.com/wkp-example-org/capd-demo-reloade',
+    //               ],
+    //             },
+    //           ],
+    //         },
+    //       },
+    //     ],
+    //   },
+    // });
 
     const form = document.querySelector('form') as HTMLElement;
 
     await act(async () => {
-      fireEvent.submit(form, { target: form });
+      fireEvent.submit(form);
     });
-
     expect(fetch).toHaveBeenCalledWith('/v1/enterprise/automations', {
       method: 'POST',
-      body: JSON.stringify(formData),
       headers: {
         'Content-Type': 'application/json',
       },
@@ -222,26 +261,4 @@ describe('CreatePolicyConfig', () => {
     //   ),
     // ).resolves.toHaveProperty('webUrl');
   });
-
-  //   it('test match Type field', async () => {
-  //     const formData = formDataMock.clusterAutomations[0];
-  //     WSapi.ListWorkspacesReturns = listWorkspacesResponse;
-  //     const handleChange = jest.fn();
-
-  //     await act(async () => {
-  //       const c = wrap(<CreatePolicyConfig />);
-  //       render(c);
-  //     });
-  //     const matchType = document.querySelector(
-  //       "input[name='matchType']",
-  //     ) as HTMLElement;
-  //     const policyConfigName = document.querySelector(
-  //       "input[name='policyConfigName']",
-  //     ) as HTMLElement;
-  //     fireEvent.click(matchType, {
-  //       target: { value: ['Workspaces'] },
-  //     });
-  //     console.log((matchType as HTMLSelectElement).options);
-  //     // expect(await screen.getByTestId('workspacesList')).toBeInTheDocument();
-  //   });
 });

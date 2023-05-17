@@ -208,6 +208,7 @@ export const Select: FC<SelectProps> = ({
       {label}
     </InputLabel>
     <MuiSelect
+      data-testid={`${name}-test`}
       id={`${label}-input`}
       input={input ?? <InputBase required={required} error={error} />}
       onChange={onChange}

@@ -102,7 +102,9 @@
     ]
   },
   "devDependencies": {
+    "@testing-library/dom": "^9.3.0",
     "@testing-library/react": "^12.1.5",
+    "@testing-library/user-event": "^14.4.3",
     "@types/react-syntax-highlighter": "^13.5.2",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.0",
