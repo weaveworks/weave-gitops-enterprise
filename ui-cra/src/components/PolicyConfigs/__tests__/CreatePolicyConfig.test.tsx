@@ -14,8 +14,6 @@ import {
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
-import { createDeploymentObjects } from '../../Applications/utils';
-import { getProviderToken } from '../../GitAuth/utils';
 import CreatePolicyConfig from '../create';
 
 const formDataMock = {
@@ -251,6 +249,7 @@ describe('CreatePolicyConfig', () => {
     });
     expect(fetch).toHaveBeenCalledWith('/v1/enterprise/automations', {
       method: 'POST',
+      body: formDataMock,
       headers: {
         'Content-Type': 'application/json',
       },
