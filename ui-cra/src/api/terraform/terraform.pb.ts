@@ -79,15 +79,15 @@ export class Terraform {
     return fm.fetchReq<GetTerraformObjectRequest, GetTerraformObjectResponse>(`/v1/terraform_objects/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
   static SyncTerraformObject(req: SyncTerraformObjectRequest, initReq?: fm.InitReq): Promise<SyncTerraformObjectResponse> {
-    return fm.fetchReq<SyncTerraformObjectRequest, SyncTerraformObjectResponse>(`/v1/terraform_objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<SyncTerraformObjectRequest, SyncTerraformObjectResponse>(`/v1/terraform_objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ToggleSuspendTerraformObject(req: ToggleSuspendTerraformObjectRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectResponse> {
-    return fm.fetchReq<ToggleSuspendTerraformObjectRequest, ToggleSuspendTerraformObjectResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ToggleSuspendTerraformObjectRequest, ToggleSuspendTerraformObjectResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetTerraformObjectPlan(req: GetTerraformObjectPlanRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectPlanResponse> {
     return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/terraform_objects/plan?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ReplanTerraformObject(req: ReplanTerraformObjectRequest, initReq?: fm.InitReq): Promise<ReplanTerraformObjectResponse> {
-    return fm.fetchReq<ReplanTerraformObjectRequest, ReplanTerraformObjectResponse>(`/v1/terraform_objects/replan`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ReplanTerraformObjectRequest, ReplanTerraformObjectResponse>(`/v1/terraform_objects/replan`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }
