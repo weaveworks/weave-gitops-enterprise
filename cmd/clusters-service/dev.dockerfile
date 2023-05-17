@@ -1,4 +1,4 @@
-FROM gcr.io/distroless/static:nonroot
+FROM alpine
 
 ENV GITOPS_JWT_ENCRYPTION_SECRET=supersecret
 
