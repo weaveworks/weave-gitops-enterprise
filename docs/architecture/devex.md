@@ -15,7 +15,7 @@ TBA
 The purpose of GitOps Run is to remove the complexity for developers so that Platform Engineers can create developer environments easily, 
 and application developers can benefit from GitOps and focus on writing code.
 
-For gitops run the develops via a that consists:
+For `gitops run` the main user flows are:
 1. A developer develops apps using GitopsRun session against a local or remote cluster
 2. A developer or platform engineer manages gitopsrun sessions via Weave GitOps Enterprise UI.  
 
