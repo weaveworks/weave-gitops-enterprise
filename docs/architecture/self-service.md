@@ -86,7 +86,7 @@ User flows are two:
    1. A platform engineering searches and select the temaplate to use via Weave Gitops UI.
    2. Fills the template and submits the template rendering request to Weave Gitops.
    3. Authenticates with GitProvider or git provider via Weave Gitops
-   4. Weave gitops creates a PR in the provider with the generated resources. 
+   4. Weave GitOps creates a PR in the provider with the generated resources. 
 
 ```mermaid
 C4Context
