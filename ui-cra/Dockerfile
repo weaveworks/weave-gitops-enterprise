@@ -20,7 +20,7 @@ ARG version
 ENV CI=true
 RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
 
-FROM alpine:3.17
+FROM alpine:3.16
 
 WORKDIR /
 COPY --from=build /home/node/build /html
