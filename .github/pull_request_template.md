@@ -47,5 +47,6 @@ required? If so, please mention it.
 Are there any documentation updates that should be made for these changes? We want to keep these sources up to date:
 - user-guide: https://docs.gitops.weave.works
 - internal docs: https://github.com/weaveworks/weave-gitops-enterprise/tree/main/docs
+- architecture docs: https://github.com/weaveworks/weave-gitops-enterprise/blob/main/docs/architecture
 -->
 **Documentation Changes**
