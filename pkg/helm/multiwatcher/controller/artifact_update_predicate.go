@@ -28,16 +28,29 @@ func (ArtifactUpdatePredicate) Update(e event.UpdateEvent) bool {
 		return false
 	}
 
+	if filterAnnotation(oldSource) != filterAnnotation(newSource) {
+		return true
+	}
+
 	if oldSource.GetArtifact() == nil && newSource.GetArtifact() != nil {
 		return true
 	}
 
 	// There is no way that the old artifact is newer here. We just care that they are of a different revision.
 	// Kubernetes takes care of setting old and new accordingly.
-	if oldSource.GetArtifact() != nil && newSource.GetArtifact() != nil &&
-		oldSource.GetArtifact().Revision != newSource.GetArtifact().Revision {
-		return true
+	if oldArtifact, newArtifact := oldSource.GetArtifact(), newSource.GetArtifact(); oldArtifact != nil && newArtifact != nil {
+		if oldArtifact.Revision != newArtifact.Revision {
+			return true
+		}
+
+		if oldArtifact.URL != newArtifact.URL {
+			return true
+		}
 	}
 
 	return false
+}
+
+func filterAnnotation(hr *sourcev1beta2.HelmRepository) string {
+	return hr.GetAnnotations()[HelmVersionFilterAnnotation]
 }
