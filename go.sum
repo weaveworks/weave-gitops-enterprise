@@ -1472,8 +1472,8 @@ github.com/valyala/fasthttp v1.30.0/go.mod h1:2rsYD01CKFrjjsvFxx75KlEUNpWNBY9JWD
 github.com/valyala/quicktemplate v1.7.0/go.mod h1:sqKJnoaOF88V07vkO+9FL8fb9uZg/VPSJnLYn+LmLk8=
 github.com/valyala/tcplisten v1.0.0/go.mod h1:T0xQ8SeCZGxckz9qRXTfG43PvQ/mcWh7FwZEA7Ioqkc=
 github.com/viki-org/dnscache v0.0.0-20130720023526-c70c1f23c5d8/go.mod h1:dniwbG03GafCjFohMDmz6Zc6oCuiqgH6tGNyXTkHzXE=
-github.com/weaveworks/cluster-controller v1.5.1 h1:93Mv47wc67lNS0F7ZqxdAgpcHPPo7UMHqmDSLyaxGuc=
-github.com/weaveworks/cluster-controller v1.5.1/go.mod h1:rYBv/mUMvXOP6NdSSUvvpT6ptpOPE9cqSl7WMM4LkcY=
+github.com/weaveworks/cluster-controller v1.5.2 h1:HEgiovJSvrLsdU7Y4mswfCzq8ca2hzpnygBVIzbQQW8=
+github.com/weaveworks/cluster-controller v1.5.2/go.mod h1:rYBv/mUMvXOP6NdSSUvvpT6ptpOPE9cqSl7WMM4LkcY=
 github.com/weaveworks/gitopssets-controller v0.9.0 h1:JSiraXOI6F9l8cy6ZQxiFTS7AOcb6shJ1VW2X09F0QY=
 github.com/weaveworks/gitopssets-controller v0.9.0/go.mod h1:d3nFyRINz1HXtlZ5gW+MCUngdX3Ub6GMbbAmn94rQSA=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d h1:HhH19ygpcDDadUMNIc8PtSCqpQ49gpY7je7P/Ow4ZAc=
