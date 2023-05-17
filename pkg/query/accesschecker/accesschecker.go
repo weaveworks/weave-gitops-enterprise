@@ -65,10 +65,24 @@ func (a *defaultAccessChecker) HasAccess(user *auth.UserPrincipal, object models
 			if strings.Contains(resourceName, "*") {
 				return true, nil
 			}
+
+			if len(rule.AccessibleResourceNames) > 0 {
+				// If an access rule has resource names,
+				// we match on those with our objects.
+				// We only need to check name here because we already checked the GVK above.
+				for _, resourceName := range rule.AccessibleResourceNames {
+					if resourceName == object.Name {
+						return true, nil
+					}
+				}
+
+				return false, nil
+			}
 			//find whether resource allows kind
 			if a.kindByResourceMap[resourceName] == object.Kind {
 				return true, nil
 			}
+
 		}
 	}
 	return false, nil

@@ -262,9 +262,10 @@ func TestGetAccessRules(t *testing.T) {
 			Name:          "someName",
 			RoleBindingID: rb.GetID(),
 		}},
-		AccessibleKinds:   []string{"example.com/SomeKind"},
-		ProvidedByRole:    fmt.Sprintf("%s/%s", role.Kind, role.Name),
-		ProvidedByBinding: fmt.Sprintf("%s/%s", rb.Kind, rb.Name),
+		AccessibleKinds:         []string{"example.com/SomeKind"},
+		ProvidedByRole:          fmt.Sprintf("%s/%s", role.Kind, role.Name),
+		ProvidedByBinding:       fmt.Sprintf("%s/%s", rb.Kind, rb.Name),
+		AccessibleResourceNames: []string{},
 	}
 
 	diff := cmp.Diff(expected, r[0], cmpopts.IgnoreFields(models.Subject{}, "ID", "CreatedAt", "UpdatedAt"))

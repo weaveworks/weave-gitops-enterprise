@@ -21,10 +21,11 @@ type Role struct {
 // This is a "second-class"  object and is only here for database schema reasons..
 type PolicyRule struct {
 	gorm.Model
-	APIGroups string `gorm:"type:text"`
-	Resources string `gorm:"type:text"`
-	Verbs     string `gorm:"type:text"`
-	RoleID    string
+	APIGroups     string `gorm:"type:text"`
+	Resources     string `gorm:"type:text"`
+	Verbs         string `gorm:"type:text"`
+	RoleID        string
+	ResourceNames string `gorm:"type:text"`
 }
 
 func (o Role) GetID() string {

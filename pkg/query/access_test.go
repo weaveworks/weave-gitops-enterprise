@@ -2,13 +2,14 @@ package query
 
 import (
 	"context"
+	"os"
+	"strings"
+	"testing"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
-	"os"
-	"strings"
-	"testing"
 
 	"github.com/alecthomas/assert"
 	"github.com/google/go-cmp/cmp"
@@ -375,6 +376,64 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 					Kind:       "somekind",
+					Name:       "somename",
+				},
+			},
+		},
+		{
+			name: "rule with resource name",
+			user: auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"})),
+			objects: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "somename",
+				},
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
+					Name:       "othername",
+				},
+			},
+			roles: []models.Role{
+				{
+					Name:      "role-a",
+					Cluster:   "cluster-a",
+					Namespace: "ns-a",
+					Kind:      "Role",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups:     strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources:     strings.Join([]string{"helmreleases"}, ","),
+						Verbs:         strings.Join([]string{"get", "list", "watch"}, ","),
+						ResourceNames: strings.Join([]string{"somename"}, ","),
+					}},
+				},
+			},
+			bindings: []models.RoleBinding{{
+				Cluster:   "cluster-a",
+				Name:      "binding-a",
+				Namespace: "ns-a",
+				Kind:      "RoleBinding",
+				Subjects: []models.Subject{{
+					Kind: "Group",
+					Name: "group-a",
+				}},
+				RoleRefName: "role-a",
+				RoleRefKind: "Role",
+			}},
+			expected: []models.Object{
+				{
+					Cluster:    "cluster-a",
+					Namespace:  "ns-a",
+					APIGroup:   helmv2.GroupVersion.Group,
+					APIVersion: helmv2.GroupVersion.Version,
+					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
 				},
 			},
