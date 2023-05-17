@@ -146,29 +146,29 @@ describe('CreatePolicyConfig', () => {
       [EnterpriseClientProvider, { api }],
     ]);
   });
-  // it('renders create policyConfig form fields', async () => {
-  //   await act(async () => {
-  //     const c = wrap(<CreatePolicyConfig />);
-  //     render(c);
-  //   });
+  it('renders create policyConfig form fields', async () => {
+    await act(async () => {
+      const c = wrap(<CreatePolicyConfig />);
+      render(c);
+    });
 
-  //   expect(await screen.findByText('Create New PolicyConfig')).toBeTruthy();
-  //   expect(
-  //     document.querySelector("input[name='policyConfigName']"),
-  //   ).toBeInTheDocument();
+    expect(await screen.findByText('Create New PolicyConfig')).toBeTruthy();
+    expect(
+      document.querySelector("input[name='policyConfigName']"),
+    ).toBeInTheDocument();
 
-  //   expect(
-  //     document.querySelector("input[name='clusterName']"),
-  //   ).toBeInTheDocument();
+    expect(
+      document.querySelector("input[name='clusterName']"),
+    ).toBeInTheDocument();
 
-  //   expect(
-  //     document.querySelector("input[name='matchType']"),
-  //   ).toBeInTheDocument();
+    expect(
+      document.querySelector("input[name='matchType']"),
+    ).toBeInTheDocument();
 
-  //   expect(
-  //     document.querySelector("input[name='policies']"),
-  //   ).toBeInTheDocument();
-  // });
+    expect(
+      document.querySelector("input[name='policies']"),
+    ).toBeInTheDocument();
+  });
 
   it('submitting a form', async () => {
     const formData = formDataMock.clusterAutomations[0];

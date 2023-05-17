@@ -312,7 +312,6 @@ export class PolicyConfigsClientMock {
   ListGitopsClustersReturns: ListGitopsClustersResponse = {};
   ListPoliciesReturns: ListPoliciesResponse = {};
 
-
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
   }
