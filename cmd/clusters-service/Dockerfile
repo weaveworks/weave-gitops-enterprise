@@ -41,4 +41,4 @@ WORKDIR /
 COPY --from=build /app/cmd/clusters-service/clusters-service .
 USER 65532:65532
 
-ENTRYPOINT ["/cluster-service"]
+ENTRYPOINT ["/clusters-service"]
