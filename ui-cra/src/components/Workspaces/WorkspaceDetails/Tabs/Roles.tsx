@@ -1,4 +1,4 @@
-import { DataTable } from '@weaveworks/weave-gitops';
+import { DataTable, YamlView } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
 import moment from 'moment';
@@ -6,7 +6,6 @@ import { RulesListWrapper } from '../../WorkspaceStyles';
 import { WorkspaceRoleRule } from '../../../../cluster-services/cluster_services.pb';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 
 const RulesList = ({ rules }: { rules: WorkspaceRoleRule[] }) => {
   return (
@@ -42,7 +41,6 @@ export const RolesTab = ({
   clusterName: string;
   workspaceName: string;
 }) => {
-
   const {
     data: roles,
     isLoading,
@@ -61,21 +59,21 @@ export const RolesTab = ({
           fields={[
             {
               label: 'Name',
-              value: ({ name, manifest }) => {
+              value: ({ name, namespace, kind, manifest }) => {
                 if (manifest) {
                   return (
                     <WorkspaceModal
                       content={
-                        <SyntaxHighlighter
-                          language="yaml"
-                          wrapLongLines="pre-wrap"
-                          showLineNumbers
-                        >
-                          {manifest}
-                        </SyntaxHighlighter>
+                        <YamlView
+                          yaml={manifest}
+                          object={{
+                            kind: kind,
+                            name: name,
+                            namespace: namespace,
+                          }}
+                        />
                       }
                       title="Role Manifest"
-                      caption="[some command related to retrieving this yaml]"
                       btnName={name}
                     />
                   );
@@ -96,6 +94,7 @@ export const RolesTab = ({
                   title="Rules"
                   btnName="View Rules"
                   className="customBackgroundColor"
+                  wrapDialogContent
                 />
               ),
             },
@@ -106,7 +105,7 @@ export const RolesTab = ({
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;
               },
-            }
+            },
           ]}
         />
       </TableWrapper>

@@ -222,7 +222,7 @@ const Preview: FC<{
                 <SyntaxHighlighter
                   language="yaml"
                   style={darcula}
-                  wrapLongLines="pre-wrap"
+                  wrapLongLines
                 >
                   {file.content}
                 </SyntaxHighlighter>
