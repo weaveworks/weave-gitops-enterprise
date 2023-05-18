@@ -1,10 +1,9 @@
-import { DataTable } from '@weaveworks/weave-gitops';
+import { DataTable, YamlView } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspaceRoleBinding } from '../../../../contexts/Workspaces';
 import moment from 'moment';
 import { WorkspaceRoleBindingSubject } from '../../../../cluster-services/cluster_services.pb';
 import WorkspaceModal from '../WorkspaceModal';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 
 export const RoleBindingsTab = ({
@@ -32,21 +31,21 @@ export const RoleBindingsTab = ({
           fields={[
             {
               label: 'Name',
-              value: ({ name, manifest }) => {
+              value: ({ name, namespace, kind, manifest }) => {
                 if (manifest) {
                   return (
                     <WorkspaceModal
                       content={
-                        <SyntaxHighlighter
-                          language="yaml"
-                          wrapLongLines="pre-wrap"
-                          showLineNumbers
-                        >
-                          {manifest}
-                        </SyntaxHighlighter>
+                        <YamlView
+                          yaml={manifest}
+                          object={{
+                            kind: kind,
+                            name: name,
+                            namespace: namespace,
+                          }}
+                        />
                       }
                       title="RoleBinding Manifest"
-                      caption="[some command related to retrieving this yaml]"
                       btnName={name}
                     />
                   );
@@ -77,7 +76,7 @@ export const RoleBindingsTab = ({
                 const t = createdAt && new Date(createdAt).getTime();
                 return t * -1;
               },
-            }
+            },
           ]}
         />
       </TableWrapper>

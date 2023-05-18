@@ -15,6 +15,7 @@ const LayerAnnotation = "weave.works/layer"
 // ChartsCacheWriter is the "writing" interface to the cache, used by the reconciler etc
 type ChartsCacheWriter interface {
 	AddChart(ctx context.Context, name, version, kind, layer string, clusterRef types.NamespacedName, repoRef ObjectReference) error
+	RemoveChart(ctx context.Context, name, version string, clusterRef types.NamespacedName, repoRef ObjectReference) error
 	Delete(ctx context.Context, repoRef ObjectReference, clusterRef types.NamespacedName) error
 	DeleteAllChartsForCluster(ctx context.Context, clusterRef types.NamespacedName) error
 }
