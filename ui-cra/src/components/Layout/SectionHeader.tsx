@@ -42,7 +42,7 @@ export const SectionHeader: FC<Props> = ({
     <Wrapper className={className} size={size}>
       {path ? <Breadcrumbs path={path} /> : null}
       {children}
-      <UserSettings />
+      <UserSettings darkModeEnabled={false} />
     </Wrapper>
   );
 };

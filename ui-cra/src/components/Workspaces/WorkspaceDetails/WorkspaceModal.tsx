@@ -2,7 +2,7 @@ import { DialogContent, DialogTitle, Typography } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
 import { FC, useState } from 'react';
 import styled from 'styled-components';
-import { CloseIconButton } from '../../../assets/img/close-icon-button';
+import CloseIconButton from '../../../assets/img/close-icon-button';
 import { DialogWrapper, useWorkspaceStyle } from '../WorkspaceStyles';
 
 interface Props {

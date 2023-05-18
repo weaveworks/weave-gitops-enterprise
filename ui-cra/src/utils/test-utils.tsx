@@ -6,6 +6,7 @@ import {
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import {
+  AppContextProvider,
   CoreClientContextProvider,
   ThemeTypes,
   theme,
@@ -127,47 +128,58 @@ const mockRes = {
   catch() {},
 };
 
-export const defaultContexts = () => [
-  [ThemeProvider, { theme: theme }],
-  [MuiThemeProvider, { theme: muiTheme }],
-  [
-    RequestContextProvider,
-    { fetch: () => new Promise(accept => accept(mockRes)) },
-  ],
-  [
-    QueryClientProvider,
-    {
-      client: new QueryClient({
-        queryCache: new QueryCache({
-          onError: error => {
-            const err = error as { code: number; message: string };
-            const { pathname, search } = window.location;
-            const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+export const defaultContexts = () => {
+  const appliedTheme = theme(ThemeTypes.Light);
+  window.matchMedia = jest.fn();
+  //@ts-ignore
+  window.matchMedia.mockReturnValue({ matches: false });
 
-            if (err.code === 401) {
-              window.location.href = `/sign_in?redirect=${redirectUrl}`;
-            }
-          },
+  return [
+    [ThemeProvider, { theme: appliedTheme }],
+    [
+      MuiThemeProvider,
+      { theme: muiTheme(appliedTheme.colors, ThemeTypes.Light) },
+    ],
+    [AppContextProvider],
+    [
+      RequestContextProvider,
+      { fetch: () => new Promise(accept => accept(mockRes)) },
+    ],
+    [
+      QueryClientProvider,
+      {
+        client: new QueryClient({
+          queryCache: new QueryCache({
+            onError: error => {
+              const err = error as { code: number; message: string };
+              const { pathname, search } = window.location;
+              const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+
+              if (err.code === 401) {
+                window.location.href = `/sign_in?redirect=${redirectUrl}`;
+              }
+            },
+          }),
         }),
-      }),
-    },
-  ],
-  [
-    EnterpriseClientProvider,
-    {
-      api: new EnterpriseClientMock(),
-    },
-  ],
-  [
-    CoreClientContextProvider,
-    {
-      api: new CoreClientMock(),
-    },
-  ],
-  [MemoryRouter],
-  [NotificationProvider],
-  [GitAuthProvider, { api: new ApplicationsClientMock() }],
-];
+      },
+    ],
+    [
+      EnterpriseClientProvider,
+      {
+        api: new EnterpriseClientMock(),
+      },
+    ],
+    [
+      CoreClientContextProvider,
+      {
+        api: new CoreClientMock(),
+      },
+    ],
+    [MemoryRouter],
+    [NotificationProvider],
+    [GitAuthProvider, { api: new ApplicationsClientMock() }],
+  ];
+};
 
 export const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
@@ -327,7 +339,7 @@ export class PolicyClientMock {
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
-  
+
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
   }
