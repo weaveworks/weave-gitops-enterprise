@@ -8,17 +8,25 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type ObjectCategory string
+
+const (
+	CategoryAutomation ObjectCategory = "automation"
+	CategorySource     ObjectCategory = "source"
+)
+
 type Object struct {
 	gorm.Model
-	ID         string `gorm:"primaryKey;autoIncrement:false"`
-	Cluster    string `gorm:"type:text"`
-	Namespace  string `gorm:"type:text"`
-	APIGroup   string `gorm:"type:text"`
-	APIVersion string `gorm:"type:text"`
-	Kind       string `gorm:"type:text"`
-	Name       string `gorm:"type:text"`
-	Status     string `gorm:"type:text"`
-	Message    string `gorm:"type:text"`
+	ID         string         `gorm:"primaryKey;autoIncrement:false"`
+	Cluster    string         `json:"cluster" gorm:"type:text"`
+	Namespace  string         `json:"namespace" gorm:"type:text"`
+	APIGroup   string         `json:"apiGroup" gorm:"type:text"`
+	APIVersion string         `json:"apiVersion" gorm:"type:text"`
+	Kind       string         `json:"kind" gorm:"type:text"`
+	Name       string         `json:"name" gorm:"type:text"`
+	Status     string         `json:"status" gorm:"type:text"`
+	Message    string         `json:"message" gorm:"type:text"`
+	Category   ObjectCategory `json:"category" gorm:"type:text"`
 }
 
 func (o Object) Validate() error {
@@ -40,6 +48,11 @@ func (o Object) Validate() error {
 	if o.Kind == "" {
 		return fmt.Errorf("missing kind field")
 	}
+
+	if o.Category != CategoryAutomation && o.Category != CategorySource {
+		return fmt.Errorf("invalid category: %s", o.Category)
+	}
+
 	return nil
 }
 
@@ -59,6 +72,12 @@ func (o Object) GroupVersionKind() string {
 	}
 
 	return strings.Join(s, "/")
+}
+
+// https://pkg.go.dev/github.com/ttys3/bleve/mapping#Classifier
+// Type returns a collection identifier to help with indexing
+func (o Object) Type() string {
+	return "object"
 }
 
 type TransactionType string

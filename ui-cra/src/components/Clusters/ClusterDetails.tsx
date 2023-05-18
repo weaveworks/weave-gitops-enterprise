@@ -5,7 +5,6 @@ import {
   RouterTab,
   SubRouterTabs,
   Button as WeaveButton,
-  theme,
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
@@ -16,12 +15,14 @@ import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
-import { CircularProgress, createStyles, makeStyles } from '@material-ui/core';
+import { CircularProgress } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { useIsClusterWithSources } from '../Applications/utils';
+import { QueryState } from '../Explorer/hooks';
+import { linkToExplorer } from '../Explorer/utils';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
 type Props = {
@@ -37,24 +38,16 @@ const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    addApplicationBtnLoader: {
-      marginLeft: theme.spacing.xl,
-    },
-  }),
-);
-
 const ClusterDetails = ({ clusterName }: Props) => {
   const { path } = useRouteMatch();
   const history = useHistory();
-  const classes = useStyles();
   const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
     useClusters();
   const [currentCluster, setCurrentCluster] =
     useState<GitopsClusterEnriched | null>(null);
   const isClusterWithSources = useIsClusterWithSources(clusterName);
   const { isLoading: loading } = useListSources('', '', { retry: false });
+
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
@@ -76,13 +69,19 @@ const ClusterDetails = ({ clusterName }: Props) => {
         <ContentWrapper loading={isLoading}>
           {currentCluster && (
             <div style={{ overflowX: 'auto' }}>
-              <ActionsWrapper style={{ marginBottom: theme.spacing.medium }}>
-                {!useQueryServiceBackend && (
-                  <WeaveButton
-                    id="cluster-application"
-                    className={classes.addApplicationBtnLoader}
-                    startIcon={<Icon type={IconType.FilterIcon} size="base" />}
-                    onClick={() => {
+              <ActionsWrapper style={{ marginBottom: 8 }}>
+                <WeaveButton
+                  id="cluster-application"
+                  startIcon={<Icon type={IconType.FilterIcon} size="base" />}
+                  onClick={() => {
+                    const clusterName = `${currentCluster?.namespace}/${currentCluster?.name}`;
+                    if (useQueryServiceBackend) {
+                      const s = linkToExplorer(`/applications`, {
+                        filters: [`Cluster:${clusterName}`],
+                      } as QueryState);
+
+                      history.push(s);
+                    } else {
                       const filtersValues = toFilterQueryString([
                         {
                           key: 'clusterName',
@@ -90,12 +89,11 @@ const ClusterDetails = ({ clusterName }: Props) => {
                         },
                       ]);
                       history.push(`/applications?filters=${filtersValues}`);
-                    }}
-                  >
-                    GO TO APPLICATIONS
-                  </WeaveButton>
-                )}
-
+                    }
+                  }}
+                >
+                  GO TO APPLICATIONS
+                </WeaveButton>
                 {loading ? (
                   <CircularProgress size={30} />
                 ) : (

@@ -2,6 +2,7 @@ package query
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"testing"
 
@@ -17,13 +18,13 @@ func TestRunQuery(t *testing.T) {
 	tests := []struct {
 		name    string
 		objects []models.Object
-		query   store.Query
+		query   *query
 		opts    store.QueryOption
 		want    []string
 	}{
 		{
 			name:  "get all objects",
-			query: []store.QueryClause{},
+			query: &query{terms: ""},
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -45,38 +46,33 @@ func TestRunQuery(t *testing.T) {
 			want: []string{"someName", "otherName"},
 		},
 		{
-			name: "get objects by cluster",
-
-			query: []store.QueryClause{&clause{
-				key:     "cluster",
-				value:   "test-cluster",
-				operand: string(store.OperandEqual),
-			}},
+			name:  "get objects by cluster",
+			query: &query{filters: []string{"+cluster:my-cluster"}},
 
 			objects: []models.Object{
 				{
-					Cluster:    "test-cluster",
-					Name:       "obj-cluster-1",
+					Cluster:    "my-cluster",
+					Name:       "obj-1",
 					Namespace:  "namespace",
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
 				{
-					Cluster:    "test-cluster-2",
-					Name:       "obj-cluster-2",
+					Cluster:    "b",
+					Name:       "obj-2",
 					Namespace:  "namespace",
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
 			},
-			want: []string{"obj-cluster-1"},
+			want: []string{"obj-1"},
 		},
 		{
 			name:  "pagination - no offset",
-			opts:  &query{limit: 1, offset: 0},
-			query: []store.QueryClause{},
+			opts:  &query{limit: 1, offset: 0, orderBy: "name", ascending: false},
+			query: &query{},
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster",
@@ -98,10 +94,13 @@ func TestRunQuery(t *testing.T) {
 			want: []string{"obj-cluster-1"},
 		},
 		{
-			name: "pagination - with offset",
+			name:  "pagination - with offset",
+			query: &query{},
 			opts: &query{
-				limit:  1,
-				offset: 1,
+				limit:     1,
+				offset:    1,
+				orderBy:   "name",
+				ascending: false,
 			},
 			objects: []models.Object{
 				{
@@ -128,53 +127,45 @@ func TestRunQuery(t *testing.T) {
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster-1",
-					Name:       "obj-a",
-					Namespace:  "namespace-b",
+					Name:       "foo",
+					Namespace:  "alpha",
 					Kind:       "Kind1",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
 				{
 					Cluster:    "test-cluster-2",
-					Name:       "obj-b",
-					Namespace:  "namespace-b",
+					Name:       "bar",
+					Namespace:  "bravo",
 					Kind:       "Kind1",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
 				{
 					Cluster:    "test-cluster-3",
-					Name:       "obj-c",
-					Namespace:  "namespace-b",
+					Name:       "baz",
+					Namespace:  "charlie",
 					Kind:       "Kind2",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
 				{
 					Cluster:    "test-cluster-3",
-					Name:       "obj-d",
-					Namespace:  "namespace-c",
+					Name:       "bang",
+					Namespace:  "delta",
 					Kind:       "Kind1",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
 				},
 			},
-			query: []store.QueryClause{
-				&clause{
-					key:     "kind",
-					value:   "Kind1",
-					operand: string(store.OperandEqual),
-				},
-				&clause{
-					key:     "namespace",
-					value:   "namespace-b",
-					operand: string(store.OperandEqual),
-				},
+			query: &query{
+				terms:   "",
+				filters: []string{"+kind:Kind1 +namespace:bravo"},
 			},
-			want: []string{"obj-a", "obj-b"},
+			want: []string{"bar"},
 		},
 		{
-			name: "`or` clause query",
+			name: "across clusters",
 			objects: []models.Object{
 				{
 					Cluster:    "test-cluster-1",
@@ -192,25 +183,24 @@ func TestRunQuery(t *testing.T) {
 					APIGroup:   "apps",
 					APIVersion: "v1",
 				},
-			},
-			query: []store.QueryClause{
-				&clause{
-					key:     "name",
-					value:   "podinfo",
-					operand: string(store.OperandEqual),
+				{
+					Cluster:    "test-cluster-3",
+					Name:       "foo",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
 				},
 			},
-			opts: &query{
-				globalOperand: string(store.GlobalOperandOr),
-			},
-			want: []string{"podinfo", "podinfo"},
+			query: &query{terms: "podinfo"},
+			want:  []string{"podinfo", "podinfo"},
 		},
 		{
-			name: "`or` clause with clusters",
+			name: "by namespace",
 			objects: []models.Object{
 				{
 					Cluster:    "management",
-					Name:       "podinfo",
+					Name:       "my-app",
 					Namespace:  "namespace-a",
 					Kind:       "Deployment",
 					APIGroup:   "apps",
@@ -218,37 +208,18 @@ func TestRunQuery(t *testing.T) {
 				},
 				{
 					Cluster:    "management",
-					Name:       "podinfo",
+					Name:       "other-thing",
 					Namespace:  "namespace-b",
 					Kind:       "Deployment",
 					APIGroup:   "apps",
 					APIVersion: "v1",
 				},
 			},
-			query: []store.QueryClause{
-				&clause{
-					key:     "name",
-					value:   "management",
-					operand: string(store.OperandEqual),
-				},
-				&clause{
-					key:     "namespace",
-					value:   "management",
-					operand: string(store.OperandEqual),
-				},
-				&clause{
-					key:     "cluster",
-					value:   "management",
-					operand: string(store.OperandEqual),
-				},
-			},
-			opts: &query{
-				globalOperand: string(store.GlobalOperandOr),
-			},
-			want: []string{"podinfo", "podinfo"},
+			query: &query{filters: []string{"+namespace:namespace-a"}},
+			want:  []string{"my-app"},
 		},
 		{
-			name: "`or` clause with order by",
+			name: "order by",
 			objects: []models.Object{
 				{
 					Cluster:    "management",
@@ -267,16 +238,9 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: []store.QueryClause{
-				&clause{
-					key:     "cluster",
-					value:   "management",
-					operand: string(store.OperandEqual),
-				},
-			},
+			query: &query{},
 			opts: &query{
-				orderBy:       "kind desc",
-				globalOperand: string(store.GlobalOperandOr),
+				orderBy: "kind",
 			},
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
@@ -308,61 +272,9 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: []store.QueryClause{
-				&clause{
-					key:     "cluster",
-					value:   "management",
-					operand: string(store.OperandEqual),
-				},
-			},
-			opts: &query{
-				orderBy:       "kind desc",
-				globalOperand: string(store.GlobalOperandAnd),
-				scopes:        []string{"Kustomization"},
-			},
-			want: []string{"podinfo-a", "podinfo-b"},
-		},
-		{
-			name: "scoped query with `or`",
-			objects: []models.Object{
-				{
-					Cluster:    "cluster-a",
-					Name:       "podinfo",
-					Namespace:  "namespace-a",
-					Kind:       "Kustomization",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-				},
-				{
-					Cluster:    "cluster-a",
-					Name:       "podinfo",
-					Namespace:  "namespace-b",
-					Kind:       "Kustomization",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-				},
-				{
-					Cluster:    "cluster-b",
-					Name:       "podinfo",
-					Namespace:  "namespace-c",
-					Kind:       "HelmRelease",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-				},
-			},
-			query: []store.QueryClause{
-				&clause{
-					key:     "name",
-					value:   "podinfo",
-					operand: string(store.OperandEqual),
-				},
-			},
-			opts: &query{
-				orderBy:       "kind desc",
-				globalOperand: string(store.GlobalOperandOr),
-				scopes:        []string{"Kustomization"},
-			},
-			want: []string{"podinfo", "podinfo"},
+			query: &query{filters: []string{"+kind:Kustomization"}},
+			opts:  &query{orderBy: "name", ascending: true},
+			want:  []string{"podinfo-a", "podinfo-b"},
 		},
 	}
 
@@ -382,14 +294,23 @@ func TestRunQuery(t *testing.T) {
 			s, err := store.NewSQLiteStore(db, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
+			idxDir, err := os.MkdirTemp("", "indexer-test")
+			g.Expect(err).NotTo(HaveOccurred())
+
+			idx, err := store.NewIndexer(s, idxDir)
+			g.Expect(err).NotTo(HaveOccurred())
+
 			q := &qs{
 				log:     logr.Discard(),
 				debug:   logr.Discard(),
 				r:       s,
 				checker: checker,
+				index:   idx,
 			}
 
 			g.Expect(store.SeedObjects(db, tt.objects)).To(Succeed())
+
+			g.Expect(idx.Add(context.Background(), tt.objects)).To(Succeed())
 
 			ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
 				ID: "test",
@@ -407,7 +328,7 @@ func TestRunQuery(t *testing.T) {
 				names = append(names, o.Name)
 			}
 
-			g.Expect(names).To(Equal(tt.want))
+			g.Expect(names).To(Equal(tt.want), fmt.Sprintf("terms: %s, filters: %s", tt.query.terms, tt.query.filters))
 		})
 	}
 
@@ -426,6 +347,9 @@ func TestQueryIteration(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	s, err := store.NewSQLiteStore(db, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	idx, err := store.NewIndexer(s, dir)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
@@ -468,12 +392,14 @@ func TestQueryIteration(t *testing.T) {
 	}
 
 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
 
 	q := &qs{
 		log:     logr.Discard(),
 		debug:   logr.Discard(),
 		r:       s,
 		checker: checker,
+		index:   idx,
 	}
 
 	r, err := db.Model(&models.Object{}).Rows()
@@ -495,39 +421,31 @@ func TestQueryIteration(t *testing.T) {
 	checker.HasAccessReturnsOnCall(3, true, nil)
 
 	qy := &query{
-		clauses: []clause{
-			{
-				key:     "cluster",
-				value:   "test-cluster-1",
-				operand: string(store.OperandEqual),
-			},
-		},
+		terms: "",
 		limit: 3,
 	}
 
-	got, err := q.RunQuery(ctx, []store.QueryClause{&qy.clauses[0]}, qy)
+	got, err := q.RunQuery(ctx, qy, qy)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(got).To(HaveLen(3))
 }
 
 type query struct {
-	clauses       []clause
-	offset        int32
-	limit         int32
-	orderBy       string
-	globalOperand string
-	scopes        []string
+	terms     string
+	filters   []string
+	offset    int32
+	limit     int32
+	orderBy   string
+	ascending bool
 }
 
-func (q *query) GetQuery() []store.QueryClause {
-	clauses := []store.QueryClause{}
+func (q *query) GetTerms() string {
+	return q.terms
+}
 
-	for _, c := range q.clauses {
-		clauses = append(clauses, &c)
-	}
-
-	return clauses
+func (q *query) GetFilters() []string {
+	return q.filters
 }
 
 func (q *query) GetOffset() int32 {
@@ -542,28 +460,6 @@ func (q *query) GetOrderBy() string {
 	return q.orderBy
 }
 
-func (q *query) GetGlobalOperand() string {
-	return q.globalOperand
-}
-
-func (q *query) GetScopedKinds() []string {
-	return q.scopes
-}
-
-type clause struct {
-	key     string
-	operand string
-	value   string
-}
-
-func (c *clause) GetKey() string {
-	return c.key
-}
-
-func (c *clause) GetOperand() string {
-	return c.operand
-}
-
-func (c *clause) GetValue() string {
-	return c.value
+func (q *query) GetAscending() bool {
+	return q.ascending
 }

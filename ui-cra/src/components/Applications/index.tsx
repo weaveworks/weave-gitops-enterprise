@@ -12,7 +12,7 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
-import ScopedExploreUI from '../Explorer/ScopedExploreUI';
+import Explorer from '../Explorer/Explorer';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
@@ -22,10 +22,11 @@ interface Size {
 const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
+    margin-bottom: ${({ theme }) => theme.spacing.small};
   }
 `;
 
-const WGApplicationsDashboard: FC = () => {
+const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
@@ -71,17 +72,19 @@ const WGApplicationsDashboard: FC = () => {
           </ActionsWrapper>
         </div>
 
-        {useQueryServiceBackend ? (
-          <ScopedExploreUI
-            scopedKinds={['Kustomization', 'HelmRelease']}
-            enableBatchSync
-          />
-        ) : (
-          <AutomationsTable automations={automations?.result} />
-        )}
+        <div className={className}>
+          {useQueryServiceBackend ? (
+            <Explorer category="automation" enableBatchSync />
+          ) : (
+            <AutomationsTable automations={automations?.result} />
+          )}
+        </div>
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsDashboard;
+export default styled(WGApplicationsDashboard)`
+  width: 100%;
+  overflow: auto;
+`;

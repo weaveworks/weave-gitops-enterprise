@@ -65,12 +65,7 @@ type ServerOpts struct {
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
-	clauses := []store.QueryClause{}
-	for _, c := range msg.Query {
-		clauses = append(clauses, c)
-	}
-
-	objs, err := s.qs.RunQuery(ctx, clauses, msg)
+	objs, err := s.qs.RunQuery(ctx, msg, msg)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
@@ -92,6 +87,17 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 	matching := s.ac.RelevantRulesForUser(user, rules)
 	return &pb.DebugGetAccessRulesResponse{
 		Rules: convertToPbAccessRule(matching),
+	}, nil
+}
+
+func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb.ListFacetsResponse, error) {
+	facets, err := s.qs.ListFacets(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list facets: %w", err)
+	}
+
+	return &pb.ListFacetsResponse{
+		Facets: convertToPbFacet(facets),
 	}, nil
 }
 
@@ -161,10 +167,21 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	}
 	debug.Info("access checker created")
 
+	idxDir, err := os.MkdirTemp("", "index")
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create index dir: %w", err)
+	}
+
+	idx, err := store.NewIndexer(s, idxDir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("cannot create indexer: %w", err)
+	}
+
 	qs, err := query.NewQueryService(query.QueryServiceOpts{
 		Log:           debug,
 		StoreReader:   s,
 		AccessChecker: checker,
+		IndexReader:   idx,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
@@ -192,7 +209,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		objsCollector, err := objectscollector.NewObjectsCollector(s, collector.CollectorOpts{
+		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, collector.CollectorOpts{
 			Log:            opts.Logger,
 			ClusterManager: opts.ClustersManager,
 			ObjectKinds:    opts.ObjectKinds,
@@ -236,6 +253,7 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 			ApiGroup:   o.APIGroup,
 			ApiVersion: o.APIVersion,
 			Message:    o.Message,
+			Category:   string(o.Category),
 		})
 	}
 
@@ -268,4 +286,17 @@ func convertToPbAccessRule(rules []models.AccessRule) []*pb.AccessRule {
 
 	}
 	return pbRules
+}
+
+func convertToPbFacet(facets store.Facets) []*pb.Facet {
+	pbFacets := []*pb.Facet{}
+
+	for k, v := range facets {
+		pbFacets = append(pbFacets, &pb.Facet{
+			Field:  k,
+			Values: v,
+		})
+	}
+
+	return pbFacets
 }

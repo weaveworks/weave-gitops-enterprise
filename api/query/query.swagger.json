@@ -39,6 +39,28 @@
         ]
       }
     },
+    "/v1/facets": {
+      "get": {
+        "operationId": "Query_ListFacets",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListFacetsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      }
+    },
     "/v1/query": {
       "post": {
         "operationId": "Query_DoQuery",
@@ -146,6 +168,32 @@
         }
       }
     },
+    "v1Facet": {
+      "type": "object",
+      "properties": {
+        "field": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListFacetsResponse": {
+      "type": "object",
+      "properties": {
+        "facets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Facet"
+          }
+        }
+      }
+    },
     "v1Object": {
       "type": "object",
       "properties": {
@@ -172,19 +220,8 @@
         },
         "message": {
           "type": "string"
-        }
-      }
-    },
-    "v1QueryClause": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
         },
-        "value": {
-          "type": "string"
-        },
-        "operand": {
+        "category": {
           "type": "string"
         }
       }
@@ -192,11 +229,13 @@
     "v1QueryRequest": {
       "type": "object",
       "properties": {
-        "query": {
+        "terms": {
+          "type": "string"
+        },
+        "filters": {
           "type": "array",
           "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1QueryClause"
+            "type": "string"
           }
         },
         "offset": {
@@ -210,14 +249,8 @@
         "orderBy": {
           "type": "string"
         },
-        "globalOperand": {
-          "type": "string"
-        },
-        "scopedKinds": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
+        "ascending": {
+          "type": "boolean"
         }
       }
     },
