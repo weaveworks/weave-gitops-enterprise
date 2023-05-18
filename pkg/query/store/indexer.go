@@ -8,7 +8,10 @@ import (
 	"sync"
 
 	bleve "github.com/blevesearch/bleve/v2"
+	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -44,27 +47,13 @@ type IndexReader interface {
 }
 
 var indexFile = "index.db"
+var filterFields = []string{"cluster", "namespace", "kind"}
 
 func NewIndexer(s Store, path string) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
 	mapping := bleve.NewIndexMapping()
 
-	// We do this to get our facets to appear correctly.
-	// A keyword analyzer gives us the exact value of the field,
-	// rather than splitting up things like `flux-system` into `flux` and `system`.
-	// https://github.com/blevesearch/bleve/issues/639
-	// Following this issue, we can probably expand this to include other fields.
-	objMapping := bleve.NewDocumentMapping()
-	nsMapping := bleve.NewTextFieldMapping()
-	nsMapping.Analyzer = "keyword"
-
-	clusterNameMapping := bleve.NewTextFieldMapping()
-	clusterNameMapping.Analyzer = "keyword"
-	objMapping.AddFieldMappingsAt("cluster", clusterNameMapping)
-
-	objMapping.AddFieldMappingsAt("namespace", nsMapping)
-
-	mapping.AddDocumentMapping("object", objMapping)
+	addFieldMappings(mapping, filterFields)
 
 	index, err := bleve.New(idxFileLocation, mapping)
 	if err != nil {
@@ -75,6 +64,29 @@ func NewIndexer(s Store, path string) (Indexer, error) {
 		idx:   index,
 		store: s,
 	}, nil
+}
+
+var facetSuffix = ".facet"
+
+func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
+	objMapping := bleve.NewDocumentMapping()
+
+	for _, field := range fields {
+		// This mapping allows us to do query-string queries on the field.
+		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
+		mapping := bleve.NewTextFieldMapping()
+		objMapping.AddFieldMappingsAt(field, mapping)
+
+		// This adds the facets so the UI can be built around the correct values,
+		// without changing how things are searched.
+		facetMapping := bleve.NewTextFieldMapping()
+		facetMapping.Name = field + facetSuffix
+		// Setting analyzer to keyword gives us the exact value of the field.
+		facetMapping.Analyzer = "keyword"
+		objMapping.AddFieldMappingsAt(field, facetMapping)
+	}
+
+	index.AddDocumentMapping("object", objMapping)
 }
 
 type bleveIndexer struct {
@@ -137,9 +149,11 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 	filters := q.GetFilters()
 
 	if len(filters) > 0 {
-		filterString := strings.Join(q.GetFilters(), " ")
+		str := strings.Join(q.GetFilters(), " ")
 
-		qs := bleve.NewQueryStringQuery(strings.ToLower(filterString))
+		str = strings.ToLower(str)
+
+		qs := bleve.NewQueryStringQuery(str)
 		query.AddQuery(qs)
 	}
 
@@ -199,9 +213,9 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (Facets, error) {
 
 	req := bleve.NewSearchRequest(query)
 
-	req.AddFacet("Kind", bleve.NewFacetRequest("kind", 100))
-	req.AddFacet("Namespace", bleve.NewFacetRequest("namespace", 100))
-	req.AddFacet("Cluster", bleve.NewFacetRequest("cluster", 100))
+	for _, f := range filterFields {
+		req.AddFacet(cases.Upper(language.AmericanEnglish).String(f), bleve.NewFacetRequest(f+facetSuffix, 100))
+	}
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {

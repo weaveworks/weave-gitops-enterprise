@@ -112,7 +112,7 @@ function filterFacetsForCategory(
     return facet.field?.toLowerCase() !== 'kind';
   });
 
-  const kindFacets = _.map(categoryKinds[category], k => k.toLowerCase());
+  const kindFacets = _.map(categoryKinds[category], k => k);
 
   withoutKind.unshift({
     field: 'Kind',
