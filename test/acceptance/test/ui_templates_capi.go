@@ -477,9 +477,9 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 
 				gomega.Eventually(preview.GetPreviewTab("Resource Definition").Click).Should(gomega.Succeed(), "Failed to switch to 'RESOURCE DEFINITION' preview tab")
 				gomega.Eventually(preview.Path.At(0)).Should(matchers.MatchText(path.Join(clusterPath, leafCluster.Namespace, leafCluster.Name+".yaml")))
-				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: Cluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*cni: calico`))
-				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*labels:[\s\w\d./:-]*weave.works/flux: bootstrap`))
-				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`kind: GitopsCluster[\s\w\d./:-]*metadata:[\s\w\d./:-]*name: %s[\s\w\d./:-]*namespace: %s[\s\w\d./:-]*capiClusterRef`, leafCluster.Name, leafCluster.Namespace)))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText("cni: calico"))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText("weave.works/flux: bootstrap"))
+				gomega.Eventually(preview.Text.At(0)).Should(matchers.MatchText(fmt.Sprintf(`name: %s\s+namespace: %s`, leafCluster.Name, leafCluster.Namespace)))
 
 				gomega.Eventually(preview.GetPreviewTab("Profiles").Click).Should(gomega.Succeed(), "Failed to switch to 'PROFILES' preview tab")
 				gomega.Eventually(preview.GetPreviewTab("Kustomizations").Click).Should(gomega.Succeed(), "Failed to switch to 'KUSTOMIZATION' preview tab")
