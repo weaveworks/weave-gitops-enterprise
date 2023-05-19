@@ -3,6 +3,7 @@ package app
 import (
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
@@ -54,6 +55,7 @@ type Options struct {
 	UIConfig                  string
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
+	MetricsServerConf         server.MetricsServerConf
 }
 
 type Option func(*Options)
@@ -262,6 +264,17 @@ func WithCollectorServiceAccount(name, namespace string) Option {
 		o.CollectorServiceAccount = collector.ImpersonateServiceAccount{
 			Name:      name,
 			Namespace: namespace,
+		}
+	}
+}
+
+// WithMetrics configures prometheus metrics
+func WithMetrics(enabled bool, address string, log logr.Logger) Option {
+	return func(o *Options) {
+		o.MetricsServerConf = server.MetricsServerConf{
+			Enabled: enabled,
+			Address: address,
+			Log:     log,
 		}
 	}
 }

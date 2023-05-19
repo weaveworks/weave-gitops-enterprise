@@ -12,6 +12,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
 	"math/big"
 	"net"
 	"net/http"
@@ -79,7 +80,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
 	"github.com/weaveworks/weave-gitops/pkg/telemetry"
-
 	"google.golang.org/protobuf/reflect/protoreflect"
 	authv1 "k8s.io/api/authentication/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -156,6 +156,8 @@ type Params struct {
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
 	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
 	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
+	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
+	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -256,6 +258,9 @@ func NewAPIServerCommand() *cobra.Command {
 	// Explorer configuration
 	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
+	// Metrics
+	cmdFlags.Bool("metrics-enabled", false, "creates prometheus metrics endpoint")
+	cmdFlags.String("metrics-bind-address", "", "The address the metric endpoint binds to.")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -555,6 +560,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
+		WithMetrics(p.MetricsEnabled, p.MetricsBindAddress, log),
 	)
 }
 
@@ -785,8 +791,22 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
 
+	var metricsServer *http.Server
+
+	if args.MetricsServerConf.Enabled {
+		metricsServer = server.NewMetricsServer(args.MetricsServerConf, prometheus.Gatherers{
+			prometheus.DefaultGatherer,
+			clustersmngr.Registry,
+		})
+	}
+
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
+
+		if args.MetricsServerConf.Enabled {
+			wrapperHandler = server.WithMetrics(wrapperHandler)
+		}
+
 		return entitlement.EntitlementHandler(
 			ctx,
 			args.Log,
@@ -819,6 +839,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		close(factoryStopCh)
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
+		}
+		if args.MetricsServerConf.Enabled && metricsServer != nil {
+			if err := metricsServer.Shutdown(ctx); err != nil {
+				args.Log.Error(err, "Failed to shutdown metrics server")
+			}
 		}
 	}()
 

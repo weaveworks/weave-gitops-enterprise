@@ -34,6 +34,15 @@ spec:
           name: ui-server-volume
       containers:
         - name: clusters-service
+          ports:
+            - containerPort: 8000
+              name: server
+              protocol: TCP
+          {{- if .Values.metrics.enabled }}
+            - name: http-metrics
+              containerPort: {{ .Values.metrics.service.port }}
+              protocol: TCP
+          {{- end }}
           image: {{ .Values.images.clustersService }}
           args:
             - --pipeline-controller-address={{ .Values.clustersService.pipeline_controller_address | default (printf "http://%s-pipeline-controller-promotion" .Release.Name) }}:8082
