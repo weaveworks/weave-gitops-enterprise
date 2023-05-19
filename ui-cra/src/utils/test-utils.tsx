@@ -588,7 +588,13 @@ export class TestFilterableTable {
     return this.getTableInfo();
   }
   clearSearchByVal(searchVal: string) {
-    document.querySelectorAll('.filter-options-chip').forEach(chip => {
+    const chips = document.querySelectorAll('.MuiChip-root');
+
+    if (!chips || chips.length === 0) {
+      throw new Error('No chips found');
+    }
+
+    chips.forEach(chip => {
       if (chip.textContent === searchVal) {
         const deleteIcon = chip.querySelector('.MuiChip-deleteIcon');
         this.fireEvent.click(deleteIcon);
