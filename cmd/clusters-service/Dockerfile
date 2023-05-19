@@ -23,7 +23,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 
 # Use distroless as minimal base image
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
-FROM gcr.io/distroless/static:nonroot
+# Use `base` variant as we compile with CGO_ENABLED=1 for sqlite3 and it includes glibc
+FROM gcr.io/distroless/base:nonroot
 
 ARG now
 ARG revision
