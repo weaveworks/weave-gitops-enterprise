@@ -324,7 +324,7 @@ func newFakeWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccoun
 	return &fakeWatcher{log: log}, nil
 }
 
-func fakeProcessRecordFunc(records []models.ObjectTransaction, s store.Store, logger logr.Logger) error {
+func fakeProcessRecordFunc(records []models.ObjectTransaction, s store.Store, idx store.IndexWriter, logger logr.Logger) error {
 	log.Info("fake process record")
 	return nil
 }

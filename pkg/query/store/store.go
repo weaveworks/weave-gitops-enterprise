@@ -47,27 +47,28 @@ const (
 	GlobalOperandOr  GlobalOperand = "or"
 )
 
-type Query []QueryClause
+// Query describes how to filter the results of a search.
+// The filters are applied, and then terms are (logically) ANDed together.
+// Only results that match on both filters and terms are returned.
+// https://blevesearch.com/docs/Query/
+type Query interface {
+	GetTerms() string
+	GetFilters() []string
+}
 
 type QueryOption interface {
 	GetLimit() int32
 	GetOffset() int32
 	GetOrderBy() string
-	GetGlobalOperand() string
-	GetScopedKinds() []string
-}
-
-type QueryClause interface {
-	GetKey() string
-	GetOperand() string
-	GetValue() string
+	GetAscending() bool
 }
 
 // StoreReader is an interface for querying objects
 //
 //counterfeiter:generate . StoreReader
 type StoreReader interface {
-	GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error)
+	GetObjectByID(ctx context.Context, id string) (models.Object, error)
+	GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
