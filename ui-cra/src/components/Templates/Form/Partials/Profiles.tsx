@@ -1,16 +1,15 @@
-import React, { Dispatch, FC } from 'react';
-import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
-import styled from 'styled-components';
-import { Loader } from '../../../Loader';
-import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import { Checkbox } from '@material-ui/core';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
-import ProfilesListItem from './ProfileListItem';
+import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
+import React, { Dispatch, FC } from 'react';
+import styled from 'styled-components';
 import {
   ClusterNamespacedName,
   RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
+import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
+import { Loader } from '../../../Loader';
+import ProfilesListItem from './ProfileListItem';
 
 const ProfilesWrapper = styled.div`
   width: 85%;
@@ -109,9 +108,7 @@ const Profiles: FC<{
                     onChange={handleSelectAllClick}
                     checked={rowCount > 0 && numSelected === rowCount}
                     indeterminate={numSelected > 0 && numSelected < rowCount}
-                    style={{
-                      color: weaveTheme.colors.primary,
-                    }}
+                    color="primary"
                   />
                 ),
                 value: (profile: UpdatedProfile) => (
@@ -121,11 +118,7 @@ const Profiles: FC<{
                     }
                     checked={Boolean(updatedProfiles[profile.name]?.selected)}
                     disabled={profile.required}
-                    style={{
-                      color: profile.required
-                        ? undefined
-                        : weaveTheme.colors.primary,
-                    }}
+                    color={profile.required ? undefined : 'primary'}
                   />
                 ),
                 maxWidth: 25,

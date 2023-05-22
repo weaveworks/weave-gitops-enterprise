@@ -1,8 +1,8 @@
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
+  ThemeProvider,
   createStyles,
   makeStyles,
-  ThemeProvider,
 } from '@material-ui/core/styles';
 import {
   Button,
@@ -10,7 +10,6 @@ import {
   GitRepository,
   Link,
   LoadingPage,
-  theme as weaveTheme,
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
@@ -18,7 +17,9 @@ import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import ReactMarkdown from 'react-markdown';
 import { Redirect, useHistory } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
@@ -29,6 +30,10 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -62,52 +67,37 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
   getCreateRequestAnnotation,
-  useGetInitialGitRepo,
   getRepositoryUrl,
+  useGetInitialGitRepo,
 } from './utils';
-import {
-  expiredTokenNotification,
-  useIsAuthenticated,
-} from '../../../hooks/gitprovider';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
 }
 
-const large = weaveTheme.spacing.large;
-const medium = weaveTheme.spacing.medium;
-const base = weaveTheme.spacing.base;
-const xxs = weaveTheme.spacing.xxs;
-const small = weaveTheme.spacing.small;
-const primary = weaveTheme.colors.primary;
-const neutral10 = weaveTheme.colors.neutral10;
-const xs = weaveTheme.spacing.xs;
-
 const FormWrapper = styled.form`
   .create-cta {
-    padding: ${({ theme }) => theme.spacing.small};
+    padding: ${props => props.theme.spacing.small};
     button {
       width: 200px;
     }
   }
   .create-loading {
-    padding: ${({ theme }) => theme.spacing.base};
+    padding: ${props => props.theme.spacing.base};
   }
 `;
 
 const CredentialsWrapper = styled(Flex)`
   & .template-title {
-    margin-right: ${({ theme }) => theme.spacing.medium};
+    margin-right: ${props => props.theme.spacing.medium};
   }
   & .credentials {
     span {
-      margin-right: ${({ theme }) => theme.spacing.xs};
+      margin-right: ${props => props.theme.spacing.xs};
     }
   }
   & .dropdown-toggle {
-    border: 1px solid ${({ theme }) => theme.colors.neutral10};
+    border: 1px solid ${props => props.theme.colors.neutral10};
   }
   & .dropdown-popover {
     width: auto;
@@ -117,7 +107,7 @@ const CredentialsWrapper = styled(Flex)`
     flex-direction: column;
     align-items: left;
     & .template-title {
-      padding-bottom: ${({ theme }) => theme.spacing.base};
+      padding-bottom: ${props => props.theme.spacing.base};
     }
   }
 `;
@@ -125,11 +115,11 @@ const CredentialsWrapper = styled(Flex)`
 const useStyles = makeStyles(theme =>
   createStyles({
     divider: {
-      marginTop: medium,
-      marginBottom: base,
+      marginTop: '24px',
+      marginBottom: '16px',
     },
     largeDivider: {
-      margin: `${large} 0`,
+      margin: `32 0`,
     },
     steps: {
       display: 'flex',
@@ -138,19 +128,19 @@ const useStyles = makeStyles(theme =>
         visibility: 'hidden',
         height: 0,
       },
-      paddingRight: xxs,
+      paddingRight: '4px',
     },
     previewCta: {
       display: 'flex',
       justifyContent: 'flex-end',
-      padding: small,
+      padding: '12px',
     },
     previewLoading: {
-      padding: base,
+      padding: '16px',
     },
     editor: {
       '& a': {
-        color: primary,
+        color: '#00b3ec',
       },
       '& > *:first-child': {
         marginTop: 0,
@@ -158,9 +148,9 @@ const useStyles = makeStyles(theme =>
       '& > *:last-child': {
         marginBottom: 0,
       },
-      marginTop: xs,
-      background: neutral10,
-      padding: small,
+      marginTop: '8px',
+      background: '#f5f5f5',
+      padding: '12px',
       maxHeight: '300px',
     },
   }),

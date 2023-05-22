@@ -5,22 +5,17 @@ import {
   DialogTitle,
   TextareaAutosize,
 } from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
 import Typography from '@material-ui/core/Typography';
+import { makeStyles } from '@material-ui/core/styles';
 import { Alert } from '@material-ui/lab';
-import {
-  Button,
-  Icon,
-  IconType,
-  theme as weaveTheme,
-} from '@weaveworks/weave-gitops';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { ChangeEvent, FC, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
-import { CloseIconButton } from '../../../../assets/img/close-icon-button';
+import CloseIconButton from '../../../../assets/img/close-icon-button';
 import {
-  GetConfigResponse,
   ClusterNamespacedName,
   GetChartsJobResponse,
+  GetConfigResponse,
   GetValuesForChartResponse,
   RepositoryRef,
 } from '../../../../cluster-services/cluster_services.pb';
@@ -30,13 +25,11 @@ import { UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
 
-const xs = weaveTheme.spacing.xs;
-
 const useStyles = makeStyles(() => ({
   textarea: {
     width: '100%',
-    padding: xs,
-    border: `1px solid ${weaveTheme.colors.neutral10}`,
+    padding: '4px',
+    border: `1px solid #f5f5f5`,
   },
 }));
 

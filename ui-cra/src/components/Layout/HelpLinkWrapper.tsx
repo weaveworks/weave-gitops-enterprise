@@ -1,28 +1,31 @@
-import { Flex, Link, theme } from '@weaveworks/weave-gitops';
+import { Flex, Link } from '@weaveworks/weave-gitops';
 
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Tooltip } from '../Shared';
 import styled from 'styled-components';
+import { Tooltip } from '../Shared';
 
-import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
+import React from 'react';
 import {
   useListConfigContext,
   useVersionContext,
 } from '../../contexts/ListConfig';
-import React from 'react';
-
-const { xxs, xs, medium } = theme.spacing;
 
 const HelpLink = styled(Flex)<{
   backgroundColor?: string;
   textColor?: string;
 }>`
-  padding: calc(${medium} - ${xxs}) ${medium};
+  padding: calc(
+      ${props => props.theme.spacing.medium} -
+        ${props => props.theme.spacing.xxs}
+    )
+    ${props => props.theme.spacing.medium};
   background-color: ${props =>
     props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
-  color: ${props => props.textColor || theme.colors.neutral30};
-  border-radius: 0 0 ${xs} ${xs};
+  color: ${props => props.textColor || props.theme.colors.neutral30};
+  border-radius: 0 0 ${props => props.theme.spacing.xs}
+    ${props => props.theme.spacing.xs};
   justify-content: space-between;
   a {
     color: ${({ theme }) => theme.colors.primary};

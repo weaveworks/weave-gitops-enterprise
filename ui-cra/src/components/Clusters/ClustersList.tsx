@@ -1,14 +1,16 @@
 import {
-    Checkbox,
-    createStyles,
-    makeStyles,
-    withStyles
+  Checkbox,
+  createStyles,
+  makeStyles,
+  withStyles,
 } from '@material-ui/core';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
-    DataTable,
-    filterByStatusCallback,
-    filterConfig, KubeStatusIndicator, statusSortHelper, theme
+  DataTable,
+  KubeStatusIndicator,
+  filterByStatusCallback,
+  filterConfig,
+  statusSortHelper,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import React, { FC, useCallback, useState } from 'react';
@@ -18,15 +20,15 @@ import { ClusterNamespacedName } from '../../cluster-services/cluster_services.p
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import {
-    EKSDefault,
-    GKEDefault,
-    KindIcon,
-    Kubernetes,
-    LiquidMetal,
-    Openshift,
-    OtherOnprem,
-    Rancher,
-    Vsphere
+  EKSDefault,
+  GKEDefault,
+  KindIcon,
+  Kubernetes,
+  LiquidMetal,
+  Openshift,
+  OtherOnprem,
+  Rancher,
+  Vsphere,
 } from '../../utils/icons';
 import { TableWrapper, Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
@@ -84,7 +86,6 @@ const ClustersTableWrapper = styled(TableWrapper)`
   width: 100%;
 `;
 
-
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
     c => c.type === 'Ready' || c.type === 'Available',
@@ -96,11 +97,11 @@ export function computeMessage(conditions: Condition[]) {
 const useStyles = makeStyles(() =>
   createStyles({
     clusterIcon: {
-      marginRight: theme.spacing.small,
-      color: theme.colors.neutral30,
+      marginRight: '12px',
+      color: '#737373',
     },
     externalIcon: {
-      marginRight: theme.spacing.small,
+      marginRight: '12px',
     },
   }),
 );
@@ -129,12 +130,12 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
 
 const IndividualCheckbox = withStyles({
   root: {
-    color: theme.colors.primary,
+    color: '#00b3ec',
     '&$checked': {
-      color: theme.colors.primary,
+      color: '#00b3ec',
     },
     '&$disabled': {
-      color: theme.colors.neutral20,
+      color: '#d8d8d8',
     },
   },
   checked: {},
@@ -210,7 +211,7 @@ const ClustersList = () => {
                 ) : (
                   <Link
                     to={`/cluster?clusterName=${c.name}`}
-                    color={theme.colors.primary}
+                    color={'#00b3ec'}
                     data-cluster-name={c.name}
                   >
                     {c.name}

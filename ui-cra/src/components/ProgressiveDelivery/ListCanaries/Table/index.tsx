@@ -1,15 +1,14 @@
 import {
   Canary,
   CanaryAnalysis,
-  CanaryStatus as Status,
   CanaryTargetDeployment,
+  CanaryStatus as Status,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import {
   DataTable,
+  Link,
   filterConfig,
   formatURL,
-  Link,
-  theme,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import moment from 'moment';
@@ -131,7 +130,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                 {c.name}
                 <span
                   style={{
-                    marginLeft: theme.spacing.xs,
+                    marginLeft: 8,
                   }}
                 >
                   {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
