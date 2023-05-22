@@ -3,6 +3,7 @@ package rolecollector
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
@@ -64,7 +65,7 @@ func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollect
 	}, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, idx store.IndexWriter, debug logr.Logger) error {
 	ctx := context.Background()
 	deleteAll := []string{}
 

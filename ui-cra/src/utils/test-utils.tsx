@@ -31,6 +31,7 @@ import {
   ListPipelinesResponse,
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
+
 import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
@@ -60,6 +61,16 @@ import {
   ListTemplatesResponse,
   ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
+
+import {
+  DebugGetAccessRulesRequest,
+  DebugGetAccessRulesResponse,
+  ListFacetsRequest,
+  ListFacetsResponse,
+  QueryRequest,
+  QueryResponse,
+} from '../api/query/query.pb';
+
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from '../contexts/GitAuth';
@@ -309,7 +320,7 @@ export class PolicyClientMock {
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
-
+  
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
   }
@@ -318,6 +329,7 @@ export class PolicyConfigsClientMock {
     return promisify(this.GetPolicyConfigReturns);
   }
 }
+
 export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
@@ -413,6 +425,30 @@ export class SecretsClientMock {
   }
   ListEvents() {
     return promisify(this.ListEventsReturns);
+  }
+}
+
+export class MockQueryService {
+  DoQueryReturns: QueryResponse = {};
+  DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
+  ListFacetsReturns: ListFacetsResponse = {};
+
+  DoQuery(req: QueryRequest, initReq?: any): Promise<QueryResponse> {
+    return promisify(this.DoQueryReturns);
+  }
+
+  DebugGetAccessRules(
+    req: DebugGetAccessRulesRequest,
+    initReq?: any,
+  ): Promise<DebugGetAccessRulesResponse> {
+    return promisify(this.DebugGetAccessRulesReturns);
+  }
+
+  ListFacets(
+    req: ListFacetsRequest,
+    initReq?: any,
+  ): Promise<ListFacetsResponse> {
+    return promisify(this.ListFacetsReturns);
   }
 }
 

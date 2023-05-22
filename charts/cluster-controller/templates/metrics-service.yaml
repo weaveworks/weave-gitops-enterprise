@@ -1,8 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  # Removed `-controller-manager` to avoid generating a name > 63 chars
-  name: {{ include "cluster-controller.fullname" . }}-metrics-service
+  name: {{ include "cluster-controller.fullname" . }}-controller-manager-metrics-service
   labels:
     control-plane: controller-manager
   {{- include "cluster-controller.labels" . | nindent 4 }}

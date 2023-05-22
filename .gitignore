@@ -74,3 +74,6 @@ tools/core-files
 
 # ignore error files
 yarn-error.log
+
+*.db
+*.bolt

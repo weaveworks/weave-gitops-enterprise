@@ -49,5 +49,5 @@ roleRef:
   name: '{{ include "cluster-controller.fullname" . }}-leader-election-role'
 subjects:
 - kind: ServiceAccount
-  name: '{{ include "cluster-controller.fullname" . }}'
+  name: '{{ include "cluster-controller.fullname" . }}-controller-manager'
   namespace: '{{ .Release.Namespace }}'

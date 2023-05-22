@@ -2,7 +2,7 @@ controllerManager:
   kubeRbacProxy:
     image:
       repository: gcr.io/kubebuilder/kube-rbac-proxy
-      tag: v0.8.0
+      tag: v0.14.1
     resources:
       limits:
         cpu: 500m
@@ -12,8 +12,8 @@ controllerManager:
         memory: 64Mi
   manager:
     image:
-      repository: docker.io/weaveworks/cluster-controller
-      tag: v1.4.1
+      repository: controller
+      tag: latest
     resources:
       limits:
         cpu: 500m
@@ -21,7 +21,6 @@ controllerManager:
       requests:
         cpu: 10m
         memory: 64Mi
-    args: []
   replicas: 1
 kubernetesClusterDomain: cluster.local
 managerConfig:

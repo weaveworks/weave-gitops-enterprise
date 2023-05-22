@@ -19,6 +19,8 @@ import WGNotificationsProvider from './components/Applications/NotificationsProv
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
+import ClusterDetails from './components/Clusters/ClusterDetails';
+import Explorer from './components/Explorer';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
@@ -36,26 +38,24 @@ import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
+import CreatePolicyConfig from './components/PolicyConfigs/create';
 import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
 import CreateSecret from './components/Secrets/Create';
+import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
 import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
+import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import Explorer from './components/Explorer';
-import WGUserInfo from './components/UserInfo';
-import CreateSOPS from './components/Secrets/SOPS';
-import ClusterDetails from './components/Clusters/ClusterDetails';
-import CreatePolicyConfig from './components/PolicyConfigs/create';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -155,9 +155,9 @@ const AppRoutes = () => {
         path={Routes.AddApplication}
       />
       <Route
-        component={() => (
+        component={(props: any) => (
           <CoreWrapper>
-            <WGApplicationsSources />
+            <WGApplicationsSources {...props} />
           </CoreWrapper>
         )}
         exact

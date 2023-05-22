@@ -3,11 +3,12 @@ package store
 import (
 	"context"
 	"fmt"
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"os"
 	"strings"
 	"testing"
+
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
@@ -110,6 +111,7 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			errPattern: "",
@@ -124,6 +126,7 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster-2",
@@ -132,6 +135,7 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategorySource,
 				},
 			},
 			errPattern: "",
@@ -181,6 +185,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			deleteClusters: []string{"cluster-without-objects"},
@@ -196,6 +201,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-with-objects",
@@ -204,6 +210,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			deleteClusters: []string{"cluster-with-objects"},

@@ -16,4 +16,5 @@ core-ui:
 
 core-lib:
 	rm -rf node_modules/@weaveworks/weave-gitops/
+	rm -rf .parcel-cache/
 	yarn add ../../weave-gitops/dist

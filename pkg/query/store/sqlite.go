@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops/core/logger"
 
@@ -189,24 +188,11 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 	return nil
 }
 
-func toSQLOperand(op QueryOperand) (string, error) {
-	switch op {
-	case OperandEqual:
-		return "=", nil
-	case OperandNotEqual:
-		return "!=", nil
-	default:
-		return "", fmt.Errorf("unsupported operand: %s", op)
-	}
-}
-
-func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
+func (i *SQLiteStore) GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error) {
 	// If offset is zero, it was not set.
 	// -1 tells GORM to ignore the offset
 	var offset int = -1
 	var orderBy string = ""
-	useOrLogic := false
-	var scopedKinds []string
 
 	if opts != nil {
 		if opts.GetOffset() != 0 {
@@ -216,78 +202,35 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, q Query, opts QueryOption)
 		if opts.GetOrderBy() != "" {
 			orderBy = opts.GetOrderBy()
 		}
-
-		if opts.GetGlobalOperand() == string(GlobalOperandOr) {
-			useOrLogic = true
-		}
-
-		scopedKinds = opts.GetScopedKinds()
-	}
-
-	if useOrLogic {
-		stmt := ""
-
-		for _, c := range q {
-			op, err := toSQLOperand(QueryOperand(c.GetOperand()))
-			if err != nil {
-				return nil, err
-			}
-
-			stmt += fmt.Sprintf("%s %s '%s' OR ", c.GetKey(), op, c.GetValue())
-		}
-
-		stmt = strings.TrimSuffix(stmt, " OR ")
-
-		orTX := i.db.Model(&models.Object{})
-
-		if scopedKinds != nil {
-			dbScope := kindScope(scopedKinds)
-			orTX = orTX.Scopes(dbScope)
-		}
-
-		orTX = orTX.Where(stmt).Order(orderBy).Offset(offset)
-
-		if orTX.Error != nil {
-			return nil, fmt.Errorf("failed to execute query: %w", orTX.Error)
-		}
-
-		return sqliterator.New(orTX)
 	}
 
 	tx := i.db.Model(&models.Object{})
 
-	if scopedKinds != nil {
-		dbScopes := kindScope(scopedKinds)
-		tx = tx.Scopes(dbScopes)
-	}
-
 	tx = tx.Offset(offset)
 	tx = tx.Order(orderBy)
 
-	if len(q) > 0 {
-		for _, c := range q {
-
-			if c.GetKey() == "" {
-				continue
-			}
-
-			val := c.GetValue()
-			op, err := toSQLOperand(QueryOperand(c.GetOperand()))
-			if err != nil {
-				return nil, err
-			}
-
-			queryString := fmt.Sprintf("%s %s ?", c.GetKey(), op)
-			tx = tx.Where(queryString, val)
-
-		}
+	if ids == nil {
+		return sqliterator.New(tx)
 	}
+
+	tx = tx.Where("id IN ?", ids)
 
 	if tx.Error != nil {
 		return nil, fmt.Errorf("failed to execute query: %w", tx.Error)
 	}
 	i.debug.Info("objects retrieved", "numResults", tx.RowsAffected)
 	return sqliterator.New(tx)
+}
+
+func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (models.Object, error) {
+	object := models.Object{}
+
+	result := i.db.Model(&object).Where("id = ?", id).First(&object)
+	if result.Error != nil {
+		return models.Object{}, fmt.Errorf("failed to get object: %w", result.Error)
+	}
+
+	return object, nil
 }
 
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
@@ -391,10 +334,4 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	}
 
 	return db, nil
-}
-
-func kindScope(kinds []string) func(db *gorm.DB) *gorm.DB {
-	return func(db *gorm.DB) *gorm.DB {
-		return db.Where("kind IN ?", kinds)
-	}
 }

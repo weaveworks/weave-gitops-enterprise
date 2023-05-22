@@ -22,6 +22,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
+import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
@@ -32,6 +33,7 @@ import { GitAuthProvider } from './contexts/GitAuth/index';
 import NotificationsProvider from './contexts/Notifications/Provider';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
+import QueryServiceProvider from './contexts/QueryService';
 import RequestContextProvider from './contexts/Request';
 import { TerraformProvider } from './contexts/Terraform';
 import ProximaNova from './fonts/proximanova-regular.woff';
@@ -153,19 +155,21 @@ const App: FC = () => {
                           <CoreClientContextProvider api={coreClient}>
                             <TerraformProvider api={Terraform}>
                               <LinkResolverProvider resolver={resolver}>
-                                <Pendo
-                                  defaultTelemetryFlag="true"
-                                  tier="enterprise"
-                                  version={process.env.REACT_APP_VERSION}
-                                />
-                                <Compose components={[NotificationsProvider]}>
-                                  <Layout />
-                                  <ToastContainer
-                                    position="top-center"
-                                    autoClose={5000}
-                                    newestOnTop={false}
+                                <QueryServiceProvider api={Query}>
+                                  <Pendo
+                                    defaultTelemetryFlag="true"
+                                    tier="enterprise"
+                                    version={process.env.REACT_APP_VERSION}
                                   />
-                                </Compose>
+                                  <Compose components={[NotificationsProvider]}>
+                                    <Layout />
+                                    <ToastContainer
+                                      position="top-center"
+                                      autoClose={5000}
+                                      newestOnTop={false}
+                                    />
+                                  </Compose>
+                                </QueryServiceProvider>
                               </LinkResolverProvider>
                             </TerraformProvider>
                           </CoreClientContextProvider>

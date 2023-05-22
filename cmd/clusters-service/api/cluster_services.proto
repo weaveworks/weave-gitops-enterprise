@@ -1004,6 +1004,7 @@ message WorkspaceRole {
   repeated WorkspaceRoleRule rules = 3;
   string manifest = 4;
   string timestamp = 5;
+  string kind = 6;
 }
 
 message WorkspaceRoleBindingRoleRef {
@@ -1026,6 +1027,7 @@ message WorkspaceRoleBinding {
   string timestamp = 4;
   WorkspaceRoleBindingRoleRef role = 5;
   repeated WorkspaceRoleBindingSubject subjects = 6;
+  string kind = 7;
 }
 
 message WorkspaceServiceAccount {
@@ -1033,6 +1035,7 @@ message WorkspaceServiceAccount {
   string namespace = 2;
   string timestamp = 3;
   string manifest = 4;
+  string kind = 5;
 }
 
 message WorkspacePolicy {

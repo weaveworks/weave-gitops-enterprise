@@ -59,6 +59,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster",
@@ -67,6 +68,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			toRemove: []models.Object{
@@ -77,6 +79,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			want: []models.Object{{
@@ -86,6 +89,7 @@ func TestDeleteObjects(t *testing.T) {
 				Kind:       "ValidKind",
 				APIGroup:   "example.com",
 				APIVersion: "v1",
+				Category:   models.CategoryAutomation,
 			}},
 		},
 		{
@@ -98,6 +102,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster",
@@ -106,6 +111,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			toRemove: []models.Object{
@@ -116,6 +122,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster",
@@ -124,6 +131,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
+					Category:   models.CategoryAutomation,
 				},
 			},
 			want: []models.Object{},
@@ -168,6 +176,7 @@ func TestStoreObjects(t *testing.T) {
 			Kind:       "ValidKind",
 			APIGroup:   "example.com",
 			APIVersion: "v1",
+			Category:   models.CategoryAutomation,
 		}
 
 		g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
@@ -190,6 +199,7 @@ func TestStoreObjects(t *testing.T) {
 			Kind:       "ValidKind",
 			APIGroup:   "example.com",
 			APIVersion: "v1",
+			Category:   models.CategoryAutomation,
 		}
 
 		g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
