@@ -1,7 +1,7 @@
 import { V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
-import { Route, Routes as Routess } from 'react-router-dom';
+import { Route, Routes as Routess, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 import error404 from './assets/img/error404.json';
@@ -58,9 +58,10 @@ import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
 function withSearchParams(Cmp: any) {
-  return ({ location: { search }, ...rest }: any) => {
+  return (props: any) => {
+    const { search } = useLocation();
     const params = qs.parse(search);
-    return <Cmp {...rest} {...params} />;
+    return <Cmp {...props} {...params} />;
   };
 }
 
@@ -103,14 +104,14 @@ const AppRoutes = () => {
     <Routess>
       <Route element={<MCCP />} path="/"></Route>
       <Route element={<MCCP />} path={Routes.Clusters + '/*'} />
-      {/* <Route component={MCCP} exact path={Routes.DeleteCluster} />
+      <Route element={<MCCP />} path={Routes.DeleteCluster} />
       <Route
-        component={withSearchParams((props: any) => (
+        Component={withSearchParams((props: any) => (
           <ClusterDetails {...props} />
         ))}
-        path={Routes.ClusterDashboard}
+        path={Routes.ClusterDashboard + '/*'}
       />
-      <Route
+      {/* <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>
             <EditResourcePage {...props} />

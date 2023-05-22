@@ -477,7 +477,7 @@ const MCCP: FC<{}> = () => {
                             <span data-cluster-name={c.name}>{c.name}</span>
                           ) : (
                             <Link
-                              to={`/cluster?clusterName=${c.name}`}
+                              to={`/cluster/details?clusterName=${c.name}`}
                               color={theme.colors.primary}
                               data-cluster-name={c.name}
                             >
