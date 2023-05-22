@@ -307,6 +307,23 @@ func TestProcessor_Params(t *testing.T) {
 				{Name: "OTHER_PARAM"},
 			},
 		},
+		{
+			filename: "testdata/broken-template.yaml",
+			want: []Param{
+				{Name: "CLUSTER_NAME", Description: "Target Cluster Name"},
+				{Name: "CLUSTER_NAMESPACE", Description: "Target Cluster Namespace", Default: "default"},
+				{
+					Name:        "FLUX_VERSION",
+					Description: "The flux version to upgrade to, beware major version breaking changes",
+					Options: []string{
+						"v0.41.2", "v0.41.1", "v0.41.0", "v0.40.2", "v0.40.1", "v0.40.0",
+						"v0.39.0", "v0.38.3", "v0.38.2", "v0.38.1", "v0.38.0", "v0.37.0",
+						"v0.36.0", "v0.35.0", "v0.34.0", "v0.33.0", "v0.32.0",
+					},
+					Default: "v0.41.2",
+				},
+			},
+		},
 	}
 
 	for _, tt := range paramTests {

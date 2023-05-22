@@ -1,0 +1,63 @@
+apiVersion: templates.weave.works/v1alpha2
+kind: GitOpsTemplate
+metadata:
+  name: flux-upgrade
+  namespace: default
+  annotations:
+    templates.weave.works/profiles-enabled: "false"
+    templates.weave.works/kustomizations-enabled: "false"
+    templates.weave.works/credentials-enabled: "false"
+    templates.weave.works/delimiters: "${{,}}"
+  labels:
+    weave.works/template-type: application
+spec:
+  description: Upgrade Flux to a specified version
+  renderType: templating
+  params:
+    - name: CLUSTER_NAME
+      description: Target Cluster Name
+    - name: CLUSTER_NAMESPACE
+      description: Target Cluster Namespace
+      default: default
+    - name: FLUX_VERSION
+      description: The flux version to upgrade to, beware major version breaking changes
+      options: ['v0.41.2','v0.41.1','v0.41.0','v0.40.2','v0.40.1','v0.40.0','v0.39.0','v0.38.3','v0.38.2','v0.38.1','v0.38.0','v0.37.0','v0.36.0','v0.35.0','v0.34.0','v0.33.0','v0.32.0']
+      default: v0.41.2
+  resourcetemplates:
+    - path: clusters/management/jobs/${{ .params.CLUSTER_NAMESPACE }}-${{ .params.CLUSTER_NAME }}-flux-upgrade-${{ .params.FLUX_VERSION }}.yaml
+      content: 
+        - apiVersion: batch/v1
+          kind: Job
+          metadata:
+            name: ${{ .params.CLUSTER_NAMESPACE }}-${{ .params.CLUSTER_NAME }}-flux-upgrade-${{ randNumeric 5 }}
+            namespace: ${{ .params.CLUSTER_NAMESPACE }}
+          spec:
+            template:
+              spec:
+                containers:
+                  - name: ${{ .params.CLUSTER_NAMESPACE }}-${{ .params.CLUSTER_NAME }}-flux-upgrade-${{ randNumeric 5 }}
+                    image: ghcr.io/fluxcd/flux-cli:${{ .params.FLUX_VERSION }}
+                    imagePullPolicy: Always
+                    resources: {}
+                    volumeMounts:
+                      - name: kubeconfig
+                        mountPath: "/etc/gitops"
+                        readOnly: true
+                    args:
+                      [
+                        "bootstrap",
+                        "github",
+                        "--kubeconfig=/etc/gitops/value",
+                        "--owner=weavegitops",
+                        "--repository=demo3-repo",
+                        "--path=./clusters/${{ .params.CLUSTER_NAMESPACE }}/${{ .params.CLUSTER_NAME }}",
+                        "--components-extra=image-reflector-controller,image-automation-controller",
+                      ]
+                    envFrom:
+                      - secretRef:
+                          name: my-pat
+                restartPolicy: Never
+                volumes:
+                  - name: kubeconfig
+                    secret:
+                      secretName: "${{ .params.CLUSTER_NAME }}-kubeconfig"
