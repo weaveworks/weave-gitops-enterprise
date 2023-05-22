@@ -4,7 +4,7 @@ import { IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import _ from 'lodash';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
@@ -26,8 +26,9 @@ type Props = {
 
 function Explorer({ className, category, enableBatchSync, manager }: Props) {
   const navigate = useNavigate();
+  const location = useLocation();
   if (!manager) {
-    manager = new URLQueryStateManager(navigate);
+    manager = new URLQueryStateManager(navigate, location);
   }
 
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);

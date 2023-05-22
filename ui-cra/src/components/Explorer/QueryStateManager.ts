@@ -1,6 +1,6 @@
 import _ from 'lodash';
 import qs from 'query-string';
-import { useHistory } from 'react-router-dom';
+import { useNavigate, useLocation, useLoaderData } from 'react-router-dom';
 import { QueryState } from './hooks';
 
 // We split this into an interface to allow for different implmentations in the future.
@@ -14,10 +14,15 @@ export interface QueryStateManager {
 const DEFAULT_LIMIT = 25;
 
 export class URLQueryStateManager implements QueryStateManager {
-  private history: ReturnType<typeof useHistory>;
+  private navigate: ReturnType<typeof useNavigate>;
+  private location: ReturnType<typeof useLocation>;
 
-  constructor(history: ReturnType<typeof useHistory>) {
-    this.history = history;
+  constructor(
+    navigate: ReturnType<typeof useNavigate>,
+    location: ReturnType<typeof useLocation>,
+  ) {
+    this.navigate = navigate;
+    this.location = location;
 
     this.read = this.read.bind(this);
     this.write = this.write.bind(this);
@@ -25,7 +30,7 @@ export class URLQueryStateManager implements QueryStateManager {
 
   read(): QueryState {
     const { terms, qFilters, limit, orderBy, ascending, offset } = qs.parse(
-      this.history.location.search,
+      this.location.search,
       { arrayFormat: 'comma' },
     );
 
@@ -62,6 +67,6 @@ export class URLQueryStateManager implements QueryStateManager {
       { skipNull: true, skipEmptyString: true, arrayFormat: 'comma' },
     );
 
-    this.history.push(`?${q}`);
+    this.navigate(`?${q}`);
   }
 }

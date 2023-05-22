@@ -101,9 +101,9 @@ const Page404 = () => (
 const AppRoutes = () => {
   return (
     <Routess>
-      <Route element={MCCP} path="/"></Route>
-      {/* <Route component={MCCP} path={Routes.Clusters} />
-      <Route component={MCCP} exact path={Routes.DeleteCluster} />
+      <Route element={<MCCP />} path="/"></Route>
+      <Route element={<MCCP />} path={Routes.Clusters + '/*'} />
+      {/* <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (
           <ClusterDetails {...props} />

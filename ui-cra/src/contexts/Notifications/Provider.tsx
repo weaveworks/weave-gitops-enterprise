@@ -1,23 +1,18 @@
 import { FC, useEffect, useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import { Notification, NotificationData } from './index';
-import { useOnLocationChange } from '../../utils/nav';
+import { useLocation } from 'react-router-dom';
 
 const NotificationsProvider: FC = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationData[] | []>(
     [],
   );
-  // const navigate = useNavigate();
-  const locationChange = useOnLocationChange(setNotifications);
+  const location = useLocation();
 
+  // Clear notifications when navigating to a new page
   useEffect(() => {
     setNotifications([]);
-    return locationChange;
-  }, [setNotifications, locationChange]);
-
-  // useEffect(() => {
-  //   return history.listen(() => setNotifications([]));
-  // }, [history]);
+  }, [setNotifications, location]);
 
   return (
     <Notification.Provider value={{ notifications, setNotifications }}>

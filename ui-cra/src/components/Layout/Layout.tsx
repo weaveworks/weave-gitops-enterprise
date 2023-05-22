@@ -58,44 +58,46 @@ const Layout = () => {
   return (
     <Routes>
       <Route
-        element={() => (
+        element={
           <SignInWrapper>
             <SignIn />
           </SignInWrapper>
-        )}
+        }
         path="/sign_in"
       />
-      <Route path="*">
-        {/* Check we've got a logged in user otherwise redirect back to signin */}
-        <AuthCheck>
-          <ListConfigProvider>
-            <VersionProvider>
-              <div className={classes.root}>
-                <CssBaseline />
-                <Navigation />
-                <main className={classes.content}>
-                  <ErrorBoundary>
-                    <AppRoutes />
-                  </ErrorBoundary>
-                </main>
-                <Drawer
-                  anchor="right"
-                  open={detail ? true : false}
-                  onClose={() => setDetailModal(null)}
-                  ModalProps={{ keepMounted: false }}
-                >
-                  {detail && (
-                    <DetailModal
-                      className={detail.className}
-                      object={detail.object}
-                    />
-                  )}
-                </Drawer>
-              </div>
-            </VersionProvider>
-          </ListConfigProvider>
-        </AuthCheck>
-      </Route>
+      <Route
+        path="*"
+        element={
+          <AuthCheck>
+            <ListConfigProvider>
+              <VersionProvider>
+                <div className={classes.root}>
+                  <CssBaseline />
+                  <Navigation />
+                  <main className={classes.content}>
+                    <ErrorBoundary>
+                      <AppRoutes />
+                    </ErrorBoundary>
+                  </main>
+                  <Drawer
+                    anchor="right"
+                    open={detail ? true : false}
+                    onClose={() => setDetailModal(null)}
+                    ModalProps={{ keepMounted: false }}
+                  >
+                    {detail && (
+                      <DetailModal
+                        className={detail.className}
+                        object={detail.object}
+                      />
+                    )}
+                  </Drawer>
+                </div>
+              </VersionProvider>
+            </ListConfigProvider>
+          </AuthCheck>
+        }
+      />
     </Routes>
   );
 };
