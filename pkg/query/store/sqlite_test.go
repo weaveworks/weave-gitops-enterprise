@@ -8,11 +8,11 @@ import (
 	"testing"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rbac"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
@@ -415,9 +415,7 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 
 	store, db := createStore(t)
 	resourcesMap, err := testutils.CreateDefaultResourceKindMap()
-	g.Expect(err).To(BeNil())
-	check, err := accesschecker.NewAccessChecker(resourcesMap)
-	g.Expect(err).To(BeNil())
+	g.Expect(err).NotTo(HaveOccurred())
 
 	role := models.Role{
 		Cluster:   "test-cluster",
@@ -475,10 +473,14 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 
 	g.Expect(resources1).To(Equal("helmreleases"))
 
-	rules1, err := store.GetAccessRules(ctx)
-	g.Expect(err).To(BeNil())
+	roles1, err := store.GetRoles(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	rolebindings1, err := store.GetRoleBindings(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(check.HasAccess(user, obj, rules1)).To(BeTrue())
+	authz := rbac.NewAuthorizer(resourcesMap)
+	allow := authz.ObjectAuthorizer(roles1, rolebindings1, user, obj.Cluster)
+	g.Expect(allow(obj)).To(BeTrue())
 
 	// Update the role with a new policy rule
 	role.PolicyRules = []models.PolicyRule{
@@ -502,9 +504,11 @@ func TestUpsertRoleWithPolicyRules(t *testing.T) {
 
 	g.Expect(resources2).To(Equal(""))
 
-	rules2, err := store.GetAccessRules(ctx)
-	g.Expect(err).To(BeNil())
+	roles2, err := store.GetRoles(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
+	rolebindings2, err := store.GetRoleBindings(ctx)
+	g.Expect(err).NotTo(HaveOccurred())
 
-	g.Expect(check.HasAccess(user, obj, rules2)).To(BeFalse())
-
+	allow = authz.ObjectAuthorizer(roles2, rolebindings2, user, obj.Cluster)
+	g.Expect(allow(obj)).To(BeFalse())
 }

@@ -8,7 +8,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 
 	"github.com/alecthomas/assert"
@@ -16,6 +15,7 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rbac"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
@@ -61,7 +61,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				Namespace: "ns-a",
 				Kind:      "Role",
 				PolicyRules: []models.PolicyRule{{
-					APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+					APIGroups: strings.Join([]string{helmv2.GroupVersion.Group}, ","),
 					Resources: strings.Join([]string{"helmreleases"}, ","),
 					Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
 				}},
@@ -110,7 +110,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 				Namespace: "",
 				Kind:      "ClusterRole",
 				PolicyRules: []models.PolicyRule{{
-					APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+					APIGroups: strings.Join([]string{helmv2.GroupVersion.Group}, ","),
 					Resources: strings.Join([]string{"helmreleases"}, ","),
 					Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
 				}},
@@ -160,7 +160,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					Namespace: "",
 					Kind:      "ClusterRole",
 					PolicyRules: []models.PolicyRule{{
-						APIGroups: strings.Join([]string{"example.com/v1"}, ","),
+						APIGroups: strings.Join([]string{"example.com"}, ","),
 						Resources: strings.Join([]string{"*"}, ","),
 						Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
 					}},
@@ -260,7 +260,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					Namespace: "",
 					Kind:      "ClusterRole",
 					PolicyRules: []models.PolicyRule{{
-						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.Group}, ","),
 						Resources: strings.Join([]string{"helmreleases"}, ","),
 						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
 					}},
@@ -341,7 +341,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					Kind:      "ClusterRole",
 					PolicyRules: []models.PolicyRule{
 						{
-							APIGroups: strings.Join([]string{"example.com/v1"}, ","),
+							APIGroups: strings.Join([]string{"example.com"}, ","),
 							Resources: strings.Join([]string{"*"}, ","),
 							Verbs:     strings.Join([]string{"get", "list", "watch"}, ","),
 						},
@@ -416,17 +416,16 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			g.Expect(indexer.Add(context.Background(), tt.objects)).To(Succeed())
 
 			//create gvks and resources configuration
-			kindByResourceMap, err := testutils.CreateDefaultResourceKindMap()
+			kindToResourceMap, err := testutils.CreateDefaultResourceKindMap()
 			assert.NoError(t, err)
 
-			checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
-			assert.NoError(t, err)
+			authz := rbac.NewAuthorizer(kindToResourceMap)
 
 			qs, err := NewQueryService(QueryServiceOpts{
-				Log:           logr.Discard(),
-				StoreReader:   s,
-				AccessChecker: checker,
-				IndexReader:   indexer,
+				Log:         logr.Discard(),
+				StoreReader: s,
+				IndexReader: indexer,
+				Authorizer:  authz,
 			})
 
 			assert.NoError(t, err)
