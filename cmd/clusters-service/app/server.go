@@ -13,6 +13,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 	"math/big"
 	"net"
 	"net/http"
@@ -793,8 +794,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	var metricsServer *http.Server
 
-	if args.MetricsServerConf.Enabled {
-		metricsServer = server.NewMetricsServer(args.MetricsServerConf, prometheus.Gatherers{
+	if args.MetricsOptions.Enabled {
+		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions, prometheus.Gatherers{
 			prometheus.DefaultGatherer,
 			clustersmngr.Registry,
 		})
@@ -803,8 +804,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 
-		if args.MetricsServerConf.Enabled {
-			wrapperHandler = server.WithMetrics(wrapperHandler)
+		if args.MetricsOptions.Enabled {
+			wrapperHandler = metrics.WithHttpMetrics(wrapperHandler)
 		}
 
 		return entitlement.EntitlementHandler(
@@ -840,7 +841,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
-		if args.MetricsServerConf.Enabled && metricsServer != nil {
+		if args.MetricsOptions.Enabled && metricsServer != nil {
 			if err := metricsServer.Shutdown(ctx); err != nil {
 				args.Log.Error(err, "Failed to shutdown metrics server")
 			}

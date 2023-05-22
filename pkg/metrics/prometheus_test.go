@@ -1,4 +1,4 @@
-package server
+package metrics
 
 import (
 	"io"
@@ -35,13 +35,6 @@ var (
 	}
 )
 
-// server is the interface used by the integration tests to return a listening server
-// where we can make request and then test the metrics.
-type tserver interface {
-	Close()
-	URL() string
-}
-
 type testServer struct{ server *httptest.Server }
 
 func (t testServer) Close()      { t.server.Close() }
@@ -63,8 +56,8 @@ func TestNewMetricsServer(t *testing.T) {
 	assert := assert.New(t)
 
 	t.Run("should create new metrics server", func(t *testing.T) {
-		NewMetricsServer(MetricsServerConf{
-			Address: "localhost:8080",
+		NewPrometheusServer(Options{
+			ServerAddress: "localhost:8080",
 		}, prometheus.Gatherers{
 			prometheus.DefaultGatherer,
 		})
@@ -89,8 +82,8 @@ func TestWithMetrics(t *testing.T) {
 	assert := assert.New(t)
 	t.Run("should record metrics for http server", func(t *testing.T) {
 		// create metrics server
-		NewMetricsServer(MetricsServerConf{
-			Address: "localhost:8080",
+		NewPrometheusServer(Options{
+			ServerAddress: "localhost:8080",
 		}, prometheus.Gatherers{
 			prometheus.DefaultGatherer,
 		})
@@ -99,7 +92,7 @@ func TestWithMetrics(t *testing.T) {
 			rw.WriteHeader(http.StatusOK)
 			_, _ = rw.Write([]byte("hello world!"))
 		})
-		handler := WithMetrics(next)
+		handler := WithHttpMetrics(next)
 		s := testServer{server: httptest.NewServer(handler)}
 		t.Cleanup(func() { s.Close() })
 
