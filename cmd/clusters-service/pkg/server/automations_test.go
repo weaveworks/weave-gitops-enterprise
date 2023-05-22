@@ -1635,6 +1635,223 @@ status: {}
 			},
 			err: errors.New("invalid matches, application name is required"),
 		},
+		{
+			name: "committed files for sops secret",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New sops secret",
+				Description:   "Creates sops secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						FilePath:       "./secrets-age",
+						SopsSecret: &capiv1_protos.SopsSecret{
+							ApiVersion: "v1",
+							Kind:       "Secret",
+							Metadata: &capiv1_protos.SopsSecretMetadata{
+								Name:      "my-secret",
+								Namespace: "my-namepsace",
+								Labels: map[string]string{
+									"label-1": "value-1",
+									"label-2": "value-2",
+								},
+							},
+							Data: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+							Type:      "Opaque",
+							Immutable: true,
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "secrets-age/my-secret-my-namepsace-sops-secret.yaml",
+					Content: `apiVersion: v1
+data:
+  password: password
+  username: admin
+immutable: true
+kind: Secret
+metadata:
+  labels:
+    label-1: value-1
+    label-2: value-2
+  name: my-secret
+  namespace: my-namepsace
+type: Opaque
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files for sops secret without name",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New sops secret",
+				Description:   "Creates sops secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						FilePath:       "./secrets-age",
+						SopsSecret: &capiv1_protos.SopsSecret{
+							ApiVersion: "v1",
+							Kind:       "Secret",
+							Metadata: &capiv1_protos.SopsSecretMetadata{
+								Namespace: "my-namepsace",
+								Labels: map[string]string{
+									"label-1": "value-1",
+									"label-2": "value-2",
+								},
+							},
+							StringData: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+							Type:      "Opaque",
+							Immutable: true,
+						},
+					},
+				},
+			},
+			err: errors.New("missing secret name"),
+		},
+		{
+			name: "committed files for sops secret without namespace",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New sops secret",
+				Description:   "Creates sops secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						FilePath:       "./secrets-age",
+						SopsSecret: &capiv1_protos.SopsSecret{
+							ApiVersion: "v1",
+							Kind:       "Secret",
+							Metadata: &capiv1_protos.SopsSecretMetadata{
+								Name: "my-secret",
+								Labels: map[string]string{
+									"label-1": "value-1",
+									"label-2": "value-2",
+								},
+							},
+							Data: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+							Type:      "Opaque",
+							Immutable: true,
+						},
+					},
+				},
+			},
+			err: errors.New("missing secret namespace"),
+		},
+		{
+			name: "committed files for sops secret without data and stringData",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New sops secret",
+				Description:   "Creates sops secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						FilePath:       "./secrets-age",
+						SopsSecret: &capiv1_protos.SopsSecret{
+							ApiVersion: "v1",
+							Kind:       "Secret",
+							Metadata: &capiv1_protos.SopsSecretMetadata{
+								Name:      "my-secret",
+								Namespace: "my-namepsace",
+								Labels: map[string]string{
+									"label-1": "value-1",
+									"label-2": "value-2",
+								},
+							},
+							Type:      "Opaque",
+							Immutable: true,
+						},
+					},
+				},
+			},
+			err: errors.New("key/value pairs must be set in either data or stringData"),
+		},
+		{
+			name: "committed files for sops secret with data and stringData",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New sops secret",
+				Description:   "Creates sops secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						FilePath:       "./secrets-age",
+						SopsSecret: &capiv1_protos.SopsSecret{
+							ApiVersion: "v1",
+							Kind:       "Secret",
+							Metadata: &capiv1_protos.SopsSecretMetadata{
+								Name:      "my-secret",
+								Namespace: "my-namepsace",
+								Labels: map[string]string{
+									"label-1": "value-1",
+									"label-2": "value-2",
+								},
+							},
+							Type:      "Opaque",
+							Immutable: true,
+							Data: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+							StringData: map[string]string{
+								"username": "admin",
+								"password": "password",
+							},
+						},
+					},
+				},
+			},
+			err: errors.New("expected only one of data or stringData fields, but found both"),
+		},
 	}
 
 	for _, tt := range testCases {

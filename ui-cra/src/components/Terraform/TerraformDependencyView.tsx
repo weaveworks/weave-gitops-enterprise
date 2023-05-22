@@ -1,10 +1,15 @@
-import { DagGraph, Flex } from '@weaveworks/weave-gitops';
+import {
+  DagGraph,
+  Flex,
+  MessageBox,
+  Spacer,
+  Text,
+} from '@weaveworks/weave-gitops';
 import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
 import React from 'react';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
-import { Body, Message, Title } from '../Shared';
 import {
   getGraphNodes,
   makeObjectId,
@@ -62,27 +67,35 @@ function TerraformDependenciesView({ className, object }: Props) {
   const shouldShowGraph = graphNodes && graphNodes.length;
 
   return (
-    <Flex wide tall column>
+    <Flex align wide tall column>
       {shouldShowGraph ? (
         <DagGraph
           className={className}
           nodes={graphNodes as FluxObjectNode[]}
         />
       ) : (
-        <Message>
-          <Title>No Dependencies</Title>
-          <Body>
+        <MessageBox>
+          <Spacer padding="small" />
+          <Text size="large" semiBold>
+            No Dependencies
+          </Text>
+          <Spacer padding="small" />
+          <Text size="medium">
             There are no dependencies set up for your Terraform object at this
             time. You can set them up using the "dependsOn" field.
-          </Body>
-          <Title>What are dependencies for?</Title>
-          <Body>
+          </Text>
+          <Spacer padding="small" />
+          <Text size="large" semiBold>
+            What are dependencies for?
+          </Text>
+          <Spacer padding="small" />
+          <Text size="medium">
             Dependencies allow you to relate different Terraform objects, as
             well as specifying an order in which your resources should be
             started. For example, you can wait for a database to report as
             'Ready' before attempting to deploy other services.
-          </Body>
-        </Message>
+          </Text>
+        </MessageBox>
       )}
     </Flex>
   );

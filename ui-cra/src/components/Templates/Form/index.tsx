@@ -1,6 +1,3 @@
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, Redirect } from 'react-router-dom';
-import styled from 'styled-components';
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
 import {
   createStyles,
@@ -9,6 +6,7 @@ import {
 } from '@material-ui/core/styles';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
@@ -19,12 +17,18 @@ import {
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Redirect, useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import {
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
 import { localEEMuiTheme } from '../../../muiTheme';
@@ -42,7 +46,13 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { getFormattedCostEstimate } from '../../../utils/formatters';
+import { Routes } from '../../../utils/nav';
+import { removeToken } from '../../../utils/request';
+import { getGitRepos } from '../../Clusters';
+import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { getLink } from '../Edit/EditButton';
+import useNotifications from './../../../contexts/Notifications';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
@@ -52,18 +62,15 @@ import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
   getCreateRequestAnnotation,
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from './utils';
-import { getFormattedCostEstimate } from '../../../utils/formatters';
-import useNotifications from './../../../contexts/Notifications';
-import { Routes } from '../../../utils/nav';
-import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
-import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { Pipeline } from '../../../api/pipelines/types.pb';
-import { getLink } from '../Edit/EditButton';
-import { getGitRepos } from '../../Clusters';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -74,11 +81,12 @@ const medium = weaveTheme.spacing.medium;
 const base = weaveTheme.spacing.base;
 const xxs = weaveTheme.spacing.xxs;
 const small = weaveTheme.spacing.small;
+const primary = weaveTheme.colors.primary;
+const neutral10 = weaveTheme.colors.neutral10;
+const xs = weaveTheme.spacing.xs;
 
 const FormWrapper = styled.form`
   .create-cta {
-    display: flex;
-    justify-content: end;
     padding: ${({ theme }) => theme.spacing.small};
     button {
       width: 200px;
@@ -89,15 +97,11 @@ const FormWrapper = styled.form`
   }
 `;
 
-const CredentialsWrapper = styled.div`
-  display: flex;
-  align-items: center;
+const CredentialsWrapper = styled(Flex)`
   & .template-title {
     margin-right: ${({ theme }) => theme.spacing.medium};
   }
   & .credentials {
-    display: flex;
-    align-items: center;
     span {
       margin-right: ${({ theme }) => theme.spacing.xs};
     }
@@ -143,6 +147,21 @@ const useStyles = makeStyles(theme =>
     },
     previewLoading: {
       padding: base,
+    },
+    editor: {
+      '& a': {
+        color: primary,
+      },
+      '& > *:first-child': {
+        marginTop: 0,
+      },
+      '& > *:last-child': {
+        marginBottom: 0,
+      },
+      marginTop: xs,
+      background: neutral10,
+      padding: small,
+      maxHeight: '300px',
     },
   }),
 );
@@ -294,10 +313,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
-  const initialGitRepo = getInitialGitRepo(
-    initialUrl,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
 
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
@@ -311,7 +327,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
 
   // get the cost estimate feature flag
-  const { data: featureFlagsData } = useFeatureFlags();
+  const { isFlagEnabled } = useFeatureFlags();
 
   const isCredentialEnabled =
     annotations?.['templates.weave.works/credentials-enabled'] === 'true';
@@ -320,7 +336,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const isKustomizationsEnabled =
     annotations?.['templates.weave.works/kustomizations-enabled'] === 'true';
   const isCostEstimationEnabled =
-    featureFlagsData.flags.WEAVE_GITOPS_FEATURE_COST_ESTIMATION === 'true' &&
+    isFlagEnabled('WEAVE_GITOPS_FEATURE_COST_ESTIMATION') &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
@@ -331,9 +347,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
-  useEffect(() => {
-    clearCallbackState();
-  }, []);
+  useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -359,7 +373,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const [formError, setFormError] = useState<string>('');
 
   const handlePRPreview = useCallback(() => {
@@ -438,12 +451,18 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
   ]);
 
+  const token = getProviderToken(formData.provider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
+
   const handleAddResource = useCallback(() => {
     let createReqAnnot;
     if (resource !== undefined) {
       createReqAnnot = getCreateRequestAnnotation(resource);
     }
-
     const payload = toPayload(
       formData,
       infraCredential,
@@ -454,37 +473,41 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       createReqAnnot,
       getRepositoryUrl(formData.repo),
     );
-
     setLoading(true);
-    return addResource(payload, getProviderToken(formData.provider))
-      .then(response => {
-        setPRPreview(null);
-        history.push(Routes.Templates);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
+    return validateToken()
+      .then(() =>
+        addResource(payload, getProviderToken(formData.provider))
+          .then(response => {
+            setPRPreview(null);
+            history.push(Routes.Templates);
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error =>
+            setNotifications([
+              {
+                message: { text: error.message },
+                severity: 'error',
+                display: 'bottom',
+              },
+            ]),
+          )
+          .finally(() => setLoading(false)),
+      )
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
   }, [
@@ -499,6 +522,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setNotifications,
     history,
     resource,
+    validateToken,
   ]);
 
   useEffect(() => {
@@ -567,7 +591,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           }
         >
           <Grid item xs={12} sm={10} md={10} lg={8}>
-            <CredentialsWrapper>
+            <CredentialsWrapper align>
               <div className="template-title">
                 Template: <span>{template.name}</span>
               </div>
@@ -578,6 +602,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 />
               ) : null}
             </CredentialsWrapper>
+            {template.description ? (
+              <Flex column>
+                <div>Description:</div>
+                <ReactMarkdown
+                  children={template.description || ''}
+                  className={`editor ${classes.editor}`}
+                  remarkPlugins={[remarkGfm]}
+                />
+              </Flex>
+            ) : null}
+
             <Divider
               className={
                 !isLargeScreen ? classes.divider : classes.largeDivider
@@ -644,24 +679,26 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
-              setEnableCreatePR={setEnableCreatePR}
               formError={formError}
               enableGitRepoSelection={
-                !(resource && initialGitRepo?.createPRRepo)
+                !(
+                  resource &&
+                  (initialGitRepo as GitRepositoryEnriched)?.createPRRepo
+                )
               }
             />
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
-              <div className="create-cta">
+              <Flex end className="create-cta">
                 <Button
                   type="submit"
                   onClick={() => setSubmitType('Create resource')}
-                  disabled={!enableCreatePR}
+                  disabled={!isAuthenticated}
                 >
                   CREATE PULL REQUEST
                 </Button>
-              </div>
+              </Flex>
             )}
           </Grid>
         </FormWrapper>
@@ -682,7 +719,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     updatedProfiles,
     previewLoading,
     loading,
-    enableCreatePR,
     costEstimationLoading,
     handleCostEstimation,
     costEstimate,
@@ -696,6 +732,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     getSubmitFunction,
     resource,
     initialGitRepo,
+    isAuthenticated,
   ]);
 };
 

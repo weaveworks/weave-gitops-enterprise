@@ -19,10 +19,13 @@ import WGNotificationsProvider from './components/Applications/NotificationsProv
 import WGApplicationsOCIRepository from './components/Applications/OCIRepository';
 import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
-import ClusterDashboard from './components/Clusters/ClusterDashboard';
+import ClusterDetails from './components/Clusters/ClusterDetails';
+import Explorer from './components/Explorer';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
+import GitOpsSets from './components/GitOpsSets';
+import GitOpsSetDetail from './components/GitOpsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
@@ -33,26 +36,26 @@ import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
+import PolicyConfigsList from './components/PolicyConfigs';
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
+import CreatePolicyConfig from './components/PolicyConfigs/create';
 import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
 import CreateSecret from './components/Secrets/Create';
+import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
 import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
 import TerraformObjectDetail from './components/Terraform/TerraformObjectDetail';
 import TerraformObjectList from './components/Terraform/TerraformObjectList';
+import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import PolicyConfigsList from './components/PolicyConfigs';
-import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails'
-import GitopsSets from './components/GitopsSets';
-import GitOpsSetDetail from './components/GitopsSets/GitOpsSetDetail';
-import WGUserInfo from './components/UserInfo';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -79,7 +82,7 @@ const CoreWrapper = styled.div`
   .MuiButton-root {
     margin-right: 0;
   }
-  max-width: calc(100vw - 220px);
+  width: 100%;
 `;
 
 const Page404 = () => (
@@ -101,11 +104,11 @@ const AppRoutes = () => {
       <Route exact path="/">
         <Redirect to={Routes.Clusters} />
       </Route>
-      <Route component={MCCP} exact path={Routes.Clusters} />
+      <Route component={MCCP} path={Routes.Clusters} />
       <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (
-          <ClusterDashboard {...props} />
+          <ClusterDetails {...props} />
         ))}
         path={Routes.ClusterDashboard}
       />
@@ -152,9 +155,9 @@ const AppRoutes = () => {
         path={Routes.AddApplication}
       />
       <Route
-        component={() => (
+        component={(props: any) => (
           <CoreWrapper>
-            <WGApplicationsSources />
+            <WGApplicationsSources {...props} />
           </CoreWrapper>
         )}
         exact
@@ -294,17 +297,28 @@ const AppRoutes = () => {
         component={withSearchParams(SecretDetails)}
       />
       <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route exact path={Routes.PolicyConfigsDetails} component={withSearchParams(PolicyConfigsDetails)} />
+      <Route
+        exact
+        path={Routes.PolicyConfigsDetails}
+        component={withSearchParams(PolicyConfigsDetails)}
+      />
+      <Route
+        exact
+        path={Routes.CreatePolicyConfig}
+        component={CreatePolicyConfig}
+      />
 
       <Route
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
+      <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
       <Route
         exact
         path={Routes.GitOpsSets}
-        component={withSearchParams(GitopsSets)}
+        component={withSearchParams(GitOpsSets)}
       />
       <Route
         path={Routes.GitOpsSetDetail}
@@ -319,6 +333,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={'GitLab' as GitProvider}
               code={params.code as string}
+              state=""
             />
           );
         }}
@@ -341,6 +356,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.BitBucketServer}
               code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />
@@ -365,6 +381,7 @@ const AppRoutes = () => {
             <OAuthCallback
               provider={GitProvider.AzureDevOps}
               code={params.code as string}
+              state={params.state as string}
               error={error}
               errorDescription={desc}
             />

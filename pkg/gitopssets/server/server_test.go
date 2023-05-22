@@ -1,36 +1,44 @@
-package server_test
+package server
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
+	"github.com/google/go-cmp/cmp"
+	"github.com/hashicorp/go-multierror"
 	. "github.com/onsi/gomega"
 	"github.com/stretchr/testify/assert"
+	"github.com/tonglil/buflogr"
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
-	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/testing/protocmp"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	kerrors "k8s.io/apimachinery/pkg/api/errors"
+	apimeta "k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/apimachinery/pkg/util/rand"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/restmapper"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
@@ -53,45 +61,283 @@ const (
 func TestListGitOpsSets(t *testing.T) {
 	ctx := context.Background()
 
-	// setup a fake cluster with fake objects and give us a fake client so we can query it.
-	client, k8s := setup(t)
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "namespace-a-1",
+		},
+	}
 
-	obj := &ctrl.GitOpsSet{}
-	obj.Name = "my-obj"
-	obj.Namespace = "default"
-
-	assert.NoError(t, k8s.Create(ctx, obj))
+	clusterClients := map[string]client.Client{
+		"management": createClient(t, obj),
+	}
+	client := setup(t, clusterClients)
 
 	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
 	assert.NoError(t, err)
 
-	assert.Len(t, res.Gitopssets, 1)
+	expected := &pb.ListGitOpsSetsResponse{
+		Gitopssets: []*pb.GitOpsSet{
+			{
+				Name:        obj.Name,
+				Type:        "GitOpsSet",
+				Namespace:   obj.Namespace,
+				ClusterName: "management",
+				ObjectRef: &pb.ObjectRef{
+					Kind:        "GitOpsSet",
+					Name:        obj.Name,
+					Namespace:   obj.Namespace,
+					ClusterName: "management",
+				},
+			},
+		},
+	}
 
-	o := res.Gitopssets[0]
+	ignoreFields := protocmp.IgnoreFields(&pb.GitOpsSet{}, "yaml")
+	if diff := cmp.Diff(expected, res, protocmp.Transform(), ignoreFields); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, res, diff)
+	}
+}
 
-	assert.Equal(t, o.ClusterName, "Default")
-	assert.Equal(t, o.Name, obj.Name)
-	assert.Equal(t, o.Namespace, obj.Namespace)
+func TestListWithErrors(t *testing.T) {
+	ctx := context.Background()
+
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "namespace-a-1",
+		},
+	}
+
+	unusableClient := fake.NewClientBuilder().Build()
+
+	clusterClients := map[string]client.Client{
+		"management": createClient(t, obj),
+		"leaf-1":     unusableClient,
+	}
+	client := setup(t, clusterClients)
+
+	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
+	assert.NoError(t, err)
+
+	expected := &pb.ListGitOpsSetsResponse{
+		Gitopssets: []*pb.GitOpsSet{
+			{
+				Name:        obj.Name,
+				Type:        "GitOpsSet",
+				Namespace:   obj.Namespace,
+				ClusterName: "management",
+				ObjectRef: &pb.ObjectRef{
+					Kind:        "GitOpsSet",
+					Name:        obj.Name,
+					Namespace:   obj.Namespace,
+					ClusterName: "management",
+				},
+			},
+		},
+		Errors: []*pb.GitOpsSetListError{
+			{
+				ClusterName: "leaf-1",
+				Message:     "no kind is registered for the type v1alpha1.GitOpsSetList in scheme \"pkg/runtime/scheme.go:100\"",
+				Namespace:   "namespace-x-1",
+			},
+		},
+	}
+
+	ignoreFields := protocmp.IgnoreFields(&pb.GitOpsSet{}, "yaml")
+	if diff := cmp.Diff(expected, res, ignoreFields, protocmp.Transform()); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, res, diff)
+	}
+}
+
+func TestToListErrors(t *testing.T) {
+	// a multierror with 2 errors
+	err := multierror.Append(
+		&clustersmngr.ClientError{
+			ClusterName: "cluster-1",
+			Err:         errors.New("error 1"),
+		},
+		&clustersmngr.ClientError{
+			ClusterName: "cluster-2",
+			Err:         errors.New("error 2"),
+		},
+		// should be ignored
+		errors.New("oh no"),
+	).ErrorOrNil()
+
+	errList, err := toListErrors(err)
+	assert.NoError(t, err)
+
+	expected := []*pb.GitOpsSetListError{
+		{
+			ClusterName: "cluster-1",
+			Message:     "error 1",
+		},
+		{
+			ClusterName: "cluster-2",
+			Message:     "error 2",
+		},
+	}
+
+	assert.Equal(t, expected, errList)
+
+	if diff := cmp.Diff(expected, errList, protocmp.Transform()); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, errList, diff)
+	}
+}
+
+func TestListWithMissingCRD(t *testing.T) {
+	ctx := context.Background()
+
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "namespace-a-1",
+		},
+	}
+
+	unusableClient := errorClient{
+		err: &apimeta.NoResourceMatchError{
+			PartialResource: schema.GroupVersionResource{
+				Version:  ctrl.GroupVersion.Version,
+				Group:    ctrl.GroupVersion.Group,
+				Resource: "gitopssets",
+			},
+		},
+	}
+
+	clusterClients := map[string]client.Client{
+		"management": createClient(t, obj),
+		"leaf-1":     unusableClient,
+	}
+
+	buf := bytes.Buffer{}
+	log := buflogr.NewWithBuffer(&buf)
+
+	client := setup(t, clusterClients, func(opt ServerOpts) ServerOpts {
+		opt.Logger = log
+		return opt
+	})
+
+	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
+	assert.NoError(t, err)
+
+	expected := &pb.ListGitOpsSetsResponse{
+		Gitopssets: []*pb.GitOpsSet{
+			{
+				Name:        obj.Name,
+				Type:        "GitOpsSet",
+				Namespace:   obj.Namespace,
+				ClusterName: "management",
+				ObjectRef: &pb.ObjectRef{
+					Kind:        "GitOpsSet",
+					Name:        obj.Name,
+					Namespace:   obj.Namespace,
+					ClusterName: "management",
+				},
+			},
+		},
+	}
+
+	ignoreFields := protocmp.IgnoreFields(&pb.GitOpsSet{}, "yaml")
+	if diff := cmp.Diff(expected, res, ignoreFields, protocmp.Transform()); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, res, diff)
+	}
+
+	// check for log message
+	expectedLog := "INFO gitopssets crd not present on cluster, skipping error cluster leaf-1"
+	if !strings.Contains(buf.String(), expectedLog) {
+		t.Fatalf("expected log message %v, got %v", expectedLog, buf.String())
+	}
+}
+
+func TestListWithNoRBAC(t *testing.T) {
+	ctx := context.Background()
+
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "namespace-a-1",
+		},
+	}
+
+	unusableClient := errorClient{
+		err: &kerrors.StatusError{
+			ErrStatus: metav1.Status{
+				Reason: metav1.StatusReasonForbidden,
+			},
+		},
+	}
+
+	clusterClients := map[string]client.Client{
+		"management": createClient(t, obj),
+		"leaf-1":     unusableClient,
+	}
+
+	client := setup(t, clusterClients)
+
+	res, err := client.ListGitOpsSets(ctx, &pb.ListGitOpsSetsRequest{})
+	assert.NoError(t, err)
+
+	expected := &pb.ListGitOpsSetsResponse{
+		Gitopssets: []*pb.GitOpsSet{
+			{
+				Name:        obj.Name,
+				Type:        "GitOpsSet",
+				Namespace:   obj.Namespace,
+				ClusterName: "management",
+				ObjectRef: &pb.ObjectRef{
+					Kind:        "GitOpsSet",
+					Name:        obj.Name,
+					Namespace:   obj.Namespace,
+					ClusterName: "management",
+				},
+			},
+		},
+	}
+
+	ignoreFields := protocmp.IgnoreFields(&pb.GitOpsSet{}, "yaml")
+	if diff := cmp.Diff(expected, res, ignoreFields, protocmp.Transform()); diff != "" {
+		t.Fatalf("expected %v, got %v, diff: %v", expected, res, diff)
+	}
 }
 
 func TestSuspendGitOpsSet(t *testing.T) {
 	ctx := context.Background()
-	client, k8s := setup(t)
 
 	obj := &ctrl.GitOpsSet{}
 	obj.Name = "my-obj"
-	obj.Namespace = "default"
+	obj.Namespace = "namespace-a-1"
 	obj.Spec = ctrl.GitOpsSetSpec{
 		Suspend: false,
 	}
-
-	assert.NoError(t, k8s.Create(ctx, obj))
+	k8s := createClient(t, obj)
+	clusterClients := map[string]client.Client{
+		"management": k8s,
+	}
+	client := setup(t, clusterClients)
 
 	// no kind is registered for the type v1alpha1.GitOpsSet in scheme "pkg/runtime/scheme.go:100" - how do we create objects in the absence of k8s?
 	_, err := client.ToggleSuspendGitOpsSet(ctx, &pb.ToggleSuspendGitOpsSetRequest{
 		Name:        obj.Name,
 		Namespace:   obj.Namespace,
-		ClusterName: "Default",
+		ClusterName: "management",
 		Suspend:     true,
 	})
 	assert.NoError(t, err)
@@ -109,20 +355,23 @@ func TestGetReconciledObjects(t *testing.T) {
 
 	ctx := context.Background()
 
-	c, k := setup(t)
-
 	gsName := "my-gs"
-	ns1 := newNamespace(ctx, k, g)
+	ns1 := &corev1.Namespace{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: "namespace-a-1",
+		},
+	}
 
-	reconciledObjs := []client.Object{
+	reconciledObjs := []runtime.Object{
+		ns1,
 		&appsv1.Deployment{
 			ObjectMeta: metav1.ObjectMeta{
 				UID:       "abc",
 				Name:      "my-deployment",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
-					server.GitOpsSetNameKey:      gsName,
-					server.GitOpsSetNamespaceKey: ns1.Name,
+					GitOpsSetNameKey:      gsName,
+					GitOpsSetNamespaceKey: ns1.Name,
 				},
 			},
 			Spec: appsv1.DeploymentSpec{
@@ -150,8 +399,8 @@ func TestGetReconciledObjects(t *testing.T) {
 				Name:      "my-configmap",
 				Namespace: ns1.Name,
 				Labels: map[string]string{
-					server.GitOpsSetNameKey:      gsName,
-					server.GitOpsSetNamespaceKey: ns1.Name,
+					GitOpsSetNameKey:      gsName,
+					GitOpsSetNamespaceKey: ns1.Name,
 				},
 			},
 		},
@@ -164,9 +413,11 @@ func TestGetReconciledObjects(t *testing.T) {
 		},
 	}
 
-	for _, obj := range reconciledObjs {
-		g.Expect(k.Create(ctx, obj)).Should(Succeed())
+	k8s := createClient(t, reconciledObjs...)
+	clusterClients := map[string]client.Client{
+		"management": k8s,
 	}
+	c := setup(t, clusterClients)
 
 	type objectAssertion struct {
 		kind string
@@ -188,11 +439,11 @@ func TestGetReconciledObjects(t *testing.T) {
 			expectedObjects: []objectAssertion{
 				{
 					kind: "Deployment",
-					name: reconciledObjs[0].GetName(),
+					name: "my-deployment",
 				},
 				{
 					kind: "ConfigMap",
-					name: reconciledObjs[1].GetName(),
+					name: "my-configmap",
 				},
 			},
 		},
@@ -211,7 +462,7 @@ func TestGetReconciledObjects(t *testing.T) {
 					{Group: appsv1.SchemeGroupVersion.Group, Version: appsv1.SchemeGroupVersion.Version, Kind: "Deployment"},
 					{Group: corev1.SchemeGroupVersion.Group, Version: corev1.SchemeGroupVersion.Version, Kind: "ConfigMap"},
 				},
-				ClusterName: cluster.DefaultCluster,
+				ClusterName: "management",
 			})
 
 			fmt.Println(res.Objects)
@@ -237,79 +488,100 @@ func TestGetReconciledObjects(t *testing.T) {
 	}
 }
 
-func setup(t *testing.T) (pb.GitOpsSetsClient, client.Client) {
-	k8s, factory := grpctesting.MakeFactoryWithObjects()
-	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
-		Namespaces: []*corev1.Namespace{
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "default",
-				},
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "Namespace",
-				},
-			},
-			{
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "test-ns",
-				},
-				TypeMeta: metav1.TypeMeta{
-					APIVersion: "v1",
-					Kind:       "Namespace",
-				},
-			},
-		},
-	}, kubefakes.NewFakeClientGetter(k8s), &mgmtfetcherfake.FakeAuthClientGetter{})
-
-	opts := server.ServerOpts{
-		ClientsFactory:    factory,
-		ManagementFetcher: mgmtFetcher,
-		Cluster:           cluster.DefaultCluster,
+func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(opts ServerOpts) ServerOpts) pb.GitOpsSetsClient {
+	clientsPool := &clustersmngrfakes.FakeClientsPool{}
+	clientsPool.ClientsReturns(clusterClients)
+	clientsPool.ClientStub = func(name string) (client.Client, error) {
+		if c, found := clusterClients[name]; found && c != nil {
+			return c, nil
+		}
+		return nil, fmt.Errorf("cluster %s not found", name)
 	}
-	srv := server.NewGitOpsSetsServer(opts)
+	namespaces := map[string][]corev1.Namespace{
+		"management": {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "namespace-a-1"}}},
+		"leaf-1":     {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "namespace-x-1"}}},
+	}
+	clustersClient := clustersmngr.NewClient(clientsPool, namespaces, logr.Discard())
+	fakeFactory := &clustersmngrfakes.FakeClustersManager{}
+	fakeFactory.GetImpersonatedClientForClusterReturns(clustersClient, nil)
+	fakeFactory.GetImpersonatedClientReturns(clustersClient, nil)
+	fakeFactory.GetUserNamespacesReturns(namespaces)
+
+	log := testr.New(t)
+	options := ServerOpts{
+		ClientsFactory: fakeFactory,
+		Logger:         log,
+	}
+
+	for _, o := range opts {
+		options = o(options)
+	}
+
+	srv := NewGitOpsSetsServer(options)
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
 		pb.RegisterGitOpsSetsServer(s, srv)
-	}, WithClientsPoolInterceptor(&auth.UserPrincipal{ID: "bob"}))
-
-	return pb.NewGitOpsSetsClient(conn), k8s
-}
-
-func newNamespace(ctx context.Context, k client.Client, g *GomegaWithT) *corev1.Namespace {
-	ns := &corev1.Namespace{}
-	ns.Name = "kube-test-" + rand.String(5)
-
-	g.Expect(k.Create(ctx, ns)).To(Succeed())
-
-	return ns
-}
-
-func WithClientsPoolInterceptor(user *auth.UserPrincipal) grpc.ServerOption {
-	return grpc.UnaryInterceptor(func(ctx context.Context, req interface{}, _ *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		ctx = auth.WithPrincipal(ctx, user)
-		return handler(ctx, req)
 	})
+
+	return pb.NewGitOpsSetsClient(conn)
+}
+
+func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		appsv1.AddToScheme,
+		corev1.AddToScheme,
+		ctrl.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	c := fake.NewClientBuilder().
+		WithScheme(scheme).
+		WithRuntimeObjects(clusterState...).
+		Build()
+
+	return c
+}
+
+type errorClient struct {
+	client.Client
+	err error
+}
+
+func (s errorClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
+	return s.err
 }
 
 func TestSyncGitOpsSet(t *testing.T) {
 	ctx := context.Background()
-	client, k8s := setup(t)
 
-	obj := &ctrl.GitOpsSet{}
-	obj.Name = "my-obj"
-	obj.Namespace = "default"
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "default",
+		},
+	}
+	cl := createClient(t, obj)
+	clusterClients := map[string]client.Client{
+		"management": cl,
+	}
+	gsClient := setup(t, clusterClients)
 
 	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
-
-	assert.NoError(t, k8s.Create(context.Background(), obj))
 
 	done := make(chan error)
 	defer close(done)
 
 	go func() {
-		_, err := client.SyncGitOpsSet(ctx, &pb.SyncGitOpsSetRequest{
-			ClusterName: "Default",
+		_, err := gsClient.SyncGitOpsSet(ctx, &pb.SyncGitOpsSetRequest{
+			ClusterName: "management",
 			Name:        obj.Name,
 			Namespace:   obj.Namespace,
 		})
@@ -323,7 +595,7 @@ func TestSyncGitOpsSet(t *testing.T) {
 
 			r := adapter.GitOpsSetAdapter{GitOpsSet: obj}
 
-			if err := simulateReconcile(ctx, k8s, key, r.AsClientObject()); err != nil {
+			if err := simulateReconcile(ctx, cl, key, r.AsClientObject()); err != nil {
 				t.Fatalf("simulating reconcile: %s", err.Error())
 			}
 

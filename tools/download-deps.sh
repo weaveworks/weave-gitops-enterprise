@@ -12,6 +12,7 @@ cd "${SCRIPT_DIR}" || exit 1
 
 DEP_FILE=${1}
 BIN_DIR=${2:-${SCRIPT_DIR}/bin}
+CACHE_DIR="${SCRIPT_DIR}/cache"
 RELEASE_GOOS=${RELEASE_GOOS:-$(go env GOOS)}
 SKIP_FETCH_TOOLS=${SKIP_FETCH_TOOLS:-""}
 
@@ -22,6 +23,9 @@ if [ -n "$SKIP_FETCH_TOOLS" ]; then
     echo "skipping fetch tools..."
     exit 0
 fi
+
+# just in case we're bootstrapping, make sure the cache exists
+mkdir -p "${CACHE_DIR}"
 
 # create bin directory
 rm -rf "${BIN_DIR}"
@@ -60,11 +64,13 @@ download_dependency() {
     local tool="${1}"
     local bin_dir="${2}"
     local dependencies_toml="${DEP_FILE}"
-    local localToolVar="\$LOCAL_"${tool}
+
+    # short circuit if a LOCAL_${tool} value is in the env
+    local localToolVar="\$LOCAL_"${tool//-/_}
     local localTool
     localTool=$(eval "echo ${localToolVar}")
-
     if [ -n "${localTool}" ]; then
+        echo "Using ${tool} given in ${localToolVar} at ${localTool}"
         cp "${localTool}" "${bin_dir}"
         return 0
     fi
@@ -73,6 +79,16 @@ download_dependency() {
         local property="${1}"
         "${bin_dir}"/stoml "${dependencies_toml}" "${tool}"."${property}"
     }
+
+    local version="$(run_stoml version)"
+
+    # short circuit if we already have the tool at the version in the cache
+    local cached=${tool}_${version}
+    if [ -e "${CACHE_DIR}/${cached}" ]; then
+        echo "Using ${tool} ${version} in cache at ${CACHE_DIR}/${cached}"
+        cp -r "${CACHE_DIR}/${cached}" "${custom_bindir:-$bin_dir}/${tool}"
+        return 0
+    fi
 
     local tarpath
     tarpath=$(instantiate_url "$(run_stoml tarpath)")
@@ -119,20 +135,28 @@ download_dependency() {
         exit 1
     fi
 
-    "${fetch}" "${tool}" "${url_and_path}" "${custom_bindir:-$bin_dir}" "${checksum_path}"
+    "${fetch}" "${cached}" "${url_and_path}" "${CACHE_DIR}" "${checksum_path}"
+    cp -r "${CACHE_DIR}/${cached}" "${custom_bindir:-$bin_dir}/${tool}"
+}
+
+get_tool() {
+    local tool="${1}"
+    local url="${3}"
 }
 
 # Don't use $RELEASE_GOOS here, should be whatever is running the script.
-STOML_URL="https://github.com/freshautomations/stoml/releases/download/v0.4.0/stoml_$(goos)_amd64"
-do_curl_binary "stoml" "${STOML_URL}" "${BIN_DIR}"
+stoml_version="0.4.0"
+stoml_url="https://github.com/freshautomations/stoml/releases/download/v${stoml_version}/stoml_$(goos)_amd64"
+stoml_cached=stoml_${stoml_version}
+if [ ! -e "${CACHE_DIR}/${stoml_cached}" ]; then
+    do_curl_binary "${stoml_cached}" "${stoml_url}" "${CACHE_DIR}"
+else
+    echo "Using stoml ${stoml_version} in cache at ${CACHE_DIR}/${stoml_cached}"
+fi
+cp -r "${CACHE_DIR}/${stoml_cached}" "${BIN_DIR}/stoml"
 
 # Downloading tools
 tools=$("${BIN_DIR}"/stoml "${DEP_FILE}" .)
 for tool in $tools; do
     download_dependency "${tool}" "${BIN_DIR}"
 done
-
-echo "Installing golangci-lint"
-curl -sSfL \
-  https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-  | sh -s -- -b "$(go env GOPATH)"/bin v1.46.2

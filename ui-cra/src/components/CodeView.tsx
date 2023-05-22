@@ -94,11 +94,9 @@ export default styled(CodeView).attrs({
     padding: ${props => props.theme.spacing.small};
     white-space: pre-wrap;
   }
-
   pre::before {
     counter-reset: listing;
   }
-
   code {
     width: 100%;
     counter-increment: listing;
@@ -106,7 +104,6 @@ export default styled(CodeView).attrs({
     float: left;
     clear: left;
   }
-
   code::before {
     width: 28px;
     color: ${props => props.theme.colors.primary};
@@ -117,14 +114,12 @@ export default styled(CodeView).attrs({
     margin-right: ${props => props.theme.spacing.small};
     text-align: right;
   }
-
   button {
     border: 0px;
     border-radius: 50%;
     min-width: 30px;
     height: 30px;
     padding: 0;
-
     &:hover {
       border: 1px solid #d8d8d8;
     }

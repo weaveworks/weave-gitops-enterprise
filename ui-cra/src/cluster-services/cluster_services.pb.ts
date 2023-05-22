@@ -97,6 +97,7 @@ export type RenderTemplateResponse = {
   costEstimate?: CostEstimate
   externalSecretsFiles?: CommitFile[]
   policyConfigFiles?: CommitFile[]
+  sopsSecretFiles?: CommitFile[]
 }
 
 export type RenderAutomationRequest = {
@@ -108,6 +109,7 @@ export type RenderAutomationResponse = {
   helmReleaseFiles?: CommitFile[]
   externalSecretsFiles?: CommitFile[]
   policyConfigFiles?: CommitFile[]
+  sopsSecertFiles?: CommitFile[]
 }
 
 export type ListGitopsClustersRequest = {
@@ -151,6 +153,7 @@ export type ListPolicyValidationsRequest = {
   pagination?: Pagination
   application?: string
   namespace?: string
+  kind?: string
 }
 
 export type ListPolicyValidationsResponse = {
@@ -219,6 +222,7 @@ export type CreatePullRequestRequest = {
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
   policyConfigs?: PolicyConfigObject[]
+  sopsSecrets?: SopsSecret[]
 }
 
 export type PreviousValues = {
@@ -228,6 +232,7 @@ export type PreviousValues = {
   kustomizations?: Kustomization[]
   externalSecrets?: ExternalSecret[]
   policyConfigs?: PolicyConfigObject[]
+  sopsSecrets?: SopsSecret[]
 }
 
 export type CreatePullRequestResponse = {
@@ -416,6 +421,7 @@ export type ClusterAutomation = {
   filePath?: string
   externalSecret?: ExternalSecret
   policyConfig?: PolicyConfigObject
+  sopsSecret?: SopsSecret
 }
 
 export type ExternalSecret = {
@@ -546,6 +552,7 @@ export type GetConfigResponse = {
   repositoryURL?: string
   managementClusterName?: string
   uiConfig?: string
+  gitHostTypes?: {[key: string]: string}
 }
 
 export type PolicyParamRepeatedString = {
@@ -688,6 +695,7 @@ export type WorkspaceRole = {
   rules?: WorkspaceRoleRule[]
   manifest?: string
   timestamp?: string
+  kind?: string
 }
 
 export type WorkspaceRoleBindingRoleRef = {
@@ -710,6 +718,7 @@ export type WorkspaceRoleBinding = {
   timestamp?: string
   role?: WorkspaceRoleBindingRoleRef
   subjects?: WorkspaceRoleBindingSubject[]
+  kind?: string
 }
 
 export type WorkspaceServiceAccount = {
@@ -717,6 +726,7 @@ export type WorkspaceServiceAccount = {
   namespace?: string
   timestamp?: string
   manifest?: string
+  kind?: string
 }
 
 export type WorkspacePolicy = {
@@ -799,6 +809,7 @@ export type GetExternalSecretResponse = {
   version?: string
   status?: string
   timestamp?: string
+  yaml?: string
 }
 
 export type ExternalSecretStore = {
@@ -899,6 +910,55 @@ export type PolicyConfigObjectSpec = {
 export type PolicyConfigObject = {
   metadata?: Metadata
   spec?: PolicyConfigObjectSpec
+}
+
+export type EncryptSopsSecretRequest = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+  type?: string
+  immutable?: boolean
+  data?: {[key: string]: string}
+  stringData?: {[key: string]: string}
+  kustomizationName?: string
+  kustomizationNamespace?: string
+  clusterName?: string
+}
+
+export type EncryptSopsSecretResponse = {
+  encryptedSecret?: GoogleProtobufStruct.Value
+  path?: string
+}
+
+export type ListSopsKustomizationsRequest = {
+  clusterName?: string
+}
+
+export type ListSopsKustomizationsResponse = {
+  kustomizations?: SopsKustomizations[]
+  total?: number
+}
+
+export type SopsKustomizations = {
+  name?: string
+  namespace?: string
+}
+
+export type SopsSecretMetadata = {
+  name?: string
+  namespace?: string
+  labels?: {[key: string]: string}
+}
+
+export type SopsSecret = {
+  apiVersion?: string
+  kind?: string
+  metadata?: SopsSecretMetadata
+  data?: {[key: string]: string}
+  stringData?: {[key: string]: string}
+  type?: string
+  immutable?: boolean
+  sops?: GoogleProtobufStruct.Value
 }
 
 export class ClustersService {
@@ -1006,5 +1066,11 @@ export class ClustersService {
   }
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
     return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
+    return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListSopsKustomizations(req: ListSopsKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSopsKustomizationsResponse> {
+    return fm.fetchReq<ListSopsKustomizationsRequest, ListSopsKustomizationsResponse>(`/v1/sops-kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

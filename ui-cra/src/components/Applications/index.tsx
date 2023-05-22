@@ -1,46 +1,44 @@
-import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   AutomationsTable,
   Button,
+  Flex,
   Icon,
   IconType,
-  LoadingPage,
+  useFeatureFlags,
   useListAutomations,
-  theme,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
+import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
-import { makeStyles, createStyles } from '@material-ui/core';
-import { openLinkHandler } from '../../utils/link-checker';
+import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
-import { useListConfigContext } from '../../contexts/ListConfig';
+import OpenedPullRequest from '../Clusters/OpenedPullRequest';
+import Explorer from '../Explorer/Explorer';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 interface Size {
   size?: 'small';
 }
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
+const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
+    margin-bottom: ${({ theme }) => theme.spacing.small};
   }
 `;
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    externalIcon: {
-      marginRight: theme.spacing.small,
-    },
-  }),
-);
+const WGApplicationsDashboard: FC = ({ className }: any) => {
+  const { isFlagEnabled } = useFeatureFlags();
+  const useQueryServiceBackend = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  );
 
-const WGApplicationsDashboard: FC = () => {
-  const { data: automations, isLoading } = useListAutomations();
+  const { data: automations, isLoading } = useListAutomations('', {
+    enabled: !useQueryServiceBackend,
+    retry: false,
+    refetchInterval: 5000,
+  });
+
   const history = useHistory();
-  const listConfigContext = useListConfigContext();
-  const repoLink = listConfigContext?.repoLink || '';
-  const classes = useStyles();
 
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
@@ -53,7 +51,7 @@ const WGApplicationsDashboard: FC = () => {
         },
       ]}
     >
-      <ContentWrapper errors={automations?.errors}>
+      <ContentWrapper loading={isLoading} errors={automations?.errors}>
         <div
           style={{
             display: 'flex',
@@ -70,24 +68,23 @@ const WGApplicationsDashboard: FC = () => {
             >
               ADD AN APPLICATION
             </Button>
-            <Button onClick={openLinkHandler(repoLink)}>
-              <Icon
-                className={classes.externalIcon}
-                type={IconType.ExternalTab}
-                size="base"
-              />
-              GO TO OPEN PULL REQUESTS
-            </Button>
+            <OpenedPullRequest />
           </ActionsWrapper>
         </div>
-        {isLoading ? (
-          <LoadingPage />
-        ) : (
-          <AutomationsTable automations={automations?.result} />
-        )}
+
+        <div className={className}>
+          {useQueryServiceBackend ? (
+            <Explorer category="automation" enableBatchSync />
+          ) : (
+            <AutomationsTable automations={automations?.result} />
+          )}
+        </div>
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsDashboard;
+export default styled(WGApplicationsDashboard)`
+  width: 100%;
+  overflow: auto;
+`;

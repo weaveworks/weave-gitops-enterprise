@@ -11,6 +11,7 @@ import {
   PipelinesClientMock,
   withContext,
 } from '../../../../utils/test-utils';
+const fs = require('fs');
 
 const res: GetPipelineResponse = {
   pipeline: {
@@ -264,8 +265,7 @@ describe('PipelineDetails', () => {
 
     // Breadcrumbs
     const breadcrumbs = screen.queryAllByRole('heading');
-    expect(breadcrumbs[0].textContent).toEqual('Applications');
-    expect(breadcrumbs[1].textContent).toEqual('Pipelines');
+    expect(breadcrumbs[0].textContent).toEqual('Pipelines');
     expect(await screen.findByText('podinfo-02')).toBeTruthy();
 
     const targetsStatuses = params?.status?.environments || {};
@@ -355,15 +355,14 @@ describe('PipelineDetails', () => {
       );
       render(c);
     });
+
     const yamlTab = screen
       .getAllByRole('tab')
       .filter(tabEle => tabEle.textContent === 'Yaml')[0];
 
     yamlTab.click();
     const code = document.querySelector('pre')?.textContent?.trimEnd();
-    // textContent does not return newlines it seems
-    const expected = params?.yaml!.replace(/\n/g, '').trimEnd();
-    expect(code).toEqual(expected);
+    expect(code).toMatchSnapshot();
   });
   describe('renders promotion strategy', () => {
     it('pull request', async () => {

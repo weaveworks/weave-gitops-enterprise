@@ -1,50 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import styled from 'styled-components';
-import { ThemeProvider } from '@material-ui/core/styles';
-import useClusters from '../../hooks/clusters';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { useHistory, useRouteMatch } from 'react-router-dom';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { localEEMuiTheme } from '../../muiTheme';
-import { CAPIClusterStatus } from './CAPIClusterStatus';
-import { GitopsClusterEnriched } from '../../types/custom';
-import {
-  theme,
-  InfoList,
-  RouterTab,
-  SubRouterTabs,
-  Icon,
-  IconType,
-  Button as WeaveButton,
-  KubeStatusIndicator,
-  useListSources,
-} from '@weaveworks/weave-gitops';
-import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
-import {
-  Box,
-  Button,
-  makeStyles,
-  Typography,
-  createStyles,
-  CircularProgress,
-} from '@material-ui/core';
-import { DashboardsList } from './DashboardsList';
+import { Box, Button, Typography } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
-import Divider from '@material-ui/core/Divider';
-import { useIsClusterWithSources } from '../Applications/utils';
-import { Tooltip } from '../Shared';
-import { Routes } from '../../utils/nav';
+import { InfoList, KubeStatusIndicator, theme } from '@weaveworks/weave-gitops';
+import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
+import { useState } from 'react';
+import styled from 'styled-components';
+import { GitopsClusterEnriched } from '../../types/custom';
+import { DashboardsList } from './DashboardsList';
+import { ClusterStatus } from './ClusterStatus';
 
-interface Size {
-  size?: 'small';
-}
-
-type Props = {
-  className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
-};
+export const sectionTitle = (title: string) => (
+  <Typography
+    style={{ fontWeight: 'bold', marginTop: theme.spacing.medium }}
+    variant="h6"
+    gutterBottom
+    component="div"
+  >
+    {title}
+  </Typography>
+);
 
 const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
@@ -54,43 +27,37 @@ const ClusterDashbordWrapper = styled.div`
   }
 `;
 
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
-`;
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    clusterApplicationBtn: {
-      marginBottom: theme.spacing.medium,
-    },
-    addApplicationBtnLoader: {
-      marginLeft: theme.spacing.xl,
-    },
-  }),
-);
-
-const ClusterDashboard = ({ clusterName }: Props) => {
-  const { getCluster, getDashboardAnnotations, getKubeconfig } = useClusters();
-  const [currentCluster, setCurrentCluster] =
-    useState<GitopsClusterEnriched | null>(null);
-  const { path } = useRouteMatch();
+const ClusterDashboard = ({
+  currentCluster,
+  getDashboardAnnotations,
+  getKubeconfig,
+}: {
+  currentCluster: GitopsClusterEnriched;
+  getDashboardAnnotations: (cluster: GitopsClusterEnriched) => {
+    [key: string]: string;
+  };
+  getKubeconfig: (
+    clusterName: string,
+    clusterNamespace: string,
+    filename: string,
+  ) => Promise<void>;
+}) => {
   const labels = currentCluster?.labels || {};
+  const annotations = currentCluster?.annotations || {};
+  const capiClusterAnnotations = currentCluster?.capiCluster?.annotations || {};
+  const capiClusterLabels = currentCluster?.capiCluster?.labels || {};
   const infrastructureRef = currentCluster?.capiCluster?.infrastructureRef;
+  const [disabled, setDisabled] = useState<boolean>(false);
   const dashboardAnnotations = getDashboardAnnotations(
     currentCluster as GitopsClusterEnriched,
   );
-  const history = useHistory();
-  const [disabled, setDisabled] = useState<boolean>(false);
-  const classes = useStyles();
-  const isClusterWithSources = useIsClusterWithSources(clusterName);
-  const { isLoading } = useListSources();
 
   const handleClick = () => {
     setDisabled(true);
     getKubeconfig(
-      clusterName,
+      currentCluster.name || '',
       currentCluster?.namespace || '',
-      `${clusterName}.kubeconfig`,
+      `${currentCluster?.name}.kubeconfig`,
     ).finally(() => {
       setDisabled(false);
     });
@@ -117,138 +84,96 @@ const ClusterDashboard = ({ clusterName }: Props) => {
       ]
     : [];
 
-  useEffect(
-    () => setCurrentCluster(getCluster(clusterName)),
-    [clusterName, getCluster],
-  );
+  const renderer = (
+    labels: GitopsClusterEnriched['labels'] | null,
+    annotations: GitopsClusterEnriched['annotations'] | null,
+  ) => {
+    const getObjects = () => {
+      if (labels) return Object.entries(labels);
+      if (annotations) return Object.entries(annotations);
+      return [];
+    };
+    return (
+      <Box>
+        <Typography variant="body1" gutterBottom component="div">
+          {labels && 'Labels'}
+          {annotations && 'Annotations'}
+        </Typography>
+        {getObjects().map(([key, value]) => (
+          <Chip
+            title={value}
+            style={{
+              maxWidth: '650px',
+              marginRight: theme.spacing.small,
+              marginBottom: theme.spacing.small,
+            }}
+            key={key}
+            label={`${key}: ${value}`}
+          />
+        ))}
+      </Box>
+    );
+  };
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="Cluster Page"
-        path={[
-          { label: 'Clusters', url: Routes.Clusters },
-          { label: clusterName },
-        ]}
-      >
-        <ContentWrapper>
-          <ActionsWrapper>
-            <WeaveButton
-              id="cluster-application"
-              className={classes.clusterApplicationBtn}
-              startIcon={<Icon type={IconType.FilterIcon} size="base" />}
-              onClick={() => {
-                const filtersValues = encodeURIComponent(
-                  `clusterName: ${currentCluster?.namespace}/${currentCluster?.name}`,
-                );
-                history.push(`/applications?filters=${filtersValues}`);
-              }}
-            >
-              GO TO APPLICATIONS
-            </WeaveButton>
+    currentCluster && (
+      <ClusterDashbordWrapper>
+        {currentCluster?.conditions &&
+        currentCluster?.conditions[0]?.message ? (
+          <div style={{ paddingBottom: theme.spacing.small }}>
+            <KubeStatusIndicator conditions={currentCluster.conditions} />
+          </div>
+        ) : null}
+        <Box>
+          <InfoList items={info as [string, any][]} />
+        </Box>
+        {Object.keys(dashboardAnnotations).length > 0 && (
+          <Box margin={2}>
+            <Typography variant="h6" gutterBottom component="div">
+              Dashboards
+            </Typography>
+            <DashboardsList cluster={currentCluster as GitopsClusterEnriched} />
+          </Box>
+        )}
 
-            {isLoading ? (
-              <CircularProgress
-                size={30}
-                className={classes.addApplicationBtnLoader}
+        {/* GitOpsCluster */}
+        {sectionTitle('GitOps Cluster')}
+        {Object.keys(labels).length > 0 && renderer(labels, null)}
+        {Object.keys(annotations).length > 0 && renderer(null, annotations)}
+        <Box>
+          <ClusterStatus
+            clusterName={currentCluster.name}
+            conditions={currentCluster?.conditions}
+          />
+        </Box>
+
+        {/* CapiCluster */}
+        {Object.keys(currentCluster?.capiCluster || {}).length > 0 ? (
+          <>
+            {sectionTitle('CAPI Cluster')}
+            <Box>
+              <InfoList items={[['Name', currentCluster?.capiCluster?.name]]} />
+            </Box>
+            {Object.keys(capiClusterLabels).length > 0 &&
+              renderer(capiClusterLabels, null)}
+            {Object.keys(capiClusterAnnotations).length > 0 &&
+              renderer(null, capiClusterAnnotations)}
+            <Box>
+              <ClusterStatus
+                clusterName={currentCluster.name}
+                status={currentCluster?.capiCluster?.status}
               />
-            ) : (
-              <Tooltip
-                title="No sources available for this cluster"
-                placement="top"
-                disabled={isClusterWithSources === true}
-              >
-                <div>
-                  <WeaveButton
-                    id="cluster-add-application"
-                    className={classes.clusterApplicationBtn}
-                    startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                    onClick={() => {
-                      const filtersValues = encodeURIComponent(
-                        `${currentCluster?.name}`,
-                      );
-                      history.push(
-                        `/applications/create?clusterName=${filtersValues}`,
-                      );
-                    }}
-                    disabled={!isClusterWithSources}
-                  >
-                    ADD APPLICATION TO THIS CLUSTER
-                  </WeaveButton>
-                </div>
-              </Tooltip>
+            </Box>
+            {infrastructureRef && (
+              <Box>
+                {sectionTitle('Infrastructure')}
+                <InfoList items={infrastructureRefInfo} />
+              </Box>
             )}
-          </ActionsWrapper>
-
-          <SubRouterTabs rootPath={`${path}/details`}>
-            <RouterTab name="Details" path={`${path}/details`}>
-              <ClusterDashbordWrapper>
-                {currentCluster?.conditions &&
-                currentCluster?.conditions[0]?.message ? (
-                  <div style={{ paddingBottom: theme.spacing.small }}>
-                    <KubeStatusIndicator
-                      conditions={currentCluster.conditions}
-                    />
-                  </div>
-                ) : null}
-
-                <Box margin={2}>
-                  <InfoList items={info as [string, any][]} />
-                </Box>
-                <Divider variant="middle" />
-                {Object.keys(dashboardAnnotations).length > 0 ? (
-                  <>
-                    <Box margin={2}>
-                      <Typography variant="h6" gutterBottom component="div">
-                        Dashboards
-                      </Typography>
-                      <DashboardsList
-                        cluster={currentCluster as GitopsClusterEnriched}
-                      />
-                    </Box>
-                    <Divider variant="middle" />
-                  </>
-                ) : null}
-                {Object.keys(labels).length > 0 ? (
-                  <>
-                    <Box margin={2}>
-                      <Typography variant="h6" gutterBottom component="div">
-                        Labels
-                      </Typography>
-                      {Object.entries(labels).map(([key, value]) => (
-                        <Chip
-                          style={{ marginRight: theme.spacing.small }}
-                          key={key}
-                          label={`${key}: ${value}`}
-                        />
-                      ))}
-                    </Box>
-                    <Divider variant="middle" />
-                  </>
-                ) : null}
-                <Box margin={2}>
-                  <CAPIClusterStatus
-                    clusterName={clusterName}
-                    status={currentCluster?.capiCluster?.status}
-                  />
-                </Box>
-                {infrastructureRef ? (
-                  <>
-                    <Divider variant="middle" />
-                    <Box margin={2}>
-                      <Typography variant="h6" gutterBottom component="div">
-                        Infrastructure
-                      </Typography>
-                      <InfoList items={infrastructureRefInfo} />
-                    </Box>
-                  </>
-                ) : null}
-              </ClusterDashbordWrapper>
-            </RouterTab>
-          </SubRouterTabs>
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+          </>
+        ) : null}
+      </ClusterDashbordWrapper>
+    )
   );
 };
 

@@ -31,6 +31,7 @@ type Props = SelectProps & {
   setFormData: React.Dispatch<React.SetStateAction<any>>;
   enableGitRepoSelection?: boolean;
   value: string;
+  loading: boolean;
 };
 
 export function RepoInputWithAuth({
@@ -42,6 +43,7 @@ export function RepoInputWithAuth({
   setFormData,
   enableGitRepoSelection,
   value,
+  loading,
   ...props
 }: Props) {
   const parsedValue = value && JSON.parse(value);
@@ -92,9 +94,13 @@ export function RepoInputWithAuth({
   };
 
   return (
-    <GitAuthForm className={props.className} align start>
+    <GitAuthForm className={props.className} align start between>
       <Select
-        error={gitRepos && !!err?.message ? true : false}
+        error={
+          !!parsedValue?.value && gitRepos.length > 0 && !!err?.message
+            ? true
+            : false
+        }
         description={!formData.repo || !err ? props.description : err?.message}
         name="repo-select"
         required={true}
@@ -117,12 +123,18 @@ export function RepoInputWithAuth({
       <div className="auth-message">
         {isAuthenticated && (
           <Flex align>
-            <Icon
-              size="medium"
-              color="successOriginal"
-              type={IconType.CheckMark}
-            />{' '}
-            {res?.provider} credentials detected
+            {!loading ? (
+              <>
+                <Icon
+                  size="medium"
+                  color="successOriginal"
+                  type={IconType.CheckMark}
+                />{' '}
+                {res?.provider} credentials detected
+              </>
+            ) : (
+              'Checking credentials ...'
+            )}
           </Flex>
         )}
         {!isAuthenticated && !res && (

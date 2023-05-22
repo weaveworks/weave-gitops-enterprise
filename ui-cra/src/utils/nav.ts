@@ -34,10 +34,10 @@ export function getKindRoute(k: Kind | string): string {
 export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
-  Canaries = '/applications/delivery',
-  CanaryDetails = '/applications/canary_details',
-  Pipelines = '/applications/pipelines',
-  PipelineDetails = '/applications/pipelines/details',
+  Canaries = '/delivery',
+  CanaryDetails = '/canary_details',
+  Pipelines = '/pipelines',
+  PipelineDetails = '/pipelines/details',
 
   GitOpsRun = '/gitopsrun',
   GitOpsRunDetail = '/gitopsrun/detail',
@@ -50,7 +50,7 @@ export enum Routes {
   EditResource = '/resources/edit',
 
   PolicyViolations = '/clusters/violations',
-  PolicyViolationDetails = '/clusters/violations/details',
+  PolicyViolationDetails = '/violations/details',
 
   GitlabOauthCallback = '/oauth/gitlab',
   BitBucketOauthCallback = '/oauth/bitbucketserver',
@@ -68,12 +68,19 @@ export enum Routes {
   Secrets = '/secrets',
   SecretDetails = '/secrets/details',
   CreateSecret = '/secrets/create',
+  CreateSopsSecret = '/secrets/sops/create',
 
   PolicyConfigs = '/policyConfigs',
   PolicyConfigsDetails = '/policyConfigs/details',
+  CreatePolicyConfig = '/policyConfigs/create',
+
 
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
 
   ImageAutomation = '/image_automation',
+
+  Explorer = '/explorer',
+  ExplorerAccessRules = '/explorer/access_rules',
+  Notifications = '/notifications',
 }

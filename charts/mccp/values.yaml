@@ -9,7 +9,7 @@ fullnameOverride: ""
 images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.5.0
+  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -28,6 +28,7 @@ listOCIRepositories: false
 enablePipelines: true
 
 # Turns on UI elements for Terraform objects
+
 enableTerraformUI: false
 
 # Turns on UI elements for GitOps Run
@@ -61,9 +62,13 @@ config:
     cookieDuration: 1h
     claimUsername: ""
     claimGroups: ""
+    usernamePrefix: ""
+    groupsPrefix: ""
     # Name of secret in flux-system namespace that contains a clientId and clientSecret
     clientCredentialsSecret: ""
     # Customise the requested scopes for then OIDC authentication flow - openid will always be requested
+    # NOTE: these cannot contains spaces between the elements.
+    # customScopes: "groups,email,profile"
     customScopes: ""
   auth:
     userAccount:
@@ -174,13 +179,41 @@ templates-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.1.4
+        tag: v0.2.0
 
 gitopssets-controller:
   enabled: true
   # gitops-controller-manager etc
   fullnameOverride: gitopssets
   controllerManager:
+    args:
+      - --health-probe-bind-address=:8081
+      - --metrics-bind-address=127.0.0.1:8080
+      - --leader-elect
+      - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
       image:
-        tag: v0.6.0
+        tag: v0.11.0
+cluster-controller:
+  enabled: true
+  # cluster-controller-manager etc
+  fullnameOverride: cluster
+  controllerManager:
+    manager:
+      image:
+        repository: docker.io/weaveworks/cluster-controller
+        tag: v1.5.2
+
+
+#### Explorer
+# Turns on explorer to true
+enableExplorer: false
+# Uses the query service for Applications and Sources views
+useQueryServiceBackend: false
+
+explorer:
+  collector:
+    # ServiceAccount that explorer will use to watch clusters for resources
+    serviceAccount:
+      name: "collector"
+      namespace: "flux-system"

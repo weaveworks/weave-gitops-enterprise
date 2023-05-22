@@ -15,8 +15,12 @@ tls:
 # Turns on pipelines features when using Tilt.
 enablePipelines: true
 
+enableExplorer: true
+
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
+
+useQueryServiceBackend: false
 
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
@@ -25,6 +29,8 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
+  - name: DEV_MODE
+    value: "true"
 
 extraEnvVarsSecret: ""
 

@@ -1,8 +1,9 @@
 import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
+import { Flex, theme } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+
 const { xxs, xs, small, medium, base, none } = theme.spacing;
 const {
   neutral10,
@@ -14,6 +15,7 @@ const {
   feedbackDark,
   alertDark,
 } = theme.colors;
+
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
@@ -155,9 +157,10 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       fontSize: theme.fontSizes.large,
       marginRight: xxs,
       color: neutral30,
-    }
+    },
   }),
 );
+
 export const ParameterWrapper = styled.div`
   border: 1px solid ${neutral20};
   box-sizing: border-box;
@@ -167,10 +170,8 @@ export const ParameterWrapper = styled.div`
   margin-bottom: ${base};
   margin-top: ${base};
 `;
-export const ParameterInfo = styled.div`
-  display: flex;
-  align-items: start;
-  flex-direction: column;
+
+export const ParameterInfo = styled(Flex)`
   width: 100%;
   font-weight: 400;
   font-size: ${theme.fontSizes.medium};
@@ -193,12 +194,6 @@ export const ChipWrapper = styled.span`
   border-radius: ${xs};
   padding: ${xxs} ${xs};
   margin-right: ${xs};
-`;
-
-export const SpaceBetween = styled.div`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 `;
 
 export const ModeWrapper = styled.div`

@@ -3,18 +3,19 @@ import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { PageTemplate } from '../../Layout/PageTemplate';
-import { CreateDeploymentObjects, renderKustomization } from '../utils';
+import { createDeploymentObjects, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
-import { isUnauthenticated, removeToken } from '../../../utils/request';
+import { removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import AppFields from './form/Partials/AppFields';
@@ -39,16 +40,17 @@ import GitOps from '../../Templates/Form/Partials/GitOps';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import {
-  getInitialGitRepo,
+  useGetInitialGitRepo,
   getRepositoryUrl,
 } from '../../Templates/Form/utils';
-import { GitRepositoryEnriched } from '../../Templates/Form';
 import { getGitRepos } from '../../Clusters';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 
 const FormWrapper = styled.form`
   .preview-cta {
-    display: flex;
-    justify-content: flex-end;
     padding: ${({ theme }) => theme.spacing.small}
       ${({ theme }) => theme.spacing.base};
     button {
@@ -59,8 +61,6 @@ const FormWrapper = styled.form`
     padding: ${({ theme }) => theme.spacing.base};
   }
   .create-cta {
-    display: flex;
-    justify-content: end;
     padding: ${({ theme }) => theme.spacing.small};
     button {
       width: 200px;
@@ -210,16 +210,12 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [PRPreview, setPRPreview] = useState<
     ClusterPRPreview | AppPRPreview | null
   >(null);
-  const [enableCreatePR, setEnableCreatePR] = useState<boolean>(false);
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
     [data?.result],
   );
-  const initialGitRepo = getInitialGitRepo(
-    null,
-    gitRepos,
-  ) as GitRepositoryEnriched;
+  const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
 
   useEffect(() => {
     setUpdatedProfiles({
@@ -351,6 +347,13 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       .finally(() => setPreviewLoading(false));
   }, [setOpenPreview, getKustomizations, setNotifications]);
 
+  const token = getProviderToken(formData.provider);
+
+  const { isAuthenticated, validateToken } = useIsAuthenticated(
+    formData.provider,
+    token,
+  );
+
   const handleAddApplication = useCallback(() => {
     const payload = {
       head_branch: formData.branchName,
@@ -361,38 +364,43 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       repositoryUrl: getRepositoryUrl(formData.repo),
     };
     setLoading(true);
-    return CreateDeploymentObjects(payload, getProviderToken(formData.provider))
-      .then(response => {
-        setPRPreview(null);
-        history.push(Routes.Applications);
-        setNotifications([
-          {
-            message: {
-              component: (
-                <Link href={response.webUrl} newTab>
-                  PR created successfully, please review and merge the pull
-                  request to apply the changes to the cluster.
-                </Link>
-              ),
-            },
-            severity: 'success',
-          },
-        ]);
-      })
-      .catch(error => {
-        setNotifications([
-          {
-            message: { text: error.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]);
-        if (isUnauthenticated(error.code)) {
-          removeToken(formData.provider);
-        }
+    return validateToken()
+      .then(() =>
+        createDeploymentObjects(payload, getProviderToken(formData.provider))
+          .then(response => {
+            setPRPreview(null);
+            history.push(Routes.Applications);
+            setNotifications([
+              {
+                message: {
+                  component: (
+                    <Link href={response.webUrl} newTab>
+                      PR created successfully, please review and merge the pull
+                      request to apply the changes to the cluster.
+                    </Link>
+                  ),
+                },
+                severity: 'success',
+              },
+            ]);
+          })
+          .catch(error =>
+            setNotifications([
+              {
+                message: { text: error.message },
+                severity: 'error',
+                display: 'bottom',
+              },
+            ]),
+          )
+          .finally(() => setLoading(false)),
+      )
+      .catch(() => {
+        removeToken(formData.provider);
+        setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, history, getKustomizations, setNotifications]);
+  }, [formData, history, getKustomizations, setNotifications, validateToken]);
 
   const [submitType, setSubmitType] = useState<string>('');
 
@@ -487,14 +495,14 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     {previewLoading ? (
                       <LoadingPage className="preview-loading" />
                     ) : (
-                      <div className="preview-cta">
+                      <Flex end className="preview-cta">
                         <Button
                           type="submit"
                           onClick={() => setSubmitType('PR Preview')}
                         >
                           PREVIEW PR
                         </Button>
-                      </div>
+                      </Flex>
                     )}
                   </Grid>
                   <Grid item xs={12} sm={10} md={10} lg={8}>
@@ -503,22 +511,21 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       setFormData={setFormData}
                       showAuthDialog={showAuthDialog}
                       setShowAuthDialog={setShowAuthDialog}
-                      setEnableCreatePR={setEnableCreatePR}
                       formError={formError}
                       enableGitRepoSelection={true}
                     />
                     {loading ? (
                       <LoadingPage className="create-loading" />
                     ) : (
-                      <div className="create-cta">
+                      <Flex end className="create-cta">
                         <Button
                           type="submit"
                           onClick={() => setSubmitType('Create app')}
-                          disabled={!enableCreatePR}
+                          disabled={!isAuthenticated}
                         >
                           CREATE PULL REQUEST
                         </Button>
-                      </div>
+                      </Flex>
                     )}
                   </Grid>
                 </Grid>
@@ -542,10 +549,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     handlePRPreview,
     previewLoading,
     clusterName,
-    enableCreatePR,
     helmRepo,
     formError,
     submitType,
+    isAuthenticated,
   ]);
 };
 

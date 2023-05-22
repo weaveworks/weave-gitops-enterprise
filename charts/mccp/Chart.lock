@@ -4,15 +4,15 @@ dependencies:
   version: 1.0.0
 - name: templates-controller
   repository: file://../templates-controller
-  version: 0.1.1
+  version: 0.2.0
 - name: policy-agent
   repository: https://weaveworks.github.io/policy-agent
   version: 2.3.0
 - name: pipeline-controller
   repository: oci://ghcr.io/weaveworks/charts
-  version: 0.20.0
+  version: 0.21.0
 - name: gitopssets-controller
   repository: file://../gitopssets-controller
   version: 0.1.0
-digest: sha256:c2e71777c759c486770acf933fa05c0e58c072ad9c769525dfa8e94a47201d2e
-generated: "2023-02-28T16:50:05.274928639Z"
+digest: sha256:39b98bb10c7b44bae6b72255bd763f712373ef21bd9d55dfe54ad0c45aa3aac5
+generated: "2023-05-15T15:04:52.731543499+03:00"

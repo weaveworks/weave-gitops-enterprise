@@ -62,7 +62,7 @@ if 'gitopssets-controller' in to_edit:
 k8s_resource('chart-mccp-cluster-service', new_name='cluster-service', labels=["local"], port_forwards='8000')
 k8s_resource('chart-pipeline-controller', new_name='pipeline-controller', labels=["remote-images"])
 k8s_resource('chart-mccp-cluster-bootstrap-controller', new_name='cluster-bootstrap-controller', labels=cluster_bootstrap_controller_labels)
-k8s_resource('chart-cluster-controller', new_name='cluster-controller', labels=cluster_controller_labels)
+k8s_resource('cluster-controller-manager', new_name='cluster-controller', labels=cluster_controller_labels)
 k8s_resource('templates-controller-controller-manager', new_name='templates-controller', labels=templates_controller_labels)
 k8s_resource('gitopssets-controller-manager', new_name='gitopssets-controller', labels=gitopssets_controller_labels)
 k8s_resource('policy-agent', labels=["remote-images"])
@@ -140,9 +140,10 @@ if native_build:
    # Build locally (usually slower under MacOS than build in container)
 
    local_resource(
-      'clusters-service-native-build',
+      'compile',
       'make build-linux',
       deps=[
+         '../weave-gitops/core',
          './cmd/clusters-service',
          './pkg'
       ],
@@ -157,7 +158,7 @@ if native_build:
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
       dockerfile="cmd/clusters-service/dev.dockerfile",
-      entrypoint='/app/clusters-service --dev-mode',
+      entrypoint='/app/clusters-service --log-level=debug',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'), 'image_tag': 'tilt'},
       live_update=[
          sync('cmd/clusters-service/bin', '/app'),
@@ -175,5 +176,5 @@ else:
       ignore=["ui-cra"],
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
-      entrypoint= ["/sbin/tini", "--", "clusters-service", "--dev-mode"]
+      entrypoint= ["/sbin/tini", "--", "clusters-service", "--log-level=debug"]
    )

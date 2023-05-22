@@ -1,4 +1,4 @@
-.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags update-weave-gitops
+.PHONY: all check clean dependencies images install lint ui-audit ui-build-for-tests unit-tests update-mccp-chart-values proto echo-ldflags update-weave-gitops tools
 .DEFAULT_GOAL := all
 
 # Boiler plate for bulding Docker containers.
@@ -117,8 +117,14 @@ BINARIES = \
 
 binaries: $(BINARIES)
 
-cluster-dev: ## Start tilt to do development with wge running on the cluster
-	./tools/bin/tilt up
+# Start tilt to do development with wge running on the cluster
+cluster-dev: helm-dependency-build
+	PATH=${PWD}/tools/bin:${PATH} ./tools/bin/tilt up
+
+.PHONY: helm-dependency-build
+helm-dependency-build:
+	./tools/bin/helm repo add weaveworks-policy-agent https://weaveworks.github.io/policy-agent
+	./tools/bin/helm dependency build ./charts/mccp
 
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
 
@@ -164,6 +170,12 @@ ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
 	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
 
+integration-tests:
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/test-dependencies.toml
+	go test -v ./cmd/clusters-service/... -tags=integration
+	go test -v ./pkg/git/... -tags=integration
+	go test -v ./pkg/query/... -tags=integration
+
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
 	$(SUDO) docker rmi $(patsubst %, %:$(IMAGE_TAG), $(IMAGE_NAMES)) >/dev/null 2>&1 || true
@@ -180,7 +192,10 @@ push:
 	done
 
 proto: ## Generate protobuf files
-	./tools/bin/buf generate
+	PATH=${PWD}/tools/bin ./tools/bin/buf generate
+
+fakes: ## Generate testing fakes
+	go generate ./...
 
 
 FORCE:

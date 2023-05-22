@@ -31,6 +31,7 @@ import {
   ListPipelinesResponse,
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
+
 import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
@@ -51,6 +52,7 @@ import {
   GetWorkspaceRoleBindingsResponse,
   GetWorkspaceRolesResponse,
   GetWorkspaceServiceAccountsResponse,
+  ListEventsResponse,
   ListExternalSecretsResponse,
   ListGitopsClustersResponse,
   ListPoliciesResponse,
@@ -59,6 +61,16 @@ import {
   ListTemplatesResponse,
   ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
+
+import {
+  DebugGetAccessRulesRequest,
+  DebugGetAccessRulesResponse,
+  ListFacetsRequest,
+  ListFacetsResponse,
+  QueryRequest,
+  QueryResponse,
+} from '../api/query/query.pb';
+
 import Compose from '../components/ProvidersCompose';
 import EnterpriseClientProvider from '../contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from '../contexts/GitAuth';
@@ -305,11 +317,10 @@ export class PolicyClientMock {
   }
 }
 
-
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
-
+  
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
   }
@@ -317,8 +328,8 @@ export class PolicyConfigsClientMock {
   GetPolicyConfig() {
     return promisify(this.GetPolicyConfigReturns);
   }
-
 }
+
 export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
@@ -401,18 +412,43 @@ export class WorkspaceClientMock {
 }
 
 export class SecretsClientMock {
-  constructor() {
-    this.ListExternalSecrets = this.ListExternalSecrets.bind(this);
-    this.GetSecret = this.GetSecret.bind(this);
-  }
   ListSecretsReturns: ListExternalSecretsResponse = {};
-  GetSecretReturns: GetExternalSecretResponse = {};
+  GetExternalSecretReturns: GetExternalSecretResponse = {};
+  ListEventsReturns: ListEventsResponse = {};
 
   ListExternalSecrets() {
     return promisify(this.ListSecretsReturns);
   }
-  GetSecret() {
-    return promisify(this.GetSecretReturns);
+
+  GetExternalSecret() {
+    return promisify(this.GetExternalSecretReturns);
+  }
+  ListEvents() {
+    return promisify(this.ListEventsReturns);
+  }
+}
+
+export class MockQueryService {
+  DoQueryReturns: QueryResponse = {};
+  DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
+  ListFacetsReturns: ListFacetsResponse = {};
+
+  DoQuery(req: QueryRequest, initReq?: any): Promise<QueryResponse> {
+    return promisify(this.DoQueryReturns);
+  }
+
+  DebugGetAccessRules(
+    req: DebugGetAccessRulesRequest,
+    initReq?: any,
+  ): Promise<DebugGetAccessRulesResponse> {
+    return promisify(this.DebugGetAccessRulesReturns);
+  }
+
+  ListFacets(
+    req: ListFacetsRequest,
+    initReq?: any,
+  ): Promise<ListFacetsResponse> {
+    return promisify(this.ListFacetsReturns);
   }
 }
 

@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Release.Namespace | quote }}
   labels:
     {{- include "mccp.labels" . | nindent 4 }}
+    {{- include "mccp.appSelectorLabels" . | nindent 4 }}
 spec:
   replicas: 1
   selector:
@@ -18,6 +19,7 @@ spec:
       labels:
         app: clusters-service
         {{- include "mccp.selectorLabels" . | nindent 8 }}
+        {{- include "mccp.appSelectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
@@ -35,6 +37,7 @@ spec:
           image: {{ .Values.images.clustersService }}
           args:
             - --pipeline-controller-address={{ .Values.clustersService.pipeline_controller_address | default (printf "http://%s-pipeline-controller-promotion" .Release.Name) }}:8082
+            - --log-level={{ .Values.config.logLevel }}
             {{- range .Values.clustersService.args }}
             - {{ . }}
             {{- end }}
@@ -74,8 +77,16 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_PIPELINES
               value: "true"
             {{- end }}
+            {{- if .Values.enableExplorer }}
+            - name: WEAVE_GITOPS_FEATURE_EXPLORER
+              value: "true"
+            {{- end }}
             {{- if .Values.enableTerraformUI }}
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
+              value: "true"
+            {{- end }}
+            {{- if .Values.useQueryServiceBackend }}
+            - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
               value: "true"
             {{- end }}
             {{- if .Values.enableRunUI }}

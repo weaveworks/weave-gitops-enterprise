@@ -216,7 +216,8 @@ message GetBitbucketServerAuthURLResponse {
 
 message AuthorizeBitbucketServerRequest {
     string code        = 1; // The challenge code obtained from the OAuth callback
-    string redirectUri = 2; // The redirect URI that originated the OAuth flow
+    string state       = 2; // The state parameter provided in the authorization URL 
+    string redirectUri = 3; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeBitbucketServerResponse {
@@ -233,7 +234,8 @@ message GetAzureDevOpsAuthURLResponse {
 
 message AuthorizeAzureDevOpsRequest {
     string code        = 1; // The challenge code obtained from the OAuth callback
-    string redirectUri = 2; // The redirect URI that originated the OAuth flow
+    string state       = 2; // The state parameter provided in the authorization URL 
+    string redirectUri = 3; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeAzureDevOpsResponse {

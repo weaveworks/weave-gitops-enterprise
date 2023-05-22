@@ -1,16 +1,30 @@
 import {
   SourcesTable,
+  useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
-import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import styled from 'styled-components';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
+import Explorer from '../Explorer/Explorer';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 
-const WGApplicationsSources: FC = () => {
-  const { data: sources, isLoading, error } = useListSources();
+const WGApplicationsSources: FC = ({ className }: any) => {
+  const { isFlagEnabled } = useFeatureFlags();
+  const useQueryServiceBackend = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  );
+  const {
+    data: sources,
+    isLoading,
+    error,
+  } = useListSources('', '', {
+    enabled: !useQueryServiceBackend,
+    retry: false,
+    refetchInterval: 5000,
+  });
   const { setNotifications } = useNotifications();
 
   useEffect(() => {
@@ -24,19 +38,24 @@ const WGApplicationsSources: FC = () => {
       documentTitle="Application Sources"
       path={[
         {
-          label: 'Applications',
-          url: Routes.Applications,
-        },
-        {
           label: 'Sources',
         },
       ]}
     >
       <ContentWrapper errors={sources?.errors} loading={isLoading}>
-        {sources && <SourcesTable sources={sources?.result} />}
+        <div className={className}>
+          {useQueryServiceBackend ? (
+            <Explorer enableBatchSync category="source" />
+          ) : (
+            <SourcesTable sources={sources?.result} />
+          )}
+        </div>
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default WGApplicationsSources;
+export default styled(WGApplicationsSources)`
+  width: 100%;
+  overflow: auto;
+`;

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"testing"
 	"time"
@@ -11,7 +12,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/rest"
@@ -40,11 +43,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/helmfakes"
 
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
+	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 )
 
-func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
+func newTestScheme(t *testing.T) *runtime.Scheme {
 	scheme := runtime.NewScheme()
 	schemeBuilder := runtime.SchemeBuilder{
 		corev1.AddToScheme,
@@ -57,26 +61,31 @@ func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
 		clusterv1.AddToScheme,
 		rbacv1.AddToScheme,
 		esv1beta1.AddToScheme,
+		kustomizev1beta2.AddToScheme,
 	}
 	err := schemeBuilder.AddToScheme(scheme)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	c := fake.NewClientBuilder().
+	return scheme
+}
+
+func createClient(t *testing.T, clusterState ...runtime.Object) client.Client {
+	scheme := newTestScheme(t)
+
+	return fake.NewClientBuilder().
 		WithScheme(scheme).
 		WithRuntimeObjects(clusterState...).
 		WithIndex(&corev1.Event{}, "type", client.IndexerFunc(func(o client.Object) []string {
 			event := o.(*corev1.Event)
 			return []string{event.Type}
-		})).
-		Build()
-
-	return c
+		})).Build()
 }
 
 type serverOptions struct {
 	clusterState          []runtime.Object
+	client                client.Client
 	namespace             string
 	provider              git.Provider
 	ns                    string
@@ -110,7 +119,10 @@ func getServer(t *testing.T, clients map[string]client.Client, namespaces map[st
 }
 
 func createServer(t *testing.T, o serverOptions) capiv1_protos.ClustersServiceServer {
-	c := createClient(t, o.clusterState...)
+	c := o.client
+	if c == nil {
+		c = createClient(t, o.clusterState...)
+	}
 	dc := discovery.NewDiscoveryClient(fakeclientset.NewSimpleClientset().Discovery().RESTClient())
 
 	mgmtFetcher := mgmtfetcher.NewManagementCrossNamespacesFetcher(&mgmtfetcherfake.FakeNamespaceCache{
@@ -402,4 +414,38 @@ func nsn(name, namespace string) types.NamespacedName {
 		Name:      name,
 		Namespace: namespace,
 	}
+}
+
+var notImplementedError = errors.New("not implemented")
+
+type mockTracker struct {
+	getImpl func(gvr schema.GroupVersionResource, ns, name string) (runtime.Object, error)
+}
+
+func (t *mockTracker) Add(obj runtime.Object) error {
+	return notImplementedError
+}
+
+func (t *mockTracker) Get(gvr schema.GroupVersionResource, ns, name string) (runtime.Object, error) {
+	return t.getImpl(gvr, ns, name)
+}
+
+func (t *mockTracker) Create(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error {
+	return notImplementedError
+}
+
+func (t *mockTracker) Update(gvr schema.GroupVersionResource, obj runtime.Object, ns string) error {
+	return notImplementedError
+}
+
+func (t *mockTracker) List(gvr schema.GroupVersionResource, gvk schema.GroupVersionKind, ns string) (runtime.Object, error) {
+	return nil, notImplementedError
+}
+
+func (t *mockTracker) Delete(gvr schema.GroupVersionResource, ns, name string) error {
+	return notImplementedError
+}
+
+func (t *mockTracker) Watch(gvr schema.GroupVersionResource, ns string) (watch.Interface, error) {
+	return nil, notImplementedError
 }

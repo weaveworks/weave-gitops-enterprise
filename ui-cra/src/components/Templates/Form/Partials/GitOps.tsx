@@ -15,7 +15,6 @@ const GitOps: FC<{
   setFormData: Dispatch<React.SetStateAction<any>>;
   showAuthDialog: boolean;
   setShowAuthDialog: Dispatch<React.SetStateAction<boolean>>;
-  setEnableCreatePR: Dispatch<React.SetStateAction<boolean>>;
   formError?: string;
   enableGitRepoSelection?: boolean;
 }> = ({
@@ -23,7 +22,6 @@ const GitOps: FC<{
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
-  setEnableCreatePR,
   formError,
   enableGitRepoSelection,
 }) => {
@@ -71,7 +69,7 @@ const GitOps: FC<{
   );
 
   return (
-    <GitOpsWrapper>
+    <GitOpsWrapper className="gitops-wrapper">
       <h2>GitOps</h2>
       <Input
         className="form-section"
@@ -118,7 +116,6 @@ const GitOps: FC<{
       <GitAuth
         formData={formData}
         setFormData={setFormData}
-        setEnableCreatePR={setEnableCreatePR}
         showAuthDialog={showAuthDialog}
         setShowAuthDialog={setShowAuthDialog}
         enableGitRepoSelection={enableGitRepoSelection}

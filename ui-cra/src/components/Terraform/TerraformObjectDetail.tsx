@@ -10,6 +10,7 @@ import {
   Metadata,
   RouterTab,
   SubRouterTabs,
+  YamlView,
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
 import { useLocation, useRouteMatch } from 'react-router-dom';
@@ -27,7 +28,6 @@ import {
 } from '../../contexts/Terraform';
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
-import CodeView from '../CodeView';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
@@ -256,13 +256,13 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               </LinkResolverProvider>
             </RouterTab>
             <RouterTab name="Yaml" path={`${path}/yaml`}>
-              <CodeView
-                kind="Terraform"
+              <YamlView
+                yaml={yaml || ''}
                 object={{
+                  kind: 'Terraform',
                   name: object?.name,
                   namespace: object?.namespace,
                 }}
-                code={yaml || ''}
               />
             </RouterTab>
             <RouterTab name="Plan" path={`${path}/plan`}>

@@ -24,11 +24,18 @@ func Create(ctx context.Context, t *testing.T, cfg *rest.Config, state ...client
 	if err != nil {
 		t.Errorf("failed to create client: %s", err)
 	}
-
 	for _, o := range state {
 		err := k.Create(ctx, o)
 		if err != nil {
 			t.Errorf("failed to create object: %s", err)
 		}
 	}
+	t.Cleanup(func() {
+		for _, o := range state {
+			err := k.Delete(ctx, o)
+			if err != nil {
+				t.Logf("failed to cleanup object: %s", err)
+			}
+		}
+	})
 }

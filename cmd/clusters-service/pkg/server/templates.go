@@ -284,7 +284,7 @@ func GetFiles(
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}
 
-	var files []git.CommitFile
+	var rendered []renderedItem
 	for _, renderedTemplate := range renderedTemplates {
 		tmplWithValues := renderedTemplate.Data
 		if createRequestMessage != nil {
@@ -316,9 +316,33 @@ func GetFiles(
 			}
 		}
 
-		content := string(bytes.Join(tmplWithValues, []byte("\n---\n")))
+		rendered = append(rendered, renderedItem{filename: path, content: tmplWithValues})
+	}
+
+	filenames := func(f []renderedItem) []string {
+		names := []string{}
+		for _, v := range f {
+			names = append(names, v.filename)
+		}
+		return names
+	}(rendered)
+
+	if len(rendered) > 0 {
+		annotated, err := templates.InjectJSONAnnotation(rendered[0].content, "templates.weave.works/created-files", map[string]any{
+			"files": filenames,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to annotate template with created files: %w", err)
+		}
+
+		rendered[0].content = annotated
+	}
+
+	var files []git.CommitFile
+	for _, r := range rendered {
+		content := string(bytes.Join(r.content, []byte("\n---\n")))
 		files = append(files, git.CommitFile{
-			Path:    path,
+			Path:    r.filename,
 			Content: &content,
 		})
 	}
@@ -533,4 +557,9 @@ func filterTemplatesByProvider(tl []*capiv1_proto.Template, provider string) []*
 	}
 
 	return templates
+}
+
+type renderedItem struct {
+	filename string
+	content  [][]byte
 }

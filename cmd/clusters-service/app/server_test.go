@@ -9,23 +9,16 @@ import (
 	"io"
 	"net/http"
 	"net/http/cookiejar"
+	"net/http/httptest"
 	"testing"
 	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/stretchr/testify/assert"
-	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
-	"github.com/weaveworks/weave-gitops/core/logger"
-	core_core "github.com/weaveworks/weave-gitops/core/server"
-	"github.com/weaveworks/weave-gitops/pkg/featureflags"
-	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
-	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth"
-	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 	"golang.org/x/crypto/bcrypt"
+	"google.golang.org/grpc/metadata"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -43,6 +36,17 @@ import (
 	mgmtfetcherfake "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher/fake"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pipepb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
+	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/core/logger"
+	core_core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/featureflags"
+	"github.com/weaveworks/weave-gitops/pkg/health"
+	"github.com/weaveworks/weave-gitops/pkg/kube/kubefakes"
+	server_auth "github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth"
+	"github.com/weaveworks/weave-gitops/pkg/services/auth/authfakes"
 )
 
 var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
@@ -199,7 +203,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 			app.WithDiscoveryClient(dc),
 			app.WithCoreConfig(coreConfig),
 			app.WithApplicationsConfig(appsConfig),
-			app.WithApplicationsOptions(gitauth.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
+			app.WithApplicationsOptions(gitauth_server.WithClientGetter(kubefakes.NewFakeClientGetter(k))),
 			app.WithRuntimeNamespace(ns),
 			app.WithGitProvider(git.NewGitProviderService(log)),
 			app.WithClientGetter(kubefakes.NewFakeClientGetter(k)),
@@ -239,7 +243,8 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	clustersManager.GetImpersonatedClientReturns(client, nil)
 	clustersManager.GetServerClientReturns(client, nil)
 
-	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager)
+	hc := health.NewHealthChecker()
+	coreConfig, err := core_core.NewCoreConfig(log, &rest.Config{}, "test", clustersManager, hc)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -247,7 +252,7 @@ func fakeCoreConfig(t *testing.T, log logr.Logger) core_core.CoreServerConfig {
 	return coreConfig
 }
 
-func fakeAppsConfig(c client.Client, log logr.Logger) *gitauth.ApplicationsConfig {
+func fakeAppsConfig(c client.Client, log logr.Logger) *gitauth_server.ApplicationsConfig {
 	jwtClient := &authfakes.FakeJWTClient{
 		VerifyJWTStub: func(s string) (*auth.Claims, error) {
 			return &auth.Claims{
@@ -255,7 +260,7 @@ func fakeAppsConfig(c client.Client, log logr.Logger) *gitauth.ApplicationsConfi
 			}, nil
 		},
 	}
-	return &gitauth.ApplicationsConfig{
+	return &gitauth_server.ApplicationsConfig{
 		Logger:    log,
 		JwtClient: jwtClient,
 	}
@@ -337,4 +342,39 @@ func TestNoRedirectURL(t *testing.T) {
 
 	err := cmd.Execute()
 	assert.ErrorIs(t, err, app.ErrNoRedirectURL)
+}
+
+func TestIssueGitProviderCSRFToken_HeaderExists(t *testing.T) {
+	expectedValue := "foobar"
+	expectedDomain := "sub.domain.com"
+	expectedPath := "/foo/bar"
+	ctx := grpc_runtime.NewServerMetadataContext(context.Background(), grpc_runtime.ServerMetadata{
+		HeaderMD: metadata.Pairs(gitauth_server.GitProviderCSRFHeaderName, expectedValue),
+	})
+	w := httptest.NewRecorder()
+	middleware := app.IssueGitProviderCSRFCookie(expectedDomain, expectedPath, time.Minute)
+	err := middleware(ctx, w, nil)
+	assert.NoError(t, err)
+	assert.Contains(t, w.Result().Header, "Set-Cookie")
+	// Parse header in order to inspect it
+	header := http.Header{}
+	header.Add("Set-Cookie", w.Result().Header["Set-Cookie"][0])
+	req := http.Response{Header: header}
+	actual := req.Cookies()[0]
+	assert.Equal(t, gitauth_server.GitProviderCSRFCookieName, actual.Name)
+	assert.Equal(t, expectedValue, actual.Value)
+	assert.Equal(t, expectedDomain, actual.Domain)
+	assert.Equal(t, expectedPath, actual.Path)
+	assert.WithinDuration(t, time.Now().UTC().Add(time.Minute), actual.Expires, time.Second)
+}
+
+func TestIssueGitProviderCSRFToken_HeaderMissing(t *testing.T) {
+	ctx := grpc_runtime.NewServerMetadataContext(context.Background(), grpc_runtime.ServerMetadata{
+		HeaderMD: metadata.Pairs("foo", "bar"),
+	})
+	w := httptest.NewRecorder()
+	middleware := app.IssueGitProviderCSRFCookie("", "/", 5*time.Minute)
+	err := middleware(ctx, w, nil)
+	assert.NoError(t, err)
+	assert.NotContains(t, w.Result().Header, "Set-Cookie")
 }

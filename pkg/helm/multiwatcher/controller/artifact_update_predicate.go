@@ -4,7 +4,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 )
 
 // ArtifactUpdatePredicate triggers an update event when a HelmRepository artifact revision changes.
@@ -18,14 +18,18 @@ func (ArtifactUpdatePredicate) Update(e event.UpdateEvent) bool {
 		return false
 	}
 
-	oldSource, ok := e.ObjectOld.(sourcev1.Source)
+	oldSource, ok := e.ObjectOld.(*sourcev1beta2.HelmRepository)
 	if !ok {
 		return false
 	}
 
-	newSource, ok := e.ObjectNew.(sourcev1.Source)
+	newSource, ok := e.ObjectNew.(*sourcev1beta2.HelmRepository)
 	if !ok {
 		return false
+	}
+
+	if filterAnnotation(oldSource) != filterAnnotation(newSource) {
+		return true
 	}
 
 	if oldSource.GetArtifact() == nil && newSource.GetArtifact() != nil {
@@ -34,10 +38,19 @@ func (ArtifactUpdatePredicate) Update(e event.UpdateEvent) bool {
 
 	// There is no way that the old artifact is newer here. We just care that they are of a different revision.
 	// Kubernetes takes care of setting old and new accordingly.
-	if oldSource.GetArtifact() != nil && newSource.GetArtifact() != nil &&
-		oldSource.GetArtifact().Revision != newSource.GetArtifact().Revision {
-		return true
+	if oldArtifact, newArtifact := oldSource.GetArtifact(), newSource.GetArtifact(); oldArtifact != nil && newArtifact != nil {
+		if oldArtifact.Revision != newArtifact.Revision {
+			return true
+		}
+
+		if oldArtifact.URL != newArtifact.URL {
+			return true
+		}
 	}
 
 	return false
+}
+
+func filterAnnotation(hr *sourcev1beta2.HelmRepository) string {
+	return hr.GetAnnotations()[HelmVersionFilterAnnotation]
 }
