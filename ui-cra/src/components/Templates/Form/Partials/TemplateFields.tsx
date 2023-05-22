@@ -1,9 +1,9 @@
 import React, { Dispatch, FC } from 'react';
-import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { TemplateEnriched } from '../../../../types/custom';
 import { Input, Select } from '../../../../utils/form';
 import { Routes } from '../../../../utils/nav';
+import { useMatch } from 'react-router';
 
 const TemplateFieldsWrapper = styled.div`
   .form-section {
@@ -20,7 +20,7 @@ const TemplateFields: FC<{
   const UNEDITABLE_FIELDS = template.parameters
     ?.filter(param => Boolean(param.editable))
     .map(param => param.name);
-  const { isExact: isEditing } = useRouteMatch(Routes.EditResource) || {};
+  const isEditing = useMatch(Routes.EditResource) || {};
   const parameterValues = formData.parameterValues || {};
   const handleFormData = (
     event:

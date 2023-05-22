@@ -13,26 +13,34 @@ const TabDetails = ({
   clusterName: string;
   workspaceName: string;
 }) => {
-
   const path = Routes.WorkspaceDetails;
 
   return (
-    <div style={{ minHeight: 'calc(100vh - 335px)'}}>
-      <CustomSubRouterTabs rootPath={`${path}/serviceAccounts`}>
+    <div style={{ minHeight: 'calc(100vh - 335px)' }}>
+      <CustomSubRouterTabs>
         <RouterTab name="Service Accounts" path={`${path}/serviceAccounts`}>
-          <ServiceAccountsTab clusterName={clusterName} workspaceName={workspaceName}/>
+          <ServiceAccountsTab
+            clusterName={clusterName}
+            workspaceName={workspaceName}
+          />
         </RouterTab>
 
         <RouterTab name="Roles" path={`${path}/roles`}>
-          <RolesTab clusterName={clusterName} workspaceName={workspaceName}/>
+          <RolesTab clusterName={clusterName} workspaceName={workspaceName} />
         </RouterTab>
 
         <RouterTab name="Role Bindings" path={`${path}/roleBindings`}>
-          <RoleBindingsTab clusterName={clusterName} workspaceName={workspaceName}/>
+          <RoleBindingsTab
+            clusterName={clusterName}
+            workspaceName={workspaceName}
+          />
         </RouterTab>
-        
+
         <RouterTab name="Policies" path={`${path}/policies`}>
-          <PoliciesTab clusterName={clusterName} workspaceName={workspaceName}/>
+          <PoliciesTab
+            clusterName={clusterName}
+            workspaceName={workspaceName}
+          />
         </RouterTab>
       </CustomSubRouterTabs>
     </div>

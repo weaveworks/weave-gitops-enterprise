@@ -6,7 +6,7 @@ import {
   filterConfig,
   formatURL,
 } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
@@ -23,7 +23,7 @@ const Pipelines = ({ className }: any) => {
   const initialFilterState = {
     ...filterConfig(data?.pipelines, 'namespace'),
   };
-  const history = useHistory();
+  const navigate = useNavigate();
 
   return (
     <PageTemplate documentTitle="Pipelines" path={[{ label: 'Pipelines' }]}>
@@ -35,7 +35,7 @@ const Pipelines = ({ className }: any) => {
             const filtersValues = toFilterQueryString([
               { key: `templateType`, value: 'pipeline' },
             ]);
-            history.push(`/templates?filters=${filtersValues}`);
+            navigate(`/templates?filters=${filtersValues}`);
           }}
         >
           CREATE A PIPELINE

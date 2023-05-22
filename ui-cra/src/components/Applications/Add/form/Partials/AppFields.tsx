@@ -11,7 +11,7 @@ import {
 } from '@weaveworks/weave-gitops/ui/lib/objects';
 import _ from 'lodash';
 import React, { Dispatch, FC, useCallback, useEffect } from 'react';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
@@ -53,7 +53,8 @@ const AppFields: FC<{
   const { cluster, source, name, namespace, target_namespace, path } =
     formData.clusterAutomations[index];
   const { createNamespace } = automation;
-  const history = useHistory();
+  // const history = useHistory();
+  const navigate = useNavigate();
   const location = useLocation();
 
   let clusters: GitopsCluster[] | undefined =
@@ -63,7 +64,7 @@ const AppFields: FC<{
     (cluster: GitopsCluster) => {
       setFormData((formData: any) => {
         const params = new URLSearchParams(`clusterName=${cluster.name}`);
-        history.replace({
+        navigate({
           pathname: location.pathname,
           search: params.toString(),
         });

@@ -110,7 +110,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
           </Flex>
         </Box>
 
-        <SubRouterTabs rootPath={`${path}/status`}>
+        <SubRouterTabs>
           <RouterTab name="Status" path={`${path}/status`}>
             <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
           </RouterTab>

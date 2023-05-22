@@ -2,13 +2,14 @@ import { Button } from '@weaveworks/weave-gitops';
 import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import FilterListIcon from '@material-ui/icons/FilterList';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useWorkspaceStyle } from '../WorkspaceStyles';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
 
 function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   const classes = useWorkspaceStyle();
-  const history = useHistory();
+  // const history = useHistory();
+  const navigate = useNavigate();
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Workspace Name',
@@ -28,7 +29,7 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
             { key: 'tenant', value: name || '' },
             { key: 'clusterName', value: clusterName || '' },
           ]);
-          history.push(`/applications?filters=${filtersValues}`);
+          navigate(`/applications?filters=${filtersValues}`);
         }}
         className={classes.navigateBtn}
       >

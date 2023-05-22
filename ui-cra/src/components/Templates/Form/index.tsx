@@ -18,7 +18,7 @@ import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Redirect, useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
@@ -47,7 +47,7 @@ import {
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
-import { Routes } from '../../../utils/nav';
+import { Redirect, Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
@@ -358,7 +358,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
-  const history = useHistory();
+  const navigate = useNavigate();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
   const editLink = resource && getLink(resource);
   const authRedirectPage = resource
@@ -479,7 +479,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         addResource(payload, getProviderToken(formData.provider))
           .then(response => {
             setPRPreview(null);
-            history.push(Routes.Templates);
+            navigate(Routes.Templates);
             setNotifications([
               {
                 message: {
@@ -744,23 +744,22 @@ interface Props {
 
 const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
   if (!template) {
-    return (
-      <Redirect
-        to={{
-          pathname: '/templates',
-          state: {
-            notification: [
-              {
-                message: {
-                  text: 'No template information is available to create a resource.',
-                },
-                severity: 'error',
-              },
-            ],
-          },
-        }}
-      />
-    );
+    return null;
+    // <Redirect
+    //   to={{
+    //     pathname: '/templates',
+    //     state: {
+    //       notification: [
+    //         {
+    //           message: {
+    //             text: 'No template information is available to create a resource.',
+    //           },
+    //           severity: 'error',
+    //         },
+    //       ],
+    //     },
+    //   }}
+    // />
   }
 
   return (

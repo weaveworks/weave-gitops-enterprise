@@ -3,17 +3,17 @@ import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useListSecrets } from '../../contexts/Secrets';
 import { SecretsTable } from './Table';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useCallback } from 'react';
 import { Routes } from '../../utils/nav';
 
 const SecretsList = () => {
   const { data, isLoading } = useListSecrets({});
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleCreateSecret = useCallback(
-    (url: string) => history.push(url),
-    [history],
+    (url: string) => navigate(url),
+    [navigate],
   );
 
   return (

@@ -65,7 +65,7 @@ const SecretDetailsTabs = ({
   ];
 
   return (
-    <SubRouterTabs rootPath={`${path}/details`}>
+    <SubRouterTabs>
       <RouterTab name="Details" path={`${path}/details`}>
         <DetailsHeadersWrapper>
           {generateRowHeaders(secretDetailsHeaders)}

@@ -10,7 +10,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
@@ -137,7 +137,7 @@ function getInitialData(
   return { initialFormData };
 }
 const CreatePolicyConfig = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   let { data: allClusters } = useGetClustersList({});
   const clusters = allClusters?.gitopsClusters
@@ -274,7 +274,7 @@ const CreatePolicyConfig = () => {
       .then(() =>
         createDeploymentObjects(payload, getProviderToken(formData.provider))
           .then(response => {
-            history.push(Routes.PolicyConfigs);
+            navigate(Routes.PolicyConfigs);
             setNotifications([
               {
                 message: {

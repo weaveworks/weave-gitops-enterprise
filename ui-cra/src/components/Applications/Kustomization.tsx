@@ -8,7 +8,6 @@ import {
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
 import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
-import { useRouteMatch } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
 import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
 import { ContentWrapper } from '../Layout/ContentWrapper';
@@ -53,12 +52,11 @@ const WGApplicationsKustomization: FC<Props> = ({
     Kind.Kustomization,
     clusterName,
   );
-  const { path } = useRouteMatch();
 
   const customTabs: Array<routeTab> = [
     {
       name: 'Violations',
-      path: `${path}/violations`,
+      path: `/violations`,
       component: () => {
         return (
           <div style={{ width: '100%' }}>

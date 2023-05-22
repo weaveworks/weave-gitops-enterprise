@@ -51,7 +51,7 @@ const ImageAutomationDetails = ({
         />
       </HeaderSection>
 
-      <SubRouterTabs rootPath={`${rootPath}/details`}>
+      <SubRouterTabs>
         <RouterTab name="Details" path={`${rootPath}/details`}>
           <>
             <InfoList items={infoFields} />

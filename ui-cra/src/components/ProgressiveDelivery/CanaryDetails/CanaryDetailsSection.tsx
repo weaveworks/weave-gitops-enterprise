@@ -47,7 +47,7 @@ function CanaryDetailsSection({
         </p>
       </div>
 
-      <SubRouterTabs rootPath={`${path}/details`}>
+      <SubRouterTabs>
         <RouterTab name="Details" path={`${path}/details`}>
           <CanaryDetailsWrapper>
             <DetailsSection canary={canary} automation={automation} />

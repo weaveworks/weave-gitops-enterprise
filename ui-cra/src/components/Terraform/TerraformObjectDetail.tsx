@@ -13,7 +13,7 @@ import {
   YamlView,
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
-import { useLocation, useRouteMatch } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   GetTerraformObjectResponse,
@@ -46,7 +46,6 @@ type Props = {
 };
 
 function TerraformObjectDetail({ className, ...params }: Props) {
-  const { path } = useRouteMatch();
   const { pathname } = useLocation();
   const [syncing, setSyncing] = useState(false);
   const [suspending, setSuspending] = useState(false);
@@ -209,8 +208,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
               </Box>
             </Flex>
           </Box>
-          <SubRouterTabs rootPath={`${path}/details`}>
-            <RouterTab name="Details" path={`${path}/details`}>
+          <SubRouterTabs>
+            <RouterTab name="Details" path={`/details`}>
               <Box style={{ width: '100%' }}>
                 <InfoList
                   data-testid="info-list"
@@ -240,7 +239,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 </TableWrapper>
               </Box>
             </RouterTab>
-            <RouterTab name="Events" path={`${path}/events`}>
+            <RouterTab name="Events" path={`/events`}>
               <ListEvents
                 clusterName={object?.clusterName}
                 involvedObject={{
@@ -250,12 +249,12 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 }}
               />
             </RouterTab>
-            <RouterTab name="Dependencies" path={`${path}/dependencies`}>
+            <RouterTab name="Dependencies" path={`/dependencies`}>
               <LinkResolverProvider resolver={resolver}>
                 <TerraformDependenciesView object={object || {}} />
               </LinkResolverProvider>
             </RouterTab>
-            <RouterTab name="Yaml" path={`${path}/yaml`}>
+            <RouterTab name="Yaml" path={`/yaml`}>
               <YamlView
                 yaml={yaml || ''}
                 object={{
@@ -265,7 +264,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 }}
               />
             </RouterTab>
-            <RouterTab name="Plan" path={`${path}/plan`}>
+            <RouterTab name="Plan" path={`/plan`}>
               <>
                 {!isLoadingPlan && (
                   <TerraformPlanView plan={plan} error={error} />

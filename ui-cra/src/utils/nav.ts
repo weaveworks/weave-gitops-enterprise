@@ -1,4 +1,6 @@
 import { Kind, V2Routes } from '@weaveworks/weave-gitops';
+import React, { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 
 export function getKindRoute(k: Kind | string): string {
   switch (k) {
@@ -74,7 +76,6 @@ export enum Routes {
   PolicyConfigsDetails = '/policyConfigs/details',
   CreatePolicyConfig = '/policyConfigs/create',
 
-
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
 
@@ -84,3 +85,20 @@ export enum Routes {
   ExplorerAccessRules = '/explorer/access_rules',
   Notifications = '/notifications',
 }
+
+export function Redirect({ to }: { to: string }) {
+  const navigate = useNavigate();
+  React.useEffect(() => {
+    navigate(to);
+  });
+  return null;
+}
+
+export const useOnLocationChange = (handleLocationChange: any) => {
+  const location = useLocation();
+
+  useEffect(
+    () => handleLocationChange(location),
+    [location, handleLocationChange],
+  );
+};

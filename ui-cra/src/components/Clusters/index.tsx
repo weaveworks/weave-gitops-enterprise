@@ -27,7 +27,7 @@ import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useHistory, useRouteMatch } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
@@ -211,7 +211,6 @@ export const getGitRepos = (sources: Source[] | undefined) =>
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { path } = useRouteMatch();
   const { clusters, isLoading } = useClusters();
   const { setNotifications } = useNotifications();
   const [selectedCluster, setSelectedCluster] =
@@ -287,15 +286,15 @@ const MCCP: FC<{
     getCreateRequestAnnotation(selectedCapiCluster)?.repository_url;
   const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const handleAddCluster = useCallback(() => {
     const filtersValues = toFilterQueryString([
       { key: 'templateType', value: 'cluster' },
       { key: 'templateType', value: '' },
     ]);
-    history.push(`/templates?filters=${filtersValues}`);
-  }, [history]);
+    navigate(`/templates?filters=${filtersValues}`);
+  }, [navigate]);
 
   const initialFilterState = {
     ...filterConfig(clusters, 'status', filterByStatusCallback),
@@ -447,8 +446,8 @@ const MCCP: FC<{
               <OpenedPullRequest />
             </Flex>
           </div>
-          <SubRouterTabs rootPath={`${path}/list`}>
-            <RouterTab name="Clusters" path={`${path}/list`}>
+          <SubRouterTabs>
+            <RouterTab name="Clusters" path={`/list`}>
               <LoadingWrapper loading={isLoading}>
                 <ClustersTableWrapper id="clusters-list">
                   <DataTable
@@ -535,7 +534,7 @@ const MCCP: FC<{
                 </ClustersTableWrapper>
               </LoadingWrapper>
             </RouterTab>
-            <RouterTab name="Violations" path={`${path}/violations`}>
+            <RouterTab name="Violations" path={`/violations`}>
               <PoliciesViolations />
             </RouterTab>
           </SubRouterTabs>

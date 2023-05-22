@@ -14,7 +14,7 @@ import {
   LoadingPage,
   useListSources,
 } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { removeToken } from '../../../utils/request';
 import useNotifications from '../../../contexts/Notifications';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -152,7 +152,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [loading, setLoading] = useState<boolean>(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { setNotifications } = useNotifications();
-  const history = useHistory();
+  const navigate = useNavigate();
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
 
@@ -369,7 +369,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         createDeploymentObjects(payload, getProviderToken(formData.provider))
           .then(response => {
             setPRPreview(null);
-            history.push(Routes.Applications);
+            navigate(Routes.Applications);
             setNotifications([
               {
                 message: {
@@ -400,7 +400,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, history, getKustomizations, setNotifications, validateToken]);
+  }, [formData, navigate, getKustomizations, setNotifications, validateToken]);
 
   const [submitType, setSubmitType] = useState<string>('');
 

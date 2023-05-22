@@ -16,7 +16,7 @@ function ExplorerPage({ className }: Props) {
     <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
       <ContentWrapper>
         <div className={className}>
-          <SubRouterTabs rootPath={`${Routes.Explorer}/query`}>
+          <SubRouterTabs>
             <RouterTab name="Query" path={`${Routes.Explorer}/query`}>
               <Explorer />
             </RouterTab>

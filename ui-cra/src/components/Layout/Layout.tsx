@@ -8,7 +8,7 @@ import {
   SignIn,
 } from '@weaveworks/weave-gitops';
 import { useContext } from 'react';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Routes } from 'react-router-dom';
 import styled from 'styled-components';
 import { ListConfigProvider, VersionProvider } from '../../contexts/ListConfig';
 import AppRoutes from '../../routes';
@@ -56,14 +56,13 @@ const Layout = () => {
   const { appState, setDetailModal } = useContext(AppContext);
   const detail = appState.detailModal;
   return (
-    <Switch>
+    <Routes>
       <Route
-        component={() => (
+        element={() => (
           <SignInWrapper>
             <SignIn />
           </SignInWrapper>
         )}
-        exact={true}
         path="/sign_in"
       />
       <Route path="*">
@@ -97,7 +96,7 @@ const Layout = () => {
           </ListConfigProvider>
         </AuthCheck>
       </Route>
-    </Switch>
+    </Routes>
   );
 };
 

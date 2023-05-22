@@ -8,11 +8,11 @@ import {
   useListAutomations,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
-import Explorer from '../Explorer/Explorer';
+// import Explorer from '../Explorer/Explorer';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 
@@ -38,9 +38,9 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
     refetchInterval: 5000,
   });
 
-  const history = useHistory();
+  const navigate = useNavigate();
 
-  const handleAddApplication = () => history.push(Routes.AddApplication);
+  const handleAddApplication = () => navigate(Routes.AddApplication);
 
   return (
     <PageTemplate
@@ -73,11 +73,11 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
         </div>
 
         <div className={className}>
-          {useQueryServiceBackend ? (
+          {/* {useQueryServiceBackend ? (
             <Explorer category="automation" enableBatchSync />
-          ) : (
-            <AutomationsTable automations={automations?.result} />
-          )}
+          ) : ( */}
+          <AutomationsTable automations={automations?.result} />
+          {/* )} */}
         </div>
       </ContentWrapper>
     </PageTemplate>

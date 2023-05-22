@@ -1,17 +1,14 @@
 import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
-import { useRouteMatch } from 'react-router-dom';
 import ImageAutomationUpdatesTable from '../../components/ImageAutomation/updates/ImageAutomationUpdatesTable';
 import ImagePoliciesTable from './policies/ImagePoliciesTable';
 import ImageRepositoriesTable from './repositories/ImageRepositoriesTable';
 
 const ImageAutomation = () => {
-  const { path } = useRouteMatch();
-
   const tabs: Array<routeTab> = [
     {
       name: 'Image Repositories',
-      path: `${path}/repositories`,
+      path: `/repositories`,
       component: () => {
         return <ImageRepositoriesTable />;
       },
@@ -19,7 +16,7 @@ const ImageAutomation = () => {
     },
     {
       name: 'Image Policies',
-      path: `${path}/policies`,
+      path: `/policies`,
       component: () => {
         return <ImagePoliciesTable />;
       },
@@ -27,7 +24,7 @@ const ImageAutomation = () => {
     },
     {
       name: 'Image Update Automations',
-      path: `${path}/updates`,
+      path: `/updates`,
       component: () => {
         return <ImageAutomationUpdatesTable />;
       },
@@ -36,7 +33,7 @@ const ImageAutomation = () => {
   ];
   return (
     <Flex wide tall column>
-      <SubRouterTabs rootPath={tabs[0].path} clearQuery>
+      <SubRouterTabs clearQuery>
         {tabs.map(
           (subRoute, index) =>
             subRoute.visible && (

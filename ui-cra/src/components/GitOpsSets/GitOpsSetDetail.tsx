@@ -18,7 +18,6 @@ import {
   YamlView,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
-import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
@@ -54,7 +53,6 @@ type Props = {
 };
 
 function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
-  const { path } = useRouteMatch();
   const [syncing, setSyncing] = React.useState(false);
   const [suspending, setSuspending] = React.useState(false);
   const { setNotifications } = useNotifications();
@@ -204,8 +202,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             </Box>
           </Flex>
         </Box>
-        <SubRouterTabs rootPath={`${path}/details`}>
-          <RouterTab name="Details" path={`${path}/details`}>
+        <SubRouterTabs>
+          <RouterTab name="Details" path={`/details`}>
             <Box style={{ width: '100%' }}>
               <InfoList
                 data-testid="info-list"
@@ -231,7 +229,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               </TableWrapper>
             </Box>
           </RouterTab>
-          <RouterTab name="Events" path={`${path}/events`}>
+          <RouterTab name="Events" path={`/events`}>
             <ListEvents
               clusterName={gs?.clusterName}
               involvedObject={{
@@ -241,7 +239,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               }}
             />
           </RouterTab>
-          <RouterTab name="Graph" path={`${path}/graph`}>
+          <RouterTab name="Graph" path={`/graph`}>
             <RequestStateHandler
               loading={isLoading}
               error={error as RequestError}
@@ -253,7 +251,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
               />
             </RequestStateHandler>
           </RouterTab>
-          <RouterTab name="Yaml" path={`${path}/yaml`}>
+          <RouterTab name="Yaml" path={`/yaml`}>
             <YamlView
               yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
               object={{

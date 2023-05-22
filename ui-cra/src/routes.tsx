@@ -1,7 +1,7 @@
 import { V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
-import { Redirect, Route, Switch } from 'react-router-dom';
+import { Route, Routes as Routess } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 import error404 from './assets/img/error404.json';
@@ -100,11 +100,9 @@ const Page404 = () => (
 
 const AppRoutes = () => {
   return (
-    <Switch>
-      <Route exact path="/">
-        <Redirect to={Routes.Clusters} />
-      </Route>
-      <Route component={MCCP} path={Routes.Clusters} />
+    <Routess>
+      <Route element={MCCP} path="/"></Route>
+      {/* <Route component={MCCP} path={Routes.Clusters} />
       <Route component={MCCP} exact path={Routes.DeleteCluster} />
       <Route
         component={withSearchParams((props: any) => (
@@ -388,8 +386,8 @@ const AppRoutes = () => {
           );
         }}
       />
-      <Route exact render={Page404} />
-    </Switch>
+      <Route exact render={Page404} /> */}
+    </Routess>
   );
 };
 

@@ -7,7 +7,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import * as React from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   AuthorizeGitlabResponse,
@@ -48,12 +48,13 @@ function OAuthCallback({
   error: paramsError,
   errorDescription,
 }: Props) {
-  const history = useHistory();
+  const navigate = useNavigate();
   const [res, loading, error, req] = useRequestState<AuthorizeGitlabResponse>();
   const linkResolver = useLinkResolver();
   const { setNotifications } = useNotifications();
   const { gitAuthClient } = React.useContext(GitAuth);
-  const params = qs.parse(history.location.search);
+  const location = useLocation();
+  const params = qs.parse(location.search);
 
   React.useEffect(() => {
     if (provider === GitProvider.GitLab) {
@@ -99,7 +100,7 @@ function OAuthCallback({
     const state = getCallbackState();
 
     if (state?.page || !params.error) {
-      history.push(linkResolver(state?.page || ''));
+      navigate(linkResolver(state?.page || ''));
       return;
     }
   }, [res, history, linkResolver, params.error, provider]);

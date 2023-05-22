@@ -17,7 +17,7 @@ import {
   Link,
 } from '@weaveworks/weave-gitops';
 import { Template } from '../../cluster-services/cluster_services.pb';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
 
 const Error = styled.span`
@@ -37,7 +37,7 @@ const TemplatesDashboard: FC<{
 }> = ({ location }) => {
   const { templates, isLoading } = useTemplates();
   const { setNotifications } = useNotifications();
-  const history = useHistory();
+  const navigate = useNavigate();
 
   const initialFilterState = {
     ...filterConfig(templates, 'provider'),
@@ -46,7 +46,7 @@ const TemplatesDashboard: FC<{
   };
 
   const handleAddCluster = useCallback(
-    (event, t) => history.push(`/templates/${t.name}/create`),
+    (event, t) => navigate(`/templates/${t.name}/create`),
     [history],
   );
 

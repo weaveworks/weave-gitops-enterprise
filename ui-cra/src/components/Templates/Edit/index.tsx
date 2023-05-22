@@ -1,12 +1,11 @@
 import Grid from '@material-ui/core/Grid';
 import { Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
-import { Redirect } from 'react-router-dom';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
-import { Routes } from '../../../utils/nav';
+import { Redirect, Routes } from '../../../utils/nav';
 import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import ResourceForm from '../Form';
@@ -21,23 +20,22 @@ const EditResource: FC<{
   const templateName = getCreateRequestAnnotation(resource)?.template_name;
 
   if (!templateName) {
-    return (
-      <Redirect
-        to={{
-          pathname: Routes.Clusters,
-          state: {
-            notification: [
-              {
-                message: {
-                  text: 'No edit information is available for this resource.',
-                },
-                severity: 'error',
-              },
-            ],
-          },
-        }}
-      />
-    );
+    return null;
+    // <Redirect
+    //   to={{
+    //     pathname: Routes.Clusters,
+    //     state: {
+    //       notification: [
+    //         {
+    //           message: {
+    //             text: 'No edit information is available for this resource.',
+    //           },
+    //           severity: 'error',
+    //         },
+    //       ],
+    //     },
+    //   }}
+    // />
   }
 
   return (

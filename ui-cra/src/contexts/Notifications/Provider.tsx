@@ -1,16 +1,23 @@
 import { FC, useEffect, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import { Notification, NotificationData } from './index';
+import { useOnLocationChange } from '../../utils/nav';
 
 const NotificationsProvider: FC = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationData[] | []>(
     [],
   );
-  const history = useHistory();
+  // const navigate = useNavigate();
+  const locationChange = useOnLocationChange(setNotifications);
 
   useEffect(() => {
-    return history.listen(() => setNotifications([]));
-  }, [history]);
+    setNotifications([]);
+    return locationChange;
+  }, [setNotifications, locationChange]);
+
+  // useEffect(() => {
+  //   return history.listen(() => setNotifications([]));
+  // }, [history]);
 
   return (
     <Notification.Provider value={{ notifications, setNotifications }}>

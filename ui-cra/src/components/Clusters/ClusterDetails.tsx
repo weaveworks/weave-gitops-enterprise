@@ -8,7 +8,7 @@ import {
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Routes } from '../../utils/nav';
@@ -39,8 +39,7 @@ const ActionsWrapper = styled.div<Size>`
 `;
 
 const ClusterDetails = ({ clusterName }: Props) => {
-  const { path } = useRouteMatch();
-  const history = useHistory();
+  const navigate = useNavigate();
   const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
     useClusters();
   const [currentCluster, setCurrentCluster] =
@@ -80,7 +79,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                         filters: [`Cluster:${clusterName}`],
                       } as QueryState);
 
-                      history.push(s);
+                      navigate(s);
                     } else {
                       const filtersValues = toFilterQueryString([
                         {
@@ -88,7 +87,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                           value: `${currentCluster?.namespace}/${currentCluster?.name}`,
                         },
                       ]);
-                      history.push(`/applications?filters=${filtersValues}`);
+                      navigate(`/applications?filters=${filtersValues}`);
                     }
                   }}
                 >
@@ -110,7 +109,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                           const filtersValues = encodeURIComponent(
                             `${currentCluster?.name}`,
                           );
-                          history.push(
+                          navigate(
                             `/applications/create?clusterName=${filtersValues}`,
                           );
                         }}
@@ -122,8 +121,8 @@ const ClusterDetails = ({ clusterName }: Props) => {
                   </Tooltip>
                 )}
               </ActionsWrapper>
-              <SubRouterTabs rootPath={`${path}/details`}>
-                <RouterTab name="Details" path={`${path}/details`}>
+              <SubRouterTabs>
+                <RouterTab name="Details" path={`/details`}>
                   <ClusterDashboard
                     currentCluster={currentCluster}
                     getDashboardAnnotations={getDashboardAnnotations}

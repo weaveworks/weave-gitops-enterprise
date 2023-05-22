@@ -21,7 +21,7 @@ const CreateResourcePage = () => {
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <Title>Create new resource with template</Title>
           </Grid>
-          <ResourceForm template={getTemplate(templateName)} />
+          <ResourceForm template={getTemplate(templateName || '')} />
         </Grid>
       </ContentWrapper>
     </PageTemplate>

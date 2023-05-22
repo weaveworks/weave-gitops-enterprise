@@ -10,7 +10,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
@@ -123,7 +123,7 @@ function getInitialData(
   return { initialFormData };
 }
 const CreateSecret = () => {
-  const history = useHistory();
+  const navigate = useNavigate();
 
   let clusters: GitopsCluster[] | undefined = useClustersWithSources(true);
   const { setNotifications } = useNotifications();
@@ -291,7 +291,7 @@ const CreateSecret = () => {
       .then(() =>
         createDeploymentObjects(payload, getProviderToken(formData.provider))
           .then(response => {
-            history.push(Routes.Secrets);
+            navigate(Routes.Secrets);
             setNotifications([
               {
                 message: {
