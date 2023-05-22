@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rolecollector"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/objectscollector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rbac"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -28,7 +29,6 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	ac   accesschecker.Checker
 	qs   query.QueryService
 	arc  *rolecollector.RoleCollector
 	objs *objectscollector.ObjectsCollector
@@ -84,7 +84,7 @@ func (s *server) DebugGetAccessRules(ctx context.Context, msg *pb.DebugGetAccess
 
 	user := auth.Principal(ctx)
 
-	matching := s.ac.RelevantRulesForUser(user, rules)
+	matching := accesschecker.RelevantRulesForUser(user, rules)
 	return &pb.DebugGetAccessRulesResponse{
 		Rules: convertToPbAccessRule(matching),
 	}, nil
@@ -106,18 +106,18 @@ func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb
 // This method creates a map <resource,kind> to allow access checker
 // to determine whether a policyRule (from GVR) allows a kind (from GVK)
 // More info https://kubernetes.io/docs/reference/using-api/api-concepts/#standard-api-terminology
-func createKindByResourceMap(dc discovery.DiscoveryInterface) (map[string]string, error) {
+func createKindToResourceMap(dc discovery.DiscoveryInterface) (map[string]string, error) {
 	_, resourcesList, err := dc.ServerGroupsAndResources()
 	if err != nil {
 		return nil, err
 	}
-	kindByResourceMap := map[string]string{}
+	kindToResourceMap := map[string]string{}
 	for _, resourceList := range resourcesList {
 		for _, resource := range resourceList.APIResources {
-			kindByResourceMap[resource.Name] = resource.Kind
+			kindToResourceMap[resource.Kind] = resource.Name
 		}
 	}
-	return kindByResourceMap, nil
+	return kindToResourceMap, nil
 }
 
 func (so *ServerOpts) Validate() error {
@@ -156,16 +156,12 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 		return nil, nil, fmt.Errorf("cannot create store:%w", err)
 	}
 
-	kindByResourceMap, err := createKindByResourceMap(opts.DiscoveryClient)
+	kindToResourceMap, err := createKindToResourceMap(opts.DiscoveryClient)
 	if err != nil {
-		return nil, nil, fmt.Errorf("cannot resources mapper:%w", err)
+		return nil, nil, fmt.Errorf("cannot create resources map:%w", err)
 	}
 
-	checker, err := accesschecker.NewAccessChecker(kindByResourceMap)
-	if err != nil {
-		return nil, nil, fmt.Errorf("cannot create access checker:%w", err)
-	}
-	debug.Info("access checker created")
+	authz := rbac.NewAuthorizer(kindToResourceMap)
 
 	idxDir, err := os.MkdirTemp("", "index")
 	if err != nil {
@@ -178,17 +174,17 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	}
 
 	qs, err := query.NewQueryService(query.QueryServiceOpts{
-		Log:           debug,
-		StoreReader:   s,
-		AccessChecker: checker,
-		IndexReader:   idx,
+		Log:         debug,
+		StoreReader: s,
+		IndexReader: idx,
+		Authorizer:  authz,
 	})
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to create query service: %w", err)
 	}
 	debug.Info("query service created")
 
-	serv := &server{qs: qs, ac: checker}
+	serv := &server{qs: qs}
 
 	if !opts.SkipCollection {
 
