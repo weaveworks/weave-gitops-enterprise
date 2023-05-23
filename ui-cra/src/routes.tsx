@@ -58,24 +58,10 @@ import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
 function withSearchParams() {
-  return (props: Props) => {
-    const { search } = useLocation();
-    const params = qs.parse(search);
-    return { ...props, ...params };
-  };
+  const location = useLocation();
+  const params = qs.parse(location.search);
+  return params;
 }
-type Props = {
-  className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
-};
-
-// function withSearchParams() {
-//   const location = useLocation();
-//   const params = qs.parse(location.search);
-//   return params;
-// }
 
 const CoreWrapper = styled.div`
   div[class*='FilterDialog__SlideContainer'] {

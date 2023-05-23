@@ -25,12 +25,12 @@ import { QueryState } from '../Explorer/hooks';
 import { linkToExplorer } from '../Explorer/utils';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
-type Props = {
-  className?: string;
-  name: string;
-  namespace: string;
-  clusterName: string;
-};
+// type Props = {
+//   className?: string;
+//   name: string;
+//   namespace: string;
+//   clusterName: string;
+// };
 interface Size {
   size?: 'small';
 }
@@ -38,7 +38,7 @@ const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
 
-const ClusterDetails = ({ clusterName }: Props) => {
+const ClusterDetails = ({ clusterName }: any) => {
   const navigate = useNavigate();
   const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
     useClusters();
@@ -122,7 +122,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
                 )}
               </ActionsWrapper>
               <SubRouterTabs>
-                <RouterTab name="Details" path={`/details`}>
+                <RouterTab name="Details" path={`details`}>
                   <ClusterDashboard
                     currentCluster={currentCluster}
                     getDashboardAnnotations={getDashboardAnnotations}
