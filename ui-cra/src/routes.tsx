@@ -57,7 +57,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
-function withSearchParams() {
+function WithSearchParams() {
   const location = useLocation();
   const params = qs.parse(location.search);
   return params;
@@ -104,7 +104,7 @@ const AppRoutes = () => {
       <Route element={<MCCP />} path={Routes.Clusters + '/*'} />
       <Route element={<MCCP />} path={Routes.DeleteCluster} />
       <Route
-        element={<ClusterDetails {...withSearchParams()} />}
+        element={<ClusterDetails {...WithSearchParams()} />}
         path={Routes.ClusterDashboard + '/*'}
       />
       {/* <Route
