@@ -52,13 +52,13 @@ const ImageAutomationDetails = ({
       </HeaderSection>
 
       <SubRouterTabs>
-        <RouterTab name="Details" path={`${rootPath}/details`}>
+        <RouterTab name="Details" path={`/details`}>
           <>
             <InfoList items={infoFields} />
             <Box marginTop={2}>{children}</Box>
           </>
         </RouterTab>
-        <RouterTab name="Events" path={`${rootPath}/events`}>
+        <RouterTab name="Events" path={`/events`}>
           <EventsTable
             namespace={namespace}
             involvedObject={{
@@ -69,7 +69,7 @@ const ImageAutomationDetails = ({
             }}
           />
         </RouterTab>
-        <RouterTab name="yaml" path={`${rootPath}/yaml`}>
+        <RouterTab name="yaml" path={`/yaml`}>
           <YamlView
             yaml={data.yaml}
             object={{

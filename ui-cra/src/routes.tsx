@@ -123,10 +123,17 @@ const AppRoutes = () => {
         element={<TerraformObjectList {...WithSearchParams()} />}
       />
       <Route
-        path={Routes.TerraformDetail}
+        path={Routes.TerraformDetail + '/*'}
         element={<TerraformObjectDetail {...WithSearchParams()} />}
       />
       <Route path={Routes.Secrets} element={<SecretsList />} />
+      <Route
+        path={Routes.SecretDetails + '/*'}
+        element={<SecretDetails {...WithSearchParams()} />}
+      />
+      <Route path={Routes.CreateSecret} element={<CreateSecret />} />
+      <Route path={Routes.CreateSopsSecret} element={<CreateSOPS />} />
+
       <Route
         element={
           <CoreWrapper>
@@ -213,26 +220,31 @@ const AppRoutes = () => {
       />
       <Route path={Routes.ImageAutomation} element={<ImageAutomationPage />} />
       <Route
-        path={V2Routes.ImageAutomationUpdatesDetails}
+        path={V2Routes.ImageAutomationUpdatesDetails + '/*'}
         element={<ImageAutomationUpdatesDetails {...WithSearchParams()} />}
       />
       <Route
-        path={V2Routes.ImageAutomationRepositoryDetails}
+        path={V2Routes.ImageAutomationRepositoryDetails + '/*'}
         element={<ImageAutomationRepoDetails {...WithSearchParams()} />}
       />
       <Route
-        path={V2Routes.ImagePolicyDetails}
+        path={V2Routes.ImagePolicyDetails + '/*'}
         element={<ImagePolicyDetails {...WithSearchParams()} />}
       />
       <Route path={Routes.Pipelines} element={<Pipelines />} />
       <Route
-        path={Routes.PipelineDetails}
+        path={Routes.PipelineDetails + '/*'}
         element={<PipelineDetails {...WithSearchParams()} />}
       />
       <Route path={Routes.Canaries} element={<ProgressiveDelivery />} />
       <Route
-        path={Routes.CanaryDetails}
+        path={Routes.CanaryDetails + '/*'}
         element={<CanaryDetails {...WithSearchParams()} />}
+      />
+      <Route path={Routes.Workspaces} element={<Workspaces />} />
+      <Route
+        path={Routes.WorkspaceDetails + '/*'}
+        element={<WorkspaceDetails {...WithSearchParams()} />}
       />
 
       {/* <Route

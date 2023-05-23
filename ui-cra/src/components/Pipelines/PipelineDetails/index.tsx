@@ -79,7 +79,6 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   });
 
   const classes = usePipelineStyles();
-  const path = `/pipelines/details`;
 
   return (
     <PageTemplate
@@ -111,10 +110,10 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         </Box>
 
         <SubRouterTabs>
-          <RouterTab name="Status" path={`${path}/status`}>
+          <RouterTab name="Status" path={`/status`}>
             <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
           </RouterTab>
-          <RouterTab name="Yaml" path={`${path}/yaml`}>
+          <RouterTab name="Yaml" path={`/yaml`}>
             <YamlView
               yaml={data?.pipeline?.yaml || ''}
               object={{
@@ -124,7 +123,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
               }}
             />
           </RouterTab>
-          <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
+          <RouterTab name="Pull Requests" path={`/pullrequests`}>
             <PipelinePullRequests pipeline={data?.pipeline} />
           </RouterTab>
         </SubRouterTabs>

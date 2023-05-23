@@ -29,7 +29,6 @@ function CanaryDetailsSection({
   automation?: Automation;
 }) {
   const classes = useCanaryStyle();
-  const path = Routes.CanaryDetails;
   return (
     <>
       <TitleWrapper>{canary.name}</TitleWrapper>
@@ -48,13 +47,13 @@ function CanaryDetailsSection({
       </div>
 
       <SubRouterTabs>
-        <RouterTab name="Details" path={`${path}/details`}>
+        <RouterTab name="Details" path={`/details`}>
           <CanaryDetailsWrapper>
             <DetailsSection canary={canary} automation={automation} />
           </CanaryDetailsWrapper>
         </RouterTab>
 
-        <RouterTab name="Objects" path={`${path}/objects`}>
+        <RouterTab name="Objects" path={`/objects`}>
           <CanaryDetailsWrapper>
             <ListManagedObjects
               clusterName={canary.clusterName || ''}
@@ -63,7 +62,7 @@ function CanaryDetailsSection({
             />
           </CanaryDetailsWrapper>
         </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
+        <RouterTab name="Events" path={`/events`}>
           <CanaryDetailsWrapper>
             <ListEvents
               clusterName={canary?.clusterName}
@@ -75,14 +74,14 @@ function CanaryDetailsSection({
             />
           </CanaryDetailsWrapper>
         </RouterTab>
-        <RouterTab name="Analysis" path={`${path}/analysis`}>
+        <RouterTab name="Analysis" path={`/analysis`}>
           <CanaryDetailsWrapper>
             <CanaryMetricsTable
               metrics={canary.analysis?.metrics || []}
             ></CanaryMetricsTable>
           </CanaryDetailsWrapper>
         </RouterTab>
-        <RouterTab name="yaml" path={`${path}/yaml`}>
+        <RouterTab name="yaml" path={`/yaml`}>
           <CanaryDetailsWrapper>
             <YamlView
               yaml={canary.yaml || ''}

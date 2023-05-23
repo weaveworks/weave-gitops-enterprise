@@ -66,12 +66,12 @@ const SecretDetailsTabs = ({
 
   return (
     <SubRouterTabs>
-      <RouterTab name="Details" path={`${path}/details`}>
+      <RouterTab name="Details" path={`/details`}>
         <DetailsHeadersWrapper>
           {generateRowHeaders(secretDetailsHeaders)}
         </DetailsHeadersWrapper>
       </RouterTab>
-      <RouterTab name="Events" path={`${path}/events`}>
+      <RouterTab name="Events" path={`/events`}>
         <ListEventsWrapper>
           <ListEvents
             involvedObject={{
@@ -83,7 +83,7 @@ const SecretDetailsTabs = ({
           />
         </ListEventsWrapper>
       </RouterTab>
-      <RouterTab name="Yaml" path={`${path}/yaml`}>
+      <RouterTab name="Yaml" path={`/yaml`}>
         <YamlView
           yaml={
             secretDetails?.yaml &&
