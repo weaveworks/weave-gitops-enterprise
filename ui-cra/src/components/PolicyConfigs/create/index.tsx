@@ -308,7 +308,7 @@ const CreatePolicyConfig = () => {
   }, [
     formData,
     getClusterAutomations,
-    history,
+    navigate,
     setNotifications,
     validateToken,
   ]);

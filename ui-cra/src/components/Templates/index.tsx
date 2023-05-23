@@ -17,7 +17,7 @@ import {
   Link,
 } from '@weaveworks/weave-gitops';
 import { Template } from '../../cluster-services/cluster_services.pb';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TableWrapper } from '../Shared';
 
 const Error = styled.span`
@@ -32,9 +32,8 @@ const DocsLink = styled(Link)`
   padding-left: ${({ theme }) => theme.spacing.xxs};
 `;
 
-const TemplatesDashboard: FC<{
-  location: { state: { notification: NotificationData[] } };
-}> = ({ location }) => {
+const TemplatesDashboard: FC<{}> = () => {
+  const location = useLocation();
   const { templates, isLoading } = useTemplates();
   const { setNotifications } = useNotifications();
   const navigate = useNavigate();
@@ -47,7 +46,7 @@ const TemplatesDashboard: FC<{
 
   const handleAddCluster = useCallback(
     (event, t) => navigate(`/templates/${t.name}/create`),
-    [history],
+    [navigate],
   );
 
   useEffect(

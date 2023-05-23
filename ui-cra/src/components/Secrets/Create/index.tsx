@@ -325,7 +325,7 @@ const CreateSecret = () => {
   }, [
     formData,
     getClusterAutomations,
-    history,
+    navigate,
     setNotifications,
     validateToken,
   ]);

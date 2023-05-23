@@ -520,7 +520,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     template.namespace,
     template.templateKind,
     setNotifications,
-    history,
+    navigate,
     resource,
     validateToken,
   ]);

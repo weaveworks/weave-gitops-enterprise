@@ -107,6 +107,8 @@ const AppRoutes = () => {
         element={<ClusterDetails {...WithSearchParams()} />}
         path={Routes.ClusterDashboard + '/*'}
       />
+      <Route element={<AddClusterWithCredentials />} path={Routes.AddCluster} />
+      <Route element={<TemplatesDashboard />} path={Routes.Templates} />
       {/* <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>

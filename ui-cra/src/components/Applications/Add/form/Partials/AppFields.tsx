@@ -82,7 +82,7 @@ const AppFields: FC<{
         };
       });
     },
-    [index, setFormData, history, location.pathname],
+    [index, setFormData, navigate, location.pathname],
   );
 
   useEffect(() => {
