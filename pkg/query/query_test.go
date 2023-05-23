@@ -17,17 +17,17 @@ import (
 // In here, we don't care about checking access. The following lets us
 // go straight through authorization.
 
-type constAllow struct {
+type predicateAuthz struct {
 	predicate func(models.Object) (bool, error)
 }
 
-var allowAll Authorizer = constAllow{
+var allowAll Authorizer = predicateAuthz{
 	predicate: func(models.Object) (bool, error) {
 		return true, nil
 	},
 }
 
-func (c constAllow) ObjectAuthorizer([]models.Role, []models.RoleBinding, *auth.UserPrincipal, string) func(models.Object) (bool, error) {
+func (c predicateAuthz) ObjectAuthorizer([]models.Role, []models.RoleBinding, *auth.UserPrincipal, string) func(models.Object) (bool, error) {
 	return c.predicate
 }
 
@@ -410,14 +410,7 @@ func TestQueryIteration(t *testing.T) {
 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
 	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
 
-	q := &qs{
-		log:        logr.Discard(),
-		debug:      logr.Discard(),
-		r:          s,
-		index:      idx,
-		authorizer: allowAll,
-	}
-
+	// Verify that the "raw" data has the four items
 	r, err := db.Model(&models.Object{}).Rows()
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -431,6 +424,22 @@ func TestQueryIteration(t *testing.T) {
 
 	g.Expect(count).To(Equal(4))
 
+	dropNamespaceB := predicateAuthz{
+		predicate: func(obj models.Object) (bool, error) {
+			return obj.Namespace != "namespace-b", nil
+		},
+	}
+
+	// Now check that the query does not get the "unauthorized"
+	// object, but still gets the desired number.
+	q := &qs{
+		log:        logr.Discard(),
+		debug:      logr.Discard(),
+		r:          s,
+		index:      idx,
+		authorizer: dropNamespaceB,
+	}
+
 	qy := &query{
 		terms: "",
 		limit: 3,
@@ -440,6 +449,7 @@ func TestQueryIteration(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(got).To(HaveLen(3))
+	g.Expect(got).To(HaveEach(HaveField("Namespace", "namespace-a")), "all be in namespace-a")
 }
 
 type query struct {
