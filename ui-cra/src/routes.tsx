@@ -110,6 +110,127 @@ const AppRoutes = () => {
       />
       <Route element={<AddClusterWithCredentials />} path={Routes.AddCluster} />
       <Route element={<TemplatesDashboard />} path={Routes.Templates} />
+      <Route
+        path={Routes.GitOpsSets}
+        element={<GitOpsSets {...WithSearchParams()} />}
+      />
+      <Route
+        path={Routes.TerraformObjects}
+        element={<TerraformObjectList {...WithSearchParams()} />}
+      />
+      <Route
+        path={Routes.TerraformDetail}
+        element={<TerraformObjectDetail {...WithSearchParams()} />}
+      />
+      <Route path={Routes.Secrets} element={<SecretsList />} />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsDashboard {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.Automations}
+      />
+      <Route
+        element={<AddApplication {...WithSearchParams()} />}
+        path={Routes.AddApplication}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsKustomization {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.Kustomization + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsHelmRelease {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.HelmRelease + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsSources {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.Sources}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsHelmRepository {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.HelmRepo + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsHelmChart {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.HelmChart + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsBucket {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.Bucket + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsGitRepository {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.GitRepo + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsOCIRepository {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={V2Routes.OCIRepository + '/*'}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGApplicationsFluxRuntime />
+          </CoreWrapper>
+        }
+        path={V2Routes.FluxRuntime + '/*'}
+      />
+      <Route path={Routes.ImageAutomation} element={<ImageAutomationPage />} />
+      <Route
+        path={V2Routes.ImageAutomationUpdatesDetails}
+        element={<ImageAutomationUpdatesDetails {...WithSearchParams()} />}
+      />
+      <Route
+        path={V2Routes.ImageAutomationRepositoryDetails}
+        element={<ImageAutomationRepoDetails {...WithSearchParams()} />}
+      />
+      <Route
+        path={V2Routes.ImagePolicyDetails}
+        element={<ImagePolicyDetails {...WithSearchParams()} />}
+      />
+      <Route path={Routes.Pipelines} element={<Pipelines />} />
+      <Route
+        path={Routes.PipelineDetails}
+        element={<PipelineDetails {...WithSearchParams()} />}
+      />
+      <Route path={Routes.Canaries} element={<ProgressiveDelivery />} />
+      <Route
+        path={Routes.CanaryDetails}
+        element={<CanaryDetails {...WithSearchParams()} />}
+      />
+
       {/* <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>
