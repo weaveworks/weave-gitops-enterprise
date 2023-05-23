@@ -60,7 +60,8 @@ import { Routes } from './utils/nav';
 function WithSearchParams() {
   const location = useLocation();
   const params = qs.parse(location.search);
-  return params;
+  // FIXME one day
+  return params as any;
 }
 
 const CoreWrapper = styled.div`

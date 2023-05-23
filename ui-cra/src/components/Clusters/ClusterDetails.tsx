@@ -25,20 +25,20 @@ import { QueryState } from '../Explorer/hooks';
 import { linkToExplorer } from '../Explorer/utils';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
-// type Props = {
-//   className?: string;
-//   name: string;
-//   namespace: string;
-//   clusterName: string;
-// };
+
+type Props = {
+  clusterName: string;
+};
+
 interface Size {
   size?: 'small';
 }
+
 const ActionsWrapper = styled.div<Size>`
   display: flex;
 `;
 
-const ClusterDetails = ({ clusterName }: any) => {
+const ClusterDetails = ({ clusterName }: Props) => {
   const navigate = useNavigate();
   const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
     useClusters();
@@ -56,6 +56,7 @@ const ClusterDetails = ({ clusterName }: any) => {
     () => setCurrentCluster(getCluster(clusterName)),
     [clusterName, getCluster],
   );
+
   return (
     <ThemeProvider theme={localEEMuiTheme}>
       <PageTemplate
