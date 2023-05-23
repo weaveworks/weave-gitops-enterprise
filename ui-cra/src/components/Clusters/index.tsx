@@ -8,19 +8,18 @@ import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
   DataTable,
-  filterByStatusCallback,
-  filterConfig,
+  Flex,
   GitRepository,
   Icon,
   IconType,
   Kind,
   KubeStatusIndicator,
   RouterTab,
-  statusSortHelper,
   SubRouterTabs,
-  theme,
+  filterByStatusCallback,
+  filterConfig,
+  statusSortHelper,
   useListSources,
-  Flex,
 } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
@@ -38,6 +37,7 @@ import useNotifications, {
 } from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { useCallbackState } from '../../utils/callback-state';
 import {
   EKSDefault,
@@ -59,7 +59,6 @@ import {
   getCreateRequestAnnotation,
   useGetInitialGitRepo,
 } from '../Templates/Form/utils';
-import { toFilterQueryString } from '../../utils/FilterQueryString';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
@@ -100,8 +99,8 @@ export function computeMessage(conditions: Condition[]) {
 const useStyles = makeStyles(() =>
   createStyles({
     clusterIcon: {
-      marginRight: theme.spacing.small,
-      color: theme.colors.neutral30,
+      marginRight: '12px',
+      color: '#737373',
     },
   }),
 );
@@ -130,12 +129,12 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
 
 const IndividualCheckbox = withStyles({
   root: {
-    color: theme.colors.primary,
+    color: '#00b3ec',
     '&$checked': {
-      color: theme.colors.primary,
+      color: '#00b3ec',
     },
     '&$disabled': {
-      color: theme.colors.neutral20,
+      color: '#d8d8d8',
     },
   },
   checked: {},
@@ -479,7 +478,7 @@ const MCCP: FC<{
                           ) : (
                             <Link
                               to={`/cluster?clusterName=${c.name}`}
-                              color={theme.colors.primary}
+                              color="#00b3ec"
                               data-cluster-name={c.name}
                             >
                               {c.name}

@@ -1,15 +1,12 @@
-import styled from 'styled-components';
 import {
+  Button,
+  CopyToClipboard,
   Flex,
   Icon,
   IconType,
-  Button,
-  theme,
-  CopyToClipboard,
 } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
-
-const { extraLarge } = theme.fontSizes;
 
 const Pad = styled(Flex)`
   padding: 8px 0;
@@ -60,7 +57,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
     }
   }
   .code-text {
-    font-size: ${extraLarge};
+    font-size: ${props => props.theme.fontSizes.extraLarge};
     margin: 0px 5px 0px 0px;
   }
 `;

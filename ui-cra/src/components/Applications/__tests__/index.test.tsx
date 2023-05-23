@@ -3,14 +3,17 @@ import Applications from '../';
 import { MuiThemeProvider } from '@material-ui/core';
 import { act, render, RenderResult, screen } from '@testing-library/react';
 import {
+  AppContextProvider,
   CoreClientContextProvider,
   Kind,
   theme,
+  ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
+import { GitAuthProvider } from '../../../contexts/GitAuth';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';
 import RequestContextProvider from '../../../contexts/Request';
 import { muiTheme } from '../../../muiTheme';
@@ -20,19 +23,25 @@ import {
   EnterpriseClientMock,
   withContext,
 } from '../../../utils/test-utils';
-import { GitAuthProvider } from '../../../contexts/GitAuth';
 
 describe('Applications index test', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: CoreClientMock;
   let appsApi: ApplicationsClientMock;
-
+  const appliedTheme = theme(ThemeTypes.Light);
   beforeEach(() => {
+    window.matchMedia = jest.fn();
+    //@ts-ignore
+    window.matchMedia.mockReturnValue({ matches: false });
     api = new CoreClientMock();
     appsApi = new ApplicationsClientMock();
     wrap = withContext([
-      [ThemeProvider, { theme: theme }],
-      [MuiThemeProvider, { theme: muiTheme }],
+      [ThemeProvider, { theme: appliedTheme }],
+      [
+        MuiThemeProvider,
+        { theme: muiTheme(appliedTheme.colors, ThemeTypes.Light) },
+      ],
+      [AppContextProvider],
       [
         RequestContextProvider,
         { fetch: () => new Promise(accept => accept(null)) },

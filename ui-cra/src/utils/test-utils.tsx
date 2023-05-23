@@ -5,7 +5,12 @@ import {
   ListCanariesResponse,
   ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
-import { CoreClientContextProvider, theme } from '@weaveworks/weave-gitops';
+import {
+  AppContextProvider,
+  CoreClientContextProvider,
+  ThemeTypes,
+  theme,
+} from '@weaveworks/weave-gitops';
 import {
   GetObjectRequest,
   GetObjectResponse,
@@ -82,11 +87,14 @@ export type RequestError = Error & {
   code?: number;
 };
 
-export function withTheme(element: any) {
+export function withTheme(element: any, mode: ThemeTypes = ThemeTypes.Light) {
+  const appliedTheme = theme(mode);
   return (
-    <MuiThemeProvider theme={muiTheme}>
-      <ThemeProvider theme={theme}>{element}</ThemeProvider>
-    </MuiThemeProvider>
+    <ThemeProvider theme={appliedTheme}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+        {element}
+      </MuiThemeProvider>
+    </ThemeProvider>
   );
 }
 
@@ -120,47 +128,58 @@ const mockRes = {
   catch() {},
 };
 
-export const defaultContexts = () => [
-  [ThemeProvider, { theme: theme }],
-  [MuiThemeProvider, { theme: muiTheme }],
-  [
-    RequestContextProvider,
-    { fetch: () => new Promise(accept => accept(mockRes)) },
-  ],
-  [
-    QueryClientProvider,
-    {
-      client: new QueryClient({
-        queryCache: new QueryCache({
-          onError: error => {
-            const err = error as { code: number; message: string };
-            const { pathname, search } = window.location;
-            const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+export const defaultContexts = () => {
+  const appliedTheme = theme(ThemeTypes.Light);
+  window.matchMedia = jest.fn();
+  //@ts-ignore
+  window.matchMedia.mockReturnValue({ matches: false });
 
-            if (err.code === 401) {
-              window.location.href = `/sign_in?redirect=${redirectUrl}`;
-            }
-          },
+  return [
+    [ThemeProvider, { theme: appliedTheme }],
+    [
+      MuiThemeProvider,
+      { theme: muiTheme(appliedTheme.colors, ThemeTypes.Light) },
+    ],
+    [AppContextProvider],
+    [
+      RequestContextProvider,
+      { fetch: () => new Promise(accept => accept(mockRes)) },
+    ],
+    [
+      QueryClientProvider,
+      {
+        client: new QueryClient({
+          queryCache: new QueryCache({
+            onError: error => {
+              const err = error as { code: number; message: string };
+              const { pathname, search } = window.location;
+              const redirectUrl = encodeURIComponent(`${pathname}${search}`);
+
+              if (err.code === 401) {
+                window.location.href = `/sign_in?redirect=${redirectUrl}`;
+              }
+            },
+          }),
         }),
-      }),
-    },
-  ],
-  [
-    EnterpriseClientProvider,
-    {
-      api: new EnterpriseClientMock(),
-    },
-  ],
-  [
-    CoreClientContextProvider,
-    {
-      api: new CoreClientMock(),
-    },
-  ],
-  [MemoryRouter],
-  [NotificationProvider],
-  [GitAuthProvider, { api: new ApplicationsClientMock() }],
-];
+      },
+    ],
+    [
+      EnterpriseClientProvider,
+      {
+        api: new EnterpriseClientMock(),
+      },
+    ],
+    [
+      CoreClientContextProvider,
+      {
+        api: new CoreClientMock(),
+      },
+    ],
+    [MemoryRouter],
+    [NotificationProvider],
+    [GitAuthProvider, { api: new ApplicationsClientMock() }],
+  ];
+};
 
 export const promisify = <R, E>(res: R, errRes?: E) =>
   new Promise<R>((accept, reject) => {
@@ -320,7 +339,7 @@ export class PolicyClientMock {
 export class PolicyConfigsClientMock {
   ListPolicyConfigsReturns: ListPolicyConfigsResponse = {};
   GetPolicyConfigReturns: GetPolicyConfigResponse = {};
-  
+
   ListPolicyConfigs() {
     return promisify(this.ListPolicyConfigsReturns);
   }
@@ -569,7 +588,13 @@ export class TestFilterableTable {
     return this.getTableInfo();
   }
   clearSearchByVal(searchVal: string) {
-    document.querySelectorAll('.filter-options-chip').forEach(chip => {
+    const chips = document.querySelectorAll('.MuiChip-root');
+
+    if (!chips || chips.length === 0) {
+      throw new Error('No chips found');
+    }
+
+    chips.forEach(chip => {
       if (chip.textContent === searchVal) {
         const deleteIcon = chip.querySelector('.MuiChip-deleteIcon');
         this.fireEvent.click(deleteIcon);

@@ -133,6 +133,15 @@ exports[`Applications index test snapshots loading 1`] = `
   padding-right: 12px;
 }
 
+.c6 .MuiSwitch-thumb {
+  color: #fff;
+  background-image: url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20id%3D%22Capa_29%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cdefs%3E%3Cstyle%3E.cls-1%20%7B%0A%20%20fill%3A%20%2300b3ec%3B%0A%7D%0A%0A.cls-2%20%7B%0A%20%20fill%3A%20none%3B%0A%20%20stroke%3A%20%2300b3ec%3B%0A%20%20stroke-linecap%3A%20round%3B%0A%20%20stroke-miterlimit%3A%2010%3B%0A%7D%0A%0A%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cpath%20class%3D%22cls-1%22%20d%3D%22m10%2C5.97c-1.06%2C0-2.08.42-2.83%2C1.17-.75.75-1.17%2C1.77-1.17%2C2.83s.42%2C2.08%2C1.17%2C2.83c.75.75%2C1.77%2C1.17%2C2.83%2C1.17s2.08-.42%2C2.83-1.17c.75-.75%2C1.17-1.77%2C1.17-2.83%2C0-2.21-1.79-4-4-4Z%22%3E%3C%2Fpath%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2210%22%20y1%3D%223.5%22%20x2%3D%2210%22%20y2%3D%224.5%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%225.41%22%20y1%3D%225.4%22%20x2%3D%226.11%22%20y2%3D%226.1%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%223.5%22%20y1%3D%229.99%22%20x2%3D%224.5%22%20y2%3D%229.99%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%225.4%22%20y1%3D%2214.58%22%20x2%3D%226.1%22%20y2%3D%2213.87%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%229.99%22%20y1%3D%2216.49%22%20x2%3D%229.99%22%20y2%3D%2215.49%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2214.58%22%20y1%3D%2214.59%22%20x2%3D%2213.87%22%20y2%3D%2213.88%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2216.49%22%20y1%3D%2210%22%20x2%3D%2215.49%22%20y2%3D%2210%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2214.59%22%20y1%3D%225.41%22%20x2%3D%2213.88%22%20y2%3D%226.11%22%3E%3C%2Fline%3E%3C%2Fsvg%3E%0A);
+}
+
+.c6 .MuiSwitch-track {
+  background-color: #00b3ec;
+}
+
 .c0 {
   width: 100%;
   height: 100%;
@@ -149,6 +158,12 @@ exports[`Applications index test snapshots loading 1`] = `
   white-space: nowrap;
   overflow: hidden;
   max-width: 300px;
+}
+
+.c5 .labelLink {
+  color: #1a1a1a;
+  fontWeight: 700;
+  marginRight: 8px;
 }
 
 .c2 {
@@ -190,11 +205,11 @@ exports[`Applications index test snapshots loading 1`] = `
         class="c3 c4 test-id-breadcrumbs"
       >
         <div
-          class="makeStyles-path-19"
+          class="makeStyles-path-16"
           style="align-items: center;"
         >
           <span
-            class="c5 makeStyles-labelLink-23"
+            class="c5 labelLink"
             title="Applications"
           >
             Applications
@@ -233,7 +248,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      class="MuiBox-root MuiBox-root-24"
+      class="MuiBox-root MuiBox-root-18"
     >
       <div
         class="c10"
@@ -687,7 +702,7 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c12.MuiButton-outlined {
   padding: 8px 12px;
-  border-color: #d8d8d8;
+  border-color: #737373;
 }
 
 .c21.MuiButton-root {
@@ -702,7 +717,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c22.MuiButton-outlined {
-  border-color: #d8d8d8;
+  border-color: #737373;
 }
 
 .c22.MuiButton-root {
@@ -719,7 +734,7 @@ exports[`Applications index test snapshots success 1`] = `
 .c23 {
   position: absolute;
   overflow: hidden;
-  background: white;
+  background: #fff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -779,7 +794,11 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c26 .MuiChip-root {
+  color: #1a1a1a;
   margin-right: 4px;
+  background-color: #F6F7F9;
+  -webkit-transition: none;
+  transition: none;
 }
 
 .c29 {
@@ -882,10 +901,6 @@ exports[`Applications index test snapshots success 1`] = `
   text-overflow: ellipsis;
 }
 
-.c16 .filter-options-chip {
-  background-color: #E5F7FD;
-}
-
 .c17 td:nth-child(7) {
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -911,8 +926,17 @@ exports[`Applications index test snapshots success 1`] = `
   padding-right: 12px;
 }
 
+.c6 .MuiSwitch-thumb {
+  color: #fff;
+  background-image: url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20id%3D%22Capa_29%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cdefs%3E%3Cstyle%3E.cls-1%20%7B%0A%20%20fill%3A%20%2300b3ec%3B%0A%7D%0A%0A.cls-2%20%7B%0A%20%20fill%3A%20none%3B%0A%20%20stroke%3A%20%2300b3ec%3B%0A%20%20stroke-linecap%3A%20round%3B%0A%20%20stroke-miterlimit%3A%2010%3B%0A%7D%0A%0A%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cpath%20class%3D%22cls-1%22%20d%3D%22m10%2C5.97c-1.06%2C0-2.08.42-2.83%2C1.17-.75.75-1.17%2C1.77-1.17%2C2.83s.42%2C2.08%2C1.17%2C2.83c.75.75%2C1.77%2C1.17%2C2.83%2C1.17s2.08-.42%2C2.83-1.17c.75-.75%2C1.17-1.77%2C1.17-2.83%2C0-2.21-1.79-4-4-4Z%22%3E%3C%2Fpath%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2210%22%20y1%3D%223.5%22%20x2%3D%2210%22%20y2%3D%224.5%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%225.41%22%20y1%3D%225.4%22%20x2%3D%226.11%22%20y2%3D%226.1%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%223.5%22%20y1%3D%229.99%22%20x2%3D%224.5%22%20y2%3D%229.99%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%225.4%22%20y1%3D%2214.58%22%20x2%3D%226.1%22%20y2%3D%2213.87%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%229.99%22%20y1%3D%2216.49%22%20x2%3D%229.99%22%20y2%3D%2215.49%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2214.58%22%20y1%3D%2214.59%22%20x2%3D%2213.87%22%20y2%3D%2213.88%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2216.49%22%20y1%3D%2210%22%20x2%3D%2215.49%22%20y2%3D%2210%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2214.59%22%20y1%3D%225.41%22%20x2%3D%2213.88%22%20y2%3D%226.11%22%3E%3C%2Fline%3E%3C%2Fsvg%3E%0A);
+}
+
+.c6 .MuiSwitch-track {
+  background-color: #00b3ec;
+}
+
 .c42 {
-  padding: calc(24px - 4px) 24px;
+  padding: calc( 24px - 4px ) 24px;
   background-color: rgba(255,255,255,0.7);
   color: #737373;
   border-radius: 0 0 8px 8px;
@@ -949,6 +973,12 @@ exports[`Applications index test snapshots success 1`] = `
   white-space: nowrap;
   overflow: hidden;
   max-width: 300px;
+}
+
+.c5 .labelLink {
+  color: #1a1a1a;
+  fontWeight: 700;
+  marginRight: 8px;
 }
 
 .c2 {
@@ -1000,11 +1030,11 @@ exports[`Applications index test snapshots success 1`] = `
         class="c3 c4 test-id-breadcrumbs"
       >
         <div
-          class="makeStyles-path-37"
+          class="makeStyles-path-31"
           style="align-items: center;"
         >
           <span
-            class="c5 makeStyles-labelLink-41"
+            class="c5 labelLink"
             title="Applications"
           >
             Applications
@@ -1379,14 +1409,14 @@ exports[`Applications index test snapshots success 1`] = `
                       >
                         <span
                           aria-disabled="false"
-                          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-50 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-51 Mui-checked MuiIconButton-colorPrimary"
+                          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-41 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-42 Mui-checked MuiIconButton-colorPrimary"
                         >
                           <span
                             class="MuiIconButton-label"
                           >
                             <input
                               checked=""
-                              class="PrivateSwitchBase-input-53"
+                              class="PrivateSwitchBase-input-44"
                               data-indeterminate="false"
                               type="checkbox"
                               value=""
@@ -1833,14 +1863,14 @@ exports[`Applications index test snapshots success 1`] = `
                               >
                                 <span
                                   aria-disabled="true"
-                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-50 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-52 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-41 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-43 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                   tabindex="-1"
                                 >
                                   <span
                                     class="MuiIconButton-label"
                                   >
                                     <input
-                                      class="PrivateSwitchBase-input-53"
+                                      class="PrivateSwitchBase-input-44"
                                       data-indeterminate="false"
                                       disabled=""
                                       id="clusterName"
@@ -1883,14 +1913,14 @@ exports[`Applications index test snapshots success 1`] = `
                               >
                                 <span
                                   aria-disabled="true"
-                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-50 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-52 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-41 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-43 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                   tabindex="-1"
                                 >
                                   <span
                                     class="MuiIconButton-label"
                                   >
                                     <input
-                                      class="PrivateSwitchBase-input-53"
+                                      class="PrivateSwitchBase-input-44"
                                       data-indeterminate="false"
                                       disabled=""
                                       id="namespace"
@@ -1933,14 +1963,14 @@ exports[`Applications index test snapshots success 1`] = `
                               >
                                 <span
                                   aria-disabled="true"
-                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-50 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-52 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-41 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-43 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                   tabindex="-1"
                                 >
                                   <span
                                     class="MuiIconButton-label"
                                   >
                                     <input
-                                      class="PrivateSwitchBase-input-53"
+                                      class="PrivateSwitchBase-input-44"
                                       data-indeterminate="false"
                                       disabled=""
                                       id="status"
@@ -1983,14 +2013,14 @@ exports[`Applications index test snapshots success 1`] = `
                               >
                                 <span
                                   aria-disabled="true"
-                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-50 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-52 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-41 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-43 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                   tabindex="-1"
                                 >
                                   <span
                                     class="MuiIconButton-label"
                                   >
                                     <input
-                                      class="PrivateSwitchBase-input-53"
+                                      class="PrivateSwitchBase-input-44"
                                       data-indeterminate="false"
                                       disabled=""
                                       id="tenant"
@@ -2033,14 +2063,14 @@ exports[`Applications index test snapshots success 1`] = `
                               >
                                 <span
                                   aria-disabled="true"
-                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-50 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-52 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-41 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-43 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                   tabindex="-1"
                                 >
                                   <span
                                     class="MuiIconButton-label"
                                   >
                                     <input
-                                      class="PrivateSwitchBase-input-53"
+                                      class="PrivateSwitchBase-input-44"
                                       data-indeterminate="false"
                                       disabled=""
                                       id="type"

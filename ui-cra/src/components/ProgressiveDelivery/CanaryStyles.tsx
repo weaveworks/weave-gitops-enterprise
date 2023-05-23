@@ -1,35 +1,32 @@
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
-
-const { small, xs, medium, base } = theme.spacing;
 
 export const useCanaryStyle = makeStyles(() =>
   createStyles({
     rowHeaderWrapper: {
-      margin: `${small} 0`,
+      margin: `${12} 0`,
       display: 'flex',
       justifyContent: 'start',
       alignItems: 'center',
     },
     cardTitle: {
       fontWeight: 600,
-      fontSize: theme.fontSizes.medium,
+      fontSize: 14,
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.medium,
-      color: theme.colors.black,
-      marginLeft: xs,
+      fontSize: 14,
+      color: '#1a1a1a',
+      marginLeft: 8,
       display: 'flex',
       justifyContent: 'start',
       alignItems: 'center',
     },
     colorGreen: {
-      color: theme.colors.successOriginal,
+      color: '#27AE60',
     },
     statusWrapper: {
       display: 'flex',
-      gap: xs,
+      gap: 8,
       justifyContent: 'start',
       alignItems: 'center',
     },
@@ -37,27 +34,27 @@ export const useCanaryStyle = makeStyles(() =>
       color: '#9E9E9E', // add natural25 to core
     },
     statusReady: {
-      color: theme.colors.successOriginal,
+      color: '#27AE60',
     },
     statusWaiting: {
       color: '#F2994A',
     },
     statusFailed: {
-      color: theme.colors.alertOriginal,
+      color: '#BC3B1D',
     },
     sectionHeaderWrapper: {
-      background: theme.colors.neutralGray,
-      padding: `${base} ${xs}`,
-      margin: `${base} 0`,
+      background: '#F6F7F9',
+      padding: `16 8`,
+      margin: `16 0`,
     },
     straegyIcon: {
-      marginLeft: small,
+      marginLeft: 12,
     },
     barroot: {
-      backgroundColor: theme.colors.successOriginal,
+      backgroundColor: '#27AE60',
     },
     statusProcessing: {
-      backgroundColor: theme.colors.neutral20,
+      backgroundColor: '#d8d8d8',
       width: '100%',
       height: 8,
       borderRadius: 5,
@@ -73,12 +70,12 @@ export const useCanaryStyle = makeStyles(() =>
       display: 'flex',
       justifyContent: 'start',
       alignItems: 'center',
-      padding: small,
-      marginTop: medium,
+      padding: 12,
+      marginTop: 24,
       cursor: 'pointer',
     },
     expandableSpacing: {
-      marginLeft: xs,
+      marginLeft: 8,
     },
     fadeIn: {
       transform: 'scaleY(0)',

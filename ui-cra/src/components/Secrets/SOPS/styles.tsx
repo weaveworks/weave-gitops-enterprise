@@ -1,15 +1,9 @@
-import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-
-const { xs, small, medium } = theme.spacing;
-
-const { neutral30, neutral20, neutral10, primary10, primaryLight05 } =
-  theme.colors;
 
 export const FormWrapper = styled.form`
   .group-section {
     width: 100%;
-    border-bottom: 1px dashed ${neutral20};
+    border-bottom: 1px dashed ${props => props.theme.colors.neutral20};
     .form-group {
       display: flex;
       flex-direction: column;
@@ -17,16 +11,16 @@ export const FormWrapper = styled.form`
     .form-section {
       width: 40%;
       .Mui-disabled {
-        background: ${neutral10} !important;
-        border-color: ${neutral20} !important;
+        background: ${props => props.theme.colors.neutral10} !important;
+        border-color: ${props => props.theme.colors.neutral20} !important;
       }
     }
     .MuiRadio-colorSecondary.Mui-checked {
-      color: ${primary10};
+      color: ${props => props.theme.colors.primary10};
     }
     h2 {
       font-size: 20px;
-      margin-bottom: ${xs};
+      margin-bottom: ${props => props.theme.spacing.xs};
     }
   }
   .MuiInputBase-input {
@@ -45,20 +39,20 @@ export const FormWrapper = styled.form`
     align-items: self-start;
     .remove-icon {
       margin-top: 25px;
-      color: ${neutral30};
+      color: ${props => props.theme.colors.neutral30};
       cursor: pointer;
     }
   }
   .secret-data-hint {
-    background-color: ${primaryLight05};
-    padding: ${xs};
+    background-color: ${props => props.theme.colors.primaryLight05};
+    padding: ${props => props.theme.spacing.xs};
     font-weight: 600;
     width: fit-content;
     border-radius: 4px;
     margin-top: 0px;
   }
   .add-secret-data {
-    margin-bottom: ${medium};
+    margin-bottom: ${props => props.theme.spacing.medium};
   }
   .gitops-wrapper {
     padding-bottom: 0px;
@@ -71,5 +65,5 @@ export const FormWrapper = styled.form`
 export const PreviewPRSection = styled.div`
   display: flex;
   justify-content: flex-end;
-  padding: ${small};
+  padding: ${props => props.theme.spacing.small};
 `;

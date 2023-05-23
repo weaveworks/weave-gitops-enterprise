@@ -1,16 +1,16 @@
 import { Box, Button, Typography } from '@material-ui/core';
 import Chip from '@material-ui/core/Chip';
-import { InfoList, KubeStatusIndicator, theme } from '@weaveworks/weave-gitops';
+import { InfoList, KubeStatusIndicator } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { useState } from 'react';
 import styled from 'styled-components';
 import { GitopsClusterEnriched } from '../../types/custom';
-import { DashboardsList } from './DashboardsList';
 import { ClusterStatus } from './ClusterStatus';
+import { DashboardsList } from './DashboardsList';
 
 export const sectionTitle = (title: string) => (
   <Typography
-    style={{ fontWeight: 'bold', marginTop: theme.spacing.medium }}
+    style={{ fontWeight: 'bold', marginTop: '24px' }}
     variant="h6"
     gutterBottom
     component="div"
@@ -23,7 +23,7 @@ const ClusterDashbordWrapper = styled.div`
   .kubeconfig-download {
     padding: 0;
     font-weight: bold;
-    color: ${theme.colors.primary};
+    color: ${props => props.theme.colors.primary};
   }
 `;
 
@@ -104,8 +104,8 @@ const ClusterDashboard = ({
             title={value}
             style={{
               maxWidth: '650px',
-              marginRight: theme.spacing.small,
-              marginBottom: theme.spacing.small,
+              marginRight: '12px',
+              marginBottom: '12px',
             }}
             key={key}
             label={`${key}: ${value}`}
@@ -120,7 +120,7 @@ const ClusterDashboard = ({
       <ClusterDashbordWrapper>
         {currentCluster?.conditions &&
         currentCluster?.conditions[0]?.message ? (
-          <div style={{ paddingBottom: theme.spacing.small }}>
+          <div style={{ paddingBottom: '12px' }}>
             <KubeStatusIndicator conditions={currentCluster.conditions} />
           </div>
         ) : null}

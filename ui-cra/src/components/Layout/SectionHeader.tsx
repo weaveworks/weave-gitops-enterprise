@@ -1,23 +1,22 @@
-import React, { FC } from 'react';
+import { Flex, UserSettings } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
 import styled from 'styled-components';
-import { Flex, theme, UserSettings } from '@weaveworks/weave-gitops';
 import { Breadcrumb, Breadcrumbs } from '../Breadcrumbs';
 
 interface Size {
   size?: 'small';
 }
 
-const { medium, small } = theme.spacing;
-
 const Wrapper = styled(Flex)<Size>`
   align-items: center;
   justify-content: space-between;
-  color: ${({ size }) =>
-    size === 'small' ? theme.colors.neutral40 : 'inherit'};
+  color: ${props =>
+    props.size === 'small' ? props.theme.colors.neutral40 : 'inherit'};
   font-size: ${({ size }) => (size === 'small' ? 16 : 20)}px;
   height: ${60}px;
   flex-grow: 1;
-  padding: 0 ${small} 0 ${medium};
+  padding: ${props =>
+    `0 ${props.theme.spacing.small} 0 ${props.theme.spacing.medium}`};
   position: sticky;
   top: 0;
   z-index: 2;
@@ -43,7 +42,7 @@ export const SectionHeader: FC<Props> = ({
     <Wrapper className={className} size={size}>
       {path ? <Breadcrumbs path={path} /> : null}
       {children}
-      <UserSettings />
+      <UserSettings darkModeEnabled={false} />
     </Wrapper>
   );
 };
