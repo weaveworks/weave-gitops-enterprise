@@ -534,8 +534,9 @@ const MCCP: FC<{}> = () => {
                 </ClustersTableWrapper>
               </LoadingWrapper>
             </RouterTab>
-            <RouterTab name="Violations" path={`/violations`}>
+            <RouterTab name="Violations" path="violations">
               <PoliciesViolations />
+              {/* {<h1>hello</h1>} */}
             </RouterTab>
           </SubRouterTabs>
         </ContentWrapper>

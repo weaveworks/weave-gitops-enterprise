@@ -57,13 +57,25 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
-function withSearchParams(Cmp: any) {
-  return (props: any) => {
+function withSearchParams() {
+  return (props: Props) => {
     const { search } = useLocation();
     const params = qs.parse(search);
-    return <Cmp {...props} {...params} />;
+    return { ...props, ...params };
   };
 }
+type Props = {
+  className?: string;
+  name: string;
+  namespace: string;
+  clusterName: string;
+};
+
+// function withSearchParams() {
+//   const location = useLocation();
+//   const params = qs.parse(location.search);
+//   return params;
+// }
 
 const CoreWrapper = styled.div`
   div[class*='FilterDialog__SlideContainer'] {
@@ -102,13 +114,11 @@ const Page404 = () => (
 const AppRoutes = () => {
   return (
     <Routess>
-      <Route element={<MCCP />} path="/"></Route>
+      <Route element={<MCCP />} path="/" />
       <Route element={<MCCP />} path={Routes.Clusters + '/*'} />
       <Route element={<MCCP />} path={Routes.DeleteCluster} />
       <Route
-        Component={withSearchParams((props: any) => (
-          <ClusterDetails {...props} />
-        ))}
+        element={<ClusterDetails {...withSearchParams()} />}
         path={Routes.ClusterDashboard + '/*'}
       />
       {/* <Route
