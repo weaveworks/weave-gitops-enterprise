@@ -6,7 +6,6 @@ package server_test
 import (
 	"context"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"log"
 	"net"
 	"os"
@@ -14,6 +13,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"

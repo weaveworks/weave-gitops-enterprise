@@ -63,6 +63,7 @@ describe('Gitlab Authenticate', () => {
             label=""
             formData=""
             setFormData={setFormData}
+            loading={false}
           />
         </CallbackStateContextProvider>,
       );
@@ -105,6 +106,7 @@ describe('Gitlab Authenticate', () => {
             label=""
             formData=""
             setFormData={setFormData}
+            loading={false}
           />
         </CallbackStateContextProvider>,
       );

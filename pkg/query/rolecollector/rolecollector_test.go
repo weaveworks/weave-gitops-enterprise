@@ -1,6 +1,8 @@
 package rolecollector
 
 import (
+	"testing"
+
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
@@ -12,7 +14,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
 )
 
 func TestRolesCollector_NewRoleCollector(t *testing.T) {
@@ -63,6 +64,7 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
+	fakeIndex := &storefakes.FakeIndexWriter{}
 
 	//setup data
 	clusterName := "anyCluster"
@@ -107,7 +109,7 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, fakeIndex, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

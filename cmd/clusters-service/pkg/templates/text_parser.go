@@ -23,7 +23,7 @@ func listNodeFields(nodes []parse.Node) []string {
 			res = append(res, listNodeFieldsFromPipe(node.(*parse.PipeNode))...)
 		case parse.NodeAction:
 			items := listNodeFieldsFromPipe(node.(*parse.ActionNode).Pipe)
-			if items[0] == "params" {
+			if len(items) > 0 && items[0] == "params" {
 				res = append(res, strings.Join(items[1:], "."))
 			}
 		case parse.NodeList:

@@ -1,62 +1,50 @@
 import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Flex, theme } from '@weaveworks/weave-gitops';
+import { Flex } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-
-const { xxs, xs, small, medium, base, none } = theme.spacing;
-const {
-  neutral10,
-  neutral20,
-  neutral30,
-  black,
-  primary,
-  primary20,
-  feedbackDark,
-  alertDark,
-} = theme.colors;
 
 export const usePolicyStyle = makeStyles((wtheme: Theme) =>
   createStyles({
     contentWrapper: {
-      margin: `${small} 0`,
+      margin: `${12} 0`,
     },
     sectionSeperator: {
-      margin: `calc(${medium}*2) 0`,
+      margin: `calc(${24}*2) 0`,
     },
     cardTitle: {
       fontWeight: 700,
-      fontSize: theme.fontSizes.medium,
-      color: neutral30,
+      fontSize: 14,
+      color: '#737373',
     },
     body1: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.medium,
-      color: black,
-      marginTop: xs,
+      fontSize: 14,
+      color: '#1a1a1a',
+      marginTop: 8,
     },
     chip: {
-      background: neutral10,
-      borderRadius: xxs,
-      padding: `${xxs} ${xs}`,
-      marginLeft: xs,
+      background: '#f5f5f5',
+      borderRadius: 4,
+      padding: `${4} ${8}`,
+      marginLeft: 8,
     },
     codeWrapper: {
-      background: neutral10,
-      borderRadius: xxs,
-      padding: `${small} ${base}`,
-      marginLeft: none,
+      background: '#f5f5f5',
+      borderRadius: 4,
+      padding: `${12} ${16}`,
+      marginLeft: 0,
     },
 
     marginrightSmall: {
-      marginRight: xs,
+      marginRight: 8,
     },
     marginTopSmall: {
-      marginTop: xs,
+      marginTop: 8,
     },
     editor: {
       '& a': {
-        color: primary,
+        color: '#00b3ec',
       },
       '& > *:first-child': {
         marginTop: 0,
@@ -64,24 +52,24 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       '& > *:last-child': {
         marginBottom: 0,
       },
-      marginTop: xs,
-      background: neutral10,
-      padding: small,
+      marginTop: 8,
+      background: '#f5f5f5',
+      padding: 12,
       maxHeight: '300px',
       overflow: 'scroll',
     },
     severityIcon: {
-      fontSize: theme.fontSizes.large,
-      marginRight: xxs,
+      fontSize: 20,
+      marginRight: 4,
     },
     severityLow: {
-      color: primary20,
+      color: '#006B8E',
     },
     severityMedium: {
-      color: feedbackDark,
+      color: '#8A460A',
     },
     severityHigh: {
-      color: alertDark,
+      color: '#9F3119',
     },
     column: {
       flexDirection: 'column',
@@ -95,7 +83,7 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       textTransform: 'capitalize',
     },
     headerCell: {
-      color: neutral30,
+      color: '#737373',
       fontWeight: 700,
     },
     paper: {
@@ -111,21 +99,21 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       whiteSpace: 'nowrap',
     },
     tableHead: {
-      borderBottom: `1px solid ${neutral20}`,
+      borderBottom: `1px solid "#d8d8d8"`,
     },
     normalRow: {
-      borderBottom: `1px solid ${neutral20}`,
+      borderBottom: `1px solid "#d8d8d8"`,
     },
     normalCell: {
       padding: wtheme.spacing(2),
     },
     link: {
-      color: primary,
+      color: '#00b3ec',
       fontWeight: 600,
       whiteSpace: 'pre-line',
     },
     canaryLink: {
-      color: primary,
+      color: '#00b3ec',
       fontWeight: 600,
       display: 'flex',
       justifyContent: 'start',
@@ -135,74 +123,75 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
       wordBreak: 'break-word',
     },
     titleNotification: {
-      color: primary,
+      color: '#00b3ec',
     },
     occurrencesList: {
       paddingLeft: wtheme.spacing(1),
-      marginLeft: xs,
+      marginLeft: 8,
     },
     messageWrape: {
       whiteSpace: 'normal',
     },
     labelText: {
       fontWeight: 400,
-      fontSize: theme.fontSizes.medium,
-      color: neutral30,
+      fontSize: 14,
+      color: '#737373',
     },
     inlineFlex: {
       display: 'inline-flex',
-      marginRight: xs,
+      marginRight: 8,
     },
     modeIcon: {
-      fontSize: theme.fontSizes.large,
-      marginRight: xxs,
-      color: neutral30,
+      fontSize: 20,
+      marginRight: 4,
+      color: '#737373',
     },
   }),
 );
 
 export const ParameterWrapper = styled.div`
-  border: 1px solid ${neutral20};
+  border: 1px solid ${props => props.theme.colors.neutral20};
   box-sizing: border-box;
-  border-radius: ${xxs};
-  padding: ${base};
+  border-radius: ${props => props.theme.spacing.xxs};
+  padding: ${props => props.theme.spacing.base};
   display: flex;
-  margin-bottom: ${base};
-  margin-top: ${base};
+  margin-bottom: ${props => props.theme.spacing.base};
+  margin-top: ${props => props.theme.spacing.base};
 `;
 
 export const ParameterInfo = styled(Flex)`
   width: 100%;
   font-weight: 400;
-  font-size: ${theme.fontSizes.medium};
+  font-size: ${props => props.theme.fontSizes.medium};
   .label {
-    color: ${neutral30};
+    color: ${props => props.theme.colors.neutral30};
   }
   .body1 {
     color: black;
-    margin-top: ${xs};
+    margin-top: ${props => props.theme.spacing.xs};
   }
 `;
 
 export const LinkWrapper = styled(Link)`
-  color: ${primary};
+  color: ${props => props.theme.colors.primary};
   font-weight: 600;
 `;
 
 export const ChipWrapper = styled.span`
-  background: ${neutral10};
-  border-radius: ${xs};
-  padding: ${xxs} ${xs};
-  margin-right: ${xs};
+  background: ${props => props.theme.colors.neutral10};
+  border-radius: ${props => props.theme.spacing.xs};
+  padding: ${props => props.theme.spacing.xxs}
+    ${props => props.theme.spacing.xs};
+  margin-right: ${props => props.theme.spacing.xs};
 `;
 
 export const ModeWrapper = styled.div`
   align-items: center;
   justify-content: flex-start;
   display: inline-flex;
-  margin-right: ${xs};
+  margin-right: ${props => props.theme.spacing.xs};
   svg {
-    color: ${neutral30};
+    color: ${props => props.theme.colors.neutral30};
     font-size: 20px;
     margin-right: 4px;
   }

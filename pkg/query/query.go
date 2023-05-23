@@ -3,6 +3,7 @@ package query
 import (
 	"context"
 	"fmt"
+
 	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
@@ -15,6 +16,7 @@ import (
 // QueryService is an all-in-one service that handles managing a collector, writing to the store, and responding to queries
 type QueryService interface {
 	RunQuery(ctx context.Context, q store.Query, opts store.QueryOption) ([]models.Object, error)
+	ListFacets(ctx context.Context) (store.Facets, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
@@ -22,6 +24,20 @@ type QueryServiceOpts struct {
 	Log           logr.Logger
 	StoreReader   store.StoreReader
 	AccessChecker accesschecker.Checker
+	IndexReader   store.IndexReader
+}
+
+func (o QueryServiceOpts) Validate() error {
+	if o.StoreReader == nil {
+		return fmt.Errorf("store reader is required")
+	}
+	if o.AccessChecker == nil {
+		return fmt.Errorf("access checker is required")
+	}
+	if o.IndexReader == nil {
+		return fmt.Errorf("index reader is required")
+	}
+	return nil
 }
 
 const (
@@ -29,11 +45,16 @@ const (
 )
 
 func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
+	if err := opts.Validate(); err != nil {
+		return nil, err
+	}
+
 	return &qs{
 		log:     opts.Log.WithName("query-service"),
 		debug:   opts.Log.WithName("query-service").V(logger.LogLevelDebug),
 		r:       opts.StoreReader,
 		checker: opts.AccessChecker,
+		index:   opts.IndexReader,
 	}, nil
 }
 
@@ -42,6 +63,7 @@ type qs struct {
 	debug   logr.Logger
 	r       store.StoreReader
 	checker accesschecker.Checker
+	index   store.IndexReader
 }
 
 type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object
@@ -61,9 +83,9 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	}
 	rules = q.checker.RelevantRulesForUser(principal, rules)
 
-	iter, err := q.r.GetObjects(ctx, query, opts)
+	iter, err := q.index.Search(ctx, query, opts)
 	if err != nil {
-		return nil, fmt.Errorf("error getting objects from store: %w", err)
+		return nil, fmt.Errorf("error getting objects from indexer: %w", err)
 	}
 
 	defer iter.Close()
@@ -108,4 +130,8 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 
 func (q *qs) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	return q.r.GetAccessRules(ctx)
+}
+
+func (q *qs) ListFacets(ctx context.Context) (store.Facets, error) {
+	return q.index.ListFacets(ctx)
 }

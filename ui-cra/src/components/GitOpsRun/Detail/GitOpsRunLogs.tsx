@@ -10,10 +10,9 @@ import {
 import { Error, Info } from '@material-ui/icons';
 import {
   Flex,
-  formatLogTimestamp,
   Icon,
   IconType,
-  theme as weaveTheme,
+  formatLogTimestamp,
 } from '@weaveworks/weave-gitops';
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { sortBy, sortedUniqBy, uniq } from 'lodash';
@@ -55,7 +54,7 @@ const RowIcon: React.FC<{ level: string }> = ({ level }) => {
   if (level === 'info') return <Info color="primary" fontSize="inherit" />;
   if (level === 'error') return <Error color="secondary" fontSize="inherit" />;
   return (
-    <Error htmlColor={weaveTheme.colors.feedbackOriginal} fontSize="inherit" />
+    <Icon type={IconType.SuspendedIcon} color="feedbackOriginal" size="small" />
   );
 };
 

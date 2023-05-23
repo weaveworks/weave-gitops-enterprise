@@ -1,11 +1,9 @@
-import { Button, Flex, LoadingPage, theme } from '@weaveworks/weave-gitops';
+import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { SecretPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
-
-const { small } = theme.spacing;
 
 export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   const [openPreview, setOpenPreview] = useState(false);
@@ -39,7 +37,7 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   ]);
 
   return (
-    <Flex end style={{ padding: small }}>
+    <Flex end style={{ padding: '12px' }}>
       {previewLoading ? (
         <LoadingPage className="preview-loading" />
       ) : (

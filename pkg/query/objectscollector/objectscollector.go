@@ -3,6 +3,7 @@ package objectscollector
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
@@ -19,6 +20,7 @@ type ObjectsCollector struct {
 	log   logr.Logger
 	store store.StoreWriter
 	quit  chan struct{}
+	idx   store.IndexWriter
 }
 
 func (a *ObjectsCollector) Start() error {
@@ -40,7 +42,7 @@ func (a *ObjectsCollector) Stop() error {
 	return nil
 }
 
-func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsCollector, error) {
+func NewObjectsCollector(w store.Store, idx store.IndexWriter, opts collector.CollectorOpts) (*ObjectsCollector, error) {
 	if opts.ProcessRecordsFunc == nil {
 		opts.ProcessRecordsFunc = defaultProcessRecords
 	}
@@ -48,6 +50,8 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 	if err := opts.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid collector options: %w", err)
 	}
+
+	opts.IndexWriter = idx
 
 	col, err := collector.NewCollector(opts, w)
 	if err != nil {
@@ -58,10 +62,11 @@ func NewObjectsCollector(w store.Store, opts collector.CollectorOpts) (*ObjectsC
 		col:   col,
 		log:   opts.Log.WithName("objects-collector"),
 		store: w,
+		idx:   idx,
 	}, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
+func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, idx store.IndexWriter, log logr.Logger) error {
 	ctx := context.Background()
 	upsert := []models.Object{}
 	delete := []models.Object{}
@@ -82,6 +87,12 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 			continue
 		}
 
+		cat, err := adapters.Category(o)
+		if err != nil {
+			log.Error(err, "failed to get category from flux object")
+			continue
+		}
+
 		object := models.Object{
 			Cluster:    objTx.ClusterName(),
 			Name:       objTx.Object().GetName(),
@@ -91,6 +102,7 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 			Kind:       gvk.Kind,
 			Status:     string(adapters.Status(o)),
 			Message:    adapters.Message(o),
+			Category:   cat,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
@@ -104,17 +116,31 @@ func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store 
 		if err := store.StoreObjects(ctx, upsert); err != nil {
 			return fmt.Errorf("failed to store objects: %w", err)
 		}
+
+		if err := idx.Add(ctx, upsert); err != nil {
+			return fmt.Errorf("failed to index objects: %w", err)
+		}
 	}
 
 	if len(delete) > 0 {
 		if err := store.DeleteObjects(ctx, delete); err != nil {
 			return fmt.Errorf("failed to delete objects: %w", err)
 		}
+
+		if err := idx.Remove(ctx, delete); err != nil {
+			return fmt.Errorf("failed to delete objects from index: %w", err)
+		}
 	}
 
 	if len(deleteAll) > 0 {
 		if err := store.DeleteAllObjects(ctx, deleteAll); err != nil {
 			return fmt.Errorf("failed to delete all objects: %w", err)
+		}
+
+		for _, cluster := range deleteAll {
+			if err := idx.RemoveByQuery(ctx, fmt.Sprintf("+cluster:%s", cluster)); err != nil {
+				return fmt.Errorf("failed to delete all objects for cluster %q: %w", cluster, err)
+			}
 		}
 	}
 
