@@ -115,6 +115,10 @@ const AppRoutes = () => {
         element={<GitOpsSets {...WithSearchParams()} />}
       />
       <Route
+        path={Routes.GitOpsSetDetail + '/*'}
+        element={<GitOpsSetDetail {...WithSearchParams()} />}
+      />
+      <Route
         path={Routes.TerraformObjects}
         element={<TerraformObjectList {...WithSearchParams()} />}
       />
