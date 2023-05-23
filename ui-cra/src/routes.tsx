@@ -246,6 +246,29 @@ const AppRoutes = () => {
         path={Routes.WorkspaceDetails + '/*'}
         element={<WorkspaceDetails {...WithSearchParams()} />}
       />
+      <Route
+        path={Routes.Explorer + '/*'}
+        element={<Explorer {...WithSearchParams()} />}
+      />
+      <Route path={Routes.Policies} element={<Policies />} />
+      <Route
+        path={Routes.PolicyDetails}
+        element={<PolicyDetails {...WithSearchParams()} />}
+      />
+      <Route path={Routes.PolicyConfigs} element={<PolicyConfigsList />} />
+      <Route
+        path={Routes.PolicyConfigsDetails}
+        element={<PolicyConfigsDetails {...WithSearchParams()} />}
+      />
+      <Route
+        path={Routes.CreatePolicyConfig}
+        element={<CreatePolicyConfig />}
+      />
+      <Route element={<PoliciesViolations />} path={Routes.PolicyViolations} />
+      <Route
+        element={<PolicyViolationDetails {...WithSearchParams()} />}
+        path={Routes.PolicyViolationDetails}
+      />
 
       {/* <Route
         component={withSearchParams((props: any) => (

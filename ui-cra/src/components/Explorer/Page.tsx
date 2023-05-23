@@ -1,7 +1,6 @@
 import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 // @ts-ignore
 import styled from 'styled-components';
-import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
 import AccessRulesDebugger from './AccessRulesDebugger';
@@ -17,10 +16,10 @@ function ExplorerPage({ className }: Props) {
       <ContentWrapper>
         <div className={className}>
           <SubRouterTabs>
-            <RouterTab name="Query" path={`${Routes.Explorer}/query`}>
+            <RouterTab name="Query" path={`/query`}>
               <Explorer />
             </RouterTab>
-            <RouterTab name="Access Rules" path={`${Routes.Explorer}/access`}>
+            <RouterTab name="Access Rules" path={`/access`}>
               <AccessRulesDebugger />
             </RouterTab>
           </SubRouterTabs>
