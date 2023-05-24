@@ -56,7 +56,7 @@ const WGApplicationsKustomization: FC<Props> = ({
   const customTabs: Array<routeTab> = [
     {
       name: 'Violations',
-      path: `/violations`,
+      path: `violations`,
       component: () => {
         return (
           <div style={{ width: '100%' }}>
