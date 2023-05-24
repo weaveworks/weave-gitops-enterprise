@@ -9,21 +9,22 @@ import (
 )
 
 // Note on use -- you can run this before and after a change to see
-// what effect it has. To run just this:
+// what effect it has. To run:
 //
-//     go test -run XXX -bench RBAC ./pkg/query/rbac
-
-func Benchmark_RBAC(b *testing.B) {
+//	go test -run XXX -bench RBAC ./pkg/query/rbac
+//
+// (the -run XXX bit stops it running tests at the same time)
+func benchmark_RBAC(b *testing.B, numObjects int) {
 	// This tries to give an indicative score for how efficient the
-	// RBAC authoisation is. The worst case is that no rules match any
-	// of the objects, and that could be benchmarked
+	// RBAC authorisation is. The worst case is that no rules match
+	// any of the objects, and that could be benchmarked
 	// trivially. However, in practice, rules are supposed to _allow_
 	// things, so you are usually far from the worst case, and
 	// implementations will exploit how rules are written. So we try
 	// to make something resembling a real world model, with rules
 	// that apply to actual types and objects (though not always the
-	// types and objects we're intested in), and using wildcards, and
-	// so on.
+	// types and objects we're interested in), and using wildcards,
+	// and so on.
 	//
 	// There are some simplifying assumptions, as noted in comments, and:
 	// - no cluster role aggregation is used (in practice, I think it's used a lot for baked-in RBAC e..g, cluster-admin)
@@ -62,7 +63,6 @@ func Benchmark_RBAC(b *testing.B) {
 		numClusterRoleBindings  = 100 // number of bindings of cluster roles to subjects (usually not our user)
 		numRolesPerCluster      = 100 // make these up and assign randomly to a namespace
 		oddsOfBindingUser       = 50  // assume most roles bind to one subject, what is the chance (1/oddsOfBindingUser) it's our user?
-		numObjectsPerCluster    = 50  // not the total number of objects in a cluster, just the number with a Kind of interest to us
 	)
 
 	// define these ahead of time, because we'll want to make sure
@@ -228,7 +228,7 @@ func Benchmark_RBAC(b *testing.B) {
 	// cost. A wider benchmark could include that in the loop, since
 	// it is certainly something that could improve.
 
-	objects := make([]models.Object, numObjectsPerCluster*numClusters)
+	objects := make([]models.Object, numObjects)
 	for i := range objects {
 		gk := objectGroupKinds[localrand.Intn(len(objectGroupKinds))]
 		obj := &objects[i]
@@ -241,11 +241,8 @@ func Benchmark_RBAC(b *testing.B) {
 
 	user := auth.NewUserPrincipal(auth.ID(username), auth.Groups(usergroups))
 
-	println("Roles", len(roles))
-	println("RoleBindings", len(rolebindings))
-	println("Objects", len(objects))
-
 	b.ResetTimer()
+	resetops()
 
 	for i := 0; i < b.N; i++ {
 		// this is constructed once and supplied to the service
@@ -269,6 +266,20 @@ func Benchmark_RBAC(b *testing.B) {
 				count++
 			}
 		}
-		println("Allowed", count) // if this does not give the same result every run, the benchmark is bogus!
+		// println("Allowed", count) // if this does not give the same result every run, the benchmark is bogus!
 	}
+	println("N", b.N, "Avg RoleOps", roleops/b.N, "Avg BindingOps", bindingops/b.N)
+}
+
+// This benchmarks the case when all clusters are very likely to have
+// objects.
+func Benchmark_RBAC_50perCluster(b *testing.B) {
+	benchmark_RBAC(b, 50*100)
+}
+
+// This benchmarks the case where the objects only come from a few
+// clusters. This is useful to benchmark, because it is sensitive to
+// improvements that rely on e.g., a lot of sorting ahead of time.
+func Benchmark_RBAC_ltOnePerCluster(b *testing.B) {
+	benchmark_RBAC(b, 10)
 }

@@ -207,8 +207,17 @@ type clusterRBACGetLister struct {
 	rolebindings []models.RoleBinding
 }
 
+var roleops int
+var bindingops int
+
+func resetops() {
+	roleops = 0
+	bindingops = 0
+}
+
 func (c *clusterRBACGetLister) GetClusterRole(name string) (*rbacv1.ClusterRole, error) {
 	for i := range c.roles {
+		roleops++
 		if c.roles[i].Cluster == c.cluster && c.roles[i].Kind == "ClusterRole" && c.roles[i].Name == name {
 			return makeClusterRole(&c.roles[i]), nil
 		}
@@ -219,6 +228,7 @@ func (c *clusterRBACGetLister) GetClusterRole(name string) (*rbacv1.ClusterRole,
 func (c *clusterRBACGetLister) ListClusterRoleBindings() ([]*rbacv1.ClusterRoleBinding, error) {
 	var bindings []*rbacv1.ClusterRoleBinding
 	for i := range c.rolebindings {
+		bindingops++
 		if c.rolebindings[i].Cluster == c.cluster && c.rolebindings[i].Kind == "ClusterRoleBinding" {
 			bindings = append(bindings, makeClusterRoleBinding(&c.rolebindings[i]))
 		}
@@ -228,6 +238,7 @@ func (c *clusterRBACGetLister) ListClusterRoleBindings() ([]*rbacv1.ClusterRoleB
 
 func (c *clusterRBACGetLister) GetRole(namespace, name string) (*rbacv1.Role, error) {
 	for i := range c.roles {
+		roleops++
 		if c.roles[i].Cluster == c.cluster &&
 			c.roles[i].Kind == "Role" &&
 			c.roles[i].Namespace == namespace &&
@@ -241,6 +252,7 @@ func (c *clusterRBACGetLister) GetRole(namespace, name string) (*rbacv1.Role, er
 func (c *clusterRBACGetLister) ListRoleBindings(namespace string) ([]*rbacv1.RoleBinding, error) {
 	var bindings []*rbacv1.RoleBinding
 	for i := range c.rolebindings {
+		bindingops++
 		if c.rolebindings[i].Cluster == c.cluster &&
 			c.rolebindings[i].Kind == "RoleBinding" &&
 			c.rolebindings[i].Namespace == namespace {
