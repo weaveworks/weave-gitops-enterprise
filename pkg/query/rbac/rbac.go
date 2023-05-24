@@ -21,6 +21,7 @@ package rbac
 // checks whether a rule permits access to an object.
 
 import (
+	"errors"
 	"fmt"
 
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -55,6 +56,7 @@ func (authz *Authorizer) ObjectAuthorizer(roles []models.Role, rolebindings []mo
 		roles:        roles,
 		rolebindings: rolebindings,
 	}
+	getlist.init()
 	resolver := rbacvalidation.NewDefaultRuleResolver(
 		rbacvalidation.RoleGetter(getlist),
 		rbacvalidation.RoleBindingLister(getlist),
@@ -205,6 +207,43 @@ type clusterRBACGetLister struct {
 	cluster      string
 	roles        []models.Role
 	rolebindings []models.RoleBinding
+
+	next               int                              // next index to examine
+	rolemap            map[string]int                   // name to roles index
+	clusterrolebinding []*rbacv1.ClusterRoleBinding     // so we don't go through the whole list again
+	rolebindingmap     map[string][]*rbacv1.RoleBinding // namespace to RoleBindings
+}
+
+var notfound = errors.New("not found")
+
+func (c *clusterRBACGetLister) init() {
+	c.rolebindingmap = map[string][]*rbacv1.RoleBinding{}
+	c.rolemap = map[string]int{}
+	c.sortRoleBindings()
+}
+
+func (c *clusterRBACGetLister) fileRole(i int) {
+	key := c.roles[i].Name
+	if c.roles[i].Kind == "Role" {
+		key = c.roles[i].Namespace + "/" + key
+	}
+	c.rolemap[key] = i
+	c.next = i + 1
+}
+
+func (c *clusterRBACGetLister) sortRoleBindings() {
+	for i := range c.rolebindings {
+		bindingops++
+		if c.rolebindings[i].Cluster == c.cluster {
+			if c.rolebindings[i].Kind == "RoleBinding" {
+				ns := c.rolebindings[i].Namespace
+				nsbindings := c.rolebindingmap[ns]
+				c.rolebindingmap[ns] = append(nsbindings, makeRoleBinding(&c.rolebindings[i]))
+			} else {
+				c.clusterrolebinding = append(c.clusterrolebinding, makeClusterRoleBinding(&c.rolebindings[i]))
+			}
+		}
+	}
 }
 
 var roleops int
@@ -216,52 +255,58 @@ func resetops() {
 }
 
 func (c *clusterRBACGetLister) GetClusterRole(name string) (*rbacv1.ClusterRole, error) {
-	for i := range c.roles {
+	if ind, ok := c.rolemap[name]; ok {
+		if ind == -1 {
+			return nil, notfound
+		}
+		return makeClusterRole(&c.roles[ind]), nil
+	}
+
+	for i := c.next; i < len(c.roles); i++ {
 		roleops++
-		if c.roles[i].Cluster == c.cluster && c.roles[i].Kind == "ClusterRole" && c.roles[i].Name == name {
-			return makeClusterRole(&c.roles[i]), nil
+		if c.roles[i].Cluster == c.cluster {
+			c.fileRole(i)
+			if c.roles[i].Kind == "ClusterRole" && c.roles[i].Name == name {
+				return makeClusterRole(&c.roles[i]), nil
+			}
 		}
 	}
-	return nil, nil
+	c.next = len(c.roles)
+	c.rolemap[name] = -1
+	return nil, notfound
 }
 
 func (c *clusterRBACGetLister) ListClusterRoleBindings() ([]*rbacv1.ClusterRoleBinding, error) {
-	var bindings []*rbacv1.ClusterRoleBinding
-	for i := range c.rolebindings {
-		bindingops++
-		if c.rolebindings[i].Cluster == c.cluster && c.rolebindings[i].Kind == "ClusterRoleBinding" {
-			bindings = append(bindings, makeClusterRoleBinding(&c.rolebindings[i]))
-		}
-	}
-	return bindings, nil
+	return c.clusterrolebinding, nil
 }
 
 func (c *clusterRBACGetLister) GetRole(namespace, name string) (*rbacv1.Role, error) {
-	for i := range c.roles {
+	combo := namespace + "/" + name
+	if ind, ok := c.rolemap[combo]; ok { // deal with not found!
+		if ind == -1 {
+			return nil, notfound
+		}
+		return makeRole(&c.roles[ind]), nil
+	}
+
+	for i := c.next; i < len(c.roles); i++ {
 		roleops++
-		if c.roles[i].Cluster == c.cluster &&
-			c.roles[i].Kind == "Role" &&
-			c.roles[i].Namespace == namespace &&
-			c.roles[i].Name == name {
-			return makeRole(&c.roles[i]), nil
+		if c.roles[i].Cluster == c.cluster {
+			c.fileRole(i)
+			if c.roles[i].Kind == "Role" &&
+				c.roles[i].Namespace == namespace &&
+				c.roles[i].Name == name {
+				return makeRole(&c.roles[i]), nil
+			}
 		}
 	}
-	return nil, nil
+	c.next = len(c.roles)
+	c.rolemap[combo] = -1
+	return nil, notfound
 }
 
 func (c *clusterRBACGetLister) ListRoleBindings(namespace string) ([]*rbacv1.RoleBinding, error) {
-	var bindings []*rbacv1.RoleBinding
-	for i := range c.rolebindings {
-		bindingops++
-		if c.rolebindings[i].Cluster == c.cluster &&
-			c.rolebindings[i].Kind == "RoleBinding" &&
-			c.rolebindings[i].Namespace == namespace {
-			bindings = append(bindings, makeRoleBinding(&c.rolebindings[i]))
-		}
-	}
-	// TODO as for ClusterRoleBindings, these could be cached too (it
-	// would have to be per namespace)
-	return bindings, nil
+	return c.rolebindingmap[namespace], nil
 }
 
 // These are essentially undoing the transformation done in
