@@ -103,7 +103,7 @@ function OAuthCallback({
       navigate(linkResolver(state?.page || ''));
       return;
     }
-  }, [res, history, linkResolver, params.error, provider]);
+  }, [res, navigate, linkResolver, params.error, provider]);
 
   React.useEffect(() => {
     if (error) {

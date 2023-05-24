@@ -1,7 +1,12 @@
 import { V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
-import { Route, Routes as Routess, useLocation } from 'react-router-dom';
+import {
+  Navigate,
+  Route,
+  Routes as Routess,
+  useLocation,
+} from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 import error404 from './assets/img/error404.json';
@@ -39,7 +44,7 @@ import PolicyDetails from './components/Policies/PolicyDetails';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
-import PoliciesViolations from './components/PolicyViolations';
+// import PoliciesViolations from './components/PolicyViolations';
 import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
@@ -101,7 +106,10 @@ const Page404 = () => (
 const AppRoutes = () => {
   return (
     <Routess>
-      <Route element={<MCCP />} path="/" />
+      <Route
+        path="/"
+        element={<Navigate to={Routes.Clusters + '/*'} replace />}
+      />
       <Route element={<MCCP />} path={Routes.Clusters + '/*'} />
       <Route element={<MCCP />} path={Routes.DeleteCluster} />
       <Route
@@ -264,289 +272,60 @@ const AppRoutes = () => {
         path={Routes.CreatePolicyConfig}
         element={<CreatePolicyConfig />}
       />
-      <Route element={<PoliciesViolations />} path={Routes.PolicyViolations} />
+      {/* <Route element={<PoliciesViolations />} path={Routes.PolicyViolations} /> */}
       <Route
         element={<PolicyViolationDetails {...WithSearchParams()} />}
         path={Routes.PolicyViolationDetails}
       />
-
-      {/* <Route
-        component={withSearchParams((props: any) => (
+      <Route element={<GitOpsRun />} path={Routes.GitOpsRun} />
+      <Route
+        element={<GitOpsRunDetail {...WithSearchParams()} />}
+        path={Routes.GitOpsRunDetail + '/*'}
+      />
+      <Route
+        element={
           <CoreWrapper>
-            <EditResourcePage {...props} />
+            <WGNotifications {...WithSearchParams()} />
           </CoreWrapper>
-        ))}
-        path={Routes.EditResource}
-      />
-      <Route
-        component={AddClusterWithCredentials}
-        exact
-        path={Routes.AddCluster}
-      />
-      <Route
-        component={PoliciesViolations}
-        exact
-        path={Routes.PolicyViolations}
-      />
-      <Route
-        component={withSearchParams(PolicyViolationDetails)}
-        exact
-        path={Routes.PolicyViolationDetails}
-      />
-      <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
-      <Route
-        component={withSearchParams(GitOpsRunDetail)}
-        path={Routes.GitOpsRunDetail}
-      />
-      <Route
-        component={(props: any) => (
-          <CoreWrapper>
-            <WGApplicationsDashboard {...props} />
-          </CoreWrapper>
-        )}
-        exact
-        path={V2Routes.Automations}
-      />
-      <Route
-        component={withSearchParams(AddApplication)}
-        exact
-        path={Routes.AddApplication}
-      />
-      <Route
-        component={(props: any) => (
-          <CoreWrapper>
-            <WGApplicationsSources {...props} />
-          </CoreWrapper>
-        )}
-        exact
-        path={V2Routes.Sources}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsKustomization {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.Kustomization}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsGitRepository {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.GitRepo}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsHelmRepository {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.HelmRepo}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsBucket {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.Bucket}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsHelmRelease {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.HelmRelease}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsHelmChart {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.HelmChart}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsOCIRepository {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.OCIRepository}
-      />
-      <Route
-        component={() => (
-          <CoreWrapper>
-            <WGApplicationsFluxRuntime />
-          </CoreWrapper>
-        )}
-        path={V2Routes.FluxRuntime}
-      />
-      <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGNotifications {...props} />
-          </CoreWrapper>
-        ))}
+        }
         path={V2Routes.Notifications}
       />
       <Route
-        component={withSearchParams((props: any) => (
+        element={
           <CoreWrapper>
-            <WGUserInfo {...props} />
+            <WGNotificationsProvider {...WithSearchParams()} />
           </CoreWrapper>
-        ))}
+        }
+        path={V2Routes.Provider}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <EditResourcePage {...WithSearchParams()} />
+          </CoreWrapper>
+        }
+        path={Routes.EditResource}
+      />
+      <Route
+        element={
+          <CoreWrapper>
+            <WGUserInfo {...WithSearchParams()} />
+          </CoreWrapper>
+        }
         path={V2Routes.UserInfo}
       />
       <Route
-        component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGNotificationsProvider {...props} />
-          </CoreWrapper>
-        ))}
-        path={V2Routes.Provider}
-      />
-      <Route exact path={Routes.Canaries} component={ProgressiveDelivery} />
-      <Route
-        path={Routes.CanaryDetails}
-        component={withSearchParams(CanaryDetails)}
-      />
-      <Route exact path={Routes.Pipelines} component={Pipelines} />
-      <Route
-        path={Routes.PipelineDetails}
-        component={withSearchParams(PipelineDetails)}
-      />
-      <Route path={Routes.ImageAutomation} component={ImageAutomationPage} />
-      <Route
-        path={V2Routes.ImageAutomationUpdatesDetails}
-        component={withSearchParams(ImageAutomationUpdatesDetails)}
-      />
-      <Route
-        path={V2Routes.ImageAutomationRepositoryDetails}
-        component={withSearchParams(ImageAutomationRepoDetails)}
-      />
-      <Route
-        path={V2Routes.ImagePolicyDetails}
-        component={withSearchParams(ImagePolicyDetails)}
-      />
-      <Route exact path={Routes.Policies} component={Policies} />
-      <Route
-        exact
-        path={Routes.PolicyDetails}
-        component={withSearchParams(PolicyDetails)}
-      />
-      <Route component={TemplatesDashboard} exact path={Routes.Templates} />
-      <Route
-        exact
-        path={Routes.TerraformObjects}
-        component={withSearchParams(TerraformObjectList)}
-      />
-      <Route exact path={Routes.Workspaces} component={Workspaces} />
-      <Route
-        path={Routes.WorkspaceDetails}
-        component={withSearchParams(WorkspaceDetails)}
-      />
-      <Route exact path={Routes.Secrets} component={SecretsList} />
-      <Route
-        path={Routes.SecretDetails}
-        component={withSearchParams(SecretDetails)}
-      />
-      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
-      <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
-      <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
-      <Route
-        exact
-        path={Routes.PolicyConfigsDetails}
-        component={withSearchParams(PolicyConfigsDetails)}
-      />
-      <Route
-        exact
-        path={Routes.CreatePolicyConfig}
-        component={CreatePolicyConfig}
-      />
-
-      <Route
-        path={Routes.TerraformDetail}
-        component={withSearchParams(TerraformObjectDetail)}
-      />
-      <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
-      <Route
-        exact
-        path={Routes.GitOpsSets}
-        component={withSearchParams(GitOpsSets)}
-      />
-      <Route
-        path={Routes.GitOpsSetDetail}
-        component={withSearchParams(GitOpsSetDetail)}
-      />
-      <Route
-        exact
         path={Routes.GitlabOauthCallback}
-        component={({ location }: any) => {
-          const params = qs.parse(location.search);
-          return (
-            <OAuthCallback
-              provider={'GitLab' as GitProvider}
-              code={params.code as string}
-              state=""
-            />
-          );
-        }}
+        element={
+          <OAuthCallback
+            provider={'GitLab' as GitProvider}
+            code={WithSearchParams().code as string}
+            state=""
+          />
+        }
       />
-      <Route
-        exact
-        path={Routes.BitBucketOauthCallback}
-        component={({ location }: any) => {
-          const params = qs.parse(location.search);
 
-          const error = Array.isArray(params?.error)
-            ? params?.error.join(', ')
-            : params?.error;
-
-          const desc = Array.isArray(params.error_description)
-            ? params.error_description?.join('\n')
-            : params?.error_description;
-
-          return (
-            <OAuthCallback
-              provider={GitProvider.BitBucketServer}
-              code={params.code as string}
-              state={params.state as string}
-              error={error}
-              errorDescription={desc}
-            />
-          );
-        }}
-      />
-      <Route
-        exact
-        path={Routes.AzureDevOpsOauthCallback}
-        component={({ location }: any) => {
-          const params = qs.parse(location.search);
-
-          const error = Array.isArray(params?.error)
-            ? params?.error.join(', ')
-            : params?.error;
-
-          const desc = Array.isArray(params.error_description)
-            ? params.error_description?.join('\n')
-            : params?.error_description;
-
-          return (
-            <OAuthCallback
-              provider={GitProvider.AzureDevOps}
-              code={params.code as string}
-              state={params.state as string}
-              error={error}
-              errorDescription={desc}
-            />
-          );
-        }}
-      />
-      <Route exact render={Page404} /> */}
+      <Route path="*" element={<Page404 />} />
     </Routess>
   );
 };
