@@ -39,6 +39,8 @@ func (p *BitBucketServerProvider) Setup(opts ProviderOption) error {
 	ggpOpts := []gitprovider.ClientOption{
 		gitprovider.WithDomain(opts.Hostname),
 		gitprovider.WithConditionalRequests(opts.ConditionalRequests),
+		//TODO test with and without
+		// gitprovider.WithLogger(&p.log),
 	}
 
 	var err error
