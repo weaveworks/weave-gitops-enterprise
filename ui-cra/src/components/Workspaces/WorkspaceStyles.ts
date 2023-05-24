@@ -1,35 +1,29 @@
-import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
 import { Dialog } from '@material-ui/core';
+import { createStyles, makeStyles } from '@material-ui/styles';
 import { SubRouterTabs } from '@weaveworks/weave-gitops';
-
-const { xs, small, medium, base, none } = theme.spacing;
-const { primary10, primary, neutral30, neutralGray, white } = theme.colors;
-const { small: smallSize } = theme.fontSizes;
-const { monospace } = theme.fontFamilies;
+import styled from 'styled-components';
 
 export const useWorkspaceStyle = makeStyles(() =>
   createStyles({
     navigateBtn: {
-      marginBottom: medium,
-      marginRight: none,
+      marginBottom: 24,
+      marginRight: 0,
       textTransform: 'uppercase',
     },
     filterIcon: {
-      color: primary10,
-      marginRight: small,
+      color: '#009CCC',
+      marginRight: 12,
     },
     alertWrapper: {
-      padding: base,
-      margin: `0 ${base} ${base} ${base}`,
+      padding: 16,
+      margin: `0 ${16} ${16} ${16}`,
       borderRadius: '10px',
     },
     fullWidth: {
       width: '100%',
     },
     link: {
-      color: primary,
+      color: '#00b3ec',
       fontWeight: 600,
       whiteSpace: 'pre-line',
       cursor: 'pointer',
@@ -43,7 +37,7 @@ export const useWorkspaceStyle = makeStyles(() =>
 );
 export const CustomSubRouterTabs = styled(SubRouterTabs)(props => ({
   '.MuiTabs-root': {
-    marginTop:medium,
+    marginTop: props.theme.spacing.medium,
     width: '100%',
     '.MuiTab-root': {
       minWidth: 'fit-content',
@@ -62,34 +56,34 @@ export const DialogWrapper = styled(Dialog)`
     border-radius: 10px;
   }
   .MuiDialogTitle-root {
-    background: ${neutralGray};
-    padding: ${medium};
-    padding-bottom: ${small} ;
+    background: ${props => props.theme.colors.neutralGray};
+    padding: ${props => props.theme.spacing.medium};
+    padding-bottom: ${props => props.theme.spacing.small} ;
     p{
         font-weight: 600;
     }
     .MuiSvgIcon-root{
-        color: ${neutral30};
+        color: ${props => props.theme.colors.neutral30};
     }
     .info{
-        color: ${primary10} ;
-        font-size: ${smallSize};
+        color: ${props => props.theme.colors.primary10} ;
+        font-size: ${props => props.theme.fontSizes.small};
         font-weight: 500;
     }
   }
   .MuiDialogContent-root{
     &.customBackgroundColor{
-      background: ${neutralGray} !important;
-      padding:  ${none};
+      background: ${props => props.theme.colors.neutralGray} !important;
+      padding: 0;
     }
     pre{
-        background: ${white}!important;
-        padding-left:${none} !important;
+        background: ${props => props.theme.colors.white} !important;
+        padding-left:0 !important;
         span{
-        font-family: ${monospace};
-        font-size: ${smallSize};
+        font-family: ${props => props.theme.fontFamilies.monospace};
+        font-size: ${props => props.theme.fontSizes.small};
         text-align: left !important;
-        padding-right: ${none} !important;
+        padding-right: 0 !important;
         min-width: 27px !important;
     }
   }
@@ -99,16 +93,17 @@ export const DialogWrapper = styled(Dialog)`
 
 export const RulesListWrapper = styled.ul`
   list-style: none;
-  margin-top: ${none} !important;
-  padding-left: ${none} !important;
+  margin-top: 0 !important;
+  padding-left: 0 !important;
   li {
-    background: ${white};
-    margin-bottom: ${small};
-    padding: ${small} ${medium};
-    font-family: ${monospace};
-    font-size: ${smallSize};
+    background: ${props => props.theme.colors.white};
+    margin-bottom: ${props => props.theme.spacing.small};
+    padding: ${props =>
+      props.theme.spacing.small + ' ' + props.theme.spacing.medium};
+    font-family: ${props => props.theme.fontFamilies.monospace};
+    font-size: ${props => props.theme.fontSizes.small};
     label {
-      margin-right: ${xs};
+      margin-right: ${props => props.theme.spacing.xs};
     }
   }
 `;

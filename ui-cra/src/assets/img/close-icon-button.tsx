@@ -1,20 +1,20 @@
-import React, { FC } from 'react';
 import { IconButton, IconButtonProps } from '@material-ui/core';
-import { withStyles } from '@material-ui/styles';
 import { Close } from '@material-ui/icons';
-import { theme } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 
-const StyledIconButton = withStyles(() => ({
-  root: {
-    position: 'absolute',
-    right: theme.spacing.xs,
-    top: theme.spacing.xs,
-    color: theme.colors.neutral20,
-  },
-}))(IconButton);
-
-export const CloseIconButton: FC<IconButtonProps> = ({ onClick }) => (
-  <StyledIconButton onClick={onClick}>
+const CloseIconButton = ({ onClick }: IconButtonProps) => (
+  <IconButton onClick={onClick}>
     <Close />
-  </StyledIconButton>
+  </IconButton>
 );
+
+export default styled(CloseIconButton).attrs({
+  className: CloseIconButton.name,
+})`
+  .MuiIconButton-root {
+    position: absolute;
+    right: ${props => props.theme.spacing.xs};
+    top: ${props => props.theme.spacing.xs};
+    color: ${props => props.theme.colors.neutral20};
+  }
+`;

@@ -28,15 +28,15 @@ var identityParamsList = []struct {
 
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
-		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
+		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1", "v1beta2"},
 		Kind:         "AWSClusterStaticIdentity",
-		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"},
+		ClusterKinds: []string{"AWSCluster", "AWSManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
 		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
 		Kind:         "AWSClusterRoleIdentity",
-		ClusterKinds: []string{"AWSCluster", "AWSManagedCluster", "AWSManagedControlPlane"},
+		ClusterKinds: []string{"AWSCluster", "AWSManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",

@@ -208,6 +208,7 @@ C4Context
             Rel(ExternalSecrets, KubernetesCluster, "manage external secrets resources from")
             UpdateRelStyle(ExternalSecrets, KubernetesCluster, $offsetX="120", $offsetY="40")
             Rel(ExternalSecrets, secretsStore, "syncs secrets to Kubernetes")
+
         }
     }
 
@@ -361,7 +362,7 @@ C4Container
              Component(Pipelines, "Pipelines",, "delivery of applications across environments in its way to production")
              Component(ProgressiveDelivery, "Progressive Delivery",, "releasing applications while protecting its availability")
           }
-          Container_Boundary(TrustedDelivery, "TrustedDeliver") {
+          Container_Boundary(TrustedDelivery, "Trusted Delivery") {
             Component(Policy, "Policy",, "policy definition and enforcement for applications")
             Component(Tenancy, "Tenancy",, "allow multiple tenant to consume platform services while keeping isolation")
           }
@@ -369,7 +370,9 @@ C4Container
              Component(GitopsRun, "GitopsRun",, "simplifies development in gitops")
              Component(Notifications, "Notifications",, "higher-level workflows based on events")
           }
-
+        Container_Boundary(Explore, "Explore") {
+            Component(Explorer, "Explorer",, "addresses the problem of discovering data across multiple dimensions from a single place")
+        }
     }
     UpdateLayoutConfig($c4ShapeInRow="1", $c4BoundaryInRow="3")               
 ```
@@ -443,3 +446,12 @@ subdomains are part of it:
 - Identity Providers Integration: address the problem of integrating existing identity providers within Weave GitOps Enterprise keeping their identities.
 
 For a deeper look into the domain [IAM](iam.md)
+
+#### Explore
+
+Modern applications and infrastructure presents challenges to discover and aggregate data coming from different sources. 
+Explore domain addresses this problem space to provide users a single and simple way.
+
+- Explorer: is the capability that allows searching across multiple infrastructure domains in a single place. 
+
+For a deeper look into the domain [Explore](explore.md)

@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	Query_DoQuery_FullMethodName             = "/query.v1.Query/DoQuery"
+	Query_ListFacets_FullMethodName          = "/query.v1.Query/ListFacets"
 	Query_DebugGetAccessRules_FullMethodName = "/query.v1.Query/DebugGetAccessRules"
 )
 
@@ -28,6 +29,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QueryClient interface {
 	DoQuery(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error)
+	ListFacets(ctx context.Context, in *ListFacetsRequest, opts ...grpc.CallOption) (*ListFacetsResponse, error)
 	DebugGetAccessRules(ctx context.Context, in *DebugGetAccessRulesRequest, opts ...grpc.CallOption) (*DebugGetAccessRulesResponse, error)
 }
 
@@ -48,6 +50,15 @@ func (c *queryClient) DoQuery(ctx context.Context, in *QueryRequest, opts ...grp
 	return out, nil
 }
 
+func (c *queryClient) ListFacets(ctx context.Context, in *ListFacetsRequest, opts ...grpc.CallOption) (*ListFacetsResponse, error) {
+	out := new(ListFacetsResponse)
+	err := c.cc.Invoke(ctx, Query_ListFacets_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *queryClient) DebugGetAccessRules(ctx context.Context, in *DebugGetAccessRulesRequest, opts ...grpc.CallOption) (*DebugGetAccessRulesResponse, error) {
 	out := new(DebugGetAccessRulesResponse)
 	err := c.cc.Invoke(ctx, Query_DebugGetAccessRules_FullMethodName, in, out, opts...)
@@ -62,6 +73,7 @@ func (c *queryClient) DebugGetAccessRules(ctx context.Context, in *DebugGetAcces
 // for forward compatibility
 type QueryServer interface {
 	DoQuery(context.Context, *QueryRequest) (*QueryResponse, error)
+	ListFacets(context.Context, *ListFacetsRequest) (*ListFacetsResponse, error)
 	DebugGetAccessRules(context.Context, *DebugGetAccessRulesRequest) (*DebugGetAccessRulesResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
@@ -72,6 +84,9 @@ type UnimplementedQueryServer struct {
 
 func (UnimplementedQueryServer) DoQuery(context.Context, *QueryRequest) (*QueryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DoQuery not implemented")
+}
+func (UnimplementedQueryServer) ListFacets(context.Context, *ListFacetsRequest) (*ListFacetsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListFacets not implemented")
 }
 func (UnimplementedQueryServer) DebugGetAccessRules(context.Context, *DebugGetAccessRulesRequest) (*DebugGetAccessRulesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DebugGetAccessRules not implemented")
@@ -107,6 +122,24 @@ func _Query_DoQuery_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_ListFacets_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListFacetsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ListFacets(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_ListFacets_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ListFacets(ctx, req.(*ListFacetsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Query_DebugGetAccessRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(DebugGetAccessRulesRequest)
 	if err := dec(in); err != nil {
@@ -135,6 +168,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DoQuery",
 			Handler:    _Query_DoQuery_Handler,
+		},
+		{
+			MethodName: "ListFacets",
+			Handler:    _Query_ListFacets_Handler,
 		},
 		{
 			MethodName: "DebugGetAccessRules",

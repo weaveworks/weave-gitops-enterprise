@@ -1,21 +1,21 @@
-import { Grid, makeStyles, createStyles } from '@material-ui/core';
-import { Button, Icon, IconType, theme } from '@weaveworks/weave-gitops';
+import { Grid, createStyles, makeStyles } from '@material-ui/core';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
 import AppFields from '../../../Applications/Add/form/Partials/AppFields';
 
 const useStyles = makeStyles(() =>
   createStyles({
     removeApplicationWrapper: {
-      paddingRight: theme.spacing.base,
+      paddingRight: 16,
     },
     addApplicationSectionWrapper: {
-      paddingBottom: theme.spacing.xl,
+      paddingBottom: 48,
     },
     applicationWrapper: {
-      border: `1px solid ${theme.colors.neutral20}`,
-      padding: theme.spacing.small,
-      marginBottom: theme.spacing.small,
-      borderRadius: theme.spacing.xxs,
+      border: `1px solid #d8d8d8`,
+      padding: 12,
+      marginBottom: 12,
+      borderRadius: 4,
       borderStyle: 'dashed',
     },
   }),
