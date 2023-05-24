@@ -1,29 +1,9 @@
 import { ReportProblem } from '@material-ui/icons';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { theme } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
-const {
-  defaultOriginal,
-  black,
-  primary,
-  primary10,
-  neutral30,
-  neutral20,
-  feedbackLight,
-  backGrey,
-  alertMedium,
-  alertDark,
-} = theme.colors;
-const {
-  medium: mediumFont,
-  small: smallFont,
-  large: largeFontSize,
-  tiny: tinyFont,
-} = theme.fontSizes;
-const { none, xxs, xs, small, base, large, medium } = theme.spacing;
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     centered: {
@@ -37,36 +17,36 @@ export const usePolicyConfigStyle = makeStyles(() =>
       textTransform: 'uppercase',
     },
     sectionTitle: {
-      color: black,
-      fontSize: mediumFont,
+      color: '#1a1a1a',
+      fontSize: 14,
       fontWeight: 600,
-      marginTop: large,
+      marginTop: 32,
       display: 'block',
     },
     appliedTo: {
-      marginTop: base,
+      marginTop: 16,
     },
     link: {
-      color: primary,
+      color: '00b3ec',
       fontWeight: 600,
       whiteSpace: 'pre-line',
       textTransform: 'capitalize',
     },
     targetItemsList: {
-      '& li': { marginTop: xs, display: 'flex', alignItems: 'center' },
-      padding: none,
-      margin: none,
+      '& li': { marginTop: 8, display: 'flex', alignItems: 'center' },
+      padding: 0,
+      margin: 0,
     },
     targetItemKind: {
-      background: backGrey,
-      padding: `${xxs} ${base}`,
-      color: black,
-      marginLeft: small,
-      borderRadius: base,
+      background: '#eef0f4',
+      padding: `${4} ${16}`,
+      color: '#1a1a1a',
+      marginLeft: 12,
+      borderRadius: 16,
     },
     policyTitle: {
       '& span': {
-        marginRight: xs,
+        marginRight: 8,
       },
       display: 'flex',
       alignItems: 'flex-start',
@@ -77,8 +57,8 @@ export const usePolicyConfigStyle = makeStyles(() =>
       display: 'flex',
       listStyle: 'none',
       flexFlow: 'wrap',
-      paddingLeft: small,
-      marginTop: none,
+      paddingLeft: 12,
+      marginTop: 0,
       '& li': {
         width: '45%',
         '&.workspaces': {
@@ -88,15 +68,15 @@ export const usePolicyConfigStyle = makeStyles(() =>
           },
         },
         '& .Mui-checked': {
-          color: primary10,
+          color: '009CCC',
         },
         '& svg': {
           marginRight: '5px',
         },
         '& label': {
-          marginTop: `${xs} !important`,
-          marginBottom: `${base} !important`,
-          fontSize: largeFontSize,
+          marginTop: `${8} !important`,
+          marginBottom: `${16} !important`,
+          fontSize: 20,
         },
       },
     },
@@ -104,13 +84,13 @@ export const usePolicyConfigStyle = makeStyles(() =>
       '& div[class*="MuiOutlinedInput-root"]': {
         paddingTop: '0 !important',
         paddingBottom: '0 !important',
-        paddingRight: `${small} !important`,
+        paddingRight: `${12} !important`,
       },
       '& fieldset[class*="MuiOutlinedInput-root"]::hover': {
         borderColor: '#d8d8d8 !important',
       },
       '& div[class*="MuiFormControl-root"]': {
-        paddingRight: small,
+        paddingRight: 12,
       },
 
       '& div[class*="MuiChip-root"]': {
@@ -125,23 +105,23 @@ export const usePolicyConfigStyle = makeStyles(() =>
     },
     fieldNote: {
       textTransform: 'uppercase',
-      marginBottom: small,
+      marginBottom: 12,
       display: 'block',
-      color: neutral30,
-      fontSize: smallFont,
+      color: '#737373',
+      fontSize: 12,
     },
     errorSection: {
-      color: alertDark,
+      color: '#9F3119',
       display: 'Flex',
       alignItems: 'center',
-      margin: none,
-      fontSize: smallFont,
-      marginTop: xs,
+      margin: 0,
+      fontSize: 12,
+      marginTop: 8,
       textAlign: 'left',
       fontWeight: 400,
       lineHeight: 1.66,
       '& svg': {
-        marginRight: xxs,
+        marginRight: 4,
         width: '20px',
         height: '20px',
       },
@@ -150,14 +130,14 @@ export const usePolicyConfigStyle = makeStyles(() =>
 );
 
 export const WarningIcon = styled(ReportProblem)`
-  color: ${defaultOriginal};
+  color: ${props => props.theme.colors.feedbackOriginal};
 `;
 export const WarningWrapper = styled(Alert)`
-  background: ${feedbackLight} !important;
-  margin-bottom: ${small};
+  background: ${props => props.theme.colors.feedbackLight} !important;
+  margin-bottom: ${props => props.theme.spacing.small};
   height: 50px;
-  border-radius: ${xs} !important;
-  color: ${black} !important;
+  border-radius: ${props => props.theme.spacing.xs} !important;
+  color: ${props => props.theme.colors.black} !important;
   display: flex !important;
   align-items: center;
 `;
@@ -168,51 +148,51 @@ export const PolicyConfigsTableWrapper = styled(TableWrapper)`
 `;
 
 export const PolicyDetailsCardWrapper = styled.ul`
-  padding-left: ${none};
-  list-style: none;
+  padding-left: 0;
+  list-style: 0;
   display: flex;
   flex-flow: wrap;
   li {
     width: 400px;
-    padding: ${small};
+    padding: ${props => props.theme.spacing.small};
     .modified {
       color: #c2185b;
       display: block;
-      margin-bottom: ${xxs};
-      font-size: ${tinyFont};
+      margin-bottom: ${props => props.theme.spacing.xxs};
+      font-size: ${props => props.theme.fontSizes.tiny};
       position: absolute;
-      bottom: ${xxs};
+      bottom: ${props => props.theme.spacing.xs};
     }
     .editPolicyCardHeader {
       justify-content: space-between;
       align-items: center;
       svg {
-        color: ${alertMedium};
+        color: ${props => props.theme.colors.alertMedium};
         cursor: pointer;
       }
     }
     .MuiCard-root {
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
-      border: 1px solid ${neutral20};
+      border: 1px solid ${props => props.theme.colors.neutral20};
       height: 245px;
-      border-radius: ${xs} !important;
+      border-radius: ${props => props.theme.spacing.xs} !important;
     }
     .cardLbl {
-      color: ${neutral30};
-      font-size: ${small};
+      color: ${props => props.theme.colors.neutral30};
+      font-size: ${props => props.theme.fontSizes.small};
       display: block;
       font-weight: ${700};
-      margin: ${base} ${none} ${none};
+      margin: ${props => props.theme.spacing.base} 0 0;
     }
     .parameterItem {
-      font-size: ${small};
+      font-size: ${props => props.theme.fontSizes.small};
       font-weight: 400;
-      margin-top: ${xs};
+      margin-top: ${props => props.theme.spacing.xs};
       position: relative;
       label {
-        margin-bottom: ${xs};
+        margin-bottom: ${props => props.theme.spacing.xs};
         display: block;
-        font-size: ${small};
+        font-size: ${props => props.theme.fontSizes.small};
         color: black;
       }
 
@@ -220,12 +200,13 @@ export const PolicyDetailsCardWrapper = styled.ul`
         height: 40px;
         display: flex;
         align-items: center;
-        margin-bottom: ${medium} !important;
+        margin-bottom: ${props => props.theme.spacing.medium} !important;
         span[class*='PrivateSwitchBase-root'] {
-          padding: 0 ${xxs} 0 ${xs};
+          padding: 0 ${props => props.theme.spacing.xxs} 0
+            ${props => props.theme.spacing.xs};
         }
         span {
-          font-size: ${small};
+          font-size: ${props => props.theme.fontSizes.small};
           svg {
             width: 20px;
             height: 20px;
@@ -234,9 +215,9 @@ export const PolicyDetailsCardWrapper = styled.ul`
       }
 
       .parameterItemValue {
-        color: ${neutral30};
+        color: ${props => props.theme.colors.neutral30};
         label {
-          padding-bottom: ${xs};
+          padding-bottom: ${props => props.theme.spacing.xs};
         }
       }
     }
@@ -249,6 +230,6 @@ export const SelectPoliciesWithSearch = styled(Autocomplete)`
     padding-bottom: 0 !important;
   }
   input {
-    border: none !important;
+    border: 0 !important;
   }
 `;

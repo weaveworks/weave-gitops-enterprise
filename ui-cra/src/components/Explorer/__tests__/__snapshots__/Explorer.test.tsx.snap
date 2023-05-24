@@ -311,7 +311,11 @@ exports[`Explorer snapshots renders 1`] = `
 }
 
 .c3 .MuiChip-root {
+  color: #1a1a1a;
   margin-right: 4px;
+  background-color: #F6F7F9;
+  -webkit-transition: none;
+  transition: none;
 }
 
 .c13.MuiButton-root {
@@ -392,10 +396,6 @@ exports[`Explorer snapshots renders 1`] = `
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.c8 .filter-options-chip {
-  background-color: #E5F7FD;
 }
 
 .c9 {

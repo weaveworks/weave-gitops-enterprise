@@ -5,7 +5,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import Select from '@material-ui/core/Select';
 import { makeStyles } from '@material-ui/core/styles';
-import { theme as weaveTheme } from '@weaveworks/weave-gitops';
 import React, { FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
 
@@ -14,11 +13,7 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(1),
     width: 300,
   },
-  indeterminateColor: {
-    color: weaveTheme.colors.primary,
-  },
   downloadBtn: {
-    color: weaveTheme.colors.primary,
     padding: '0px',
   },
 }));
@@ -81,14 +76,11 @@ const MultiSelectDropdown: FC<{
         <MenuItem value="all" disabled={onlyRequiredItems}>
           <ListItemIcon>
             <Checkbox
-              classes={{ indeterminate: classes.indeterminateColor }}
               checked={isAllSelected}
               indeterminate={
                 selected.length > 0 && selected.length < allItems.length
               }
-              style={{
-                color: weaveTheme.colors.primary,
-              }}
+              color="primary"
             />
           </ListItemIcon>
           <ListItemText primary="Select All" />
@@ -102,9 +94,7 @@ const MultiSelectDropdown: FC<{
                   checked={
                     item.required === true || selected.indexOf(itemName) > -1
                   }
-                  style={{
-                    color: weaveTheme.colors.primary,
-                  }}
+                  color="primary"
                 />
               </ListItemIcon>
               <ListItemText primary={itemName} />

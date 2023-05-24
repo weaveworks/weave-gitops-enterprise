@@ -5,7 +5,6 @@ import {
   GitRepository,
   Link,
   LoadingPage,
-  theme,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -19,6 +18,10 @@ import {
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
@@ -31,39 +34,31 @@ import { ContentWrapper } from '../../Layout/ContentWrapper';
 import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
-  useGetInitialGitRepo,
   getRepositoryUrl,
+  useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
-import {
-  expiredTokenNotification,
-  useIsAuthenticated,
-} from '../../../hooks/gitprovider';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
-import { PreviewPRModal } from './PreviewPRModal';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-
-const { large, xs, base, medium, small } = theme.spacing;
-const { neutral20, neutral10 } = theme.colors;
-const { large: largeFontSize } = theme.fontSizes;
+import { PreviewPRModal } from './PreviewPRModal';
 
 const FormWrapper = styled.form`
   width: 80%;
-  padding-bottom: ${large} !important;
+  padding-bottom: ${props => props.theme.spacing.large} !important;
 
   .group-section {
-    border-bottom: 1px dotted ${neutral20};
-    padding-right: ${medium};
-    padding-bottom: ${medium};
+    border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
+    padding-right: ${props => props.theme.spacing.medium};
+    padding-bottom: ${props => props.theme.spacing.medium};
     .form-field {
       width: 50%;
       label {
-        margin-top: ${xs} !important;
-        margin-bottom: ${base} !important;
-        font-size: ${largeFontSize};
+        margin-top: ${props => props.theme.spacing.xs} !important;
+        margin-bottom: ${props => props.theme.spacing.base} !important;
+        font-size: ${props => props.theme.fontSizes.large};
       }
       &.policyField {
         label {
-          margin-bottom: ${small} !important;
+          margin-bottom: ${props => props.theme.spacing.small} !important;
         }
         div[class*='MuiAutocomplete-tag'] {
           display: none;
@@ -79,11 +74,11 @@ const FormWrapper = styled.form`
     .form-section {
       display: flex;
       div[class*='MuiInputBase-root'] {
-        margin-right: ${small};
+        margin-right: ${props => props.theme.spacing.small};
       }
       .Mui-disabled {
-        background: ${neutral10} !important;
-        border-color: ${neutral20} !important;
+        background: ${props => props.theme.colors.neutral10} !important;
+        border-color: ${props => props.theme.colors.neutral20} !important;
       }
     }
   }
