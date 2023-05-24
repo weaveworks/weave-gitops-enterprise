@@ -40,7 +40,7 @@ require (
 	github.com/fluxcd/flagger v1.30.0
 	github.com/fluxcd/go-git-providers v0.14.0
 	github.com/fluxcd/helm-controller/api v0.30.0
-	github.com/fluxcd/kustomize-controller/api v0.34.0
+	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.1
 	github.com/fluxcd/pkg/apis/meta v1.0.0
 	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/fluxcd/pkg/untar v0.2.0
@@ -64,7 +64,7 @@ require (
 	github.com/spf13/viper v1.15.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.5.2
-	github.com/weaveworks/gitopssets-controller v0.9.0
+	github.com/weaveworks/gitopssets-controller v0.12.0
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac
 	github.com/weaveworks/templates-controller v0.2.0
@@ -103,12 +103,19 @@ require (
 	github.com/blevesearch/zapx/v13 v13.3.7 // indirect
 	github.com/blevesearch/zapx/v14 v14.3.7 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.9 // indirect
+	github.com/fluxcd/pkg/apis/event v0.4.1 // indirect
+	github.com/fluxcd/pkg/http/fetch v0.4.0 // indirect
+	github.com/fluxcd/pkg/tar v0.2.0 // indirect
+	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
+	github.com/opencontainers/go-digest/blake3 v0.0.0-20220411205349-bde1400a84be // indirect
+	github.com/zeebo/blake3 v0.1.1 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	google.golang.org/api v0.117.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )
@@ -155,7 +162,7 @@ require (
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fluxcd/image-automation-controller/api v0.30.0 // indirect
-	github.com/fluxcd/image-reflector-controller/api v0.25.0 // indirect
+	github.com/fluxcd/image-reflector-controller/api v0.27.1 // indirect
 	github.com/fluxcd/notification-controller/api v0.32.1 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
@@ -281,7 +288,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v0.8.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.0.0 // indirect
 	github.com/fluxcd/pkg/ssa v0.23.1 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-asset/generics v0.0.0-20220317100214-d5f632c68060 // indirect
@@ -409,9 +416,14 @@ replace (
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
+
+	// Replace digest lib to master to gather access to BLAKE3.
+	// xref: https://github.com/opencontainers/go-digest/pull/66
+	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 	// Fix for CVE-2022-1996
 	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
+
 // un-comment for local dev
 // github.com/weaveworks/weave-gitops => ../weave-gitops
 )
