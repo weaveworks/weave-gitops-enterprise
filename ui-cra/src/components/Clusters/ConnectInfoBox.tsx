@@ -1,13 +1,13 @@
-import React, { FC } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   Typography,
 } from '@material-ui/core';
-import styled from 'styled-components';
-import { CloseIconButton } from '../../assets/img/close-icon-button';
 import { Link } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import styled from 'styled-components';
+import CloseIconButton from '../../assets/img/close-icon-button';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiDialog-paper'] {

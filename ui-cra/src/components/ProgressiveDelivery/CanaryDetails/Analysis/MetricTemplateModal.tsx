@@ -6,8 +6,8 @@ import React, { Dispatch, FC } from 'react';
 
 import { DialogContent, DialogTitle } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
-import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import { YamlView } from '@weaveworks/weave-gitops';
+import CloseIconButton from '../../../../assets/img/close-icon-button';
 
 type Props = {
   open: boolean;

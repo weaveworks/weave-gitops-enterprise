@@ -1,4 +1,3 @@
-import React, { ChangeEvent, FC, useCallback, useState, Dispatch } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -6,24 +5,25 @@ import {
   ThemeProvider,
   Typography,
 } from '@material-ui/core';
-import styled from 'styled-components';
-import { CloseIconButton } from '../../assets/img/close-icon-button';
-import useClusters from '../../hooks/clusters';
-import useNotifications from '../../contexts/Notifications';
-import { Input } from '../../utils/form';
-import { Loader } from '../Loader';
 import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
-import { removeToken } from '../../utils/request';
+import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
+import styled from 'styled-components';
+import CloseIconButton from '../../assets/img/close-icon-button';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import { PRDefaults } from '../../types/custom';
-import { localEEMuiTheme } from '../../muiTheme';
-import GitAuth from '../GitAuth';
-import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
-import { getRepositoryUrl } from '../Templates/Form/utils';
+import useNotifications from '../../contexts/Notifications';
+import useClusters from '../../hooks/clusters';
 import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../hooks/gitprovider';
+import { localEEMuiTheme } from '../../muiTheme';
+import { PRDefaults } from '../../types/custom';
+import { Input } from '../../utils/form';
+import { removeToken } from '../../utils/request';
+import GitAuth from '../GitAuth';
+import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
+import { Loader } from '../Loader';
+import { getRepositoryUrl } from '../Templates/Form/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {

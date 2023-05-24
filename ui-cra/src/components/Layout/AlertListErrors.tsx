@@ -1,24 +1,21 @@
-import { FC, useEffect, useState } from 'react';
-import { ListError } from '../../cluster-services/cluster_services.pb';
-import { Flex, theme } from '@weaveworks/weave-gitops';
 import {
+  Box,
   Button,
+  Collapse,
   createStyles,
   makeStyles,
-  Box,
-  Collapse,
 } from '@material-ui/core';
-import Alert from '@material-ui/lab/Alert';
 import {
   ArrowBackIosOutlined,
   ArrowForwardIosOutlined,
 } from '@material-ui/icons';
-import { uniqBy, sortBy } from 'lodash';
+import Alert from '@material-ui/lab/Alert';
+import { Flex } from '@weaveworks/weave-gitops';
+import { sortBy, uniqBy } from 'lodash';
+import { FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
-
-const { base, xs, xxs } = theme.spacing;
-const { neutral00, alertLight, alertMedium } = theme.colors;
+import { ListError } from '../../cluster-services/cluster_services.pb';
 
 const useAlertStyles = makeStyles(() =>
   createStyles({
@@ -28,38 +25,38 @@ const useAlertStyles = makeStyles(() =>
       margin: 0,
     },
     errosCount: {
-      background: alertMedium,
-      color: neutral00,
-      padding: xxs,
-      borderRadius: xxs,
-      margin: `0 ${xxs}`,
+      background: '#F7BF8E',
+      color: '#fff',
+      padding: 4,
+      borderRadius: 4,
+      margin: `0 ${4}`,
     },
     alertIcon: {
-      marginRight: xs,
+      marginRight: 8,
     },
     errorMessage: {
-      fontSize: base,
+      fontSize: 16,
     },
     arrowIcon: {
       fontSize: '18px',
       fontWeight: 400,
-      color: alertMedium,
+      color: '#D58572',
     },
   }),
 );
 
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {
-    margin-bottom: ${base};
+    margin-bottom: ${props => props.theme.spacing.base};
     background: #eecec7;
-    border-radius: ${xs};
+    border-radius: ${props => props.theme.spacing.xs};
   }
   .MuiAlert-action {
     display: inline;
-    color: ${alertMedium};
+    color: ${props => props.theme.colors.alertMedium};
   }
   .MuiIconButton-root:hover {
-    background-color: ${alertLight};
+    background-color: ${props => props.theme.colors.alertLight};
   }
   .MuiAlert-icon {
     .MuiSvgIcon-root {
