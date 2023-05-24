@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
@@ -144,6 +145,12 @@ func (fc FakeChartCache) ListChartsByRepositoryAndCluster(ctx context.Context, c
 			filtered = append(filtered, c)
 		}
 	}
+
+	// sort list of charts by name
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].Name < filtered[j].Name
+	})
+
 	return filtered, nil
 }
 func (fc FakeChartCache) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (bool, error) {
