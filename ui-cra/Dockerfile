@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.2
-FROM node:14-bullseye AS build
+FROM node:16-bullseye AS build
 USER node
 WORKDIR /home/node
 COPY --chown=node:node package.json /home/node
