@@ -42,34 +42,6 @@ In the past we have released WGE without making sure the new features in Weave G
 
 Review the release notes of the [latest version of core](https://github.com/weaveworks/weave-gitops/releases) and check the new features listed there work in WGE. If its confusing ask in `#weave-gitops-dev` on slack.
 
-### Make sure dependencies are up to date (**5 mins** to check. **30 mins** to correct versions and wait for green `main`)
-
-In particular:
-- weave-gitops ([releases](https://github.com/weaveworks/weave-gitops/releases))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/ui-cra/package.json
-- cluster-controller ([releases](https://github.com/weaveworks/cluster-controller/releases))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/cluster-controller/values.yaml
-- cluster-bootstrap-controller ([releases](https://github.com/weaveworks/cluster-bootstrap-controller/releases))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/values.yaml
-- policy-agent ([releases](https://github.com/weaveworks/policy-agent/releases))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
-- gitopssets-controller ([releases](https://github.com/weaveworks/gitopssets-controller/releases))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/gitopssets-controller/values.yaml
-- templates-controller ([releases](https://github.com/weaveworks/templates-controller/releases))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/templates-controller/values.yaml
-- pipeline-controller ([Helm chart releases](https://github.com/weaveworks/pipeline-controller/pkgs/container/charts%2Fpipeline-controller))
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/go.mod
-  - https://github.com/weaveworks/weave-gitops-enterprise/blob/main/charts/mccp/Chart.yaml
-
-Check [how to update things in ../CONTRIBUTING.md](../CONTRIBUTING.md#how-to-update-the-version-of-weave-gitops) for instructions on how to update properly.
-
-> **Note**
-> **For non-rc.x releases:**
-> None of the above versions should be pinned to a commit hash. They should all be pinned to a release tag.
-
 ## Release
 ### Create a tag
 

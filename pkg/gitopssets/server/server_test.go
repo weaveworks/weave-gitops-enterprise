@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
@@ -19,6 +20,7 @@ import (
 	ctrl "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/gitopssets"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"google.golang.org/grpc"
@@ -551,4 +553,71 @@ type errorClient struct {
 
 func (s errorClient) List(ctx context.Context, list client.ObjectList, opts ...client.ListOption) error {
 	return s.err
+}
+
+func TestSyncGitOpsSet(t *testing.T) {
+	ctx := context.Background()
+
+	obj := &ctrl.GitOpsSet{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsSet",
+			APIVersion: "gitopssets.weave.works/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "my-obj",
+			Namespace: "default",
+		},
+	}
+	cl := createClient(t, obj)
+	clusterClients := map[string]client.Client{
+		"management": cl,
+	}
+	gsClient := setup(t, clusterClients)
+
+	key := types.NamespacedName{Name: obj.Name, Namespace: obj.Namespace}
+
+	done := make(chan error)
+	defer close(done)
+
+	go func() {
+		_, err := gsClient.SyncGitOpsSet(ctx, &pb.SyncGitOpsSetRequest{
+			ClusterName: "management",
+			Name:        obj.Name,
+			Namespace:   obj.Namespace,
+		})
+		done <- err
+	}()
+
+	ticker := time.NewTicker(500 * time.Millisecond)
+	for {
+		select {
+		case <-ticker.C:
+
+			r := adapter.GitOpsSetAdapter{GitOpsSet: obj}
+
+			if err := simulateReconcile(ctx, cl, key, r.AsClientObject()); err != nil {
+				t.Fatalf("simulating reconcile: %s", err.Error())
+			}
+
+		case err := <-done:
+			if err != nil {
+				t.Errorf(err.Error())
+			}
+			return
+		}
+	}
+}
+
+func simulateReconcile(ctx context.Context, k client.Client, name types.NamespacedName, o client.Object) error {
+	switch obj := o.(type) {
+	case *ctrl.GitOpsSet:
+		if err := k.Get(ctx, name, obj); err != nil {
+			return err
+		}
+
+		obj.Status.SetLastHandledReconcileRequest(time.Now().Format(time.RFC3339Nano))
+		return k.Status().Update(ctx, obj)
+	}
+
+	return errors.New("simulating reconcile: unsupported type")
 }
