@@ -107,7 +107,7 @@ func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb
 // to determine whether a policyRule (from GVR) allows a kind (from GVK)
 // More info https://kubernetes.io/docs/reference/using-api/api-concepts/#standard-api-terminology
 func createKindToResourceMap(dc discovery.DiscoveryInterface) (map[string]string, error) {
-	_, resourcesList, err := dc.ServerGroupsAndResources()
+	resourcesList, err := dc.ServerPreferredResources()
 	if err != nil {
 		return nil, err
 	}
