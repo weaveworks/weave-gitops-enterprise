@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import {
   HelmRepositoryDetail,
   Kind,
+  Page,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
@@ -30,8 +30,7 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
   );
 
   return (
-    <PageTemplate
-      documentTitle="Helm Repository"
+    <Page
       path={[
         {
           label: 'Sources',
@@ -54,7 +53,7 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
           {...props}
         />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

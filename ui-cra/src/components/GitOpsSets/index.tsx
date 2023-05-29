@@ -1,8 +1,5 @@
 import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
-  LoadingPage,
   DataTable,
   filterConfig,
   KubeStatusIndicator,
@@ -10,6 +7,7 @@ import {
   statusSortHelper,
   Timestamp,
   formatURL,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
@@ -18,7 +16,6 @@ import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
 import _ from 'lodash';
 import { Routes } from '../../utils/nav';
-import { TableWrapper } from '../Shared';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
@@ -117,28 +114,21 @@ const GitOpsSets: FC = () => {
   ];
 
   return (
-    <PageTemplate
-      documentTitle="GitOpsSets"
+    <Page
       path={[
         {
           label: 'GitOpsSets',
         },
       ]}
+      loading={isLoading}
+      error={data?.errors}
     >
-      <ContentWrapper errors={data?.errors}>
-        {isLoading ? (
-          <LoadingPage />
-        ) : (
-          <TableWrapper id="gitopssets-list">
-            <DataTable
-              fields={fields}
-              rows={data?.gitopssets}
-              filters={initialFilterState}
-            />
-          </TableWrapper>
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      <DataTable
+        fields={fields}
+        rows={data?.gitopssets}
+        filters={initialFilterState}
+      />
+    </Page>
   );
 };
 

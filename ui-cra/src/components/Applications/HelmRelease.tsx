@@ -1,6 +1,7 @@
 import {
   HelmReleaseDetail,
   Kind,
+  Page,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
@@ -9,7 +10,6 @@ import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 import { EditButton } from '../Templates/Edit/EditButton';
 
@@ -53,8 +53,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
   ];
 
   return (
-    <PageTemplate
-      documentTitle="Helm Release"
+    <Page
       path={[
         {
           label: 'Applications',
@@ -80,7 +79,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
           />
         )}
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

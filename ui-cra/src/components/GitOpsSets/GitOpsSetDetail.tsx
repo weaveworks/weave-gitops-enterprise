@@ -10,6 +10,7 @@ import {
   InfoList,
   KubeStatusIndicator,
   Metadata,
+  Page,
   PageStatus,
   ReconciledObjectsAutomation,
   RequestStateHandler,
@@ -32,7 +33,6 @@ import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
@@ -163,8 +163,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   };
 
   return (
-    <PageTemplate
-      documentTitle="GitOpsSets"
+    <Page
       path={[
         {
           label: 'GitOpsSet',
@@ -265,7 +264,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
         </SubRouterTabs>
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 }
 

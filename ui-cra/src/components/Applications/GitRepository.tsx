@@ -1,9 +1,9 @@
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import {
   GitRepositoryDetail,
   Kind,
+  Page,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
@@ -30,8 +30,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
   );
 
   return (
-    <PageTemplate
-      documentTitle="Git Repository"
+    <Page
       path={[
         {
           label: 'Sources',
@@ -54,7 +53,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
           {...props}
         />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

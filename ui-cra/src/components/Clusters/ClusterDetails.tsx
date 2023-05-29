@@ -2,6 +2,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Icon,
   IconType,
+  Page,
   RouterTab,
   SubRouterTabs,
   Button as WeaveButton,
@@ -13,8 +14,6 @@ import styled from 'styled-components';
 import { localEEMuiTheme } from '../../muiTheme';
 import { Routes } from '../../utils/nav';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
-
 import { CircularProgress } from '@material-ui/core';
 import { useEffect, useState } from 'react';
 import useClusters from '../../hooks/clusters';
@@ -59,8 +58,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
   );
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="Cluster Page"
+      <Page
         path={[
           { label: 'Clusters', url: Routes.Clusters },
           { label: clusterName },
@@ -134,7 +132,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
             </div>
           )}
         </ContentWrapper>
-      </PageTemplate>
+      </Page>
     </ThemeProvider>
   );
 };

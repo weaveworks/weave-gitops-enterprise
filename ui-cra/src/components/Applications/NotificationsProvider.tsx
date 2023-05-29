@@ -1,12 +1,12 @@
 import { FC } from 'react';
 import {
   Kind,
+  Page,
   ProviderDetail,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
@@ -29,8 +29,7 @@ const WGNotificationsProvider: FC<Props> = ({
   );
 
   return (
-    <PageTemplate
-      documentTitle="Notifications"
+    <Page
       path={[
         {
           label: 'Notifications',
@@ -47,7 +46,7 @@ const WGNotificationsProvider: FC<Props> = ({
       >
         <ProviderDetail provider={data} />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

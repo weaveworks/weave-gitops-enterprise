@@ -1,9 +1,9 @@
 import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   HelmChartDetail,
   Kind,
+  Page,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
@@ -25,8 +25,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
   } = useGetObject<HelmChart>(name, namespace, Kind.HelmChart, clusterName);
 
   return (
-    <PageTemplate
-      documentTitle="Helm Chart"
+    <Page
       path={[
         {
           label: 'Sources',
@@ -49,7 +48,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           {...props}
         />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

@@ -2,11 +2,11 @@ import { FC } from 'react';
 import {
   BucketDetail,
   Kind,
+  Page,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
 
@@ -25,8 +25,7 @@ const WGApplicationsBucket: FC<Props> = props => {
   } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
-    <PageTemplate
-      documentTitle="Bucket"
+    <Page
       path={[
         {
           label: 'Sources',
@@ -49,7 +48,7 @@ const WGApplicationsBucket: FC<Props> = props => {
           {...props}
         />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

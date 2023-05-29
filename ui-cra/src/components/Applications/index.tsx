@@ -4,6 +4,7 @@ import {
   Flex,
   Icon,
   IconType,
+  Page,
   useFeatureFlags,
   useListAutomations,
 } from '@weaveworks/weave-gitops';
@@ -14,7 +15,6 @@ import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 
 interface Size {
   size?: 'small';
@@ -43,8 +43,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (
-    <PageTemplate
-      documentTitle="Applications"
+    <Page
       path={[
         {
           label: 'Applications',
@@ -80,7 +79,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
           )}
         </div>
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

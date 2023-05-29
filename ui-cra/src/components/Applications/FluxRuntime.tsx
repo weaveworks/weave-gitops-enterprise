@@ -2,11 +2,11 @@ import {
   FluxRuntime,
   useListFluxCrds,
   useListFluxRuntimeObjects,
+  Page,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading, error } = useListFluxRuntimeObjects();
@@ -24,8 +24,7 @@ const WGApplicationsFluxRuntime: FC = () => {
   ]);
 
   return (
-    <PageTemplate
-      documentTitle="Flux Runtime"
+    <Page
       path={[
         {
           label: 'Flux Runtime',
@@ -35,7 +34,7 @@ const WGApplicationsFluxRuntime: FC = () => {
       <ContentWrapper errors={errors} loading={isLoading || crdsLoading}>
         <FluxRuntime deployments={data?.deployments} crds={crds?.crds} />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

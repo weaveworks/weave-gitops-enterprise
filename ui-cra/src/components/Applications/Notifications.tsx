@@ -1,15 +1,17 @@
 import { FC } from 'react';
-import { NotificationsTable, useListProviders } from '@weaveworks/weave-gitops';
+import {
+  NotificationsTable,
+  Page,
+  useListProviders,
+} from '@weaveworks/weave-gitops';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 const WGNotifications: FC = () => {
   const { data, isLoading, error } = useListProviders();
 
   return (
-    <PageTemplate
-      documentTitle="Notifications"
+    <Page
       path={[
         {
           label: 'Notifications',
@@ -23,7 +25,7 @@ const WGNotifications: FC = () => {
       >
         <NotificationsTable rows={data?.objects as Provider[]} />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

@@ -1,4 +1,5 @@
 import {
+  Page,
   SourcesTable,
   useFeatureFlags,
   useListSources,
@@ -9,7 +10,6 @@ import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
 import Explorer from '../Explorer/Explorer';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -34,8 +34,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
   }, [error, setNotifications]);
 
   return (
-    <PageTemplate
-      documentTitle="Application Sources"
+    <Page
       path={[
         {
           label: 'Sources',
@@ -51,7 +50,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
           )}
         </div>
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

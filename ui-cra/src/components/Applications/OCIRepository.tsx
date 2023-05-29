@@ -1,11 +1,11 @@
 import { FC } from 'react';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import {
   OCIRepositoryDetail,
   Kind,
   useGetObject,
   V2Routes,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
@@ -30,8 +30,7 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
   );
 
   return (
-    <PageTemplate
-      documentTitle="Git Repository"
+    <Page
       path={[
         {
           label: 'Sources',
@@ -54,7 +53,7 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
           {...props}
         />
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

@@ -3,6 +3,7 @@ import {
   Kind,
   KustomizationDetail,
   LinkResolverProvider,
+  Page,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
@@ -12,7 +13,6 @@ import { useRouteMatch } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
 import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 import { EditButton } from '../Templates/Edit/EditButton';
 
@@ -80,8 +80,7 @@ const WGApplicationsKustomization: FC<Props> = ({
   ];
 
   return (
-    <PageTemplate
-      documentTitle="Kustomization"
+    <Page
       path={[
         {
           label: 'Applications',
@@ -115,7 +114,7 @@ const WGApplicationsKustomization: FC<Props> = ({
           />
         </LinkResolverProvider>
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 };
 

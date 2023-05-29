@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import { createDeploymentObjects, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
 import { ContentWrapper } from '../../Layout/ContentWrapper';
@@ -12,6 +11,7 @@ import {
   GitRepository,
   Link,
   LoadingPage,
+  Page,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
@@ -407,8 +407,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   return useMemo(() => {
     return (
       <ThemeProvider theme={localEEMuiTheme}>
-        <PageTemplate
-          documentTitle="Add new application"
+        <Page
           path={[
             {
               label: 'Applications',
@@ -532,7 +531,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
               </FormWrapper>
             </ContentWrapper>
           </CallbackStateContextProvider>
-        </PageTemplate>
+        </Page>
       </ThemeProvider>
     );
   }, [

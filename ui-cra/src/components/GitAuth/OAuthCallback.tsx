@@ -2,6 +2,7 @@ import { CircularProgress } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import {
   Flex,
+  Page,
   useLinkResolver,
   useRequestState,
 } from '@weaveworks/weave-gitops';
@@ -21,7 +22,6 @@ import {
   gitlabOAuthRedirectURI,
 } from '../../utils/formatters';
 import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { getCallbackState, storeProviderToken } from './utils';
 
 type Props = {
@@ -111,7 +111,7 @@ function OAuthCallback({
   }, [error, setNotifications]);
 
   return (
-    <PageTemplate path={[{ label: 'OAuth Callback', url: '' }]}>
+    <Page path={[{ label: 'OAuth Callback', url: '' }]}>
       <ContentWrapper loading={loading}>
         <Flex wide align center>
           {loading && <CircularProgress />}
@@ -129,7 +129,7 @@ function OAuthCallback({
           )}
         </Flex>
       </ContentWrapper>
-    </PageTemplate>
+    </Page>
   );
 }
 

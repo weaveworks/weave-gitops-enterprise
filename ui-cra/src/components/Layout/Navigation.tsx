@@ -186,10 +186,6 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
   ];
 }
 
-const NavContainer = styled.div`
-  height: 100vh;
-`;
-
 const Navigation: FC<{
   collapsed: boolean;
   setCollapsed: Dispatch<SetStateAction<boolean>>;
@@ -203,15 +199,13 @@ const Navigation: FC<{
   );
 
   return (
-    <NavContainer>
-      <Nav
-        className="test-id-navigation"
-        collapsed={collapsed}
-        setCollapsed={setCollapsed}
-        navItems={navItems}
-        currentPage={routeValue}
-      />
-    </NavContainer>
+    <Nav
+      className="test-id-navigation"
+      collapsed={collapsed}
+      setCollapsed={setCollapsed}
+      navItems={navItems}
+      currentPage={routeValue}
+    />
   );
 };
 
