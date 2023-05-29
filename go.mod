@@ -37,7 +37,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
 	github.com/external-secrets/external-secrets v0.7.0
-	github.com/fluxcd/flagger v1.21.0
+	github.com/fluxcd/flagger v1.30.0
 	github.com/fluxcd/go-git-providers v0.16.0
 	github.com/fluxcd/helm-controller/api v0.30.0
 	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.1
@@ -72,8 +72,8 @@ require (
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.8.0
 	golang.org/x/oauth2 v0.7.0
-	google.golang.org/genproto v0.0.0-20221227171554-f9683d7f8bef
-	google.golang.org/grpc v1.52.0
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
+	google.golang.org/grpc v1.54.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.30.0
 	gotest.tools/v3 v3.1.0
@@ -85,8 +85,32 @@ require (
 )
 
 require (
+	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect
+	github.com/RoaringBitmap/roaring v0.9.4 // indirect
+	github.com/bits-and-blooms/bitset v1.2.0 // indirect
+	github.com/blevesearch/bleve_index_api v1.0.5 // indirect
+	github.com/blevesearch/geo v0.1.17 // indirect
+	github.com/blevesearch/go-porterstemmer v1.0.3 // indirect
+	github.com/blevesearch/gtreap v0.1.1 // indirect
+	github.com/blevesearch/mmap-go v1.0.4 // indirect
+	github.com/blevesearch/scorch_segment_api/v2 v2.1.4 // indirect
+	github.com/blevesearch/segment v0.9.1 // indirect
+	github.com/blevesearch/snowballstem v0.9.0 // indirect
+	github.com/blevesearch/upsidedown_store_api v1.0.2 // indirect
+	github.com/blevesearch/vellum v1.0.9 // indirect
+	github.com/blevesearch/zapx/v11 v11.3.7 // indirect
+	github.com/blevesearch/zapx/v12 v12.3.7 // indirect
+	github.com/blevesearch/zapx/v13 v13.3.7 // indirect
+	github.com/blevesearch/zapx/v14 v14.3.7 // indirect
+	github.com/blevesearch/zapx/v15 v15.3.9 // indirect
+	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/google/go-github/v52 v52.0.0 // indirect
-	google.golang.org/api v0.107.0 // indirect
+	github.com/google/s2a-go v0.1.0 // indirect
+	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
+	github.com/mschoch/smat v0.2.0 // indirect
+	go.etcd.io/bbolt v1.3.7 // indirect
+	go.opentelemetry.io/otel/metric v0.37.0 // indirect
+	google.golang.org/api v0.117.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
 )
 
@@ -348,7 +372,7 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	go.starlark.net v0.0.0-20230302034142-4b1e35fe2254 // indirect
 	go.uber.org/atomic v1.10.0 // indirect
-	go.uber.org/multierr v1.10.0 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0
 	golang.org/x/net v0.9.0
 	golang.org/x/sync v0.1.0
@@ -370,7 +394,7 @@ require (
 	k8s.io/kube-openapi v0.0.0-20230327201221-f5883ff37f0c // indirect
 	k8s.io/kubectl v0.26.2
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
-	oras.land/oras-go v1.2.0 // indirect
+	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
 	sigs.k8s.io/kustomize/api v0.12.1 // indirect
