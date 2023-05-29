@@ -2,6 +2,7 @@ import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
 import {
+  AppContext,
   AppContextProvider,
   AuthContextProvider,
   coreClient,
@@ -11,8 +12,9 @@ import {
   theme,
   SignIn,
   AuthCheck,
+  ThemeTypes,
 } from '@weaveworks/weave-gitops';
-import { FC } from 'react';
+import React, { ReactNode } from 'react';
 import {
   QueryCache,
   QueryClient,
@@ -24,6 +26,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
+import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
@@ -33,6 +36,7 @@ import { GitAuthProvider } from './contexts/GitAuth/index';
 import NotificationsProvider from './contexts/Notifications/Provider';
 import { PipelinesProvider } from './contexts/Pipelines';
 import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
+import QueryServiceProvider from './contexts/QueryService';
 import RequestContextProvider from './contexts/Request';
 import { TerraformProvider } from './contexts/Terraform';
 import ProximaNova from './fonts/proximanova-regular.woff';
@@ -66,16 +70,16 @@ const GlobalStyle = createGlobalStyle`
 
   html, body {
     height: 100%;
-    background-color:${theme.colors.backGrey} !important;
+    background-color:${props => props.theme.colors.backGrey} !important;
   }
 
   body {
     background: right bottom no-repeat fixed; 
     background-image: url(${bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
     background-size: 100%;
-    color: ${theme.colors.black};
-    font-family: ${theme.fontFamilies.regular};
-    font-size: ${theme.fontSizes.medium};
+    color: ${props => props.theme.colors.black};
+    font-family: ${props => props.theme.fontFamilies.regular};
+    font-size: ${props => props.theme.fontSizes.medium};
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
@@ -84,7 +88,7 @@ const GlobalStyle = createGlobalStyle`
 
   a {
     text-decoration: none;
-    color:  ${theme.colors.primary10};
+    color:  ${props => props.theme.colors.primary10};
   }
 
   ::-webkit-scrollbar-track {
@@ -139,28 +143,42 @@ export const queryOptions: QueryClientConfig = {
 };
 const queryClient = new QueryClient(queryOptions);
 
-const AppContainer: FC = () => {
+const StylesProvider = ({ children }: { children: ReactNode }) => {
+  const { settings } = React.useContext(AppContext);
+  const mode = settings.theme;
+  //hard code light for now
+  const appliedTheme = theme(ThemeTypes.Light);
   return (
-    <ThemeProvider theme={theme}>
-      <MuiThemeProvider theme={muiTheme}>
-        <RequestContextProvider fetch={window.fetch}>
-          <QueryClientProvider client={queryClient}>
-            <BrowserRouter basename={process.env.PUBLIC_URL}>
-              <GlobalStyle />
-              <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
-                <PipelinesProvider api={Pipelines}>
-                  <GitAuthProvider>
-                    <AppContextProvider>
-                      <AuthContextProvider>
-                        <EnterpriseClientProvider api={ClustersService}>
-                          <CoreClientContextProvider api={coreClient}>
-                            <TerraformProvider api={Terraform}>
-                              <LinkResolverProvider resolver={resolver}>
-                                <Pendo
-                                  defaultTelemetryFlag="true"
-                                  tier="enterprise"
-                                  version={process.env.REACT_APP_VERSION}
-                                />
+    <ThemeProvider theme={appliedTheme}>
+      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
+        <GlobalStyle />
+        {children}
+      </MuiThemeProvider>
+    </ThemeProvider>
+  );
+};
+
+const AppContainer = () => {
+  return (
+    <RequestContextProvider fetch={window.fetch}>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter basename={process.env.PUBLIC_URL}>
+          <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
+            <PipelinesProvider api={Pipelines}>
+              <GitAuthProvider>
+                <AppContextProvider>
+                  <StylesProvider>
+                    <AuthContextProvider>
+                      <EnterpriseClientProvider api={ClustersService}>
+                        <CoreClientContextProvider api={coreClient}>
+                          <TerraformProvider api={Terraform}>
+                            <LinkResolverProvider resolver={resolver}>
+                              <Pendo
+                                defaultTelemetryFlag="true"
+                                tier="enterprise"
+                                version={process.env.REACT_APP_VERSION}
+                              />
+                              <QueryServiceProvider api={Query}>
                                 <Compose components={[NotificationsProvider]}>
                                   <Switch>
                                     <Route
@@ -181,20 +199,20 @@ const AppContainer: FC = () => {
                                     newestOnTop={false}
                                   />
                                 </Compose>
-                              </LinkResolverProvider>
-                            </TerraformProvider>
-                          </CoreClientContextProvider>
-                        </EnterpriseClientProvider>
-                      </AuthContextProvider>
-                    </AppContextProvider>
-                  </GitAuthProvider>
-                </PipelinesProvider>
-              </ProgressiveDeliveryProvider>
-            </BrowserRouter>
-          </QueryClientProvider>
-        </RequestContextProvider>
-      </MuiThemeProvider>
-    </ThemeProvider>
+                              </QueryServiceProvider>
+                            </LinkResolverProvider>
+                          </TerraformProvider>
+                        </CoreClientContextProvider>
+                      </EnterpriseClientProvider>
+                    </AuthContextProvider>
+                  </StylesProvider>
+                </AppContextProvider>
+              </GitAuthProvider>
+            </PipelinesProvider>
+          </ProgressiveDeliveryProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </RequestContextProvider>
   );
 };
 

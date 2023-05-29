@@ -1,6 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { Button, LoadingPage, theme } from '@weaveworks/weave-gitops';
+import { Button, LoadingPage } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
 
 const CostEstimation: FC<{
@@ -19,19 +19,19 @@ const CostEstimation: FC<{
   const useStyles = makeStyles(() =>
     createStyles({
       getEstimationButton: {
-        marginRight: theme.spacing.medium,
+        marginRight: '12px',
       },
       costWrapper: {
-        marginRight: theme.spacing.medium,
+        marginRight: '12px',
         fontWeight: 'bold',
       },
       previewLoading: {
-        padding: theme.spacing.base,
+        padding: '16px',
       },
       errorMessage: {
-        marginTop: theme.spacing.xs,
-        marginRight: theme.spacing.medium,
-        borderRadius: theme.spacing.xxs,
+        marginTop: '8px',
+        marginRight: '12px',
+        borderRadius: '4px',
       },
     }),
   );

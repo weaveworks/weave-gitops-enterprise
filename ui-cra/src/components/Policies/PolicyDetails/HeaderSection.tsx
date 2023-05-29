@@ -116,8 +116,8 @@ function HeaderSection({
           <SyntaxHighlighter
             language="rego"
             style={darcula}
-            wrapLongLines="pre-wrap"
-            showLineNumbers={true}
+            wrapLongLines
+            showLineNumbers
             codeTagProps={{
               className: classes.code,
             }}

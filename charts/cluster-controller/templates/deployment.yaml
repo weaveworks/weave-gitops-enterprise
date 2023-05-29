@@ -1,15 +1,14 @@
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  #  Removed `-controller-manager` suffix to simplify name
-  name: {{ include "cluster-controller.fullname" . }}
+  name: {{ include "cluster-controller.fullname" . }}-controller-manager
   labels:
   {{- include "cluster-controller.labels" . | nindent 4 }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "cluster-controller.fullname" . }}
+  name: {{ include "cluster-controller.fullname" . }}-controller-manager
   labels:
     control-plane: controller-manager
   {{- include "cluster-controller.labels" . | nindent 4 }}
@@ -76,5 +75,5 @@ spec:
           allowPrivilegeEscalation: false
       securityContext:
         runAsNonRoot: true
-      serviceAccountName: {{ include "cluster-controller.fullname" . }}
+      serviceAccountName: {{ include "cluster-controller.fullname" . }}-controller-manager
       terminationGracePeriodSeconds: 10

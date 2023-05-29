@@ -1,6 +1,8 @@
 package objectscollector
 
 import (
+	"testing"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
@@ -12,7 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"testing"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
@@ -20,12 +22,14 @@ func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
 	tests := []struct {
 		name       string
 		store      store.Store
+		index      store.IndexWriter
 		opts       collector.CollectorOpts
 		errPattern string
 	}{
 		{
 			name:       "cannot create collector without kinds",
 			store:      &storefakes.FakeStore{},
+			index:      &storefakes.FakeIndexWriter{},
 			opts:       collector.CollectorOpts{},
 			errPattern: "invalid object kind",
 		},
@@ -54,7 +58,7 @@ func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			collector, err := NewObjectsCollector(tt.store, tt.opts)
+			collector, err := NewObjectsCollector(tt.store, tt.index, tt.opts)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -70,6 +74,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
+	fakeIndex := &storefakes.FakeIndexWriter{}
 
 	//setup data
 	clusterName := "anyCluster"
@@ -114,7 +119,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(tt.objectRecords, fakeStore, log)
+			err := defaultProcessRecords(tt.objectRecords, fakeStore, fakeIndex, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -126,4 +131,49 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 		})
 	}
 
+}
+
+func TestObjectsCollector_removeAll(t *testing.T) {
+	g := NewWithT(t)
+	log := testr.New(t)
+	fakeStore := &storefakes.FakeStore{}
+	fakeIndex := &storefakes.FakeIndexWriter{}
+
+	//setup data
+	clusterName := "anyCluster"
+
+	tx := []models.ObjectTransaction{
+		&transaction{
+			clusterName:     clusterName,
+			object:          testutils.NewHelmRelease("anyHelmRelease", clusterName),
+			transactionType: models.TransactionTypeDeleteAll,
+		},
+	}
+
+	err := defaultProcessRecords(tx, fakeStore, fakeIndex, log)
+	g.Expect(err).To(BeNil())
+
+	g.Expect(fakeStore.DeleteAllObjectsCallCount()).To(Equal(1))
+
+	_, query := fakeIndex.RemoveByQueryArgsForCall(0)
+	g.Expect(query).To(Equal("+cluster:anyCluster"))
+
+}
+
+type transaction struct {
+	clusterName     string
+	object          client.Object
+	transactionType models.TransactionType
+}
+
+func (t *transaction) Object() client.Object {
+	return t.object
+}
+
+func (t *transaction) ClusterName() string {
+	return t.clusterName
+}
+
+func (t *transaction) TransactionType() models.TransactionType {
+	return t.transactionType
 }

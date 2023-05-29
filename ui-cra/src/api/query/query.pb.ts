@@ -6,18 +6,12 @@
 
 import * as fm from "../../fetch.pb"
 export type QueryRequest = {
-  query?: QueryClause[]
+  terms?: string
+  filters?: string[]
   offset?: number
   limit?: number
   orderBy?: string
-  globalOperand?: string
-  scopedKinds?: string[]
-}
-
-export type QueryClause = {
-  key?: string
-  value?: string
-  operand?: string
+  ascending?: boolean
 }
 
 export type QueryResponse = {
@@ -33,6 +27,7 @@ export type Object = {
   apiGroup?: string
   apiVersion?: string
   message?: string
+  category?: string
 }
 
 export type DebugGetAccessRulesRequest = {
@@ -57,9 +52,24 @@ export type Subject = {
   name?: string
 }
 
+export type ListFacetsRequest = {
+}
+
+export type ListFacetsResponse = {
+  facets?: Facet[]
+}
+
+export type Facet = {
+  field?: string
+  values?: string[]
+}
+
 export class Query {
   static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
-    return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  }
+  static ListFacets(req: ListFacetsRequest, initReq?: fm.InitReq): Promise<ListFacetsResponse> {
+    return fm.fetchReq<ListFacetsRequest, ListFacetsResponse>(`/v1/facets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static DebugGetAccessRules(req: DebugGetAccessRulesRequest, initReq?: fm.InitReq): Promise<DebugGetAccessRulesResponse> {
     return fm.fetchReq<DebugGetAccessRulesRequest, DebugGetAccessRulesResponse>(`/v1/debug/access-rules?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

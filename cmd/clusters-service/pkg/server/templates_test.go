@@ -640,7 +640,18 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			name:             "render template with apps",
@@ -649,7 +660,18 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			name:             "render template with optional value",
@@ -679,7 +701,18 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			name:             "render template with default value",
@@ -710,7 +743,18 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterNamefoo\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterNamefoo
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			// some client might send empty credentials objects
@@ -727,7 +771,18 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "",
 				Namespace: "",
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			name:             "render template with credentials",
@@ -758,7 +813,21 @@ func TestRenderTemplate(t *testing.T) {
 				Name:      "cred-name",
 				Namespace: "cred-namespace",
 			},
-			expected: "apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4\nkind: AWSCluster\nmetadata:\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: boop\n  namespace: test-ns\nspec:\n  identityRef:\n    kind: AWSClusterStaticIdentity\n    name: cred-name\n",
+			expected: `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSCluster
+metadata:
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: boop
+  namespace: test-ns
+  annotations:
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+spec:
+  identityRef:
+    kind: AWSClusterStaticIdentity
+    name: cred-name
+`,
 		},
 		{
 			name:             "enable prune injections",
@@ -767,7 +836,19 @@ func TestRenderTemplate(t *testing.T) {
 			clusterState: []runtime.Object{
 				makeCAPITemplate(t),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			name:             "enable prune injections via anno",
@@ -779,7 +860,19 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 		{
 			name:             "enable prune injections with non-CAPI template",
@@ -805,7 +898,17 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+  annotations:
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+`,
 		},
 		{
 			name:             "render template with renderType: templating",
@@ -836,7 +939,18 @@ func TestRenderTemplate(t *testing.T) {
 					}
 				}),
 			},
-			expected: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: test-ns\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"test-ns/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: test-ns
+`,
 		},
 	}
 
@@ -1037,8 +1151,19 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 			expected: &capiv1_protos.RenderTemplateResponse{
 				RenderedTemplate: []*capiv1_protos.CommitFile{
 					{
-						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
-						Path:    "clusters-namespace/dev.yaml",
+						Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"clusters-namespace/dev.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: ""
+  name: dev
+  namespace: clusters-namespace
+`,
+						Path: "clusters-namespace/dev.yaml",
 					},
 				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{
@@ -1111,8 +1236,19 @@ status: {}
 			expected: &capiv1_protos.RenderTemplateResponse{
 				RenderedTemplate: []*capiv1_protos.CommitFile{
 					{
-						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
-						Path:    "clusters-namespace/dev.yaml",
+						Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"clusters-namespace/dev.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: ""
+  name: dev
+  namespace: clusters-namespace
+`,
+						Path: "clusters-namespace/dev.yaml",
 					},
 				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{
@@ -1198,8 +1334,19 @@ status: {}
 			expected: &capiv1_protos.RenderTemplateResponse{
 				RenderedTemplate: []*capiv1_protos.CommitFile{
 					{
-						Content: "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: \"\"\n  name: dev\n  namespace: clusters-namespace\n",
-						Path:    "clusters-namespace/dev.yaml",
+						Content: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    templates.weave.works/created-files: "{\"files\":[\"clusters-namespace/dev.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: ""
+  name: dev
+  namespace: clusters-namespace
+`,
+						Path: "clusters-namespace/dev.yaml",
 					},
 				},
 				KustomizationFiles: []*capiv1_protos.CommitFile{},
@@ -1308,7 +1455,19 @@ func TestRenderTemplate_ValidateVariables(t *testing.T) {
 				makeCAPITemplate(t),
 			},
 			clusterName: "test-cluster",
-			expected:    "apiVersion: fooversion\nkind: fookind\nmetadata:\n  annotations:\n    capi.weave.works/display-name: ClusterName\n    kustomize.toolkit.fluxcd.io/prune: disabled\n  labels:\n    templates.weave.works/template-name: cluster-template-1\n    templates.weave.works/template-namespace: default\n  name: test-cluster\n  namespace: default\n",
+			expected: `apiVersion: fooversion
+kind: fookind
+metadata:
+  annotations:
+    capi.weave.works/display-name: ClusterName
+    kustomize.toolkit.fluxcd.io/prune: disabled
+    templates.weave.works/created-files: "{\"files\":[\"default/test-cluster.yaml\"]}"
+  labels:
+    templates.weave.works/template-name: cluster-template-1
+    templates.weave.works/template-namespace: default
+  name: test-cluster
+  namespace: default
+`,
 		},
 		{
 			name: "value contains non alphanumeric",

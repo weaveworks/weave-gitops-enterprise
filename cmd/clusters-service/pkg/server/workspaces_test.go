@@ -260,7 +260,7 @@ func TestGetWorkspace(t *testing.T) {
 	}
 }
 
-func TestListtWorkspaceRoles(t *testing.T) {
+func TestListWorkspaceRoles(t *testing.T) {
 	clusters := []struct {
 		name  string
 		state []runtime.Object
@@ -367,10 +367,12 @@ func TestListtWorkspaceRoles(t *testing.T) {
 					{
 						Name:      "tenant-y-role",
 						Namespace: "b",
+						Kind:      "Role",
 					},
 					{
 						Name:      "tenant-y-role",
 						Namespace: "c",
+						Kind:      "Role",
 					},
 				},
 			},
@@ -535,6 +537,7 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 					{
 						Name:      "tenant-x-rolebinding-a",
 						Namespace: "a",
+						Kind:      "RoleBinding",
 					},
 				},
 			},
@@ -551,10 +554,12 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 					{
 						Name:      "tenant-y-rolebinding-b",
 						Namespace: "b",
+						Kind:      "RoleBinding",
 					},
 					{
 						Name:      "tenant-y-rolebinding-c",
 						Namespace: "c",
+						Kind:      "RoleBinding",
 					},
 				},
 			},
@@ -595,7 +600,7 @@ func TestListtWorkspaceRoleBindings(t *testing.T) {
 	}
 }
 
-func TestListtWorkspaceServiceAccounts(t *testing.T) {
+func TestListWorkspaceServiceAccounts(t *testing.T) {
 	clusters := []struct {
 		name  string
 		state []runtime.Object
@@ -686,6 +691,7 @@ func TestListtWorkspaceServiceAccounts(t *testing.T) {
 					{
 						Name:      "tenant-x-service-account-a",
 						Namespace: "a",
+						Kind:      "ServiceAccount",
 					},
 				},
 			},
@@ -702,10 +708,12 @@ func TestListtWorkspaceServiceAccounts(t *testing.T) {
 					{
 						Name:      "tenant-y-service-account-b",
 						Namespace: "b",
+						Kind:      "ServiceAccount",
 					},
 					{
 						Name:      "tenant-y-service-account-c",
 						Namespace: "c",
+						Kind:      "ServiceAccount",
 					},
 				},
 			},

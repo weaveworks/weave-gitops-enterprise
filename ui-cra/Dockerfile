@@ -1,5 +1,5 @@
 # syntax = docker/dockerfile:1.2
-FROM node:14-bullseye AS build
+FROM node:16-bullseye AS build
 USER node
 WORKDIR /home/node
 COPY --chown=node:node package.json /home/node
@@ -20,8 +20,7 @@ ARG version
 ENV CI=true
 RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
 
-FROM alpine:3.9
-RUN apk add --no-cache bash openssh-client
+FROM alpine:3.16
 
 WORKDIR /
 COPY --from=build /home/node/build /html

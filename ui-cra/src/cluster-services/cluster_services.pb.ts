@@ -153,6 +153,7 @@ export type ListPolicyValidationsRequest = {
   pagination?: Pagination
   application?: string
   namespace?: string
+  kind?: string
 }
 
 export type ListPolicyValidationsResponse = {
@@ -694,6 +695,7 @@ export type WorkspaceRole = {
   rules?: WorkspaceRoleRule[]
   manifest?: string
   timestamp?: string
+  kind?: string
 }
 
 export type WorkspaceRoleBindingRoleRef = {
@@ -716,6 +718,7 @@ export type WorkspaceRoleBinding = {
   timestamp?: string
   role?: WorkspaceRoleBindingRoleRef
   subjects?: WorkspaceRoleBindingSubject[]
+  kind?: string
 }
 
 export type WorkspaceServiceAccount = {
@@ -723,6 +726,7 @@ export type WorkspaceServiceAccount = {
   namespace?: string
   timestamp?: string
   manifest?: string
+  kind?: string
 }
 
 export type WorkspacePolicy = {
