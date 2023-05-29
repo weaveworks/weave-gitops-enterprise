@@ -210,6 +210,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -258,6 +259,7 @@
         "kinds": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         },
@@ -272,6 +274,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
@@ -289,12 +292,14 @@
         "inventory": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ResourceRef"
           }
         },
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -366,12 +371,14 @@
         "gitopssets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GitOpsSet"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GitOpsSetListError"
           }
         }
@@ -395,6 +402,7 @@
         "inventory": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         }

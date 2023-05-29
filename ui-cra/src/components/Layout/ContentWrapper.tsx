@@ -1,5 +1,5 @@
 import { Box, CircularProgress } from '@material-ui/core';
-import { Flex, theme } from '@weaveworks/weave-gitops';
+import { Flex } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
@@ -23,9 +23,6 @@ const ENTITLEMENT_ERROR =
 const ENTITLEMENT_WARN =
   'Your entitlement for Weave GitOps Enterprise has expired, please contact sales@weave.works.';
 
-const { xs, medium, base } = theme.spacing;
-const { white } = theme.colors;
-
 export const Title = styled.h2`
   margin-top: 0px;
 `;
@@ -37,9 +34,10 @@ export const PageWrapper = styled.div`
 `;
 
 export const contentCss = css`
-  padding: ${medium};
-  background-color: ${white};
-  border-radius: ${xs} ${xs} 0 0;
+  padding: ${props => props.theme.spacing.medium};
+  background-color: ${props => props.theme.colors.white};
+  border-radius: ${props => props.theme.spacing.xs}
+    ${props => props.theme.spacing.xs} 0 0;
   height: 100%;
 `;
 
@@ -129,7 +127,7 @@ export const ContentWrapper: FC<Props> = ({
       <Content backgroundColor={backgroundColor}>{children}</Content>
 
       {!!bottomNotifications.length && (
-        <div style={{ paddingTop: base }}>
+        <div style={{ paddingTop: '16px' }}>
           <Notifications notifications={bottomNotifications} />
         </div>
       )}

@@ -1,11 +1,9 @@
-import { FC, useState } from 'react';
-import { Typography, DialogContent, DialogTitle } from '@material-ui/core';
-import { CloseIconButton } from '../../../assets/img/close-icon-button';
-import {
-  DialogWrapper,
-  useWorkspaceStyle,
-} from '../WorkspaceStyles';
+import { DialogContent, DialogTitle, Typography } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
+import { FC, useState } from 'react';
+import styled from 'styled-components';
+import CloseIconButton from '../../../assets/img/close-icon-button';
+import { DialogWrapper, useWorkspaceStyle } from '../WorkspaceStyles';
 
 interface Props {
   title: string;
@@ -13,13 +11,22 @@ interface Props {
   content: any;
   className?: string;
   btnName: string;
+  wrapDialogContent?: boolean;
 }
+
+const ContentWrapper = styled.div`
+  padding: ${({ theme }) => theme.spacing.medium}
+    ${({ theme }) => theme.spacing.small};
+  overflow-y: auto;
+`;
+
 const WorkspaceModal: FC<Props> = ({
   title,
   caption,
   content,
   className,
   btnName,
+  wrapDialogContent,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const classes = useWorkspaceStyle();
@@ -54,7 +61,13 @@ const WorkspaceModal: FC<Props> = ({
             </div>
             {caption && <span className="info">{caption}</span>}
           </DialogTitle>
-          <DialogContent className={className || ''}>{content}</DialogContent>
+          {wrapDialogContent ? (
+            <DialogContent className={className || ''}>{content}</DialogContent>
+          ) : (
+            <ContentWrapper className={className || ''}>
+              {content}
+            </ContentWrapper>
+          )}
         </DialogWrapper>
       )}
     </>

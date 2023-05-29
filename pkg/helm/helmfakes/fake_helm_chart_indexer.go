@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
@@ -44,6 +45,7 @@ type FakeChartCache struct {
 	Charts                         map[string][]helm.Chart
 	ChartValues                    map[string][]byte
 	AddChartError                  error
+	RemoveChartError               error
 	DeleteError                    error
 	DeleteAllChartsForClusterError error
 }
@@ -53,7 +55,23 @@ func (fc FakeChartCache) AddChart(ctx context.Context, name, version, kind, laye
 		return fc.AddChartError
 	}
 
+	// the database-based version guards against duplicate data
+	// using the name and version as the guard values
 	k := ClusterRefToString(repoRef, clusterRef)
+	exists := func(hc []helm.Chart) bool {
+		for _, c := range hc {
+			if c.Name == name && c.Version == version {
+				return true
+			}
+		}
+
+		return false
+	}(fc.Charts[k])
+
+	if exists {
+		return nil
+	}
+
 	fmt.Printf("Adding chart %s to cache with key %s\n", name, k)
 	fc.Charts[k] = append(
 		fc.Charts[k],
@@ -64,6 +82,28 @@ func (fc FakeChartCache) AddChart(ctx context.Context, name, version, kind, laye
 			Kind:    kind,
 		},
 	)
+
+	return nil
+}
+
+func (fc FakeChartCache) RemoveChart(ctx context.Context, name, version string, clusterRef types.NamespacedName, repoRef helm.ObjectReference) error {
+	if fc.RemoveChartError != nil {
+		return fc.RemoveChartError
+	}
+
+	k := ClusterRefToString(repoRef, clusterRef)
+	fmt.Printf("Removing chart %s from cache with key %s\n", name, k)
+
+	charts := fc.Charts[k]
+	var updated []helm.Chart
+	for _, v := range charts {
+		if !(v.Name == name && v.Version == version) {
+			updated = append(updated, v)
+		}
+	}
+
+	fc.Charts[k] = updated
+
 	return nil
 }
 
@@ -105,6 +145,12 @@ func (fc FakeChartCache) ListChartsByRepositoryAndCluster(ctx context.Context, c
 			filtered = append(filtered, c)
 		}
 	}
+
+	// sort list of charts by name
+	sort.Slice(filtered, func(i, j int) bool {
+		return filtered[i].Name < filtered[j].Name
+	})
+
 	return filtered, nil
 }
 func (fc FakeChartCache) IsKnownChart(ctx context.Context, clusterRef types.NamespacedName, repoRef helm.ObjectReference, chart helm.Chart) (bool, error) {

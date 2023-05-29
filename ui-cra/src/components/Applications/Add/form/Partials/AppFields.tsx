@@ -4,7 +4,7 @@ import {
   ListSubheader,
   MenuItem,
 } from '@material-ui/core';
-import { Flex, Kind, theme, useListSources } from '@weaveworks/weave-gitops';
+import { Flex, Kind, useListSources } from '@weaveworks/weave-gitops';
 import {
   GitRepository,
   HelmRepository,
@@ -328,7 +328,7 @@ const AppFields: FC<{
                   <Checkbox
                     // Restore default paddingLeft for checkbox that is removed by the global style
                     // mui.FormControlLabel does some negative margin to align the checkbox with the label
-                    style={{ paddingLeft: 9, marginRight: theme.spacing.small }}
+                    style={{ paddingLeft: 9, marginRight: 12 }}
                     checked={createNamespace}
                     onChange={handleCreateNamespace}
                     inputProps={{ 'aria-label': 'controlled' }}

@@ -149,6 +149,7 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 		role := capiv1_proto.WorkspaceRole{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
+			Kind:      "Role",
 			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 		}
 		for _, rule := range list.Items[i].Rules {
@@ -202,6 +203,7 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 		roleBinding := capiv1_proto.WorkspaceRoleBinding{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
+			Kind:      "RoleBinding",
 			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 			Role: &capiv1_proto.WorkspaceRoleBindingRoleRef{
 				ApiGroup: list.Items[i].RoleRef.APIGroup,
@@ -261,6 +263,7 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 		serviceAccount := &capiv1_proto.WorkspaceServiceAccount{
 			Name:      list.Items[i].Name,
 			Namespace: list.Items[i].Namespace,
+			Kind:      "ServiceAccount",
 			Timestamp: list.Items[i].CreationTimestamp.Format(time.RFC3339),
 		}
 

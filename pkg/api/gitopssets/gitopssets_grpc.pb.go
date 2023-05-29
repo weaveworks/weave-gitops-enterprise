@@ -33,6 +33,7 @@ type GitOpsSetsClient interface {
 	ListGitOpsSets(ctx context.Context, in *ListGitOpsSetsRequest, opts ...grpc.CallOption) (*ListGitOpsSetsResponse, error)
 	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
+	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
@@ -99,6 +100,7 @@ type GitOpsSetsServer interface {
 	ListGitOpsSets(context.Context, *ListGitOpsSetsRequest) (*ListGitOpsSetsResponse, error)
 	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
+	//
 	// GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
 	// This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)

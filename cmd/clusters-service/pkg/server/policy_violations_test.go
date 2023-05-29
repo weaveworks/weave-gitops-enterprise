@@ -124,6 +124,9 @@ func TestListPolicyValidations(t *testing.T) {
 		err          error
 		expected     *capiv1_proto.ListPolicyValidationsResponse
 		clusterName  string
+		appName      string
+		appKind      string
+		namespace    string
 	}{
 		{
 			name: "list policy violations",
@@ -171,6 +174,42 @@ func TestListPolicyValidations(t *testing.T) {
 			},
 		},
 		{
+			name: "list application policy violations",
+			clusterState: []runtime.Object{
+				makeEvent(t, func(e *corev1.Event) {
+					e.ObjectMeta.Name = "Missing Owner Label - fake-event-2"
+					e.InvolvedObject.Namespace = "weave-system"
+					e.ObjectMeta.Namespace = "weave-system"
+					e.InvolvedObject.Name = "app1"
+					e.InvolvedObject.Kind = "HelmRelease"
+					e.Annotations["policy_name"] = "Missing Owner Label"
+					e.Annotations["policy_id"] = "weave.policies.missing-app-label"
+					e.Labels["pac.weave.works/id"] = "56701548-12c1-4f79-a09a-a12979904"
+				}),
+			},
+			expected: &capiv1_proto.ListPolicyValidationsResponse{
+				Violations: []*capiv1_proto.PolicyValidation{
+					{
+						Id:          "56701548-12c1-4f79-a09a-a12979904",
+						Name:        "Missing Owner Label",
+						PolicyId:    "weave.policies.missing-app-label",
+						ClusterId:   "cluster-1",
+						Category:    "Access Control",
+						Severity:    "high",
+						CreatedAt:   "0001-01-01T00:00:00Z",
+						Message:     "Policy event",
+						Entity:      "app1",
+						Namespace:   "weave-system",
+						ClusterName: "Default",
+					},
+				},
+				Total: int32(1),
+			},
+			appName:   "app1",
+			appKind:   "HelmRelease",
+			namespace: "weave-system",
+		},
+		{
 			name: "list policy violations with cluster filtering",
 			clusterState: []runtime.Object{
 				makeEvent(t),
@@ -198,6 +237,9 @@ func TestListPolicyValidations(t *testing.T) {
 			})
 			policyViolation, err := s.ListPolicyValidations(context.Background(), &capiv1_proto.ListPolicyValidationsRequest{
 				ClusterName: tt.clusterName,
+				Application: tt.appName,
+				Kind:        tt.appKind,
+				Namespace:   tt.namespace,
 			})
 			if err != nil {
 				if tt.err == nil {

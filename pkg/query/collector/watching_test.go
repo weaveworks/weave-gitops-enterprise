@@ -1,6 +1,11 @@
 package collector
 
 import (
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
@@ -13,8 +18,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/client-go/rest"
-	"os"
-	"testing"
 
 	l "github.com/weaveworks/weave-gitops/core/logger"
 
@@ -46,6 +49,7 @@ func TestStart(t *testing.T) {
 		name                string
 		clusters            []cluster.Cluster
 		expectedLogError    string
+		notExpectedLog      string
 		expectedNumClusters int
 	}{
 		{
@@ -58,6 +62,7 @@ func TestStart(t *testing.T) {
 			name:                "can start collector with not watchable clusters",
 			clusters:            []cluster.Cluster{makeInvalidFakeCluster("test-cluster")},
 			expectedLogError:    "cannot watch cluster",
+			notExpectedLog:      "watching cluster",
 			expectedNumClusters: 0,
 		},
 		{
@@ -72,18 +77,25 @@ func TestStart(t *testing.T) {
 			cm.GetClustersReturns(tt.clusters)
 			err := collector.Start()
 
-			// assert error has been logged
-			if tt.expectedLogError != "" {
+			// assert any error for an individual cluster has been
+			// logged, and the corresponding success message has not
+			// been logged.
+			if tt.expectedLogError != "" || tt.notExpectedLog != "" {
 				logs, err := os.ReadFile(loggerPath)
 				g.Expect(err).To(BeNil())
 				logss := string(logs)
-				g.Expect(logss).To(MatchRegexp(tt.expectedLogError))
+				if tt.expectedLogError != "" {
+					g.Expect(logss).To(MatchRegexp(tt.expectedLogError))
+				}
+				// NB this will only work if there's no cluster that can succeed!
+				if tt.notExpectedLog != "" {
+					g.Expect(logss).NotTo(MatchRegexp(tt.notExpectedLog))
+				}
 			}
 
 			g.Expect(err).To(BeNil())
 			g.Expect(fakeStore).NotTo(BeNil())
-			g.Expect(len(collector.clusterWatchers)).To(BeIdenticalTo(tt.expectedNumClusters))
-
+			g.Expect(len(collector.clusterWatchers)).To(Equal(tt.expectedNumClusters))
 		})
 	}
 }
@@ -312,7 +324,7 @@ func newFakeWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccoun
 	return &fakeWatcher{log: log}, nil
 }
 
-func fakeProcessRecordFunc(records []models.ObjectTransaction, s store.Store, logger logr.Logger) error {
+func fakeProcessRecordFunc(records []models.ObjectTransaction, s store.Store, idx store.IndexWriter, logger logr.Logger) error {
 	log.Info("fake process record")
 	return nil
 }
@@ -336,14 +348,15 @@ func (f *fakeWatcher) Status() (string, error) {
 	return string(f.status), nil
 }
 
+// newLoggerWithLevel creates a logger and a path to the file it
+// writes to, so you can check the contents of the log during the
+// test.
 func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
 	g := NewGomegaWithT(t)
 
-	file, err := os.CreateTemp(os.TempDir(), "query-server-log")
+	tmp, err := os.MkdirTemp("", "query-server-test")
 	g.Expect(err).ShouldNot(HaveOccurred())
-
-	name := file.Name()
-	g.Expect(err).ShouldNot(HaveOccurred())
+	path := filepath.Join(tmp, "log")
 
 	level, err := zapcore.ParseLevel(logLevel)
 	g.Expect(err).ShouldNot(HaveOccurred())
@@ -351,18 +364,20 @@ func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
 		l.WithLogLevel(level),
 		l.WithMode(false),
 		l.WithOutAndErrPaths("stdout", "stderr"),
-		l.WithOutAndErrPaths(name, name),
+		l.WithOutAndErrPaths(path, path),
 	)
 
 	log, err := l.NewFromConfig(cfg)
 	g.Expect(err).NotTo(HaveOccurred())
 
 	t.Cleanup(func() {
-		err := os.Remove(file.Name())
-		if err != nil {
-			t.Fatal(err)
+		if strings.HasPrefix(path, os.TempDir()) {
+			err := os.Remove(path)
+			if err != nil {
+				t.Fatal(err)
+			}
 		}
 	})
 
-	return log, name
+	return log, path
 }

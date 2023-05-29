@@ -10,6 +10,8 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+var _ ChartsCache = (*HelmChartIndexer)(nil)
+
 func TestUpdateValuesYaml(t *testing.T) {
 	// create a test db
 	db := testCreateDB(t)
@@ -149,7 +151,40 @@ func TestHelmChartIndexer_Delete(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(chart))
 	assert.Equal(t, "nginx", chart[0].Name)
+}
 
+func TestHelmChartIndexer_RemoveChart(t *testing.T) {
+	db := testCreateDB(t)
+	indexer := HelmChartIndexer{
+		CacheDB: db,
+	}
+
+	err := indexer.AddChart(context.TODO(), "redis", "1.0.1", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "weave-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "redis", "1.0.2", "chart", "layer-0",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "weave-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.AddChart(context.TODO(), "nginx", "1.0.1", "chart", "layer-1",
+		nsn("cluster1", "clusters"),
+		objref("HelmRepository", "", "weave-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	err = indexer.RemoveChart(context.TODO(), "redis", "1.0.1", nsn("cluster1", "clusters"), objref("HelmRepository", "", "weave-charts", "team-ns"))
+	assert.NoError(t, err)
+
+	charts, err := indexer.ListChartsByCluster(context.TODO(), nsn("cluster1", "clusters"), "chart")
+	assert.NoError(t, err)
+
+	want := []Chart{
+		{Name: "redis", Version: "1.0.2"},
+		{Name: "nginx", Version: "1.0.1"},
+	}
+	assert.Equal(t, want, charts)
 }
 
 func TestHelmChartIndexer_Count(t *testing.T) {

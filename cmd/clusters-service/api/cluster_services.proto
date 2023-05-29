@@ -189,7 +189,7 @@ service ClustersService {
         get : "/v1/charts/jobs/{job_id}",
       };
     }
-  
+
 
     // ListWorkspaces list workspaces available on all clusters
   rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
@@ -424,6 +424,7 @@ message ListPolicyValidationsRequest{
   Pagination pagination = 2;
   string application = 3;
   string namespace = 4;
+  string kind = 5;
 }
 message ListPolicyValidationsResponse {
   repeated PolicyValidation violations = 1;
@@ -1003,6 +1004,7 @@ message WorkspaceRole {
   repeated WorkspaceRoleRule rules = 3;
   string manifest = 4;
   string timestamp = 5;
+  string kind = 6;
 }
 
 message WorkspaceRoleBindingRoleRef {
@@ -1025,6 +1027,7 @@ message WorkspaceRoleBinding {
   string timestamp = 4;
   WorkspaceRoleBindingRoleRef role = 5;
   repeated WorkspaceRoleBindingSubject subjects = 6;
+  string kind = 7;
 }
 
 message WorkspaceServiceAccount {
@@ -1032,6 +1035,7 @@ message WorkspaceServiceAccount {
   string namespace = 2;
   string timestamp = 3;
   string manifest = 4;
+  string kind = 5;
 }
 
 message WorkspacePolicy {
@@ -1115,7 +1119,7 @@ message GetExternalSecretResponse{
   string timestamp = 11;
   string yaml = 12;
 }
-  
+
 message ExternalSecretStore {
   string kind = 1;
   string name = 2;
@@ -1222,7 +1226,7 @@ message EncryptSopsSecretRequest {
   string name = 1;
   string namespace = 2;
   map<string, string> labels = 3;
-  string type = 4; 
+  string type = 4;
   bool immutable = 5;
   map<string, string> data = 6;
   map<string, string> stringData = 7;
@@ -1264,5 +1268,5 @@ message SopsSecret {
   map<string,string> stringData = 5;
   string type = 6;
   bool immutable = 7;
-  google.protobuf.Value sops = 8; 
+  google.protobuf.Value sops = 8;
 }

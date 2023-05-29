@@ -95,11 +95,25 @@ type FakeStore struct {
 		result1 []models.AccessRule
 		result2 error
 	}
-	GetObjectsStub        func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)
+	GetObjectByIDStub        func(context.Context, string) (models.Object, error)
+	getObjectByIDMutex       sync.RWMutex
+	getObjectByIDArgsForCall []struct {
+		arg1 context.Context
+		arg2 string
+	}
+	getObjectByIDReturns struct {
+		result1 models.Object
+		result2 error
+	}
+	getObjectByIDReturnsOnCall map[int]struct {
+		result1 models.Object
+		result2 error
+	}
+	GetObjectsStub        func(context.Context, []string, store.QueryOption) (store.Iterator, error)
 	getObjectsMutex       sync.RWMutex
 	getObjectsArgsForCall []struct {
 		arg1 context.Context
-		arg2 store.Query
+		arg2 []string
 		arg3 store.QueryOption
 	}
 	getObjectsReturns struct {
@@ -616,17 +630,87 @@ func (fake *FakeStore) GetAccessRulesReturnsOnCall(i int, result1 []models.Acces
 	}{result1, result2}
 }
 
-func (fake *FakeStore) GetObjects(arg1 context.Context, arg2 store.Query, arg3 store.QueryOption) (store.Iterator, error) {
+func (fake *FakeStore) GetObjectByID(arg1 context.Context, arg2 string) (models.Object, error) {
+	fake.getObjectByIDMutex.Lock()
+	ret, specificReturn := fake.getObjectByIDReturnsOnCall[len(fake.getObjectByIDArgsForCall)]
+	fake.getObjectByIDArgsForCall = append(fake.getObjectByIDArgsForCall, struct {
+		arg1 context.Context
+		arg2 string
+	}{arg1, arg2})
+	stub := fake.GetObjectByIDStub
+	fakeReturns := fake.getObjectByIDReturns
+	fake.recordInvocation("GetObjectByID", []interface{}{arg1, arg2})
+	fake.getObjectByIDMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStore) GetObjectByIDCallCount() int {
+	fake.getObjectByIDMutex.RLock()
+	defer fake.getObjectByIDMutex.RUnlock()
+	return len(fake.getObjectByIDArgsForCall)
+}
+
+func (fake *FakeStore) GetObjectByIDCalls(stub func(context.Context, string) (models.Object, error)) {
+	fake.getObjectByIDMutex.Lock()
+	defer fake.getObjectByIDMutex.Unlock()
+	fake.GetObjectByIDStub = stub
+}
+
+func (fake *FakeStore) GetObjectByIDArgsForCall(i int) (context.Context, string) {
+	fake.getObjectByIDMutex.RLock()
+	defer fake.getObjectByIDMutex.RUnlock()
+	argsForCall := fake.getObjectByIDArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeStore) GetObjectByIDReturns(result1 models.Object, result2 error) {
+	fake.getObjectByIDMutex.Lock()
+	defer fake.getObjectByIDMutex.Unlock()
+	fake.GetObjectByIDStub = nil
+	fake.getObjectByIDReturns = struct {
+		result1 models.Object
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStore) GetObjectByIDReturnsOnCall(i int, result1 models.Object, result2 error) {
+	fake.getObjectByIDMutex.Lock()
+	defer fake.getObjectByIDMutex.Unlock()
+	fake.GetObjectByIDStub = nil
+	if fake.getObjectByIDReturnsOnCall == nil {
+		fake.getObjectByIDReturnsOnCall = make(map[int]struct {
+			result1 models.Object
+			result2 error
+		})
+	}
+	fake.getObjectByIDReturnsOnCall[i] = struct {
+		result1 models.Object
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStore) GetObjects(arg1 context.Context, arg2 []string, arg3 store.QueryOption) (store.Iterator, error) {
+	var arg2Copy []string
+	if arg2 != nil {
+		arg2Copy = make([]string, len(arg2))
+		copy(arg2Copy, arg2)
+	}
 	fake.getObjectsMutex.Lock()
 	ret, specificReturn := fake.getObjectsReturnsOnCall[len(fake.getObjectsArgsForCall)]
 	fake.getObjectsArgsForCall = append(fake.getObjectsArgsForCall, struct {
 		arg1 context.Context
-		arg2 store.Query
+		arg2 []string
 		arg3 store.QueryOption
-	}{arg1, arg2, arg3})
+	}{arg1, arg2Copy, arg3})
 	stub := fake.GetObjectsStub
 	fakeReturns := fake.getObjectsReturns
-	fake.recordInvocation("GetObjects", []interface{}{arg1, arg2, arg3})
+	fake.recordInvocation("GetObjects", []interface{}{arg1, arg2Copy, arg3})
 	fake.getObjectsMutex.Unlock()
 	if stub != nil {
 		return stub(arg1, arg2, arg3)
@@ -643,13 +727,13 @@ func (fake *FakeStore) GetObjectsCallCount() int {
 	return len(fake.getObjectsArgsForCall)
 }
 
-func (fake *FakeStore) GetObjectsCalls(stub func(context.Context, store.Query, store.QueryOption) (store.Iterator, error)) {
+func (fake *FakeStore) GetObjectsCalls(stub func(context.Context, []string, store.QueryOption) (store.Iterator, error)) {
 	fake.getObjectsMutex.Lock()
 	defer fake.getObjectsMutex.Unlock()
 	fake.GetObjectsStub = stub
 }
 
-func (fake *FakeStore) GetObjectsArgsForCall(i int) (context.Context, store.Query, store.QueryOption) {
+func (fake *FakeStore) GetObjectsArgsForCall(i int) (context.Context, []string, store.QueryOption) {
 	fake.getObjectsMutex.RLock()
 	defer fake.getObjectsMutex.RUnlock()
 	argsForCall := fake.getObjectsArgsForCall[i]
@@ -900,6 +984,8 @@ func (fake *FakeStore) Invocations() map[string][][]interface{} {
 	defer fake.deleteRolesMutex.RUnlock()
 	fake.getAccessRulesMutex.RLock()
 	defer fake.getAccessRulesMutex.RUnlock()
+	fake.getObjectByIDMutex.RLock()
+	defer fake.getObjectByIDMutex.RUnlock()
 	fake.getObjectsMutex.RLock()
 	defer fake.getObjectsMutex.RUnlock()
 	fake.storeObjectsMutex.RLock()

@@ -1,30 +1,30 @@
-import React, { FC, Dispatch, useState } from 'react';
-import styled from 'styled-components';
-import { CloseIconButton } from '../../../../assets/img/close-icon-button';
 import {
+  Box,
+  Dialog,
+  DialogContent,
+  DialogTitle,
   Tab,
   Tabs,
   Typography,
-  DialogContent,
-  DialogTitle,
-  Dialog,
-  Box,
 } from '@material-ui/core';
-import {
-  AppPRPreview,
-  ClusterPRPreview,
-  PolicyConfigPRPreview,
-  SecretPRPreview,
-  SOPSSecretPRPreview,
-} from '../../../../types/custom';
+import { Button, Flex } from '@weaveworks/weave-gitops';
+import JSZip from 'jszip';
+import React, { Dispatch, FC, useState } from 'react';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import styled from 'styled-components';
+import CloseIconButton from '../../../../assets/img/close-icon-button';
 import {
   CommitFile,
   RenderTemplateResponse,
 } from '../../../../cluster-services/cluster_services.pb';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { Button, Flex } from '@weaveworks/weave-gitops';
-import JSZip from 'jszip';
+import {
+  AppPRPreview,
+  ClusterPRPreview,
+  PolicyConfigPRPreview,
+  SOPSSecretPRPreview,
+  SecretPRPreview,
+} from '../../../../types/custom';
 import { Tooltip } from '../../../Shared';
 
 const DialogWrapper = styled(Dialog)`
@@ -222,7 +222,7 @@ const Preview: FC<{
                 <SyntaxHighlighter
                   language="yaml"
                   style={darcula}
-                  wrapLongLines="pre-wrap"
+                  wrapLongLines
                 >
                   {file.content}
                 </SyntaxHighlighter>

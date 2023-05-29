@@ -117,8 +117,14 @@ BINARIES = \
 
 binaries: $(BINARIES)
 
-cluster-dev: ## Start tilt to do development with wge running on the cluster
-	./tools/bin/tilt up
+# Start tilt to do development with wge running on the cluster
+cluster-dev: helm-dependency-build
+	PATH=${PWD}/tools/bin:${PATH} ./tools/bin/tilt up
+
+.PHONY: helm-dependency-build
+helm-dependency-build:
+	./tools/bin/helm repo add weaveworks-policy-agent https://weaveworks.github.io/policy-agent
+	./tools/bin/helm dependency build ./charts/mccp
 
 godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFiles}}{{$$dep.Dir}}/{{.}} {{end}}{{end}}' $1)
 
@@ -186,7 +192,7 @@ push:
 	done
 
 proto: ## Generate protobuf files
-	./tools/bin/buf generate
+	PATH=${PWD}/tools/bin ./tools/bin/buf generate
 
 fakes: ## Generate testing fakes
 	go generate ./...
