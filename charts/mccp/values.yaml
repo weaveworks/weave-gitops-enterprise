@@ -193,7 +193,8 @@ gitopssets-controller:
       - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
       image:
-        tag: v0.11.0
+        tag: v0.12.0
+
 cluster-controller:
   enabled: true
   # cluster-controller-manager etc
@@ -203,7 +204,6 @@ cluster-controller:
       image:
         repository: docker.io/weaveworks/cluster-controller
         tag: v1.5.2
-
 
 #### Explorer
 # Turns on explorer to true
