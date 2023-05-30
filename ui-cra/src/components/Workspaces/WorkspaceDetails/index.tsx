@@ -1,9 +1,8 @@
 import { useGetWorkspaceDetails } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import WorkspaceHeaderSection from './WorkspaceHeaderSection';
 import TabDetails from './TabDetails';
+import { Page } from '@weaveworks/weave-gitops';
 
 const WorkspaceDetails = ({
   clusterName,
@@ -17,25 +16,22 @@ const WorkspaceDetails = ({
       clusterName,
       workspaceName,
     });
+
   return (
-    <>
-      <PageTemplate
-        documentTitle="Workspaces"
-        path={[
-          { label: 'Workspaces', url: Routes.Workspaces },
-          { label: workspaceDetails?.name || '' },
-        ]}
-      >
-        <ContentWrapper loading={isWorkspaceLoading}>
-          <WorkspaceHeaderSection
-            name={workspaceDetails?.name}
-            clusterName={workspaceDetails?.clusterName}
-            namespaces={workspaceDetails?.namespaces}
-          />
-          <TabDetails clusterName={clusterName} workspaceName={workspaceName} />
-        </ContentWrapper>
-      </PageTemplate>
-    </>
+    <Page
+      loading={isWorkspaceLoading}
+      path={[
+        { label: 'Workspaces', url: Routes.Workspaces },
+        { label: workspaceDetails?.name || '' },
+      ]}
+    >
+      <WorkspaceHeaderSection
+        name={workspaceDetails?.name}
+        clusterName={workspaceDetails?.clusterName}
+        namespaces={workspaceDetails?.namespaces}
+      />
+      <TabDetails clusterName={clusterName} workspaceName={workspaceName} />
+    </Page>
   );
 };
 

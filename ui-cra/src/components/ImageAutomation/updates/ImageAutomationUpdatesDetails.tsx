@@ -1,6 +1,7 @@
 import {
   Kind,
   Metadata,
+  Page,
   SourceLink,
   useGetObject,
   V2Routes,
@@ -8,8 +9,6 @@ import {
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
@@ -63,26 +62,24 @@ function ImageAutomationUpdatesDetails({
 
   const rootPath = V2Routes.ImageAutomationUpdatesDetails;
   return (
-    <PageTemplate
-      documentTitle={name}
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Image Updates', url: V2Routes.ImageUpdates },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
-        {data && (
-          <ImageAutomationDetails
-            data={data}
-            kind={Kind.ImageUpdateAutomation}
-            infoFields={getInfoList(data, data?.clusterName)}
-            rootPath={rootPath}
-          >
-            <Metadata metadata={data.metadata} labels={data?.labels} />
-          </ImageAutomationDetails>
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      {data && (
+        <ImageAutomationDetails
+          data={data}
+          kind={Kind.ImageUpdateAutomation}
+          infoFields={getInfoList(data, data?.clusterName)}
+          rootPath={rootPath}
+        >
+          <Metadata metadata={data.metadata} labels={data?.labels} />
+        </ImageAutomationDetails>
+      )}
+    </Page>
   );
 }
 

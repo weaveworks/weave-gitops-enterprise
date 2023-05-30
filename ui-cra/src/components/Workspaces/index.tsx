@@ -1,16 +1,17 @@
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { WorkspacesTable } from './Table';
 import { useListWorkspaces } from '../../contexts/Workspaces';
+import { Page } from '@weaveworks/weave-gitops';
 
 const WorkspacesList = () => {
   const { data, isLoading } = useListWorkspaces({});
   return (
-    <PageTemplate documentTitle="Workspaces" path={[{ label: 'Workspaces' }]}>
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
-        {data?.workspaces && <WorkspacesTable workspaces={data.workspaces} />}
-      </ContentWrapper>
-    </PageTemplate>
+    <Page
+      loading={isLoading}
+      error={data?.errors}
+      path={[{ label: 'Workspaces' }]}
+    >
+      {data?.workspaces && <WorkspacesTable workspaces={data.workspaces} />}
+    </Page>
   );
 };
 

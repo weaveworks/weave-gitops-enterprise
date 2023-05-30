@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   HelmChartDetail,
   Kind,
@@ -26,6 +25,8 @@ const WGApplicationsHelmChart: FC<Props> = props => {
 
   return (
     <Page
+      loading={isLoading}
+      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -36,18 +37,11 @@ const WGApplicationsHelmChart: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={
-          error ? [{ clusterName, namespace, message: error?.message }] : []
-        }
-      >
-        <HelmChartDetail
-          helmChart={helmChart}
-          customActions={[<EditButton resource={helmChart} />]}
-          {...props}
-        />
-      </ContentWrapper>
+      <HelmChartDetail
+        helmChart={helmChart}
+        customActions={[<EditButton resource={helmChart} />]}
+        {...props}
+      />
     </Page>
   );
 };

@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   HelmRepositoryDetail,
   Kind,
@@ -31,6 +30,8 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
 
   return (
     <Page
+      loading={isLoading}
+      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -41,18 +42,11 @@ const WGApplicationsHelmRepository: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={
-          error ? [{ clusterName, namespace, message: error?.message }] : []
-        }
-      >
-        <HelmRepositoryDetail
-          helmRepository={helmRepository}
-          customActions={[<EditButton resource={helmRepository} />]}
-          {...props}
-        />
-      </ContentWrapper>
+      <HelmRepositoryDetail
+        helmRepository={helmRepository}
+        customActions={[<EditButton resource={helmRepository} />]}
+        {...props}
+      />
     </Page>
   );
 };

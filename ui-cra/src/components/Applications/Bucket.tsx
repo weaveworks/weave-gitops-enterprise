@@ -6,7 +6,6 @@ import {
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
 
@@ -26,6 +25,8 @@ const WGApplicationsBucket: FC<Props> = props => {
 
   return (
     <Page
+      loading={isLoading}
+      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -36,18 +37,11 @@ const WGApplicationsBucket: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={
-          error ? [{ clusterName, namespace, message: error?.message }] : []
-        }
-      >
-        <BucketDetail
-          bucket={bucket}
-          customActions={[<EditButton resource={bucket} />]}
-          {...props}
-        />
-      </ContentWrapper>
+      <BucketDetail
+        bucket={bucket}
+        customActions={[<EditButton resource={bucket} />]}
+        {...props}
+      />
     </Page>
   );
 };

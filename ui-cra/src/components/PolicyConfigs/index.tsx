@@ -1,8 +1,6 @@
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PolicyConfigsTable } from './Table';
 import { useListPolicyConfigs } from '../../contexts/PolicyConfigs';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Button, Icon, IconType, Page } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useCallback } from 'react';
 
@@ -15,23 +13,22 @@ const PolicyConfigsList = () => {
     [history],
   );
   return (
-    <PageTemplate
-      documentTitle="PolicyConfigs"
+    <Page
+      loading={isLoading}
+      error={data?.errors}
       path={[{ label: 'PolicyConfigs' }]}
     >
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
-        <Button
-          id="create-cluster"
-          startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={handleCreateSecret}
-        >
-          CREATE A POLICY CONFIG
-        </Button>
-        {data?.policyConfigs && (
-          <PolicyConfigsTable PolicyConfigs={data.policyConfigs} />
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      <Button
+        id="create-cluster"
+        startIcon={<Icon type={IconType.AddIcon} size="base" />}
+        onClick={handleCreateSecret}
+      >
+        CREATE A POLICY CONFIG
+      </Button>
+      {data?.policyConfigs && (
+        <PolicyConfigsTable PolicyConfigs={data.policyConfigs} />
+      )}
+    </Page>
   );
 };
 

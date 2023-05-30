@@ -1,10 +1,8 @@
-import { PageTemplate } from '../../Layout/PageTemplate';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
 import ViolationDetails from './ViolationDetails';
 import { useGetPolicyValidationDetails } from '../../../contexts/PolicyViolations';
 import { Breadcrumb } from '../../Breadcrumbs';
 import { Routes } from '../../../utils/nav';
-import { formatURL } from '@weaveworks/weave-gitops';
+import { Page, formatURL } from '@weaveworks/weave-gitops';
 
 const PolicyViolationDetails = ({
   id,
@@ -43,13 +41,11 @@ const PolicyViolationDetails = ({
         { label: data?.violation?.name || '' },
       ];
   return (
-    <PageTemplate documentTitle="Violation Logs" path={headerPath}>
-      <ContentWrapper loading={isLoading}>
-        {data?.violation && (
-          <ViolationDetails violation={data.violation} source={source} />
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+    <Page loading={isLoading} path={headerPath}>
+      {data?.violation && (
+        <ViolationDetails violation={data.violation} source={source} />
+      )}
+    </Page>
   );
 };
 

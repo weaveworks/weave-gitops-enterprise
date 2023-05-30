@@ -1,9 +1,8 @@
 import styled from 'styled-components';
 import { useListTerraformObjects } from '../../contexts/Terraform';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { TableWrapper } from '../Shared';
 import TerraformListTable from './TerraformListTable';
+import { Page } from '@weaveworks/weave-gitops';
 type Props = {
   className?: string;
 };
@@ -12,23 +11,19 @@ function TerraformObjectList({ className }: Props) {
   const { isLoading, data, error } = useListTerraformObjects();
 
   return (
-    <PageTemplate
-      documentTitle="Terraform"
+    <Page
+      error={error ? [error] : data?.errors || []}
+      loading={isLoading}
       path={[
         {
           label: 'Terraform Objects',
         },
       ]}
     >
-      <ContentWrapper
-        errors={error ? [error] : data?.errors || []}
-        loading={isLoading}
-      >
-        <TableWrapper>
-          <TerraformListTable rows={data?.objects || []} />
-        </TableWrapper>
-      </ContentWrapper>
-    </PageTemplate>
+      <TableWrapper>
+        <TerraformListTable rows={data?.objects || []} />
+      </TableWrapper>
+    </Page>
   );
 }
 

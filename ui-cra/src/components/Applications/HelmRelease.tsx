@@ -9,7 +9,6 @@ import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 import { EditButton } from '../Templates/Edit/EditButton';
 
@@ -54,6 +53,8 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
 
   return (
     <Page
+      loading={isLoading}
+      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Applications',
@@ -64,21 +65,14 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={
-          error ? [{ clusterName, namespace, message: error?.message }] : []
-        }
-      >
-        {!error && !isLoading && (
-          <HelmReleaseDetail
-            helmRelease={helmRelease}
-            customActions={[<EditButton resource={helmRelease} />]}
-            customTabs={customTabs}
-            {...props}
-          />
-        )}
-      </ContentWrapper>
+      {!error && !isLoading && (
+        <HelmReleaseDetail
+          helmRelease={helmRelease}
+          customActions={[<EditButton resource={helmRelease} />]}
+          customTabs={customTabs}
+          {...props}
+        />
+      )}
     </Page>
   );
 };

@@ -1,10 +1,9 @@
-import { PageTemplate } from '../Layout/PageTemplate';
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
-
 import { Alert } from '@material-ui/lab';
-import { LoadingPage } from '@weaveworks/weave-gitops';
+import { Page } from '@weaveworks/weave-gitops';
 import { useIsFlaggerAvailable } from '../../contexts/ProgressiveDelivery';
+import { Routes } from '../../utils/nav';
 
 const ProgressiveDelivery = () => {
   const {
@@ -14,14 +13,28 @@ const ProgressiveDelivery = () => {
   } = useIsFlaggerAvailable();
 
   return (
-    <PageTemplate documentTitle="Delivery">
-      {isLoading && <LoadingPage />}
-      {error && <Alert severity="error">{error.message}</Alert>}
-
-      {!isLoading && (
-        <>{isFlaggerAvailable ? <CanariesList /> : <OnboardingMessage />}</>
+    <>
+      {!isLoading && isFlaggerAvailable ? (
+        <Page loading={isLoading} path={[]}>
+          {error && <Alert severity="error">{error.message}</Alert>}
+          <CanariesList />
+        </Page>
+      ) : (
+        <Page
+          loading={isLoading}
+          path={[
+            {
+              label: 'Applications',
+              url: Routes.Applications,
+            },
+            { label: 'Delivery' },
+          ]}
+        >
+          {error && <Alert severity="error">{error.message}</Alert>}
+          <OnboardingMessage />
+        </Page>
       )}
-    </PageTemplate>
+    </>
   );
 };
 

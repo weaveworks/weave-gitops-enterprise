@@ -1,5 +1,4 @@
 import { FC } from 'react';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
   GitRepositoryDetail,
   Kind,
@@ -31,6 +30,8 @@ const WGApplicationsGitRepository: FC<Props> = props => {
 
   return (
     <Page
+      loading={isLoading}
+      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -41,18 +42,11 @@ const WGApplicationsGitRepository: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={
-          error ? [{ clusterName, namespace, message: error?.message }] : []
-        }
-      >
-        <GitRepositoryDetail
-          gitRepository={gitRepository}
-          customActions={[<EditButton resource={gitRepository} />]}
-          {...props}
-        />
-      </ContentWrapper>
+      <GitRepositoryDetail
+        gitRepository={gitRepository}
+        customActions={[<EditButton resource={gitRepository} />]}
+        {...props}
+      />
     </Page>
   );
 };

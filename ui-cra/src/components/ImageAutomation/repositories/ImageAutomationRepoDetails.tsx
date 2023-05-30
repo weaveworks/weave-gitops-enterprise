@@ -5,13 +5,11 @@ import {
   Link,
   useGetObject,
   V2Routes,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-
 import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
@@ -37,42 +35,40 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
   ]);
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
   return (
-    <PageTemplate
-      documentTitle={name}
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Image Repositories', url: V2Routes.ImageRepositories },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
-        {data && (
-          <ImageAutomationDetails
-            data={data}
-            kind={Kind.ImageRepository}
-            infoFields={[
-              ['Kind', Kind.ImageRepository],
-              ['Namespace', data?.namespace],
-              ['Namespace', data?.clusterName],
-              [
-                'Image',
-                <Link newTab={true} to={data.obj?.spec?.image}>
-                  {data.obj?.spec?.image}
-                </Link>,
-              ],
-              ['Interval', <Interval interval={data.interval} />],
-              ['Tag Count', data.tagCount],
-            ]}
-            rootPath={rootPath}
-          >
-            <Button>
-              <Link to={`/image_automation/policies?filters=${filtersValues}`}>
-                Go To Image Policy
-              </Link>
-            </Button>
-          </ImageAutomationDetails>
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      {data && (
+        <ImageAutomationDetails
+          data={data}
+          kind={Kind.ImageRepository}
+          infoFields={[
+            ['Kind', Kind.ImageRepository],
+            ['Namespace', data?.namespace],
+            ['Namespace', data?.clusterName],
+            [
+              'Image',
+              <Link newTab={true} to={data.obj?.spec?.image}>
+                {data.obj?.spec?.image}
+              </Link>,
+            ],
+            ['Interval', <Interval interval={data.interval} />],
+            ['Tag Count', data.tagCount],
+          ]}
+          rootPath={rootPath}
+        >
+          <Button>
+            <Link to={`/image_automation/policies?filters=${filtersValues}`}>
+              Go To Image Policy
+            </Link>
+          </Button>
+        </ImageAutomationDetails>
+      )}
+    </Page>
   );
 }
 

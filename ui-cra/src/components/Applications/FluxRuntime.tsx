@@ -6,7 +6,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { FC } from 'react';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading, error } = useListFluxRuntimeObjects();
@@ -25,15 +24,15 @@ const WGApplicationsFluxRuntime: FC = () => {
 
   return (
     <Page
+      error={errors}
+      loading={isLoading || crdsLoading}
       path={[
         {
           label: 'Flux Runtime',
         },
       ]}
     >
-      <ContentWrapper errors={errors} loading={isLoading || crdsLoading}>
-        <FluxRuntime deployments={data?.deployments} crds={crds?.crds} />
-      </ContentWrapper>
+      <FluxRuntime deployments={data?.deployments} crds={crds?.crds} />
     </Page>
   );
 };

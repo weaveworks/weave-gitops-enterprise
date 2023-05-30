@@ -21,7 +21,6 @@ import {
   bitbucketServerOAuthRedirectURI,
   gitlabOAuthRedirectURI,
 } from '../../utils/formatters';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { getCallbackState, storeProviderToken } from './utils';
 
 type Props = {
@@ -111,24 +110,22 @@ function OAuthCallback({
   }, [error, setNotifications]);
 
   return (
-    <Page path={[{ label: 'OAuth Callback', url: '' }]}>
-      <ContentWrapper loading={loading}>
-        <Flex wide align center>
-          {loading && <CircularProgress />}
-          {/* Two possible error sources: OAuth misconfiguration, 
+    <Page loading={loading} path={[{ label: 'OAuth Callback', url: '' }]}>
+      <Flex wide align center>
+        {loading && <CircularProgress />}
+        {/* Two possible error sources: OAuth misconfiguration, 
             or a problem with the code exchange. Handling both here.
           */}
-          {error && (
-            <Alert severity="error">
-              <AlertTitle>Request Error {error.name} </AlertTitle>
-              {error.message}
-            </Alert>
-          )}
-          {paramsError && (
-            <ErrorMessage title={paramsError} message={errorDescription} />
-          )}
-        </Flex>
-      </ContentWrapper>
+        {error && (
+          <Alert severity="error">
+            <AlertTitle>Request Error {error.name} </AlertTitle>
+            {error.message}
+          </Alert>
+        )}
+        {paramsError && (
+          <ErrorMessage title={paramsError} message={errorDescription} />
+        )}
+      </Flex>
     </Page>
   );
 }

@@ -1,11 +1,9 @@
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Page } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { useSyncSecret } from './SyncSecret';
@@ -64,34 +62,32 @@ const SecretDetails = ({
   };
 
   return (
-    <PageTemplate
-      documentTitle="Secrets"
+    <Page
+      loading={isSecretDetailsLoading}
       path={[
         { label: 'Secrets', url: Routes.Secrets },
         { label: secretDetails?.externalSecretName || '' },
       ]}
     >
-      <ContentWrapper loading={isSecretDetailsLoading}>
-        <Box paddingBottom={3}>
-          <Button
-            id="sync-secret"
-            loading={syncing}
-            variant="outlined"
-            onClick={handleSyncClick}
-            style={{ marginRight: 0, textTransform: 'uppercase' }}
-          >
-            Sync
-          </Button>
-        </Box>
-        {generateRowHeaders(defaultHeaders)}
-        <SecretDetailsTabs
-          externalSecretName={externalSecretName}
-          clusterName={clusterName}
-          namespace={namespace}
-          secretDetails={secretDetails || {}}
-        />
-      </ContentWrapper>
-    </PageTemplate>
+      <Box paddingBottom={3}>
+        <Button
+          id="sync-secret"
+          loading={syncing}
+          variant="outlined"
+          onClick={handleSyncClick}
+          style={{ marginRight: 0, textTransform: 'uppercase' }}
+        >
+          Sync
+        </Button>
+      </Box>
+      {generateRowHeaders(defaultHeaders)}
+      <SecretDetailsTabs
+        externalSecretName={externalSecretName}
+        clusterName={clusterName}
+        namespace={namespace}
+        secretDetails={secretDetails || {}}
+      />
+    </Page>
   );
 };
 

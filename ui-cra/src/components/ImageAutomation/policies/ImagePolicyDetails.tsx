@@ -3,12 +3,10 @@ import {
   Metadata,
   useGetObject,
   V2Routes,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { ImagePolicy } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-
 import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
@@ -30,32 +28,30 @@ function ImagePolicyDetails({ name, namespace, clusterName }: Props) {
   );
   const rootPath = V2Routes.ImagePolicyDetails;
   return (
-    <PageTemplate
-      documentTitle={name}
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Image Policies', url: V2Routes.ImagePolicies },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
-        {data && (
-          <ImageAutomationDetails
-            data={data}
-            kind={Kind.ImagePolicy}
-            infoFields={[
-              ['Kind', Kind.ImagePolicy],
-              ['Namespace', data?.namespace],
-              ['Namespace', data?.clusterName],
-              ['Image Policy', data?.imagePolicy?.type || ''],
-              ['Order/Range', data?.imagePolicy?.value],
-            ]}
-            rootPath={rootPath}
-          >
-            <Metadata metadata={data?.metadata} labels={data?.labels} />
-          </ImageAutomationDetails>
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      {data && (
+        <ImageAutomationDetails
+          data={data}
+          kind={Kind.ImagePolicy}
+          infoFields={[
+            ['Kind', Kind.ImagePolicy],
+            ['Namespace', data?.namespace],
+            ['Namespace', data?.clusterName],
+            ['Image Policy', data?.imagePolicy?.type || ''],
+            ['Order/Range', data?.imagePolicy?.value],
+          ]}
+          rootPath={rootPath}
+        >
+          <Metadata metadata={data?.metadata} labels={data?.labels} />
+        </ImageAutomationDetails>
+      )}
+    </Page>
   );
 }
 

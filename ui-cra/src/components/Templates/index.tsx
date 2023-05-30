@@ -61,12 +61,12 @@ const TemplatesDashboard: FC<{
 
   return (
     <Page
+      loading={isLoading}
       path={[
         {
           label: 'Templates',
         },
       ]}
-      loading={isLoading}
     >
       <DataTable
         key={templates?.length}

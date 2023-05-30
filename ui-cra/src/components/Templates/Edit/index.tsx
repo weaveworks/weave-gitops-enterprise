@@ -1,5 +1,5 @@
 import Grid from '@material-ui/core/Grid';
-import { Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { Kind, Page, useGetObject } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -7,8 +7,7 @@ import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { Title } from '../../Layout/ContentWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';
@@ -101,8 +100,8 @@ const EditResourcePage: FC<Props> = props => {
   };
 
   return (
-    <PageTemplate
-      documentTitle="Edit resource"
+    <Page
+      loading={isLoading || isTemplateLoading}
       path={[
         { label: 'Resource' },
         {
@@ -115,15 +114,13 @@ const EditResourcePage: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading || isTemplateLoading}>
-        <Grid container>
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <Title>Edit resource</Title>
-          </Grid>
-          <EditResource resource={getEditableResource() || {}} />
+      <Grid container>
+        <Grid item xs={12} sm={10} md={10} lg={8}>
+          <Title>Edit resource</Title>
         </Grid>
-      </ContentWrapper>
-    </PageTemplate>
+        <EditResource resource={getEditableResource() || {}} />
+      </Grid>
+    </Page>
   );
 };
 

@@ -1,6 +1,5 @@
 import { FC } from 'react';
 import { Auth, Page, UserGroupsTable } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from './Layout/ContentWrapper';
 import React from 'react';
 
 const WGUserInfo: FC = () => {
@@ -8,15 +7,14 @@ const WGUserInfo: FC = () => {
 
   return (
     <Page
+      error={error ? [{ message: error?.statusText }] : []}
       path={[
         {
           label: 'User Info',
         },
       ]}
     >
-      <ContentWrapper errors={error ? [{ message: error?.statusText }] : []}>
-        <UserGroupsTable rows={userInfo?.groups} />
-      </ContentWrapper>
+      <UserGroupsTable rows={userInfo?.groups} />
     </Page>
   );
 };

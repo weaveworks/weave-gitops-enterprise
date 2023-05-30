@@ -12,7 +12,6 @@ import { FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import { Routes } from '../../utils/nav';
 import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 import { EditButton } from '../Templates/Edit/EditButton';
 
@@ -81,6 +80,8 @@ const WGApplicationsKustomization: FC<Props> = ({
 
   return (
     <Page
+      loading={isLoading}
+      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Applications',
@@ -91,29 +92,22 @@ const WGApplicationsKustomization: FC<Props> = ({
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={
-          error ? [{ clusterName, namespace, message: error?.message }] : []
-        }
+      <LinkResolverProvider
+        resolver={(obj, params) => {
+          const resolved = resolveLink(obj, {
+            clusterName: params.clusterName,
+            namespace: params.namespace,
+            name: params.name,
+          });
+          return resolved || '';
+        }}
       >
-        <LinkResolverProvider
-          resolver={(obj, params) => {
-            const resolved = resolveLink(obj, {
-              clusterName: params.clusterName,
-              namespace: params.namespace,
-              name: params.name,
-            });
-            return resolved || '';
-          }}
-        >
-          <KustomizationDetail
-            kustomization={kustomization}
-            customActions={[<EditButton resource={kustomization} />]}
-            customTabs={customTabs}
-          />
-        </LinkResolverProvider>
-      </ContentWrapper>
+        <KustomizationDetail
+          kustomization={kustomization}
+          customActions={[<EditButton resource={kustomization} />]}
+          customTabs={customTabs}
+        />
+      </LinkResolverProvider>
     </Page>
   );
 };

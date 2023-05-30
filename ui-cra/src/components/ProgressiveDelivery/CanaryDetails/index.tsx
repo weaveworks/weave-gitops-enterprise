@@ -1,8 +1,7 @@
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
 import CanaryDetailsSection from './CanaryDetailsSection';
 import { Routes } from '../../../utils/nav';
+import { Page } from '@weaveworks/weave-gitops';
 
 type Props = {
   name: string;
@@ -18,8 +17,8 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
   });
 
   return (
-    <PageTemplate
-      documentTitle="Delivery"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Delivery',
@@ -28,15 +27,13 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
-        {data?.canary && (
-          <CanaryDetailsSection
-            canary={data.canary}
-            automation={data.automation}
-          />
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      {data?.canary && (
+        <CanaryDetailsSection
+          canary={data.canary}
+          automation={data.automation}
+        />
+      )}
+    </Page>
   );
 }
 

@@ -1,5 +1,5 @@
 import { CircularProgress, MenuItem } from '@material-ui/core';
-import { Button, GitRepository, Link } from '@weaveworks/weave-gitops';
+import { Button, GitRepository, Link, Page } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -13,8 +13,6 @@ import {
   encryptSopsSecret,
 } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from './ListClusters';
@@ -117,8 +115,7 @@ const CreateSOPS = () => {
   const authRedirectPage = Routes.CreateSopsSecret;
 
   return (
-    <PageTemplate
-      documentTitle="SOPS"
+    <Page
       path={[
         { label: 'Secrets', url: Routes.Secrets },
         { label: 'Create new sops secret' },
@@ -132,106 +129,101 @@ const CreateSOPS = () => {
           },
         }}
       >
-        <ContentWrapper>
-          <FormWrapper
-            noValidate
-            onSubmit={event => {
-              setValidateForm(true);
-              validateFormData(event, handleCreateSecret, setFormError);
-            }}
-          >
-            <div className="group-section">
-              <div className="form-group">
-                <ListClusters
-                  value={formData.clusterName}
-                  validateForm={validateForm}
-                  handleFormData={(val: any) => {
-                    handleFormData(val, 'clusterName');
-                    handleFormData('', 'kustomization');
-                  }}
-                />
-                <InputDebounced
-                  required
-                  name="secretName"
-                  label="SECRET NAME"
-                  value={formData.secretName}
-                  handleFormData={val => handleFormData(val, 'secretName')}
-                  error={validateForm && !formData.secretName}
-                />
-                <InputDebounced
-                  required
-                  name="secretNamespace"
-                  label="SECRET NAMESPACE"
-                  value={formData.secretNamespace}
-                  handleFormData={val => handleFormData(val, 'secretNamespace')}
-                  error={validateForm && !formData.secretNamespace}
-                />
-              </div>
-            </div>
-            <div className="group-section">
-              <h2>Encryption</h2>
-              <div className="form-group">
-                <Select
-                  className="form-section"
-                  required
-                  name="encryptionType"
-                  label="ENCRYPT USING"
-                  value={formData.encryptionType}
-                  onChange={event =>
-                    handleFormData(event.target.value, 'encryptionType')
-                  }
-                >
-                  <MenuItem value="GPG/AGE">GPG / AGE</MenuItem>
-                </Select>
-                {!!formData.clusterName && (
-                  <ListKustomizations
-                    validateForm={validateForm}
-                    value={formData.kustomization}
-                    handleFormData={(val: any) =>
-                      handleFormData(val, 'kustomization')
-                    }
-                    clusterName={formData.clusterName}
-                  />
-                )}
-              </div>
-            </div>
-            <div className="group-section">
-              <h2>Secret Data</h2>
-              <p className="secret-data-hint">
-                Please note that we will encode the secret values to base64
-                before encryption
-              </p>
-              <SecretData
-                formData={formData}
-                setFormData={setFormData}
+        <FormWrapper
+          noValidate
+          onSubmit={event => {
+            setValidateForm(true);
+            validateFormData(event, handleCreateSecret, setFormError);
+          }}
+        >
+          <div className="group-section">
+            <div className="form-group">
+              <ListClusters
+                value={formData.clusterName}
                 validateForm={validateForm}
+                handleFormData={(val: any) => {
+                  handleFormData(val, 'clusterName');
+                  handleFormData('', 'kustomization');
+                }}
               />
-              <PreviewModal formData={formData} />
+              <InputDebounced
+                required
+                name="secretName"
+                label="SECRET NAME"
+                value={formData.secretName}
+                handleFormData={val => handleFormData(val, 'secretName')}
+                error={validateForm && !formData.secretName}
+              />
+              <InputDebounced
+                required
+                name="secretNamespace"
+                label="SECRET NAMESPACE"
+                value={formData.secretNamespace}
+                handleFormData={val => handleFormData(val, 'secretNamespace')}
+                error={validateForm && !formData.secretNamespace}
+              />
             </div>
-            <GitOps
+          </div>
+          <div className="group-section">
+            <h2>Encryption</h2>
+            <div className="form-group">
+              <Select
+                className="form-section"
+                required
+                name="encryptionType"
+                label="ENCRYPT USING"
+                value={formData.encryptionType}
+                onChange={event =>
+                  handleFormData(event.target.value, 'encryptionType')
+                }
+              >
+                <MenuItem value="GPG/AGE">GPG / AGE</MenuItem>
+              </Select>
+              {!!formData.clusterName && (
+                <ListKustomizations
+                  validateForm={validateForm}
+                  value={formData.kustomization}
+                  handleFormData={(val: any) =>
+                    handleFormData(val, 'kustomization')
+                  }
+                  clusterName={formData.clusterName}
+                />
+              )}
+            </div>
+          </div>
+          <div className="group-section">
+            <h2>Secret Data</h2>
+            <p className="secret-data-hint">
+              Please note that we will encode the secret values to base64 before
+              encryption
+            </p>
+            <SecretData
               formData={formData}
               setFormData={setFormData}
-              showAuthDialog={showAuthDialog}
-              setShowAuthDialog={setShowAuthDialog}
-              formError={formError}
-              enableGitRepoSelection={true}
+              validateForm={validateForm}
             />
+            <PreviewModal formData={formData} />
+          </div>
+          <GitOps
+            formData={formData}
+            setFormData={setFormData}
+            showAuthDialog={showAuthDialog}
+            setShowAuthDialog={setShowAuthDialog}
+            formError={formError}
+            enableGitRepoSelection={true}
+          />
 
-            <div className="create-cta">
-              <Button type="submit" disabled={!isAuthenticated || loading}>
-                CREATE PULL REQUEST
-                {loading && (
-                  <CircularProgress
-                    size={'1rem'}
-                    style={{ marginLeft: '4px' }}
-                  />
-                )}
-              </Button>
-            </div>
-          </FormWrapper>
-        </ContentWrapper>
+          <div className="create-cta">
+            <Button type="submit" disabled={!isAuthenticated || loading}>
+              CREATE PULL REQUEST
+              {loading && (
+                <CircularProgress size={'1rem'} style={{ marginLeft: '4px' }} />
+              )}
+            </Button>
+          </div>
+        </FormWrapper>
       </CallbackStateContextProvider>
-    </PageTemplate>
+    </Page>
   );
 };
 

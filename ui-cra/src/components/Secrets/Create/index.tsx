@@ -5,6 +5,7 @@ import {
   GitRepository,
   Link,
   LoadingPage,
+  Page,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -33,8 +34,6 @@ import {
 } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getRepositoryUrl,
@@ -328,8 +327,7 @@ const CreateSecret = () => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="Secrets"
+      <Page
         path={[
           { label: 'Secrets', url: Routes.Secrets },
           { label: 'Create new external secret' },
@@ -343,121 +341,119 @@ const CreateSecret = () => {
             },
           }}
         >
-          <ContentWrapper>
-            <FormWrapper
-              noValidate
-              onSubmit={event =>
-                validateFormData(event, handleCreateSecret, setFormError)
-              }
-            >
-              <div className="group-section">
-                <div className="form-group">
-                  <Input
-                    className="form-section"
-                    required
-                    name="secretName"
-                    label="EXTERNAL SECRET NAME"
-                    value={secretName}
-                    onChange={event => handleFormData(event, 'secretName')}
-                    error={formError === 'secretName' && !secretName}
-                  />
-                  <Input
-                    className="form-section"
-                    required
-                    name="dataSecretKey"
-                    label="TARGET K8s SECRET NAME"
-                    value={dataSecretKey}
-                    onChange={event => handleFormData(event, 'dataSecretKey')}
-                    error={formError === 'dataSecretKey' && !dataSecretKey}
-                  />
-                  <Select
-                    className="form-section"
-                    name="clusterName"
-                    required={true}
-                    label="TARGET CLUSTER"
-                    value={targetCluster || ''}
-                    onChange={HandleSelectCluster}
-                    error={formError === 'clusterName' && !clusterName}
-                  >
-                    {!clusters?.length ? (
-                      <MenuItem disabled={true}>Loading...</MenuItem>
-                    ) : (
-                      clusters?.map((option, index: number) => {
-                        return (
-                          <MenuItem key={index} value={JSON.stringify(option)}>
-                            {option.name}
-                          </MenuItem>
-                        );
-                      })
-                    )}
-                  </Select>
-                </div>
-                {isclusterSelected && (
-                  <SelectSecretStore
-                    cluster={
-                      clusterNamespace
-                        ? `${clusterNamespace}/${clusterName}`
-                        : clusterName
-                    }
-                    formError={formError}
-                    handleFormData={handleFormData}
-                    selectedSecretStore={selectedSecretStore || {}}
-                    setSelectedSecretStore={setSelectedSecretStore}
-                    formData={formData}
-                    setFormData={setFormData}
-                    automation={automation}
-                  />
-                )}
+          <FormWrapper
+            noValidate
+            onSubmit={event =>
+              validateFormData(event, handleCreateSecret, setFormError)
+            }
+          >
+            <div className="group-section">
+              <div className="form-group">
                 <Input
                   className="form-section"
                   required
-                  name="dataRemoteRefKey"
-                  label="SECRET PATH"
-                  value={dataRemoteRefKey}
-                  onChange={event => handleFormData(event, 'dataRemoteRefKey')}
-                  error={formError === 'dataRemoteRefKey' && !dataRemoteRefKey}
+                  name="secretName"
+                  label="EXTERNAL SECRET NAME"
+                  value={secretName}
+                  onChange={event => handleFormData(event, 'secretName')}
+                  error={formError === 'secretName' && !secretName}
                 />
                 <Input
                   className="form-section"
                   required
-                  name="dataRemoteRef_property"
-                  label="PROPERTY"
-                  value={dataRemoteRef_property}
-                  onChange={event =>
-                    handleFormData(event, 'dataRemoteRef_property')
-                  }
-                  error={
-                    formError === 'dataRemoteRef_property' &&
-                    !dataRemoteRef_property
-                  }
+                  name="dataSecretKey"
+                  label="TARGET K8s SECRET NAME"
+                  value={dataSecretKey}
+                  onChange={event => handleFormData(event, 'dataSecretKey')}
+                  error={formError === 'dataSecretKey' && !dataSecretKey}
                 />
+                <Select
+                  className="form-section"
+                  name="clusterName"
+                  required={true}
+                  label="TARGET CLUSTER"
+                  value={targetCluster || ''}
+                  onChange={HandleSelectCluster}
+                  error={formError === 'clusterName' && !clusterName}
+                >
+                  {!clusters?.length ? (
+                    <MenuItem disabled={true}>Loading...</MenuItem>
+                  ) : (
+                    clusters?.map((option, index: number) => {
+                      return (
+                        <MenuItem key={index} value={JSON.stringify(option)}>
+                          {option.name}
+                        </MenuItem>
+                      );
+                    })
+                  )}
+                </Select>
               </div>
-              <PreviewPRModal
-                formData={formData}
-                getClusterAutomations={getClusterAutomations}
-              />
-              <GitOps
-                formData={formData}
-                setFormData={setFormData}
-                showAuthDialog={showAuthDialog}
-                setShowAuthDialog={setShowAuthDialog}
-                formError={formError}
-                enableGitRepoSelection={true}
-              />
-
-              {loading ? (
-                <LoadingPage className="create-loading" />
-              ) : (
-                <div className="create-cta">
-                  <Button type="submit" disabled={!isAuthenticated}>
-                    CREATE PULL REQUEST
-                  </Button>
-                </div>
+              {isclusterSelected && (
+                <SelectSecretStore
+                  cluster={
+                    clusterNamespace
+                      ? `${clusterNamespace}/${clusterName}`
+                      : clusterName
+                  }
+                  formError={formError}
+                  handleFormData={handleFormData}
+                  selectedSecretStore={selectedSecretStore || {}}
+                  setSelectedSecretStore={setSelectedSecretStore}
+                  formData={formData}
+                  setFormData={setFormData}
+                  automation={automation}
+                />
               )}
-            </FormWrapper>
-          </ContentWrapper>
+              <Input
+                className="form-section"
+                required
+                name="dataRemoteRefKey"
+                label="SECRET PATH"
+                value={dataRemoteRefKey}
+                onChange={event => handleFormData(event, 'dataRemoteRefKey')}
+                error={formError === 'dataRemoteRefKey' && !dataRemoteRefKey}
+              />
+              <Input
+                className="form-section"
+                required
+                name="dataRemoteRef_property"
+                label="PROPERTY"
+                value={dataRemoteRef_property}
+                onChange={event =>
+                  handleFormData(event, 'dataRemoteRef_property')
+                }
+                error={
+                  formError === 'dataRemoteRef_property' &&
+                  !dataRemoteRef_property
+                }
+              />
+            </div>
+            <PreviewPRModal
+              formData={formData}
+              getClusterAutomations={getClusterAutomations}
+            />
+            <GitOps
+              formData={formData}
+              setFormData={setFormData}
+              showAuthDialog={showAuthDialog}
+              setShowAuthDialog={setShowAuthDialog}
+              formError={formError}
+              enableGitRepoSelection={true}
+            />
+
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <div className="create-cta">
+                <Button type="submit" disabled={!isAuthenticated}>
+                  CREATE PULL REQUEST
+                </Button>
+              </div>
+            )}
+          </FormWrapper>
         </CallbackStateContextProvider>
-      </PageTemplate>
+      </Page>
     </ThemeProvider>
   );
 };

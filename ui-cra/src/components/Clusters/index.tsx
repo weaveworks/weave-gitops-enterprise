@@ -22,6 +22,7 @@ import {
   useListSources,
   Page,
 } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -62,6 +63,17 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
+
+interface Size {
+  size?: 'small';
+}
+
+export const ActionsWrapper = styled(Flex)<Size>`
+  & > .actionButton.btn {
+    margin-right: ${({ theme }) => theme.spacing.small};
+    margin-bottom: ${({ theme }) => theme.spacing.small};
+  }
+`;
 
 export function computeMessage(conditions: Condition[]) {
   const readyCondition = conditions.find(
@@ -348,7 +360,7 @@ const MCCP: FC<{
           state: { formData, selectedCapiCluster },
         }}
       >
-        <Flex center between style={{ marginBottom: '20px' }}>
+        <ActionsWrapper>
           <Button
             id="create-cluster"
             startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -408,7 +420,7 @@ const MCCP: FC<{
             <ConnectClusterDialog onFinish={() => setOpenConnectInfo(false)} />
           )}
           <OpenedPullRequest />
-        </Flex>
+        </ActionsWrapper>
         <SubRouterTabs rootPath={`${path}/list`}>
           <RouterTab name="Clusters" path={`${path}/list`}>
             <LoadingWrapper loading={isLoading}>

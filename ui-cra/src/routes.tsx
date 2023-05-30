@@ -1,4 +1,4 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
+import { Page, V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -30,8 +30,6 @@ import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
 import ImageAutomationUpdatesDetails from './components/ImageAutomation/updates/ImageAutomationUpdatesDetails';
-import { ContentWrapper } from './components/Layout/ContentWrapper';
-import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
@@ -86,16 +84,14 @@ const CoreWrapper = styled.div`
 `;
 
 const Page404 = () => (
-  <PageTemplate documentTitle="NotFound" path={[{ label: 'Error' }]}>
-    <ContentWrapper>
-      <Lottie
-        loop
-        animationData={error404}
-        play
-        style={{ width: '100%', height: 650 }}
-      />
-    </ContentWrapper>
-  </PageTemplate>
+  <Page path={[{ label: 'Error' }]}>
+    <Lottie
+      loop
+      animationData={error404}
+      play
+      style={{ width: '100%', height: 650 }}
+    />
+  </Page>
 );
 
 const AppRoutes = () => {
