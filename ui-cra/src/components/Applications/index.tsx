@@ -1,7 +1,6 @@
 import {
   AutomationsTable,
   Button,
-  Flex,
   Icon,
   IconType,
   Page,

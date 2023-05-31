@@ -14,6 +14,10 @@ const DialogWrapper = styled(Dialog)`
     padding: ${({ theme }) => theme.spacing.medium};
     border-radius: ${({ theme }) => theme.spacing.xs};
   }
+
+  button {
+    padding: 0;
+  }
 `;
 
 interface Props {
@@ -28,7 +32,10 @@ export const ConnectClusterDialog: FC<Props> = ({ onFinish }) => {
       onClose={() => onFinish()}
       open
     >
-      <DialogTitle disableTypography>
+      <DialogTitle
+        style={{ display: 'flex', justifyContent: 'space-between' }}
+        disableTypography
+      >
         <Typography variant="h5">Connect a cluster</Typography>
         {onFinish ? <CloseIconButton onClick={() => onFinish()} /> : null}
       </DialogTitle>
