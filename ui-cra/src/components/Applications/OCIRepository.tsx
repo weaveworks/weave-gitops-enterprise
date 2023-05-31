@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   OCIRepositoryDetail,
   Kind,
@@ -31,7 +32,6 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
   return (
     <Page
       loading={isLoading}
-      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -42,11 +42,17 @@ const WGApplicationsOCIRepository: FC<Props> = props => {
         },
       ]}
     >
-      <OCIRepositoryDetail
-        ociRepository={ociRepository}
-        customActions={[<EditButton resource={ociRepository} />]}
-        {...props}
-      />
+      <NotificationsWrapper
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <OCIRepositoryDetail
+          ociRepository={ociRepository}
+          customActions={[<EditButton resource={ociRepository} />]}
+          {...props}
+        />
+      </NotificationsWrapper>
     </Page>
   );
 };

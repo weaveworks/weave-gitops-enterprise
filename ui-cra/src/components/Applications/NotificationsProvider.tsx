@@ -6,6 +6,7 @@ import {
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 type Props = {
@@ -30,7 +31,6 @@ const WGNotificationsProvider: FC<Props> = ({
   return (
     <Page
       loading={isLoading}
-      error={error ? [{ message: error?.message }] : []}
       path={[
         {
           label: 'Notifications',
@@ -41,7 +41,9 @@ const WGNotificationsProvider: FC<Props> = ({
         },
       ]}
     >
-      <ProviderDetail provider={data} />
+      <NotificationsWrapper errors={error ? [{ message: error?.message }] : []}>
+        <ProviderDetail provider={data} />
+      </NotificationsWrapper>
     </Page>
   );
 };

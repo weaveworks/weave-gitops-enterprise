@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   HelmChartDetail,
   Kind,
@@ -26,7 +27,6 @@ const WGApplicationsHelmChart: FC<Props> = props => {
   return (
     <Page
       loading={isLoading}
-      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -37,11 +37,17 @@ const WGApplicationsHelmChart: FC<Props> = props => {
         },
       ]}
     >
-      <HelmChartDetail
-        helmChart={helmChart}
-        customActions={[<EditButton resource={helmChart} />]}
-        {...props}
-      />
+      <NotificationsWrapper
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <HelmChartDetail
+          helmChart={helmChart}
+          customActions={[<EditButton resource={helmChart} />]}
+          {...props}
+        />
+      </NotificationsWrapper>
     </Page>
   );
 };

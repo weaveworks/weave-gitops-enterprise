@@ -7,7 +7,7 @@ import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { Routes } from '../../../utils/nav';
-import { Title } from '../../Layout/ContentWrapper';
+import { Title } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';

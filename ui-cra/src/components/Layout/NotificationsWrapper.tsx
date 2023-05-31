@@ -1,15 +1,11 @@
-import { Box, CircularProgress } from '@material-ui/core';
-import { Flex } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
-
 import useNotifications, {
   NotificationData,
-} from './../../contexts/Notifications';
+} from '../../contexts/Notifications';
 import { AlertListErrors } from './AlertListErrors';
 import Notifications from './Notifications';
-
 import { useVersionContext } from '../../contexts/ListConfig';
 import {
   WarningIcon,
@@ -27,39 +23,15 @@ export const Title = styled.h2`
   margin-top: 0px;
 `;
 
-export const PageWrapper = styled.div`
-  width: 100%;
-  height: 100%;
-  margin: 0 auto;
-`;
-
-export const contentCss = css`
-  padding: ${props => props.theme.spacing.medium};
-  background-color: ${props => props.theme.colors.white};
-  border-radius: ${props => props.theme.spacing.xs}
-    ${props => props.theme.spacing.xs} 0 0;
-  height: 100%;
-`;
-
-export const Content = styled.div<{ backgroundColor?: string }>`
-  ${contentCss};
-  background-color: ${props => props.backgroundColor};
-`;
-
 interface Props {
-  type?: string;
-  backgroundColor?: string;
   errors?: ListError[];
-  loading?: boolean;
   notifications?: NotificationData[];
   warningMsg?: string;
 }
 
-export const ContentWrapper: FC<Props> = ({
+export const NotificationsWrapper: FC<Props> = ({
   children,
-  backgroundColor,
   errors,
-  loading,
   warningMsg,
 }) => {
   const versionResponse = useVersionContext();
@@ -83,30 +55,8 @@ export const ContentWrapper: FC<Props> = ({
   );
   const bottomNotifications = notifications.filter(n => n.display === 'bottom');
 
-  if (loading) {
-    return (
-      <Box marginTop={4}>
-        <Flex wide center>
-          <CircularProgress />
-        </Flex>
-      </Box>
-    );
-  }
-
   return (
-    <div
-      id="content-wrapper"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        maxHeight: 'calc(100vh - 60px)',
-        overflowWrap: 'normal',
-        overflowX: 'scroll',
-        paddingRight: '24px',
-        margin: '0 auto',
-      }}
-    >
+    <>
       {errors && (
         <AlertListErrors
           errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
@@ -124,7 +74,7 @@ export const ContentWrapper: FC<Props> = ({
       )}
       <Notifications notifications={topNotifications} />
 
-      <Content backgroundColor={backgroundColor}>{children}</Content>
+      {children}
 
       {!!bottomNotifications.length && (
         <div style={{ paddingTop: '16px' }}>
@@ -132,6 +82,6 @@ export const ContentWrapper: FC<Props> = ({
         </div>
       )}
       <MemoizedHelpLinkWrapper />
-    </div>
+    </>
   );
 };

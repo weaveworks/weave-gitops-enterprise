@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
 import Explorer from '../Explorer/Explorer';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -34,7 +35,6 @@ const WGApplicationsSources: FC = ({ className }: any) => {
 
   return (
     <Page
-      error={sources?.errors}
       loading={isLoading}
       path={[
         {
@@ -42,13 +42,15 @@ const WGApplicationsSources: FC = ({ className }: any) => {
         },
       ]}
     >
-      <div className={className}>
-        {useQueryServiceBackend ? (
-          <Explorer enableBatchSync category="source" />
-        ) : (
-          <SourcesTable sources={sources?.result} />
-        )}
-      </div>
+      <NotificationsWrapper errors={sources?.errors}>
+        <div className={className}>
+          {useQueryServiceBackend ? (
+            <Explorer enableBatchSync category="source" />
+          ) : (
+            <SourcesTable sources={sources?.result} />
+          )}
+        </div>
+      </NotificationsWrapper>
     </Page>
   );
 };

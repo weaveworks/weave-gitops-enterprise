@@ -1,7 +1,7 @@
 import Grid from '@material-ui/core/Grid';
 import { useParams } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
-import { Title } from '../../Layout/ContentWrapper';
+import { NotificationsWrapper, Title } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { Page } from '@weaveworks/weave-gitops';
 
@@ -16,12 +16,14 @@ const CreateResourcePage = () => {
         { label: 'Create new resource' },
       ]}
     >
-      <Grid container>
-        <Grid item xs={12} sm={10} md={10} lg={8}>
-          <Title>Create new resource with template</Title>
+      <NotificationsWrapper>
+        <Grid container>
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <Title>Create new resource with template</Title>
+          </Grid>
+          <ResourceForm template={getTemplate(templateName)} />
         </Grid>
-        <ResourceForm template={getTemplate(templateName)} />
-      </Grid>
+      </NotificationsWrapper>
     </Page>
   );
 };

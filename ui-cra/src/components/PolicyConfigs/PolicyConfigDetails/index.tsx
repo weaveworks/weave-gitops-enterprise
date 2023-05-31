@@ -1,7 +1,7 @@
 import { Page } from '@weaveworks/weave-gitops';
 import { useGetPolicyConfigDetails } from '../../../contexts/PolicyConfigs';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import PolicyConfigHeaderSection from './PolicyConfigHeaderSection';
 import PolicyDetailsCard from './PolicyDetailsCard';
 
@@ -26,7 +26,7 @@ const PolicyConfigDetails = ({
         { label: PolicyConfig?.name || '' },
       ]}
     >
-      <ContentWrapper
+      <NotificationsWrapper
         warningMsg={
           PolicyConfig?.status === 'Warning'
             ? 'One or more than a policy isn’t found in the cluster.'
@@ -44,7 +44,7 @@ const PolicyConfigDetails = ({
           totalPolicies={PolicyConfig?.totalPolicies}
           clusterName={clusterName}
         />
-      </ContentWrapper>
+      </NotificationsWrapper>
     </Page>
   );
 };

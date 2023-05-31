@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   GitRepositoryDetail,
   Kind,
@@ -31,7 +32,6 @@ const WGApplicationsGitRepository: FC<Props> = props => {
   return (
     <Page
       loading={isLoading}
-      error={error ? [{ clusterName, namespace, message: error?.message }] : []}
       path={[
         {
           label: 'Sources',
@@ -42,11 +42,17 @@ const WGApplicationsGitRepository: FC<Props> = props => {
         },
       ]}
     >
-      <GitRepositoryDetail
-        gitRepository={gitRepository}
-        customActions={[<EditButton resource={gitRepository} />]}
-        {...props}
-      />
+      <NotificationsWrapper
+        errors={
+          error ? [{ clusterName, namespace, message: error?.message }] : []
+        }
+      >
+        <GitRepositoryDetail
+          gitRepository={gitRepository}
+          customActions={[<EditButton resource={gitRepository} />]}
+          {...props}
+        />
+      </NotificationsWrapper>
     </Page>
   );
 };

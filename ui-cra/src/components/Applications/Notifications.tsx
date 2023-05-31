@@ -4,6 +4,7 @@ import {
   Page,
   useListProviders,
 } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
 
 const WGNotifications: FC = () => {
@@ -12,7 +13,6 @@ const WGNotifications: FC = () => {
   return (
     <Page
       loading={isLoading}
-      error={error ? [{ message: error?.message }] : []}
       path={[
         {
           label: 'Notifications',
@@ -20,7 +20,9 @@ const WGNotifications: FC = () => {
         },
       ]}
     >
-      <NotificationsTable rows={data?.objects as Provider[]} />
+      <NotificationsWrapper errors={error ? [{ message: error?.message }] : []}>
+        <NotificationsTable rows={data?.objects as Provider[]} />
+      </NotificationsWrapper>
     </Page>
   );
 };

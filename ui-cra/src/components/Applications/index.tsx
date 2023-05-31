@@ -14,6 +14,7 @@ import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
 import { ActionsWrapper } from '../Clusters';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -34,31 +35,32 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
   return (
     <Page
       loading={isLoading}
-      error={automations?.errors}
       path={[
         {
           label: 'Applications',
         },
       ]}
     >
-      <ActionsWrapper>
-        <Button
-          id="add-application"
-          className="actionButton btn"
-          startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={handleAddApplication}
-        >
-          ADD AN APPLICATION
-        </Button>
-        <OpenedPullRequest />
-      </ActionsWrapper>
-      <div className={className}>
-        {useQueryServiceBackend ? (
-          <Explorer category="automation" enableBatchSync />
-        ) : (
-          <AutomationsTable automations={automations?.result} />
-        )}
-      </div>
+      <NotificationsWrapper errors={automations?.errors}>
+        <ActionsWrapper>
+          <Button
+            id="add-application"
+            className="actionButton btn"
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={handleAddApplication}
+          >
+            ADD AN APPLICATION
+          </Button>
+          <OpenedPullRequest />
+        </ActionsWrapper>
+        <div className={className}>
+          {useQueryServiceBackend ? (
+            <Explorer category="automation" enableBatchSync />
+          ) : (
+            <AutomationsTable automations={automations?.result} />
+          )}
+        </div>
+      </NotificationsWrapper>
     </Page>
   );
 };
