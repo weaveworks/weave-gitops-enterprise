@@ -37,9 +37,10 @@ func (c *cRoleAdapter) ToModel() models.Role {
 
 	for _, r := range c.Rules {
 		rules = append(rules, models.PolicyRule{
-			APIGroups: models.JoinRuleData(r.APIGroups),
-			Resources: models.JoinRuleData(r.Resources),
-			Verbs:     models.JoinRuleData(r.Verbs),
+			APIGroups:     models.JoinRuleData(r.APIGroups),
+			Resources:     models.JoinRuleData(r.Resources),
+			Verbs:         models.JoinRuleData(r.Verbs),
+			ResourceNames: models.JoinRuleData(r.ResourceNames),
 		})
 	}
 
@@ -77,9 +78,10 @@ func (r *roleAdapter) ToModel() models.Role {
 
 	for _, r := range r.Rules {
 		rules = append(rules, models.PolicyRule{
-			APIGroups: models.JoinRuleData(r.APIGroups),
-			Resources: models.JoinRuleData(r.Resources),
-			Verbs:     models.JoinRuleData(r.Verbs),
+			APIGroups:     models.JoinRuleData(r.APIGroups),
+			Resources:     models.JoinRuleData(r.Resources),
+			Verbs:         models.JoinRuleData(r.Verbs),
+			ResourceNames: models.JoinRuleData(r.ResourceNames),
 		})
 	}
 

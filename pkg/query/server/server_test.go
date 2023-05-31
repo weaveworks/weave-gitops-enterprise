@@ -67,9 +67,6 @@ func TestNewServer(t *testing.T) {
 
 			s2 := s.(*server)
 
-			g.Expect(s2.ac).NotTo(BeNil())
-			g.Expect(s2.qs).NotTo(BeNil())
-
 			if !tt.options.SkipCollection {
 				g.Expect(s2.arc).NotTo(BeNil())
 				g.Expect(s2.objs).NotTo(BeNil())

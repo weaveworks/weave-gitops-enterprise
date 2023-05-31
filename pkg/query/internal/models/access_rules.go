@@ -11,10 +11,11 @@ type AccessRule struct {
 	Cluster   string
 	Namespace string
 	//TODO should this be renamed to GR from GVR?
-	AccessibleKinds   []string
-	Subjects          []Subject
-	ProvidedByRole    string
-	ProvidedByBinding string
+	AccessibleKinds         []string
+	Subjects                []Subject
+	ProvidedByRole          string
+	ProvidedByBinding       string
+	AccessibleResourceNames []string
 }
 
 // String returns a string version of the access rule that includes cluster/namespace/rolebinding/role
