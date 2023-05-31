@@ -4,9 +4,14 @@ kind: Service
 metadata:
   name: clusters-service
   namespace: {{ .Release.Namespace | quote }}
-  {{- with .Values.service.annotations }}
   annotations:
+  {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- if .Values.metrics.enabled }}
+    {{- with .Values.metrics.service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   selector:
@@ -74,4 +79,10 @@ spec:
       {{- else if eq $.Values.service.type "ClusterIP" }}
       nodePort: null
       {{- end }}
+    {{- end }}
+    {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.metrics.service.port }}
+      targetPort: {{ .Values.metrics.service.port }}
+      protocol: TCP
+      name: http-metrics
     {{- end }}
