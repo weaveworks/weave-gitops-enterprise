@@ -6,6 +6,13 @@ import Navigation from './Navigation';
 import { ToastContainer } from 'react-toastify';
 import { useState } from 'react';
 import { Routes } from '../../utils/nav';
+import styled from 'styled-components';
+
+const WGLayout = styled(Layout)`
+  div[class*='Logo'] {
+    height: 60px;
+  }
+`;
 
 const App = () => {
   const [collapsed, setCollapsed] = useState<boolean>(false);
@@ -13,7 +20,7 @@ const App = () => {
   return (
     <ListConfigProvider>
       <VersionProvider>
-        <Layout
+        <WGLayout
           logo={<Logo collapsed={collapsed} link={Routes.Clusters} />}
           nav={<Navigation collapsed={collapsed} setCollapsed={setCollapsed} />}
         >
@@ -25,7 +32,7 @@ const App = () => {
             autoClose={5000}
             newestOnTop={false}
           />
-        </Layout>
+        </WGLayout>
       </VersionProvider>
     </ListConfigProvider>
   );
