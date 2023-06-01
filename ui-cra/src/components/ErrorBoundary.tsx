@@ -1,5 +1,6 @@
 import React, { useState, useEffect, FC } from 'react';
 import { useLocation } from 'react-router-dom';
+import { NotificationsWrapper } from './Layout/NotificationsWrapper';
 import { Page } from '@weaveworks/weave-gitops';
 
 interface Props {
@@ -38,9 +39,11 @@ class ErrorBoundaryDetail extends React.Component<any, Props> {
             },
           ]}
         >
-          <h3>Something went wrong.</h3>
-          <pre>{this.state.error?.message}</pre>
-          <pre>{this.state.error?.stack}</pre>
+          <NotificationsWrapper>
+            <h3>Something went wrong.</h3>
+            <pre>{this.state.error?.message}</pre>
+            <pre>{this.state.error?.stack}</pre>
+          </NotificationsWrapper>
         </Page>
       );
     }

@@ -1,4 +1,5 @@
 import { FC } from 'react';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   DataTable,
   filterConfig,
@@ -121,13 +122,14 @@ const GitOpsSets: FC = () => {
         },
       ]}
       loading={isLoading}
-      error={data?.errors}
     >
-      <DataTable
-        fields={fields}
-        rows={data?.gitopssets}
-        filters={initialFilterState}
-      />
+      <NotificationsWrapper errors={data?.errors}>
+        <DataTable
+          fields={fields}
+          rows={data?.gitopssets}
+          filters={initialFilterState}
+        />
+      </NotificationsWrapper>
     </Page>
   );
 };

@@ -10,13 +10,13 @@ import {
   InfoList,
   KubeStatusIndicator,
   Metadata,
-  Page,
   PageStatus,
   ReconciledObjectsAutomation,
   RequestStateHandler,
   RouterTab,
   SubRouterTabs,
   YamlView,
+  Page,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -32,6 +32,7 @@ import {
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
 import { Routes } from '../../utils/nav';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
@@ -174,94 +175,96 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
         },
       ]}
     >
-      <Box paddingBottom={3}>
-        <KubeStatusIndicator
-          conditions={gs?.conditions || []}
-          suspended={gs?.suspended}
-        />
-      </Box>
-      <Box paddingBottom={3}>
-        <Flex>
-          <Button
-            loading={syncing}
-            variant="outlined"
-            onClick={handleSyncClick}
-            style={{ marginRight: 0, textTransform: 'uppercase' }}
-          >
-            Sync
-          </Button>
-          <Box paddingLeft={1}>
+      <NotificationsWrapper>
+        <Box paddingBottom={3}>
+          <KubeStatusIndicator
+            conditions={gs?.conditions || []}
+            suspended={gs?.suspended}
+          />
+        </Box>
+        <Box paddingBottom={3}>
+          <Flex>
             <Button
-              loading={suspending}
+              loading={syncing}
               variant="outlined"
-              onClick={handleSuspendClick}
+              onClick={handleSyncClick}
               style={{ marginRight: 0, textTransform: 'uppercase' }}
             >
-              {gs?.suspended ? 'Resume' : 'Suspend'}
+              Sync
             </Button>
-          </Box>
-        </Flex>
-      </Box>
-      <SubRouterTabs rootPath={`${path}/details`}>
-        <RouterTab name="Details" path={`${path}/details`}>
-          <Box style={{ width: '100%' }}>
-            <InfoList
-              data-testid="info-list"
-              items={[
-                ['Observed generation', gs?.observedGeneration],
-                ['Cluster', gs?.clusterName],
-                ['Suspended', gs?.suspended ? 'True' : 'False'],
-              ]}
-            />
-            <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
-            <TableWrapper>
-              <RequestStateHandler
-                loading={isLoading}
-                error={error as RequestError}
+            <Box paddingLeft={1}>
+              <Button
+                loading={suspending}
+                variant="outlined"
+                onClick={handleSuspendClick}
+                style={{ marginRight: 0, textTransform: 'uppercase' }}
               >
-                <FluxObjectsTable
-                  className={className}
-                  objects={objects || []}
-                  onClick={setDetailModal}
-                  initialFilterState={initialFilterState}
-                />
-              </RequestStateHandler>
-            </TableWrapper>
-          </Box>
-        </RouterTab>
-        <RouterTab name="Events" path={`${path}/events`}>
-          <ListEvents
-            clusterName={gs?.clusterName}
-            involvedObject={{
-              kind: 'GitOpsSet',
-              name: gs?.name,
-              namespace: gs?.namespace,
-            }}
-          />
-        </RouterTab>
-        <RouterTab name="Graph" path={`${path}/graph`}>
-          <RequestStateHandler
-            loading={isLoading}
-            error={error as RequestError}
-          >
-            <Graph
-              className={className}
-              reconciledObjectsAutomation={reconciledObjectsAutomation}
-              objects={objects || []}
+                {gs?.suspended ? 'Resume' : 'Suspend'}
+              </Button>
+            </Box>
+          </Flex>
+        </Box>
+        <SubRouterTabs rootPath={`${path}/details`}>
+          <RouterTab name="Details" path={`${path}/details`}>
+            <Box style={{ width: '100%' }}>
+              <InfoList
+                data-testid="info-list"
+                items={[
+                  ['Observed generation', gs?.observedGeneration],
+                  ['Cluster', gs?.clusterName],
+                  ['Suspended', gs?.suspended ? 'True' : 'False'],
+                ]}
+              />
+              <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
+              <TableWrapper>
+                <RequestStateHandler
+                  loading={isLoading}
+                  error={error as RequestError}
+                >
+                  <FluxObjectsTable
+                    className={className}
+                    objects={objects || []}
+                    onClick={setDetailModal}
+                    initialFilterState={initialFilterState}
+                  />
+                </RequestStateHandler>
+              </TableWrapper>
+            </Box>
+          </RouterTab>
+          <RouterTab name="Events" path={`${path}/events`}>
+            <ListEvents
+              clusterName={gs?.clusterName}
+              involvedObject={{
+                kind: 'GitOpsSet',
+                name: gs?.name,
+                namespace: gs?.namespace,
+              }}
             />
-          </RequestStateHandler>
-        </RouterTab>
-        <RouterTab name="Yaml" path={`${path}/yaml`}>
-          <YamlView
-            yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
-            object={{
-              kind: gs?.type,
-              name: gs?.name,
-              namespace: gs?.namespace,
-            }}
-          />
-        </RouterTab>
-      </SubRouterTabs>
+          </RouterTab>
+          <RouterTab name="Graph" path={`${path}/graph`}>
+            <RequestStateHandler
+              loading={isLoading}
+              error={error as RequestError}
+            >
+              <Graph
+                className={className}
+                reconciledObjectsAutomation={reconciledObjectsAutomation}
+                objects={objects || []}
+              />
+            </RequestStateHandler>
+          </RouterTab>
+          <RouterTab name="Yaml" path={`${path}/yaml`}>
+            <YamlView
+              yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
+              object={{
+                kind: gs?.type,
+                name: gs?.name,
+                namespace: gs?.namespace,
+              }}
+            />
+          </RouterTab>
+        </SubRouterTabs>
+      </NotificationsWrapper>
     </Page>
   );
 }

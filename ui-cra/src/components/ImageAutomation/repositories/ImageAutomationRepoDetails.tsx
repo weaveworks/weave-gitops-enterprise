@@ -10,6 +10,7 @@ import {
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
@@ -42,32 +43,34 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
         { label: name },
       ]}
     >
-      {data && (
-        <ImageAutomationDetails
-          data={data}
-          kind={Kind.ImageRepository}
-          infoFields={[
-            ['Kind', Kind.ImageRepository],
-            ['Namespace', data?.namespace],
-            ['Namespace', data?.clusterName],
-            [
-              'Image',
-              <Link newTab={true} to={data.obj?.spec?.image}>
-                {data.obj?.spec?.image}
-              </Link>,
-            ],
-            ['Interval', <Interval interval={data.interval} />],
-            ['Tag Count', data.tagCount],
-          ]}
-          rootPath={rootPath}
-        >
-          <Button>
-            <Link to={`/image_automation/policies?filters=${filtersValues}`}>
-              Go To Image Policy
-            </Link>
-          </Button>
-        </ImageAutomationDetails>
-      )}
+      <NotificationsWrapper>
+        {data && (
+          <ImageAutomationDetails
+            data={data}
+            kind={Kind.ImageRepository}
+            infoFields={[
+              ['Kind', Kind.ImageRepository],
+              ['Namespace', data?.namespace],
+              ['Namespace', data?.clusterName],
+              [
+                'Image',
+                <Link newTab={true} to={data.obj?.spec?.image}>
+                  {data.obj?.spec?.image}
+                </Link>,
+              ],
+              ['Interval', <Interval interval={data.interval} />],
+              ['Tag Count', data.tagCount],
+            ]}
+            rootPath={rootPath}
+          >
+            <Button>
+              <Link to={`/image_automation/policies?filters=${filtersValues}`}>
+                Go To Image Policy
+              </Link>
+            </Button>
+          </ImageAutomationDetails>
+        )}
+      </NotificationsWrapper>
     </Page>
   );
 }

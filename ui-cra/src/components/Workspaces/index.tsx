@@ -1,16 +1,15 @@
 import { WorkspacesTable } from './Table';
 import { useListWorkspaces } from '../../contexts/Workspaces';
 import { Page } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WorkspacesList = () => {
   const { data, isLoading } = useListWorkspaces({});
   return (
-    <Page
-      loading={isLoading}
-      error={data?.errors}
-      path={[{ label: 'Workspaces' }]}
-    >
-      {data?.workspaces && <WorkspacesTable workspaces={data.workspaces} />}
+    <Page loading={isLoading} path={[{ label: 'Workspaces' }]}>
+      <NotificationsWrapper errors={data?.errors}>
+        {data?.workspaces && <WorkspacesTable workspaces={data.workspaces} />}
+      </NotificationsWrapper>
     </Page>
   );
 };

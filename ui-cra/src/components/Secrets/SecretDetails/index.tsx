@@ -4,6 +4,7 @@ import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { useSyncSecret } from './SyncSecret';
@@ -69,24 +70,26 @@ const SecretDetails = ({
         { label: secretDetails?.externalSecretName || '' },
       ]}
     >
-      <Box paddingBottom={3}>
-        <Button
-          id="sync-secret"
-          loading={syncing}
-          variant="outlined"
-          onClick={handleSyncClick}
-          style={{ marginRight: 0, textTransform: 'uppercase' }}
-        >
-          Sync
-        </Button>
-      </Box>
-      {generateRowHeaders(defaultHeaders)}
-      <SecretDetailsTabs
-        externalSecretName={externalSecretName}
-        clusterName={clusterName}
-        namespace={namespace}
-        secretDetails={secretDetails || {}}
-      />
+      <NotificationsWrapper>
+        <Box paddingBottom={3}>
+          <Button
+            id="sync-secret"
+            loading={syncing}
+            variant="outlined"
+            onClick={handleSyncClick}
+            style={{ marginRight: 0, textTransform: 'uppercase' }}
+          >
+            Sync
+          </Button>
+        </Box>
+        {generateRowHeaders(defaultHeaders)}
+        <SecretDetailsTabs
+          externalSecretName={externalSecretName}
+          clusterName={clusterName}
+          namespace={namespace}
+          secretDetails={secretDetails || {}}
+        />
+      </NotificationsWrapper>
     </Page>
   );
 };

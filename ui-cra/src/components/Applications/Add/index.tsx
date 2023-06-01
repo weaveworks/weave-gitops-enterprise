@@ -4,7 +4,7 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
 import { createDeploymentObjects, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
-import { NotificationsWrapper } from '../../Layout/ContentWrapper';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import {
   Button,
   Flex,

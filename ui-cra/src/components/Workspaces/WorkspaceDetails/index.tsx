@@ -3,6 +3,7 @@ import { Routes } from '../../../utils/nav';
 import WorkspaceHeaderSection from './WorkspaceHeaderSection';
 import TabDetails from './TabDetails';
 import { Page } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 
 const WorkspaceDetails = ({
   clusterName,
@@ -25,12 +26,14 @@ const WorkspaceDetails = ({
         { label: workspaceDetails?.name || '' },
       ]}
     >
-      <WorkspaceHeaderSection
-        name={workspaceDetails?.name}
-        clusterName={workspaceDetails?.clusterName}
-        namespaces={workspaceDetails?.namespaces}
-      />
-      <TabDetails clusterName={clusterName} workspaceName={workspaceName} />
+      <NotificationsWrapper>
+        <WorkspaceHeaderSection
+          name={workspaceDetails?.name}
+          clusterName={workspaceDetails?.clusterName}
+          namespaces={workspaceDetails?.namespaces}
+        />
+        <TabDetails clusterName={clusterName} workspaceName={workspaceName} />
+      </NotificationsWrapper>
     </Page>
   );
 };

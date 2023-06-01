@@ -54,6 +54,7 @@ import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
+import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -85,12 +86,14 @@ const CoreWrapper = styled.div`
 
 const Page404 = () => (
   <Page path={[{ label: 'Error' }]}>
-    <Lottie
-      loop
-      animationData={error404}
-      play
-      style={{ width: '100%', height: 650 }}
-    />
+    <NotificationsWrapper>
+      <Lottie
+        loop
+        animationData={error404}
+        play
+        style={{ width: '100%', height: 650 }}
+      />
+    </NotificationsWrapper>
   </Page>
 );
 

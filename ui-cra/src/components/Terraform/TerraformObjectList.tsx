@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { useListTerraformObjects } from '../../contexts/Terraform';
-import { TableWrapper } from '../Shared';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import TerraformListTable from './TerraformListTable';
 import { Page } from '@weaveworks/weave-gitops';
 type Props = {
@@ -12,7 +12,6 @@ function TerraformObjectList({ className }: Props) {
 
   return (
     <Page
-      error={error ? [error] : data?.errors || []}
       loading={isLoading}
       path={[
         {
@@ -20,9 +19,9 @@ function TerraformObjectList({ className }: Props) {
         },
       ]}
     >
-      <TableWrapper>
+      <NotificationsWrapper errors={error ? [error] : data?.errors || []}>
         <TerraformListTable rows={data?.objects || []} />
-      </TableWrapper>
+      </NotificationsWrapper>
     </Page>
   );
 }

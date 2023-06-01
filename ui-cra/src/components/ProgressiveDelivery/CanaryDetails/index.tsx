@@ -1,3 +1,4 @@
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
 import CanaryDetailsSection from './CanaryDetailsSection';
 import { Routes } from '../../../utils/nav';
@@ -27,12 +28,14 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
         { label: name },
       ]}
     >
-      {data?.canary && (
-        <CanaryDetailsSection
-          canary={data.canary}
-          automation={data.automation}
-        />
-      )}
+      <NotificationsWrapper>
+        {data?.canary && (
+          <CanaryDetailsSection
+            canary={data.canary}
+            automation={data.automation}
+          />
+        )}
+      </NotificationsWrapper>
     </Page>
   );
 }

@@ -7,7 +7,7 @@ import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { Routes } from '../../../utils/nav';
-import { Title } from '../../Layout/NotificationsWrapper';
+import { Title, NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';
@@ -114,12 +114,14 @@ const EditResourcePage: FC<Props> = props => {
         },
       ]}
     >
-      <Grid container>
-        <Grid item xs={12} sm={10} md={10} lg={8}>
-          <Title>Edit resource</Title>
+      <NotificationsWrapper>
+        <Grid container>
+          <Grid item xs={12} sm={10} md={10} lg={8}>
+            <Title>Edit resource</Title>
+          </Grid>
+          <EditResource resource={getEditableResource() || {}} />
         </Grid>
-        <EditResource resource={getEditableResource() || {}} />
-      </Grid>
+      </NotificationsWrapper>
     </Page>
   );
 };

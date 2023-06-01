@@ -31,6 +31,7 @@ import { removeToken } from '../../../utils/request';
 import { createDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getRepositoryUrl,
@@ -323,92 +324,94 @@ const CreatePolicyConfig = () => {
             },
           }}
         >
-          <FormWrapper
-            noValidate
-            onSubmit={event =>
-              validateFormData(event, handleCreatePolicyConfig, setFormError)
-            }
-          >
-            <div className="group-section">
-              <Input
-                className="form-section"
-                name="policyConfigName"
-                required
-                description="The name of your policy config"
-                label="NAME"
-                value={policyConfigName}
-                onChange={e =>
-                  handleFormData('policyConfigName', e.target.value)
-                }
-                error={formError === 'policyConfigName' && !policyConfigName}
-              />
-              <Select
-                className="form-section"
-                name="clusterName"
-                required
-                label="CLUSTER"
-                value={selectedCluster || ''}
-                description="Select your cluster"
-                onChange={HandleSelectCluster}
-                error={formError === 'clusterName' && !clusterName}
-              >
-                {!clusters?.length ? (
-                  <MenuItem disabled={true}>Loading...</MenuItem>
-                ) : (
-                  clusters?.map((option, index: number) => {
-                    return (
-                      <MenuItem
-                        key={option.name}
-                        value={JSON.stringify(option)}
-                      >
-                        {option.name}
-                      </MenuItem>
-                    );
-                  })
-                )}
-              </Select>
-              <SelectMatchType
-                formError={formError}
-                formData={formData}
-                cluster={clusterName}
-                handleFormData={handleFormData}
-                selectedWorkspacesList={selectedWorkspacesList || []}
-                setSelectedWorkspacesList={setSelectedWorkspacesList}
-                setFormData={setFormData}
-                selectedAppsList={selectedAppsList || []}
-                setSelectedAppsList={setSelectedAppsList}
-              />
+          <NotificationsWrapper>
+            <FormWrapper
+              noValidate
+              onSubmit={event =>
+                validateFormData(event, handleCreatePolicyConfig, setFormError)
+              }
+            >
+              <div className="group-section">
+                <Input
+                  className="form-section"
+                  name="policyConfigName"
+                  required
+                  description="The name of your policy config"
+                  label="NAME"
+                  value={policyConfigName}
+                  onChange={e =>
+                    handleFormData('policyConfigName', e.target.value)
+                  }
+                  error={formError === 'policyConfigName' && !policyConfigName}
+                />
+                <Select
+                  className="form-section"
+                  name="clusterName"
+                  required
+                  label="CLUSTER"
+                  value={selectedCluster || ''}
+                  description="Select your cluster"
+                  onChange={HandleSelectCluster}
+                  error={formError === 'clusterName' && !clusterName}
+                >
+                  {!clusters?.length ? (
+                    <MenuItem disabled={true}>Loading...</MenuItem>
+                  ) : (
+                    clusters?.map((option, index: number) => {
+                      return (
+                        <MenuItem
+                          key={option.name}
+                          value={JSON.stringify(option)}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      );
+                    })
+                  )}
+                </Select>
+                <SelectMatchType
+                  formError={formError}
+                  formData={formData}
+                  cluster={clusterName}
+                  handleFormData={handleFormData}
+                  selectedWorkspacesList={selectedWorkspacesList || []}
+                  setSelectedWorkspacesList={setSelectedWorkspacesList}
+                  setFormData={setFormData}
+                  selectedAppsList={selectedAppsList || []}
+                  setSelectedAppsList={setSelectedAppsList}
+                />
 
-              <SelectedPolicies
-                cluster={clusterName}
-                setFormData={setFormData}
-                formData={formData}
-                formError={formError}
-              />
-            </div>
-            <PreviewPRModal
-              formData={formData}
-              getClusterAutomations={getClusterAutomations}
-            />
-            <GitOps
-              formData={formData}
-              setFormData={setFormData}
-              showAuthDialog={showAuthDialog}
-              setShowAuthDialog={setShowAuthDialog}
-              formError={formError}
-              enableGitRepoSelection={true}
-            />
-
-            {loading ? (
-              <LoadingPage className="create-loading" />
-            ) : (
-              <div className="create-cta">
-                <Button type="submit" disabled={!isAuthenticated}>
-                  CREATE PULL REQUEST
-                </Button>
+                <SelectedPolicies
+                  cluster={clusterName}
+                  setFormData={setFormData}
+                  formData={formData}
+                  formError={formError}
+                />
               </div>
-            )}
-          </FormWrapper>
+              <PreviewPRModal
+                formData={formData}
+                getClusterAutomations={getClusterAutomations}
+              />
+              <GitOps
+                formData={formData}
+                setFormData={setFormData}
+                showAuthDialog={showAuthDialog}
+                setShowAuthDialog={setShowAuthDialog}
+                formError={formError}
+                enableGitRepoSelection={true}
+              />
+
+              {loading ? (
+                <LoadingPage className="create-loading" />
+              ) : (
+                <div className="create-cta">
+                  <Button type="submit" disabled={!isAuthenticated}>
+                    CREATE PULL REQUEST
+                  </Button>
+                </div>
+              )}
+            </FormWrapper>
+          </NotificationsWrapper>
         </CallbackStateContextProvider>
       </Page>
     </ThemeProvider>

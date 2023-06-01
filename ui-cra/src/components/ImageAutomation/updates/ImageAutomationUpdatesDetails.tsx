@@ -1,14 +1,15 @@
 import {
   Kind,
   Metadata,
-  Page,
   SourceLink,
   useGetObject,
   V2Routes,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
@@ -69,16 +70,18 @@ function ImageAutomationUpdatesDetails({
         { label: name },
       ]}
     >
-      {data && (
-        <ImageAutomationDetails
-          data={data}
-          kind={Kind.ImageUpdateAutomation}
-          infoFields={getInfoList(data, data?.clusterName)}
-          rootPath={rootPath}
-        >
-          <Metadata metadata={data.metadata} labels={data?.labels} />
-        </ImageAutomationDetails>
-      )}
+      <NotificationsWrapper>
+        {data && (
+          <ImageAutomationDetails
+            data={data}
+            kind={Kind.ImageUpdateAutomation}
+            infoFields={getInfoList(data, data?.clusterName)}
+            rootPath={rootPath}
+          >
+            <Metadata metadata={data.metadata} labels={data?.labels} />
+          </ImageAutomationDetails>
+        )}
+      </NotificationsWrapper>
     </Page>
   );
 }

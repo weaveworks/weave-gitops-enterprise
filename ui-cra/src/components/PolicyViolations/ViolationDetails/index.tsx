@@ -1,3 +1,4 @@
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ViolationDetails from './ViolationDetails';
 import { useGetPolicyValidationDetails } from '../../../contexts/PolicyViolations';
 import { Breadcrumb } from '../../Breadcrumbs';
@@ -42,9 +43,11 @@ const PolicyViolationDetails = ({
       ];
   return (
     <Page loading={isLoading} path={headerPath}>
-      {data?.violation && (
-        <ViolationDetails violation={data.violation} source={source} />
-      )}
+      <NotificationsWrapper>
+        {data?.violation && (
+          <ViolationDetails violation={data.violation} source={source} />
+        )}
+      </NotificationsWrapper>
     </Page>
   );
 };

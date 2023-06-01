@@ -1,13 +1,14 @@
 import {
   Flex,
-  Page,
   RouterTab,
   SubRouterTabs,
   YamlView,
+  Page,
 } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { Box } from '@material-ui/core';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
@@ -82,7 +83,6 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   return (
     <Page
       loading={isLoading}
-      error={mappedErrors(data?.errors || [], namespace)}
       path={[
         {
           label: 'Pipelines',
@@ -93,36 +93,40 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <Box marginBottom={2}>
-        <Flex align wide between>
-          <KeyValueTable pairs={pipelineStrategyText(data)} />
-          <div>
-            <EditButton
-              className={classes.editButton}
-              resource={data?.pipeline || ({} as Pipeline)}
-            />
-          </div>
-        </Flex>
-      </Box>
+      <NotificationsWrapper
+        errors={mappedErrors(data?.errors || [], namespace)}
+      >
+        <Box marginBottom={2}>
+          <Flex align wide between>
+            <KeyValueTable pairs={pipelineStrategyText(data)} />
+            <div>
+              <EditButton
+                className={classes.editButton}
+                resource={data?.pipeline || ({} as Pipeline)}
+              />
+            </div>
+          </Flex>
+        </Box>
 
-      <SubRouterTabs rootPath={`${path}/status`}>
-        <RouterTab name="Status" path={`${path}/status`}>
-          <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
-        </RouterTab>
-        <RouterTab name="Yaml" path={`${path}/yaml`}>
-          <YamlView
-            yaml={data?.pipeline?.yaml || ''}
-            object={{
-              kind: 'Pipeline',
-              name: data?.pipeline?.name,
-              namespace: data?.pipeline?.namespace,
-            }}
-          />
-        </RouterTab>
-        <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
-          <PipelinePullRequests pipeline={data?.pipeline} />
-        </RouterTab>
-      </SubRouterTabs>
+        <SubRouterTabs rootPath={`${path}/status`}>
+          <RouterTab name="Status" path={`${path}/status`}>
+            <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
+          </RouterTab>
+          <RouterTab name="Yaml" path={`${path}/yaml`}>
+            <YamlView
+              yaml={data?.pipeline?.yaml || ''}
+              object={{
+                kind: 'Pipeline',
+                name: data?.pipeline?.name,
+                namespace: data?.pipeline?.namespace,
+              }}
+            />
+          </RouterTab>
+          <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
+            <PipelinePullRequests pipeline={data?.pipeline} />
+          </RouterTab>
+        </SubRouterTabs>
+      </NotificationsWrapper>
     </Page>
   );
 };
