@@ -29,19 +29,20 @@ refactoring, etc
 
 
 <!-- Use the checklist to detail how you're sure that the change
-works.  -->
+works.  Check each box when you're satisfied you've dealt with that
+item. -->
 **How did you validate the change?**
 
- - [ ] Explain how a reviewer can check the change themselves
+ - [ ] Explain how a reviewer can verify the change themselves
 
 
- - [ ] Integration tests -- what is covered, or explain why there are no new tests
+ - [ ] Integration tests -- what is covered, what cannot be covered;
+       or, explain why there are no new tests
 
 
- - [ ] Unit tests -- what is covered, what cannot be covered
+ - [ ] Unit tests -- what is covered, what cannot be covered; are
+       there tests that fail _without_ the change?
 
-
- - [ ] I've checked that tests do not pass without the change (or if this is invalid, explain why)
 
 <!--
 Is it notable for release? e.g. schema updates, configuration or data migration
@@ -59,6 +60,7 @@ Are there any documentation updates that should be made for these changes? We wa
 **Documentation Changes**
 
 
-<!-- Is there anything that will need to be done after this is approved or merged? Ideally, log an issue for
-each follow-up task and list them here -->
-**Follow ups**
+<!-- Is there anything else that will need to be done after this is
+approved or merged? Ideally, log an issue for each follow-up task and
+list them here -->
+**Other follow ups**
