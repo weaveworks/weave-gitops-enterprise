@@ -69,6 +69,8 @@ type QueryOption interface {
 type StoreReader interface {
 	GetObjectByID(ctx context.Context, id string) (models.Object, error)
 	GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error)
+	GetRoles(ctx context.Context) ([]models.Role, error)
+	GetRoleBindings(ctx context.Context) ([]models.RoleBinding, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
@@ -153,6 +155,8 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 
 	derivedAccess := map[string]map[string]bool{}
 
+	accessibleResourceNames := []string{}
+
 	// {wego.weave.works: {Application: true, Source: true}}
 	for _, rule := range rules {
 		for _, apiGroup := range models.SplitRuleData(rule.APIGroups) {
@@ -173,6 +177,13 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 				}
 			}
 		}
+
+		for _, resource := range models.SplitRuleData(rule.ResourceNames) {
+			if resource != "" {
+				accessibleResourceNames = append(accessibleResourceNames, resource)
+			}
+
+		}
 	}
 
 	accessibleKinds := []string{}
@@ -185,12 +196,13 @@ func convertToAccessRule(clusterName string, role models.Role, binding models.Ro
 	}
 
 	return models.AccessRule{
-		Cluster:           clusterName,
-		Namespace:         role.Namespace,
-		AccessibleKinds:   accessibleKinds,
-		Subjects:          binding.Subjects,
-		ProvidedByRole:    fmt.Sprintf("%s/%s", role.Kind, role.Name),
-		ProvidedByBinding: fmt.Sprintf("%s/%s", binding.Kind, binding.Name),
+		Cluster:                 clusterName,
+		Namespace:               role.Namespace,
+		AccessibleKinds:         accessibleKinds,
+		Subjects:                binding.Subjects,
+		ProvidedByRole:          fmt.Sprintf("%s/%s", role.Kind, role.Name),
+		ProvidedByBinding:       fmt.Sprintf("%s/%s", binding.Kind, binding.Name),
+		AccessibleResourceNames: accessibleResourceNames,
 	}
 }
 
