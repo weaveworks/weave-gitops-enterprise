@@ -126,20 +126,6 @@ service ClustersService {
     };
   }
 
-  // ListPolicies list policies available on the management cluster
-  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
-    option (google.api.http) = {
-      get : "/v1/policies"
-    };
-  }
-
-  // GetPolicy gets a policy on the management cluster by name
-  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
-    option (google.api.http) = {
-      get : "/v1/policies/{policy_name}"
-    };
-  }
-
   // ListEvents returns the k8s events for a given object
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
     option (google.api.http) = {
@@ -380,27 +366,6 @@ message ListGitopsClustersResponse {
   repeated GitopsCluster gitops_clusters = 1;
   int32 total = 2;
   string next_page_token = 3;
-  repeated ListError errors = 4;
-}
-
-message GetPolicyRequest {
-  string policy_name = 1;
-  string clusterName = 2;
-}
-message ListPoliciesRequest {
-    string clusterName = 1;
-    Pagination pagination = 2;
-}
-
-message GetPolicyResponse {
-  Policy policy = 1;
-  string clusterName = 2;
-}
-
-message ListPoliciesResponse {
-  repeated Policy policies = 1;
-  int32 total = 2;
-  string nextPageToken = 3;
   repeated ListError errors = 4;
 }
 
@@ -798,47 +763,6 @@ message GetConfigResponse {
 }
 
 message PolicyParamRepeatedString { repeated string value = 1; }
-
-message PolicyParam {
-  string name = 1;
-  string type = 2;
-  // value is a generic value that can be a string, int, bool and array of
-  // strings
-  google.protobuf.Any value = 3;
-  bool required = 4;
-}
-
-message PolicyTargetLabel { map<string, string> values = 1; }
-
-message PolicyTargets {
-  repeated string kinds = 1;
-  repeated PolicyTargetLabel labels = 2;
-  repeated string namespaces = 3;
-}
-
-message PolicyStandard {
-  string id = 1;
-  repeated string controls = 2;
-}
-
-message Policy {
-  string name = 1;
-  string id = 2;
-  string code = 3;
-  string description = 4;
-  string how_to_solve = 5;
-  string category = 6;
-  repeated string tags = 7;
-  string severity = 8;
-  repeated PolicyStandard standards = 9;
-  string git_commit = 10;
-  repeated PolicyParam parameters = 11;
-  PolicyTargets targets = 12;
-  string created_at = 13;
-  string clusterName = 14;
-  string tenant = 15;
-  repeated string modes = 16;
-}
 
 message ObjectRef {
   string kind      = 1;

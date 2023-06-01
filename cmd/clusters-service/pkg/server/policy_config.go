@@ -2,16 +2,22 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 
+	"github.com/golang/protobuf/ptypes/any"
 	"github.com/hashicorp/go-multierror"
 	pacv2beta2 "github.com/weaveworks/policy-agent/api/v2beta2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	core "github.com/weaveworks/weave-gitops/pkg/api/core"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	"google.golang.org/protobuf/types/known/anypb"
 	structpb "google.golang.org/protobuf/types/known/structpb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/utils/strings/slices"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -158,7 +164,7 @@ func (s *server) getPolicyConfig(ctx context.Context, cl clustersmngr.Client, re
 		TotalPolicies: int32(len(policyConfig.Spec.Config)),
 	}
 
-	policies, err := getPolicyConfigPolicies(ctx, s, req.ClusterName, &policyConfig)
+	policies, err := getPolicyConfigPolicies(ctx, cl, s, req.ClusterName, &policyConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -208,7 +214,7 @@ func getPolicyConfigMatch(target pacv2beta2.PolicyConfigTarget) *capiv1_proto.Po
 
 // getPolicyConfigPolicies gets policy config policies from policy config spec
 
-func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string, item *pacv2beta2.PolicyConfig) ([]*capiv1_proto.PolicyConfigPolicy, error) {
+func getPolicyConfigPolicies(ctx context.Context, cl clustersmngr.Client, s *server, clusterName string, item *pacv2beta2.PolicyConfig) ([]*capiv1_proto.PolicyConfigPolicy, error) {
 	policies := []*capiv1_proto.PolicyConfigPolicy{}
 	for policyID, policyConfig := range item.Spec.Config {
 
@@ -232,14 +238,19 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 			policies = append(policies, policyTarget)
 
 		} else {
-			policy, err := s.GetPolicy(ctx, &capiv1_proto.GetPolicyRequest{ClusterName: clusterName, PolicyName: policyID})
+			policyCRv2beta2 := pacv2beta2.Policy{}
+			if err := cl.Get(ctx, clusterName, types.NamespacedName{Name: policyID}, &policyCRv2beta2); err != nil {
+				return nil, fmt.Errorf("error while getting policy %s from cluster %s: %w", policyID, clusterName, err)
+			}
+
+			policy, err := policyToPolicyRespone(policyCRv2beta2, clusterName)
 			if err != nil {
 				return nil, err
 			}
 			policyTarget := &capiv1_proto.PolicyConfigPolicy{
 				Id:          policyID,
-				Name:        policy.Policy.Name,
-				Description: policy.Policy.Description,
+				Name:        policy.Name,
+				Description: policy.Description,
 				Parameters:  params,
 				Status:      policyConfigConfigStatusOK,
 			}
@@ -247,4 +258,114 @@ func getPolicyConfigPolicies(ctx context.Context, s *server, clusterName string,
 		}
 	}
 	return policies, nil
+}
+
+func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*core.Policy, error) {
+	policySpec := policyCRD.Spec
+
+	policy := &core.Policy{
+		Name:      policySpec.Name,
+		Id:        policySpec.ID,
+		Category:  policySpec.Category,
+		Tags:      policySpec.Tags,
+		Severity:  policySpec.Severity,
+		CreatedAt: policyCRD.CreationTimestamp.Format(time.RFC3339),
+		Tenant:    policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:     policyCRD.Status.Modes,
+	}
+
+	var policyLabels []*core.PolicyTargetLabel
+	for i := range policySpec.Targets.Labels {
+		policyLabels = append(policyLabels, &core.PolicyTargetLabel{
+			Values: policySpec.Targets.Labels[i],
+		})
+	}
+
+	var policyParams []*core.PolicyParam
+	for _, param := range policySpec.Parameters {
+		policyParam := &core.PolicyParam{
+			Name:     param.Name,
+			Required: param.Required,
+			Type:     param.Type,
+		}
+		value, err := getPolicyParamValue(param, policySpec.ID)
+		if err != nil {
+			return nil, err
+		}
+		policyParam.Value = value
+		policyParams = append(policyParams, policyParam)
+	}
+	var policyStandards []*core.PolicyStandard
+	for _, standard := range policySpec.Standards {
+		policyStandards = append(policyStandards, &core.PolicyStandard{
+			Id:       standard.ID,
+			Controls: standard.Controls,
+		})
+	}
+
+	policy.Code = policySpec.Code
+	policy.Description = policySpec.Description
+	policy.HowToSolve = policySpec.HowToSolve
+	policy.Standards = policyStandards
+	policy.Targets = &core.PolicyTargets{
+		Kinds:      policySpec.Targets.Kinds,
+		Namespaces: policySpec.Targets.Namespaces,
+		Labels:     policyLabels,
+	}
+	policy.Parameters = policyParams
+	policy.ClusterName = clusterName
+
+	return policy, nil
+}
+
+func getPolicyParamValue(param pacv2beta2.PolicyParameters, policyID string) (*anypb.Any, error) {
+	if param.Value == nil {
+		return nil, nil
+	}
+	var anyValue *any.Any
+	var err error
+	switch param.Type {
+	case "string":
+		var strValue string
+		// attempt to clean up extra quotes if not successful show as is
+		unquotedValue, UnquoteErr := strconv.Unquote(string(param.Value.Raw))
+		if UnquoteErr != nil {
+			strValue = string(param.Value.Raw)
+		} else {
+			strValue = unquotedValue
+		}
+		value := wrapperspb.String(strValue)
+		anyValue, err = anypb.New(value)
+	case "integer":
+		intValue, convErr := strconv.Atoi(string(param.Value.Raw))
+		if convErr != nil {
+			err = convErr
+			break
+		}
+		value := wrapperspb.Int32(int32(intValue))
+		anyValue, err = anypb.New(value)
+	case "boolean":
+		boolValue, convErr := strconv.ParseBool(string(param.Value.Raw))
+		if convErr != nil {
+			err = convErr
+			break
+		}
+		value := wrapperspb.Bool(boolValue)
+		anyValue, err = anypb.New(value)
+	case "array":
+		var arrayValue []string
+		convErr := json.Unmarshal(param.Value.Raw, &arrayValue)
+		if convErr != nil {
+			err = convErr
+			break
+		}
+		value := &core.PolicyParamRepeatedString{Value: arrayValue}
+		anyValue, err = anypb.New(value)
+	default:
+		return nil, fmt.Errorf("found unsupported policy parameter type %s in policy %s", param.Type, policyID)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to serialize parameter value %s in policy %s: %w", param.Name, policyID, err)
+	}
+	return anyValue, nil
 }
