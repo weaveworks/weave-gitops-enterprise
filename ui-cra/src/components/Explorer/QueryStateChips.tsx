@@ -21,6 +21,7 @@ function QueryStateChips({ className }: Props) {
       ...queryState,
       filters: [],
       terms: '',
+      offset: 0,
     });
   };
 
