@@ -52,6 +52,32 @@ type FakeStoreReader struct {
 		result1 store.Iterator
 		result2 error
 	}
+	GetRoleBindingsStub        func(context.Context) ([]models.RoleBinding, error)
+	getRoleBindingsMutex       sync.RWMutex
+	getRoleBindingsArgsForCall []struct {
+		arg1 context.Context
+	}
+	getRoleBindingsReturns struct {
+		result1 []models.RoleBinding
+		result2 error
+	}
+	getRoleBindingsReturnsOnCall map[int]struct {
+		result1 []models.RoleBinding
+		result2 error
+	}
+	GetRolesStub        func(context.Context) ([]models.Role, error)
+	getRolesMutex       sync.RWMutex
+	getRolesArgsForCall []struct {
+		arg1 context.Context
+	}
+	getRolesReturns struct {
+		result1 []models.Role
+		result2 error
+	}
+	getRolesReturnsOnCall map[int]struct {
+		result1 []models.Role
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -256,6 +282,134 @@ func (fake *FakeStoreReader) GetObjectsReturnsOnCall(i int, result1 store.Iterat
 	}{result1, result2}
 }
 
+func (fake *FakeStoreReader) GetRoleBindings(arg1 context.Context) ([]models.RoleBinding, error) {
+	fake.getRoleBindingsMutex.Lock()
+	ret, specificReturn := fake.getRoleBindingsReturnsOnCall[len(fake.getRoleBindingsArgsForCall)]
+	fake.getRoleBindingsArgsForCall = append(fake.getRoleBindingsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.GetRoleBindingsStub
+	fakeReturns := fake.getRoleBindingsReturns
+	fake.recordInvocation("GetRoleBindings", []interface{}{arg1})
+	fake.getRoleBindingsMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStoreReader) GetRoleBindingsCallCount() int {
+	fake.getRoleBindingsMutex.RLock()
+	defer fake.getRoleBindingsMutex.RUnlock()
+	return len(fake.getRoleBindingsArgsForCall)
+}
+
+func (fake *FakeStoreReader) GetRoleBindingsCalls(stub func(context.Context) ([]models.RoleBinding, error)) {
+	fake.getRoleBindingsMutex.Lock()
+	defer fake.getRoleBindingsMutex.Unlock()
+	fake.GetRoleBindingsStub = stub
+}
+
+func (fake *FakeStoreReader) GetRoleBindingsArgsForCall(i int) context.Context {
+	fake.getRoleBindingsMutex.RLock()
+	defer fake.getRoleBindingsMutex.RUnlock()
+	argsForCall := fake.getRoleBindingsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStoreReader) GetRoleBindingsReturns(result1 []models.RoleBinding, result2 error) {
+	fake.getRoleBindingsMutex.Lock()
+	defer fake.getRoleBindingsMutex.Unlock()
+	fake.GetRoleBindingsStub = nil
+	fake.getRoleBindingsReturns = struct {
+		result1 []models.RoleBinding
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStoreReader) GetRoleBindingsReturnsOnCall(i int, result1 []models.RoleBinding, result2 error) {
+	fake.getRoleBindingsMutex.Lock()
+	defer fake.getRoleBindingsMutex.Unlock()
+	fake.GetRoleBindingsStub = nil
+	if fake.getRoleBindingsReturnsOnCall == nil {
+		fake.getRoleBindingsReturnsOnCall = make(map[int]struct {
+			result1 []models.RoleBinding
+			result2 error
+		})
+	}
+	fake.getRoleBindingsReturnsOnCall[i] = struct {
+		result1 []models.RoleBinding
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStoreReader) GetRoles(arg1 context.Context) ([]models.Role, error) {
+	fake.getRolesMutex.Lock()
+	ret, specificReturn := fake.getRolesReturnsOnCall[len(fake.getRolesArgsForCall)]
+	fake.getRolesArgsForCall = append(fake.getRolesArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	stub := fake.GetRolesStub
+	fakeReturns := fake.getRolesReturns
+	fake.recordInvocation("GetRoles", []interface{}{arg1})
+	fake.getRolesMutex.Unlock()
+	if stub != nil {
+		return stub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeStoreReader) GetRolesCallCount() int {
+	fake.getRolesMutex.RLock()
+	defer fake.getRolesMutex.RUnlock()
+	return len(fake.getRolesArgsForCall)
+}
+
+func (fake *FakeStoreReader) GetRolesCalls(stub func(context.Context) ([]models.Role, error)) {
+	fake.getRolesMutex.Lock()
+	defer fake.getRolesMutex.Unlock()
+	fake.GetRolesStub = stub
+}
+
+func (fake *FakeStoreReader) GetRolesArgsForCall(i int) context.Context {
+	fake.getRolesMutex.RLock()
+	defer fake.getRolesMutex.RUnlock()
+	argsForCall := fake.getRolesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeStoreReader) GetRolesReturns(result1 []models.Role, result2 error) {
+	fake.getRolesMutex.Lock()
+	defer fake.getRolesMutex.Unlock()
+	fake.GetRolesStub = nil
+	fake.getRolesReturns = struct {
+		result1 []models.Role
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeStoreReader) GetRolesReturnsOnCall(i int, result1 []models.Role, result2 error) {
+	fake.getRolesMutex.Lock()
+	defer fake.getRolesMutex.Unlock()
+	fake.GetRolesStub = nil
+	if fake.getRolesReturnsOnCall == nil {
+		fake.getRolesReturnsOnCall = make(map[int]struct {
+			result1 []models.Role
+			result2 error
+		})
+	}
+	fake.getRolesReturnsOnCall[i] = struct {
+		result1 []models.Role
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeStoreReader) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -265,6 +419,10 @@ func (fake *FakeStoreReader) Invocations() map[string][][]interface{} {
 	defer fake.getObjectByIDMutex.RUnlock()
 	fake.getObjectsMutex.RLock()
 	defer fake.getObjectsMutex.RUnlock()
+	fake.getRoleBindingsMutex.RLock()
+	defer fake.getRoleBindingsMutex.RUnlock()
+	fake.getRolesMutex.RLock()
+	defer fake.getRolesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

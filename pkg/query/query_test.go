@@ -8,11 +8,28 @@ import (
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker/accesscheckerfakes"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
+
+// In here, we don't care about checking access. The following lets us
+// go straight through authorization.
+
+type predicateAuthz struct {
+	predicate func(models.Object) (bool, error)
+}
+
+var allowAll Authorizer = predicateAuthz{
+	predicate: func(models.Object) (bool, error) {
+		return true, nil
+	},
+}
+
+func (c predicateAuthz) ObjectAuthorizer([]models.Role, []models.RoleBinding, *auth.UserPrincipal, string) func(models.Object) (bool, error) {
+	return c.predicate
+}
 
 func TestRunQuery(t *testing.T) {
 	tests := []struct {
@@ -287,9 +304,6 @@ func TestRunQuery(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			g := NewGomegaWithT(t)
 
-			checker := &accesscheckerfakes.FakeChecker{}
-			checker.HasAccessReturns(true, nil)
-
 			dir, err := os.MkdirTemp("", "test")
 			g.Expect(err).NotTo(HaveOccurred())
 
@@ -306,11 +320,11 @@ func TestRunQuery(t *testing.T) {
 			g.Expect(err).NotTo(HaveOccurred())
 
 			q := &qs{
-				log:     logr.Discard(),
-				debug:   logr.Discard(),
-				r:       s,
-				checker: checker,
-				index:   idx,
+				log:        logr.Discard(),
+				debug:      logr.Discard(),
+				r:          s,
+				index:      idx,
+				authorizer: allowAll,
 			}
 
 			g.Expect(store.SeedObjects(db, tt.objects)).To(Succeed())
@@ -341,9 +355,6 @@ func TestRunQuery(t *testing.T) {
 
 func TestQueryIteration(t *testing.T) {
 	g := NewGomegaWithT(t)
-
-	checker := &accesscheckerfakes.FakeChecker{}
-	checker.HasAccessReturns(true, nil)
 
 	dir, err := os.MkdirTemp("", "test")
 	g.Expect(err).NotTo(HaveOccurred())
@@ -399,14 +410,7 @@ func TestQueryIteration(t *testing.T) {
 	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
 	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
 
-	q := &qs{
-		log:     logr.Discard(),
-		debug:   logr.Discard(),
-		r:       s,
-		checker: checker,
-		index:   idx,
-	}
-
+	// Verify that the "raw" data has the four items
 	r, err := db.Model(&models.Object{}).Rows()
 	g.Expect(err).NotTo(HaveOccurred())
 
@@ -420,10 +424,21 @@ func TestQueryIteration(t *testing.T) {
 
 	g.Expect(count).To(Equal(4))
 
-	checker.HasAccessReturnsOnCall(0, true, nil)
-	checker.HasAccessReturnsOnCall(1, false, nil)
-	checker.HasAccessReturnsOnCall(2, true, nil)
-	checker.HasAccessReturnsOnCall(3, true, nil)
+	dropNamespaceB := predicateAuthz{
+		predicate: func(obj models.Object) (bool, error) {
+			return obj.Namespace != "namespace-b", nil
+		},
+	}
+
+	// Now check that the query does not get the "unauthorized"
+	// object, but still gets the desired number.
+	q := &qs{
+		log:        logr.Discard(),
+		debug:      logr.Discard(),
+		r:          s,
+		index:      idx,
+		authorizer: dropNamespaceB,
+	}
 
 	qy := &query{
 		terms: "",
@@ -434,6 +449,7 @@ func TestQueryIteration(t *testing.T) {
 	g.Expect(err).NotTo(HaveOccurred())
 
 	g.Expect(got).To(HaveLen(3))
+	g.Expect(got).To(HaveEach(HaveField("Namespace", "namespace-a")), "all be in namespace-a")
 }
 
 type query struct {

@@ -233,6 +233,24 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (models.Obje
 	return object, nil
 }
 
+func (i *SQLiteStore) GetRoles(ctx context.Context) ([]models.Role, error) {
+	var roles []models.Role
+	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get roles: %w", result.Error)
+	}
+	return roles, nil
+}
+
+func (i *SQLiteStore) GetRoleBindings(ctx context.Context) ([]models.RoleBinding, error) {
+	var rolebindings []models.RoleBinding
+	result := i.db.Model(&models.RoleBinding{}).Preload("Subjects").Find(&rolebindings)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get rolebindings: %w", result.Error)
+	}
+	return rolebindings, nil
+}
+
 func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
 	roles := []models.Role{}
 	bindings := []models.RoleBinding{}

@@ -7,7 +7,6 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -20,22 +19,27 @@ type QueryService interface {
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
 }
 
+// Authorizer creates an authorization predicate when given a cluster name.
+type Authorizer interface {
+	ObjectAuthorizer(roles []models.Role, rolebindings []models.RoleBinding, principal *auth.UserPrincipal, cluster string) func(models.Object) (bool, error)
+}
+
 type QueryServiceOpts struct {
-	Log           logr.Logger
-	StoreReader   store.StoreReader
-	AccessChecker accesschecker.Checker
-	IndexReader   store.IndexReader
+	Log         logr.Logger
+	StoreReader store.StoreReader
+	IndexReader store.IndexReader
+	Authorizer  Authorizer
 }
 
 func (o QueryServiceOpts) Validate() error {
 	if o.StoreReader == nil {
 		return fmt.Errorf("store reader is required")
 	}
-	if o.AccessChecker == nil {
-		return fmt.Errorf("access checker is required")
-	}
 	if o.IndexReader == nil {
 		return fmt.Errorf("index reader is required")
+	}
+	if o.Authorizer == nil {
+		return fmt.Errorf("authorizer is required")
 	}
 	return nil
 }
@@ -50,23 +54,21 @@ func NewQueryService(opts QueryServiceOpts) (QueryService, error) {
 	}
 
 	return &qs{
-		log:     opts.Log.WithName("query-service"),
-		debug:   opts.Log.WithName("query-service").V(logger.LogLevelDebug),
-		r:       opts.StoreReader,
-		checker: opts.AccessChecker,
-		index:   opts.IndexReader,
+		log:        opts.Log.WithName("query-service"),
+		debug:      opts.Log.WithName("query-service").V(logger.LogLevelDebug),
+		r:          opts.StoreReader,
+		index:      opts.IndexReader,
+		authorizer: opts.Authorizer,
 	}, nil
 }
 
 type qs struct {
-	log     logr.Logger
-	debug   logr.Logger
-	r       store.StoreReader
-	checker accesschecker.Checker
-	index   store.IndexReader
+	log        logr.Logger
+	debug      logr.Logger
+	r          store.StoreReader
+	index      store.IndexReader
+	authorizer Authorizer
 }
-
-type AccessFilter func(principal *auth.UserPrincipal, rules []models.AccessRule, objects []models.Object) []models.Object
 
 func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOption) ([]models.Object, error) {
 	principal := auth.Principal(ctx)
@@ -75,13 +77,14 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 	}
 	q.debug.Info("query received", "query", query, "principal", principal.ID)
 
-	// Contains all the rules that are relevant to this user.
-	// This is based on their ID and the groups they belong to.
-	rules, err := q.r.GetAccessRules(ctx)
+	roles, err := q.r.GetRoles(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("error getting access rules: %w", err)
+		return nil, fmt.Errorf("error fetching access rules from the store: %w", err)
 	}
-	rules = q.checker.RelevantRulesForUser(principal, rules)
+	bindings, err := q.r.GetRoleBindings(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("error fetching access rules from the store: %w", err)
+	}
 
 	iter, err := q.index.Search(ctx, query, opts)
 	if err != nil {
@@ -98,6 +101,9 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 		limit = opts.GetLimit()
 	}
 
+	// keep track of any cluster authorize predicate we might need again
+	perClusterAllowed := map[string](func(models.Object) (bool, error)){}
+
 	for iter.Next() {
 		if limit > 0 && len(result) == int(limit) {
 			// Limit is set in the query and reached.
@@ -110,7 +116,14 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 			return nil, fmt.Errorf("error getting row from iterator: %w", err)
 		}
 
-		ok, err := q.checker.HasAccess(principal, obj, rules)
+		cluster := obj.Cluster
+		allow, ok := perClusterAllowed[cluster]
+		if !ok {
+			allow = q.authorizer.ObjectAuthorizer(roles, bindings, principal, cluster)
+			perClusterAllowed[cluster] = allow
+		}
+
+		ok, err = allow(obj)
 		if err != nil {
 			q.log.Error(err, "error checking access")
 			continue
@@ -120,7 +133,7 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 			result = append(result, obj)
 		} else {
 			//unauthorised is logged for debugging
-			q.debug.Info("unauthorised access", "principal", principal.ID, "object", obj.ID, "rules", rules)
+			q.debug.Info("unauthorised access", "principal", principal.ID, "object", obj.ID)
 		}
 	}
 
