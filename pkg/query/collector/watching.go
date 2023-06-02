@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
@@ -15,6 +16,7 @@ import (
 // its lifecycle means responding to the events of adding a new cluster, update an existing cluster or deleting an existing cluster.
 // Errors are handled by logging the error and assuming the operation will be retried due to some later event.
 func (c *watchingCollector) Start() error {
+	c.quit = make(chan struct{})
 	cw := c.clusterManager.Subscribe()
 
 	for _, cluster := range c.clusterManager.GetClusters() {
@@ -26,25 +28,32 @@ func (c *watchingCollector) Start() error {
 		c.log.Info("watching cluster", "cluster", cluster.GetName())
 	}
 
-	//watch clusters
+	// watch clusters
+	c.done.Add(1)
 	go func() {
-		for updates := range cw.Updates {
-			for _, cluster := range updates.Added {
-				err := c.Watch(cluster)
-				if err != nil {
-					c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
-					continue
+		defer c.done.Done()
+		for {
+			select {
+			case <-c.quit:
+				return
+			case updates := <-cw.Updates:
+				for _, cluster := range updates.Added {
+					err := c.Watch(cluster)
+					if err != nil {
+						c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
+						continue
+					}
+					c.log.Info("watching cluster", "cluster", cluster.GetName())
 				}
-				c.log.Info("watching cluster", "cluster", cluster.GetName())
-			}
 
-			for _, cluster := range updates.Removed {
-				err := c.Unwatch(cluster.GetName())
-				if err != nil {
-					c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
-					continue
+				for _, cluster := range updates.Removed {
+					err := c.Unwatch(cluster.GetName())
+					if err != nil {
+						c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
+						continue
+					}
+					c.log.Info("unwatched cluster", "cluster", cluster.GetName())
 				}
-				c.log.Info("unwatched cluster", "cluster", cluster.GetName())
 			}
 		}
 	}()
@@ -55,11 +64,17 @@ func (c *watchingCollector) Start() error {
 // TODO this does nothing?
 func (c *watchingCollector) Stop() error {
 	c.log.Info("stopping collector")
+	if c.quit != nil {
+		close(c.quit)
+	}
+	c.done.Wait()
 	return nil
 }
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
+	quit            chan struct{}
+	done            sync.WaitGroup
 	clusterManager  ClustersSubscriber
 	clusterWatchers map[string]Watcher
 	newWatcherFunc  NewWatcherFunc
