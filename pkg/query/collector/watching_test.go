@@ -8,9 +8,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -35,13 +32,11 @@ func TestStart(t *testing.T) {
 	}
 	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
-		Log:                log,
-		ClusterManager:     &cm,
-		ObjectKinds:        configuration.SupportedObjectKinds,
-		ProcessRecordsFunc: fakeProcessRecordFunc,
-		NewWatcherFunc:     newFakeWatcher,
+		Log:            log,
+		Clusters:       &cm,
+		NewWatcherFunc: newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore)
+	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
@@ -120,7 +115,6 @@ func makeValidFakeCluster(name string) cluster.Cluster {
 func TestStop(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := &storefakes.FakeStore{}
 
 	cm := clustersmngrfakes.FakeClustersManager{}
 
@@ -129,13 +123,11 @@ func TestStop(t *testing.T) {
 	}
 	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
-		Log:                log,
-		ClusterManager:     &cm,
-		ObjectKinds:        configuration.SupportedObjectKinds,
-		ProcessRecordsFunc: fakeProcessRecordFunc,
-		NewWatcherFunc:     newFakeWatcher,
+		Log:            log,
+		Clusters:       &cm,
+		NewWatcherFunc: newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore)
+	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
 	err = collector.Start()
 	g.Expect(err).To(BeNil())
@@ -164,14 +156,11 @@ func TestStop(t *testing.T) {
 func TestClusterWatcher_Watch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
-		Log:                log,
-		ObjectKinds:        configuration.SupportedObjectKinds,
-		ProcessRecordsFunc: fakeProcessRecordFunc,
-		NewWatcherFunc:     newFakeWatcher,
+		Log:            log,
+		NewWatcherFunc: newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore)
+	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
@@ -206,14 +195,11 @@ func TestClusterWatcher_Watch(t *testing.T) {
 func TestClusterWatcher_Unwatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := &storefakes.FakeStore{}
 	opts := CollectorOpts{
-		Log:                log,
-		ObjectKinds:        configuration.SupportedObjectKinds,
-		ProcessRecordsFunc: fakeProcessRecordFunc,
-		NewWatcherFunc:     newFakeWatcher,
+		Log:            log,
+		NewWatcherFunc: newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(opts, fakeStore)
+	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 
@@ -269,14 +255,11 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 func TestClusterWatcher_Status(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	fakeStore := &storefakes.FakeStore{}
 	options := CollectorOpts{
-		Log:                log,
-		ObjectKinds:        configuration.SupportedObjectKinds,
-		ProcessRecordsFunc: fakeProcessRecordFunc,
-		NewWatcherFunc:     newFakeWatcher,
+		Log:            log,
+		NewWatcherFunc: newFakeWatcher,
 	}
-	collector, err := newWatchingCollector(options, fakeStore)
+	collector, err := newWatchingCollector(options)
 	g.Expect(err).To(BeNil())
 	g.Expect(collector).NotTo(BeNil())
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
@@ -319,14 +302,9 @@ func TestClusterWatcher_Status(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
+func newFakeWatcher(config *rest.Config, clusterName string) (Watcher, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
-}
-
-func fakeProcessRecordFunc(records []models.ObjectTransaction, s store.Store, idx store.IndexWriter, logger logr.Logger) error {
-	log.Info("fake process record")
-	return nil
 }
 
 type fakeWatcher struct {

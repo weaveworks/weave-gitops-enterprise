@@ -30,8 +30,8 @@ type server struct {
 	pb.UnimplementedQueryServer
 
 	qs   query.QueryService
-	arc  *rolecollector.RoleCollector
-	objs *objectscollector.ObjectsCollector
+	arc  collector.Collector
+	objs collector.Collector
 }
 
 func (s *server) StopCollection() error {
@@ -192,11 +192,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot create collector for empty gvks")
 		}
 
-		rulesCollector, err := rolecollector.NewRoleCollector(s, collector.CollectorOpts{
-			Log:            opts.Logger,
-			ClusterManager: opts.ClustersManager,
-			ServiceAccount: opts.ServiceAccount,
-		})
+		rulesCollector, err := rolecollector.NewRoleCollector(s, opts.ClustersManager, opts.ServiceAccount, opts.Logger)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
@@ -205,12 +201,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, collector.CollectorOpts{
-			Log:            opts.Logger,
-			ClusterManager: opts.ClustersManager,
-			ObjectKinds:    opts.ObjectKinds,
-			ServiceAccount: opts.ServiceAccount,
-		})
+		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, opts.ClustersManager, opts.ServiceAccount, opts.ObjectKinds, opts.Logger)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}

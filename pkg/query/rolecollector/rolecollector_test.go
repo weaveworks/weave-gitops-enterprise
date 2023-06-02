@@ -3,68 +3,19 @@ package rolecollector
 import (
 	"testing"
 
-	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-func TestRolesCollector_NewRoleCollector(t *testing.T) {
-	g := NewWithT(t)
-	tests := []struct {
-		name       string
-		store      store.Store
-		opts       collector.CollectorOpts
-		errPattern string
-	}{
-		{
-			name:  "cannot create collector without manager",
-			store: &storefakes.FakeStore{},
-			opts: collector.CollectorOpts{
-				Log: logr.Discard(),
-			},
-			errPattern: "invalid cluster manager",
-		},
-		{
-			name:  "can create object collector with valid arguments",
-			store: &storefakes.FakeStore{},
-			opts: collector.CollectorOpts{
-				Log:            logr.Discard(),
-				ClusterManager: &clustersmngrfakes.FakeClustersManager{},
-				ServiceAccount: collector.ImpersonateServiceAccount{
-					Name:      "anyName",
-					Namespace: "anyNamespace",
-				},
-			},
-			errPattern: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			collector, err := NewRoleCollector(tt.store, tt.opts)
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
-			}
-			g.Expect(err).ShouldNot(HaveOccurred())
-			g.Expect(collector).ShouldNot(BeNil())
-			g.Expect(collector.w).To(Equal(tt.store))
-		})
-	}
-}
 
 func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
 	fakeStore := &storefakes.FakeStore{}
-	fakeIndex := &storefakes.FakeIndexWriter{}
 
 	//setup data
 	clusterName := "anyCluster"
@@ -109,7 +60,7 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(tt.objectRecords, fakeStore, fakeIndex, log)
+			err := processRecords(tt.objectRecords, fakeStore, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

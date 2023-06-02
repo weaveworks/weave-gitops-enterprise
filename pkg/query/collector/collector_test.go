@@ -8,9 +8,6 @@ import (
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 )
@@ -22,8 +19,6 @@ func TestNewCollector(t *testing.T) {
 	g = NewWithT(t)
 	log = testr.New(t)
 
-	fakeStore := &storefakes.FakeStore{}
-
 	clustersManager := &clustersmngrfakes.FakeClustersManager{}
 	cmw := clustersmngr.ClustersWatcher{
 		Updates: make(chan clustersmngr.ClusterListUpdate),
@@ -33,30 +28,22 @@ func TestNewCollector(t *testing.T) {
 	tests := []struct {
 		name       string
 		options    CollectorOpts
-		store      store.Store
 		errPattern string
 	}{
 		{
 			name: "can create collector with valid arguments",
 			options: CollectorOpts{
-				Log:                log,
-				ObjectKinds:        configuration.SupportedObjectKinds,
-				ProcessRecordsFunc: fakeProcessRecordFunc,
-				NewWatcherFunc:     newFakeWatcher,
-				ClusterManager:     clustersManager,
-				ServiceAccount: ImpersonateServiceAccount{
-					Namespace: "anyNs",
-					Name:      "anyName",
-				},
+				Log:            log,
+				NewWatcherFunc: newFakeWatcher,
+				Clusters:       clustersManager,
 			},
-			store:      fakeStore,
 			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			collector, err := NewCollector(tt.options, tt.store)
+			collector, err := NewCollector(tt.options)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return

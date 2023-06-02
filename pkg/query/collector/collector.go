@@ -3,17 +3,15 @@ package collector
 import (
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 
 	"github.com/go-logr/logr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
-// ClusterWatcher defines an interface to watch gitops clusters via kubernetes https://kubernetes.io/docs/reference/using-api/api-concepts/#semantics-for-watch
+// ClusterWatcher is for managing the lifecycle of watchers.
 type ClusterWatcher interface {
 	// Watch starts watching the cluster passed as input
 	Watch(cluster cluster.Cluster) error
@@ -24,46 +22,42 @@ type ClusterWatcher interface {
 }
 
 //counterfeiter:generate . Collector
+
+// Collector is ClusterWatcher that has its own lifecycle (i.e.,
+// Start() and Stop()).
 type Collector interface {
 	ClusterWatcher
 	Start() error
 	Stop() error
 }
 
+// ClustersSubscriber represents the requirement for a value that can
+// notify about clusters being added, updated, and removed.
+type ClustersSubscriber interface {
+	Subscribe() *clustersmngr.ClustersWatcher // NB distinct from ClusterWatcher here
+	GetClusters() []cluster.Cluster
+}
+
 type CollectorOpts struct {
-	Log                logr.Logger
-	ObjectKinds        []configuration.ObjectKind
-	ClusterManager     clustersmngr.ClustersManager
-	ProcessRecordsFunc ProcessRecordsFunc
-	NewWatcherFunc     NewWatcherFunc
-	ServiceAccount     ImpersonateServiceAccount
-	IndexWriter        store.IndexWriter
+	Log            logr.Logger
+	Clusters       ClustersSubscriber
+	NewWatcherFunc NewWatcherFunc
 }
 
 func (o *CollectorOpts) Validate() error {
-	if o.ObjectKinds == nil || len(o.ObjectKinds) == 0 {
-		return fmt.Errorf("invalid object kinds")
+	if o.Clusters == nil {
+		return fmt.Errorf("invalid cluster subscriber")
 	}
-	if o.ClusterManager == nil {
-		return fmt.Errorf("invalid cluster manager")
+	if o.NewWatcherFunc == nil {
+		return fmt.Errorf("NewWatcherFunc must be supplied")
 	}
-	if o.ProcessRecordsFunc == nil {
-		return fmt.Errorf("process records func is nil")
-	}
-	if o.ServiceAccount.Name == "" {
-		return fmt.Errorf("invalid service account name")
-	}
-	if o.ServiceAccount.Namespace == "" {
-		return fmt.Errorf("invalid service account namespace")
-	}
-
 	return nil
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
-func NewCollector(opts CollectorOpts, store store.Store) (Collector, error) {
+func NewCollector(opts CollectorOpts) (Collector, error) {
 	if err := opts.Validate(); err != nil {
 		return nil, fmt.Errorf("invalid collector options: %w", err)
 	}
-	return newWatchingCollector(opts, store)
+	return newWatchingCollector(opts)
 }

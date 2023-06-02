@@ -6,8 +6,6 @@ import (
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
@@ -18,7 +16,6 @@ import (
 // Errors are handled by logging the error and assuming the operation will be retried due to some later event.
 func (c *watchingCollector) Start() error {
 	cw := c.clusterManager.Subscribe()
-	c.objectsChannel = make(chan []models.ObjectTransaction)
 
 	for _, cluster := range c.clusterManager.GetClusters() {
 		err := c.Watch(cluster)
@@ -52,17 +49,6 @@ func (c *watchingCollector) Start() error {
 		}
 	}()
 
-	//watch object events
-	go func() {
-		for objectTransactions := range c.objectsChannel {
-			err := c.processRecordsFunc(objectTransactions, c.store, c.idx, c.log)
-			if err != nil {
-				c.log.Error(err, "cannot process records")
-			}
-		}
-	}()
-
-	c.log.Info("watcher started", "kinds", c.kinds)
 	return nil
 }
 
@@ -74,49 +60,32 @@ func (c *watchingCollector) Stop() error {
 
 // Cluster watcher for watching flux applications kinds helm releases and kustomizations
 type watchingCollector struct {
-	clusterManager     clustersmngr.ClustersManager
-	clusterWatchers    map[string]Watcher
-	kinds              []configuration.ObjectKind
-	store              store.Store
-	idx                store.IndexWriter
-	objectsChannel     chan []models.ObjectTransaction
-	newWatcherFunc     NewWatcherFunc
-	log                logr.Logger
-	processRecordsFunc ProcessRecordsFunc
-	serviceAccount     ImpersonateServiceAccount
+	clusterManager  ClustersSubscriber
+	clusterWatchers map[string]Watcher
+	newWatcherFunc  NewWatcherFunc
+	log             logr.Logger
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
-func newWatchingCollector(opts CollectorOpts, store store.Store) (*watchingCollector, error) {
-	if opts.NewWatcherFunc == nil {
-		opts.NewWatcherFunc = defaultNewWatcher
-	}
-
+func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 	return &watchingCollector{
-		clusterManager:     opts.ClusterManager,
-		clusterWatchers:    make(map[string]Watcher),
-		newWatcherFunc:     opts.NewWatcherFunc,
-		store:              store,
-		kinds:              opts.ObjectKinds,
-		log:                opts.Log,
-		processRecordsFunc: opts.ProcessRecordsFunc,
-		serviceAccount:     opts.ServiceAccount,
-		idx:                opts.IndexWriter,
+		clusterManager:  opts.Clusters,
+		clusterWatchers: make(map[string]Watcher),
+		newWatcherFunc:  opts.NewWatcherFunc,
+		log:             opts.Log,
 	}, nil
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction, kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string) (Watcher, error)
 
-type ProcessRecordsFunc = func(objectRecords []models.ObjectTransaction, store store.Store, idx store.IndexWriter, log logr.Logger) error
-
-// TODO add unit tests
-func defaultNewWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction,
+// TODO add unit tests; better name.
+func DefaultNewWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction,
 	kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
 	w, err := NewWatcher(WatcherOptions{
 		ClusterRef: types.NamespacedName{
 			Name:      clusterName,
-			Namespace: "default",
+			Namespace: "default", // TODO <-- this looks suspect
 		},
 		ClientConfig:   config,
 		Kinds:          kinds,
@@ -148,7 +117,7 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 		return fmt.Errorf("cluster name is empty")
 	}
 
-	watcher, err := w.newWatcherFunc(config, w.serviceAccount, clusterName, w.objectsChannel, w.kinds, w.log)
+	watcher, err := w.newWatcherFunc(config, clusterName)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.GetName(), err)
 	}

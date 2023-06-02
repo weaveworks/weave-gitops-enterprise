@@ -5,68 +5,45 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
-// ObjectsCollector is responsible for collecting flux application resources from all clusters
-// It is a wrapper around a generic collector that adapts the records and writes them to
-// an store
-type ObjectsCollector struct {
-	col   collector.Collector
-	log   logr.Logger
-	store store.StoreWriter
-	quit  chan struct{}
-	idx   store.IndexWriter
-}
+func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr collector.ClustersSubscriber, sa collector.ImpersonateServiceAccount, kinds []configuration.ObjectKind, log logr.Logger) (collector.Collector, error) {
+	incoming := make(chan []models.ObjectTransaction)
+	go func() {
+		for tx := range incoming {
+			if err := processRecords(tx, w, idx, log); err != nil {
+				log.Error(err, "could not process records")
+			}
+		}
+	}()
 
-func (a *ObjectsCollector) Start() error {
-	err := a.col.Start()
-	if err != nil {
-		return fmt.Errorf("could not start objects collector: %w", err)
-	}
-	a.log.Info("objects collector started")
-	return nil
-}
-
-func (a *ObjectsCollector) Stop() error {
-	a.quit <- struct{}{}
-	err := a.col.Stop()
-	if err != nil {
-		return fmt.Errorf("could not stop objects collector: %w", err)
-	}
-	a.log.Info("objects collector stopped")
-	return nil
-}
-
-func NewObjectsCollector(w store.Store, idx store.IndexWriter, opts collector.CollectorOpts) (*ObjectsCollector, error) {
-	if opts.ProcessRecordsFunc == nil {
-		opts.ProcessRecordsFunc = defaultProcessRecords
+	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
+		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, kinds, log)
 	}
 
-	if err := opts.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid collector options: %w", err)
+	opts := collector.CollectorOpts{
+		Log:            log,
+		NewWatcherFunc: newWatcher,
+		Clusters:       mgr,
 	}
 
-	opts.IndexWriter = idx
-
-	col, err := collector.NewCollector(opts, w)
+	col, err := collector.NewCollector(opts)
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %store", err)
 	}
 
-	return &ObjectsCollector{
-		col:   col,
-		log:   opts.Log.WithName("objects-collector"),
-		store: w,
-		idx:   idx,
-	}, nil
+	return col, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, idx store.IndexWriter, log logr.Logger) error {
+func processRecords(objectTransactions []models.ObjectTransaction, store store.Store, idx store.IndexWriter, log logr.Logger) error {
 	ctx := context.Background()
 	upsert := []models.Object{}
 	delete := []models.Object{}
