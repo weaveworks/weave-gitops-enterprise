@@ -16,6 +16,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/accesschecker"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rolecollector"
 
@@ -192,7 +193,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot create collector for empty gvks")
 		}
 
-		rulesCollector, err := rolecollector.NewRoleCollector(s, opts.ClustersManager, opts.ServiceAccount, opts.Logger)
+		rulesCollector, err := rolecollector.NewRoleCollector(s, clusters.MakeSubscriber(opts.ClustersManager), opts.ServiceAccount, opts.Logger)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
 		}
@@ -201,7 +202,7 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
-		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, opts.ClustersManager, opts.ServiceAccount, opts.ObjectKinds, opts.Logger)
+		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, clusters.MakeSubscriber(opts.ClustersManager), opts.ServiceAccount, opts.ObjectKinds, opts.Logger)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}

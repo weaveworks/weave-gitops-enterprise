@@ -8,17 +8,15 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	. "github.com/onsi/gomega"
 	"go.uber.org/zap/zapcore"
 	"k8s.io/client-go/rest"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters/clustersfakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	l "github.com/weaveworks/weave-gitops/core/logger"
-
-	. "github.com/onsi/gomega"
 )
 
 func TestStart(t *testing.T) {
@@ -26,14 +24,12 @@ func TestStart(t *testing.T) {
 	log, loggerPath := newLoggerWithLevel(t, "INFO")
 
 	fakeStore := &storefakes.FakeStore{}
-	cm := clustersmngrfakes.FakeClustersManager{}
-	cmw := clustersmngr.ClustersWatcher{
-		Updates: make(chan clustersmngr.ClusterListUpdate),
-	}
-	cm.SubscribeReturns(&cmw)
+	cm := &clustersfakes.FakeSubscriber{}
+	cmw := &clustersfakes.FakeSubscription{}
+	cm.SubscribeReturns(cmw)
 	opts := CollectorOpts{
 		Log:            log,
-		Clusters:       &cm,
+		Clusters:       cm,
 		NewWatcherFunc: newFakeWatcher,
 	}
 	collector, err := newWatchingCollector(opts)
@@ -116,15 +112,13 @@ func TestStop(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 
-	cm := clustersmngrfakes.FakeClustersManager{}
+	cm := &clustersfakes.FakeSubscriber{}
+	cmw := &clustersfakes.FakeSubscription{}
+	cm.SubscribeReturns(cmw)
 
-	cmw := clustersmngr.ClustersWatcher{
-		Updates: make(chan clustersmngr.ClusterListUpdate),
-	}
-	cm.SubscribeReturns(&cmw)
 	opts := CollectorOpts{
 		Log:            log,
-		Clusters:       &cm,
+		Clusters:       cm,
 		NewWatcherFunc: newFakeWatcher,
 	}
 	collector, err := newWatchingCollector(opts)

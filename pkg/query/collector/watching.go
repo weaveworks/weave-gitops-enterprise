@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -17,9 +18,9 @@ import (
 // Errors are handled by logging the error and assuming the operation will be retried due to some later event.
 func (c *watchingCollector) Start() error {
 	c.quit = make(chan struct{})
-	cw := c.clusterManager.Subscribe()
+	c.sub = c.subscriber.Subscribe()
 
-	for _, cluster := range c.clusterManager.GetClusters() {
+	for _, cluster := range c.subscriber.GetClusters() {
 		err := c.Watch(cluster)
 		if err != nil {
 			c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
@@ -36,7 +37,7 @@ func (c *watchingCollector) Start() error {
 			select {
 			case <-c.quit:
 				return
-			case updates := <-cw.Updates:
+			case updates := <-c.sub.Updates():
 				for _, cluster := range updates.Added {
 					err := c.Watch(cluster)
 					if err != nil {
@@ -61,9 +62,12 @@ func (c *watchingCollector) Start() error {
 	return nil
 }
 
-// TODO this does nothing?
+// Stop the collector and clean up.
 func (c *watchingCollector) Stop() error {
 	c.log.Info("stopping collector")
+	if c.sub != nil {
+		c.sub.Unsubscribe()
+	}
 	if c.quit != nil {
 		close(c.quit)
 	}
@@ -75,7 +79,8 @@ func (c *watchingCollector) Stop() error {
 type watchingCollector struct {
 	quit            chan struct{}
 	done            sync.WaitGroup
-	clusterManager  ClustersSubscriber
+	sub             clusters.Subscription
+	subscriber      clusters.Subscriber
 	clusterWatchers map[string]Watcher
 	newWatcherFunc  NewWatcherFunc
 	log             logr.Logger
@@ -84,7 +89,7 @@ type watchingCollector struct {
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
 func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 	return &watchingCollector{
-		clusterManager:  opts.Clusters,
+		subscriber:      opts.Clusters,
 		clusterWatchers: make(map[string]Watcher),
 		newWatcherFunc:  opts.NewWatcherFunc,
 		log:             opts.Log,

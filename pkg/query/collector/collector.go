@@ -3,10 +3,10 @@ package collector
 import (
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-
 	"github.com/go-logr/logr"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
+	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -31,16 +31,9 @@ type Collector interface {
 	Stop() error
 }
 
-// ClustersSubscriber represents the requirement for a value that can
-// notify about clusters being added, updated, and removed.
-type ClustersSubscriber interface {
-	Subscribe() *clustersmngr.ClustersWatcher // NB distinct from ClusterWatcher here
-	GetClusters() []cluster.Cluster
-}
-
 type CollectorOpts struct {
 	Log            logr.Logger
-	Clusters       ClustersSubscriber
+	Clusters       clusters.Subscriber
 	NewWatcherFunc NewWatcherFunc
 }
 

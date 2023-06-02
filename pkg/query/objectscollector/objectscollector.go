@@ -8,6 +8,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -15,7 +16,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 )
 
-func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr collector.ClustersSubscriber, sa collector.ImpersonateServiceAccount, kinds []configuration.ObjectKind, log logr.Logger) (collector.Collector, error) {
+func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subscriber, sa collector.ImpersonateServiceAccount, kinds []configuration.ObjectKind, log logr.Logger) (collector.Collector, error) {
 	incoming := make(chan []models.ObjectTransaction)
 	go func() {
 		for tx := range incoming {

@@ -8,13 +8,14 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 
-func NewRoleCollector(w store.Store, mgr collector.ClustersSubscriber, sa collector.ImpersonateServiceAccount, log logr.Logger) (collector.Collector, error) {
+func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.ImpersonateServiceAccount, log logr.Logger) (collector.Collector, error) {
 	incoming := make(chan []models.ObjectTransaction)
 	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
 		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, configuration.SupportedRbacKinds, log)

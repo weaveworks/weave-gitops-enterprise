@@ -8,8 +8,7 @@ import (
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 
-	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters/clustersfakes"
 )
 
 var log logr.Logger
@@ -19,11 +18,9 @@ func TestNewCollector(t *testing.T) {
 	g = NewWithT(t)
 	log = testr.New(t)
 
-	clustersManager := &clustersmngrfakes.FakeClustersManager{}
-	cmw := clustersmngr.ClustersWatcher{
-		Updates: make(chan clustersmngr.ClusterListUpdate),
-	}
-	clustersManager.SubscribeReturns(&cmw)
+	clustersManager := &clustersfakes.FakeSubscriber{}
+	sub := &clustersfakes.FakeSubscription{}
+	clustersManager.SubscribeReturns(sub)
 
 	tests := []struct {
 		name       string
@@ -61,11 +58,9 @@ func TestCleanShutdown(t *testing.T) {
 
 	routineCountBefore := runtime.NumGoroutine()
 
-	clustersManager := &clustersmngrfakes.FakeClustersManager{}
-	cmw := clustersmngr.ClustersWatcher{
-		Updates: make(chan clustersmngr.ClusterListUpdate),
-	}
-	clustersManager.SubscribeReturns(&cmw)
+	clustersManager := &clustersfakes.FakeSubscriber{}
+	sub := &clustersfakes.FakeSubscription{}
+	clustersManager.SubscribeReturns(sub)
 
 	opts := CollectorOpts{
 		Log:            log,
