@@ -31,7 +31,7 @@ const Divider = styled.div`
   padding: 0 ${props => props.theme.spacing.small};
 `;
 
-export const Title = styled.div<Size>`
+export const Title = styled.div`
   margin-right: ${props => props.theme.spacing.xxs};
   white-space: nowrap;
 `;
