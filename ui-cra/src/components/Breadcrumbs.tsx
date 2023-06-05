@@ -63,7 +63,10 @@ export const Breadcrumbs: FC<Props> = ({ path }) => {
             </Span>
           ) : (
             <Title role="heading">
-              <Link to={url || ''} textProps={{ color: 'black' }}>
+              <Link
+                to={url || ''}
+                textProps={{ color: 'black', size: 'large' }}
+              >
                 {label}
               </Link>
             </Title>

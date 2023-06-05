@@ -10,7 +10,6 @@ import {
   LinkResolverProvider,
   Pendo,
   theme,
-  ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import React, { ReactNode } from 'react';
 import {
@@ -141,10 +140,11 @@ export const queryOptions: QueryClientConfig = {
 const queryClient = new QueryClient(queryOptions);
 
 const StylesProvider = ({ children }: { children: ReactNode }) => {
-  const { settings } = React.useContext(AppContext);
+  const { settings, toggleDarkMode } = React.useContext(AppContext);
   const mode = settings.theme;
   //hard code light for now
-  const appliedTheme = theme(ThemeTypes.Light);
+  if (mode === 'dark') toggleDarkMode();
+  const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>
       <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
