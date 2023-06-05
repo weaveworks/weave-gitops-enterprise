@@ -1,8 +1,5 @@
-import { createStyles, makeStyles } from '@material-ui/core/styles';
-import ArrowForward from '@material-ui/icons/ArrowForwardIos';
-import { Flex, Link } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType, Link } from '@weaveworks/weave-gitops';
 import { isEmpty } from 'lodash';
-import { transparentize } from 'polished';
 import { FC } from 'react';
 import styled from 'styled-components';
 
@@ -35,60 +32,29 @@ const Divider = styled.div`
 `;
 
 export const Title = styled.div<Size>`
-  margin-right: ${props =>
-    props.size === 'small' ? props.theme.spacing.xxs : props.theme.spacing.xs};
+  margin-right: ${props => props.theme.spacing.xxs};
   white-space: nowrap;
 `;
-
-export const Count = styled.div<Size>`
-  background: ${props =>
-    props.size === 'small'
-      ? transparentize(0.5, props.theme.colors.primaryLight10)
-      : props.theme.colors.primaryLight10};
-  padding: 0 ${props => props.theme.spacing.xxs};
-  align-self: center;
-  font-size: ${props =>
-    props.size === 'small'
-      ? props.theme.fontSizes.small
-      : props.theme.fontSizes.medium};
-  color: ${props => props.theme.colors.black};
-  margin-left: ${props => props.theme.spacing.xxs};
-  border-radius: ${props => props.theme.borderRadius.soft};
-`;
-
 export interface Breadcrumb {
   label: string;
   url?: string;
 }
-
 interface Props extends Size {
   path: Breadcrumb[];
 }
 
-const useStyles = makeStyles(() =>
-  createStyles({
-    path: {
-      display: 'flex',
-    },
-    iconDivider: {
-      fontSize: '16px',
-    },
-  }),
-);
-
-export const Breadcrumbs: FC<Props> = ({ path, size }) => {
-  const classes = useStyles();
+export const Breadcrumbs: FC<Props> = ({ path }) => {
   return (
     <Container align center className="test-id-breadcrumbs">
       {path.map(({ label, url }, index) => (
-        <div
-          key={index}
-          className={classes.path}
-          style={{ alignItems: 'center' }}
-        >
+        <Flex key={index} align>
           {index > 0 && (
             <Divider>
-              <ArrowForward className={classes.iconDivider} />
+              <Icon
+                type={IconType.NavigateNextIcon}
+                size="large"
+                color="neutral40"
+              />
             </Divider>
           )}
           {isEmpty(url) ? (
@@ -96,13 +62,13 @@ export const Breadcrumbs: FC<Props> = ({ path, size }) => {
               {label}
             </Span>
           ) : (
-            <Title role="heading" size={size}>
+            <Title role="heading">
               <Link to={url || ''} textProps={{ color: 'black' }}>
                 {label}
               </Link>
             </Title>
           )}
-        </div>
+        </Flex>
       ))}
     </Container>
   );
