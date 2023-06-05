@@ -3,6 +3,7 @@ package collector
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -112,6 +113,8 @@ func TestStop(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 
+	routineCountBefore := runtime.NumGoroutine()
+
 	cm := &clustersfakes.FakeSubscriber{}
 	cmw := &clustersfakes.FakeSubscription{}
 	cm.SubscribeReturns(cmw)
@@ -126,25 +129,9 @@ func TestStop(t *testing.T) {
 	err = collector.Start()
 	g.Expect(err).To(BeNil())
 
-	tests := []struct {
-		name       string
-		errPattern string
-	}{
-		{
-			name:       "can stop collector",
-			errPattern: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			err := collector.Stop()
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
-			}
-			g.Expect(err).To(BeNil())
-		})
-	}
+	err = collector.Stop()
+	g.Expect(err).To(BeNil())
+	g.Expect(runtime.NumGoroutine()).To(Equal(routineCountBefore), "number of goroutines before starting = number of goroutines after stopping (no leaked goroutines)")
 }
 
 func TestClusterWatcher_Watch(t *testing.T) {

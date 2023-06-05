@@ -1,7 +1,6 @@
 package collector
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -50,27 +49,4 @@ func TestNewCollector(t *testing.T) {
 		})
 	}
 
-}
-
-func TestCleanShutdown(t *testing.T) {
-	g = NewWithT(t)
-	log = testr.New(t)
-
-	routineCountBefore := runtime.NumGoroutine()
-
-	clustersManager := &clustersfakes.FakeSubscriber{}
-	sub := &clustersfakes.FakeSubscription{}
-	clustersManager.SubscribeReturns(sub)
-
-	opts := CollectorOpts{
-		Log:            log,
-		NewWatcherFunc: newFakeWatcher,
-		Clusters:       clustersManager,
-	}
-	col, err := NewCollector(opts)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	col.Start()
-	col.Stop()
-	g.Expect(runtime.NumGoroutine()).To(Equal(routineCountBefore), "number of goroutines before starting = number of goroutines after stopping (no leaked goroutines)")
 }
