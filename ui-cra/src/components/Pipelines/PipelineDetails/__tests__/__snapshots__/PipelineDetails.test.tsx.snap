@@ -894,12 +894,8 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiTabs-root horizontal-tabs"
           >
             <div
-              class="MuiTabs-scrollable"
-              style="width: 99px; height: 99px; position: absolute; top: -9999px; overflow: scroll;"
-            />
-            <div
-              class="MuiTabs-scroller MuiTabs-scrollable"
-              style="margin-bottom: 0px;"
+              class="MuiTabs-scroller MuiTabs-fixed"
+              style="overflow: hidden;"
             >
               <div
                 class="MuiTabs-flexContainer"
