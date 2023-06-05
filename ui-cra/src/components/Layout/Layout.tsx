@@ -60,7 +60,7 @@ const Layout = () => {
       <Route
         component={() => (
           <SignInWrapper>
-            <SignIn />
+            <SignIn darkModeEnabled={false} />
           </SignInWrapper>
         )}
         exact={true}
