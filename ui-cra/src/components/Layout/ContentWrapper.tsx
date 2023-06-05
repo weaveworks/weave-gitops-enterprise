@@ -1,7 +1,7 @@
 import { Box, CircularProgress } from '@material-ui/core';
 import { Flex } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 
 import useNotifications, {
@@ -33,7 +33,19 @@ export const PageWrapper = styled.div`
   margin: 0 auto;
 `;
 
-export const contentCss = css`
+const ContentContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: calc(100vh - 60px);
+  overflow-wrap: normal;
+  overflow-x: hidden;
+  overflow-y: scroll;
+  padding: 0 24px 0 24px;
+  margin: 0 auto;
+`;
+
+export const MainContent = styled.div`
   padding: ${props => props.theme.spacing.medium};
   background-color: ${props => props.theme.colors.white};
   border-radius: ${props => props.theme.spacing.xs}
@@ -41,14 +53,7 @@ export const contentCss = css`
   height: 100%;
 `;
 
-export const Content = styled.div<{ backgroundColor?: string }>`
-  ${contentCss};
-  background-color: ${props => props.backgroundColor};
-`;
-
 interface Props {
-  type?: string;
-  backgroundColor?: string;
   errors?: ListError[];
   loading?: boolean;
   notifications?: NotificationData[];
@@ -57,7 +62,6 @@ interface Props {
 
 export const ContentWrapper: FC<Props> = ({
   children,
-  backgroundColor,
   errors,
   loading,
   warningMsg,
@@ -94,19 +98,7 @@ export const ContentWrapper: FC<Props> = ({
   }
 
   return (
-    <div
-      id="content-wrapper"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        width: '100%',
-        maxHeight: 'calc(100vh - 60px)',
-        overflowWrap: 'normal',
-        overflowX: 'scroll',
-        paddingRight: '24px',
-        margin: '0 auto',
-      }}
-    >
+    <ContentContainer>
       {errors && (
         <AlertListErrors
           errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
@@ -124,7 +116,7 @@ export const ContentWrapper: FC<Props> = ({
       )}
       <Notifications notifications={topNotifications} />
 
-      <Content backgroundColor={backgroundColor}>{children}</Content>
+      <MainContent>{children}</MainContent>
 
       {!!bottomNotifications.length && (
         <div style={{ paddingTop: '16px' }}>
@@ -132,6 +124,6 @@ export const ContentWrapper: FC<Props> = ({
         </div>
       )}
       <MemoizedHelpLinkWrapper />
-    </div>
+    </ContentContainer>
   );
 };
