@@ -145,7 +145,7 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   //hard code light for now
   useEffect(() => {
     if (mode === 'dark') toggleDarkMode();
-  }, []);
+  }, [mode, toggleDarkMode]);
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>
