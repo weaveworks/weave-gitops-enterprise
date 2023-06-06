@@ -1,12 +1,13 @@
-import React, { FC } from 'react';
+import { List, ListItem } from '@material-ui/core';
+import { Link } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
 import styled from 'styled-components';
 import useClusters from '../../hooks/clusters';
-import { List, ListItem } from '@material-ui/core';
 import { GitopsClusterEnriched } from '../../types/custom';
-import { Link } from '@weaveworks/weave-gitops';
 
 // FIXME: move "a" styling up to a top level CSS rule
 const ListWrapper = styled(List)`
+  padding: 0;
   li[class*='MuiListItem-root'] {
     padding: 0 0 ${props => props.theme.spacing.xxs} 0;
   }
@@ -22,7 +23,7 @@ export const DashboardsList: FC<{
   const annotations = getDashboardAnnotations(cluster);
 
   return Object.keys(annotations).length > 0 ? (
-    <ListWrapper style={{ padding: 0 }}>
+    <ListWrapper>
       {Object.entries(annotations).map(([key, value]) => (
         <ListItem key={key}>
           {
