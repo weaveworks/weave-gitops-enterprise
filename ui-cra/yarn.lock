@@ -2348,10 +2348,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4#2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.24.0-rc.1-29-g537341e9":
-  version "0.24.0-rc.1-29-g537341e9"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.24.0-rc.1-29-g537341e9/027920b0efb44c75689da06c5a1cbde42f2500a2#027920b0efb44c75689da06c5a1cbde42f2500a2"
-  integrity sha512-qxIv+Y8hR2aHRs7nugDj8uZKv1Vq69OaEUg2q3H708X8JziJn+8szBnA/6x+w+/Hqy5AgYoYv4ohX4yzpWsA/Q==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.24.0-rc.1-102-g264d3687":
+  version "0.24.0-rc.1-102-g264d3687"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.24.0-rc.1-102-g264d3687/60387e1c14bb5a1a5c56dd92ba2678384c63cd36#60387e1c14bb5a1a5c56dd92ba2678384c63cd36"
+  integrity sha512-siygKcNSHSXiYMCej9Zbv79y+fIpRvtUApeah9mtqNYgHAsTkwXvzy1CM9sUzbbGuq9rbiOIzBBsEQiEv5a04w==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -2372,10 +2372,12 @@
     react "^17.0.2"
     react-dom "^17.0.2"
     react-lottie-player "^1.4.3"
+    react-markdown "^8.0.7"
     react-query "^3.34.7"
     react-router-dom "^5.2.0"
     react-syntax-highlighter "^15.5.0"
     react-toastify "^9.1.2"
+    remark-gfm "^3.0.1"
     styled-components "^5.3.0"
     yaml "^2.2.2"
 
@@ -8899,6 +8901,27 @@ react-markdown@^8.0.3:
     unist-util-visit "^4.0.0"
     vfile "^5.0.0"
 
+react-markdown@^8.0.7:
+  version "8.0.7"
+  resolved "https://registry.yarnpkg.com/react-markdown/-/react-markdown-8.0.7.tgz#c8dbd1b9ba5f1c5e7e5f2a44de465a3caafdf89b"
+  integrity sha512-bvWbzG4MtOU62XqBx3Xx+zB2raaFFsq4mYiAzfjXJMEz2sixgeAfraA3tvzULF02ZdOMUOKTBFFaZJDDrq+BJQ==
+  dependencies:
+    "@types/hast" "^2.0.0"
+    "@types/prop-types" "^15.0.0"
+    "@types/unist" "^2.0.0"
+    comma-separated-tokens "^2.0.0"
+    hast-util-whitespace "^2.0.0"
+    prop-types "^15.0.0"
+    property-information "^6.0.0"
+    react-is "^18.0.0"
+    remark-parse "^10.0.0"
+    remark-rehype "^10.0.0"
+    space-separated-tokens "^2.0.0"
+    style-to-object "^0.4.0"
+    unified "^10.0.0"
+    unist-util-visit "^4.0.0"
+    vfile "^5.0.0"
+
 react-query@^3.34.7:
   version "3.34.19"
   resolved "https://registry.npmjs.org/react-query/-/react-query-3.34.19.tgz"
@@ -9943,6 +9966,13 @@ style-to-object@^0.3.0:
   version "0.3.0"
   resolved "https://registry.npmjs.org/style-to-object/-/style-to-object-0.3.0.tgz"
   integrity sha512-CzFnRRXhzWIdItT3OmF8SQfWyahHhjq3HwcMNCNLn+N7klOOqPjMeG/4JSu77D7ypZdGvSzvkrbyeTMizz2VrA==
+  dependencies:
+    inline-style-parser "0.1.1"
+
+style-to-object@^0.4.0:
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/style-to-object/-/style-to-object-0.4.1.tgz#53cf856f7cf7f172d72939d9679556469ba5de37"
+  integrity sha512-HFpbb5gr2ypci7Qw+IOhnP2zOU7e77b+rzM+wTzXzfi1PrtBCX0E7Pk4wL4iTLnhzZ+JgEGAhX81ebTg/aYjQw==
   dependencies:
     inline-style-parser "0.1.1"
 
