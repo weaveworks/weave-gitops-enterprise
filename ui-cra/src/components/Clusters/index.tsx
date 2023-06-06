@@ -52,7 +52,6 @@ import {
 } from '../../utils/icons';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import PoliciesViolations from '../PolicyViolations';
 import { TableWrapper, Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
 import {
@@ -64,6 +63,7 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
+import { PolicyViolationsList } from '@weaveworks/weave-gitops/ui';
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
@@ -535,7 +535,7 @@ const MCCP: FC<{
               </LoadingWrapper>
             </RouterTab>
             <RouterTab name="Violations" path={`${path}/violations`}>
-              <PoliciesViolations />
+              <PolicyViolationsList req={{}} />
             </RouterTab>
           </SubRouterTabs>
         </ContentWrapper>
