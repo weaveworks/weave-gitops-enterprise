@@ -21,6 +21,7 @@ import {
   statusSortHelper,
   useListSources,
 } from '@weaveworks/weave-gitops';
+import { PolicyViolationsList } from '@weaveworks/weave-gitops';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -63,7 +64,6 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
-import { PolicyViolationsList } from '@weaveworks/weave-gitops/ui';
 
 const ClustersTableWrapper = styled(TableWrapper)`
   thead {
