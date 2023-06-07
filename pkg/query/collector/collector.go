@@ -53,6 +53,11 @@ type ImpersonateServiceAccount struct {
 	Namespace string
 }
 
+type ImpersonateServiceAccount struct {
+	Name      string
+	Namespace string
+}
+
 type CollectorOpts struct {
 	Name            string // for metrics, logs
 	Log             logr.Logger
