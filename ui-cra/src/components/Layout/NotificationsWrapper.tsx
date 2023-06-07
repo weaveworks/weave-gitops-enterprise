@@ -11,7 +11,6 @@ import {
   WarningIcon,
   WarningWrapper,
 } from '../PolicyConfigs/PolicyConfigStyles';
-import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';
@@ -81,7 +80,6 @@ export const NotificationsWrapper: FC<Props> = ({
           <Notifications notifications={bottomNotifications} />
         </div>
       )}
-      <MemoizedHelpLinkWrapper />
     </>
   );
 };

@@ -22,14 +22,15 @@ const HelpLink = styled(Flex)<{
     )
     ${props => props.theme.spacing.medium};
   background-color: ${props =>
-    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
+    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'} !important;
   color: ${props => props.textColor || props.theme.colors.neutral30};
-  border-radius: 0 0 ${props => props.theme.spacing.xs}
-    ${props => props.theme.spacing.xs};
-  justify-content: space-between;
+  border-radius: ${props => props.theme.spacing.xs};
   a {
     color: ${({ theme }) => theme.colors.primary};
   }
+  margin-left: ${props => props.theme.spacing.medium};
+  margin-right: ${props => props.theme.spacing.medium};
+  width: -webkit-fill-available;
 `;
 
 const useStyles = makeStyles(() =>
@@ -53,6 +54,7 @@ const Footer = ({ version }: { version: string }) => {
 
   return (
     <HelpLink
+      between
       backgroundColor={uiConfig?.footer?.backgroundColor}
       textColor={uiConfig?.footer?.color}
     >

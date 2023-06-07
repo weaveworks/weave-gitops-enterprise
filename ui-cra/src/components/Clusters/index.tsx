@@ -20,7 +20,6 @@ import {
   filterConfig,
   statusSortHelper,
   useListSources,
-  Page,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
@@ -64,6 +63,7 @@ import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 interface Size {
   size?: 'small';
