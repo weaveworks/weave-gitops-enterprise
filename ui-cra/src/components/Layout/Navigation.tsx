@@ -20,12 +20,20 @@ function getParentNavRouteValueExtended(
   if (Object.values(V2Routes).includes(route as V2Routes)) {
     return getParentNavRouteValue(route);
   }
+
+  if (route === Routes.PolicyViolationDetails) {
+    if (!window.location.search.includes('kind=')) return Routes.Clusters;
+    if (window.location.search.includes('kind=Policy')) {
+      return Routes.Policies;
+    }
+    return V2Routes.Automations;
+  }
+
   switch (route) {
     //Clusters
     case Routes.Clusters:
     case Routes.ClusterDashboard:
     case Routes.PolicyViolations:
-    case Routes.PolicyViolationDetails:
     case Routes.DeleteCluster:
     case Routes.EditResource:
       return Routes.Clusters;
