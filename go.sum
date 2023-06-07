@@ -1295,13 +1295,10 @@ github.com/weaveworks/templates-controller v0.2.0 h1:7pWLCoHasLyk1qgDH6N9XVgozZv
 github.com/weaveworks/templates-controller v0.2.0/go.mod h1:qO/4Eeqas5kjLCacboFKcisszFMjCjIUMxhtqxYlMUw=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 h1:+IkLtnXzCkhJzojbadPd+UxwaTa6K/Eb2grY6LcYfeo=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4/go.mod h1:LUBkwqS7FHz/QTNuYzvWj6svehhh1djnV0Gj3OTc87E=
-<<<<<<< HEAD
 github.com/weaveworks/weave-gitops v0.24.0-rc.1.0.20230606124125-264d3687e3fa h1:/iJ/oPboucg7X2+VKBIk+Emutzlm1FG+NLCGgdXnKIU=
 github.com/weaveworks/weave-gitops v0.24.0-rc.1.0.20230606124125-264d3687e3fa/go.mod h1:fYTF4si7jV/IGCV+VI8fVXDxHo9Hni2phNaRmPu7Dn8=
-=======
-github.com/weaveworks/weave-gitops v0.24.0-rc.1.0.20230601154314-9c0b71da2fbd h1:o8ZiqfBJm5fV3UNkiioFqWZ2V1wczI22bYyFpwro96Q=
-github.com/weaveworks/weave-gitops v0.24.0-rc.1.0.20230601154314-9c0b71da2fbd/go.mod h1:fYTF4si7jV/IGCV+VI8fVXDxHo9Hni2phNaRmPu7Dn8=
->>>>>>> 157d3963e40168ced8966923c5e417ba27469f4f
+github.com/weaveworks/weave-gitops v0.24.0-rc.1.0.20230606145343-800dd906bc44 h1:2mJ+A/PD/ZoyYBuryNjEzdFzkuMtlhn0QyzTwHc4zK0=
+github.com/weaveworks/weave-gitops v0.24.0-rc.1.0.20230606145343-800dd906bc44/go.mod h1:fYTF4si7jV/IGCV+VI8fVXDxHo9Hni2phNaRmPu7Dn8=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.83.0 h1:37p0MpTPNbsTMKX/JnmJtY8Ch1sFiJzVF342+RvZEGw=
@@ -2000,6 +1997,7 @@ k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8 h1:IyQ1DifCBk589JD4Cm2CT2
 k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8/go.mod h1:guXtiQW/y/AWAfPSOaI/1eY0TGBAmL5OygiIyUOKDRc=
 k8s.io/kubectl v0.26.2 h1:SMPB4j48eVFxsYluBq3VLyqXtE6b72YnszkbTAtFye4=
 k8s.io/kubectl v0.26.2/go.mod h1:KYWOXSwp2BrDn3kPeoU/uKzKtdqvhK1dgZGd0+no4cM=
+k8s.io/kubernetes v1.15.0-alpha.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/kubernetes v1.26.3 h1:LtjNGNNpCTRyrWhDJMwTWDX+4h+GLwfULS8pu0xzSdk=
 k8s.io/kubernetes v1.26.3/go.mod h1:NxzR7U7mS+OGa3J/qweI86Pek//mlfHqDgt6NNGdz8g=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
