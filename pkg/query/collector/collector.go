@@ -31,10 +31,16 @@ type Collector interface {
 	Stop() error
 }
 
+type ImpersonateServiceAccount struct {
+	Name      string
+	Namespace string
+}
+
 type CollectorOpts struct {
 	Log            logr.Logger
 	Clusters       clusters.Subscriber
 	NewWatcherFunc NewWatcherFunc
+	ServiceAccount ImpersonateServiceAccount // this gives the service account to impersonate when watching each cluster
 }
 
 func (o *CollectorOpts) Validate() error {
@@ -43,6 +49,9 @@ func (o *CollectorOpts) Validate() error {
 	}
 	if o.NewWatcherFunc == nil {
 		return fmt.Errorf("NewWatcherFunc must be supplied")
+	}
+	if o.ServiceAccount.Name == "" || o.ServiceAccount.Namespace == "" {
+		return fmt.Errorf("ImpersonateServiceAccount name and namespace must be non-empty")
 	}
 	return nil
 }
