@@ -43,3 +43,10 @@ gitopssets-controller:
 # Re-clarify capiEnabled
 global:
   capiEnabled: true
+
+metrics:
+  # Enables metrics generation and prometheus endpoint
+  enabled: true
+  service:
+    annotations:
+      prometheus.io/scrape: "true"

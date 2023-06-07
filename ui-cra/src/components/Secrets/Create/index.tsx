@@ -281,6 +281,7 @@ const CreateSecret = () => {
       commitMessage: formData.commitMessage,
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
+      baseBranch: formData.repo.obj.spec.ref.branch
     };
     setLoading(true);
     return validateToken()

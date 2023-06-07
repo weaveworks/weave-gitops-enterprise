@@ -362,6 +362,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
+      baseBranch: formData.repo.obj.spec.ref.branch
     };
     setLoading(true);
     return validateToken()

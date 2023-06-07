@@ -280,6 +280,7 @@ const toPayload = (
     templateKind,
     previousValues: createReqAnnot,
     repositoryUrl,
+    baseBranch: formData.repo.obj.spec.ref.branch
   };
 };
 
