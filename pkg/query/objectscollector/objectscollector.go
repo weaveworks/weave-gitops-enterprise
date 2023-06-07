@@ -27,13 +27,14 @@ func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subs
 	}()
 
 	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
-		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, kinds, log)
+		return collector.DefaultNewWatcher(config, clusterName, incoming, kinds, log)
 	}
 
 	opts := collector.CollectorOpts{
 		Log:            log,
 		NewWatcherFunc: newWatcher,
 		Clusters:       mgr,
+		ServiceAccount: sa,
 	}
 
 	col, err := collector.NewCollector(opts)

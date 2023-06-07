@@ -32,6 +32,10 @@ func TestStart(t *testing.T) {
 		Log:            log,
 		Clusters:       cm,
 		NewWatcherFunc: newFakeWatcher,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
@@ -123,6 +127,10 @@ func TestStop(t *testing.T) {
 		Log:            log,
 		Clusters:       cm,
 		NewWatcherFunc: newFakeWatcher,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
@@ -140,6 +148,10 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	opts := CollectorOpts{
 		Log:            log,
 		NewWatcherFunc: newFakeWatcher,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
@@ -179,6 +191,10 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	opts := CollectorOpts{
 		Log:            log,
 		NewWatcherFunc: newFakeWatcher,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
@@ -239,6 +255,10 @@ func TestClusterWatcher_Status(t *testing.T) {
 	options := CollectorOpts{
 		Log:            log,
 		NewWatcherFunc: newFakeWatcher,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
 	}
 	collector, err := newWatchingCollector(options)
 	g.Expect(err).To(BeNil())
@@ -339,4 +359,46 @@ func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
 	})
 
 	return log, path
+}
+
+func Test_makeImpersonateConfig(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	tests := []struct {
+		name               string
+		config             *rest.Config
+		namespace          string
+		serviceAccountName string
+		errPattern         string
+	}{
+		{
+			name: "cannot create impersonation config if invalid params",
+			config: &rest.Config{
+				Host: "http://idontexist",
+			},
+			errPattern: "service acccount cannot be empty",
+		},
+		{
+			name: "cannot create impersonation config if invalid params",
+			config: &rest.Config{
+				Host: "http://idontexist",
+			},
+			namespace:          "flux-system",
+			serviceAccountName: "collector",
+			errPattern:         "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config, err := makeServiceAccountImpersonationConfig(tt.config, tt.namespace, tt.serviceAccountName)
+			if err != nil {
+				return
+			}
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(config.Impersonate.UserName).To(ContainSubstring(tt.serviceAccountName))
+		})
+	}
 }

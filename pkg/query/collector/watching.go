@@ -75,7 +75,8 @@ func (c *watchingCollector) Stop() error {
 	return nil
 }
 
-// Cluster watcher for watching flux applications kinds helm releases and kustomizations
+// watchingCollector supervises watchers, starting one per cluster it
+// sees from the `Subscriber` and stopping/restarting them as needed.
 type watchingCollector struct {
 	quit            chan struct{}
 	done            sync.WaitGroup
@@ -84,6 +85,7 @@ type watchingCollector struct {
 	clusterWatchers map[string]Watcher
 	newWatcherFunc  NewWatcherFunc
 	log             logr.Logger
+	sa              ImpersonateServiceAccount
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
@@ -93,6 +95,7 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 		clusterWatchers: make(map[string]Watcher),
 		newWatcherFunc:  opts.NewWatcherFunc,
 		log:             opts.Log,
+		sa:              opts.ServiceAccount,
 	}, nil
 }
 
@@ -100,19 +103,18 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 type NewWatcherFunc = func(config *rest.Config, clusterName string) (Watcher, error)
 
 // TODO add unit tests; better name.
-func DefaultNewWatcher(config *rest.Config, serviceAccount ImpersonateServiceAccount, clusterName string, objectsChannel chan []models.ObjectTransaction,
+func DefaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction,
 	kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
 	w, err := NewWatcher(WatcherOptions{
 		ClusterRef: types.NamespacedName{
 			Name:      clusterName,
 			Namespace: "default", // TODO <-- this looks suspect
 		},
-		ClientConfig:   config,
-		Kinds:          kinds,
-		ObjectChannel:  objectsChannel,
-		Log:            log,
-		ManagerFunc:    defaultNewWatcherManager,
-		ServiceAccount: serviceAccount,
+		ClientConfig:  config,
+		Kinds:         kinds,
+		ObjectChannel: objectsChannel,
+		Log:           log,
+		ManagerFunc:   defaultNewWatcherManager,
 	})
 
 	if err != nil {
@@ -137,7 +139,12 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 		return fmt.Errorf("cluster name is empty")
 	}
 
-	watcher, err := w.newWatcherFunc(config, clusterName)
+	saConfig, err := makeServiceAccountImpersonationConfig(config, w.sa.Namespace, w.sa.Name)
+	if err != nil {
+		return fmt.Errorf("cannot create impersonation config: %w", err)
+	}
+
+	watcher, err := w.newWatcherFunc(saConfig, clusterName)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.GetName(), err)
 	}
@@ -177,4 +184,24 @@ func (w *watchingCollector) Status(clusterName string) (string, error) {
 		return "", fmt.Errorf("cluster not found: %s", clusterName)
 	}
 	return watcher.Status()
+}
+
+// makeServiceAccountImpersonationConfig when creating a reconciler for watcher we will need to impersonate
+// a user to dont use the default one to enhance security. This method creates a new rest.config from the input parameters
+// with impersonation configuration pointing to the service account
+func makeServiceAccountImpersonationConfig(config *rest.Config, namespace, serviceAccountName string) (*rest.Config, error) {
+	if config == nil {
+		return nil, fmt.Errorf("invalid rest config")
+	}
+
+	if namespace == "" || serviceAccountName == "" {
+		return nil, fmt.Errorf("service account cannot be empty")
+	}
+
+	copyCfg := rest.CopyConfig(config)
+	copyCfg.Impersonate = rest.ImpersonationConfig{
+		UserName: fmt.Sprintf("system:serviceaccount:%s:%s", namespace, serviceAccountName),
+	}
+
+	return copyCfg, nil
 }

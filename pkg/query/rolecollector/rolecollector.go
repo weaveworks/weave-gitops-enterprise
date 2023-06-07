@@ -18,7 +18,7 @@ import (
 func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.ImpersonateServiceAccount, log logr.Logger) (collector.Collector, error) {
 	incoming := make(chan []models.ObjectTransaction)
 	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
-		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, configuration.SupportedRbacKinds, log)
+		return collector.DefaultNewWatcher(config, clusterName, incoming, configuration.SupportedRbacKinds, log)
 	}
 
 	go func() {
@@ -33,6 +33,7 @@ func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.Imper
 		Log:            log,
 		NewWatcherFunc: newWatcher,
 		Clusters:       mgr,
+		ServiceAccount: sa,
 	}
 
 	col, err := collector.NewCollector(opts)

@@ -32,6 +32,10 @@ func TestNewCollector(t *testing.T) {
 				Log:            log,
 				NewWatcherFunc: newFakeWatcher,
 				Clusters:       clustersManager,
+				ServiceAccount: ImpersonateServiceAccount{
+					Namespace: "flux-system",
+					Name:      "collector",
+				},
 			},
 			errPattern: "",
 		},
