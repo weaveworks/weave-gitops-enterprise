@@ -51,7 +51,6 @@ const App = () => {
               autoClose={5000}
               newestOnTop={false}
             />
-            {/* <MemoizedHelpLinkWrapper /> */}
           </Flex>
         </WGLayout>
       </VersionProvider>

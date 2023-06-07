@@ -55,7 +55,7 @@ export const NotificationsWrapper: FC<Props> = ({
   const bottomNotifications = notifications.filter(n => n.display === 'bottom');
 
   return (
-    <>
+    <div style={{ width: '100%' }}>
       {errors && (
         <AlertListErrors
           errors={errors.filter(error => error.message !== ENTITLEMENT_ERROR)}
@@ -80,6 +80,6 @@ export const NotificationsWrapper: FC<Props> = ({
           <Notifications notifications={bottomNotifications} />
         </div>
       )}
-    </>
+    </div>
   );
 };

@@ -1,5 +1,4 @@
 import { Flex, Link } from '@weaveworks/weave-gitops';
-
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styled from 'styled-components';
