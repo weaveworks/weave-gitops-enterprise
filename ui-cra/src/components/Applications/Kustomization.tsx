@@ -3,7 +3,6 @@ import {
   Kind,
   KustomizationDetail,
   LinkResolverProvider,
-  Page,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
@@ -15,6 +14,7 @@ import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 import { EditButton } from '../Templates/Edit/EditButton';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;

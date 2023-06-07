@@ -8,7 +8,6 @@ import {
   KubeStatusIndicator,
   LinkResolverProvider,
   Metadata,
-  Page,
   RouterTab,
   SubRouterTabs,
   YamlView,
@@ -37,6 +36,7 @@ import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 import TerraformPlanView from './TerraformPlanView';
+import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;

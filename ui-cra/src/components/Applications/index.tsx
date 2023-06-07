@@ -3,7 +3,6 @@ import {
   Button,
   Icon,
   IconType,
-  Page,
   useFeatureFlags,
   useListAutomations,
 } from '@weaveworks/weave-gitops';
@@ -15,6 +14,7 @@ import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
 import { ActionsWrapper } from '../Clusters';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();

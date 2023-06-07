@@ -2,7 +2,6 @@ import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Icon,
   IconType,
-  Page,
   RouterTab,
   SubRouterTabs,
   Button as WeaveButton,
@@ -24,6 +23,8 @@ import { QueryState } from '../Explorer/hooks';
 import { linkToExplorer } from '../Explorer/utils';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
+import { Page } from '../Layout/App';
+
 type Props = {
   className?: string;
   name: string;

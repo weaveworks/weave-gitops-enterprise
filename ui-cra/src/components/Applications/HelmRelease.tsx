@@ -1,7 +1,6 @@
 import {
   HelmReleaseDetail,
   Kind,
-  Page,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
@@ -12,6 +11,7 @@ import { Routes } from '../../utils/nav';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { FieldsType, PolicyViolationsList } from '../PolicyViolations/Table';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;

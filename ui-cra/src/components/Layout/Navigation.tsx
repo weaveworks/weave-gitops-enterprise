@@ -12,6 +12,10 @@ import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 
+const NavContainer = styled.div`
+  height: 100vh;
+`;
+
 function getParentNavRouteValueExtended(
   route: string,
 ): V2Routes | Routes | boolean | PageRoute {
@@ -199,13 +203,15 @@ const Navigation: FC<{
   );
 
   return (
-    <Nav
-      className="test-id-navigation"
-      collapsed={collapsed}
-      setCollapsed={setCollapsed}
-      navItems={navItems}
-      currentPage={routeValue}
-    />
+    <NavContainer>
+      <Nav
+        className="test-id-navigation"
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+        navItems={navItems}
+        currentPage={routeValue}
+      />
+    </NavContainer>
   );
 };
 

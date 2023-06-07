@@ -1,10 +1,11 @@
 import { useListSecrets } from '../../contexts/Secrets';
 import { SecretsTable } from './Table';
-import { Button, Flex, Icon, IconType, Page } from '@weaveworks/weave-gitops';
+import { Button, Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useCallback } from 'react';
 import { Routes } from '../../utils/nav';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const SecretsList = () => {
   const { data, isLoading } = useListSecrets({});
@@ -18,7 +19,7 @@ const SecretsList = () => {
   return (
     <Page loading={isLoading} path={[{ label: 'Secrets' }]}>
       <NotificationsWrapper errors={data?.errors}>
-        <Flex center between>
+        <Flex>
           <Button
             id="create-secrets"
             startIcon={<Icon type={IconType.AddIcon} size="base" />}

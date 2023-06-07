@@ -8,7 +8,6 @@ import {
   statusSortHelper,
   Timestamp,
   formatURL,
-  Page,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
@@ -17,6 +16,7 @@ import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { computeMessage } from '../Clusters';
 import _ from 'lodash';
 import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];

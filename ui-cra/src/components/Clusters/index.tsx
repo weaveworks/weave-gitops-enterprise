@@ -70,6 +70,7 @@ interface Size {
 }
 
 export const ActionsWrapper = styled(Flex)<Size>`
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
     margin-bottom: ${({ theme }) => theme.spacing.small};

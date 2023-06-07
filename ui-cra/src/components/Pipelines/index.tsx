@@ -5,7 +5,6 @@ import {
   DataTable,
   filterConfig,
   formatURL,
-  Page,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
@@ -16,6 +15,7 @@ import { Routes } from '../../utils/nav';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
+import { Page } from '../Layout/App';
 
 const Pipelines = ({ className }: any) => {
   const { data, isLoading } = useListPipelines();

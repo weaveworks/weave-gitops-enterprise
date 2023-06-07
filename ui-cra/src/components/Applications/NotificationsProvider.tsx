@@ -1,13 +1,13 @@
 import { FC } from 'react';
 import {
   Kind,
-  Page,
   ProviderDetail,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;

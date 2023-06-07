@@ -11,7 +11,6 @@ import {
   GitRepository,
   Link,
   LoadingPage,
-  Page,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
@@ -48,6 +47,7 @@ import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
+import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -362,7 +362,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
-      baseBranch: formData.repo.obj.spec.ref.branch
+      baseBranch: formData.repo.obj.spec.ref.branch,
     };
     setLoading(true);
     return validateToken()

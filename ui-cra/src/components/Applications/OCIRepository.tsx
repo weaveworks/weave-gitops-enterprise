@@ -5,10 +5,10 @@ import {
   Kind,
   useGetObject,
   V2Routes,
-  Page,
 } from '@weaveworks/weave-gitops';
 import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;

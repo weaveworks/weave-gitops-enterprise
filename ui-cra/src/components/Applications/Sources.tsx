@@ -1,5 +1,4 @@
 import {
-  Page,
   SourcesTable,
   useFeatureFlags,
   useListSources,
@@ -10,6 +9,7 @@ import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
 import Explorer from '../Explorer/Explorer';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
