@@ -1,5 +1,7 @@
+import { CircularProgress } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
 import {
+  Flex,
   Icon,
   IconType,
   RouterTab,
@@ -8,21 +10,19 @@ import {
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
+import { useEffect, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import { localEEMuiTheme } from '../../muiTheme';
-import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
-
-import { CircularProgress } from '@material-ui/core';
-import { useEffect, useState } from 'react';
 import useClusters from '../../hooks/clusters';
+import { localEEMuiTheme } from '../../muiTheme';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
+import { Routes } from '../../utils/nav';
 import { useIsClusterWithSources } from '../Applications/utils';
 import { QueryState } from '../Explorer/hooks';
 import { linkToExplorer } from '../Explorer/utils';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
 type Props = {
@@ -31,11 +31,9 @@ type Props = {
   namespace: string;
   clusterName: string;
 };
-interface Size {
-  size?: 'small';
-}
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
+
+const ActionsWrapper = styled(Flex)`
+  margin-bottom: ${props => props.theme.spacing.xs};
 `;
 
 const ClusterDetails = ({ clusterName }: Props) => {
@@ -69,7 +67,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
         <ContentWrapper loading={isLoading}>
           {currentCluster && (
             <div style={{ overflowX: 'auto' }}>
-              <ActionsWrapper style={{ marginBottom: 8 }}>
+              <ActionsWrapper>
                 <WeaveButton
                   id="cluster-application"
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}
