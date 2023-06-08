@@ -5,7 +5,7 @@ import {
   PolicyClientMock,
   withContext,
 } from '../../../utils/test-utils';
-import PolicyDetailsPage from '../PolicyDetails';
+import PolicyDetailsPage from '../PolicyDetailsPage';
 import { parseValue } from '../PolicyDetails/PolicyUtilis';
 const MockPolicyResponse = {
   policy: {

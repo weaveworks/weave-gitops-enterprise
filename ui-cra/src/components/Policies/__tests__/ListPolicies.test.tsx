@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
-import Policies from '..';
+import Policies from '../PoliciesListPage';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,

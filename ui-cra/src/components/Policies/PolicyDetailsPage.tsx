@@ -1,8 +1,7 @@
-// import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
 import { PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
-import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { useGetPolicyDetails } from '../../contexts/PolicyViolations';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 
 const PolicyDetailsPage = ({
   clusterName,
@@ -11,7 +10,7 @@ const PolicyDetailsPage = ({
   clusterName: string;
   id: string;
 }) => {
-  const { data, isLoading, error } = useGetPolicyDetails({
+  const { data, isLoading } = useGetPolicyDetails({
     clusterName,
     policyName: id,
   });

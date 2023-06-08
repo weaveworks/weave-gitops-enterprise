@@ -40,7 +40,7 @@ export function useGetPolicyDetails(req: GetPolicyRequest) {
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
-  return useQuery<GetPolicyResponse, Error>(
+  return useQuery<GetPolicyResponse, RequestError>(
     [GET_POLICY_QUERY_KEY, req],
     () => api.GetPolicy(req),
     { onError },
