@@ -36,6 +36,7 @@ func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.Imper
 	}()
 
 	opts := collector.CollectorOpts{
+		Name:            "rbac",
 		Log:             log,
 		NewWatcherFunc:  newWatcher,
 		StopWatcherFunc: deleteWatcher,
