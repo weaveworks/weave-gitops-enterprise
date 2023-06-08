@@ -17,23 +17,22 @@ import { Routes } from '../../utils/nav';
 function getParentNavRouteValueExtended(
   route: string,
 ): V2Routes | Routes | boolean | PageRoute {
-  if (Object.values(V2Routes).includes(route as V2Routes)) {
-    return getParentNavRouteValue(route);
-  }
-
-  if (route === Routes.PolicyViolationDetails) {
-    if (!window.location.search.includes('kind=')) return Routes.Clusters;
+  if (route === V2Routes.PolicyViolationDetails) {
+    if (!window.location.search.includes('kind')) return Routes.Clusters;
     if (window.location.search.includes('kind=Policy')) {
       return Routes.Policies;
     }
     return V2Routes.Automations;
+  }
+  
+  if (Object.values(V2Routes).includes(route as V2Routes)) {
+    return getParentNavRouteValue(route);
   }
 
   switch (route) {
     //Clusters
     case Routes.Clusters:
     case Routes.ClusterDashboard:
-    case Routes.PolicyViolations:
     case Routes.DeleteCluster:
     case Routes.EditResource:
       return Routes.Clusters;
