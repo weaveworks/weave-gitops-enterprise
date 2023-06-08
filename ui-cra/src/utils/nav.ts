@@ -49,9 +49,6 @@ export enum Routes {
   DeleteCluster = '/clusters/delete',
   EditResource = '/resources/edit',
 
-  PolicyViolations = '/clusters/violations',
-  PolicyViolationDetails = '/violations/details',
-
   GitlabOauthCallback = '/oauth/gitlab',
   BitBucketOauthCallback = '/oauth/bitbucketserver',
   AzureDevOpsOauthCallback = '/oauth/azuredevops',
