@@ -9,6 +9,8 @@ import {
   IconType,
   Kind,
   KubeStatusIndicator,
+  Link,
+  PolicyViolationsList,
   RouterTab,
   SubRouterTabs,
   filterByStatusCallback,
@@ -20,7 +22,7 @@ import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useHistory, useRouteMatch } from 'react-router-dom';
+import { useHistory, useRouteMatch } from 'react-router-dom';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
@@ -44,7 +46,6 @@ import {
   Rancher,
   Vsphere,
 } from '../../utils/icons';
-import PoliciesViolations from '../PolicyViolations';
 import { Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
 import {
@@ -423,7 +424,6 @@ const MCCP: FC<{
                         ) : (
                           <Link
                             to={`/cluster?clusterName=${c.name}`}
-                            color="#00b3ec"
                             data-cluster-name={c.name}
                           >
                             {c.name}
@@ -478,7 +478,7 @@ const MCCP: FC<{
               </LoadingWrapper>
             </RouterTab>
             <RouterTab name="Violations" path={`${path}/violations`}>
-              <PoliciesViolations />
+              <PolicyViolationsList req={{}} />
             </RouterTab>
           </SubRouterTabs>
         </NotificationsWrapper>

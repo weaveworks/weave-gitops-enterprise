@@ -37,8 +37,6 @@ import PolicyDetails from './components/Policies/PolicyDetails';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
-import PoliciesViolations from './components/PolicyViolations';
-import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
@@ -55,6 +53,7 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
+import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -125,14 +124,9 @@ const AppRoutes = () => {
         path={Routes.AddCluster}
       />
       <Route
-        component={PoliciesViolations}
+        component={withSearchParams(PolicyViolationPage)}
         exact
-        path={Routes.PolicyViolations}
-      />
-      <Route
-        component={withSearchParams(PolicyViolationDetails)}
-        exact
-        path={Routes.PolicyViolationDetails}
+        path={V2Routes.PolicyViolationDetails}
       />
       <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
       <Route
