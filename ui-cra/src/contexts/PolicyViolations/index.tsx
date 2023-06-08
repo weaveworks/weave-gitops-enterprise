@@ -18,8 +18,6 @@ import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 
 export const useCoreClientContext = () => useContext(CoreClientContext);
 
-export const useCoreClientContext = () => useContext(CoreClientContext);
-
 const LIST_POLICIES_QUERY_KEY = 'list-policy';
 
 export function useListPolicies(req: ListPoliciesRequest) {
