@@ -246,6 +246,8 @@ func (w *DefaultWatcher) Start() error {
 		return fmt.Errorf("cannot create watcher manager: %w", err)
 	}
 
+	// Manager.Start blocks until the context is canceled and unless
+	// there was a problem starting a controller.
 	go func() {
 		if err := w.watcherManager.Start(ctx); err != nil {
 			w.log.Error(err, "cannot start watcher", "cluster", w.cluster.GetName())
