@@ -27,11 +27,11 @@ func TestNewReconciler(t *testing.T) {
 	s := runtime.NewScheme()
 	fakeClient := fake.NewClientBuilder().WithScheme(s).Build()
 	tests := []struct {
-		name           string
-		objectKind     configuration.ObjectKind
-		client         client.Client
-		objectsChannel chan []models.ObjectTransaction
-		errPattern     string
+		name       string
+		objectKind configuration.ObjectKind
+		client     client.Client
+		process    func(models.ObjectTransaction) error
+		errPattern string
 	}{
 		{
 			name:       "cannot create reconciler without client",
@@ -43,22 +43,16 @@ func TestNewReconciler(t *testing.T) {
 			errPattern: "missing gvk",
 		},
 		{
-			name:       "cannot create reconciler without object channel",
+			name:       "could create reconciler with valid arguments",
 			client:     fakeClient,
 			objectKind: configuration.HelmReleaseObjectKind,
-			errPattern: "invalid objects channel",
-		},
-		{
-			name:           "could create reconciler with valid arguments",
-			client:         fakeClient,
-			objectKind:     configuration.HelmReleaseObjectKind,
-			objectsChannel: make(chan []models.ObjectTransaction),
-			errPattern:     "",
+			process:    func(models.ObjectTransaction) error { return nil },
+			errPattern: "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			reconciler, err := NewReconciler("test-cluster", tt.objectKind, tt.client, tt.objectsChannel, log)
+			reconciler, err := NewReconciler("test-cluster", tt.objectKind, tt.client, tt.process, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -84,9 +78,11 @@ func TestSetup(t *testing.T) {
 	})
 	g.Expect(err).To(BeNil())
 	g.Expect(fakeManager).NotTo(BeNil())
-	objectsChannel := make(chan []models.ObjectTransaction)
+	process := func(tx models.ObjectTransaction) error {
+		return nil
+	}
 
-	reconciler, err := NewReconciler("test-cluster", configuration.HelmReleaseObjectKind, fakeClient, objectsChannel, logger)
+	reconciler, err := NewReconciler("test-cluster", configuration.HelmReleaseObjectKind, fakeClient, process, logger)
 	g.Expect(err).To(BeNil())
 	g.Expect(reconciler).NotTo(BeNil())
 
@@ -175,27 +171,26 @@ func TestReconciler_Reconcile(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var reconcileError error
-			objectsChannel := make(chan []models.ObjectTransaction)
-			defer close(objectsChannel)
-			reconciler, err := NewReconciler(clusterName, configuration.HelmReleaseObjectKind, fakeClient, objectsChannel, logger)
+			var txns []models.ObjectTransaction
+			process := func(tx models.ObjectTransaction) error {
+				txns = append(txns, tx)
+				return nil
+			}
+			reconciler, err := NewReconciler(clusterName, configuration.HelmReleaseObjectKind, fakeClient, process, logger)
 			g.Expect(err).To(BeNil())
 			g.Expect(reconciler).NotTo(BeNil())
-			go func() {
-				_, reconcileError = reconciler.Reconcile(ctx, tt.request)
-			}()
-			objectTransactions := <-objectsChannel
+			_, reconcileError = reconciler.Reconcile(ctx, tt.request)
 			if tt.errPattern != "" {
 				g.Expect(reconcileError).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
 			g.Expect(reconcileError).To(BeNil())
-			assertObjectTransaction(t, objectTransactions[0], tt.expectedTx)
+			assertObjectTransaction(t, txns[0], tt.expectedTx)
 		})
 	}
 }
 
 func assertObjectTransaction(t *testing.T, actual models.ObjectTransaction, expected models.ObjectTransaction) {
-
 	assert.Assert(t, expected.ClusterName() == actual.ClusterName(), "different cluster")
 	assert.Assert(t, expected.TransactionType() == actual.TransactionType(), "different tx type")
 	assert.Assert(t, expected.Object().GetName() == actual.Object().GetName(), "different object")
