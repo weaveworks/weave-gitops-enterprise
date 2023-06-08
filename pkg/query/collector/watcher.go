@@ -115,9 +115,14 @@ func defaultNewWatcherManager(opts WatcherManagerOptions) (manager.Manager, erro
 		return nil, fmt.Errorf("cannot create controller manager: %w", err)
 	}
 
+	process := func(tx models.ObjectTransaction) error {
+		opts.ObjectsChannel <- []models.ObjectTransaction{tx}
+		return nil
+	}
+
 	//create reconciler for kinds
 	for _, kind := range opts.Kinds {
-		rec, err := reconciler.NewReconciler(opts.ClusterName, kind, mgr.GetClient(), opts.ObjectsChannel, opts.Log)
+		rec, err := reconciler.NewReconciler(opts.ClusterName, kind, mgr.GetClient(), process, opts.Log)
 		if err != nil {
 			return nil, fmt.Errorf("cannot create reconciler: %w", err)
 		}
