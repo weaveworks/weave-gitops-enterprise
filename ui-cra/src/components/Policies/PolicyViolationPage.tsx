@@ -29,7 +29,7 @@ const getPath = (kind?: string, violation?: PolicyValidation): Breadcrumb[] => {
     });
     return [
       { label: 'Policies', url: V2Routes.Policies },
-      { label: name||'', url: policyUrl },
+      { label: name || '', url: policyUrl },
     ];
   }
   const entityUrl = formatURL(
@@ -85,9 +85,4 @@ const PolicyViolationPage = ({ id, name, clusterName, kind }: Props) => {
   );
 };
 
-export default styled(PolicyViolationPage)`
-  ul.occurrences {
-    padding-left: ${props => props.theme.spacing.base};
-    margin: 0;
-  }
-`;
+export default styled(PolicyViolationPage)``;
