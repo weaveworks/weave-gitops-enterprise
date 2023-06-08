@@ -10,6 +10,7 @@ import {
   Kind,
   KubeStatusIndicator,
   Link,
+  PolicyViolationsList,
   RouterTab,
   SubRouterTabs,
   filterByStatusCallback,
@@ -48,7 +49,6 @@ import {
 } from '../../utils/icons';
 import { ContentWrapper } from '../Layout/ContentWrapper';
 import { PageTemplate } from '../Layout/PageTemplate';
-import PoliciesViolations from '../PolicyViolations';
 import { Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
 import {
@@ -471,7 +471,7 @@ const MCCP: FC<{
               </LoadingWrapper>
             </RouterTab>
             <RouterTab name="Violations" path={`${path}/violations`}>
-              <PoliciesViolations />
+              <PolicyViolationsList req={{}} />
             </RouterTab>
           </SubRouterTabs>
         </ContentWrapper>
