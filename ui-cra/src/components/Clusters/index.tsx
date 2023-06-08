@@ -69,15 +69,11 @@ export const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
     margin-bottom: ${({ theme }) => theme.spacing.small};
-  }`
-  
-const IconSpan = styled.span`
-  color: ${props => props.theme.colors.neutral30};
+  }
 `;
 
-const ActionsFlex = styled(Flex)`
-  align-items: center;
-  margin-bottom: ${props => props.theme.spacing.medium};
+const IconSpan = styled.span`
+  color: ${props => props.theme.colors.neutral30};
 `;
 
 export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
