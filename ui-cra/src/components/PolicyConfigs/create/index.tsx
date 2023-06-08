@@ -2,6 +2,7 @@ import { MenuItem } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
@@ -80,6 +81,12 @@ const FormWrapper = styled.form`
         background: ${props => props.theme.colors.neutral10} !important;
         border-color: ${props => props.theme.colors.neutral20} !important;
       }
+    }
+  }
+  .create-cta {
+    padding: ${props => props.theme.spacing.small};
+    button {
+      width: 200px;
     }
   }
 `;
@@ -263,7 +270,7 @@ const CreatePolicyConfig = () => {
       commitMessage: formData.commitMessage,
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
-      baseBranch: formData.repo.obj.spec.ref.branch
+      baseBranch: formData.repo.obj.spec.ref.branch,
     };
     setLoading(true);
     return validateToken()
@@ -406,11 +413,11 @@ const CreatePolicyConfig = () => {
               {loading ? (
                 <LoadingPage className="create-loading" />
               ) : (
-                <div className="create-cta">
+                <Flex end className="create-cta">
                   <Button type="submit" disabled={!isAuthenticated}>
                     CREATE PULL REQUEST
                   </Button>
-                </div>
+                </Flex>
               )}
             </FormWrapper>
           </ContentWrapper>
