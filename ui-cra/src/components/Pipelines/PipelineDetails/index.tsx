@@ -3,7 +3,6 @@ import {
   RouterTab,
   SubRouterTabs,
   YamlView,
-  Page,
 } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -17,6 +16,7 @@ import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import PipelinePullRequests from './PipelinePullRequests';
 import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
+import { Page } from '../../Layout/App';
 
 const mappedErrors = (
   errors: Array<string>,

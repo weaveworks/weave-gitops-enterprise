@@ -1,4 +1,4 @@
-import { Button, Page } from '@weaveworks/weave-gitops';
+import { Button } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
@@ -9,6 +9,7 @@ import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { useSyncSecret } from './SyncSecret';
 import { Box } from '@material-ui/core';
+import { Page } from '../../Layout/App';
 
 const SecretDetails = ({
   externalSecretName,

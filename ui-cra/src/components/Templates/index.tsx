@@ -10,12 +10,12 @@ import {
   Icon,
   IconType,
   Link,
-  Page,
   filterConfig,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const Error = styled.span`
   color: ${props => props.theme.colors.alertOriginal};

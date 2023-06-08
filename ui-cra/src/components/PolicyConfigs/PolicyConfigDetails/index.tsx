@@ -1,9 +1,9 @@
-import { Page } from '@weaveworks/weave-gitops';
 import { useGetPolicyConfigDetails } from '../../../contexts/PolicyConfigs';
 import { Routes } from '../../../utils/nav';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import PolicyConfigHeaderSection from './PolicyConfigHeaderSection';
 import PolicyDetailsCard from './PolicyDetailsCard';
+import { Page } from '../../Layout/App';
 
 const PolicyConfigDetails = ({
   clusterName,

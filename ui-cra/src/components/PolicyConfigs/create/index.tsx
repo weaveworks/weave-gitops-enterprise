@@ -6,7 +6,6 @@ import {
   Link,
   LoadingPage,
   useListSources,
-  Page,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -40,6 +39,7 @@ import {
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { PreviewPRModal } from './PreviewPRModal';
+import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   width: 80%;
@@ -263,7 +263,7 @@ const CreatePolicyConfig = () => {
       commitMessage: formData.commitMessage,
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
-      baseBranch: formData.repo.obj.spec.ref.branch
+      baseBranch: formData.repo.obj.spec.ref.branch,
     };
     setLoading(true);
     return validateToken()

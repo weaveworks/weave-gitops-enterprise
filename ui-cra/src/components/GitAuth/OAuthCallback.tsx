@@ -2,7 +2,6 @@ import { CircularProgress } from '@material-ui/core';
 import { Alert, AlertTitle } from '@material-ui/lab';
 import {
   Flex,
-  Page,
   useLinkResolver,
   useRequestState,
 } from '@weaveworks/weave-gitops';
@@ -23,6 +22,7 @@ import {
 } from '../../utils/formatters';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { getCallbackState, storeProviderToken } from './utils';
+import { Page } from '../Layout/App';
 
 type Props = {
   code: string;

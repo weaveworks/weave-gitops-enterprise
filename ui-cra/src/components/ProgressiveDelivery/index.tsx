@@ -1,9 +1,9 @@
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
 import { Alert } from '@material-ui/lab';
-import { Page } from '@weaveworks/weave-gitops';
 import { useIsFlaggerAvailable } from '../../contexts/ProgressiveDelivery';
 import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 
 const ProgressiveDelivery = () => {
   const {

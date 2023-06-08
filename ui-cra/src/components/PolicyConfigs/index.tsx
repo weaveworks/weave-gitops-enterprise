@@ -1,9 +1,10 @@
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { PolicyConfigsTable } from './Table';
 import { useListPolicyConfigs } from '../../contexts/PolicyConfigs';
-import { Button, Icon, IconType, Page } from '@weaveworks/weave-gitops';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useCallback } from 'react';
+import { Page } from '../Layout/App';
 
 const PolicyConfigsList = () => {
   const { data, isLoading } = useListPolicyConfigs({});

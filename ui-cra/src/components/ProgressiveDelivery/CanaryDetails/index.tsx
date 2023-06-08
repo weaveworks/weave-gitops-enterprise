@@ -2,7 +2,7 @@ import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
 import CanaryDetailsSection from './CanaryDetailsSection';
 import { Routes } from '../../../utils/nav';
-import { Page } from '@weaveworks/weave-gitops';
+import { Page } from '../../Layout/App';
 
 type Props = {
   name: string;

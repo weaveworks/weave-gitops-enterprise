@@ -1,4 +1,4 @@
-import { Page, V2Routes } from '@weaveworks/weave-gitops';
+import { V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -54,6 +54,7 @@ import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import PolicyViolationPage from './components/Policies/PolicyViolationPage';
+import { Page } from './components/Layout/App';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {

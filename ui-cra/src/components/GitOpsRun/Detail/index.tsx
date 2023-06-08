@@ -1,8 +1,10 @@
-import { Page, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOpsRunLogs from './GitOpsRunLogs';
+import { Page } from '../../Layout/App';
+
 type Props = {
   name?: string;
   namespace?: string;

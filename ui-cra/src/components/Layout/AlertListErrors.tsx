@@ -47,6 +47,7 @@ const useAlertStyles = makeStyles(() =>
 
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {
+    width: auto;
     margin-bottom: ${props => props.theme.spacing.base};
     background: #eecec7;
     border-radius: ${props => props.theme.spacing.xs};

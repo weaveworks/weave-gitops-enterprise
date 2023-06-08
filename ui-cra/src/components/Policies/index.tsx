@@ -1,7 +1,7 @@
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { PolicyTable } from './Table';
 import { useListListPolicies } from '../../contexts/PolicyViolations';
-import { Page } from '@weaveworks/weave-gitops';
+import { Page } from '../Layout/App';
 
 const Policies = () => {
   const { data, isLoading } = useListListPolicies({});

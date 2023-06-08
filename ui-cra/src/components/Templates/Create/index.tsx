@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
 import { NotificationsWrapper, Title } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
-import { Page } from '@weaveworks/weave-gitops';
+import { Page } from '../../Layout/App';
 
 const CreateResourcePage = () => {
   const { templateName } = useParams<{ templateName: string }>();

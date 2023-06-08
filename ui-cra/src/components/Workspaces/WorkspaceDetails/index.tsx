@@ -2,8 +2,8 @@ import { useGetWorkspaceDetails } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
 import WorkspaceHeaderSection from './WorkspaceHeaderSection';
 import TabDetails from './TabDetails';
-import { Page } from '@weaveworks/weave-gitops';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { Page } from '../../Layout/App';
 
 const WorkspaceDetails = ({
   clusterName,

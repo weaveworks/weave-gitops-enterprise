@@ -3,7 +3,7 @@ import HeaderSection from './HeaderSection';
 import ParametersSection from './ParametersSection';
 import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
 import { Routes } from '../../../utils/nav';
-import { Page } from '@weaveworks/weave-gitops';
+import { Page } from '../../Layout/App';
 
 const PolicyDetails = ({
   clusterName,

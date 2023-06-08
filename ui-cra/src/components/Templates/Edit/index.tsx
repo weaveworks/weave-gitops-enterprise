@@ -1,5 +1,5 @@
 import Grid from '@material-ui/core/Grid';
-import { Kind, Page, useGetObject } from '@weaveworks/weave-gitops';
+import { Kind, useGetObject } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import { Redirect } from 'react-router-dom';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -11,6 +11,7 @@ import { Title, NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';
+import { Page } from '../../Layout/App';
 
 const EditResource: FC<{
   resource: Resource;

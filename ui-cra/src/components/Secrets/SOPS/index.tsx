@@ -1,5 +1,5 @@
 import { CircularProgress, MenuItem } from '@material-ui/core';
-import { Button, GitRepository, Link, Page } from '@weaveworks/weave-gitops';
+import { Button, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -32,6 +32,7 @@ import {
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { Page } from '../../Layout/App';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();

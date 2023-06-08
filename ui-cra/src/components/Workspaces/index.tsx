@@ -1,7 +1,7 @@
 import { WorkspacesTable } from './Table';
 import { useListWorkspaces } from '../../contexts/Workspaces';
-import { Page } from '@weaveworks/weave-gitops';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const WorkspacesList = () => {
   const { data, isLoading } = useListWorkspaces({});

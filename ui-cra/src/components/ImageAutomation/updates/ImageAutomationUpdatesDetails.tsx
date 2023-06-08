@@ -4,13 +4,13 @@ import {
   SourceLink,
   useGetObject,
   V2Routes,
-  Page,
 } from '@weaveworks/weave-gitops';
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
+import { Page } from '../../Layout/App';
 
 type Props = {
   className?: string;
@@ -62,6 +62,7 @@ function ImageAutomationUpdatesDetails({
   );
 
   const rootPath = V2Routes.ImageAutomationUpdatesDetails;
+
   return (
     <Page
       loading={isLoading}

@@ -16,7 +16,6 @@ import {
   RouterTab,
   SubRouterTabs,
   YamlView,
-  Page,
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -36,6 +35,7 @@ import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
+import { Page } from '../Layout/App';
 
 const YAML = require('yaml');
 
