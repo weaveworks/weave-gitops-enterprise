@@ -124,7 +124,11 @@ const AppRoutes = () => {
         exact
         path={Routes.AddCluster}
       />
-
+      <Route
+        component={withSearchParams(PolicyViolationPage)}
+        exact
+        path={V2Routes.PolicyViolationDetails}
+      />
       <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
       <Route
         component={withSearchParams(GitOpsRunDetail)}
