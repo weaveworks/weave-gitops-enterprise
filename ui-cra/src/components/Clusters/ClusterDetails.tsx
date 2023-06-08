@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@material-ui/core/styles';
 import {
+  Flex,
   Icon,
   IconType,
   RouterTab,
@@ -31,11 +32,9 @@ type Props = {
   namespace: string;
   clusterName: string;
 };
-interface Size {
-  size?: 'small';
-}
-const ActionsWrapper = styled.div<Size>`
-  display: flex;
+
+const ActionsWrapper = styled(Flex)`
+  margin-bottom: ${props => props.theme.spacing.xs};
 `;
 
 const ClusterDetails = ({ clusterName }: Props) => {
@@ -69,7 +68,7 @@ const ClusterDetails = ({ clusterName }: Props) => {
         <NotificationsWrapper>
           {currentCluster && (
             <div style={{ overflowX: 'auto' }}>
-              <ActionsWrapper style={{ marginBottom: 8 }}>
+              <ActionsWrapper>
                 <WeaveButton
                   id="cluster-application"
                   startIcon={<Icon type={IconType.FilterIcon} size="base" />}

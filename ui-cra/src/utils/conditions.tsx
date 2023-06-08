@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-interface Condition {
+export interface Condition {
   type: string;
   status: string;
   reason: string;

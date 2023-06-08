@@ -1,9 +1,4 @@
-import {
-  Checkbox,
-  createStyles,
-  makeStyles,
-  withStyles,
-} from '@material-ui/core';
+import { Checkbox } from '@material-ui/core';
 import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
@@ -21,8 +16,6 @@ import {
   statusSortHelper,
   useListSources,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
-import { Condition } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
@@ -39,6 +32,7 @@ import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { useCallbackState } from '../../utils/callback-state';
+import { computeMessage } from '../../utils/conditions';
 import {
   EKSDefault,
   GKEDefault,
@@ -64,6 +58,7 @@ import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Page } from '../Layout/App';
+import styled from 'styled-components';
 
 interface Size {
   size?: 'small';
@@ -74,61 +69,35 @@ export const ActionsWrapper = styled(Flex)<Size>`
   & > .actionButton.btn {
     margin-right: ${({ theme }) => theme.spacing.small};
     margin-bottom: ${({ theme }) => theme.spacing.small};
-  }
+  }`
+  
+const IconSpan = styled.span`
+  color: ${props => props.theme.colors.neutral30};
 `;
 
-export function computeMessage(conditions: Condition[]) {
-  const readyCondition = conditions.find(
-    c => c.type === 'Ready' || c.type === 'Available',
-  );
-
-  return readyCondition ? readyCondition.message : 'unknown error';
-}
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    clusterIcon: {
-      marginRight: '12px',
-      color: '#737373',
-    },
-  }),
-);
+const ActionsFlex = styled(Flex)`
+  align-items: center;
+  margin-bottom: ${props => props.theme.spacing.medium};
+`;
 
 export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   cluster,
 }) => {
-  const classes = useStyles();
   const clusterKind =
     cluster.labels?.['weave.works/cluster-kind'] ||
     cluster.capiCluster?.infrastructureRef?.kind;
-
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
-      <span>
+      <IconSpan>
         <Octicon
-          className={classes.clusterIcon}
           icon={getClusterTypeIcon(clusterKind)}
           size="medium"
           verticalAlign="middle"
         />
-      </span>
+      </IconSpan>
     </Tooltip>
   );
 };
-
-const IndividualCheckbox = withStyles({
-  root: {
-    color: '#00b3ec',
-    '&$checked': {
-      color: '#00b3ec',
-    },
-    '&$disabled': {
-      color: '#d8d8d8',
-    },
-  },
-  checked: {},
-  disabled: {},
-})(Checkbox);
 
 const ClusterRowCheckbox = ({
   name,
@@ -136,8 +105,9 @@ const ClusterRowCheckbox = ({
   checked,
   onChange,
 }: ClusterNamespacedName & { checked: boolean; onChange: any }) => (
-  <IndividualCheckbox
+  <Checkbox
     checked={checked}
+    color="primary"
     onChange={useCallback(
       ev => onChange({ name, namespace }, ev),
       [name, namespace, onChange],
