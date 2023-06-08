@@ -12,9 +12,11 @@ import {
   ListPolicyValidationsRequest,
   ListPolicyValidationsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
+
+export const useCoreClientContext = () => useContext(CoreClientContext);
 
 export const useCoreClientContext = () => useContext(CoreClientContext);
 
