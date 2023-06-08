@@ -76,6 +76,17 @@ func TestStart(t *testing.T) {
 				g.Expect(collector.Start(ctx)).To(Succeed())
 			}()
 
+			// eventually, any clusters have a status
+			g.Eventually(func() bool {
+				for _, c := range tt.clusters {
+					s, err := collector.Status(c.GetName())
+					if err != nil || s == "" {
+						return false
+					}
+				}
+				return true
+			}, "5s", "0.5s").Should(BeTrue())
+
 			// assert any error for an individual cluster has been
 			// logged, and the corresponding success message has not
 			// been logged.
@@ -181,14 +192,19 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err = collector.watch(tt.cluster)
+			g.Expect(err).To(BeNil())
+
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
-			g.Expect(err).To(BeNil())
-			status, err := collector.Status(tt.cluster.GetName())
-			g.Expect(err).To(BeNil())
-			g.Expect(ClusterWatchingStarted).To(BeIdenticalTo(status))
+
+			if tt.errPattern == "" {
+				g.Eventually(func() bool {
+					s, err := collector.Status(tt.cluster.GetName())
+					return err == nil && s == ClusterWatchingStarted
+				}, "2s", "0.2s").Should(BeTrue())
+			}
 		})
 	}
 }
@@ -237,9 +253,11 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 			g.Expect(collector.watch(c)).To(Succeed())
 
 			if tt.errPattern == "" {
-				s, err := collector.Status(tt.clusterName)
 				g.Expect(err).To(BeNil())
-				g.Expect(s).To(BeIdenticalTo(ClusterWatchingStarted))
+				g.Eventually(func() bool {
+					s, err := collector.Status(tt.clusterName)
+					return err == nil && s == ClusterWatchingStarted
+				}, "2s", "0.2s").Should(BeTrue())
 			}
 			err = collector.unwatch(tt.clusterName)
 			if tt.errPattern != "" {
@@ -294,17 +312,21 @@ func TestClusterWatcher_Status(t *testing.T) {
 		{
 			name:           "could get status for existing cluster",
 			clusterName:    existingClusterName,
-			expectedStatus: string(ClusterWatchingStarted),
+			expectedStatus: ClusterWatchingStarted,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			status, err := collector.Status(tt.clusterName)
+			_, err := collector.Status(tt.clusterName)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
-			g.Expect(status).To(Equal(tt.expectedStatus))
+
+			g.Eventually(func() bool {
+				status, err := collector.Status(tt.clusterName)
+				return err == nil && status == tt.expectedStatus
+			}, "2s", "0.2s").Should(BeTrue())
 		})
 	}
 }

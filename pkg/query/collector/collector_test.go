@@ -29,6 +29,7 @@ func TestNewCollector(t *testing.T) {
 		{
 			name: "can create collector with valid arguments",
 			options: CollectorOpts{
+				Name:           "test",
 				Log:            log,
 				NewWatcherFunc: newFakeWatcher,
 				Clusters:       clustersManager,

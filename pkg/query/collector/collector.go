@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	ClusterWatchingStarted = "started"
-	ClusterWatchingStopped = "stopped"
-	ClusterWatchingFailed  = "failed"
+	ClusterWatchingStarting = "starting"
+	ClusterWatchingStarted  = "started"
+	ClusterWatchingStopped  = "stopped"
+	ClusterWatchingFailed   = "failed"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -52,6 +53,7 @@ type ImpersonateServiceAccount struct {
 }
 
 type CollectorOpts struct {
+	Name            string // for metrics, logs
 	Log             logr.Logger
 	Clusters        clusters.Subscriber
 	NewWatcherFunc  NewWatcherFunc
@@ -60,6 +62,9 @@ type CollectorOpts struct {
 }
 
 func (o *CollectorOpts) Validate() error {
+	if o.Name == "" {
+		return fmt.Errorf("name should be non-empty, to distinguish this collector in metrics, logs, etc.")
+	}
 	if o.Clusters == nil {
 		return fmt.Errorf("invalid cluster subscriber")
 	}

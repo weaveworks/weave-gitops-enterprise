@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/util/workqueue"
 )
 
 // Start the collector by creating watchers on existing gitops clusters and managing its lifecycle. Managing
@@ -16,14 +17,37 @@ import (
 func (c *watchingCollector) Start(ctx context.Context) error {
 	c.sub = c.subscriber.Subscribe()
 
+	ratelimiter := workqueue.DefaultControllerRateLimiter() // TODO make a bespoke one, this retries too fast
+	// TODO: check the queue methods work with Cluster, since we get new values each time.
+	c.queue = workqueue.NewNamedRateLimitingQueue(ratelimiter, "collector-"+c.name)
+
 	for _, cluster := range c.subscriber.GetClusters() {
-		err := c.watch(cluster)
-		if err != nil {
-			c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
-			continue
-		}
-		c.log.Info("watching cluster", "cluster", cluster.GetName())
+		c.queue.Add(cluster)
 	}
+
+	// queue.Get() blocks, so we can't do that in a loop with
+	// receiving on a channel. It goes in a goroutine, and we'll rely
+	// on the queue being shutdown to make sure this exits.
+	go func() {
+		for {
+			obj, shutdown := c.queue.Get()
+			if shutdown {
+				return
+			}
+			cluster, ok := obj.(cluster.Cluster)
+			if !ok { // not a cluster; skip it
+				c.queue.Forget(obj) // tell the rate limiter not to track it
+				c.queue.Done(obj)   // dequeue it
+				continue
+			}
+			c.queue.Done(obj)
+			if err := c.watch(cluster); err != nil {
+				c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
+				c.queue.AddRateLimited(cluster)
+				continue
+			}
+		}
+	}()
 
 outer:
 	for {
@@ -32,15 +56,17 @@ outer:
 			break outer
 		case updates := <-c.sub.Updates():
 			for _, cluster := range updates.Added {
-				err := c.watch(cluster)
-				if err != nil {
-					c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
-					continue
-				}
-				c.log.Info("watching cluster", "cluster", cluster.GetName())
+				c.queue.Add(cluster)
 			}
 
+			// Do unwatches straight away; there's no reason to go
+			// through the queue on these.
 			for _, cluster := range updates.Removed {
+				// remove from the queue (Done) and rate limiter
+				// (Forget). If it comes back around, we'll start
+				// afresh.
+				c.queue.Done(cluster)
+				c.queue.Forget(cluster)
 				err := c.unwatch(cluster.GetName())
 				if err != nil {
 					c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
@@ -50,10 +76,12 @@ outer:
 			}
 		}
 	}
+
 	c.log.Info("stopping collector")
 	if c.sub != nil {
 		c.sub.Unsubscribe()
 	}
+	c.queue.ShutDown()
 	return nil
 }
 
@@ -66,11 +94,13 @@ type child struct {
 // watchingCollector supervises watchers, starting one per cluster it
 // sees from the `Subscriber` and stopping/restarting them as needed.
 type watchingCollector struct {
+	name            string
 	sub             clusters.Subscription
 	subscriber      clusters.Subscriber
 	clusterWatchers map[string]*child
 	newWatcherFunc  NewWatcherFunc
 	stopWatcherFunc StopWatcherFunc
+	queue           workqueue.RateLimitingInterface
 	log             logr.Logger
 	sa              ImpersonateServiceAccount
 }
@@ -83,6 +113,7 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 		}
 	}
 	return &watchingCollector{
+		name:            opts.Name,
 		subscriber:      opts.Clusters,
 		clusterWatchers: make(map[string]*child),
 		newWatcherFunc:  opts.NewWatcherFunc,
@@ -92,7 +123,23 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 	}, nil
 }
 
-func (w *watchingCollector) watch(cluster cluster.Cluster) error {
+func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
+	clusterName := cluster.GetName()
+	if clusterName == "" {
+		return fmt.Errorf("cluster name is empty")
+	}
+
+	// make the record, so status works
+	c := &child{
+		status: ClusterWatchingStarting,
+	}
+	w.clusterWatchers[clusterName] = c
+	defer func() {
+		if reterr != nil {
+			c.status = ClusterWatchingFailed
+		}
+	}()
+
 	config, err := cluster.GetServerConfig()
 	if err != nil {
 		return fmt.Errorf("cannot get config: %w", err)
@@ -100,11 +147,6 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) error {
 
 	if config == nil {
 		return fmt.Errorf("cluster config cannot be nil")
-	}
-
-	clusterName := cluster.GetName()
-	if clusterName == "" {
-		return fmt.Errorf("cluster name is empty")
 	}
 
 	saConfig, err := makeServiceAccountImpersonationConfig(config, w.sa.Namespace, w.sa.Name)
@@ -118,23 +160,22 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) error {
 	}
 
 	childctx, cancel := context.WithCancel(context.Background())
-	c := &child{
-		status:  ClusterWatchingStarted,
-		Starter: watcher,
-		cancel:  cancel,
-	}
-	w.clusterWatchers[clusterName] = c
+	c.cancel = cancel
 	go func() {
+		c.status = ClusterWatchingStarted
 		err := watcher.Start(childctx)
 		if err != nil {
 			w.log.Error(err, "watcher for cluster failed", "cluster", cluster.GetName())
 			c.status = ClusterWatchingFailed
+			// try again
+			w.queue.AddRateLimited(cluster)
 			return
 		}
 		// TODO remove from map?
 		c.status = ClusterWatchingStopped
 	}()
 
+	w.log.Info("watching cluster", "cluster", cluster.GetName())
 	return nil
 }
 
@@ -147,7 +188,9 @@ func (w *watchingCollector) unwatch(clusterName string) error {
 		return fmt.Errorf("cluster watcher not found")
 	}
 	w.clusterWatchers[clusterName] = nil
-	clusterWatcher.cancel()
+	if clusterWatcher.cancel != nil {
+		clusterWatcher.cancel()
+	}
 	if err := w.stopWatcherFunc(clusterName); err != nil {
 		return fmt.Errorf("stop watcher hook failed: %w", err)
 	}

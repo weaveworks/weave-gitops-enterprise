@@ -36,6 +36,7 @@ func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subs
 	}
 
 	opts := collector.CollectorOpts{
+		Name:            "objects",
 		Log:             log,
 		NewWatcherFunc:  newWatcher,
 		StopWatcherFunc: deleteWatcher,
