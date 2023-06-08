@@ -50,8 +50,6 @@ import {
   GetConfigResponse,
   GetExternalSecretResponse,
   GetPolicyConfigResponse,
-  GetPolicyResponse,
-  GetPolicyValidationResponse,
   GetWorkspacePoliciesResponse,
   GetWorkspaceResponse,
   GetWorkspaceRoleBindingsResponse,
@@ -60,12 +58,16 @@ import {
   ListEventsResponse,
   ListExternalSecretsResponse,
   ListGitopsClustersResponse,
-  ListPoliciesResponse,
   ListPolicyConfigsResponse,
-  ListPolicyValidationsResponse,
   ListTemplatesResponse,
   ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
+import {
+  GetPolicyResponse,
+  GetPolicyValidationResponse,
+  ListPoliciesResponse,
+  ListPolicyValidationsResponse,
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 import {
   DebugGetAccessRulesRequest,

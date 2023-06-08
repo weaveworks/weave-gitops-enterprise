@@ -1,5 +1,7 @@
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
+
+import { CoreClientContext } from '@weaveworks/weave-gitops';
 import {
   GetPolicyRequest,
   GetPolicyResponse,
@@ -9,15 +11,17 @@ import {
   ListPoliciesResponse,
   ListPolicyValidationsRequest,
   ListPolicyValidationsResponse,
-} from '../../cluster-services/cluster_services.pb';
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { formatError } from '../../utils/formatters';
-import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
+
+export const useCoreClientContext = () => useContext(CoreClientContext);
 
 const LIST_POLICIES_QUERY_KEY = 'list-policy';
 
-export function useListListPolicies(req: ListPoliciesRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+export function useListPolicies(req: ListPoliciesRequest) {
+  const { api } = useCoreClientContext();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
@@ -30,7 +34,7 @@ export function useListListPolicies(req: ListPoliciesRequest) {
 const GET_POLICY_QUERY_KEY = 'get-policy-details';
 
 export function useGetPolicyDetails(req: GetPolicyRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { api } = useCoreClientContext();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
@@ -44,7 +48,7 @@ export function useGetPolicyDetails(req: GetPolicyRequest) {
 const LIST_POLICY_VIOLATION_QUERY_KEY = 'list-policy-violations';
 
 export function useListPolicyValidations(req: ListPolicyValidationsRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { api } = useCoreClientContext();
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
@@ -58,11 +62,12 @@ export function useListPolicyValidations(req: ListPolicyValidationsRequest) {
 const GET_POLICY_VIOLATION_QUERY_KEY = 'get-policy-violation-details';
 
 export function useGetPolicyValidationDetails(req: GetPolicyValidationRequest) {
-  const { api } = useContext(EnterpriseClientContext);
+  const { api } = useCoreClientContext();
+
   const { setNotifications } = useNotifications();
   const onError = (error: Error) => setNotifications(formatError(error));
 
-  return useQuery<GetPolicyValidationResponse, Error>(
+  return useQuery<GetPolicyValidationResponse, RequestError>(
     [GET_POLICY_VIOLATION_QUERY_KEY, req],
     () => api.GetPolicyValidation(req),
     { onError },

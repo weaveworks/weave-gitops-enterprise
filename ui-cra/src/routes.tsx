@@ -39,8 +39,6 @@ import PolicyDetails from './components/Policies/PolicyDetails';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
-import PoliciesViolations from './components/PolicyViolations';
-import PolicyViolationDetails from './components/PolicyViolations/ViolationDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
@@ -56,6 +54,7 @@ import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
+import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -125,16 +124,7 @@ const AppRoutes = () => {
         exact
         path={Routes.AddCluster}
       />
-      <Route
-        component={PoliciesViolations}
-        exact
-        path={Routes.PolicyViolations}
-      />
-      <Route
-        component={withSearchParams(PolicyViolationDetails)}
-        exact
-        path={Routes.PolicyViolationDetails}
-      />
+
       <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
       <Route
         component={withSearchParams(GitOpsRunDetail)}
@@ -244,6 +234,11 @@ const AppRoutes = () => {
         path={V2Routes.UserInfo}
       />
       <Route
+        component={withSearchParams(PolicyViolationPage)}
+        exact
+        path={V2Routes.PolicyViolationDetails}
+      />
+      <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>
             <WGNotificationsProvider {...props} />
@@ -274,11 +269,10 @@ const AppRoutes = () => {
         path={V2Routes.ImagePolicyDetails}
         component={withSearchParams(ImagePolicyDetails)}
       />
-      <Route exact path={Routes.Policies} component={Policies} />
+      <Route exact path={V2Routes.Policies} component={Policies} />
       <Route
-        exact
-        path={Routes.PolicyDetails}
         component={withSearchParams(PolicyDetails)}
+        path={V2Routes.PolicyDetailsPage}
       />
       <Route component={TemplatesDashboard} exact path={Routes.Templates} />
       <Route

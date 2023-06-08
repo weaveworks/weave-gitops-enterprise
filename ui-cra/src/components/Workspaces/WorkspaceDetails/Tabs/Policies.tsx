@@ -1,10 +1,9 @@
-import { DataTable, formatURL } from '@weaveworks/weave-gitops';
+import { DataTable, Severity, formatURL } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import moment from 'moment';
 import { Link } from 'react-router-dom';
 import { Routes } from '../../../../utils/nav';
-import Severity from '../../../Policies/Severity';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 import { useWorkspaceStyle } from '../../WorkspaceStyles';
 

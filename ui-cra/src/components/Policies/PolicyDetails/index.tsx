@@ -1,50 +1,33 @@
-import { PageTemplate } from '../../Layout/PageTemplate';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-
-import HeaderSection from './HeaderSection';
-import ParametersSection from './ParametersSection';
+// import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
+import { PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 import { useGetPolicyDetails } from '../../../contexts/PolicyViolations';
-import { Routes } from '../../../utils/nav';
+import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { PageTemplate } from '../../Layout/PageTemplate';
 
-const PolicyDetails = ({
+const PolicyDetailsPage = ({
   clusterName,
   id,
 }: {
   clusterName: string;
   id: string;
 }) => {
-  const { data, isLoading } = useGetPolicyDetails({
+  const { data, isLoading, error } = useGetPolicyDetails({
     clusterName,
     policyName: id,
   });
-  const policy = data?.policy;
-
   return (
     <PageTemplate
       documentTitle="Policies"
       path={[
-        { label: 'Policies', url: Routes.Policies },
+        { label: 'Policies', url: V2Routes.Policies },
         { label: data?.policy?.name || '' },
       ]}
     >
       <ContentWrapper loading={isLoading}>
-        <HeaderSection
-          id={policy?.id}
-          clusterName={policy?.clusterName}
-          tags={policy?.tags}
-          severity={policy?.severity}
-          category={policy?.category}
-          targets={policy?.targets}
-          description={policy?.description}
-          howToSolve={policy?.howToSolve}
-          code={policy?.code}
-          tenant={policy?.tenant}
-          modes={policy?.modes}
-        />
-        <ParametersSection parameters={policy?.parameters} />
+        <PolicyDetails policy={data?.policy || {}} />
       </ContentWrapper>
     </PageTemplate>
   );
 };
 
-export default PolicyDetails;
+export default PolicyDetailsPage;

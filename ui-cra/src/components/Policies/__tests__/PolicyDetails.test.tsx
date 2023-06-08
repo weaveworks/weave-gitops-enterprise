@@ -5,7 +5,7 @@ import {
   PolicyClientMock,
   withContext,
 } from '../../../utils/test-utils';
-import PolicyDetails from '../PolicyDetails';
+import PolicyDetailsPage from '../PolicyDetails';
 import { parseValue } from '../PolicyDetails/PolicyUtilis';
 const MockPolicyResponse = {
   policy: {
@@ -85,7 +85,7 @@ describe('ListPolicViolations', () => {
     api.GetPolicyReturns = MockPolicyResponse;
 
     await act(async () => {
-      const c = wrap(<PolicyDetails clusterName="" id={policy.id} />);
+      const c = wrap(<PolicyDetailsPage clusterName="" id={policy.id} />);
       render(c);
     });
 
@@ -155,7 +155,7 @@ describe('ListPolicViolations', () => {
     api.GetPolicyReturns = { policy };
 
     await act(async () => {
-      const c = wrap(<PolicyDetails clusterName="" id={policy.id} />);
+      const c = wrap(<PolicyDetailsPage clusterName="" id={policy.id} />);
       render(c);
     });
 
