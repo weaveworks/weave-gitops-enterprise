@@ -64,7 +64,7 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name:  "get objects by cluster",
-			query: &query{filters: []string{"+cluster:my-cluster"}},
+			query: &query{filters: []string{"cluster:my-cluster"}},
 
 			objects: []models.Object{
 				{
@@ -139,52 +139,52 @@ func TestRunQuery(t *testing.T) {
 			},
 			want: []string{"obj-cluster-2"},
 		},
-		// {
-		// 	name: "composite query",
-		// 	objects: []models.Object{
-		// 		{
-		// 			Cluster:    "test-cluster-1",
-		// 			Name:       "foo",
-		// 			Namespace:  "alpha",
-		// 			Kind:       "Kind1",
-		// 			APIGroup:   "example.com",
-		// 			APIVersion: "v1",
-		// 		},
-		// 		{
-		// 			Cluster:    "test-cluster-2",
-		// 			Name:       "bar",
-		// 			Namespace:  "bravo",
-		// 			Kind:       "Kind1",
-		// 			APIGroup:   "example.com",
-		// 			APIVersion: "v1",
-		// 		},
-		// 		{
-		// 			Cluster:    "test-cluster-3",
-		// 			Name:       "baz",
-		// 			Namespace:  "bravo",
-		// 			Kind:       "Kind2",
-		// 			APIGroup:   "example.com",
-		// 			APIVersion: "v1",
-		// 		},
-		// 		{
-		// 			Cluster:    "test-cluster-3",
-		// 			Name:       "bang",
-		// 			Namespace:  "delta",
-		// 			Kind:       "Kind1",
-		// 			APIGroup:   "example.com",
-		// 			APIVersion: "v1",
-		// 		},
-		// 	},
-		// 	query: &query{
-		// 		terms:   "",
-		// 		filters: []string{"kind:Kind1", "namespace:bravo"},
-		// 	},
-		// 	opts: &query{
-		// 		orderBy:   "name",
-		// 		ascending: false,
-		// 	},
-		// 	want: []string{"bar", "baz"},
-		// },
+		{
+			name: "composite query",
+			objects: []models.Object{
+				{
+					Cluster:    "test-cluster-1",
+					Name:       "foo",
+					Namespace:  "alpha",
+					Kind:       "Kind1",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-2",
+					Name:       "bar",
+					Namespace:  "bravo",
+					Kind:       "Kind1",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-3",
+					Name:       "baz",
+					Namespace:  "bravo",
+					Kind:       "Kind2",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "test-cluster-3",
+					Name:       "bang",
+					Namespace:  "delta",
+					Kind:       "Kind1",
+					APIGroup:   "example.com",
+					APIVersion: "v1",
+				},
+			},
+			query: &query{
+				terms:   "",
+				filters: []string{"kind:Kind1", "namespace:bravo"},
+			},
+			opts: &query{
+				orderBy:   "name",
+				ascending: false,
+			},
+			want: []string{"bar"},
+		},
 		{
 			name: "across clusters",
 			objects: []models.Object{
@@ -216,29 +216,29 @@ func TestRunQuery(t *testing.T) {
 			query: &query{terms: "podinfo"},
 			want:  []string{"podinfo", "podinfo"},
 		},
-		// {
-		// 	name: "by namespace",
-		// 	objects: []models.Object{
-		// 		{
-		// 			Cluster:    "management",
-		// 			Name:       "my-app",
-		// 			Namespace:  "namespace-a",
-		// 			Kind:       "Deployment",
-		// 			APIGroup:   "apps",
-		// 			APIVersion: "v1",
-		// 		},
-		// 		{
-		// 			Cluster:    "management",
-		// 			Name:       "other-thing",
-		// 			Namespace:  "namespace-b",
-		// 			Kind:       "Deployment",
-		// 			APIGroup:   "apps",
-		// 			APIVersion: "v1",
-		// 		},
-		// 	},
-		// 	query: &query{filters: []string{"+namespace:namespace-a"}},
-		// 	want:  []string{"my-app"},
-		// },
+		{
+			name: "by namespace",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "my-app",
+					Namespace:  "namespace-a",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "other-thing",
+					Namespace:  "namespace-b",
+					Kind:       "Deployment",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: &query{filters: []string{"namespace:namespace-a"}},
+			want:  []string{"my-app"},
+		},
 		{
 			name: "order by",
 			objects: []models.Object{
@@ -294,9 +294,83 @@ func TestRunQuery(t *testing.T) {
 					APIVersion: "v1",
 				},
 			},
-			query: &query{filters: []string{"+kind:kustomization"}},
+			query: &query{filters: []string{"kind:Kustomization"}},
 			opts:  &query{orderBy: "name", ascending: true},
 			want:  []string{"podinfo-a", "podinfo-b"},
+		},
+		{
+			name: "complex composite query",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo-a",
+					Namespace:  "namespace-a",
+					Kind:       "HelmChart",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-b",
+					Namespace:  "namespace-a",
+					Kind:       "HelmRepository",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-c",
+					Namespace:  "namespace-a",
+					Kind:       "HelmRelease",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-d",
+					Namespace:  "namespace-b",
+					Kind:       "HelmRelease",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: &query{filters: []string{"kind:/(HelmChart|HelmRepository)/", "namespace:namespace-a"}},
+			opts:  &query{orderBy: "name", ascending: true},
+			want:  []string{"podinfo-a", "podinfo-b"},
+		},
+		{
+			name: "fuzzy terms",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "flux-system-ingress-nginx",
+					Namespace:  "flux-system",
+					Kind:       "HelmChart",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "flux-stress-nginx-975",
+					Namespace:  "flux-stress",
+					Kind:       "HelmRepository",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+					Category:   "bar",
+				},
+				{
+					Cluster:    "management",
+					Name:       "other-stress-nginx-975",
+					Namespace:  "other-stress",
+					Kind:       "HelmRepository",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+					Category:   "bar",
+				},
+			},
+			query: &query{terms: "flux"},
+			opts:  &query{orderBy: "name", ascending: true},
+			want:  []string{"flux-system-ingress-nginx", "flux-stress-nginx-975"},
 		},
 	}
 

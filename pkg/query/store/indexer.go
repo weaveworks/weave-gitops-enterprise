@@ -10,8 +10,6 @@ import (
 	bleve "github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
@@ -75,6 +73,7 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
 		mapping := bleve.NewTextFieldMapping()
+		mapping.Analyzer = "keyword"
 		objMapping.AddFieldMappingsAt(field, mapping)
 
 		// This adds the facets so the UI can be built around the correct values,
@@ -149,11 +148,13 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 	filters := q.GetFilters()
 
 	if len(filters) > 0 {
-		str := strings.Join(q.GetFilters(), " ")
-
-		str = strings.ToLower(str)
+		// Prepend a `+` to each filter to make it a required term.
+		// This gives us the AND between categories, and OR within categories.
+		str := "+"
+		str += strings.Join(q.GetFilters(), " +")
 
 		qs := bleve.NewQueryStringQuery(str)
+
 		query.AddQuery(qs)
 	}
 
@@ -214,7 +215,7 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (Facets, error) {
 	req := bleve.NewSearchRequest(query)
 
 	for _, f := range filterFields {
-		req.AddFacet(cases.Upper(language.AmericanEnglish).String(f), bleve.NewFacetRequest(f+facetSuffix, 100))
+		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))
 	}
 
 	searchResults, err := i.idx.Search(req)
