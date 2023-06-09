@@ -1,10 +1,9 @@
-import { Button } from '@weaveworks/weave-gitops';
-import { Workspace } from '../../../cluster-services/cluster_services.pb';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
-import FilterListIcon from '@material-ui/icons/FilterList';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
-import { useWorkspaceStyle } from '../WorkspaceStyles';
+import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
+import { SectionRowHeader, generateRowHeaders } from '../../RowHeader';
+import { useWorkspaceStyle } from '../WorkspaceStyles';
 
 function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   const classes = useWorkspaceStyle();
@@ -32,7 +31,7 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
         }}
         className={classes.navigateBtn}
       >
-        <FilterListIcon className={classes.filterIcon} />
+        <Icon type={IconType.FilterIcon} color="primary20" size="small" />
         go to TENANT applications
       </Button>
       {generateRowHeaders(defaultHeaders)}
