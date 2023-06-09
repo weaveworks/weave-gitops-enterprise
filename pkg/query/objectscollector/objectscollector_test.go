@@ -6,69 +6,12 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-func TestObjectsCollector_NewObjectsCollector(t *testing.T) {
-	g := NewWithT(t)
-	tests := []struct {
-		name       string
-		store      store.Store
-		index      store.IndexWriter
-		opts       collector.CollectorOpts
-		errPattern string
-	}{
-		{
-			name:       "cannot create collector without kinds",
-			store:      &storefakes.FakeStore{},
-			index:      &storefakes.FakeIndexWriter{},
-			opts:       collector.CollectorOpts{},
-			errPattern: "invalid object kind",
-		},
-		{
-			name:  "cannot create collector without manager",
-			store: &storefakes.FakeStore{},
-			opts: collector.CollectorOpts{
-				ObjectKinds: configuration.SupportedObjectKinds,
-			},
-			errPattern: "invalid cluster manager",
-		},
-		{
-			name:  "can create object collector with valid arguments",
-			store: &storefakes.FakeStore{},
-			opts: collector.CollectorOpts{
-				ObjectKinds:    configuration.SupportedObjectKinds,
-				ClusterManager: &clustersmngrfakes.FakeClustersManager{},
-				Log:            testr.New(t),
-				ServiceAccount: collector.ImpersonateServiceAccount{
-					Name:      "anyName",
-					Namespace: "anyNamespace",
-				},
-			},
-			errPattern: "",
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			collector, err := NewObjectsCollector(tt.store, tt.index, tt.opts)
-			if tt.errPattern != "" {
-				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
-				return
-			}
-			g.Expect(err).ShouldNot(HaveOccurred())
-			g.Expect(collector).ShouldNot(BeNil())
-			g.Expect(collector.store).To(Equal(tt.store))
-		})
-	}
-}
 
 func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
@@ -119,7 +62,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := defaultProcessRecords(tt.objectRecords, fakeStore, fakeIndex, log)
+			err := processRecords(tt.objectRecords, fakeStore, fakeIndex, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -130,7 +73,6 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 			g.Expect(fakeStore.DeleteAllObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeDeleteAll]))
 		})
 	}
-
 }
 
 func TestObjectsCollector_removeAll(t *testing.T) {
@@ -150,7 +92,7 @@ func TestObjectsCollector_removeAll(t *testing.T) {
 		},
 	}
 
-	err := defaultProcessRecords(tx, fakeStore, fakeIndex, log)
+	err := processRecords(tx, fakeStore, fakeIndex, log)
 	g.Expect(err).To(BeNil())
 
 	g.Expect(fakeStore.DeleteAllObjectsCallCount()).To(Equal(1))

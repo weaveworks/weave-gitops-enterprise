@@ -1,23 +1,23 @@
-import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import {
-  LoadingPage,
   DataTable,
-  filterConfig,
   KubeStatusIndicator,
-  filterByStatusCallback,
-  statusSortHelper,
+  LoadingPage,
   Timestamp,
+  filterByStatusCallback,
+  filterConfig,
   formatURL,
+  statusSortHelper,
 } from '@weaveworks/weave-gitops';
-import { Link } from 'react-router-dom';
-import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
-import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
-import { computeMessage } from '../Clusters';
 import _ from 'lodash';
+import { FC } from 'react';
+import { Link } from 'react-router-dom';
+import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
+import { useListGitOpsSets } from '../../hooks/gitopssets';
+import { Condition, computeMessage } from '../../utils/conditions';
 import { Routes } from '../../utils/nav';
+import { ContentWrapper } from '../Layout/ContentWrapper';
+import { PageTemplate } from '../Layout/PageTemplate';
 import { TableWrapper } from '../Shared';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
@@ -92,7 +92,7 @@ const GitOpsSets: FC = () => {
     {
       label: 'Message',
       value: (gs: GitOpsSet) =>
-        (gs?.conditions && computeMessage(gs?.conditions)) || '',
+        (gs?.conditions && computeMessage(gs?.conditions as Condition[])) || '',
       sortValue: ({ conditions }) => computeMessage(conditions),
       maxWidth: 600,
     },

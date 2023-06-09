@@ -1,13 +1,18 @@
+/**
+ * This file holds the protobuf definitions for the Weave GitOps Pipelines API.
+ * Messages and enums are defined in types.proto.
+ */
 syntax = "proto3";
 
 package pipelines.v1;
-
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/pipelines/types.proto";
+
+// protolint:disable:next MAX_LINE_LENGTH
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
@@ -19,6 +24,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     produces: "application/json";
 };
 
+/**
+ * Weave GitOps Pipelines service definition
+ */
 service Pipelines {
     rpc ListPipelines(ListPipelinesRequest) returns (ListPipelinesResponse) {
         option (google.api.http) = {
@@ -32,14 +40,16 @@ service Pipelines {
         };
     }
 
-    rpc ApprovePromotion(ApprovePromotionRequest) returns (ApprovePromotionResponse) {
+    rpc ApprovePromotion(ApprovePromotionRequest)
+        returns (ApprovePromotionResponse) {
         option (google.api.http) = {
             post : "/v1/pipelines/approve/{name}"
             body: "*"
         };
     }
 
-    rpc ListPullRequests(ListPullRequestsRequest) returns (ListPullRequestsResponse) {
+    rpc ListPullRequests(ListPullRequestsRequest)
+        returns (ListPullRequestsResponse) {
         option (google.api.http) = {
             post : "/v1/pipelines/list_prs/{pipelineName}"
             body: "*"

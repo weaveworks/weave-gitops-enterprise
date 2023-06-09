@@ -32,11 +32,11 @@ export function formatFilters(filters: string[]) {
 
   _.each(commonKinds, (values, kind) => {
     if (values.length > 1) {
-      clauses.push(`+${kind}:(${values.join('|')})`);
+      clauses.push(`${kind}:/(${values.join('|')})/`);
       return;
     }
 
-    clauses.push(`+${kind}:${values[0]}`);
+    clauses.push(`${kind}:${values[0]}`);
   });
 
   return clauses;
@@ -56,7 +56,7 @@ export function useQueryService({
   let formatted = formatFilters(filters || []);
 
   if (category) {
-    formatted = _.concat(formatted, ['+category:' + category]);
+    formatted = _.concat(formatted, ['category:' + category]);
   }
 
   return useQuery<QueryResponse, Error>(

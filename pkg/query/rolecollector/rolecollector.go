@@ -5,67 +5,45 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"k8s.io/client-go/rest"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
-	"k8s.io/apimachinery/pkg/runtime"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 )
 
-var DefaultVerbsRequiredForAccess = []string{"list"}
-
-// RoleCollector is responsible for collecting access rules from all clusters.
-// It is a wrapper around a Collector that converts the received objects to AccessRules.
-// It writes the received rules to a StoreWriter.
-type RoleCollector struct {
-	col       collector.Collector
-	log       logr.Logger
-	converter runtime.UnstructuredConverter
-	w         store.StoreWriter
-	verbs     []string
-	quit      chan struct{}
-}
-
-func (a *RoleCollector) Start() error {
-	err := a.col.Start()
-	if err != nil {
-		return fmt.Errorf("could not start role collector: %w", err)
+func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.ImpersonateServiceAccount, log logr.Logger) (collector.Collector, error) {
+	incoming := make(chan []models.ObjectTransaction)
+	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
+		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, configuration.SupportedRbacKinds, log)
 	}
-	a.log.Info("role collector started")
-	return nil
-}
 
-func (a *RoleCollector) Stop() error {
-	a.quit <- struct{}{}
-	err := a.col.Stop()
-	if err != nil {
-		return fmt.Errorf("could not stop role collector: %w", err)
+	go func() {
+		for updates := range incoming {
+			if err := processRecords(updates, w, log); err != nil {
+				log.Error(err, "could not process records")
+			}
+		}
+	}()
+
+	opts := collector.CollectorOpts{
+		Log:            log,
+		NewWatcherFunc: newWatcher,
+		Clusters:       mgr,
 	}
-	a.log.Info("role collector stopped")
-	return nil
-}
 
-func NewRoleCollector(w store.Store, opts collector.CollectorOpts) (*RoleCollector, error) {
-	opts.ObjectKinds = configuration.SupportedRbacKinds
-
-	opts.ProcessRecordsFunc = defaultProcessRecords
-
-	col, err := collector.NewCollector(opts, w)
+	col, err := collector.NewCollector(opts)
 
 	if err != nil {
 		return nil, fmt.Errorf("cannot create collector: %w", err)
 	}
-	return &RoleCollector{
-		col:       col,
-		log:       opts.Log.WithName("roles-collector"),
-		converter: runtime.DefaultUnstructuredConverter,
-		w:         w,
-		verbs:     DefaultVerbsRequiredForAccess,
-	}, nil
+	return col, nil
 }
 
-func defaultProcessRecords(objectTransactions []models.ObjectTransaction, store store.Store, idx store.IndexWriter, debug logr.Logger) error {
+func processRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
 	ctx := context.Background()
 	deleteAll := []string{}
 

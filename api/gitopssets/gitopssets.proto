@@ -1,13 +1,18 @@
+/**
+ * This file holds the protobuf definitions for the Weave GitOps GitOpsSets API.
+ * Messages and enums are defined in types.proto.
+ */
 syntax = "proto3";
 
 package gitopssets.v1;
-
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/gitopssets/types.proto";
+
+// protolint:disable:next MAX_LINE_LENGTH
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
@@ -19,6 +24,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     produces: "application/json";
 };
 
+/**
+ * Weave GitOps GitOpsSets service definition
+ */
 service GitOpsSets {
     rpc ListGitOpsSets(ListGitOpsSetsRequest) returns (ListGitOpsSetsResponse) {
         option (google.api.http) = {
@@ -33,7 +41,8 @@ service GitOpsSets {
     }
     
 
-    rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest) returns (ToggleSuspendGitOpsSetResponse) {
+    rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest)
+        returns (ToggleSuspendGitOpsSetResponse) {
         option (google.api.http) = {
             post : "/v1/gitopssets/suspend"
             body: "*"
@@ -41,10 +50,13 @@ service GitOpsSets {
     }
 
     /**
-    * GetReconciledObjects returns a list of objects that were created as a result a Flux automation.
-    * This list is derived by looking at the Kustomization or HelmRelease specified in the request body.
+    * GetReconciledObjects returns a list of objects
+    * that were created as a result a Flux automation.
+    * This list is derived by looking at the Kustomization
+    * or HelmRelease specified in the request body.
     */
-    rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
+    rpc GetReconciledObjects(GetReconciledObjectsRequest)
+        returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
             post: "/v1/gitops_reconciled_objects"
             body: "*"
