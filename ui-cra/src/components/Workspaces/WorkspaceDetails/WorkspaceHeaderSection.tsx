@@ -31,7 +31,7 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
         }}
         className={classes.navigateBtn}
       >
-        <Icon type={IconType.FilterIcon} color="primary20" size="small" />
+        <Icon type={IconType.FilterIcon} color="primary10" size="small" />
         go to TENANT applications
       </Button>
       {generateRowHeaders(defaultHeaders)}
