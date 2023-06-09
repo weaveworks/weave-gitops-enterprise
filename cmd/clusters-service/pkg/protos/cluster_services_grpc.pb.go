@@ -55,9 +55,11 @@ type ClustersServiceClient interface {
 	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
 	// GetPolicy gets a policy on the management cluster by name
 	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
-	// ListPolicyValidations list policy validations available on the management cluster
+	// ListPolicyValidations list policy validations
+	// available on the management cluster
 	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidation gets a policy validations on the management cluster by id
+	// GetPolicyValidation gets a policy validations
+	// on the management cluster by id
 	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
@@ -481,9 +483,11 @@ type ClustersServiceServer interface {
 	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
 	// GetPolicy gets a policy on the management cluster by name
 	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
-	// ListPolicyValidations list policy validations available on the management cluster
+	// ListPolicyValidations list policy validations
+	// available on the management cluster
 	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidation gets a policy validations on the management cluster by id
+	// GetPolicyValidation gets a policy validations
+	// on the management cluster by id
 	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
