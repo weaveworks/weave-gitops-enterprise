@@ -80,7 +80,7 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.11.3
 	k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/kubernetes v1.15.0-alpha.0
+	k8s.io/kubernetes v1.26.3
 	sigs.k8s.io/cluster-api v1.4.1
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0

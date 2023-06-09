@@ -1995,7 +1995,6 @@ k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8 h1:IyQ1DifCBk589JD4Cm2CT2
 k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8/go.mod h1:guXtiQW/y/AWAfPSOaI/1eY0TGBAmL5OygiIyUOKDRc=
 k8s.io/kubectl v0.26.2 h1:SMPB4j48eVFxsYluBq3VLyqXtE6b72YnszkbTAtFye4=
 k8s.io/kubectl v0.26.2/go.mod h1:KYWOXSwp2BrDn3kPeoU/uKzKtdqvhK1dgZGd0+no4cM=
-k8s.io/kubernetes v1.15.0-alpha.0/go.mod h1:ocZa8+6APFNC2tX1DZASIbocyYT5jHzqFVsY5aoB7Jk=
 k8s.io/kubernetes v1.26.3 h1:LtjNGNNpCTRyrWhDJMwTWDX+4h+GLwfULS8pu0xzSdk=
 k8s.io/kubernetes v1.26.3/go.mod h1:NxzR7U7mS+OGa3J/qweI86Pek//mlfHqDgt6NNGdz8g=
 k8s.io/utils v0.0.0-20190801114015-581e00157fb1/go.mod h1:sZAwmy6armz5eXlNoLmJcl4F1QuKu7sr+mFQ0byX7Ew=
