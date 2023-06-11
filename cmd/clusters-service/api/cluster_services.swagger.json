@@ -1861,6 +1861,17 @@
       },
       "title": "External Secrets template"
     },
+    "v1ExternalSecretData": {
+      "type": "object",
+      "properties": {
+        "secretKey": {
+          "type": "string"
+        },
+        "remoteRef": {
+          "$ref": "#/definitions/v1ExternalSecretRemoteRef"
+        }
+      }
+    },
     "v1ExternalSecretItem": {
       "type": "object",
       "properties": {
@@ -1887,6 +1898,17 @@
         }
       }
     },
+    "v1ExternalSecretRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "property": {
+          "type": "string"
+        }
+      }
+    },
     "v1ExternalSecretSpec": {
       "type": "object",
       "properties": {
@@ -1894,13 +1916,13 @@
           "type": "string"
         },
         "secretStoreRef": {
-          "$ref": "#/definitions/v1externalSecretStoreRef"
+          "$ref": "#/definitions/v1ExternalSecretStoreRef"
         },
         "target": {
-          "$ref": "#/definitions/v1externalSecretTarget"
+          "$ref": "#/definitions/v1ExternalSecretTarget"
         },
         "data": {
-          "$ref": "#/definitions/v1externalSecretData"
+          "$ref": "#/definitions/v1ExternalSecretData"
         }
       }
     },
@@ -1917,6 +1939,25 @@
           "type": "string"
         },
         "type": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretStoreRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
+    "v1ExternalSecretTarget": {
+      "type": "object",
+      "properties": {
+        "name": {
           "type": "string"
         }
       }
@@ -3250,47 +3291,6 @@
           "type": "string"
         },
         "kind": {
-          "type": "string"
-        }
-      }
-    },
-    "v1externalSecretData": {
-      "type": "object",
-      "properties": {
-        "secretKey": {
-          "type": "string"
-        },
-        "remoteRef": {
-          "$ref": "#/definitions/v1externalSecretRemoteRef"
-        }
-      }
-    },
-    "v1externalSecretRemoteRef": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "property": {
-          "type": "string"
-        }
-      }
-    },
-    "v1externalSecretStoreRef": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "kind": {
-          "type": "string"
-        }
-      }
-    },
-    "v1externalSecretTarget": {
-      "type": "object",
-      "properties": {
-        "name": {
           "type": "string"
         }
       }

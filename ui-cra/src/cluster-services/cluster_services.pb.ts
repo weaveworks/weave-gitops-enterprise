@@ -353,26 +353,26 @@ export type ExternalSecret = {
 
 export type ExternalSecretSpec = {
   refreshInterval?: string
-  secretStoreRef?: externalSecretStoreRef
-  target?: externalSecretTarget
-  data?: externalSecretData
+  secretStoreRef?: ExternalSecretStoreRef
+  target?: ExternalSecretTarget
+  data?: ExternalSecretData
 }
 
-export type externalSecretStoreRef = {
+export type ExternalSecretStoreRef = {
   name?: string
   kind?: string
 }
 
-export type externalSecretTarget = {
+export type ExternalSecretTarget = {
   name?: string
 }
 
-export type externalSecretData = {
+export type ExternalSecretData = {
   secretKey?: string
-  remoteRef?: externalSecretRemoteRef
+  remoteRef?: ExternalSecretRemoteRef
 }
 
-export type externalSecretRemoteRef = {
+export type ExternalSecretRemoteRef = {
   key?: string
   property?: string
 }

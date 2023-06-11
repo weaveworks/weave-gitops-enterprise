@@ -141,6 +141,8 @@ ui-audit:
 
 lint:
 	bin/go-lint
+	@go install github.com/yoheimuta/protolint/cmd/protolint@latest
+	protolint lint -config_path=.protolint.yaml ./api ./cmd/clusters-service/api
 
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service

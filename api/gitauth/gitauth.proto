@@ -1,26 +1,35 @@
+/**
+ * This file holds the protobuf definitions
+ * for the Weave Gitops Enterprise Git Provider Authentication API.
+ */
 syntax = "proto3";
 
 package gitauth.v1;
 
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitauth/api";
-
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitauth/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
       title: "Weave Gitops Enterprise GitAuth API",
       version: "0.1";
-      description: "Weave Gitops Enterprise GitAuth API handles authentication via Github and Gitlab";
+      description:
+          "Weave Gitops Enterprise GitAuth API handles authentication"
+          " via Github and Gitlab";
     };
     consumes: "gitauth/json";
     produces: "gitauth/json";
 };
 
+/**
+ * Weave GitOps Enterprise Git Provider Authentication service definition
+ */
 service GitAuth {
     /**
-    * Authenticate generates jwt token using git provider name and git provider token arguments
+    * Authenticate generates jwt token using git provider name
+    * and git provider token arguments
     */
     rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
         option (google.api.http) = {
@@ -30,22 +39,27 @@ service GitAuth {
     }
 
     /**
-    * GetGithubDeviceCode retrieves a temporary device code for Github authentication.
+    * GetGithubDeviceCode retrieves a temporary device code
+    * for Github authentication.
     * This code is used to start the Github device-flow.
     */
-    rpc GetGithubDeviceCode(GetGithubDeviceCodeRequest) returns (GetGithubDeviceCodeResponse) {
+    rpc GetGithubDeviceCode(GetGithubDeviceCodeRequest)
+        returns (GetGithubDeviceCodeResponse) {
         option (google.api.http) = {
             get : "/v1/gitauth/auth_providers/github"
         };
     }
 
     /**
-    * GetGithubAuthStatus gets the status of the Github device flow authentication requests.
-    * Once the user has completed the Github device flow, an access token will be returned.
-    * This token will expired in 15 minutes, after which the user will need to complete the flow again
+    * GetGithubAuthStatus gets the status of the Github device flow
+    * authentication requests. Once the user has completed
+    * the Github device flow, an access token will be returned.
+    * This token will expire in 15 minutes,
+    * after which the user will need to complete the flow again
     * to do Git Provider operations.
     */
-    rpc GetGithubAuthStatus(GetGithubAuthStatusRequest) returns (GetGithubAuthStatusResponse) {
+    rpc GetGithubAuthStatus(GetGithubAuthStatusRequest)
+        returns (GetGithubAuthStatusResponse) {
         option (google.api.http) = {
             post : "/v1/gitauth/auth_providers/github/status"
             body: "*"
@@ -54,11 +68,13 @@ service GitAuth {
 
     /**
     * GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
-    * The user must browse to the returned URL to authorize the OAuth callback to the GitOps UI.
+    * The user must browse to the returned URL to authorize the OAuth callback
+    * to the GitOps UI.
     * See the GitLab OAuth docs for more more information:
     * https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
     */
-    rpc GetGitlabAuthURL(GetGitlabAuthURLRequest) returns (GetGitlabAuthURLResponse) {
+    rpc GetGitlabAuthURL(GetGitlabAuthURLRequest)
+        returns (GetGitlabAuthURLResponse) {
         option (google.api.http) = {
             get : "/v1/gitauth/auth_providers/gitlab"
         };
@@ -66,7 +82,8 @@ service GitAuth {
 
     /**
     */
-    rpc GetBitbucketServerAuthURL(GetBitbucketServerAuthURLRequest) returns (GetBitbucketServerAuthURLResponse) {
+    rpc GetBitbucketServerAuthURL(GetBitbucketServerAuthURLRequest)
+        returns (GetBitbucketServerAuthURLResponse) {
         option (google.api.http) = {
             get : "/v1/gitauth/auth_providers/bitbucketserver"
         };
@@ -74,7 +91,8 @@ service GitAuth {
 
     /**
     */
-    rpc AuthorizeBitbucketServer (AuthorizeBitbucketServerRequest) returns (AuthorizeBitbucketServerResponse) {
+    rpc AuthorizeBitbucketServer (AuthorizeBitbucketServerRequest)
+        returns (AuthorizeBitbucketServerResponse) {
         option (google.api.http) = {
             post : "/v1/gitauth/auth_providers/bitbucketserver/authorize"
             body: "*"
@@ -83,11 +101,13 @@ service GitAuth {
 
     /**
     * AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
-    * The returned token is useable for authentication with the GitOps server only.
+    * The returned token is useable for authentication
+    * with the GitOps server only.
     * See the GitLab OAuth docs for more more information:
     * https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
     */
-    rpc AuthorizeGitlab(AuthorizeGitlabRequest) returns (AuthorizeGitlabResponse) {
+    rpc AuthorizeGitlab(AuthorizeGitlabRequest)
+        returns (AuthorizeGitlabResponse) {
         option (google.api.http) = {
             post : "/v1/gitauth/auth_providers/gitlab/authorize"
             body: "*"
@@ -95,19 +115,23 @@ service GitAuth {
     }
 
     /**
-    * GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL used to initiate the OAuth flow.
+    * GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL
+    * used to initiate the OAuth flow.
     */
-    rpc GetAzureDevOpsAuthURL(GetAzureDevOpsAuthURLRequest) returns (GetAzureDevOpsAuthURLResponse) {
+    rpc GetAzureDevOpsAuthURL(GetAzureDevOpsAuthURLRequest)
+        returns (GetAzureDevOpsAuthURLResponse) {
         option (google.api.http) = {
             get : "/v1/gitauth/auth_providers/azuredevops"
         };
     }
 
     /**
-    * AuthorizeAzureDevOps returns a token after a user authorizes Azure DevOps to grant access to their
-    * account on behalf of Weave GitOps Enterprise.
+    * AuthorizeAzureDevOps returns a token after a user authorizes
+    * Azure DevOps to grant access to their account
+    * on behalf of Weave GitOps Enterprise.
     */
-    rpc AuthorizeAzureDevOps (AuthorizeAzureDevOpsRequest) returns (AuthorizeAzureDevOpsResponse) {
+    rpc AuthorizeAzureDevOps (AuthorizeAzureDevOpsRequest)
+        returns (AuthorizeAzureDevOpsResponse) {
         option (google.api.http) = {
             post : "/v1/gitauth/auth_providers/azuredevops/authorize"
             body: "*"
@@ -124,9 +148,11 @@ service GitAuth {
     }
 
     /**
-    * ValidateProviderToken check to see if the git provider token is still valid
+    * ValidateProviderToken check to see if the git provider token
+    * is still valid
     */
-    rpc ValidateProviderToken(ValidateProviderTokenRequest) returns (ValidateProviderTokenResponse) {
+    rpc ValidateProviderToken(ValidateProviderTokenRequest)
+        returns (ValidateProviderTokenResponse) {
         option (google.api.http) = {
             post : "/v1/gitauth/validate_token"
             body: "*"
@@ -140,7 +166,9 @@ message AuthenticateRequest {
 }
 
 message AuthenticateResponse {
-    string token = 1;  // The jwt token that was generated using git provider name and git provider token
+    /* The jwt token that was generated using git provider name
+    and git provider token */
+    string token = 1;
 }
 
 message GetGithubDeviceCodeRequest {
@@ -148,21 +176,28 @@ message GetGithubDeviceCodeRequest {
 }
 
 message GetGithubDeviceCodeResponse {
-    string userCode      = 1; // The Github Device Flow code that will be shown to the user
+    // The Github Device Flow code that will be shown to the user
+    string userCode      = 1;
     string deviceCode    = 2; // A code that uniquely identifies a device
-    string validationURI = 3; // The URI that the user will visit to complete the flow
+    // The URI that the user will visit to complete the flow
+    string validationURI = 3;
     int32  interval      = 4; // How often the client should retry the request
 }
 
 message GetGithubAuthStatusRequest {
-    string deviceCode = 1; // The deviceCode returned from a GetGithubDeviceCodeResponse
+    // The deviceCode returned from a GetGithubDeviceCodeResponse
+    string deviceCode = 1;
 }
 
 message GetGithubAuthStatusResponse {
-    string accessToken = 1; // An access token that can be used to interact with the Weave GitOps API.
+    // An access token that can be used to interact with the Weave GitOps API.
+    string accessToken = 1;
     string error       = 2; // An error message.
 }
 
+/**
+ * GitProvider enum defines the Git provider used in the GitAuth API.
+ */
 enum GitProvider {
     Unknown         = 0;
     GitHub          = 1;
@@ -178,24 +213,29 @@ message ParseRepoURLRequest {
 message ParseRepoURLResponse {
     string      name     = 1; // The name of the git repository
     GitProvider provider = 2; // The GitProvider for the repository
-    string      owner    = 3; // The person or organization to which this repo belongs
+    // The person or organization to which this repo belongs
+    string      owner    = 3;
 }
 
 message GetGitlabAuthURLRequest {
-    string redirectUri = 1; // The URI that GitLab will use to send users back to GitOps.
+    // The URI that GitLab will use to send users back to GitOps.
+    string redirectUri = 1;
 }
 
 message GetGitlabAuthURLResponse {
-    string url = 1; // The URL that users must visit to authorize GitLab authentication.
+    // The URL that users must visit to authorize GitLab authentication.
+    string url = 1;
 }
 
 message AuthorizeGitlabRequest {
-    string code        = 1; // The challenge code obtained from the OAuth callback
+    // The challenge code obtained from the OAuth callback
+    string code        = 1;
     string redirectUri = 2; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeGitlabResponse {
-    string token = 1; // A token that can be used to authenticate the GitOps API server.
+    // A token that can be used to authenticate the GitOps API server.
+    string token = 1;
 }
 
 message ValidateProviderTokenRequest {
@@ -207,37 +247,48 @@ message ValidateProviderTokenResponse {
 }
 
 message GetBitbucketServerAuthURLRequest {
-    string redirectUri = 1; // The URI that Bitbucket Server will use to send users back to GitOps.
+    // The URI that Bitbucket Server will use to send users back to GitOps.
+    string redirectUri = 1;
 }
 
 message GetBitbucketServerAuthURLResponse {
-    string url = 1; // The URL that users must visit to authorize BitBucket Server authentication.
+    /* The URL that users must visit
+    to authorize BitBucket Server authentication.*/
+    string url = 1;
 }
 
 message AuthorizeBitbucketServerRequest {
-    string code        = 1; // The challenge code obtained from the OAuth callback
-    string state       = 2; // The state parameter provided in the authorization URL 
+    // The challenge code obtained from the OAuth callback
+    string code        = 1;
+    // The state parameter provided in the authorization URL
+    string state       = 2; 
     string redirectUri = 3; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeBitbucketServerResponse {
-    string token = 1; // A token that can be used to authenticate the GitOps API server. 
+    // A token that can be used to authenticate the GitOps API server.
+    string token = 1;
 }
 
 message GetAzureDevOpsAuthURLRequest {
-    string redirectUri = 1; // The URI that Azure DevOps will use to send users back to GitOps.
+    // The URI that Azure DevOps will use to send users back to GitOps.
+    string redirectUri = 1;
 }
 
 message GetAzureDevOpsAuthURLResponse {
-    string url = 1; // The URL that users must visit to initiate the Azure DevOps OAuth flow.
+    // The URL that users must visit to initiate the Azure DevOps OAuth flow.
+    string url = 1;
 }
 
 message AuthorizeAzureDevOpsRequest {
-    string code        = 1; // The challenge code obtained from the OAuth callback
-    string state       = 2; // The state parameter provided in the authorization URL 
+    // The challenge code obtained from the OAuth callback
+    string code        = 1;
+    // The state parameter provided in the authorization URL
+    string state       = 2;
     string redirectUri = 3; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeAzureDevOpsResponse {
-    string token = 1; // A token that can be used to authenticate the GitOps API server. 
+    // A token that can be used to authenticate the GitOps API server.
+    string token = 1; 
 }
