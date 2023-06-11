@@ -2023,6 +2023,22 @@
         }
       }
     },
+    "v1ExternalSecretDataFromRemoteRef": {
+      "type": "object",
+      "properties": {
+        "extract": {
+          "$ref": "#/definitions/v1ExternalSecretDataRemoteRef"
+        }
+      }
+    },
+    "v1ExternalSecretDataRemoteRef": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        }
+      }
+    },
     "v1ExternalSecretItem": {
       "type": "object",
       "properties": {
@@ -2074,6 +2090,9 @@
         },
         "data": {
           "$ref": "#/definitions/v1ExternalSecretData"
+        },
+        "dataFrom": {
+          "$ref": "#/definitions/v1ExternalSecretDataFromRemoteRef"
         }
       }
     },

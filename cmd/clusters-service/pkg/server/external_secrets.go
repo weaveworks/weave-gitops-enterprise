@@ -148,6 +148,10 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 			Yaml:               buf.String(),
 		}
 
+		if externalSecret.Spec.DataFrom != nil {
+			response.SecretPath = externalSecret.Spec.DataFrom[0].Extract.Key
+		}
+
 		if externalSecret.Spec.Data != nil {
 			response.SecretPath = externalSecret.Spec.Data[0].RemoteRef.Key
 			response.Property = externalSecret.Spec.Data[0].RemoteRef.Property

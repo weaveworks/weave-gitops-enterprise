@@ -434,6 +434,7 @@ export type ExternalSecretSpec = {
   secretStoreRef?: ExternalSecretStoreRef
   target?: ExternalSecretTarget
   data?: ExternalSecretData
+  dataFrom?: ExternalSecretDataFromRemoteRef
 }
 
 export type ExternalSecretStoreRef = {
@@ -453,6 +454,14 @@ export type ExternalSecretData = {
 export type ExternalSecretRemoteRef = {
   key?: string
   property?: string
+}
+
+export type ExternalSecretDataFromRemoteRef = {
+  extract?: ExternalSecretDataRemoteRef
+}
+
+export type ExternalSecretDataRemoteRef = {
+  key?: string
 }
 
 export type Kustomization = {

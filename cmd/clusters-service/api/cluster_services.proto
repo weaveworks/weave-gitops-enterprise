@@ -769,6 +769,7 @@ message ExternalSecretSpec {
   ExternalSecretStoreRef secret_store_ref = 2;
   ExternalSecretTarget target = 3;
   ExternalSecretData data = 4;
+  ExternalSecretDataFromRemoteRef data_from = 5;
 }
 
 message ExternalSecretStoreRef {
@@ -788,6 +789,14 @@ message ExternalSecretData {
 message ExternalSecretRemoteRef {
   string key = 1;
   string property = 2;
+}
+
+message ExternalSecretDataFromRemoteRef {
+  ExternalSecretDataRemoteRef extract = 1;
+}
+
+message ExternalSecretDataRemoteRef {
+  string key = 1;
 }
 
 message Kustomization {
