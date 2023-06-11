@@ -260,10 +260,10 @@ func getPolicyConfigPolicies(ctx context.Context, cl clustersmngr.Client, s *ser
 	return policies, nil
 }
 
-func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*core.Policy, error) {
+func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*core.PolicyObj, error) {
 	policySpec := policyCRD.Spec
 
-	policy := &core.Policy{
+	policy := &core.PolicyObj{
 		Name:      policySpec.Name,
 		Id:        policySpec.ID,
 		Category:  policySpec.Category,
