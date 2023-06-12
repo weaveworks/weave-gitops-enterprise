@@ -433,7 +433,7 @@ export type ExternalSecretSpec = {
   refreshInterval?: string
   secretStoreRef?: ExternalSecretStoreRef
   target?: ExternalSecretTarget
-  data?: ExternalSecretData
+  data?: ExternalSecretData[]
   dataFrom?: ExternalSecretDataFromRemoteRef
 }
 

@@ -768,7 +768,7 @@ message ExternalSecretSpec {
   string refresh_interval = 1;
   ExternalSecretStoreRef secret_store_ref = 2;
   ExternalSecretTarget target = 3;
-  ExternalSecretData data = 4;
+  repeated ExternalSecretData data = 4;
   ExternalSecretDataFromRemoteRef data_from = 5;
 }
 

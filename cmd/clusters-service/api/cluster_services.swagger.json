@@ -2089,7 +2089,10 @@
           "$ref": "#/definitions/v1ExternalSecretTarget"
         },
         "data": {
-          "$ref": "#/definitions/v1ExternalSecretData"
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ExternalSecretData"
+          }
         },
         "dataFrom": {
           "$ref": "#/definitions/v1ExternalSecretDataFromRemoteRef"

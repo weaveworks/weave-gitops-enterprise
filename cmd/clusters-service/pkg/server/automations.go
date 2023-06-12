@@ -567,16 +567,18 @@ func createExternalSecretObject(es *capiv1_proto.ExternalSecret) (*esv1beta1.Ext
 			},
 		}
 	} else {
-		generatedExternalSecret.Spec.Data = []esv1beta1.ExternalSecretData{
-			{
-				SecretKey: es.Spec.Data.SecretKey,
-				RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
-					Key:      es.Spec.Data.RemoteRef.Key,
-					Property: es.Spec.Data.RemoteRef.Property,
-				},
-			},
-		}
 
+		externalSecretData := []esv1beta1.ExternalSecretData{}
+		for i := range es.Spec.Data {
+			externalSecretData = append(externalSecretData, esv1beta1.ExternalSecretData{
+				SecretKey: es.Spec.Data[i].SecretKey,
+				RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+					Key:      es.Spec.Data[i].RemoteRef.Key,
+					Property: es.Spec.Data[i].RemoteRef.Property,
+				},
+			})
+		}
+		generatedExternalSecret.Spec.Data = externalSecretData
 	}
 	return generatedExternalSecret, nil
 }
@@ -624,14 +626,16 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 	if externalSecret.Spec.Data == nil && externalSecret.Spec.DataFrom == nil {
 		err = multierror.Append(err, fmt.Errorf("external secret data or dataFrom must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 	} else if externalSecret.Spec.Data != nil && externalSecret.Spec.DataFrom == nil {
-		if externalSecret.Spec.Data.SecretKey == "" {
-			err = multierror.Append(err, fmt.Errorf("secretKey must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
-		}
-		if externalSecret.Spec.Data.RemoteRef.Key == "" {
-			err = multierror.Append(err, fmt.Errorf("remoteRef key kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
-		}
-		if externalSecret.Spec.Data.RemoteRef.Property == "" {
-			err = multierror.Append(err, fmt.Errorf("remoteRef property kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+		for i := range externalSecret.Spec.Data {
+			if externalSecret.Spec.Data[i].SecretKey == "" {
+				err = multierror.Append(err, fmt.Errorf("secretKey must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+			}
+			if externalSecret.Spec.Data[i].RemoteRef.Key == "" {
+				err = multierror.Append(err, fmt.Errorf("remoteRef key kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+			}
+			if externalSecret.Spec.Data[i].RemoteRef.Property == "" {
+				err = multierror.Append(err, fmt.Errorf("remoteRef property kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
+			}
 		}
 	}
 	if externalSecret.Spec.DataFrom == nil && externalSecret.Spec.Data == nil {
