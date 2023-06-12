@@ -100,9 +100,8 @@ const Profiles: FC<{
         <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
         {isLoading && <Loader />}
         {!isLoading && (
-          <div className="table-wrapper">
             <DataTable
-              className="profiles-table"
+              className="profiles-table table-wrapper"
               rows={updatedProfilesList}
               fields={[
                 {
@@ -165,7 +164,6 @@ const Profiles: FC<{
               ]}
               hideSearchAndFilters={true}
             />
-          </div>
         )}
       </>
     </ProfilesWrapper>
