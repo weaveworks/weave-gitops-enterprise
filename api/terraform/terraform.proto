@@ -1,13 +1,18 @@
+/**
+ * This file holds the protobuf definitions for the Weave GitOps Terraform API.
+ * Messages and enums are defined in types.proto.
+ */
 syntax = "proto3";
 
 package terraform.v1;
-
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
 
 import "google/api/annotations.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/terraform/types.proto";
+
+// protolint:disable:next MAX_LINE_LENGTH
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     info: {
@@ -19,41 +24,49 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
     produces: "application/json";
 };
 
+/**
+ * Weave GitOps Terraform service definition
+ */
 service Terraform {
-
-    rpc ListTerraformObjects(ListTerraformObjectsRequest) returns (ListTerraformObjectsResponse) {
+    rpc ListTerraformObjects(ListTerraformObjectsRequest)
+        returns (ListTerraformObjectsResponse) {
         option (google.api.http) = {
             get : "/v1/terraform_objects"
         };
     }
 
-    rpc GetTerraformObject(GetTerraformObjectRequest) returns (GetTerraformObjectResponse) {
+    rpc GetTerraformObject(GetTerraformObjectRequest)
+        returns (GetTerraformObjectResponse) {
         option (google.api.http) = {
             get : "/v1/terraform_objects/{name}"
         };
     }
 
-    rpc SyncTerraformObject(SyncTerraformObjectRequest) returns (SyncTerraformObjectResponse) {
+    rpc SyncTerraformObject(SyncTerraformObjectRequest)
+        returns (SyncTerraformObjectResponse) {
         option (google.api.http) = {
             post : "/v1/terraform_objects/sync"
             body: "*"
         };  
     }
 
-    rpc ToggleSuspendTerraformObject(ToggleSuspendTerraformObjectRequest) returns (ToggleSuspendTerraformObjectResponse) {
+    rpc ToggleSuspendTerraformObject(ToggleSuspendTerraformObjectRequest)
+        returns (ToggleSuspendTerraformObjectResponse) {
         option (google.api.http) = {
             post : "/v1/terraform_objects/suspend"
             body: "*"
         }; 
     }
 
-    rpc GetTerraformObjectPlan(GetTerraformObjectPlanRequest) returns (GetTerraformObjectPlanResponse) {
+    rpc GetTerraformObjectPlan(GetTerraformObjectPlanRequest)
+        returns (GetTerraformObjectPlanResponse) {
         option (google.api.http) = {
             get : "/v1/terraform_objects/plan"
         };
     }
 
-    rpc ReplanTerraformObject(ReplanTerraformObjectRequest) returns (ReplanTerraformObjectResponse) {
+    rpc ReplanTerraformObject(ReplanTerraformObjectRequest)
+        returns (ReplanTerraformObjectResponse) {
         option (google.api.http) = {
             post : "/v1/terraform_objects/replan"
             body: "*"
