@@ -9,7 +9,11 @@ const Policies = () => {
   return (
     <PageTemplate documentTitle="Policies" path={[{ label: 'Policies' }]}>
       <ContentWrapper loading={isLoading} errors={data?.errors}>
-        {data?.policies && <PolicyTable policies={data.policies} />}
+        {data?.policies && (
+          <div id="policy-list">
+            <PolicyTable policies={data.policies} />
+          </div>
+        )}
       </ContentWrapper>
     </PageTemplate>
   );

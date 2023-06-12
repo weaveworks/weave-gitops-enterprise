@@ -225,6 +225,8 @@ export class CoreClientMock {
     this.GetFeatureFlags = this.GetFeatureFlags.bind(this);
     this.GetObject = this.GetObject.bind(this);
     this.IsCRDAvailable = this.IsCRDAvailable.bind(this);
+    this.ListPolicies = this.ListPolicies.bind(this);
+    this.GetPolicy = this.GetPolicy.bind(this);
   }
   GetFeatureFlagsReturns: { flags: { [x: string]: string } } = {
     flags: {
@@ -235,7 +237,8 @@ export class CoreClientMock {
   ListObjectsReturns: { [kind: string]: ListObjectsResponse } = {};
   GetObjectReturns: GetObjectResponse = {};
   IsCRDAvailableReturn: { [name: string]: IsCRDAvailableResponse } = {};
-
+  ListPoliciesReturns: ListPoliciesResponse = {};
+  GetPolicyReturns: GetPolicyResponse = {};
   GetFeatureFlags() {
     return promisify(this.GetFeatureFlagsReturns);
   }
@@ -251,6 +254,12 @@ export class CoreClientMock {
   }
   IsCRDAvailable(req: IsCRDAvailableRequest) {
     return promisify(this.IsCRDAvailableReturn[req.name!]);
+  }
+  ListPolicies() {
+    return promisify(this.ListPoliciesReturns);
+  }
+  GetPolicy() {
+    return promisify(this.GetPolicyReturns);
   }
 }
 
@@ -309,32 +318,6 @@ export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
 
   GetCanary() {
     return promisify(this.GetCanaryReturns);
-  }
-}
-
-export class PolicyClientMock {
-  constructor() {
-    this.ListPolicies = this.ListPolicies.bind(this);
-    this.ListPolicyValidations = this.ListPolicyValidations.bind(this);
-    this.GetPolicy = this.GetPolicy.bind(this);
-    this.GetPolicyValidation = this.GetPolicyValidation.bind(this);
-  }
-  ListPoliciesReturns: ListPoliciesResponse = {};
-  ListPolicyValidationsReturns: ListPolicyValidationsResponse = {};
-  GetPolicyReturns: GetPolicyResponse = {};
-  GetPolicyValidationReturns: GetPolicyValidationResponse = {};
-
-  ListPolicies() {
-    return promisify(this.ListPoliciesReturns);
-  }
-  GetPolicy() {
-    return promisify(this.GetPolicyReturns);
-  }
-  ListPolicyValidations() {
-    return promisify(this.ListPolicyValidationsReturns);
-  }
-  GetPolicyValidation() {
-    return promisify(this.GetPolicyValidationReturns);
   }
 }
 

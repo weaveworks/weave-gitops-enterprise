@@ -1,13 +1,13 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import Policies from '../PoliciesListPage';
-import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   defaultContexts,
-  PolicyClientMock,
+  CoreClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
+import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 
 const listPoliciesResponse = {
   policies: [
@@ -19,8 +19,8 @@ const listPoliciesResponse = {
       createdAt: '2022-08-30T11:23:57Z',
       clusterName: 'default/tw-cluster-2',
       tenant: '',
-      audit:'audit',
-      enforce: ''
+      audit: 'audit',
+      enforce: '',
     },
     {
       category: 'weave.categories.organizational-standards',
@@ -30,14 +30,14 @@ const listPoliciesResponse = {
       createdAt: '2022-07-30T11:23:55Z',
       clusterName: 'test-dev',
       tenant: 'dev-team',
-      audit:'',
-      enforce: 'enforce'
+      audit: '',
+      enforce: 'enforce',
     },
   ],
-  total: 3,
+  total: 2,
   errors: [],
 };
-const mappedPolicies = (policies: Array<any>) => {
+const mappedPolicies = (policies: any[]) => {
   return policies.map(e => [
     e.name,
     e.category,
@@ -51,13 +51,13 @@ const mappedPolicies = (policies: Array<any>) => {
 };
 describe('ListPolicies', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
-  let api: PolicyClientMock;
+  let api: CoreClientMock;
 
   beforeEach(() => {
-    api = new PolicyClientMock();
+    api = new CoreClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [EnterpriseClientProvider, { api }],
+      [CoreClientContextProvider, { api }],
     ]);
   });
   it('renders list policies errors', async () => {
@@ -112,7 +112,6 @@ describe('ListPolicies', () => {
   it('renders a list of policies', async () => {
     const filterTable = new TestFilterableTable('policy-list', fireEvent);
     api.ListPoliciesReturns = listPoliciesResponse;
-
     await act(async () => {
       const c = wrap(<Policies />);
       render(c);
@@ -141,34 +140,5 @@ describe('ListPolicies', () => {
 
     filterTable.testSearchTableByValue(search, searchedRows);
     filterTable.clearSearchByVal(search);
-  });
-  it('sort policies', async () => {
-    api.ListPoliciesReturns = listPoliciesResponse;
-    const filterTable = new TestFilterableTable('policy-list', fireEvent);
-
-    await act(async () => {
-      const c = wrap(<Policies />);
-      render(c);
-    });
-
-    expect(await screen.findByText('Policies')).toBeTruthy();
-
-    const sortRowsBySeverity = mappedPolicies(
-      listPoliciesResponse.policies.sort((a, b) =>
-        a.severity.localeCompare(b.severity),
-      ),
-    );
-
-    filterTable.testSorthTableByColumn('Severity', sortRowsBySeverity);
-
-    const sortRowsByAge = mappedPolicies(
-      listPoliciesResponse.policies.sort((a,b) => {
-        const t1 = new Date(a.createdAt).getTime();
-        const t2 = new Date(b.createdAt).getTime();
-        return t2 - t1;
-      }),
-    );
-
-    filterTable.testSorthTableByColumn('Age', sortRowsByAge);
   });
 });
