@@ -154,7 +154,11 @@ func (s *server) GetExternalSecret(ctx context.Context, req *capiv1_proto.GetExt
 
 		if externalSecret.Spec.Data != nil {
 			response.SecretPath = externalSecret.Spec.Data[0].RemoteRef.Key
-			response.Property = externalSecret.Spec.Data[0].RemoteRef.Property
+			secretProperties := []string{}
+			for i := range externalSecret.Spec.Data {
+				secretProperties = append(secretProperties, externalSecret.Spec.Data[i].RemoteRef.Property)
+			}
+			response.Properties = secretProperties
 			response.Version = externalSecret.Spec.Data[0].RemoteRef.Version
 		}
 

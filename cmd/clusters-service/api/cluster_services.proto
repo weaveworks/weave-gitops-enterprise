@@ -1148,7 +1148,7 @@ message GetExternalSecretResponse{
   string secretStore = 5;
   string secretStoreType = 6;
   string secretPath = 7;
-  string property = 8;
+  repeated string properties = 8;
   string version = 9;
   string status = 10;
   string timestamp = 11;
