@@ -534,72 +534,49 @@ func createExternalSecretObject(es *capiv1_proto.ExternalSecret) (*esv1beta1.Ext
 		return &esv1beta1.ExternalSecret{}, err
 	}
 
-	var generatedExternalSecret *esv1beta1.ExternalSecret
+	generatedExternalSecret := &esv1beta1.ExternalSecret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       esv1beta1.ExtSecretKind,
+			APIVersion: esv1beta1.ExtSecretGroupVersionKind.GroupVersion().String(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      es.Metadata.Name,
+			Namespace: es.Metadata.Namespace,
+		},
+		Spec: esv1beta1.ExternalSecretSpec{
+			SecretStoreRef: esv1beta1.SecretStoreRef{
+				Name: es.Spec.SecretStoreRef.Name,
+				Kind: es.Spec.SecretStoreRef.Kind,
+			},
+			RefreshInterval: &metav1.Duration{
+				Duration: refreshInterval,
+			},
+			Target: esv1beta1.ExternalSecretTarget{
+				Name:           es.Spec.Target.Name,
+				CreationPolicy: esv1beta1.ExternalSecretCreationPolicy("Owner"),
+			},
+		},
+	}
 
 	if es.Spec.DataFrom != nil && es.Spec.DataFrom.Extract != nil && es.Spec.DataFrom.Extract.Key != "" {
-		generatedExternalSecret = &esv1beta1.ExternalSecret{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       esv1beta1.ExtSecretKind,
-				APIVersion: esv1beta1.ExtSecretGroupVersionKind.GroupVersion().String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      es.Metadata.Name,
-				Namespace: es.Metadata.Namespace,
-			},
-			Spec: esv1beta1.ExternalSecretSpec{
-				SecretStoreRef: esv1beta1.SecretStoreRef{
-					Name: es.Spec.SecretStoreRef.Name,
-					Kind: es.Spec.SecretStoreRef.Kind,
-				},
-				RefreshInterval: &metav1.Duration{
-					Duration: refreshInterval,
-				},
-				Target: esv1beta1.ExternalSecretTarget{
-					Name:           es.Spec.Target.Name,
-					CreationPolicy: esv1beta1.ExternalSecretCreationPolicy("Owner"),
-				},
-				DataFrom: []esv1beta1.ExternalSecretDataFromRemoteRef{
-					{
-						Extract: &esv1beta1.ExternalSecretDataRemoteRef{
-							Key: es.Spec.DataFrom.Extract.Key,
-						},
-					},
+		generatedExternalSecret.Spec.DataFrom = []esv1beta1.ExternalSecretDataFromRemoteRef{
+			{
+				Extract: &esv1beta1.ExternalSecretDataRemoteRef{
+					Key: es.Spec.DataFrom.Extract.Key,
 				},
 			},
 		}
 	} else {
-		generatedExternalSecret = &esv1beta1.ExternalSecret{
-			TypeMeta: metav1.TypeMeta{
-				Kind:       esv1beta1.ExtSecretKind,
-				APIVersion: esv1beta1.ExtSecretGroupVersionKind.GroupVersion().String(),
-			},
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      es.Metadata.Name,
-				Namespace: es.Metadata.Namespace,
-			},
-			Spec: esv1beta1.ExternalSecretSpec{
-				SecretStoreRef: esv1beta1.SecretStoreRef{
-					Name: es.Spec.SecretStoreRef.Name,
-					Kind: es.Spec.SecretStoreRef.Kind,
-				},
-				RefreshInterval: &metav1.Duration{
-					Duration: refreshInterval,
-				},
-				Target: esv1beta1.ExternalSecretTarget{
-					Name:           es.Spec.Target.Name,
-					CreationPolicy: esv1beta1.ExternalSecretCreationPolicy("Owner"),
-				},
-				Data: []esv1beta1.ExternalSecretData{
-					{
-						SecretKey: es.Spec.Data.SecretKey,
-						RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
-							Key:      es.Spec.Data.RemoteRef.Key,
-							Property: es.Spec.Data.RemoteRef.Property,
-						},
-					},
+		generatedExternalSecret.Spec.Data = []esv1beta1.ExternalSecretData{
+			{
+				SecretKey: es.Spec.Data.SecretKey,
+				RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
+					Key:      es.Spec.Data.RemoteRef.Key,
+					Property: es.Spec.Data.RemoteRef.Property,
 				},
 			},
 		}
+
 	}
 	return generatedExternalSecret, nil
 }
