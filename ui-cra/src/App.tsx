@@ -4,16 +4,17 @@ import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
 import {
   AppContext,
   AppContextProvider,
+  AuthCheck,
   AuthContextProvider,
-  coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
   Pendo,
-  theme,
   SignIn,
-  AuthCheck,
+  ThemeTypes,
+  coreClient,
+  theme,
 } from '@weaveworks/weave-gitops';
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 import {
   QueryCache,
   QueryClient,
@@ -23,12 +24,15 @@ import {
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
+import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
+import bgDark from './assets/img/bg-dark.png';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
+import App from './components/Layout/App';
+import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
 import Compose from './components/ProvidersCompose';
 import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
@@ -42,8 +46,6 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
-import App from './components/Layout/App';
-import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -75,8 +77,15 @@ const GlobalStyle = createGlobalStyle`
 
   body {
     background: right bottom no-repeat fixed; 
-    background-image: url(${bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);
+    background-image: ${props =>
+      props.theme.mode === ThemeTypes.Dark
+        ? `url(${bgDark});`
+        : `url(${bg}), linear-gradient(to bottom, rgba(85, 105, 145, .1) 5%, rgba(85, 105, 145, .1), rgba(85, 105, 145, .25) 35%);`}
     background-size: 100%;
+    background-color: ${props =>
+      props.theme.mode === ThemeTypes.Dark
+        ? props.theme.colors.neutralGray
+        : 'transparent'};
     color: ${props => props.theme.colors.black};
     font-family: ${props => props.theme.fontFamilies.regular};
     font-size: ${props => props.theme.fontSizes.medium};
@@ -147,12 +156,8 @@ export const queryOptions: QueryClientConfig = {
 const queryClient = new QueryClient(queryOptions);
 
 const StylesProvider = ({ children }: { children: ReactNode }) => {
-  const { settings, toggleDarkMode } = React.useContext(AppContext);
+  const { settings } = React.useContext(AppContext);
   const mode = settings.theme;
-  //hard code light for now
-  useEffect(() => {
-    if (mode === 'dark') toggleDarkMode();
-  }, [mode, toggleDarkMode]);
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>
