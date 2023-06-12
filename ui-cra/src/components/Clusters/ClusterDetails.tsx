@@ -1,5 +1,4 @@
 import { CircularProgress } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Flex,
   Icon,
@@ -14,7 +13,6 @@ import { useEffect, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import useClusters from '../../hooks/clusters';
-import { localEEMuiTheme } from '../../muiTheme';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { Routes } from '../../utils/nav';
@@ -56,84 +54,82 @@ const ClusterDetails = ({ clusterName }: Props) => {
     [clusterName, getCluster],
   );
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="Cluster Page"
-        path={[
-          { label: 'Clusters', url: Routes.Clusters },
-          { label: clusterName },
-        ]}
-      >
-        <ContentWrapper loading={isLoading}>
-          {currentCluster && (
-            <div style={{ overflowX: 'auto' }}>
-              <ActionsWrapper>
-                <WeaveButton
-                  id="cluster-application"
-                  startIcon={<Icon type={IconType.FilterIcon} size="base" />}
-                  onClick={() => {
-                    const clusterName = `${currentCluster?.namespace}/${currentCluster?.name}`;
-                    if (useQueryServiceBackend) {
-                      const s = linkToExplorer(`/applications`, {
-                        filters: [`Cluster:${clusterName}`],
-                      } as QueryState);
+    <PageTemplate
+      documentTitle="Cluster Page"
+      path={[
+        { label: 'Clusters', url: Routes.Clusters },
+        { label: clusterName },
+      ]}
+    >
+      <ContentWrapper loading={isLoading}>
+        {currentCluster && (
+          <div style={{ overflowX: 'auto' }}>
+            <ActionsWrapper>
+              <WeaveButton
+                id="cluster-application"
+                startIcon={<Icon type={IconType.FilterIcon} size="base" />}
+                onClick={() => {
+                  const clusterName = `${currentCluster?.namespace}/${currentCluster?.name}`;
+                  if (useQueryServiceBackend) {
+                    const s = linkToExplorer(`/applications`, {
+                      filters: [`Cluster:${clusterName}`],
+                    } as QueryState);
 
-                      history.push(s);
-                    } else {
-                      const filtersValues = toFilterQueryString([
-                        {
-                          key: 'clusterName',
-                          value: `${currentCluster?.namespace}/${currentCluster?.name}`,
-                        },
-                      ]);
-                      history.push(`/applications?filters=${filtersValues}`);
-                    }
-                  }}
+                    history.push(s);
+                  } else {
+                    const filtersValues = toFilterQueryString([
+                      {
+                        key: 'clusterName',
+                        value: `${currentCluster?.namespace}/${currentCluster?.name}`,
+                      },
+                    ]);
+                    history.push(`/applications?filters=${filtersValues}`);
+                  }
+                }}
+              >
+                GO TO APPLICATIONS
+              </WeaveButton>
+              {loading ? (
+                <CircularProgress size={30} />
+              ) : (
+                <Tooltip
+                  title="No sources available for this cluster"
+                  placement="top"
+                  disabled={isClusterWithSources === true}
                 >
-                  GO TO APPLICATIONS
-                </WeaveButton>
-                {loading ? (
-                  <CircularProgress size={30} />
-                ) : (
-                  <Tooltip
-                    title="No sources available for this cluster"
-                    placement="top"
-                    disabled={isClusterWithSources === true}
-                  >
-                    <div>
-                      <WeaveButton
-                        id="cluster-add-application"
-                        startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                        onClick={() => {
-                          const filtersValues = encodeURIComponent(
-                            `${currentCluster?.name}`,
-                          );
-                          history.push(
-                            `/applications/create?clusterName=${filtersValues}`,
-                          );
-                        }}
-                        disabled={!isClusterWithSources}
-                      >
-                        ADD APPLICATION TO THIS CLUSTER
-                      </WeaveButton>
-                    </div>
-                  </Tooltip>
-                )}
-              </ActionsWrapper>
-              <SubRouterTabs rootPath={`${path}/details`}>
-                <RouterTab name="Details" path={`${path}/details`}>
-                  <ClusterDashboard
-                    currentCluster={currentCluster}
-                    getDashboardAnnotations={getDashboardAnnotations}
-                    getKubeconfig={getKubeconfig}
-                  />
-                </RouterTab>
-              </SubRouterTabs>
-            </div>
-          )}
-        </ContentWrapper>
-      </PageTemplate>
-    </ThemeProvider>
+                  <div>
+                    <WeaveButton
+                      id="cluster-add-application"
+                      startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                      onClick={() => {
+                        const filtersValues = encodeURIComponent(
+                          `${currentCluster?.name}`,
+                        );
+                        history.push(
+                          `/applications/create?clusterName=${filtersValues}`,
+                        );
+                      }}
+                      disabled={!isClusterWithSources}
+                    >
+                      ADD APPLICATION TO THIS CLUSTER
+                    </WeaveButton>
+                  </div>
+                </Tooltip>
+              )}
+            </ActionsWrapper>
+            <SubRouterTabs rootPath={`${path}/details`}>
+              <RouterTab name="Details" path={`${path}/details`}>
+                <ClusterDashboard
+                  currentCluster={currentCluster}
+                  getDashboardAnnotations={getDashboardAnnotations}
+                  getKubeconfig={getKubeconfig}
+                />
+              </RouterTab>
+            </SubRouterTabs>
+          </div>
+        )}
+      </ContentWrapper>
+    </PageTemplate>
   );
 };
 

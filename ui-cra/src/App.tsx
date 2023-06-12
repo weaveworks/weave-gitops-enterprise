@@ -11,7 +11,7 @@ import {
   Pendo,
   theme,
 } from '@weaveworks/weave-gitops';
-import React, { ReactNode, useEffect } from 'react';
+import React, { ReactNode } from 'react';
 import {
   QueryCache,
   QueryClient,
@@ -142,10 +142,6 @@ const queryClient = new QueryClient(queryOptions);
 const StylesProvider = ({ children }: { children: ReactNode }) => {
   const { settings, toggleDarkMode } = React.useContext(AppContext);
   const mode = settings.theme;
-  //hard code light for now
-  useEffect(() => {
-    if (mode === 'dark') toggleDarkMode();
-  }, [mode, toggleDarkMode]);
   const appliedTheme = theme(mode);
   return (
     <ThemeProvider theme={appliedTheme}>

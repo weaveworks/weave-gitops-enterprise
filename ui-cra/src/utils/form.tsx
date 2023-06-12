@@ -1,5 +1,4 @@
 import {
-  Button,
   InputAdornment,
   MenuItem,
   Divider as MuiDivider,
@@ -9,36 +8,12 @@ import {
   InputLabel as MuiInputLabel,
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
-  Typography,
 } from '@material-ui/core';
 import { InputBaseProps } from '@material-ui/core/InputBase';
 import { Theme, withStyles } from '@material-ui/core/styles';
 import { debounce } from 'lodash';
 import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
 import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
-
-// FIXME: what sure what the type should be to export correctly!
-export const SectionTitle: any = withStyles(() => ({
-  root: {
-    margin: '12px 0 8px 0',
-  },
-}))(Typography);
-
-// FIXME: what sure what the type should be to export correctly!
-export const RemoveGroupSectionButton: any = withStyles((theme: Theme) => ({
-  root: {
-    marginLeft: theme.spacing(0.5),
-    fontSize: '12px',
-    color: theme.palette.primary.main,
-  },
-}))(Button);
-
-// FIXME: what sure what the type should be to export correctly!
-export const AddGroupSectionButton: any = withStyles((theme: Theme) => ({
-  root: {
-    marginTop: theme.spacing(1.5),
-  },
-}))(Button);
 
 const FormControl = withStyles((theme: Theme) => ({
   root: {
@@ -49,7 +24,6 @@ const FormControl = withStyles((theme: Theme) => ({
 const InputLabel = withStyles(() => ({
   root: {
     fontSize: 14,
-    color: 'black',
     paddingBottom: 6,
   },
   formControl: {
@@ -60,9 +34,11 @@ const InputLabel = withStyles(() => ({
 const InputBase = withStyles(() => ({
   root: {
     border: '1px solid #d8d8d8',
+    marginRight: '24px',
   },
   input: {
     border: 'none',
+    padding: '8px 12px',
   },
   inputMultiline: {
     padding: '10px',
@@ -163,12 +139,6 @@ export const Divider: any = withStyles((theme: Theme) => ({
     flexGrow: 1,
   },
 }))(MuiDivider);
-
-export const DividerWrapper: FC = ({ children }) => (
-  <div style={{ display: 'flex', alignItems: 'center', minHeight: 35 }}>
-    {children}
-  </div>
-);
 
 export interface SelectProps extends MuiSelectProps {
   label: string;

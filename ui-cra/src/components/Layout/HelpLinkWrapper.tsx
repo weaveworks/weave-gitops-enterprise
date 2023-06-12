@@ -22,14 +22,11 @@ const HelpLink = styled(Flex)<{
     )
     ${props => props.theme.spacing.medium};
   background-color: ${props =>
-    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
+    props.backgroundColor || props.theme.colors.neutralGray};
   color: ${props => props.textColor || props.theme.colors.neutral30};
   border-radius: 0 0 ${props => props.theme.spacing.xs}
     ${props => props.theme.spacing.xs};
   justify-content: space-between;
-  a {
-    color: ${({ theme }) => theme.colors.primary};
-  }
 `;
 
 const useStyles = makeStyles(() =>
