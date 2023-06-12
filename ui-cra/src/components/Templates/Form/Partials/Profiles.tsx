@@ -29,12 +29,20 @@ const ProfilesWrapper = styled.div`
       width: 25px;
       padding-left: ${({ theme }) => theme.spacing.base};
     }
+    a {
+      color: ${({ theme }) => theme.colors.primary};
+    }
+    .profile-details {
+      justify-content: space-around;
+    }
   }
 `;
 
 const ProfileDetailsLabelRenderer = () => (
-  <Flex>
-    <h2>Version - Namespace - Yaml</h2>
+  <Flex className="profile-details">
+    <h2>Version</h2>
+    <h2>Namespace</h2>
+    <h2>Yaml</h2>
   </Flex>
 );
 

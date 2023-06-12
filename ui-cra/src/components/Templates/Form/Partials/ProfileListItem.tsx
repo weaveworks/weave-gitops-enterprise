@@ -123,29 +123,34 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <Flex wide between data-profile-name={profile.name}>
-        <FormControl>
-          <Select
-            disabled={profile.required && profile.values.length === 1}
-            value={version}
-            onChange={handleSelectVersion}
-            autoWidth
-            label="Versions"
-          >
-            {profileVersions(profile)}
-          </Select>
-        </FormControl>
-
-        <FormControl>
-          <Input
-            id="profile-namespace"
-            value={namespace}
-            placeholder={DEFAULT_PROFILE_NAMESPACE}
-            onChange={handleChangeNamespace}
-            error={!isNamespaceValid}
-          />
-        </FormControl>
-
+      <Flex
+        style={{ justifyContent: 'space-around' }}
+        data-profile-name={profile.name}
+      >
+        <div className="profile-version">
+          <FormControl>
+            <Select
+              disabled={profile.required && profile.values.length === 1}
+              value={version}
+              onChange={handleSelectVersion}
+              autoWidth
+              label="Versions"
+            >
+              {profileVersions(profile)}
+            </Select>
+          </FormControl>
+        </div>
+        <div className="profile-namespace">
+          <FormControl>
+            <Input
+              id="profile-namespace"
+              value={namespace}
+              placeholder={DEFAULT_PROFILE_NAMESPACE}
+              onChange={handleChangeNamespace}
+              error={!isNamespaceValid}
+            />
+          </FormControl>
+        </div>
         <Button variant="text" onClick={handleYamlPreview}>
           Values.yaml
         </Button>

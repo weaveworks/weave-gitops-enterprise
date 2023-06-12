@@ -1,28 +1,18 @@
 import { Theme, createTheme } from '@material-ui/core/styles';
-import {
-  ThemeTypes,
-  baseTheme,
-  muiTheme as coreMuiTheme,
-} from '@weaveworks/weave-gitops';
+import { baseTheme, muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
+import { ThemeTypes } from '@weaveworks/weave-gitops/ui/contexts/AppContext';
 
 const defaultTheme = createTheme();
 
-export const muiTheme = (colors: any, mode: ThemeTypes) => {
-  const coreTheme = coreMuiTheme(colors, mode);
-  return createTheme({
-    ...coreTheme,
+export const muiTheme = (colors: any, mode: ThemeTypes) =>
+  createTheme({
+    ...coreMuiTheme(colors, mode),
     overrides: {
-      ...coreTheme.overrides,
       MuiButton: {
         root: {
           textTransform: 'none',
           minWidth: 52,
           marginRight: baseTheme.spacing.small,
-          //copied from oss
-          '&$disabled': {
-            color:
-              mode === ThemeTypes.Dark ? colors.primary20 : colors.neutral20,
-          },
         },
         outlinedPrimary: {
           borderColor: colors.neutral20,
@@ -62,9 +52,6 @@ export const muiTheme = (colors: any, mode: ThemeTypes) => {
         },
       },
       MuiSelect: {
-        icon: {
-          color: colors.black,
-        },
         select: {
           width: '100%',
         },
@@ -89,9 +76,6 @@ export const muiTheme = (colors: any, mode: ThemeTypes) => {
         },
       },
       MuiInputLabel: {
-        root: {
-          color: colors.black,
-        },
         formControl: {
           transform: 'none',
         },
@@ -101,7 +85,6 @@ export const muiTheme = (colors: any, mode: ThemeTypes) => {
       borderRadius: 2,
     },
   });
-};
 
 export const localEEMuiTheme = (theme: Theme) =>
   createTheme({

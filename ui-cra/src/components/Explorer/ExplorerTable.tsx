@@ -105,6 +105,7 @@ function ExplorerTable({
       ]}
       rows={r}
       hideSearchAndFilters
+      onColumnHeaderClick={onColumnHeaderClick}
       hasCheckboxes={enableBatchSync}
     />
   );

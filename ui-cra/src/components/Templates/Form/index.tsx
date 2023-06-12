@@ -1,5 +1,9 @@
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import {
+  ThemeProvider,
+  createStyles,
+  makeStyles,
+} from '@material-ui/core/styles';
 import {
   Button,
   Flex,
@@ -32,6 +36,7 @@ import {
 } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
+import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
   GitopsClusterEnriched,
@@ -71,7 +76,6 @@ export interface GitRepositoryEnriched extends GitRepository {
 }
 
 const FormWrapper = styled.form`
-  width: 100%;
   .create-cta {
     padding: ${props => props.theme.spacing.small};
     button {
@@ -276,7 +280,7 @@ const toPayload = (
     templateKind,
     previousValues: createReqAnnot,
     repositoryUrl,
-    baseBranch: formData.repo.obj.spec.ref.branch,
+    baseBranch: formData.repo.obj.spec.ref.branch
   };
 };
 
@@ -750,7 +754,11 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
     );
   }
 
-  return <ResourceForm template={template} resource={resource || undefined} />;
+  return (
+    <ThemeProvider theme={localEEMuiTheme}>
+      <ResourceForm template={template} resource={resource || undefined} />
+    </ThemeProvider>
+  );
 };
 
 export default ResourceFormWrapper;
