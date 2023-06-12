@@ -358,45 +358,6 @@ func makePolicy(t *testing.T, opts ...func(p *pacv2beta2.Policy)) *pacv2beta2.Po
 	return policy
 }
 
-func makeEvent(t *testing.T, opts ...func(e *corev1.Event)) *corev1.Event {
-	t.Helper()
-	event := &corev1.Event{
-		InvolvedObject: corev1.ObjectReference{
-			APIVersion:      "v1",
-			Kind:            "Deployment",
-			Name:            "my-deployment",
-			Namespace:       "default",
-			ResourceVersion: "1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Annotations: map[string]string{
-				"policy_name":     "Missing app Label",
-				"policy_id":       "weave.policies.missing-app-label",
-				"cluster_id":      "cluster-1",
-				"category":        "Access Control",
-				"severity":        "high",
-				"description":     "Missing app label",
-				"how_to_solve":    "how_to_solve",
-				"entity_manifest": `{"apiVersion":"apps/v1","kind":"Deployment","metadata":{"name":"nginx-deployment","namespace":"default","uid":"af912668-957b-46d4-bc7a-51e6994cba56"},"spec":{"template":{"spec":{"containers":[{"image":"nginx:latest","imagePullPolicy":"Always","name":"nginx","ports":[{"containerPort":80,"protocol":"TCP"}]}]}}}}`,
-				"occurrences":     `[{"message": "occurrence details"}]`,
-			},
-			Labels: map[string]string{
-				"pac.weave.works/type": "Admission",
-				"pac.weave.works/id":   "66101548-12c1-4f79-a09a-a12979903fba",
-			},
-			Name:      "Missing app Label - fake-event-1",
-			Namespace: "default",
-		},
-		Message: "Policy event",
-		Reason:  "PolicyViolation",
-		Type:    "Warning",
-	}
-	for _, o := range opts {
-		o(event)
-	}
-	return event
-}
-
 func testNewFakeChartCache(t *testing.T, clusterRef types.NamespacedName, repoRef helm.ObjectReference, charts []helm.Chart) helmfakes.FakeChartCache {
 	fc := helmfakes.NewFakeChartCache(helmfakes.WithCharts(
 		helmfakes.ClusterRefToString(
