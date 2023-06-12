@@ -260,8 +260,8 @@ func getPolicyConfigPolicies(ctx context.Context, cl clustersmngr.Client, s *ser
 	return policies, nil
 }
 
-func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*core.PolicyObj, error) {
-	policySpec := policyCRD.Spec
+func policyToPolicyRespone(policyCR pacv2beta2.Policy, clusterName string) (*core.PolicyObj, error) {
+	policySpec := policyCR.Spec
 
 	policy := &core.PolicyObj{
 		Name:      policySpec.Name,
@@ -269,9 +269,9 @@ func policyToPolicyRespone(policyCRD pacv2beta2.Policy, clusterName string) (*co
 		Category:  policySpec.Category,
 		Tags:      policySpec.Tags,
 		Severity:  policySpec.Severity,
-		CreatedAt: policyCRD.CreationTimestamp.Format(time.RFC3339),
-		Tenant:    policyCRD.GetLabels()["toolkit.fluxcd.io/tenant"],
-		Modes:     policyCRD.Status.Modes,
+		CreatedAt: policyCR.CreationTimestamp.Format(time.RFC3339),
+		Tenant:    policyCR.GetLabels()["toolkit.fluxcd.io/tenant"],
+		Modes:     policyCR.Status.Modes,
 	}
 
 	var policyLabels []*core.PolicyTargetLabel
