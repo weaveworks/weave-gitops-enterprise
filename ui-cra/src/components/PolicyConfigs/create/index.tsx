@@ -50,19 +50,25 @@ const FormWrapper = styled.form`
     border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
     padding-right: ${props => props.theme.spacing.medium};
     padding-bottom: ${props => props.theme.spacing.medium};
-    .form-field {
+    .form-section {
       width: 50%;
+    }
+    .form-field {
       label {
         margin-top: ${props => props.theme.spacing.xs} !important;
         margin-bottom: ${props => props.theme.spacing.base} !important;
         font-size: ${props => props.theme.fontSizes.large};
       }
       &.policyField {
+        width: 50%;
         label {
           margin-bottom: ${props => props.theme.spacing.small} !important;
         }
         div[class*='MuiAutocomplete-tag'] {
           display: none;
+        }
+        div[class*='MuiAutocomplete-inputRoot'] {
+         padding-right: 9px;
         }
       }
       .form-section {
