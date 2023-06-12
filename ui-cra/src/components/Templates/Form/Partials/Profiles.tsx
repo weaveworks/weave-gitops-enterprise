@@ -96,7 +96,6 @@ const Profiles: FC<{
 
   return (
     <ProfilesWrapper>
-      <>
         <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
         {isLoading && <Loader />}
         {!isLoading && (
@@ -165,7 +164,6 @@ const Profiles: FC<{
             hideSearchAndFilters={true}
           />
         )}
-      </>
     </ProfilesWrapper>
   );
 };
