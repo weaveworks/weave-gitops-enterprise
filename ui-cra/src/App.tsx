@@ -13,6 +13,7 @@ import {
   ThemeTypes,
   coreClient,
   theme,
+  ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import React, { ReactNode } from 'react';
 import {
