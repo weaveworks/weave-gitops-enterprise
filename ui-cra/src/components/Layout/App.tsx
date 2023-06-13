@@ -145,7 +145,6 @@ export const Page = ({ children, loading, className, path }: PageProps) => (
     <WGPage loading={loading} className={className} path={path}>
       {children}
     </WGPage>
-    <MemoizedHelpLinkWrapper />
   </Flex>
 );
 

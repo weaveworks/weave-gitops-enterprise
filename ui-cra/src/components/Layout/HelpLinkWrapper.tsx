@@ -15,20 +15,15 @@ const HelpLink = styled(Flex)<{
   backgroundColor?: string;
   textColor?: string;
 }>`
-  padding: calc(
-      ${props => props.theme.spacing.medium} -
-        ${props => props.theme.spacing.xxs}
-    )
-    ${props => props.theme.spacing.medium};
+  padding: ${props => props.theme.spacing.medium};
   background-color: ${props =>
-    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
+    props.backgroundColor || props.theme.colors.neutralGray};
   color: ${props => props.textColor || props.theme.colors.neutral30};
-  border-radius: ${props => props.theme.spacing.xs};
+  border-radius: 0 0 ${props => props.theme.spacing.xs}
+    ${props => props.theme.spacing.xs};
   a {
     color: ${({ theme }) => theme.colors.primary};
   }
-  margin-left: ${props => props.theme.spacing.medium};
-  margin-right: ${props => props.theme.spacing.medium};
   width: -webkit-fill-available;
 `;
 

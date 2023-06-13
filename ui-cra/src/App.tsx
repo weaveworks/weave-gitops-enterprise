@@ -43,6 +43,7 @@ import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
 import App from './components/Layout/App';
+import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -168,7 +169,7 @@ const AppContainer = () => {
           <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
             <PipelinesProvider api={Pipelines}>
               <GitAuthProvider>
-                <AppContextProvider>
+                <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
                   <StylesProvider>
                     <AuthContextProvider>
                       <EnterpriseClientProvider api={ClustersService}>
