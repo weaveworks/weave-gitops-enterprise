@@ -2,10 +2,9 @@ import { DataTable, Severity, formatURL } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import moment from 'moment';
-import { Link } from 'react-router-dom';
+import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import { Routes } from '../../../../utils/nav';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
-import { useWorkspaceStyle } from '../../WorkspaceStyles';
 
 export const PoliciesTab = ({
   clusterName,
@@ -22,7 +21,6 @@ export const PoliciesTab = ({
     clusterName,
     workspaceName,
   });
-  const classes = useWorkspaceStyle();
 
   return (
     <WorkspaceTabsWrapper loading={isLoading} errorMessage={error?.message}>
@@ -39,7 +37,6 @@ export const PoliciesTab = ({
                     clusterName: clusterName,
                     id: w.id,
                   })}
-                  className={classes.link}
                   data-workspace-name={w.name}
                 >
                   {w.name}
