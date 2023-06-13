@@ -34,8 +34,8 @@ import { ContentWrapper } from './components/Layout/ContentWrapper';
 import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
-import Policies from './components/Policies';
-import PolicyDetails from './components/Policies/PolicyDetails';
+import Policies from './components/Policies/PoliciesListPage';
+import PolicyDetails from './components/Policies/PolicyDetailsPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
@@ -238,6 +238,11 @@ const AppRoutes = () => {
         path={V2Routes.UserInfo}
       />
       <Route
+        component={withSearchParams(PolicyViolationPage)}
+        exact
+        path={V2Routes.PolicyViolationDetails}
+      />
+      <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>
             <WGNotificationsProvider {...props} />
@@ -268,11 +273,10 @@ const AppRoutes = () => {
         path={V2Routes.ImagePolicyDetails}
         component={withSearchParams(ImagePolicyDetails)}
       />
-      <Route exact path={Routes.Policies} component={Policies} />
+      <Route exact path={V2Routes.Policies} component={Policies} />
       <Route
-        exact
-        path={Routes.PolicyDetails}
         component={withSearchParams(PolicyDetails)}
+        path={V2Routes.PolicyDetailsPage}
       />
       <Route component={TemplatesDashboard} exact path={Routes.Templates} />
       <Route
