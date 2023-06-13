@@ -14,7 +14,6 @@ import { ToastContainer } from 'react-toastify';
 import { Routes } from '../../utils/nav';
 import styled from 'styled-components';
 import { Breadcrumb } from '@weaveworks/weave-gitops/ui/components/Breadcrumbs';
-import MemoizedHelpLinkWrapper from './HelpLinkWrapper';
 import { useMemo } from 'react';
 
 export type PageProps = {
