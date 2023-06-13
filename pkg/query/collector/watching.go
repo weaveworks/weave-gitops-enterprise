@@ -19,7 +19,7 @@ func (c *watchingCollector) Start() error {
 	c.sub = c.subscriber.Subscribe()
 
 	for _, cluster := range c.subscriber.GetClusters() {
-		err := c.Watch(cluster)
+		err := c.watch(cluster)
 		if err != nil {
 			c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
 			continue
@@ -37,7 +37,7 @@ func (c *watchingCollector) Start() error {
 				return
 			case updates := <-c.sub.Updates():
 				for _, cluster := range updates.Added {
-					err := c.Watch(cluster)
+					err := c.watch(cluster)
 					if err != nil {
 						c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
 						continue
@@ -46,7 +46,7 @@ func (c *watchingCollector) Start() error {
 				}
 
 				for _, cluster := range updates.Removed {
-					err := c.Unwatch(cluster.GetName())
+					err := c.unwatch(cluster.GetName())
 					if err != nil {
 						c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
 						continue
@@ -71,10 +71,6 @@ func (c *watchingCollector) Stop() error {
 	}
 	c.done.Wait()
 	return nil
-}
-
-type Starter interface {
-	Start(context.Context) error
 }
 
 type child struct {
@@ -114,7 +110,7 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 	}, nil
 }
 
-func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
+func (w *watchingCollector) watch(cluster cluster.Cluster) error {
 	config, err := cluster.GetServerConfig()
 	if err != nil {
 		return fmt.Errorf("cannot get config: %w", err)
@@ -160,7 +156,7 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 	return nil
 }
 
-func (w *watchingCollector) Unwatch(clusterName string) error {
+func (w *watchingCollector) unwatch(clusterName string) error {
 	if clusterName == "" {
 		return fmt.Errorf("cluster name is empty")
 	}

@@ -173,7 +173,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err = collector.Watch(tt.cluster)
+			err = collector.watch(tt.cluster)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -227,14 +227,14 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 			g.Expect(collector).NotTo(BeNil())
 
 			c := makeValidFakeCluster(clusterName)
-			g.Expect(collector.Watch(c)).To(Succeed())
+			g.Expect(collector.watch(c)).To(Succeed())
 
 			if tt.errPattern == "" {
 				s, err := collector.Status(tt.clusterName)
 				g.Expect(err).To(BeNil())
 				g.Expect(s).To(BeIdenticalTo(ClusterWatchingStarted))
 			}
-			err = collector.Unwatch(tt.clusterName)
+			err = collector.unwatch(tt.clusterName)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
@@ -265,7 +265,7 @@ func TestClusterWatcher_Status(t *testing.T) {
 	g.Expect(len(collector.clusterWatchers)).To(Equal(0))
 	existingClusterName := "test"
 	c := makeValidFakeCluster(existingClusterName)
-	err = collector.Watch(c)
+	err = collector.watch(c)
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
