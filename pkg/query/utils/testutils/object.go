@@ -2,6 +2,7 @@ package testutils
 
 import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -88,4 +89,8 @@ func (r objectTransaction) Object() client.Object {
 
 func (r objectTransaction) TransactionType() models.TransactionType {
 	return r.transactionType
+}
+
+func (r objectTransaction) RetentionPolicy() configuration.RetentionPolicy {
+	return 0
 }
