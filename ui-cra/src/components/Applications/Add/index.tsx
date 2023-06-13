@@ -473,28 +473,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                     {optionUrl(formData.source_url, formData.source_branch)}
                   </SourceLinkWrapper>
                 </Grid>
-                <Grid item xs={12} sm={10} md={12} lg={10}>
-                  {formData.source_type === 'HelmRepository' ? (
-                    <Profiles
-                      cluster={{
-                        name: formData.clusterAutomations[0].cluster_name,
-                        namespace:
-                          formData.clusterAutomations[0].cluster_namespace,
-                      }}
-                      // Temp fix to hide layers when using profiles in Add App until we update the BE
-                      context="app"
-                      openPreview={openPreview}
-                      setOpenPreview={setOpenPreview}
-                      PRPreview={PRPreview}
-                      sourceType={formData.source_type}
-                    />
-                  ) : null}
-                </Grid>
-                <Grid item sm={2} md={2} lg={4}>
-                  <SourceLinkWrapper>
-                    {optionUrl(formData.source_url, formData.source_branch)}
-                  </SourceLinkWrapper>
-                </Grid>
                 {formData.source_type === 'HelmRepository' ? (
                   <Profiles
                     cluster={{
