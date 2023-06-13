@@ -567,7 +567,6 @@ func createExternalSecretObject(es *capiv1_proto.ExternalSecret) (*esv1beta1.Ext
 			},
 		}
 	} else {
-
 		externalSecretData := []esv1beta1.ExternalSecretData{}
 		for i := range es.Spec.Data {
 			secretKey := ""
@@ -640,9 +639,6 @@ func validateExternalSecret(externalSecret *capiv1_proto.ExternalSecret) error {
 				err = multierror.Append(err, fmt.Errorf("remoteRef property kind must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 			}
 		}
-	}
-	if externalSecret.Spec.DataFrom == nil && externalSecret.Spec.Data == nil {
-		err = multierror.Append(err, fmt.Errorf("external secret data or dataFrom must be specified in ExternalSecret %s", externalSecret.Metadata.Name))
 	} else if externalSecret.Spec.DataFrom != nil && externalSecret.Spec.Data == nil {
 		if externalSecret.Spec.DataFrom.Extract.Key == "" {
 			err = multierror.Append(err, fmt.Errorf("extract key must be specified in dataFrom in ExternalSecret %s", externalSecret.Metadata.Name))
