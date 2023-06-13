@@ -132,11 +132,13 @@ func AddHelmReleaseApp(profile *pages.ProfileInformation, app Application) {
 		}
 
 		gomega.Eventually(profile.Version.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select expeted %s profile version", app.Version))
-		gomega.Eventually(pages.GetOption(webDriver, app.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", app.Name, app.Version))
 
-		// flakey selection
-		gomega.Eventually(profile.Version.Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select expeted %s profile version", app.Version))
-		gomega.Eventually(pages.GetOption(webDriver, app.Version).Click).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", app.Name, app.Version))
+		// Work around some flakiness in selecting the version
+		gomega.Eventually(func(g gomega.Gomega) {
+			g.Expect(pages.GetOption(webDriver, app.Version).Click()).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", app.Name, app.Version))
+			// Check that the version selector is no longer present on the page
+			g.Expect(pages.GetOption(webDriver, app.Version)).ShouldNot(matchers.BeFound(), fmt.Sprintf("Failed to verify that %s version selector is no longer present on the page", app.Name))
+		}).Should(gomega.Succeed(), fmt.Sprintf("Failed to select %s version: %s", app.Name, app.Version))
 
 		if app.Layer != "" {
 			gomega.Eventually(profile.Layer.Text).Should(gomega.MatchRegexp(app.Layer), fmt.Sprintf("Failed to verify expeted %s profile layer", app.Layer))

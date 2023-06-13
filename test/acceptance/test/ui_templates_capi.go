@@ -430,7 +430,8 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 			profile := createPage.GetProfileInList(certManager.Name)
 			AddHelmReleaseApp(profile, certManager)
 
-			pages.ScrollWindow(webDriver, 0, 2500)
+			pages.ScrollWindow(webDriver, 0, 1500)
+
 			policyAgent := Application{
 				Type:            "helm_release",
 				Name:            "weave-policy-agent",
