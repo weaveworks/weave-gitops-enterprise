@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
+
+var errRequiredClusterName = errors.New("`clusterName` param is required")
 
 func (s *server) ListEvents(ctx context.Context, msg *capiv1_proto.ListEventsRequest) (*capiv1_proto.ListEventsResponse, error) {
 	c, err := s.clustersManager.GetImpersonatedClient(ctx, auth.Principal(ctx))
