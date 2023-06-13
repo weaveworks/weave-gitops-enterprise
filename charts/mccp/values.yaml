@@ -231,3 +231,5 @@ explorer:
     serviceAccount:
       name: "collector"
       namespace: "flux-system"
+  cleaner:
+    disabled: false

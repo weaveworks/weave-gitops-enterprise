@@ -3,6 +3,9 @@ package models
 import (
 	"fmt"
 	"strings"
+	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 
 	"gorm.io/gorm"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -17,16 +20,17 @@ const (
 
 type Object struct {
 	gorm.Model
-	ID         string         `gorm:"primaryKey;autoIncrement:false"`
-	Cluster    string         `json:"cluster" gorm:"type:text"`
-	Namespace  string         `json:"namespace" gorm:"type:text"`
-	APIGroup   string         `json:"apiGroup" gorm:"type:text"`
-	APIVersion string         `json:"apiVersion" gorm:"type:text"`
-	Kind       string         `json:"kind" gorm:"type:text"`
-	Name       string         `json:"name" gorm:"type:text"`
-	Status     string         `json:"status" gorm:"type:text"`
-	Message    string         `json:"message" gorm:"type:text"`
-	Category   ObjectCategory `json:"category" gorm:"type:text"`
+	ID                  string         `gorm:"primaryKey;autoIncrement:false"`
+	Cluster             string         `json:"cluster" gorm:"type:text"`
+	Namespace           string         `json:"namespace" gorm:"type:text"`
+	APIGroup            string         `json:"apiGroup" gorm:"type:text"`
+	APIVersion          string         `json:"apiVersion" gorm:"type:text"`
+	Kind                string         `json:"kind" gorm:"type:text"`
+	Name                string         `json:"name" gorm:"type:text"`
+	Status              string         `json:"status" gorm:"type:text"`
+	Message             string         `json:"message" gorm:"type:text"`
+	Category            ObjectCategory `json:"category" gorm:"type:text"`
+	KubernetesDeletedAt time.Time      `json:"kubernetesDeletedAt"`
 }
 
 func (o Object) Validate() error {
@@ -93,4 +97,23 @@ type ObjectTransaction interface {
 	ClusterName() string
 	Object() client.Object
 	TransactionType() TransactionType
+	RetentionPolicy() configuration.RetentionPolicy
+}
+
+func IsExpired(policy configuration.RetentionPolicy, obj Object) bool {
+	currentTime := time.Now()
+	retention := time.Duration(policy)
+	expirationTime := currentTime.Add(-retention)
+
+	ts := obj.KubernetesDeletedAt
+
+	if ts.IsZero() {
+		return false
+	}
+
+	if ts.Before(expirationTime) {
+		return true
+	}
+
+	return false
 }

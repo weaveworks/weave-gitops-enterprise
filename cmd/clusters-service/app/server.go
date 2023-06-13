@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 	"math/big"
 	"net"
 	"net/http"
@@ -22,6 +21,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 
@@ -158,6 +159,7 @@ type Params struct {
 	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
 	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
 	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
+	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -258,6 +260,8 @@ func NewAPIServerCommand() *cobra.Command {
 	// Explorer configuration
 	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
+	cmdFlags.Bool("explorer-cleaner-disabled", false, "Enables the Explorer object cleaner that manages retaining objects")
+
 	// Metrics
 	cmdFlags.Bool("metrics-enabled", false, "creates prometheus metrics endpoint")
 	cmdFlags.String("metrics-bind-address", "", "The address the metric endpoint binds to.")
@@ -561,6 +565,7 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 		WithMetrics(p.MetricsEnabled, p.MetricsBindAddress, log),
+		WithObjectCleaner(p.EnableObjectCleaner),
 	)
 }
 
@@ -671,12 +676,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if featureflags.Get("WEAVE_GITOPS_FEATURE_EXPLORER") != "" {
 		_, err := queryserver.Hydrate(ctx, grpcMux, queryserver.ServerOpts{
-			Logger:          args.Log,
-			DiscoveryClient: args.DiscoveryClient,
-			ClustersManager: args.ClustersManager,
-			SkipCollection:  false,
-			ObjectKinds:     configuration.SupportedObjectKinds,
-			ServiceAccount:  args.CollectorServiceAccount,
+			Logger:              args.Log,
+			DiscoveryClient:     args.DiscoveryClient,
+			ClustersManager:     args.ClustersManager,
+			SkipCollection:      false,
+			ObjectKinds:         configuration.SupportedObjectKinds,
+			ServiceAccount:      args.CollectorServiceAccount,
+			EnableObjectCleaner: featureflags.Get("WEAVE_GITOPS_FEATURE_OBJECT_CLEANER") != "",
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating query server: %w", err)

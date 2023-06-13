@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/cleaner"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
@@ -35,6 +37,7 @@ type server struct {
 	objs collector.Collector
 
 	cancelCollection context.CancelFunc
+	cleaner          cleaner.ObjectCleaner
 }
 
 func (s *server) StopCollection() error {
@@ -45,6 +48,13 @@ func (s *server) StopCollection() error {
 	if s.cancelCollection != nil {
 		s.cancelCollection()
 	}
+
+	if s.cleaner != nil {
+		if err := s.cleaner.Stop(); err != nil {
+			return fmt.Errorf("failed to stop object cleaner: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -55,9 +65,10 @@ type ServerOpts struct {
 	SkipCollection  bool
 	StoreType       string
 	// required to map GVRs to GVKs for authz purporses
-	DiscoveryClient discovery.DiscoveryInterface
-	ObjectKinds     []configuration.ObjectKind
-	ServiceAccount  collector.ImpersonateServiceAccount
+	DiscoveryClient     discovery.DiscoveryInterface
+	ObjectKinds         []configuration.ObjectKind
+	ServiceAccount      collector.ImpersonateServiceAccount
+	EnableObjectCleaner bool
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -215,6 +226,26 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 				opts.Logger.Error(err, "applications collector failed")
 			}
 		}()
+
+		if opts.EnableObjectCleaner {
+			oc, err := cleaner.NewObjectCleaner(cleaner.CleanerOpts{
+				Store:    s,
+				Log:      opts.Logger,
+				Index:    idx,
+				Interval: 1 * time.Hour,
+				Config:   opts.ObjectKinds,
+			})
+
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to create object cleaner: %w", err)
+			}
+
+			if err = oc.Start(); err != nil {
+				return nil, nil, fmt.Errorf("cannot start object cleaner: %w", err)
+			}
+
+			serv.cleaner = oc
+		}
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
