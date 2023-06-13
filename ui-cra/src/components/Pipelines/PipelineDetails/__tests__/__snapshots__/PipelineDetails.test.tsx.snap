@@ -809,7 +809,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
         class="c16"
       >
         <div
-          class="c17 c18 c19"
+          class="MuiBox-root MuiBox-root-81"
         >
           <div
             class="c20 c21"
@@ -824,14 +824,56 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   class="c22"
                 >
                   <div
-                    class="c23 KeyValueTable"
-                    role="list"
+                    class="MuiBox-root MuiBox-root-82 "
                   >
                     <div
                       class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"
                     >
-                      <div
-                        class="MuiGrid-root MuiGrid-item"
+                      Automated
+                    </div>
+                    <div
+                      class="c21"
+                    >
+                      True
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item"
+                >
+                  <div
+                    class="MuiBox-root MuiBox-root-83 "
+                  >
+                    <div
+                      aria-label="Strategy"
+                      class="c20"
+                    >
+                      Strategy
+                    </div>
+                    <div
+                      class="c21"
+                    >
+                      Notification
+                    </div>
+                  </div>
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item"
+                >
+                  <div
+                    class="MuiBox-root MuiBox-root-84 "
+                  >
+                    <div
+                      aria-label="URL"
+                      class="c20"
+                    >
+                      URL
+                    </div>
+                    <div
+                      class="c21"
+                    >
+                      <span
+                        style="margin-left: 2px;"
                       >
                         <div
                           class="MuiBox-root MuiBox-root-123 "
@@ -916,10 +958,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       </div>
                     </div>
                   </div>
-                  <div>
-                    <a
-                      href="/resources/edit?kind=Pipeline&name=podinfo-02&namespace=flux-system"
-                      style="pointer-events: none;"
+                </div>
+                <div
+                  class="MuiGrid-root MuiGrid-item"
+                >
+                  <div
+                    class="MuiBox-root MuiBox-root-85 "
+                  >
+                    <div
+                      aria-label="Branch"
+                      class="c20"
+                    >
+                      Branch
+                    </div>
+                    <div
+                      class="c21"
                     >
                       <div
                         class="makeStyles-editButton-111"
@@ -958,7 +1011,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 class="c20 $66f9bbb72ea3c190$var$SubRouterTabs"
               >
                 <div
-                  class="MuiTabs-root horizontal-tabs"
+                  class="makeStyles-editButton-79"
                 >
                   <div
                     class="MuiTabs-scroller MuiTabs-fixed"
@@ -1051,11 +1104,44 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="PrivateTabIndicator-root-127 PrivateTabIndicator-colorPrimary-128 MuiTabs-indicator"
                       style="left: 0px; width: 0px;"
                     />
-                  </div>
+                  </span>
+                </a>
+              </div>
+              <span
+                class="PrivateTabIndicator-root-87 PrivateTabIndicator-colorPrimary-88 MuiTabs-indicator"
+                style="left: 0px; width: 0px;"
+              />
+            </div>
+          </div>
+          <div
+            class="c28"
+          />
+          <div
+            class="MuiGrid-root makeStyles-gridWrapper-74 MuiGrid-container MuiGrid-spacing-xs-4"
+          >
+            <div
+              class="MuiGrid-root makeStyles-gridContainer-73 MuiGrid-item MuiGrid-grid-xs-true"
+              id="dev"
+            >
+              <div
+                class="makeStyles-mbSmall-77"
+              >
+                <div
+                  class="makeStyles-title-75"
+                >
+                  dev
                 </div>
                 <div
-                  class="c31"
-                />
+                  class="makeStyles-subtitle-76"
+                >
+                  1
+                   Targets
+                </div>
+              </div>
+              <div
+                class="c29"
+                role="targeting"
+              >
                 <div
                   class="MuiGrid-root makeStyles-gridWrapper-106 MuiGrid-container MuiGrid-spacing-xs-4"
                 >
@@ -1181,16 +1267,53 @@ exports[`PipelineDetails snapshots renders 1`] = `
                               </span>
                             </div>
                           </div>
-                          <span
-                            class="c45 last-applied-version"
-                          >
-                            v6.2.1
-                          </span>
-                        </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-76 makeStyles-subtitleColor-78"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.2.1
+                        </span>
                       </div>
                     </div>
                     
                   </div>
+                </div>
+              </div>
+              
+            </div>
+            <div
+              class="MuiGrid-root makeStyles-gridContainer-73 MuiGrid-item MuiGrid-grid-xs-true"
+              id="test"
+            >
+              <div
+                class="makeStyles-mbSmall-77"
+              >
+                <div
+                  class="makeStyles-title-75"
+                >
+                  test
+                </div>
+                <div
+                  class="makeStyles-subtitle-76"
+                >
+                  2
+                   Targets
+                </div>
+              </div>
+              <div
+                class="c29"
+                role="targeting"
+              >
+                <div
+                  class="c30 workloadTarget"
+                >
                   <div
                     class="MuiGrid-root makeStyles-gridContainer-105 MuiGrid-item MuiGrid-grid-xs-true"
                     id="test"
@@ -1313,12 +1436,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                               </span>
                             </div>
                           </div>
-                          <span
-                            class="c45 last-applied-version"
-                          >
-                            v6.1.8
-                          </span>
-                        </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-76 makeStyles-subtitleColor-78"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.8
+                        </span>
                       </div>
                     </div>
                     <div
@@ -1424,15 +1554,61 @@ exports[`PipelineDetails snapshots renders 1`] = `
                               </span>
                             </div>
                           </div>
-                          <span
-                            class="c45 last-applied-version"
-                          >
-                            v6.1.8
-                          </span>
-                        </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-76 makeStyles-subtitleColor-78"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.8
+                        </span>
                       </div>
                     </div>
-                    
+                    <span
+                      class="c42 last-applied-version"
+                    >
+                      v6.1.8
+                    </span>
+                  </div>
+                </div>
+              </div>
+              
+            </div>
+            <div
+              class="MuiGrid-root makeStyles-gridContainer-73 MuiGrid-item MuiGrid-grid-xs-true"
+              id="prod"
+            >
+              <div
+                class="makeStyles-mbSmall-77"
+              >
+                <div
+                  class="makeStyles-title-75"
+                >
+                  prod
+                </div>
+                <div
+                  class="makeStyles-subtitle-76"
+                >
+                  1
+                   Targets
+                </div>
+              </div>
+              <div
+                class="c29"
+                role="targeting"
+              >
+                <div
+                  class="c30 workloadTarget"
+                >
+                  <div
+                    class="c31"
+                  >
+                    Cluster
                   </div>
                   <div
                     class="MuiGrid-root makeStyles-gridContainer-105 MuiGrid-item MuiGrid-grid-xs-true"
@@ -1556,12 +1732,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                               </span>
                             </div>
                           </div>
-                          <span
-                            class="c45 last-applied-version"
-                          >
-                            v6.1.6
-                          </span>
-                        </div>
+                        </span>
+                      </a>
+                      <div
+                        class="makeStyles-subtitle-76 makeStyles-subtitleColor-78"
+                      >
+                        <span>
+                          Specification:
+                        </span>
+                        <span
+                          class="version"
+                        >
+                          v6.1.6
+                        </span>
                       </div>
                     </div>
                     

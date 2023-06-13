@@ -1,15 +1,19 @@
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { PolicyTable } from './Table';
-import { useListListPolicies } from '../../contexts/PolicyViolations';
 import { Page } from '../Layout/App';
+import { useListPolicies } from '../../contexts/PolicyViolations';
+import { PolicyTable } from '@weaveworks/weave-gitops';
 
 const Policies = () => {
-  const { data, isLoading } = useListListPolicies({});
+  const { data, isLoading } = useListPolicies({});
 
   return (
     <Page loading={isLoading} path={[{ label: 'Policies' }]}>
       <NotificationsWrapper errors={data?.errors}>
-        {data?.policies && <PolicyTable policies={data.policies} />}
+        {data?.policies && (
+          <div id="policy-list">
+            <PolicyTable policies={data.policies} />
+          </div>
+        )}
       </NotificationsWrapper>
     </Page>
   );

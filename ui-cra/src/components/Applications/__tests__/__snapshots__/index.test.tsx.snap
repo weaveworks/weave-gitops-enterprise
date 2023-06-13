@@ -403,7 +403,7 @@ exports[`Applications index test snapshots loading 1`] = `
       </div>
     </div>
     <div
-      class="c18 c19"
+      class="MuiBox-root MuiBox-root-9"
     >
       <div>
         Need help? Raise a 
@@ -1442,9 +1442,285 @@ exports[`Applications index test snapshots success 1`] = `
                     <div
                       class="c27 $52441885c75ba9c5$var$CheckboxActions"
                     >
-                      <div
-                        class="$4d7d782bef2eb187$var$SyncButton"
-                        style="position: relative; display: inline-block;"
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <span
+                          aria-disabled="false"
+                          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-21 Mui-checked MuiIconButton-colorPrimary"
+                        >
+                          <span
+                            class="MuiIconButton-label"
+                          >
+                            <input
+                              checked=""
+                              class="PrivateSwitchBase-input-23"
+                              data-indeterminate="false"
+                              type="checkbox"
+                              value=""
+                            />
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                              />
+                            </svg>
+                          </span>
+                          <span
+                            class="MuiTouchRipple-root"
+                          />
+                        </span>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class=""
+                              >
+                                Name
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            style="width: 16px;"
+                          />
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class=""
+                              >
+                                Kind
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            style="width: 16px;"
+                          />
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class=""
+                              >
+                                Namespace
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            style="width: 16px;"
+                          />
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class=""
+                              >
+                                Tenant
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            style="width: 16px;"
+                          />
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class=""
+                              >
+                                Cluster
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            style="width: 16px;"
+                          />
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class=""
+                              >
+                                Source
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            style="width: 16px;"
+                          />
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
+                      >
+                        <div
+                          class="c20"
+                        >
+                          <button
+                            class="MuiButtonBase-root MuiButton-root MuiButton-text c32 MuiButton-colorInherit"
+                            tabindex="0"
+                            type="button"
+                          >
+                            <span
+                              class="MuiButton-label"
+                            >
+                              <h2
+                                class="selected"
+                              >
+                                Status
+                              </h2>
+                            </span>
+                            <span
+                              class="MuiTouchRipple-root"
+                            />
+                          </button>
+                          <div
+                            class="c25"
+                          />
+                          <div
+                            class="c5 c13 downward"
+                          >
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root"
+                              focusable="false"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </th>
+                      <th
+                        class="MuiTableCell-root MuiTableCell-head"
+                        scope="col"
                       >
                         <div
                           class="c18"
@@ -1715,7 +1991,9 @@ exports[`Applications index test snapshots success 1`] = `
                                 class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-25 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-26 Mui-checked MuiIconButton-colorPrimary"
                               >
                                 <span
-                                  class="MuiIconButton-label"
+                                  aria-disabled="true"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-22 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  tabindex="-1"
                                 >
                                   <input
                                     checked=""
@@ -1730,8 +2008,13 @@ exports[`Applications index test snapshots success 1`] = `
                                     focusable="false"
                                     viewBox="0 0 24 24"
                                   >
-                                    <path
-                                      d="M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.11 0 2-.9 2-2V5c0-1.1-.89-2-2-2zm-9 14l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"
+                                    <input
+                                      class="PrivateSwitchBase-input-23"
+                                      data-indeterminate="false"
+                                      disabled=""
+                                      id="clusterName"
+                                      type="checkbox"
+                                      value=""
                                     />
                                   </svg>
                                 </span>
@@ -1813,16 +2096,27 @@ exports[`Applications index test snapshots success 1`] = `
                               <div
                                 class="c27"
                               >
-                                <button
-                                  class="MuiButtonBase-root MuiButton-root MuiButton-text c39 MuiButton-colorInherit"
-                                  tabindex="0"
-                                  type="button"
+                                <span
+                                  aria-disabled="true"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-22 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  tabindex="-1"
                                 >
                                   <span
                                     class="MuiButton-label"
                                   >
-                                    <h2
-                                      class=""
+                                    <input
+                                      class="PrivateSwitchBase-input-23"
+                                      data-indeterminate="false"
+                                      disabled=""
+                                      id="namespace"
+                                      type="checkbox"
+                                      value=""
+                                    />
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
                                     >
                                       Namespace
                                     </h2>
@@ -1879,16 +2173,27 @@ exports[`Applications index test snapshots success 1`] = `
                               <div
                                 class="c27"
                               >
-                                <button
-                                  class="MuiButtonBase-root MuiButton-root MuiButton-text c39 MuiButton-colorInherit"
-                                  tabindex="0"
-                                  type="button"
+                                <span
+                                  aria-disabled="true"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-22 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  tabindex="-1"
                                 >
                                   <span
                                     class="MuiButton-label"
                                   >
-                                    <h2
-                                      class=""
+                                    <input
+                                      class="PrivateSwitchBase-input-23"
+                                      data-indeterminate="false"
+                                      disabled=""
+                                      id="status"
+                                      type="checkbox"
+                                      value=""
+                                    />
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
                                     >
                                       Cluster
                                     </h2>
@@ -1945,10 +2250,10 @@ exports[`Applications index test snapshots success 1`] = `
                               <div
                                 class="c27"
                               >
-                                <button
-                                  class="MuiButtonBase-root MuiButton-root MuiButton-text c39 MuiButton-colorInherit"
-                                  tabindex="0"
-                                  type="button"
+                                <span
+                                  aria-disabled="true"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-22 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  tabindex="-1"
                                 >
                                   <span
                                     class="MuiButton-label"
@@ -1975,8 +2280,13 @@ exports[`Applications index test snapshots success 1`] = `
                                     focusable="false"
                                     viewBox="0 0 24 24"
                                   >
-                                    <path
-                                      d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
+                                    <input
+                                      class="PrivateSwitchBase-input-23"
+                                      data-indeterminate="false"
+                                      disabled=""
+                                      id="tenant"
+                                      type="checkbox"
+                                      value=""
                                     />
                                   </svg>
                                 </div>
@@ -2055,16 +2365,27 @@ exports[`Applications index test snapshots success 1`] = `
                               <div
                                 class="c27"
                               >
-                                <button
-                                  class="MuiButtonBase-root MuiButton-root MuiButton-text c39 MuiButton-colorInherit"
-                                  tabindex="0"
-                                  type="button"
+                                <span
+                                  aria-disabled="true"
+                                  class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-22 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                  tabindex="-1"
                                 >
                                   <span
                                     class="MuiButton-label"
                                   >
-                                    <h2
-                                      class=""
+                                    <input
+                                      class="PrivateSwitchBase-input-23"
+                                      data-indeterminate="false"
+                                      disabled=""
+                                      id="type"
+                                      type="checkbox"
+                                      value=""
+                                    />
+                                    <svg
+                                      aria-hidden="true"
+                                      class="MuiSvgIcon-root"
+                                      focusable="false"
+                                      viewBox="0 0 24 24"
                                     >
                                       Last Updated
                                     </h2>
