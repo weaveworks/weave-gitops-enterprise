@@ -3,6 +3,8 @@ package reconciler
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -82,6 +84,7 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		clusterName:     r.clusterName,
 		object:          clientObject,
 		transactionType: txType,
+		retentionPolicy: &r.objectKind.RetentionPolicy,
 	}
 
 	transactions := []models.ObjectTransaction{tx}
@@ -98,6 +101,7 @@ type transaction struct {
 	clusterName     string
 	object          client.Object
 	transactionType models.TransactionType
+	retentionPolicy *configuration.RetentionPolicy
 }
 
 func (r transaction) ClusterName() string {
@@ -114,4 +118,21 @@ func (r transaction) TransactionType() models.TransactionType {
 
 func (r transaction) String() string {
 	return fmt.Sprintf("%s/%s/%s/%s", r.clusterName, r.object.GetNamespace(), r.object.GetName(), r.transactionType)
+}
+
+func (r transaction) RetentionPolicy() *configuration.RetentionPolicy {
+	return r.retentionPolicy
+}
+
+func (r transaction) IsExpired() bool {
+	if r.RetentionPolicy() == nil {
+		return false
+	}
+	currentTime := time.Now()
+	duration := time.Duration(*r.RetentionPolicy())
+	expiry := currentTime.Add(duration)
+
+	deleted := r.Object().GetDeletionTimestamp()
+
+	return deleted.After(expiry)
 }

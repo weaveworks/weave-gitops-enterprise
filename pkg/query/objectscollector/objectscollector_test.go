@@ -6,6 +6,7 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
@@ -118,4 +119,8 @@ func (t *transaction) ClusterName() string {
 
 func (t *transaction) TransactionType() models.TransactionType {
 	return t.transactionType
+}
+
+func (t *transaction) RetentionPolicy() *configuration.RetentionPolicy {
+	return nil
 }

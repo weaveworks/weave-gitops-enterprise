@@ -301,3 +301,11 @@ func (r deleteAllTransaction) String() string {
 func (r deleteAllTransaction) TransactionType() models.TransactionType {
 	return models.TransactionTypeDeleteAll
 }
+
+func (r deleteAllTransaction) RetentionPolicy() *configuration.RetentionPolicy {
+	return nil
+}
+
+func (r deleteAllTransaction) IsExpired() bool {
+	return false
+}

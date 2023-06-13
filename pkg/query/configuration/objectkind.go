@@ -2,6 +2,7 @@ package configuration
 
 import (
 	"fmt"
+
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
@@ -15,6 +16,7 @@ type ObjectKind struct {
 	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
 	NewClientObjectFunc func() client.Object        `json:"-"`
 	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
+	RetentionPolicy     RetentionPolicy             `json:"-"`
 }
 
 func (ok ObjectKind) String() string {

@@ -72,18 +72,28 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 
 		object := models.Object{
-			Cluster:    objTx.ClusterName(),
-			Name:       objTx.Object().GetName(),
-			Namespace:  objTx.Object().GetNamespace(),
-			APIGroup:   gvk.Group,
-			APIVersion: gvk.Version,
-			Kind:       gvk.Kind,
-			Status:     string(adapters.Status(o)),
-			Message:    adapters.Message(o),
-			Category:   cat,
+			Cluster:             objTx.ClusterName(),
+			Name:                objTx.Object().GetName(),
+			Namespace:           objTx.Object().GetNamespace(),
+			APIGroup:            gvk.Group,
+			APIVersion:          gvk.Version,
+			Kind:                gvk.Kind,
+			Status:              string(adapters.Status(o)),
+			Message:             adapters.Message(o),
+			Category:            cat,
+			KubernetesDeletedAt: objTx.Object().GetDeletionTimestamp().Time,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
+			// We want to retain some objects longer than kubernetes does.
+			// Objects like Events get removed in 1h by default on some cloud providers.
+			// Users want to be able to see these events for longer than that.
+			if !models.IsExpired(*objTx.RetentionPolicy(), object) {
+				debug.Info("object is not expired, skipping", "object", object)
+				// We need to upsert here to catch the kubernetes deleted at timestamp
+				upsert = append(upsert, object)
+				continue
+			}
 			delete = append(delete, object)
 		} else {
 			upsert = append(upsert, object)

@@ -233,6 +233,16 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (models.Obje
 	return object, nil
 }
 
+func (i *SQLiteStore) GetAllObjects(ctx context.Context) (Iterator, error) {
+	var objects []models.Object
+	result := i.db.Model(&models.Object{}).Find(&objects)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get objects: %w", result.Error)
+	}
+
+	return sqliterator.New(result)
+}
+
 func (i *SQLiteStore) GetRoles(ctx context.Context) ([]models.Role, error) {
 	var roles []models.Role
 	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)

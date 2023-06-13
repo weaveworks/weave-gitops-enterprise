@@ -69,6 +69,7 @@ type QueryOption interface {
 type StoreReader interface {
 	GetObjectByID(ctx context.Context, id string) (models.Object, error)
 	GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error)
+	GetAllObjects(ctx context.Context) (Iterator, error)
 	GetRoles(ctx context.Context) ([]models.Role, error)
 	GetRoleBindings(ctx context.Context) ([]models.RoleBinding, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
