@@ -1,8 +1,8 @@
-import { DialogContent, DialogTitle, Typography } from '@material-ui/core';
+import { DialogContent } from '@material-ui/core';
 import { Button } from '@weaveworks/weave-gitops';
 import { FC, useState } from 'react';
 import styled from 'styled-components';
-import CloseIconButton from '../../../assets/img/close-icon-button';
+import { MuiDialogTitle } from '../../Shared';
 import { DialogWrapper, useWorkspaceStyle } from '../WorkspaceStyles';
 
 interface Props {
@@ -30,7 +30,6 @@ const WorkspaceModal: FC<Props> = ({
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const classes = useWorkspaceStyle();
-
   return (
     <>
       {title !== 'Rules' && (
@@ -46,7 +45,6 @@ const WorkspaceModal: FC<Props> = ({
           {btnName}
         </Button>
       )}
-
       {isModalOpen && (
         <DialogWrapper
           open={isModalOpen}
@@ -54,13 +52,11 @@ const WorkspaceModal: FC<Props> = ({
           fullWidth
           scroll="paper"
         >
-          <DialogTitle disableTypography>
-            <div>
-              <Typography>{title}</Typography>
-              <CloseIconButton onClick={() => setIsModalOpen(false)} />
-            </div>
-            {caption && <span className="info">{caption}</span>}
-          </DialogTitle>
+          <MuiDialogTitle
+            title={title}
+            onFinish={() => setIsModalOpen(false)}
+          />
+          {caption && <span className="info">{caption}</span>}
           {wrapDialogContent ? (
             <DialogContent className={className || ''}>{content}</DialogContent>
           ) : (
