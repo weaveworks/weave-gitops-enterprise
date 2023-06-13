@@ -2,16 +2,13 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle,
   TextareaAutosize,
 } from '@material-ui/core';
-import Typography from '@material-ui/core/Typography';
 import { makeStyles } from '@material-ui/core/styles';
 import { Alert } from '@material-ui/lab';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { ChangeEvent, FC, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
-import CloseIconButton from '../../../../assets/img/close-icon-button';
 import {
   ClusterNamespacedName,
   GetChartsJobResponse,
@@ -24,6 +21,7 @@ import { EnterpriseClientContext } from '../../../../contexts/EnterpriseClient';
 import { UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
+import { MuiDialogTitle } from '../../../Shared';
 
 const useStyles = makeStyles(() => ({
   textarea: {
@@ -133,10 +131,7 @@ const ChartValuesDialog: FC<{
         onClose={handleModalClose}
       >
         {error && <Alert severity="error">{error}</Alert>}
-        <DialogTitle disableTypography>
-          <Typography variant="h5">{profile.name}</Typography>
-          <CloseIconButton onClick={handleModalClose} />
-        </DialogTitle>
+        <MuiDialogTitle title={profile.name} onFinish={handleModalClose} />
         <DialogContent>
           {isLoading ? (
             <Loader />

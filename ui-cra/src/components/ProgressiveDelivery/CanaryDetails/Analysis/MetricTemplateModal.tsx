@@ -4,10 +4,9 @@ import Dialog from '@material-ui/core/Dialog';
 import { CanaryMetricTemplate } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import React, { Dispatch, FC } from 'react';
 
-import { DialogContent, DialogTitle } from '@material-ui/core';
-import Typography from '@material-ui/core/Typography';
+import { DialogContent } from '@material-ui/core';
 import { YamlView } from '@weaveworks/weave-gitops';
-import CloseIconButton from '../../../../assets/img/close-icon-button';
+import { MuiDialogTitle } from '../../../Shared';
 
 type Props = {
   open: boolean;
@@ -30,13 +29,10 @@ export const MetricTemplateModal: FC<Props> = ({
         fullWidth
         scroll="paper"
       >
-        <DialogTitle disableTypography>
-          <Typography variant="h5">
-            Metric Template: {metricTemplate.name}
-          </Typography>
-          <CloseIconButton onClick={() => setOpenMetricTemplate(false)} />
-        </DialogTitle>
-
+        <MuiDialogTitle
+          title={`Metric Template: ${metricTemplate.name}`}
+          onFinish={() => setOpenMetricTemplate(false)}
+        />
         <DialogContent>
           <YamlView
             yaml={metricTemplate.yaml || ''}
