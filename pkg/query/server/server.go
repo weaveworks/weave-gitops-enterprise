@@ -247,6 +247,26 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 			serv.cleaner = oc
 		}
 
+		if opts.EnableObjectCleaner {
+			oc, err := cleaner.NewObjectCleaner(cleaner.CleanerOpts{
+				Store:    s,
+				Log:      opts.Logger,
+				Index:    idx,
+				Interval: 1 * time.Hour,
+				Config:   opts.ObjectKinds,
+			})
+
+			if err != nil {
+				return nil, nil, fmt.Errorf("failed to create object cleaner: %w", err)
+			}
+
+			if err = oc.Start(); err != nil {
+				return nil, nil, fmt.Errorf("cannot start object cleaner: %w", err)
+			}
+
+			serv.cleaner = oc
+		}
+
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
 		serv.cancelCollection = cancel
