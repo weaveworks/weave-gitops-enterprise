@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -180,7 +181,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			status, err := collector.Status(tt.cluster.GetName())
 			g.Expect(err).To(BeNil())
-			g.Expect(ClusterWatchingStarted).To(BeIdenticalTo(ClusterWatchingStatus(status)))
+			g.Expect(ClusterWatchingStarted).To(BeIdenticalTo(status))
 		})
 	}
 }
@@ -188,63 +189,61 @@ func TestClusterWatcher_Watch(t *testing.T) {
 func TestClusterWatcher_Unwatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
-	opts := CollectorOpts{
-		Log:            log,
-		NewWatcherFunc: newFakeWatcher,
-		ServiceAccount: ImpersonateServiceAccount{
-			Namespace: "flux-system",
-			Name:      "collector",
-		},
-	}
-	collector, err := newWatchingCollector(opts)
-	g.Expect(err).To(BeNil())
-	g.Expect(collector).NotTo(BeNil())
-
 	clusterName := "testCluster"
-	c := makeValidFakeCluster(clusterName)
-	g.Expect(collector.Watch(c)).To(Succeed())
-	watcher := collector.clusterWatchers[clusterName]
+
 	tests := []struct {
 		name        string
-		watcher     Watcher
 		clusterName string
 		errPattern  string
 	}{
 		{
 			name:        "unwatch empty cluster throws error",
-			watcher:     nil,
 			clusterName: "",
 			errPattern:  "cluster name is empty",
 		},
 		{
 			name:        "unwatch non-existing cluster throws error",
-			watcher:     nil,
 			clusterName: "idontexist",
 			errPattern:  "cluster watcher not found",
 		},
 		{
 			name:        "unwatch existing cluster unwatches it",
-			watcher:     watcher,
 			clusterName: clusterName,
 			errPattern:  "",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if tt.watcher != nil {
-				s, err := tt.watcher.Status()
+			opts := CollectorOpts{
+				Log:            log,
+				NewWatcherFunc: newFakeWatcher,
+				ServiceAccount: ImpersonateServiceAccount{
+					Namespace: "flux-system",
+					Name:      "collector",
+				},
+			}
+			collector, err := newWatchingCollector(opts)
+			g.Expect(err).To(BeNil())
+			g.Expect(collector).NotTo(BeNil())
+
+			c := makeValidFakeCluster(clusterName)
+			g.Expect(collector.Watch(c)).To(Succeed())
+
+			if tt.errPattern == "" {
+				s, err := collector.Status(tt.clusterName)
 				g.Expect(err).To(BeNil())
-				g.Expect(ClusterWatchingStarted).To(BeIdenticalTo(ClusterWatchingStatus(s)))
+				g.Expect(s).To(BeIdenticalTo(ClusterWatchingStarted))
 			}
 			err = collector.Unwatch(tt.clusterName)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
+			} else {
+				// fetching the status after it's unwatched should
+				// error, since it will have been forgotten.
+				_, err := collector.Status(tt.clusterName)
+				g.Expect(err).To(HaveOccurred())
 			}
-			g.Expect(collector.clusterWatchers[tt.clusterName]).To(BeNil())
-			s, err := tt.watcher.Status()
-			g.Expect(err).To(BeNil())
-			g.Expect(ClusterWatchingStopped).To(BeIdenticalTo(ClusterWatchingStatus(s)))
 		})
 	}
 }
@@ -303,28 +302,18 @@ func TestClusterWatcher_Status(t *testing.T) {
 	}
 }
 
-func newFakeWatcher(config *rest.Config, clusterName string) (Watcher, error) {
+func newFakeWatcher(clusterName string, config *rest.Config) (Starter, error) {
 	log.Info("created fake watcher")
 	return &fakeWatcher{log: log}, nil
 }
 
 type fakeWatcher struct {
-	log    logr.Logger
-	status ClusterWatchingStatus
+	log logr.Logger
 }
 
-func (f *fakeWatcher) Start() error {
-	f.status = ClusterWatchingStarted
+func (f *fakeWatcher) Start(ctx context.Context) error {
+	<-ctx.Done()
 	return nil
-}
-
-func (f *fakeWatcher) Stop() error {
-	f.status = ClusterWatchingStopped
-	return nil
-}
-
-func (f *fakeWatcher) Status() (string, error) {
-	return string(f.status), nil
 }
 
 // newLoggerWithLevel creates a logger and a path to the file it
