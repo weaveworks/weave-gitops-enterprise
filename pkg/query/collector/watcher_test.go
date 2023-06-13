@@ -62,8 +62,8 @@ func TestWatcher_Start(t *testing.T) {
 			g.Expect(err).To(BeNil())
 			assertClusterWatcher(g, watcher, ClusterWatchingStarted)
 		})
-	}
 
+	}
 }
 
 func TestWatcher_Stop(t *testing.T) {

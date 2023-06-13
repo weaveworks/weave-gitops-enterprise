@@ -1,6 +1,7 @@
 package collector
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -9,7 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 )
 
@@ -75,6 +75,16 @@ func (c *watchingCollector) Stop() error {
 	return nil
 }
 
+type Starter interface {
+	Start(context.Context) error
+}
+
+type child struct {
+	Starter
+	cancel context.CancelFunc
+	status string
+}
+
 // watchingCollector supervises watchers, starting one per cluster it
 // sees from the `Subscriber` and stopping/restarting them as needed.
 type watchingCollector struct {
@@ -82,7 +92,7 @@ type watchingCollector struct {
 	done            sync.WaitGroup
 	sub             clusters.Subscription
 	subscriber      clusters.Subscriber
-	clusterWatchers map[string]Watcher
+	clusterWatchers map[string]*child
 	newWatcherFunc  NewWatcherFunc
 	log             logr.Logger
 	sa              ImpersonateServiceAccount
@@ -92,7 +102,7 @@ type watchingCollector struct {
 func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 	return &watchingCollector{
 		subscriber:      opts.Clusters,
-		clusterWatchers: make(map[string]Watcher),
+		clusterWatchers: make(map[string]*child),
 		newWatcherFunc:  opts.NewWatcherFunc,
 		log:             opts.Log,
 		sa:              opts.ServiceAccount,
@@ -100,21 +110,16 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string) (Watcher, error)
+type NewWatcherFunc = func(config *rest.Config, clusterName string) (Starter, error)
 
 // TODO add unit tests; better name.
 func DefaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction,
-	kinds []configuration.ObjectKind, log logr.Logger) (Watcher, error) {
-	w, err := NewWatcher(WatcherOptions{
-		ClusterRef: types.NamespacedName{
-			Name:      clusterName,
-			Namespace: "default", // TODO <-- this looks suspect
-		},
+	kinds []configuration.ObjectKind, log logr.Logger) (Starter, error) {
+	w, err := NewWatcher(clusterName, WatcherOptions{
 		ClientConfig:  config,
 		Kinds:         kinds,
 		ObjectChannel: objectsChannel,
 		Log:           log,
-		ManagerFunc:   defaultNewWatcherManager,
 	})
 
 	if err != nil {
@@ -148,11 +153,24 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.GetName(), err)
 	}
-	w.clusterWatchers[clusterName] = watcher
-	err = watcher.Start()
-	if err != nil {
-		return fmt.Errorf("failed to start watcher for cluster %s: %w", cluster.GetName(), err)
+
+	childctx, cancel := context.WithCancel(context.Background())
+	c := &child{
+		status:  ClusterWatchingStarted,
+		Starter: watcher,
+		cancel:  cancel,
 	}
+	w.clusterWatchers[clusterName] = c
+	go func() {
+		err := watcher.Start(childctx)
+		if err != nil {
+			w.log.Error(err, "watcher for cluster failed", "cluster", cluster.GetName())
+			c.status = ClusterWatchingFailed
+			return
+		}
+		// TODO remove from map?
+		c.status = ClusterWatchingStopped
+	}()
 
 	return nil
 }
@@ -165,11 +183,8 @@ func (w *watchingCollector) Unwatch(clusterName string) error {
 	if clusterWatcher == nil {
 		return fmt.Errorf("cluster watcher not found")
 	}
-	err := clusterWatcher.Stop()
-	if err != nil {
-		return fmt.Errorf("failed to stop watcher for cluster %s: %w", clusterName, err)
-	}
 	w.clusterWatchers[clusterName] = nil
+	clusterWatcher.cancel()
 	return nil
 }
 
@@ -183,7 +198,7 @@ func (w *watchingCollector) Status(clusterName string) (string, error) {
 	if watcher == nil {
 		return "", fmt.Errorf("cluster not found: %s", clusterName)
 	}
-	return watcher.Status()
+	return watcher.status, nil
 }
 
 // makeServiceAccountImpersonationConfig when creating a reconciler for watcher we will need to impersonate
