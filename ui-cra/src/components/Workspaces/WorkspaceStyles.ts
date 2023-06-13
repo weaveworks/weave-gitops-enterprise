@@ -11,7 +11,6 @@ export const useWorkspaceStyle = makeStyles(() =>
       textTransform: 'uppercase',
     },
     filterIcon: {
-      color: '#009CCC',
       marginRight: 12,
     },
     alertWrapper: {
@@ -23,7 +22,6 @@ export const useWorkspaceStyle = makeStyles(() =>
       width: '100%',
     },
     link: {
-      color: '#00b3ec',
       fontWeight: 600,
       whiteSpace: 'pre-line',
       cursor: 'pointer',
