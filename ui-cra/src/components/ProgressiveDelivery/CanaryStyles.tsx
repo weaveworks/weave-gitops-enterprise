@@ -12,18 +12,6 @@ export const useCanaryStyle = makeStyles(() =>
       fontWeight: 600,
       fontSize: 14,
     },
-    body1: {
-      fontWeight: 400,
-      fontSize: 14,
-      color: '#1a1a1a',
-      marginLeft: 8,
-      display: 'flex',
-      justifyContent: 'start',
-      alignItems: 'center',
-    },
-    colorGreen: {
-      color: '#27AE60',
-    },
     statusWrapper: {
       display: 'flex',
       gap: 8,
@@ -41,11 +29,6 @@ export const useCanaryStyle = makeStyles(() =>
     },
     statusFailed: {
       color: '#BC3B1D',
-    },
-    sectionHeaderWrapper: {
-      background: '#F6F7F9',
-      padding: `16 8`,
-      margin: `16 0`,
     },
     straegyIcon: {
       marginLeft: 12,

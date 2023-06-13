@@ -4,6 +4,23 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
+export const SectionTitle = styled.label`
+display: block,
+color: ${props => props.theme.colors.black},
+font-size: ${props => props.theme.fontSizes.medium},
+font-weight: 600,
+margin-top: ${props => props.theme.spacing.large},
+`;
+
+export const TargetItemKind = styled.span`
+  text-transform: capitalize;
+  background: #eef0f4;
+  padding: 4px 16px;
+  color: ${props => props.theme.colors.black};
+  margin-left: 12px;
+  border-radius: 16px;
+`;
+
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     centered: {
@@ -15,13 +32,6 @@ export const usePolicyConfigStyle = makeStyles(() =>
     },
     upperCase: {
       textTransform: 'uppercase',
-    },
-    sectionTitle: {
-      color: '#1a1a1a',
-      fontSize: 14,
-      fontWeight: 600,
-      marginTop: 32,
-      display: 'block',
     },
     appliedTo: {
       marginTop: 16,
@@ -102,13 +112,6 @@ export const usePolicyConfigStyle = makeStyles(() =>
       '& svg': {
         color: '#0000008a !important',
       },
-    },
-    fieldNote: {
-      textTransform: 'uppercase',
-      marginBottom: 12,
-      display: 'block',
-      color: '#737373',
-      fontSize: 12,
     },
     errorSection: {
       color: '#9F3119',

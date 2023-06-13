@@ -3,7 +3,10 @@ import { useListAutomations } from '@weaveworks/weave-gitops';
 import { Dispatch, useEffect, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
-import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
+import {
+  TargetItemKind,
+  usePolicyConfigStyle,
+} from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
   cluster: string;
@@ -95,11 +98,7 @@ export const ListApplications = ({
                           : app.obj.metadata.namespace}
                         /{app.obj.metadata.name}
                       </span>
-                      <span
-                        className={`${classes.targetItemKind} ${classes.capitlize}`}
-                      >
-                        {app.obj.kind}
-                      </span>
+                      <TargetItemKind>{app.obj.kind}</TargetItemKind>
                     </>
                   }
                 />

@@ -1,16 +1,23 @@
-import { ExpandLess, ChevronRight } from '@material-ui/icons';
+import { ChevronRight, ExpandLess } from '@material-ui/icons';
 import {
   Automation,
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { formatURL, Link } from '@weaveworks/weave-gitops';
+import { Link, formatURL } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
+import styled from 'styled-components';
 import { getKindRoute } from '../../../../utils/nav';
+import { ClusterDashboardLink } from '../../../Clusters/ClusterDashboardLink';
+import RowHeader from '../../../RowHeader';
 import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
-import RowHeader from '../../../RowHeader';
 import DynamicTable from '../../SharedComponent/DynamicTable';
-import { ClusterDashboardLink } from '../../../Clusters/ClusterDashboardLink';
+
+const StatusHeader = styled.div`
+  background: ${props => props.theme.colors.neutralGray};
+  padding: 16px 8px;
+  margin: 16px 0px;
+`;
 
 const DetailsSection = ({
   canary,
@@ -67,9 +74,7 @@ const DetailsSection = ({
       </RowHeader>
       <RowHeader rowkey="Provider" value={canary.provider} />
 
-      <div className={`${classes.sectionHeaderWrapper} ${classes.cardTitle}`}>
-        STATUS
-      </div>
+      <StatusHeader className={`${classes.cardTitle}`}>STATUS</StatusHeader>
       <DynamicTable obj={restStatus || {}} />
       <div
         className={` ${classes.cardTitle} ${classes.expandableCondition}`}
