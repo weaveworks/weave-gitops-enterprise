@@ -67,7 +67,6 @@ const DetailsSection = ({
         )}
       </RowHeader>
       <RowHeader rowkey="Provider" value={canary.provider} />
-
       <Collapsible title="STATUS">
         <DynamicTable obj={{ ...restStatus, ...restConditionObj } || {}} />
       </Collapsible>

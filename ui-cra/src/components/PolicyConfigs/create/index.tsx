@@ -31,6 +31,7 @@ import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getRepositoryUrl,
   useGetInitialGitRepo,
@@ -402,38 +403,13 @@ const CreatePolicyConfig = () => {
               formData={formData}
               getClusterAutomations={getClusterAutomations}
             />
-            <Select
-              className="form-section"
-              name="clusterName"
-              required
-              label="CLUSTER"
-              value={selectedCluster || ''}
-              description="Select your cluster"
-              onChange={HandleSelectCluster}
-              error={formError === 'clusterName' && !clusterName}
-            >
-              {!clusters?.length ? (
-                <MenuItem disabled={true}>Loading...</MenuItem>
-              ) : (
-                clusters?.map((option, index: number) => {
-                  return (
-                    <MenuItem key={option.name} value={JSON.stringify(option)}>
-                      {option.name}
-                    </MenuItem>
-                  );
-                })
-              )}
-            </Select>
-            <SelectMatchType
-              formError={formError}
+            <GitOps
               formData={formData}
-              cluster={clusterName}
-              handleFormData={handleFormData}
-              selectedWorkspacesList={selectedWorkspacesList || []}
-              setSelectedWorkspacesList={setSelectedWorkspacesList}
               setFormData={setFormData}
-              selectedAppsList={selectedAppsList || []}
-              setSelectedAppsList={setSelectedAppsList}
+              showAuthDialog={showAuthDialog}
+              setShowAuthDialog={setShowAuthDialog}
+              formError={formError}
+              enableGitRepoSelection={true}
             />
 
             {loading ? (
