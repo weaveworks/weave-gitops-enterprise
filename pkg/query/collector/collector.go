@@ -9,6 +9,12 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
+const (
+	ClusterWatchingStarted = "started"
+	ClusterWatchingStopped = "stopped"
+	ClusterWatchingFailed  = "failed"
+)
+
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 // ClusterWatcher is for managing the lifecycle of watchers.
