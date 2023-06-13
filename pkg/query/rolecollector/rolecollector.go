@@ -17,8 +17,14 @@ import (
 
 func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.ImpersonateServiceAccount, log logr.Logger) (collector.Collector, error) {
 	incoming := make(chan []models.ObjectTransaction)
+
 	newWatcher := func(clusterName string, config *rest.Config) (collector.Starter, error) {
 		return collector.NewWatcher(clusterName, config, configuration.SupportedRbacKinds, incoming, log)
+	}
+
+	deleteWatcher := func(clusterName string) error {
+		tx := collector.NewDeleteAllTransaction(clusterName)
+		return processRecords([]models.ObjectTransaction{tx}, w, log)
 	}
 
 	go func() {
@@ -30,10 +36,11 @@ func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.Imper
 	}()
 
 	opts := collector.CollectorOpts{
-		Log:            log,
-		NewWatcherFunc: newWatcher,
-		Clusters:       mgr,
-		ServiceAccount: sa,
+		Log:             log,
+		NewWatcherFunc:  newWatcher,
+		StopWatcherFunc: deleteWatcher,
+		Clusters:        mgr,
+		ServiceAccount:  sa,
 	}
 
 	col, err := collector.NewCollector(opts)

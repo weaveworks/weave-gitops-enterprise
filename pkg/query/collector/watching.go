@@ -92,23 +92,27 @@ type watchingCollector struct {
 	subscriber      clusters.Subscriber
 	clusterWatchers map[string]*child
 	newWatcherFunc  NewWatcherFunc
+	stopWatcherFunc StopWatcherFunc
 	log             logr.Logger
 	sa              ImpersonateServiceAccount
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
 func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
+	if opts.StopWatcherFunc == nil {
+		opts.StopWatcherFunc = func(string) error {
+			return nil
+		}
+	}
 	return &watchingCollector{
 		subscriber:      opts.Clusters,
 		clusterWatchers: make(map[string]*child),
 		newWatcherFunc:  opts.NewWatcherFunc,
+		stopWatcherFunc: opts.StopWatcherFunc,
 		log:             opts.Log,
 		sa:              opts.ServiceAccount,
 	}, nil
 }
-
-// Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(clusterName string, config *rest.Config) (Starter, error)
 
 func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 	config, err := cluster.GetServerConfig()
@@ -166,6 +170,9 @@ func (w *watchingCollector) Unwatch(clusterName string) error {
 	}
 	w.clusterWatchers[clusterName] = nil
 	clusterWatcher.cancel()
+	if err := w.stopWatcherFunc(clusterName); err != nil {
+		return fmt.Errorf("stop watcher hook failed: %w", err)
+	}
 	return nil
 }
 

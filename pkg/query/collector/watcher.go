@@ -14,6 +14,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewWatcher(clusterName string, cfg *rest.Config, kinds []configuration.ObjectKind, objectChannel chan []models.ObjectTransaction, log logr.Logger) (manager.Manager, error) {
@@ -55,4 +56,31 @@ func NewWatcher(clusterName string, cfg *rest.Config, kinds []configuration.Obje
 	}
 
 	return mgr, nil
+}
+
+// Here so it can be used in stop watcher hooks
+
+// NewDeleteAllTransaction returns an object transaction that says
+// "delete everything in this cluster", for particular collectors to
+// process.
+func NewDeleteAllTransaction(clusterName string) models.ObjectTransaction {
+	return deleteAllTransaction(clusterName)
+}
+
+type deleteAllTransaction string
+
+func (t deleteAllTransaction) ClusterName() string {
+	return string(t)
+}
+
+func (t deleteAllTransaction) Object() client.Object {
+	return nil
+}
+
+func (t deleteAllTransaction) String() string {
+	return fmt.Sprintf("%s/%s", string(t), t.TransactionType())
+}
+
+func (t deleteAllTransaction) TransactionType() models.TransactionType {
+	return models.TransactionTypeDeleteAll
 }

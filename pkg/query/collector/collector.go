@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/go-logr/logr"
+	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -27,6 +28,14 @@ type ClusterWatcher interface {
 	Status(clusterName string) (string, error)
 }
 
+// Function to create a watcher for a set of kinds. Operations target an store.
+type NewWatcherFunc = func(clusterName string, config *rest.Config) (Starter, error)
+
+// StopWatcherFunc represents a hook to call when a watcher is
+// stopped. This is used, for instance, to delete the records of a
+// cluster that goes away.
+type StopWatcherFunc = func(clusterName string) error
+
 //counterfeiter:generate . Collector
 
 // Collector is ClusterWatcher that has its own lifecycle (i.e.,
@@ -43,10 +52,11 @@ type ImpersonateServiceAccount struct {
 }
 
 type CollectorOpts struct {
-	Log            logr.Logger
-	Clusters       clusters.Subscriber
-	NewWatcherFunc NewWatcherFunc
-	ServiceAccount ImpersonateServiceAccount // this gives the service account to impersonate when watching each cluster
+	Log             logr.Logger
+	Clusters        clusters.Subscriber
+	NewWatcherFunc  NewWatcherFunc
+	StopWatcherFunc StopWatcherFunc
+	ServiceAccount  ImpersonateServiceAccount // this gives the service account to impersonate when watching each cluster
 }
 
 func (o *CollectorOpts) Validate() error {
