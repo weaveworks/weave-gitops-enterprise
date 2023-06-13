@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"k8s.io/client-go/rest"
 )
@@ -110,24 +108,7 @@ func newWatchingCollector(opts CollectorOpts) (*watchingCollector, error) {
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
-type NewWatcherFunc = func(config *rest.Config, clusterName string) (Starter, error)
-
-// TODO add unit tests; better name.
-func DefaultNewWatcher(config *rest.Config, clusterName string, objectsChannel chan []models.ObjectTransaction,
-	kinds []configuration.ObjectKind, log logr.Logger) (Starter, error) {
-	w, err := NewWatcher(clusterName, WatcherOptions{
-		ClientConfig:  config,
-		Kinds:         kinds,
-		ObjectChannel: objectsChannel,
-		Log:           log,
-	})
-
-	if err != nil {
-		return nil, fmt.Errorf("failed to create watcher: %w", err)
-	}
-
-	return w, nil
-}
+type NewWatcherFunc = func(clusterName string, config *rest.Config) (Starter, error)
 
 func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 	config, err := cluster.GetServerConfig()
@@ -149,7 +130,7 @@ func (w *watchingCollector) Watch(cluster cluster.Cluster) error {
 		return fmt.Errorf("cannot create impersonation config: %w", err)
 	}
 
-	watcher, err := w.newWatcherFunc(saConfig, clusterName)
+	watcher, err := w.newWatcherFunc(clusterName, saConfig)
 	if err != nil {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.GetName(), err)
 	}
