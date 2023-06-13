@@ -1,13 +1,13 @@
 package collector
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
-	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 )
 
 const (
@@ -20,12 +20,13 @@ const (
 
 // ClusterWatcher is for managing the lifecycle of watchers.
 type ClusterWatcher interface {
-	// Watch starts watching the cluster passed as input
-	Watch(cluster cluster.Cluster) error
-	// Unwatch stops watching the cluster identified by input clusterName.
-	Unwatch(clusterName string) error
 	// Status return the watcher status for the cluster identified as clusterName.
 	Status(clusterName string) (string, error)
+}
+
+// Starter is the expected return value of NewWatcherFunc.
+type Starter interface {
+	Start(context.Context) error
 }
 
 // Function to create a watcher for a set of kinds. Operations target an store.
