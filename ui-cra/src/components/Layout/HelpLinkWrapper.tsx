@@ -21,7 +21,7 @@ const HelpLink = styled(Flex)<{
     )
     ${props => props.theme.spacing.medium};
   background-color: ${props =>
-    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'} !important;
+    props.backgroundColor || 'rgba(255, 255, 255, 0.7)'};
   color: ${props => props.textColor || props.theme.colors.neutral30};
   border-radius: ${props => props.theme.spacing.xs};
   a {

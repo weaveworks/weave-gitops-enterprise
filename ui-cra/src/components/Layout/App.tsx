@@ -25,11 +25,12 @@ export type PageProps = {
 };
 
 const WGLayout = styled(Layout)`
+  height: 100vh;
   div[class*='Logo'] {
     height: 60px;
   }
-  div[class*='Nav'] {
-    height: 100vh;
+  div[class*='Nav__NavContainer'] {
+    height: calc(100% - 60px);
   }
 `;
 
@@ -156,16 +157,14 @@ const App = () => {
     <ListConfigProvider>
       <VersionProvider>
         <WGLayout logoLink={Routes.Clusters} navItems={navItems}>
-          <Flex column wide>
-            <ErrorBoundary>
-              <AppRoutes />
-            </ErrorBoundary>
-            <ToastContainer
-              position="top-center"
-              autoClose={5000}
-              newestOnTop={false}
-            />
-          </Flex>
+          <ErrorBoundary>
+            <AppRoutes />
+          </ErrorBoundary>
+          <ToastContainer
+            position="top-center"
+            autoClose={5000}
+            newestOnTop={false}
+          />
         </WGLayout>
       </VersionProvider>
     </ListConfigProvider>
