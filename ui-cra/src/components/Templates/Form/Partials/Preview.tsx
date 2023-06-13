@@ -2,7 +2,6 @@ import {
   Box,
   Dialog,
   DialogContent,
-  DialogTitle,
   Tab,
   Tabs,
   Typography,
@@ -13,7 +12,6 @@ import React, { Dispatch, FC, useState } from 'react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styled from 'styled-components';
-import CloseIconButton from '../../../../assets/img/close-icon-button';
 import {
   CommitFile,
   RenderTemplateResponse,
@@ -25,7 +23,7 @@ import {
   SOPSSecretPRPreview,
   SecretPRPreview,
 } from '../../../../types/custom';
-import { Tooltip } from '../../../Shared';
+import { MuiDialogTitle, Tooltip } from '../../../Shared';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiPaper-root'] {
@@ -179,10 +177,10 @@ const Preview: FC<{
       scroll="paper"
       onClose={() => setOpenPreview(false)}
     >
-      <DialogTitle disableTypography>
-        <Typography variant="h5">PR Preview</Typography>
-        <CloseIconButton onClick={() => setOpenPreview(false)} />
-      </DialogTitle>
+      <MuiDialogTitle
+        title="PR Preview"
+        onFinish={() => setOpenPreview(false)}
+      />
       <Tabs
         className="tabs-container"
         indicatorColor="primary"
