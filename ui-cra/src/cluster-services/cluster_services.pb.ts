@@ -6,7 +6,6 @@
 
 import * as fm from "./fetch.pb"
 import * as GoogleApiHttpbody from "./google/api/httpbody.pb"
-import * as GoogleProtobufAny from "./google/protobuf/any.pb"
 import * as GoogleProtobufStruct from "./google/protobuf/struct.pb"
 export type ListTemplatesRequest = {
   provider?: string
@@ -124,83 +123,6 @@ export type ListGitopsClustersResponse = {
   total?: number
   nextPageToken?: string
   errors?: ListError[]
-}
-
-export type GetPolicyRequest = {
-  policyName?: string
-  clusterName?: string
-}
-
-export type ListPoliciesRequest = {
-  clusterName?: string
-  pagination?: Pagination
-}
-
-export type GetPolicyResponse = {
-  policy?: Policy
-  clusterName?: string
-}
-
-export type ListPoliciesResponse = {
-  policies?: Policy[]
-  total?: number
-  nextPageToken?: string
-  errors?: ListError[]
-}
-
-export type ListPolicyValidationsRequest = {
-  clusterName?: string
-  pagination?: Pagination
-  application?: string
-  namespace?: string
-  kind?: string
-}
-
-export type ListPolicyValidationsResponse = {
-  violations?: PolicyValidation[]
-  total?: number
-  nextPageToken?: string
-  errors?: ListError[]
-}
-
-export type GetPolicyValidationRequest = {
-  violationId?: string
-  clusterName?: string
-}
-
-export type GetPolicyValidationResponse = {
-  violation?: PolicyValidation
-}
-
-export type PolicyValidationOccurrence = {
-  message?: string
-}
-
-export type PolicyValidationParam = {
-  name?: string
-  type?: string
-  value?: GoogleProtobufAny.Any
-  required?: boolean
-  configRef?: string
-}
-
-export type PolicyValidation = {
-  id?: string
-  message?: string
-  clusterId?: string
-  category?: string
-  severity?: string
-  createdAt?: string
-  entity?: string
-  namespace?: string
-  violatingEntity?: string
-  description?: string
-  howToSolve?: string
-  name?: string
-  clusterName?: string
-  occurrences?: PolicyValidationOccurrence[]
-  policyId?: string
-  parameters?: PolicyValidationParam[]
 }
 
 export type CreatePullRequestRequest = {
@@ -557,47 +479,6 @@ export type GetConfigResponse = {
 
 export type PolicyParamRepeatedString = {
   value?: string[]
-}
-
-export type PolicyParam = {
-  name?: string
-  type?: string
-  value?: GoogleProtobufAny.Any
-  required?: boolean
-}
-
-export type PolicyTargetLabel = {
-  values?: {[key: string]: string}
-}
-
-export type PolicyTargets = {
-  kinds?: string[]
-  labels?: PolicyTargetLabel[]
-  namespaces?: string[]
-}
-
-export type PolicyStandard = {
-  id?: string
-  controls?: string[]
-}
-
-export type Policy = {
-  name?: string
-  id?: string
-  code?: string
-  description?: string
-  howToSolve?: string
-  category?: string
-  tags?: string[]
-  severity?: string
-  standards?: PolicyStandard[]
-  gitCommit?: string
-  parameters?: PolicyParam[]
-  targets?: PolicyTargets
-  createdAt?: string
-  clusterName?: string
-  tenant?: string
-  modes?: string[]
 }
 
 export type ObjectRef = {
@@ -1006,18 +887,6 @@ export class ClustersService {
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static ListPolicies(req: ListPoliciesRequest, initReq?: fm.InitReq): Promise<ListPoliciesResponse> {
-    return fm.fetchReq<ListPoliciesRequest, ListPoliciesResponse>(`/v1/policies?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetPolicy(req: GetPolicyRequest, initReq?: fm.InitReq): Promise<GetPolicyResponse> {
-    return fm.fetchReq<GetPolicyRequest, GetPolicyResponse>(`/v1/policies/${req["policyName"]}?${fm.renderURLSearchParams(req, ["policyName"])}`, {...initReq, method: "GET"})
-  }
-  static ListPolicyValidations(req: ListPolicyValidationsRequest, initReq?: fm.InitReq): Promise<ListPolicyValidationsResponse> {
-    return fm.fetchReq<ListPolicyValidationsRequest, ListPolicyValidationsResponse>(`/v1/policyviolations`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static GetPolicyValidation(req: GetPolicyValidationRequest, initReq?: fm.InitReq): Promise<GetPolicyValidationResponse> {
-    return fm.fetchReq<GetPolicyValidationRequest, GetPolicyValidationResponse>(`/v1/policyviolations/${req["violationId"]}?${fm.renderURLSearchParams(req, ["violationId"])}`, {...initReq, method: "GET"})
   }
   static ListEvents(req: ListEventsRequest, initReq?: fm.InitReq): Promise<ListEventsResponse> {
     return fm.fetchReq<ListEventsRequest, ListEventsResponse>(`/v1/enterprise/events?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

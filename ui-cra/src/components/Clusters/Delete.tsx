@@ -1,14 +1,7 @@
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-  ThemeProvider,
-  Typography,
-} from '@material-ui/core';
+import { Dialog, DialogContent, ThemeProvider } from '@material-ui/core';
 import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
 import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
 import styled from 'styled-components';
-import CloseIconButton from '../../assets/img/close-icon-button';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useNotifications from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
@@ -23,6 +16,7 @@ import { removeToken } from '../../utils/request';
 import GitAuth from '../GitAuth';
 import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
 import { Loader } from '../Loader';
+import { MuiDialogTitle } from '../Shared';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 
 const DeleteClusterWrapper = styled(Dialog)`
@@ -151,10 +145,10 @@ export const DeleteClusterDialog: FC<Props> = ({
     <ThemeProvider theme={localEEMuiTheme}>
       <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
         <div id="delete-popup">
-          <DialogTitle disableTypography>
-            <Typography variant="h5">Create PR to remove clusters</Typography>
-            <CloseIconButton onClick={cleanUp} />
-          </DialogTitle>
+          <MuiDialogTitle
+            title="Create PR to remove clusters"
+            onFinish={cleanUp}
+          />
           <DialogContent>
             {!loading ? (
               <>
