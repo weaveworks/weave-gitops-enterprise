@@ -1,8 +1,7 @@
-import { DataTable, Severity, formatURL } from '@weaveworks/weave-gitops';
+import { DataTable, Link, Severity, formatURL } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import moment from 'moment';
-import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import { Routes } from '../../../../utils/nav';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 
