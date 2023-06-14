@@ -335,11 +335,6 @@ func mergePullRequest(gp GitProviderEnv, repoAbsolutePath string, prLink string)
 
 }
 
-func checkoutRepoBranch(repoAbsolutePath, branch string) {
-	logger.Infof("Checking out repo %s %s branch", repoAbsolutePath, branch)
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("cd %s && git checkout main", repoAbsolutePath))
-}
-
 func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 	logger.Infof("Pushing changes made to file(s) in repo: %s", repoAbsolutePath)
 	if commitMessage == "" {
@@ -352,11 +347,6 @@ func gitUpdateCommitPush(repoAbsolutePath string, commitMessage string) {
 func getGitRepositoryURL(repoAbsolutePath string) string {
 	repoURL, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git config --get remote.origin.url`, repoAbsolutePath), ASSERTION_30SECONDS_TIME_OUT)
 	return repoURL
-}
-
-func createGitRepoBranch(repoAbsolutePath string, branchName string) string {
-	stdOut, _ := runCommandAndReturnStringOutput(fmt.Sprintf(`cd %s && git checkout -b %s && git push --set-upstream origin %s && git checkout main`, repoAbsolutePath, branchName, branchName), ASSERTION_30SECONDS_TIME_OUT)
-	return stdOut
 }
 
 func pullGitRepo(repoAbsolutePath string) {
