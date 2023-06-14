@@ -1,5 +1,9 @@
 import { Theme, createTheme } from '@material-ui/core/styles';
-import { baseTheme, muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
+import {
+  baseTheme,
+  theme as coreTheme,
+  muiTheme as coreMuiTheme,
+} from '@weaveworks/weave-gitops';
 import { ThemeTypes } from '@weaveworks/weave-gitops/ui/contexts/AppContext';
 
 const defaultTheme = createTheme();
@@ -100,7 +104,7 @@ export const localEEMuiTheme = (theme: Theme) =>
         input: {
           ...theme.overrides?.MuiInputBase?.input,
           minWidth: '155px',
-          // border: `1px solid ${baseTheme.colors.neutral20}`,
+          border: `1px solid #d8d8d8`,
           position: 'relative',
           fontSize: 16,
           width: '100%',
