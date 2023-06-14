@@ -77,8 +77,8 @@ func (c CreateCluster) GetTemplateParameter(webdriver *agouti.Page, name string)
 
 func GetValuesYaml(webDriver *agouti.Page) ValuesYaml {
 	return ValuesYaml{
-		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] > h5`),
-		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] > button`),
+		Title:    webDriver.Find(`div[class^=MuiDialogTitle-root] h5`),
+		Cancel:   webDriver.Find(`div[class^=MuiDialogTitle-root] button`),
 		TextArea: webDriver.FindByXPath(`//div[contains(@class, "MuiDialogContent-root")]/textarea[1]`),
 		Save:     webDriver.Find(`button#edit-yaml`),
 	}
