@@ -33,23 +33,18 @@ type server struct {
 	qs   query.QueryService
 	arc  collector.Collector
 	objs collector.Collector
+
+	cancelCollection context.CancelFunc
 }
 
 func (s *server) StopCollection() error {
-	// These collectors can be nil if we are doing collection elsewhere.
-	// Controlled by the opts.SkipCollection flag.
-	if s.arc != nil {
-		if err := s.arc.Stop(); err != nil {
-			return fmt.Errorf("failed to stop access rules collection: %w", err)
-		}
+	// These collectors can be nil if we are doing collection
+	// elsewhere (this is controlled by the opts.SkipCollection
+	// flag). The presence of a cancel func indicates they have been
+	// started.
+	if s.cancelCollection != nil {
+		s.cancelCollection()
 	}
-
-	if s.objs != nil {
-		if err := s.objs.Stop(); err != nil {
-			return fmt.Errorf("failed to stop object collection: %w", err)
-		}
-	}
-
 	return nil
 }
 
@@ -140,7 +135,7 @@ func (so *ServerOpts) Validate() error {
 	return nil
 }
 
-func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
+func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error) {
 	if err := opts.Validate(); err != nil {
 		return nil, nil, fmt.Errorf("invalid query server options: %w", err)
 	}
@@ -188,18 +183,20 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 	serv := &server{qs: qs}
 
 	if !opts.SkipCollection {
-
 		if len(opts.ObjectKinds) == 0 {
 			return nil, nil, fmt.Errorf("cannot create collector for empty gvks")
 		}
 
+		ctx, cancel := context.WithCancel(context.Background())
+		defer func() {
+			if reterr != nil {
+				cancel()
+			}
+		}()
+
 		rulesCollector, err := rolecollector.NewRoleCollector(s, clusters.MakeSubscriber(opts.ClustersManager), opts.ServiceAccount, opts.Logger)
 		if err != nil {
 			return nil, nil, fmt.Errorf("failed to create access rules collector: %w", err)
-		}
-
-		if err = rulesCollector.Start(); err != nil {
-			return nil, nil, fmt.Errorf("cannot start access rule collector: %w", err)
 		}
 
 		objsCollector, err := objectscollector.NewObjectsCollector(s, idx, clusters.MakeSubscriber(opts.ClustersManager), opts.ServiceAccount, opts.ObjectKinds, opts.Logger)
@@ -207,12 +204,21 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 			return nil, nil, fmt.Errorf("failed to create applications collector: %w", err)
 		}
 
-		if err = objsCollector.Start(); err != nil {
-			return nil, nil, fmt.Errorf("cannot start applications collector: %w", err)
-		}
+		go func() {
+			if err := rulesCollector.Start(ctx); err != nil {
+				opts.Logger.Error(err, "roles collector failed")
+			}
+		}()
+
+		go func() {
+			if err := objsCollector.Start(ctx); err != nil {
+				opts.Logger.Error(err, "applications collector failed")
+			}
+		}()
 
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
+		serv.cancelCollection = cancel
 		debug.Info("collectors started")
 	}
 	debug.Info("query server created")

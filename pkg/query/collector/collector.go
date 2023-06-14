@@ -43,8 +43,7 @@ type StopWatcherFunc = func(clusterName string) error
 // Start() and Stop()).
 type Collector interface {
 	ClusterWatcher
-	Start() error
-	Stop() error
+	Starter
 }
 
 type ImpersonateServiceAccount struct {

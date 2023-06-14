@@ -3,7 +3,6 @@ package collector
 import (
 	"context"
 	"fmt"
-	"sync"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
@@ -14,8 +13,7 @@ import (
 // Start the collector by creating watchers on existing gitops clusters and managing its lifecycle. Managing
 // its lifecycle means responding to the events of adding a new cluster, update an existing cluster or deleting an existing cluster.
 // Errors are handled by logging the error and assuming the operation will be retried due to some later event.
-func (c *watchingCollector) Start() error {
-	c.quit = make(chan struct{})
+func (c *watchingCollector) Start(ctx context.Context) error {
 	c.sub = c.subscriber.Subscribe()
 
 	for _, cluster := range c.subscriber.GetClusters() {
@@ -27,49 +25,35 @@ func (c *watchingCollector) Start() error {
 		c.log.Info("watching cluster", "cluster", cluster.GetName())
 	}
 
-	// watch clusters
-	c.done.Add(1)
-	go func() {
-		defer c.done.Done()
-		for {
-			select {
-			case <-c.quit:
-				return
-			case updates := <-c.sub.Updates():
-				for _, cluster := range updates.Added {
-					err := c.watch(cluster)
-					if err != nil {
-						c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
-						continue
-					}
-					c.log.Info("watching cluster", "cluster", cluster.GetName())
+outer:
+	for {
+		select {
+		case <-ctx.Done():
+			break outer
+		case updates := <-c.sub.Updates():
+			for _, cluster := range updates.Added {
+				err := c.watch(cluster)
+				if err != nil {
+					c.log.Error(err, "cannot watch cluster", "cluster", cluster.GetName())
+					continue
 				}
+				c.log.Info("watching cluster", "cluster", cluster.GetName())
+			}
 
-				for _, cluster := range updates.Removed {
-					err := c.unwatch(cluster.GetName())
-					if err != nil {
-						c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
-						continue
-					}
-					c.log.Info("unwatched cluster", "cluster", cluster.GetName())
+			for _, cluster := range updates.Removed {
+				err := c.unwatch(cluster.GetName())
+				if err != nil {
+					c.log.Error(err, "cannot unwatch cluster", "cluster", cluster.GetName())
+					continue
 				}
+				c.log.Info("unwatched cluster", "cluster", cluster.GetName())
 			}
 		}
-	}()
-
-	return nil
-}
-
-// Stop the collector and clean up.
-func (c *watchingCollector) Stop() error {
+	}
 	c.log.Info("stopping collector")
 	if c.sub != nil {
 		c.sub.Unsubscribe()
 	}
-	if c.quit != nil {
-		close(c.quit)
-	}
-	c.done.Wait()
 	return nil
 }
 
@@ -82,8 +66,6 @@ type child struct {
 // watchingCollector supervises watchers, starting one per cluster it
 // sees from the `Subscriber` and stopping/restarting them as needed.
 type watchingCollector struct {
-	quit            chan struct{}
-	done            sync.WaitGroup
 	sub             clusters.Subscription
 	subscriber      clusters.Subscriber
 	clusterWatchers map[string]*child
