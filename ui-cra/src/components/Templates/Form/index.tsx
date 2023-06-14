@@ -119,7 +119,7 @@ const useStyles = makeStyles(theme =>
       marginBottom: '16px',
     },
     largeDivider: {
-      margin: `32 0`,
+      margin: `32px 0`,
     },
     steps: {
       display: 'flex',
@@ -280,7 +280,7 @@ const toPayload = (
     templateKind,
     previousValues: createReqAnnot,
     repositoryUrl,
-    baseBranch: formData.repo.obj.spec.ref.branch
+    baseBranch: formData.repo.obj.spec.ref.branch,
   };
 };
 
@@ -581,7 +581,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             )
           }
         >
-          <Grid item xs={12} sm={10} md={10} lg={8}>
+          <Grid item>
             <CredentialsWrapper align>
               <div className="template-title">
                 Template: <span>{template.name}</span>
@@ -624,7 +624,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               helmRepo={DEFAULT_PROFILE_REPO}
             />
           ) : null}
-          <Grid item xs={12} sm={10} md={10} lg={8}>
+          <Grid item>
             {isKustomizationsEnabled ? (
               <ApplicationsWrapper
                 formData={formData}
@@ -652,7 +652,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               PRPreview={PRPreview}
             />
           ) : null}
-          <Grid item xs={12} sm={10} md={10} lg={8}>
+          <Grid item>
             {isCostEstimationEnabled ? (
               <CostEstimation
                 handleCostEstimation={handleCostEstimation}
@@ -664,7 +664,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               />
             ) : null}
           </Grid>
-          <Grid item xs={12} sm={10} md={10} lg={8}>
+          <Grid item>
             <GitOps
               formData={formData}
               setFormData={setFormData}

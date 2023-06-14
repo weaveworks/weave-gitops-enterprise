@@ -2,6 +2,7 @@ import { MenuItem } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
@@ -57,6 +58,12 @@ const FormWrapper = styled.form`
       .MuiInputBase-root {
         margin-right: ${props => props.theme.spacing.medium};
       }
+    }
+  }
+  .create-cta {
+    padding: ${props => props.theme.spacing.small};
+    button {
+      width: 200px;
     }
   }
 `;
@@ -448,11 +455,11 @@ const CreateSecret = () => {
               {loading ? (
                 <LoadingPage className="create-loading" />
               ) : (
-                <div className="create-cta">
+                <Flex end className="create-cta">
                   <Button type="submit" disabled={!isAuthenticated}>
                     CREATE PULL REQUEST
                   </Button>
-                </div>
+                </Flex>
               )}
             </FormWrapper>
           </NotificationsWrapper>
