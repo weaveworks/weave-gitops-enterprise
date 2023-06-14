@@ -22,6 +22,8 @@ RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make bui
 
 FROM alpine:3.16
 
+RUN apk upgrade libssl3 libcrypto3
+
 WORKDIR /
 COPY --from=build /home/node/build /html
 
