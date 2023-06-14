@@ -72,7 +72,11 @@ func TestStart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cm.GetClustersReturns(tt.clusters)
-			err := collector.Start()
+			ctx, cancel := context.WithCancel(context.TODO())
+			defer cancel()
+			go func() {
+				g.Expect(collector.Start(ctx)).To(Succeed())
+			}()
 
 			// assert any error for an individual cluster has been
 			// logged, and the corresponding success message has not
@@ -135,12 +139,15 @@ func TestStop(t *testing.T) {
 	}
 	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
-	err = collector.Start()
+	ctx, cancel := context.WithCancel(context.TODO())
+	defer cancel()
+	go func() {
+		g.Expect(collector.Start(ctx)).To(Succeed())
+	}()
 	g.Expect(err).To(BeNil())
 
-	err = collector.Stop()
-	g.Expect(err).To(BeNil())
-	g.Expect(runtime.NumGoroutine()).To(Equal(routineCountBefore), "number of goroutines before starting = number of goroutines after stopping (no leaked goroutines)")
+	cancel()
+	g.Eventually(runtime.NumGoroutine, "5s", "0.2s").Should(Equal(routineCountBefore), "no leaked goroutines")
 }
 
 func TestClusterWatcher_Watch(t *testing.T) {
