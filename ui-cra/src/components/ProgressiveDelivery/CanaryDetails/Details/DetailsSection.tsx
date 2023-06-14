@@ -1,19 +1,17 @@
-import { ChevronRight, ExpandLess } from '@material-ui/icons';
 import {
   Automation,
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Link, formatURL } from '@weaveworks/weave-gitops';
-import { useState } from 'react';
+import { Flex, Link, Text, formatURL } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { getKindRoute } from '../../../../utils/nav';
 import { ClusterDashboardLink } from '../../../Clusters/ClusterDashboardLink';
 import RowHeader from '../../../RowHeader';
-import { useCanaryStyle } from '../../CanaryStyles';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
+import Collapsible from '../../SharedComponent/Collapsible';
 import DynamicTable from '../../SharedComponent/DynamicTable';
 
-const StatusHeader = styled.div`
+const StatusHeader = styled(Text)`
   background: ${props => props.theme.colors.neutralGray};
   padding: 16px 8px;
   margin: 16px 0px;
@@ -26,17 +24,13 @@ const DetailsSection = ({
   canary: Canary;
   automation?: Automation;
 }) => {
-  const classes = useCanaryStyle();
-  const [open, setOpen] = useState(true);
   const { conditions, ...restStatus } = canary?.status || { conditions: [] };
   const { lastTransitionTime, ...restConditionObj } = conditions![0] || {
     lastTransitionTime: '',
   };
-  const toggleCollapse = () => {
-    setOpen(!open);
-  };
+
   return (
-    <>
+    <Flex column gap="8">
       <RowHeader
         rowkey="Cluster"
         value={<ClusterDashboardLink clusterName={canary.clusterName || ''} />}
@@ -66,7 +60,7 @@ const DetailsSection = ({
       />
       <RowHeader rowkey="Deployment Strategy" value={undefined}>
         {!!canary.deploymentStrategy && (
-          <span className={classes.straegyIcon}>
+          <span>
             {canary.deploymentStrategy}{' '}
             {getDeploymentStrategyIcon(canary.deploymentStrategy)}
           </span>
@@ -74,20 +68,10 @@ const DetailsSection = ({
       </RowHeader>
       <RowHeader rowkey="Provider" value={canary.provider} />
 
-      <StatusHeader className={`${classes.cardTitle}`}>STATUS</StatusHeader>
-      <DynamicTable obj={restStatus || {}} />
-      <div
-        className={` ${classes.cardTitle} ${classes.expandableCondition}`}
-        onClick={toggleCollapse}
-      >
-        {!open ? <ExpandLess /> : <ChevronRight />}
-        <span className={classes.expandableSpacing}> CONDITIONS</span>
-      </div>
-      <DynamicTable
-        obj={restConditionObj || {}}
-        classes={open ? classes.fadeIn : classes.fadeOut}
-      />
-    </>
+      <Collapsible title="STATUS">
+        <DynamicTable obj={{ ...restStatus, ...restConditionObj } || {}} />
+      </Collapsible>
+    </Flex>
   );
 };
 

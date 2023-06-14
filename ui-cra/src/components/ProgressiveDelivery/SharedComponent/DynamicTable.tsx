@@ -1,5 +1,6 @@
 import { Size, Table, TableBody } from '@material-ui/core';
 import { KeyValueRow } from '../../RowHeader';
+import styled from 'styled-components';
 
 const DynamicTable = ({
   obj,
@@ -21,4 +22,17 @@ const DynamicTable = ({
   );
 };
 
-export default DynamicTable;
+export default styled(DynamicTable)`
+&.fadeIn {
+  transform: scaleY(0);
+  transformOrigin: top;
+  display: block;
+  max-height: 0,
+  transition: transform 0.15s ease,
+},
+fadeOut: {
+  transform: scaleY(1)
+  transformOrigin: 'top',
+  transition: 'transform 0.15s ease',
+},
+`;
