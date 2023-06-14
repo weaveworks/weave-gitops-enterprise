@@ -286,10 +286,11 @@ export const InputDebounced: FC<InputDebounceProps> = ({
   };
 
   useEffect(() => {
+    setData(value || '');
     return () => {
       updateFormData.cancel();
     };
-  }, [updateFormData]);
+  }, [updateFormData, value]);
 
   return (
     <Input

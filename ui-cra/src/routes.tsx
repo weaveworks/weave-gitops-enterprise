@@ -36,13 +36,14 @@ import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
+import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
-import CreateSecret from './components/Secrets/Create';
+import CreateExternalSecret from './components/Secrets/ExternalSecrets';
 import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
@@ -54,7 +55,6 @@ import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -290,7 +290,11 @@ const AppRoutes = () => {
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
-      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route
+        exact
+        path={Routes.CreateSecret}
+        component={CreateExternalSecret}
+      />
       <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
       <Route

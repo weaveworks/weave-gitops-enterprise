@@ -2,14 +2,14 @@ import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
 import { InputDebounced } from '../../../utils/form';
-import { SOPS } from './utils';
+import { ExternalSecret, SOPS } from '../Shared/utils';
 
 const data = ({
   formData,
   validateForm,
   setFormData,
 }: {
-  formData: SOPS;
+  formData: SOPS | ExternalSecret;
   validateForm: boolean;
   setFormData: Dispatch<React.SetStateAction<any>>;
 }) => {
