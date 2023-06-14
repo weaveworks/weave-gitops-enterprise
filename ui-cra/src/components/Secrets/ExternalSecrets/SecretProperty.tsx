@@ -41,7 +41,6 @@ export const SecretProperty = ({
         />
         Include all properties
       </Text>
-      {JSON.stringify(formData)}
       {formData.includeAllProps && (
         <Flex column wide>
           {formData.data.map(obj => (

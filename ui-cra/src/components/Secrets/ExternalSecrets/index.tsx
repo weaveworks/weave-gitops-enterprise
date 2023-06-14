@@ -1,12 +1,5 @@
-import { CircularProgress, FormControlLabel, Switch } from '@material-ui/core';
-import {
-  Button,
-  Flex,
-  GitRepository,
-  Link,
-  Spacer,
-  Text,
-} from '@weaveworks/weave-gitops';
+import { CircularProgress } from '@material-ui/core';
+import { Button, Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
