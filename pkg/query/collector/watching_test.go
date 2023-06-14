@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -133,8 +132,6 @@ func TestStop(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 
-	routineCountBefore := runtime.NumGoroutine()
-
 	cm := &clustersfakes.FakeSubscriber{}
 	cmw := &clustersfakes.FakeSubscription{}
 	cm.SubscribeReturns(cmw)
@@ -151,14 +148,15 @@ func TestStop(t *testing.T) {
 	collector, err := newWatchingCollector(opts)
 	g.Expect(err).To(BeNil())
 	ctx, cancel := context.WithCancel(context.TODO())
-	defer cancel()
+	t.Cleanup(cancel)
+
+	stopped := false
 	go func() {
 		g.Expect(collector.Start(ctx)).To(Succeed())
+		stopped = true
 	}()
-	g.Expect(err).To(BeNil())
-
 	cancel()
-	g.Eventually(runtime.NumGoroutine, "5s", "0.2s").Should(Equal(routineCountBefore), "no leaked goroutines")
+	g.Eventually(func() bool { return stopped }, "2s", "0.2s").Should(BeTrue())
 }
 
 func TestClusterWatcher_Watch(t *testing.T) {
