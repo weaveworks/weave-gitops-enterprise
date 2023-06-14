@@ -15,7 +15,7 @@ export const muiTheme = (colors: any, mode: ThemeTypes) =>
           marginRight: baseTheme.spacing.small,
         },
         outlinedPrimary: {
-          borderColor: colors.neutral20,
+          borderColor: `${colors.neutral20} !important`,
           '&:hover': {
             borderColor: colors.neutral20,
           },
