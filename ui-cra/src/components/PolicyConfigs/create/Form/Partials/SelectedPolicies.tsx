@@ -168,7 +168,6 @@ export const SelectedPolicies = ({
             variant="outlined"
             name="policies"
             disabled={cluster === undefined}
-            style={{ border: 'none !important' }}
             InputProps={{
               ...params.InputProps,
               endAdornment: (

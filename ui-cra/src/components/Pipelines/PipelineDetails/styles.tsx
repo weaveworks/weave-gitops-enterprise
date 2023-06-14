@@ -4,8 +4,7 @@ import styled from 'styled-components';
 export const usePipelineStyles = makeStyles(() =>
   createStyles({
     gridContainer: {
-      backgroundColor: '#f5f5f5',
-      margin: `0 12`,
+      margin: `12px 12px`,
       padding: '24px',
       borderRadius: '10px',
     },

@@ -1,11 +1,12 @@
+import { Grid } from '@material-ui/core';
 import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import {
   Pipeline,
   PipelineTargetStatus,
 } from '../../../api/pipelines/types.pb';
-import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
-import { Grid } from '@material-ui/core';
 import { useListConfigContext } from '../../../contexts/ListConfig';
+import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
 import PromotePipeline from './PromotePipeline';
 import {
   CardContainer,
@@ -82,13 +83,23 @@ const TargetStatus = ({
   );
 };
 
-function Workloads({ pipeline }: { pipeline: Pipeline }) {
+function Workloads({
+  pipeline,
+  className,
+}: {
+  pipeline: Pipeline;
+  className?: string;
+}) {
   const classes = usePipelineStyles();
   const environments = pipeline?.environments || [];
   const targetsStatuses = pipeline?.status?.environments || {};
 
   return (
-    <Grid className={classes.gridWrapper} container spacing={4}>
+    <Grid
+      className={classes.gridWrapper + ` ${className}`}
+      container
+      spacing={4}
+    >
       {environments.map((env, index) => {
         const status = targetsStatuses[env.name!].targetsStatuses || [];
         const promoteVersion =
@@ -130,4 +141,8 @@ function Workloads({ pipeline }: { pipeline: Pipeline }) {
   );
 }
 
-export default Workloads;
+export default styled(Workloads)`
+  .MuiGrid-item {
+    background: ${props => props.theme.colors.neutralGray};
+  }
+`;
