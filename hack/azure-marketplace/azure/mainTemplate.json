@@ -189,7 +189,7 @@
       "autoUpgradeMinorVersion": true,
       "releaseTrain": "[variables('releaseTrain')]",
       "configurationSettings": {
-        "title": "[parameters('app-title')]",
+        "title": "[parameters('app-title')]"
       },
       "configurationProtectedSettings": {
 

@@ -39,37 +39,48 @@ Given the above, how can we take an EE helm chart and get the equivilant CNAB th
   - `docker`
   - `python`
   - `helm`
+  - `crane`
 - Access to the weaveworks engineering Azure account
   - TODO: add instructions for how to get access
 
-## Convert some weave-gitops-enterprise helm chart to an azure compatible chart
-
-Grab a chart from some weaveworks helm repo
-
-```bash
-helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
-helm repo update
-helm pull wkpv3/mccp --version 0.23.0-63-gf2634d2
-```
-
-Extract the chart and inspect it
-
-```bash
-# -xtractzeefiles
-tar -xzf mccp-0.23.0-63-gf2634d2.tgz
-cd mccp
-git init
-git add .
-git commit -m "initial commit"
-```
-
-TODO: determine what images are in there, and copy to ACR
+## Push the images to ACR
 
 Login to the Azure
 
 ```bash
 az login
 az acr login -n weaveworksmarketplacepublic.azurecr.io
+```
+
+```bash
+helm repo add weave-gitops-enterprise-charts https://charts.dev.wkp.weave.works/releases/charts-v3
+helm repo update
+./publish_images_azure.py --version 0.25.0 --local-helm-chart weave-gitops-enterprise-charts --dry-run
+```
+
+Check that it looks sort of sensible then run it for real
+
+```bash
+./publish_images_azure.py --version 0.25.0 --local-helm-chart weave-gitops-enterprise-charts
+```
+
+## Convert some weave-gitops-enterprise helm chart to an azure compatible chart
+
+Grab a chart from some weaveworks helm repo
+
+```bash
+# add if you haven't already
+helm repo add weave-gitops-enterprise-charts https://charts.dev.wkp.weave.works/releases/charts-v3
+helm repo update
+helm pull weave-gitops-enterprise-charts/mccp --version 0.25.0
+```
+
+Extract the chart and inspect it
+
+```bash
+# -xtractzeefiles
+tar -xzf mccp-0.25.0.tgz
+cd mccp
 ```
 
 Convert it to an azure compatible chart
@@ -99,9 +110,10 @@ The standard prep:
 
 Pull all the images from `global.azure.images` section from ACR, then push them into a kind cluster.
 
+> **Warning**
+> FIXME: This load_kind_images.py isn't working right now
+
 ```
-az login
-az acr login -n weaveworksmarketplacepublic.azurecr.io
 python3 load_kind_images.py ./mccp
 ```
 

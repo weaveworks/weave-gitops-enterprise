@@ -112,7 +112,7 @@ global:
         image: pipeline-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       policyAgent:
-        digest: sha256:6d88cfb0ed756446b98d6bf454f7fe06779cfd78088a0a8e9ad24508cc9df658
+        digest: sha256:8df4cbeac75d3b916fd1fe190a22efd7a8f9baea2fd4fef47a5bbd66aa5748f1
         image: policy-agent
         registry: weaveworksmarketplacepublic.azurecr.io
       templatesController:
@@ -120,7 +120,7 @@ global:
         image: templates-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       uiServer:
-        digest: sha256:c2f6db903de9cd6a90c7fc90b65f59bc3a043dd87bb9d2dbc8788e9ba9560a52
+        digest: sha256:f2da25b344187b34d1b48a05e1a9cf0168be38829f6c72d4f15bc29fc0331166
         image: weave-gitops-enterprise-ui-server
         registry: weaveworksmarketplacepublic.azurecr.io
   capiEnabled: true
