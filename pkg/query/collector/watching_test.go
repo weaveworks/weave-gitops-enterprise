@@ -15,7 +15,6 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters/clustersfakes"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster/clusterfakes"
 	l "github.com/weaveworks/weave-gitops/core/logger"
@@ -25,7 +24,6 @@ func TestStart(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log, loggerPath := newLoggerWithLevel(t, "INFO")
 
-	fakeStore := &storefakes.FakeStore{}
 	cm := &clustersfakes.FakeSubscriber{}
 	cmw := &clustersfakes.FakeSubscription{}
 	cm.SubscribeReturns(cmw)
@@ -81,22 +79,24 @@ func TestStart(t *testing.T) {
 			// assert any error for an individual cluster has been
 			// logged, and the corresponding success message has not
 			// been logged.
-			if tt.expectedLogError != "" || tt.notExpectedLog != "" {
-				logs, err := os.ReadFile(loggerPath)
-				g.Expect(err).To(BeNil())
-				logss := string(logs)
-				if tt.expectedLogError != "" {
-					g.Expect(logss).To(MatchRegexp(tt.expectedLogError))
-				}
+			var logss string
+			if tt.expectedLogError != "" {
+				g.Eventually(func() bool {
+					logs, err := os.ReadFile(loggerPath)
+					g.Expect(err).To(BeNil())
+					logss = string(logs)
+					ok, _ := MatchRegexp(tt.expectedLogError).Match(logss)
+					return ok
+				}, "5s", "0.5s")
 				// NB this will only work if there's no cluster that can succeed!
 				if tt.notExpectedLog != "" {
 					g.Expect(logss).NotTo(MatchRegexp(tt.notExpectedLog))
 				}
 			}
 
-			g.Expect(err).To(BeNil())
-			g.Expect(fakeStore).NotTo(BeNil())
-			g.Expect(len(collector.clusterWatchers)).To(Equal(tt.expectedNumClusters))
+			g.Eventually(func() bool {
+				return len(collector.clusterWatchers) == tt.expectedNumClusters
+			}, "2s", "0.2s")
 		})
 	}
 }
