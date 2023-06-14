@@ -397,6 +397,7 @@ const MCCP: FC<{
             <RouterTab name="Clusters" path={`${path}/list`}>
               <LoadingWrapper loading={isLoading}>
                 <DataTable
+                  className="clusters-list"
                   key={clusters.length}
                   filters={initialFilterState}
                   rows={clusters}

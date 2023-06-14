@@ -1,4 +1,4 @@
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
+import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
 import styled from 'styled-components';
 import useNotifications from '../../../contexts/Notifications';
@@ -6,9 +6,7 @@ import { PolicyConfigPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
 
-const PreviewPRSection = styled.div`
-  display: flex;
-  justify-content: flex-end;
+const PreviewPRSection = styled(Flex)`
   padding: ${props => props.theme.spacing.small};
 `;
 
@@ -45,7 +43,7 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   ]);
 
   return (
-    <PreviewPRSection>
+    <PreviewPRSection end>
       {previewLoading ? (
         <LoadingPage className="preview-loading" />
       ) : (
