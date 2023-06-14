@@ -15,6 +15,17 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
+import styled from 'styled-components';
+
+
+const YamlPreviewWrapper = styled(Flex)`
+  width: 100%;
+  button {
+    margin-right: 0;
+  }
+`;
+
+
 
 const ProfilesListItem: FC<{
   cluster?: ClusterNamespacedName;
@@ -151,9 +162,11 @@ const ProfilesListItem: FC<{
             />
           </FormControl>
         </div>
-        <Button variant="text" onClick={handleYamlPreview}>
-          Values.yaml
-        </Button>
+        <YamlPreviewWrapper center>
+          <Button variant="text" onClick={handleYamlPreview}>
+            Values.yaml
+          </Button>
+        </YamlPreviewWrapper>
       </Flex>
 
       {openYamlPreview && (
