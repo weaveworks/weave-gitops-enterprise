@@ -16,6 +16,7 @@ import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import PipelinePullRequests from './PipelinePullRequests';
 import Workloads from './Workloads';
+import { usePipelineStyles } from './styles';
 
 const mappedErrors = (
   errors: Array<string>,
