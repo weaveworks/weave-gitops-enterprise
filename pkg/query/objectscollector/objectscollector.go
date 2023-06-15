@@ -3,6 +3,7 @@ package objectscollector
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/rest"
@@ -71,6 +72,12 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
+		var deletedAt time.Time
+		ts := objTx.Object().GetCreationTimestamp()
+		if !ts.IsZero() {
+			deletedAt = ts.Time
+		}
+
 		object := models.Object{
 			Cluster:             objTx.ClusterName(),
 			Name:                objTx.Object().GetName(),
@@ -81,7 +88,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			Status:              string(adapters.Status(o)),
 			Message:             adapters.Message(o),
 			Category:            cat,
-			KubernetesDeletedAt: objTx.Object().GetDeletionTimestamp().Time,
+			KubernetesDeletedAt: deletedAt,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
