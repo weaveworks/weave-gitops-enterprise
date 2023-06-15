@@ -83,6 +83,7 @@ const GlobalStyle = createGlobalStyle`
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
+    justify-content: center;
     margin: 0;
   }
 
