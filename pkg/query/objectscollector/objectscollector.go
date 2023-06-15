@@ -66,7 +66,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
-		cat, err := adapters.Category(o)
+		cat, err := adapters.Category(objTx.Object())
 		if err != nil {
 			log.Error(err, "failed to get category from flux object")
 			continue
