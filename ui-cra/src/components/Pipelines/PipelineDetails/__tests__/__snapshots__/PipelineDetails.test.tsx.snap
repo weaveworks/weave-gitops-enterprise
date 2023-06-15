@@ -352,45 +352,45 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: 32px;
 }
 
-.c15 svg {
+.c16 svg {
   height: 24px;
   width: 24px;
 }
 
-.c15 svg path.path-fill,
-.c15 svg line.path-fill,
-.c15 svg polygon.path-fill,
-.c15 svg rect.path-fill,
-.c15 svg circle.path-fill,
-.c15 svg polyline.path-fill {
+.c16 svg path.path-fill,
+.c16 svg line.path-fill,
+.c16 svg polygon.path-fill,
+.c16 svg rect.path-fill,
+.c16 svg circle.path-fill,
+.c16 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c15 svg path.stroke-fill,
-.c15 svg line.stroke-fill,
-.c15 svg polygon.stroke-fill,
-.c15 svg rect.stroke-fill,
-.c15 svg circle.stroke-fill,
-.c15 svg polyline.stroke-fill {
+.c16 svg path.stroke-fill,
+.c16 svg line.stroke-fill,
+.c16 svg polygon.stroke-fill,
+.c16 svg rect.stroke-fill,
+.c16 svg circle.stroke-fill,
+.c16 svg polyline.stroke-fill {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c15 svg rect.rect-height {
+.c16 svg rect.rect-height {
   height: 24px;
   width: 24px;
 }
 
-.c15.downward {
+.c16.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c15.upward {
+.c16.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
@@ -400,7 +400,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   margin-left: 4px;
 }
 
-.c15 img {
+.c16 img {
   width: 24px;
 }
 
@@ -514,12 +514,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: 40px;
 }
 
-.c14.MuiIconButton-root {
+.c15.MuiIconButton-root {
   background-color: #F6F7F9;
   color: #737373;
 }
 
-.c14.MuiIconButton-root:hover {
+.c15.MuiIconButton-root:hover {
   background-color: #fff;
   color: #009CCC;
 }
@@ -654,6 +654,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c39 .c9 img {
   width: 16px;
+}
+
+.c30 .MuiGrid-item {
+  background: #F6F7F9;
 }
 
 <div>

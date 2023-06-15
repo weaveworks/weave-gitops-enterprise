@@ -619,6 +619,15 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c48 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  text-transform: none;
+  font-style: normal;
+  color: #737373;
+}
+
+.c43 {
+  font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 12px;
   font-weight: 600;
   text-transform: capitalize;
