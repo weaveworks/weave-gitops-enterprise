@@ -71,9 +71,8 @@ const GlobalStyle = createGlobalStyle`
     src: url(${RobotoMono})
   }
 
-  html, body {
-    height: 100%;
-    background-color:${props => props.theme.colors.backGrey} !important;
+  html, body, #root {
+    height: 100vh;
   }
 
   body {

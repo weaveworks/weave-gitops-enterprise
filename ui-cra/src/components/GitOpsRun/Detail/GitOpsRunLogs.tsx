@@ -119,7 +119,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   }, [isLoading, data]);
 
   return (
-    <Flex className={className} wide tall column>
+    <Flex className={className} wide column>
       <Flex>
         <Select
           label="LOG"
