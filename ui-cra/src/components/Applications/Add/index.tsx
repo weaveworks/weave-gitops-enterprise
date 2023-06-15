@@ -477,7 +477,8 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       {optionUrl(formData.source_url, formData.source_branch)}
                     </SourceLinkWrapper>
                   </Grid>
-                  {formData.source_type === 'HelmRepository' ? (
+                  <Grid item xs={12} sm={10} md={12} lg={10}>         
+                    {formData.source_type === 'HelmRepository' ? (
                     <Profiles
                       cluster={{
                         name: formData.clusterAutomations[0].cluster_name,
@@ -491,8 +492,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       setUpdatedProfiles={setUpdatedProfiles}
                       helmRepo={helmRepo}
                     />
-                  ) : null}
-                  <Grid item xs={12} sm={10} md={10} lg={8}>
+                  ) : null}</Grid>
+         
+                  <Grid item xs={12} sm={10} md={12} lg={10}>
                     {previewLoading ? (
                       <LoadingPage className="preview-loading" />
                     ) : (
@@ -506,7 +508,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                       </Flex>
                     )}
                   </Grid>
-                  <Grid item xs={12} sm={10} md={10} lg={8}>
+                  <Grid item xs={12} sm={12} md={12} lg={10}>
                     <GitOps
                       formData={formData}
                       setFormData={setFormData}
