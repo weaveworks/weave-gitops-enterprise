@@ -86,7 +86,9 @@ const GlobalStyle = createGlobalStyle`
     text-decoration: none;
     color:  ${props => props.theme.colors.primary10};
   }
-
+  .MuiFormControl-root {
+    min-width: 0px;
+  }
   ::-webkit-scrollbar-track {
     margin-top: 5px;
     box-shadow: transparent;
