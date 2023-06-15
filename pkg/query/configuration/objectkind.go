@@ -140,6 +140,25 @@ var (
 			return false
 		},
 	}
+	FluxReconciliationEventObjectKind = ObjectKind{
+		Gvk: core.SchemeGroupVersion.WithKind("Event"),
+		NewClientObjectFunc: func() client.Object {
+			return &core.Event{}
+		},
+		AddToSchemeFunc: core.AddToScheme,
+		FilterFunc: func(obj client.Object) bool {
+			event, ok := obj.(*core.Event)
+			if !ok {
+				return false
+			}
+
+			if event.Reason == "ArtifactUpToDate" {
+				return true
+			}
+
+			return false
+		},
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -152,6 +171,7 @@ var SupportedObjectKinds = []ObjectKind{
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
 	PolicyEventObjectKind,
+	FluxReconciliationEventObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
