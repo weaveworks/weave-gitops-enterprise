@@ -1,9 +1,9 @@
 import { DialogContent } from '@material-ui/core';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Text } from '@weaveworks/weave-gitops';
 import { FC, useState } from 'react';
 import styled from 'styled-components';
 import { MuiDialogTitle } from '../../Shared';
-import { DialogWrapper, useWorkspaceStyle } from '../WorkspaceStyles';
+import { DialogWrapper } from '../WorkspaceStyles';
 
 interface Props {
   title: string;
@@ -29,13 +29,12 @@ const WorkspaceModal: FC<Props> = ({
   wrapDialogContent,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const classes = useWorkspaceStyle();
   return (
     <>
       {title !== 'Rules' && (
-        <span className={classes.link} onClick={() => setIsModalOpen(true)}>
+        <Text color="primary" onClick={() => setIsModalOpen(true)} pointer>
           {btnName}
-        </span>
+        </Text>
       )}
       {title === 'Rules' && content && (
         <Button
