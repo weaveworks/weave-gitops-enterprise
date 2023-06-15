@@ -1,15 +1,22 @@
+/**
+ * This file holds the protobuf definitions
+ * for the Weave GitOps Enterprise gRPC API.
+ */
 syntax = "proto3";
 
 package cluster_services.v1;
-
-option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
 
 import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 
+// protolint:disable:next MAX_LINE_LENGTH
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
 
+/**
+ * Weave GitOps Enterprise ClustersService service definition
+ */
 service ClustersService {
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {
@@ -48,7 +55,8 @@ service ClustersService {
       body : "*"
     };
   }
-  rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
+  rpc RenderAutomation(RenderAutomationRequest)
+    returns (RenderAutomationResponse) {
     option (google.api.http) = {
       post : "/v1/enterprise/automations/render"
       body : "*"
@@ -126,35 +134,6 @@ service ClustersService {
     };
   }
 
-  // ListPolicies list policies available on the management cluster
-  rpc ListPolicies(ListPoliciesRequest) returns (ListPoliciesResponse) {
-    option (google.api.http) = {
-      get : "/v1/policies"
-    };
-  }
-
-  // GetPolicy gets a policy on the management cluster by name
-  rpc GetPolicy(GetPolicyRequest) returns (GetPolicyResponse) {
-    option (google.api.http) = {
-      get : "/v1/policies/{policy_name}"
-    };
-  }
-
-  // ListPolicyValidations list policy validations available on the management cluster
-  rpc ListPolicyValidations(ListPolicyValidationsRequest) returns (ListPolicyValidationsResponse) {
-    option (google.api.http) = {
-      post : "/v1/policyviolations"
-      body : "*"
-    };
-  }
-
-  // GetPolicyValidation gets a policy validations on the management cluster by id
-  rpc GetPolicyValidation(GetPolicyValidationRequest) returns (GetPolicyValidationResponse) {
-    option (google.api.http) = {
-      get : "/v1/policyviolations/{violation_id}"
-    };
-  }
-
   // ListEvents returns the k8s events for a given object
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
     option (google.api.http) = {
@@ -162,8 +141,10 @@ service ClustersService {
     };
   }
 
-  // ListChartsForRepository lists the discovered Helm charts in the provided
-  // repository.
+  /*
+   * ListChartsForRepository lists the discovered Helm charts in the provided
+   * repository.
+   */
   rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns
     (ListChartsForRepositoryResponse) {
      option (google.api.http) = {
@@ -204,50 +185,58 @@ service ClustersService {
     };
   }
    // GetWorkspaceRoles list workspace roles
-   rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
+   rpc GetWorkspaceRoles(GetWorkspaceRequest)
+    returns (GetWorkspaceRolesResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces/{workspaceName}/roles"
     };
   }
    // GetWorkspaceRoleBindings list workspace role bindings
-   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
+   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest)
+    returns (GetWorkspaceRoleBindingsResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces/{workspaceName}/rolebindings"
     };
   }
    // GetWorkspaceServiceAccounts list workspace service accounts
-   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
+   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest)
+    returns (GetWorkspaceServiceAccountsResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces/{workspaceName}/serviceaccounts"
     };
   }
   // GetWorkspacePolicies list workspace service accounts
-  rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
+  rpc GetWorkspacePolicies(GetWorkspaceRequest)
+    returns (GetWorkspacePoliciesResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces/{workspaceName}/policies"
     };
   }
 
   // ListExternalSecrets list external secrets available on all clusters
-  rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
+  rpc ListExternalSecrets(ListExternalSecretsRequest)
+    returns (ListExternalSecretsResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets"
     };
   }
   // GetExternalSecret get secret details
-  rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+  rpc GetExternalSecret(GetExternalSecretRequest)
+    returns (GetExternalSecretResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets/{externalSecretName}"
     };
   }
   // ListExternalSecretStores list external secrets stores
-  rpc ListExternalSecretStores(ListExternalSecretStoresRequest) returns (ListExternalSecretStoresResponse) {
+  rpc ListExternalSecretStores(ListExternalSecretStoresRequest)
+    returns (ListExternalSecretStoresResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets-stores"
     };
   }
   // SyncExternalSecrets sync externalSecret Operator secrets
-  rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
+  rpc SyncExternalSecrets(SyncExternalSecretsRequest)
+    returns (SyncExternalSecretsResponse) {
     option (google.api.http) = {
       post : "/v1/external-secrets/sync"
       body : "*"
@@ -255,20 +244,23 @@ service ClustersService {
   }
 
   // ListPolicyConfigs list policy configs
-  rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
+  rpc ListPolicyConfigs(ListPolicyConfigsRequest)
+    returns (ListPolicyConfigsResponse) {
     option (google.api.http) = {
       get : "/v1/policy-configs"
     };
   }
   // GetPolicyConfig get policy config details
-  rpc GetPolicyConfig(GetPolicyConfigRequest) returns (GetPolicyConfigResponse) {
+  rpc GetPolicyConfig(GetPolicyConfigRequest)
+    returns (GetPolicyConfigResponse) {
     option (google.api.http) = {
       get : "/v1/policy-configs/{name}"
     };
   }
 
   // EncryptSopsSecret encrypts a sops secret
-  rpc EncryptSopsSecret(EncryptSopsSecretRequest) returns (EncryptSopsSecretResponse) {
+  rpc EncryptSopsSecret(EncryptSopsSecretRequest)
+    returns (EncryptSopsSecretResponse) {
     option (google.api.http) = {
       post : "/v1/encrypt-sops-secret",
       body : "*"
@@ -276,13 +268,13 @@ service ClustersService {
   }
 
   // ListSopsKustomizations list Sops kustomizations
-  rpc ListSopsKustomizations(ListSopsKustomizationsRequest) returns (ListSopsKustomizationsResponse) {
+  rpc ListSopsKustomizations(ListSopsKustomizationsRequest)
+    returns (ListSopsKustomizationsResponse) {
     option (google.api.http) = {
       get : "/v1/sops-kustomizations"
     };
   }
 }
-
 
 message ListTemplatesRequest {
   string provider = 1;
@@ -350,8 +342,6 @@ message CommitFile {
 	string content = 2;
 }
 
-
-
 message CostEstimate{
   message Range {
     float low = 1;
@@ -396,79 +386,6 @@ message ListGitopsClustersResponse {
   int32 total = 2;
   string next_page_token = 3;
   repeated ListError errors = 4;
-}
-
-message GetPolicyRequest {
-  string policy_name = 1;
-  string clusterName = 2;
-}
-message ListPoliciesRequest {
-    string clusterName = 1;
-    Pagination pagination = 2;
-}
-
-message GetPolicyResponse {
-  Policy policy = 1;
-  string clusterName = 2;
-}
-
-message ListPoliciesResponse {
-  repeated Policy policies = 1;
-  int32 total = 2;
-  string nextPageToken = 3;
-  repeated ListError errors = 4;
-}
-
-message ListPolicyValidationsRequest{
-  string clusterName = 1;
-  Pagination pagination = 2;
-  string application = 3;
-  string namespace = 4;
-  string kind = 5;
-}
-message ListPolicyValidationsResponse {
-  repeated PolicyValidation violations = 1;
-  int32 total = 2;
-  string nextPageToken = 3;
-  repeated ListError errors = 4;
-}
-
-message GetPolicyValidationRequest{
-  string violation_id = 1;
-  string clusterName = 2;
-}
-message GetPolicyValidationResponse{ PolicyValidation violation = 1; }
-
-message PolicyValidationOccurrence {
-  string message = 1;
-}
-
-message PolicyValidationParam {
-  string name = 1;
-  string type = 2;
-  google.protobuf.Any value = 3;
-  bool required = 4;
-  string config_ref = 5;
-}
-
-
-message PolicyValidation{
-  string id = 1;
-  string message = 2;
-  string cluster_id = 3;
-  string category = 4;
-  string severity = 5;
-  string created_at = 6;
-  string entity=7;
-  string namespace=8;
-  string violating_entity=9;
-  string description=10;
-  string how_to_solve=11;
-  string name=12;
-  string clusterName = 13;
-  repeated PolicyValidationOccurrence occurrences = 14;
-  string policy_id = 15;
-  repeated PolicyValidationParam parameters = 16;
 }
 
 message CreatePullRequestRequest {
@@ -740,26 +657,26 @@ message ExternalSecret {
 
 message ExternalSecretSpec {
   string refresh_interval = 1;
-  externalSecretStoreRef secret_store_ref = 2;
-  externalSecretTarget target = 3;
-  externalSecretData data = 4;
+  ExternalSecretStoreRef secret_store_ref = 2;
+  ExternalSecretTarget target = 3;
+  ExternalSecretData data = 4;
 }
 
-message externalSecretStoreRef {
+message ExternalSecretStoreRef {
   string name = 1;
   string kind = 2;
 }
 
-message externalSecretTarget {
+message ExternalSecretTarget {
   string name = 1;
 }
 
-message externalSecretData {
+message ExternalSecretData {
   string secret_key = 1;
-  externalSecretRemoteRef remote_ref = 2;
+  ExternalSecretRemoteRef remote_ref = 2;
 }
 
-message externalSecretRemoteRef {
+message ExternalSecretRemoteRef {
   string key = 1;
   string property = 2;
 }
@@ -865,47 +782,6 @@ message GetConfigResponse {
 }
 
 message PolicyParamRepeatedString { repeated string value = 1; }
-
-message PolicyParam {
-  string name = 1;
-  string type = 2;
-  // value is a generic value that can be a string, int, bool and array of
-  // strings
-  google.protobuf.Any value = 3;
-  bool required = 4;
-}
-
-message PolicyTargetLabel { map<string, string> values = 1; }
-
-message PolicyTargets {
-  repeated string kinds = 1;
-  repeated PolicyTargetLabel labels = 2;
-  repeated string namespaces = 3;
-}
-
-message PolicyStandard {
-  string id = 1;
-  repeated string controls = 2;
-}
-
-message Policy {
-  string name = 1;
-  string id = 2;
-  string code = 3;
-  string description = 4;
-  string how_to_solve = 5;
-  string category = 6;
-  repeated string tags = 7;
-  string severity = 8;
-  repeated PolicyStandard standards = 9;
-  string git_commit = 10;
-  repeated PolicyParam parameters = 11;
-  PolicyTargets targets = 12;
-  string created_at = 13;
-  string clusterName = 14;
-  string tenant = 15;
-  repeated string modes = 16;
-}
 
 message ObjectRef {
   string kind      = 1;
@@ -1162,7 +1038,6 @@ message ListPolicyConfigsResponse{
   int32 total = 3;
 }
 
-
 message GetPolicyConfigRequest{
   string clusterName = 1;
   string name = 2;
@@ -1206,7 +1081,6 @@ message PolicyConfigPolicy {
   string status = 5;
 }
 
-
 message PolicyConfigConf {
   map<string, google.protobuf.Value>  parameters  = 2;
 }
@@ -1220,7 +1094,6 @@ message PolicyConfigObject {
   Metadata metadata = 1;
   PolicyConfigObjectSpec spec  = 2;
 }
-
 
 message EncryptSopsSecretRequest {
   string name = 1;

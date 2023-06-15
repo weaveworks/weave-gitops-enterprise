@@ -4,6 +4,13 @@ import useNotifications from '../../../contexts/Notifications';
 import { SecretPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
+import styled from 'styled-components';
+
+const PreviewPRSection = styled(Flex)`
+  padding: ${props => props.theme.spacing.small};
+`;
+
+
 
 export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   const [openPreview, setOpenPreview] = useState(false);
@@ -37,7 +44,7 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   ]);
 
   return (
-    <Flex end style={{ padding: '12px' }}>
+    <PreviewPRSection end>
       {previewLoading ? (
         <LoadingPage className="preview-loading" />
       ) : (
@@ -54,6 +61,6 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
           sourceType={formData.source_type}
         />
       ) : null}
-    </Flex>
+    </PreviewPRSection>
   );
 };

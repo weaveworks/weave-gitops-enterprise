@@ -59,7 +59,7 @@ function Filters({ className, facets }: Props) {
       {_.map(facets, f => {
         return (
           <div key={f.field}>
-            <h3>{f.field}</h3>
+            <h3>{_.capitalize(f.field)}</h3>
             <ul style={{ listStyle: 'none' }}>
               {_.map(f.values, v => {
                 const key = `${f.field}:${v}`;

@@ -19,7 +19,7 @@
   "paths": {
     "/v1/gitops_reconciled_objects": {
       "post": {
-        "summary": "GetReconciledObjects returns a list of objects that were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization or HelmRelease specified in the request body.",
+        "summary": "GetReconciledObjects returns a list of objects\nthat were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization\nor HelmRelease specified in the request body.",
         "operationId": "GitOpsSets_GetReconciledObjects",
         "responses": {
           "200": {

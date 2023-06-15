@@ -1,7 +1,13 @@
-import { Tooltip as Mtooltip, TooltipProps } from '@material-ui/core';
-import { Link } from '@weaveworks/weave-gitops';
+import {
+  DialogTitle,
+  Tooltip as Mtooltip,
+  TooltipProps,
+  Typography,
+} from '@material-ui/core';
+import { Flex, Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
+import CloseIconButton from '../assets/img/close-icon-button';
 
 const TooltipStyle = styled.div`
   font-size: 14px;
@@ -62,3 +68,18 @@ export const Title = styled.h4`
 export const LinkTag = styled(Link)`
   color: ${({ theme }) => theme.colors.primary};
 `;
+
+type DialogTitleProps = {
+  title: string;
+  onFinish?: () => void;
+};
+export const MuiDialogTitle = ({ title, onFinish }: DialogTitleProps) => {
+  return (
+    <DialogTitle disableTypography>
+      <Flex wide align between>
+        <Typography variant="h5">{title}</Typography>
+        {onFinish ? <CloseIconButton onClick={() => onFinish()} /> : null}
+      </Flex>
+    </DialogTitle>
+  );
+};

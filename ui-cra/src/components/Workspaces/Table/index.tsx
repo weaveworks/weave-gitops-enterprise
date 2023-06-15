@@ -1,29 +1,29 @@
-import { FC } from 'react';
 import {
   DataTable,
   filterConfig,
   formatURL,
+  Link,
 } from '@weaveworks/weave-gitops';
-import { TableWrapper } from '../../Shared';
+import { FC } from 'react';
 import { Workspace } from '../../../cluster-services/cluster_services.pb';
-import { Link } from 'react-router-dom';
 import { Routes } from '../../../utils/nav';
-import { usePolicyStyle } from '../../Policies/PolicyStyles';
+import { TableWrapper } from '../../Shared';
 
 interface Props {
   workspaces: Workspace[];
 }
 
 export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
-  const classes = usePolicyStyle();
-
   let initialFilterState = {
     ...filterConfig(workspaces, 'clusterName'),
     ...filterConfig(workspaces, 'name'),
   };
 
   return (
-    <TableWrapper id="workspaces-list" style={{minHeight: 'calc(100vh - 233px)'}}>
+    <TableWrapper
+      id="workspaces-list"
+      style={{ minHeight: 'calc(100vh - 233px)' }}
+    >
       <DataTable
         key={workspaces?.length}
         filters={initialFilterState}
@@ -37,7 +37,6 @@ export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
                   clusterName: w.clusterName,
                   workspaceName: w.name,
                 })}
-                className={classes.link}
                 data-workspace-name={w.name}
               >
                 {w.name}
@@ -49,13 +48,12 @@ export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
           },
           {
             label: 'Namespaces',
-            value: ({namespaces}) => namespaces.join(', '),
+            value: ({ namespaces }) => namespaces.join(', '),
           },
           {
             label: 'Cluster',
             value: 'clusterName',
           },
-          
         ]}
       />
     </TableWrapper>

@@ -10,14 +10,14 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/onsi/gomega v1.27.5
+	github.com/onsi/gomega v1.27.6
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.14.0
 	github.com/sclevine/agouti v3.0.0+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.6.1
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.24.0
+	github.com/weaveworks/weave-gitops v0.25.1-rc.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -38,7 +38,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.30.0
-	github.com/fluxcd/go-git-providers v0.14.0
+	github.com/fluxcd/go-git-providers v0.16.0
 	github.com/fluxcd/helm-controller/api v0.30.0
 	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.1
 	github.com/fluxcd/pkg/apis/meta v1.0.0
@@ -69,7 +69,7 @@ require (
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac
 	github.com/weaveworks/templates-controller v0.2.0
-	github.com/xanzy/go-gitlab v0.78.0
+	github.com/xanzy/go-gitlab v0.83.0
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.8.0
 	golang.org/x/oauth2 v0.7.0
@@ -106,6 +106,7 @@ require (
 	github.com/blevesearch/zapx/v14 v14.3.7 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.9 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
+	github.com/google/go-github/v52 v52.0.0 // indirect
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
@@ -163,7 +164,6 @@ require (
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/google/go-github/v49 v49.1.0 // indirect
 	github.com/google/pprof v0.0.0-20220829040838-70bd9ae97f40 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.2.3 // indirect
 	github.com/googleapis/gax-go/v2 v2.8.0 // indirect
@@ -253,7 +253,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/Masterminds/squirrel v1.5.3 // indirect
 	github.com/Microsoft/go-winio v0.6.0 // indirect
-	github.com/ProtonMail/go-crypto v0.0.0-20230217124315-7d5c6f04bbb8 // indirect
+	github.com/ProtonMail/go-crypto v0.0.0-20230426101702-58e86b294756 // indirect
 	github.com/acomagu/bufpipe v1.0.4 // indirect
 	github.com/alecthomas/chroma v0.9.2 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect

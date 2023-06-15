@@ -12,8 +12,11 @@ import { Loader } from '../../../Loader';
 import ProfilesListItem from './ProfileListItem';
 
 const ProfilesWrapper = styled.div`
-  width: 85%;
   padding-bottom: ${({ theme }) => theme.spacing.xl};
+  .table-wrapper {
+    max-height: 500px;
+    overflow: scroll;
+  }
   table {
     thead {
       th:first-of-type {
@@ -93,12 +96,11 @@ const Profiles: FC<{
 
   return (
     <ProfilesWrapper>
-      <>
         <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
         {isLoading && <Loader />}
         {!isLoading && (
           <DataTable
-            className="profiles-table"
+            className="profiles-table table-wrapper"
             rows={updatedProfilesList}
             fields={[
               {
@@ -162,7 +164,6 @@ const Profiles: FC<{
             hideSearchAndFilters={true}
           />
         )}
-      </>
     </ProfilesWrapper>
   );
 };

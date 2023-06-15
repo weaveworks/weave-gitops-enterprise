@@ -131,7 +131,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 		ClusterHeader:         webDriver.Find(`span[title="Clusters"]`),
 		ConnectClusterButton:  webDriver.Find(`#connect-cluster`),
 		PRDeleteClusterButton: webDriver.Find(`#delete-cluster`),
-		ClustersList:          webDriver.First(`#clusters-list table tbody`),
+		ClustersList:          webDriver.First(`.clusters-list table tbody`),
 		Tooltip:               webDriver.Find(`div[role="tooltip"]`),
 		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
 		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
