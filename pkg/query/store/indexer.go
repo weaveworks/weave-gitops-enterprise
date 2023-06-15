@@ -6,6 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	bleve "github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
@@ -61,6 +64,7 @@ func NewIndexer(s Store, path string) (Indexer, error) {
 	return &bleveIndexer{
 		idx:   index,
 		store: s,
+		recorder: metrics.NewRecorder(true, "explorer_indexer"),
 	}, nil
 }
 
@@ -91,18 +95,41 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 type bleveIndexer struct {
 	idx   bleve.Index
 	store Store
+	recorder metrics.Recorder
 }
 
 func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
+	start := time.Now()
 	batch := i.idx.NewBatch()
+	const action = "add"
+	
+	i.recorder.InflightRequests(action, 1)
+	
+	var err error
+	defer func() {
+		i.recorder.SetStoreLatency(action, time.Since(start))
+		i.recorder.InflightRequests(action, -1)
+		if err != nil {
+			i.recorder.IncRequestCounter(action, "error")
+			return
+		}
+		i.recorder.IncRequestCounter(action, "success")
+	}()
 
 	for _, obj := range objects {
-		if err := batch.Index(obj.GetID(), obj); err != nil {
+		err = batch.Index(obj.GetID(), obj)
+		if err != nil {
 			return fmt.Errorf("failed to index object: %w", err)
 		}
 	}
 
-	return i.idx.Batch(batch)
+	// The bleve Index is not updated until the batch is executed, so we need to run Batch() before we report the process is success.
+	err = i.idx.Batch(batch)
+	if err != nil {
+		return fmt.Errorf("failed to batch: %w", err)
+	}
+
+	return nil
 }
 
 func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) error {

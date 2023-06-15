@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -24,6 +26,7 @@ type SQLiteStore struct {
 	db    *gorm.DB
 	log   logr.Logger
 	debug logr.Logger
+	recorder metrics.Recorder
 }
 
 func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
@@ -75,6 +78,7 @@ func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 		db:    db,
 		log:   log.WithName("sqllite"),
 		debug: log.WithName("sqllite").V(logger.LogLevelDebug),
+		recorder: metrics.NewRecorder(true, "explorer_datastore"),
 	}, nil
 }
 
@@ -155,6 +159,22 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 }
 
 func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
+	start := time.Now()
+	const action = "store_objects"
+
+	i.recorder.InflightRequests(action, 1)
+
+	var err error
+	defer func() {
+		i.recorder.SetStoreLatency(action, time.Since(start))
+		i.recorder.InflightRequests(action, -1)
+		if err != nil {
+			i.recorder.IncRequestCounter(action, "error")
+			return
+		}
+		i.recorder.IncRequestCounter(action, "success")
+	}()
+
 	//do nothing if empty collection
 	if len(objects) == 0 {
 		return nil
@@ -163,7 +183,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 	rows := []models.Object{}
 
 	for _, object := range objects {
-		if err := object.Validate(); err != nil {
+		if err = object.Validate(); err != nil {
 			return fmt.Errorf("invalid object: %w", err)
 		}
 
@@ -181,6 +201,7 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 
 	result := clauses.Create(rows)
 	if result.Error != nil {
+		err = result.Error
 		return fmt.Errorf("failed to store object: %w", result.Error)
 	}
 
