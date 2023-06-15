@@ -264,15 +264,16 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 
 	for _, o := range obj {
 		pbObjects = append(pbObjects, &pb.Object{
-			Kind:       o.Kind,
-			Name:       o.Name,
-			Namespace:  o.Namespace,
-			Cluster:    o.Cluster,
-			Status:     o.Status,
-			ApiGroup:   o.APIGroup,
-			ApiVersion: o.APIVersion,
-			Message:    o.Message,
-			Category:   string(o.Category),
+			Kind:         o.Kind,
+			Name:         o.Name,
+			Namespace:    o.Namespace,
+			Cluster:      o.Cluster,
+			Status:       o.Status,
+			ApiGroup:     o.APIGroup,
+			ApiVersion:   o.APIVersion,
+			Message:      o.Message,
+			Category:     string(o.Category),
+			Unstructured: string(o.Unstructured),
 		})
 	}
 
