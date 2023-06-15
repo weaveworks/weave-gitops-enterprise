@@ -21,6 +21,7 @@ import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDetails from './components/Clusters/ClusterDetails';
 import Explorer from './components/Explorer';
+import ObjectViewerPage from './components/Explorer/ObjectViewerPage';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
@@ -36,6 +37,7 @@ import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies';
 import PolicyDetails from './components/Policies/PolicyDetails';
+import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
@@ -54,7 +56,6 @@ import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -308,7 +309,12 @@ const AppRoutes = () => {
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
+      <Route
+        path={Routes.ExplorerView}
+        component={withSearchParams(ObjectViewerPage)}
+      />
       <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
+
       <Route
         exact
         path={Routes.GitOpsSets}
