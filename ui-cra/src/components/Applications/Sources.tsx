@@ -55,7 +55,4 @@ const WGApplicationsSources: FC = ({ className }: any) => {
   );
 };
 
-export default styled(WGApplicationsSources)`
-  width: 100%;
-  overflow: auto;
-`;
+export default styled(WGApplicationsSources)``;
