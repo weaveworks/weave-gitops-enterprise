@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"strings"
@@ -96,12 +97,27 @@ type bleveIndexer struct {
 	store Store
 }
 
+// We want the index to contain our raw JSON objects,
+// but adding the JSON to the index ID messes up the facets.
+// So we prepend the ID with a prefix, and then store the JSON under that ID.
+const unstructuredSuffix = "_unstructured"
+
 func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
 	batch := i.idx.NewBatch()
 
 	for _, obj := range objects {
 		if err := batch.Index(obj.GetID(), obj); err != nil {
 			return fmt.Errorf("failed to index object: %w", err)
+		}
+
+		if obj.Unstructured != nil {
+			var data interface{}
+
+			if err := json.Unmarshal(obj.Unstructured, &data); err != nil {
+				return fmt.Errorf("failed to unmarshal object: %w", err)
+			}
+
+			batch.Index(obj.GetID()+unstructuredSuffix, data)
 		}
 	}
 
@@ -203,6 +219,15 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	searchResults, err := i.idx.Search(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to search for objects: %w", err)
+	}
+
+	// Strip the `_unstructured` suffix from the ID so we can get the object from the store.
+	for i, hit := range searchResults.Hits {
+		if strings.Contains(hit.ID, unstructuredSuffix) {
+			hit.ID = strings.Replace(hit.ID, "_unstructured", "", 1)
+		}
+
+		searchResults.Hits[i] = hit
 	}
 
 	iter := &indexerIterator{

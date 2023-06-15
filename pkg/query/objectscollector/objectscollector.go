@@ -2,6 +2,7 @@ package objectscollector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -87,6 +88,12 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			modelTs = k8sTs.Time
 		}
 
+		raw, err := json.Marshal(objTx.Object())
+		if err != nil {
+			log.Error(err, "failed to marshal object to json")
+			continue
+		}
+
 		object := models.Object{
 			Cluster:             objTx.ClusterName(),
 			Name:                objTx.Object().GetName(),
@@ -98,6 +105,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			Message:             adapters.Message(o),
 			Category:            cat,
 			KubernetesDeletedAt: modelTs,
+			Unstructured:        raw,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {

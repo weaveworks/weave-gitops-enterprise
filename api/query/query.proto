@@ -62,15 +62,16 @@ message QueryResponse {
 }
 
 message Object {
-    string cluster    = 1;
-    string namespace  = 2;
-    string kind       = 3;
-    string name       = 4;
-    string status     = 5;
-    string apiGroup   = 6;
-    string apiVersion = 7;
-    string message    = 8;
-    string category   = 9;
+    string cluster      = 1;
+    string namespace    = 2;
+    string kind         = 3;
+    string name         = 4;
+    string status       = 5;
+    string apiGroup     = 6;
+    string apiVersion   = 7;
+    string message      = 8;
+    string category     = 9;
+    string unstructured = 10;
 }
 
 message DebugGetAccessRulesRequest {
