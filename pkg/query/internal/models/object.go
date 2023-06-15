@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,6 +17,7 @@ type ObjectCategory string
 const (
 	CategoryAutomation ObjectCategory = "automation"
 	CategorySource     ObjectCategory = "source"
+	CategoryEvent      ObjectCategory = "event"
 )
 
 type Object struct {
@@ -43,9 +45,6 @@ func (o Object) Validate() error {
 	if o.Namespace == "" {
 		return fmt.Errorf("missing namespace field")
 	}
-	if o.APIGroup == "" {
-		return fmt.Errorf("missing api group field")
-	}
 	if o.APIVersion == "" {
 		return fmt.Errorf("missing api version field")
 	}
@@ -53,8 +52,8 @@ func (o Object) Validate() error {
 		return fmt.Errorf("missing kind field")
 	}
 
-	if o.Category != CategoryAutomation && o.Category != CategorySource {
-		return fmt.Errorf("invalid category: %s", o.Category)
+	if o.Category == "" {
+		return errors.New("category is required")
 	}
 
 	return nil

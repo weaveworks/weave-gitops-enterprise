@@ -69,7 +69,7 @@ func Message(fo FluxObject) string {
 	return ""
 }
 
-func Category(fo FluxObject) (models.ObjectCategory, error) {
+func Category(fo client.Object) (models.ObjectCategory, error) {
 	switch fo.(type) {
 	case *v2beta1.HelmRelease:
 		return models.CategoryAutomation, nil
