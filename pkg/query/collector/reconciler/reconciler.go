@@ -74,6 +74,13 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
+	retain := r.objectKind.FilterFunc(clientObject)
+	if !retain {
+		gvk := clientObject.GetObjectKind().GroupVersionKind()
+		r.debug.Info("skipping object", "kind", gvk.Kind, "name", clientObject.GetName())
+		return ctrl.Result{}, nil
+	}
+
 	txType := models.TransactionTypeUpsert
 
 	if !clientObject.GetDeletionTimestamp().IsZero() {

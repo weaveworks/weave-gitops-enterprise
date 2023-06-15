@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/cleaner"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/discovery"
@@ -30,9 +32,10 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	qs   query.QueryService
-	arc  collector.Collector
-	objs collector.Collector
+	qs      query.QueryService
+	arc     collector.Collector
+	objs    collector.Collector
+	cleaner cleaner.ObjectCleaner
 }
 
 func (s *server) StopCollection() error {
@@ -50,6 +53,12 @@ func (s *server) StopCollection() error {
 		}
 	}
 
+	if s.cleaner != nil {
+		if err := s.cleaner.Stop(); err != nil {
+			return fmt.Errorf("failed to stop object cleaner: %w", err)
+		}
+	}
+
 	return nil
 }
 
@@ -60,9 +69,10 @@ type ServerOpts struct {
 	SkipCollection  bool
 	StoreType       string
 	// required to map GVRs to GVKs for authz purporses
-	DiscoveryClient discovery.DiscoveryInterface
-	ObjectKinds     []configuration.ObjectKind
-	ServiceAccount  collector.ImpersonateServiceAccount
+	DiscoveryClient     discovery.DiscoveryInterface
+	ObjectKinds         []configuration.ObjectKind
+	ServiceAccount      collector.ImpersonateServiceAccount
+	EnableObjectCleaner bool
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -215,6 +225,27 @@ func NewServer(opts ServerOpts) (pb.QueryServer, func() error, error) {
 		serv.objs = objsCollector
 		debug.Info("collectors started")
 	}
+
+	if opts.EnableObjectCleaner {
+		oc, err := cleaner.NewObjectCleaner(cleaner.CleanerOpts{
+			Store:    s,
+			Log:      opts.Logger,
+			Index:    idx,
+			Interval: 1 * time.Hour,
+			Config:   opts.ObjectKinds,
+		})
+
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create object cleaner: %w", err)
+		}
+
+		if err = oc.Start(); err != nil {
+			return nil, nil, fmt.Errorf("cannot start object cleaner: %w", err)
+		}
+
+		serv.cleaner = oc
+	}
+
 	debug.Info("query server created")
 	return serv, serv.StopCollection, nil
 }
