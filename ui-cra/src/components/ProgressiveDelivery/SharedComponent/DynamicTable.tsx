@@ -22,17 +22,4 @@ const DynamicTable = ({
   );
 };
 
-export default styled(DynamicTable)`
-&.fadeIn {
-  transform: scaleY(0);
-  transformOrigin: top;
-  display: block;
-  max-height: 0,
-  transition: transform 0.15s ease,
-},
-fadeOut: {
-  transform: scaleY(1)
-  transformOrigin: 'top',
-  transition: 'transform 0.15s ease',
-},
-`;
+export default styled(DynamicTable)``;
