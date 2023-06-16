@@ -96,6 +96,19 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
   }
 
+  //we can not override Autocomplete in Mui createTheme without updating our Mui version. 
+  &.policies-input {
+    border: 1px solid ${props => props.theme.colors.neutral20};
+  }
+  &.MuiAutocomplete-inputRoot {
+    &.MuiInputBase-root {
+      padding: 0;
+    }
+  }
+  &.MuiAutocomplete-groupLabel {
+    background: ${props => props.theme.colors.neutralGray};
+  }
+  
   a {
     text-decoration: none;
     color:  ${props => props.theme.colors.primary10};

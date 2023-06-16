@@ -83,6 +83,7 @@ export const ListApplications = ({
                   control={
                     <Checkbox
                       size="small"
+                      color="primary"
                       checked={checks.includes(
                         app.obj.metadata.name + app.obj.kind,
                       )}

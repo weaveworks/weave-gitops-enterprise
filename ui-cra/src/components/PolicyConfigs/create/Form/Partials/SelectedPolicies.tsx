@@ -144,10 +144,9 @@ export const SelectedPolicies = ({
     }
   };
 
-  const policiesInput = () => (
+  const PoliciesInput = () => (
     <Autocomplete
       multiple
-      className={classes.SelectPoliciesWithSearch}
       id="grouped-demo"
       value={selectedPolicies}
       options={policiesList?.sort((a, b) =>
@@ -164,6 +163,7 @@ export const SelectedPolicies = ({
             Select the policies to include in this policy config
           </Text>
           <TextField
+            className="policies-input"
             {...params}
             variant="outlined"
             name="policies"
@@ -245,13 +245,15 @@ export const SelectedPolicies = ({
         <SectionTitle>
           Policies <span>({selectedPolicies?.length || 0})</span>
         </SectionTitle>
-        {policiesInput()}
+        <PoliciesInput />
       </div>
       {formError === 'policies' &&
         JSON.stringify(formData.policies) === '{}' && (
           <div className={classes.errorSection}>
             <ErrorIcon />
-            <span>Please add at least one policy with modified parameter</span>
+            <Text color="black">
+              Please add at least one policy with modified parameter
+            </Text>
           </div>
         )}
 
