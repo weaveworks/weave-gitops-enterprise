@@ -24,13 +24,13 @@ type NavbarwebDriver struct {
 func Navbar(webDriver *agouti.Page) *NavbarwebDriver {
 	navbar := NavbarwebDriver{
 		Title:        webDriver.Find(`.test-id-home`),
-		Clusters:     webDriver.Find(`a[href="/clusters"]`),
-		Templates:    webDriver.Find(`a[href="/templates"]`),
-		Applications: webDriver.Find(`a[href="/applications"]`),
-		Sources:      webDriver.Find(`a[href="/sources"]`),
-		Policies:     webDriver.Find(`a[href="/policies"]`),
-		Violations:   webDriver.Find(`a[href="/clusters/violations"]`),
-		Workspaces:   webDriver.Find(`a[href="/workspaces"]`),
+		Clusters:     webDriver.Find(`div[class*=Page__TopToolBar] a[href="/clusters"]`),
+		Templates:    webDriver.Find(`div[class*=Page__TopToolBar] a[href="/templates"]`),
+		Applications: webDriver.Find(`div[class*=Page__TopToolBar] a[href="/applications"]`),
+		Sources:      webDriver.Find(`div[class*=Page__TopToolBar] a[href="/sources"]`),
+		Policies:     webDriver.Find(`div[class*=Page__TopToolBar] a[href="/policies"]`),
+		Violations:   webDriver.Find(`div[class*=Page__TopToolBar] a[href="/clusters/violations"]`),
+		Workspaces:   webDriver.Find(`div[class*=Page__TopToolBar] a[href="/workspaces"]`),
 	}
 
 	return &navbar

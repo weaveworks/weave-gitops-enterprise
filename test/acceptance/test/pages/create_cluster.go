@@ -51,7 +51,7 @@ type CostEstimation struct {
 
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
-		CreateHeader: webDriver.Find(`.count-header`),
+		CreateHeader: webDriver.Find(`div[class*=Page__TopToolBar]`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new resource with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
