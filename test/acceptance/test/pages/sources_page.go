@@ -36,7 +36,7 @@ type SourceDetailPage struct {
 func GetSourcesPage(webDriver *agouti.Page) *SourcesPage {
 	return &SourcesPage{
 		SourceHeader:          webDriver.Find(`span[title="Sources"]`),
-		ApplicationHeaderLink: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationHeaderLink: webDriver.Find(`div[class*=Page__TopToolBar] a[href="/applications"]`),
 		SourcesList:           webDriver.First(`table tbody`),
 		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
 		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),

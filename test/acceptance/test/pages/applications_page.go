@@ -153,7 +153,7 @@ func CountUnfilteredAppViolations(webDriver *agouti.Page, filterKey, filterValue
 func GetApplicationsPage(webDriver *agouti.Page) *ApplicationsPage {
 	return &ApplicationsPage{
 		ApplicationHeader:     webDriver.Find(`span[title="Applications"]`),
-		ApplicationHeaderLink: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationHeaderLink: webDriver.Find(`div[class*=Page__TopToolBar] a[href="/applications"]`),
 		AddApplication:        webDriver.FindByButton("ADD AN APPLICATION"),
 		ApplicationsList:      webDriver.First(`table tbody`),
 		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
