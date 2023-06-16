@@ -11,6 +11,7 @@ export const muiTheme = (colors: any, mode: ThemeTypes) => {
     overrides: {
       ...theme.overrides,
       MuiButton: {
+        ...theme.overrides?.MuiButton,
         root: {
           ...theme.overrides?.MuiButton?.root,
           textTransform: 'none',

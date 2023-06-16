@@ -13,7 +13,6 @@ import {
   ThemeTypes,
   coreClient,
   theme,
-  ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import React, { ReactNode } from 'react';
 import {
@@ -25,7 +24,7 @@ import {
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import styled, { ThemeProvider, createGlobalStyle } from 'styled-components';
+import { ThemeProvider, createGlobalStyle } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
@@ -72,7 +71,8 @@ const GlobalStyle = createGlobalStyle`
   }
 
   html, body, #root {
-    height: 100vh;
+    height: 100%;
+    margin: 0;
   }
 
   body {
@@ -89,56 +89,56 @@ const GlobalStyle = createGlobalStyle`
     color: ${props => props.theme.colors.black};
     font-family: ${props => props.theme.fontFamilies.regular};
     font-size: ${props => props.theme.fontSizes.medium};
+    //we can not override Autocomplete in Mui createTheme without updating our Mui version. 
+    .policies-input {
+      border: 1px solid ${props => props.theme.colors.neutral20};
+    }
+    .MuiAutocomplete-inputRoot {
+      &.MuiInputBase-root {
+        padding: 0;
+      }
+    }
+    .MuiAutocomplete-groupLabel {
+      background: ${props => props.theme.colors.neutralGray};
+    }
+
+    a {
+      text-decoration: none;
+      color:  ${props => props.theme.colors.primary10};
+    }
+    .MuiFormControl-root {
+      min-width: 0px;
+    }
+    ::-webkit-scrollbar-track {
+      margin-top: 5px;
+      box-shadow: transparent;
+      background-color: transparent;
+      border-radius: 5px;
+    }
+    ::-webkit-scrollbar{
+      width: 5px;
+      height: 5px;
+      background-color: transparent;
+      margin-top: 50px;
+    }
+   ::-webkit-scrollbar-thumb {
+      background-color: ${props => props.theme.colors.neutral30};
+      border-radius: 5px;
+    }
+   ::-webkit-scrollbar-thumb:hover {
+      background-color: ${props => props.theme.colors.neutral30};
+    }
+    ::-webkit-scrollbar:hover{
+      width: 7px;
+      height:7px;
+    }
+  }
+
+  #root {
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
     justify-content: center;
-    margin: 0;
-  }
-
-  //we can not override Autocomplete in Mui createTheme without updating our Mui version. 
-  &.policies-input {
-    border: 1px solid ${props => props.theme.colors.neutral20};
-  }
-  &.MuiAutocomplete-inputRoot {
-    &.MuiInputBase-root {
-      padding: 0;
-    }
-  }
-  &.MuiAutocomplete-groupLabel {
-    background: ${props => props.theme.colors.neutralGray};
-  }
-  
-  a {
-    text-decoration: none;
-    color:  ${props => props.theme.colors.primary10};
-  }
-  .MuiFormControl-root {
-    min-width: 0px;
-  }
-  ::-webkit-scrollbar-track {
-    margin-top: 5px;
-    box-shadow: transparent;
-    background-color: transparent;
-    border-radius: 5px;
-  }
-
-  ::-webkit-scrollbar{
-    width: 5px;
-    height: 5px;
-    background-color: transparent;
-    margin-top: 50px;
-  }
- ::-webkit-scrollbar-thumb {
-    background-color: ${props => props.theme.colors.neutral30};
-    border-radius: 5px;
-  }
- ::-webkit-scrollbar-thumb:hover {
-    background-color: ${props => props.theme.colors.neutral30};
-  }
-  ::-webkit-scrollbar:hover{
-    width: 7px;
-    height:7px;
   }
 `;
 
@@ -182,17 +182,6 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-//TO DO: Remove once dark mode is implemented
-const SignInNoToggleMode = styled.div`
-  div[class*='SignIn__FormWrapper'] {
-    div[class*='SignIn__SwitchFlex'] {
-      span[class*='MuiSwitch-root'] {
-        visibility: hidden;
-      }
-    }
-  }
-`;
-
 const AppContainer = () => {
   return (
     <RequestContextProvider fetch={window.fetch}>
@@ -217,11 +206,7 @@ const AppContainer = () => {
                                 <Compose components={[NotificationsProvider]}>
                                   <Switch>
                                     <Route
-                                      component={() => (
-                                        <SignInNoToggleMode>
-                                          <SignIn />
-                                        </SignInNoToggleMode>
-                                      )}
+                                      component={() => <SignIn />}
                                       exact={true}
                                       path="/sign_in"
                                     />
