@@ -1,9 +1,8 @@
 import { Flex, useListObjects } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOpsRunTable from './GitOpsRunTable';
 import NoRunsMessage from './NoRunsMessage';
+import { Page } from '../../Layout/App';
 
 const GitOpsRun = () => {
   const { data: sessions, isLoading } = useListObjects('', 'StatefulSet', '', {
@@ -11,8 +10,8 @@ const GitOpsRun = () => {
     'app.kubernetes.io/part-of': 'gitops-run',
   });
   return (
-    <PageTemplate documentTitle="GitOps Run" path={[{ label: 'GitOps Run' }]}>
-      <ContentWrapper loading={isLoading} errors={sessions?.errors}>
+    <Page loading={isLoading} path={[{ label: 'GitOps Run' }]}>
+      <NotificationsWrapper errors={sessions?.errors}>
         {sessions?.objects?.length ? (
           <GitOpsRunTable sessions={sessions.objects} />
         ) : (
@@ -20,8 +19,8 @@ const GitOpsRun = () => {
             <NoRunsMessage />
           </Flex>
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

@@ -5,10 +5,10 @@ import {
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;
@@ -25,8 +25,8 @@ const WGApplicationsBucket: FC<Props> = props => {
   } = useGetObject<Bucket>(name, namespace, Kind.Bucket, clusterName);
 
   return (
-    <PageTemplate
-      documentTitle="Bucket"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Sources',
@@ -37,8 +37,7 @@ const WGApplicationsBucket: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
+      <NotificationsWrapper
         errors={
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
@@ -48,8 +47,8 @@ const WGApplicationsBucket: FC<Props> = props => {
           customActions={[<EditButton resource={bucket} />]}
           {...props}
         />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

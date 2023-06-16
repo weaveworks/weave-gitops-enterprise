@@ -5,9 +5,9 @@ import {
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;
@@ -29,8 +29,8 @@ const WGNotificationsProvider: FC<Props> = ({
   );
 
   return (
-    <PageTemplate
-      documentTitle="Notifications"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Notifications',
@@ -41,13 +41,10 @@ const WGNotificationsProvider: FC<Props> = ({
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
-        errors={error ? [{ message: error?.message }] : []}
-      >
+      <NotificationsWrapper errors={error ? [{ message: error?.message }] : []}>
         <ProviderDetail provider={data} />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

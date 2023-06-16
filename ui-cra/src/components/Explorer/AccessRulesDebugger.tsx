@@ -3,7 +3,7 @@ import _ from 'lodash';
 import styled from 'styled-components';
 import { AccessRule } from '../../api/query/query.pb';
 import { useListAccessRules } from '../../hooks/query';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 type Props = {
   className?: string;
@@ -12,7 +12,7 @@ type Props = {
 function AccessRulesDebugger({ className }: Props) {
   const { data: rules } = useListAccessRules();
   return (
-    <ContentWrapper>
+    <NotificationsWrapper>
       <div className={className}>
         <DataTable
           fields={[
@@ -39,7 +39,7 @@ function AccessRulesDebugger({ className }: Props) {
           rows={_.sortBy(rules?.rules, 'providedByRole')}
         />
       </div>
-    </ContentWrapper>
+    </NotificationsWrapper>
   );
 }
 

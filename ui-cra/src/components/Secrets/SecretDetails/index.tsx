@@ -4,12 +4,12 @@ import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { useSyncSecret } from './SyncSecret';
 import { Box } from '@material-ui/core';
+import { Page } from '../../Layout/App';
 
 const SecretDetails = ({
   externalSecretName,
@@ -64,14 +64,14 @@ const SecretDetails = ({
   };
 
   return (
-    <PageTemplate
-      documentTitle="Secrets"
+    <Page
+      loading={isSecretDetailsLoading}
       path={[
         { label: 'Secrets', url: Routes.Secrets },
         { label: secretDetails?.externalSecretName || '' },
       ]}
     >
-      <ContentWrapper loading={isSecretDetailsLoading}>
+      <NotificationsWrapper>
         <Box paddingBottom={3}>
           <Button
             id="sync-secret"
@@ -90,8 +90,8 @@ const SecretDetails = ({
           namespace={namespace}
           secretDetails={secretDetails || {}}
         />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

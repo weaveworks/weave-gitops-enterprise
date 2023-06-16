@@ -2337,10 +2337,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.25.1-rc.1":
-  version "0.25.1-rc.1"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.25.1-rc.1/6d232967529df8c3f9d1d41e42784f0c5eaac84e#6d232967529df8c3f9d1d41e42784f0c5eaac84e"
-  integrity sha512-Z76ETKi2DVCyGjoG2odKd0125SpBJFUMvAK3dFP0qVh5/Rx+5gh7dKDxXvohO1fTfeSPmJ5D/7tqX/ssRUVJmg==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.25.1-rc.1-17-g19665b9d":
+  version "0.25.1-rc.1-17-g19665b9d"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.25.1-rc.1-17-g19665b9d/d683c75df386d9e8cde5369af6f97dff62b658a8#d683c75df386d9e8cde5369af6f97dff62b658a8"
+  integrity sha512-rJbmy9tsnMG5m/I4W9uTiAV6x+v85dq3TaZjz2XB0WXqJLjVdmNRqS1XiU6hb5gTHz/1qcv0taUrw2rIQ1fo3w==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -8887,7 +8887,7 @@ react-markdown@^8.0.3:
 
 react-markdown@^8.0.7:
   version "8.0.7"
-  resolved "https://registry.npmjs.org/react-markdown/-/react-markdown-8.0.7.tgz"
+  resolved "https://registry.yarnpkg.com/react-markdown/-/react-markdown-8.0.7.tgz#c8dbd1b9ba5f1c5e7e5f2a44de465a3caafdf89b"
   integrity sha512-bvWbzG4MtOU62XqBx3Xx+zB2raaFFsq4mYiAzfjXJMEz2sixgeAfraA3tvzULF02ZdOMUOKTBFFaZJDDrq+BJQ==
   dependencies:
     "@types/hast" "^2.0.0"
@@ -9955,7 +9955,7 @@ style-to-object@^0.3.0:
 
 style-to-object@^0.4.0:
   version "0.4.1"
-  resolved "https://registry.npmjs.org/style-to-object/-/style-to-object-0.4.1.tgz"
+  resolved "https://registry.yarnpkg.com/style-to-object/-/style-to-object-0.4.1.tgz#53cf856f7cf7f172d72939d9679556469ba5de37"
   integrity sha512-HFpbb5gr2ypci7Qw+IOhnP2zOU7e77b+rzM+wTzXzfi1PrtBCX0E7Pk4wL4iTLnhzZ+JgEGAhX81ebTg/aYjQw==
   dependencies:
     inline-style-parser "0.1.1"

@@ -20,9 +20,9 @@ import {
   bitbucketServerOAuthRedirectURI,
   gitlabOAuthRedirectURI,
 } from '../../utils/formatters';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { getCallbackState, storeProviderToken } from './utils';
+import { Page } from '../Layout/App';
 
 type Props = {
   code: string;
@@ -111,8 +111,8 @@ function OAuthCallback({
   }, [error, setNotifications]);
 
   return (
-    <PageTemplate path={[{ label: 'OAuth Callback', url: '' }]}>
-      <ContentWrapper loading={loading}>
+    <Page loading={loading} path={[{ label: 'OAuth Callback', url: '' }]}>
+      <NotificationsWrapper>
         <Flex wide align center>
           {loading && <CircularProgress />}
           {/* Two possible error sources: OAuth misconfiguration, 
@@ -128,8 +128,8 @@ function OAuthCallback({
             <ErrorMessage title={paramsError} message={errorDescription} />
           )}
         </Flex>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

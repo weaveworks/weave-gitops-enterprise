@@ -6,10 +6,9 @@ import {
 } from '@weaveworks/weave-gitops';
 import { ImagePolicy } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
+import { Page } from '../../Layout/App';
 
 type Props = {
   className?: string;
@@ -29,15 +28,16 @@ function ImagePolicyDetails({ name, namespace, clusterName }: Props) {
     },
   );
   const rootPath = V2Routes.ImagePolicyDetails;
+
   return (
-    <PageTemplate
-      documentTitle={name}
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Image Policies', url: V2Routes.ImagePolicies },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         {data && (
           <ImageAutomationDetails
             data={data}
@@ -54,8 +54,8 @@ function ImagePolicyDetails({ name, namespace, clusterName }: Props) {
             <Metadata metadata={data?.metadata} labels={data?.labels} />
           </ImageAutomationDetails>
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

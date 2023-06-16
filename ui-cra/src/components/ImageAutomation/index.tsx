@@ -1,10 +1,10 @@
 import { Alert } from '@material-ui/lab';
 import { Flex } from '@weaveworks/weave-gitops';
 import { useCheckCRDInstalled } from '../../contexts/ImageAutomation';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ImageAutomation from './ImageAutomation';
 import OnboardingImageAutomationMessage from './OnboardingMessage';
+import { Page } from '../Layout/App';
 const crdName = 'imageupdateautomations.image.toolkit.fluxcd.io';
 
 function ImageAutomationPage() {
@@ -14,21 +14,18 @@ function ImageAutomationPage() {
     error,
   } = useCheckCRDInstalled(crdName);
   return (
-    <PageTemplate
-      documentTitle="Image Automation"
-      path={[{ label: 'Image Automation' }]}
-    >
-      <ContentWrapper loading={isLoading}>
+    <Page loading={isLoading} path={[{ label: 'Image Automation' }]}>
+      <NotificationsWrapper>
         {error && <Alert severity="error">{error.message}</Alert>}
         {!isCRDAvailable ? (
-          <Flex center>
+          <Flex center wide>
             <OnboardingImageAutomationMessage />
           </Flex>
         ) : (
           <ImageAutomation />
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 
