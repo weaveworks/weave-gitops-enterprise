@@ -168,7 +168,7 @@ type ViolationsList struct {
 
 func GetApplicationsDetailPage(webDriver *agouti.Page, appType string) *ApplicationDetailPage {
 	return &ApplicationDetailPage{
-		Header:     webDriver.Find(`.test-id-breadcrumbs > :last-child`),
+		Header:     webDriver.Find(`div[class*=Page__TopToolBar] span`),
 		Title:      webDriver.First(`div[class*="AutomationDetail"]`),
 		Sync:       webDriver.FindByButton(`Sync`),
 		Details:    webDriver.First(fmt.Sprintf(`div[role="tablist"] a[href*="/%s/detail"`, appType)),
@@ -271,7 +271,7 @@ func GetApplicationViolationsList(webDriver *agouti.Page, violationMsg string) *
 // GetApplicationViolationsDetailsPage returns all the locators for the app violations details page
 func GetApplicationViolationsDetailsPage(webDriver *agouti.Page) *ApplicationViolationsDetailsPage {
 	return &ApplicationViolationsDetailsPage{
-		ViolationHeader:        webDriver.Find(`.test-id-breadcrumbs > :last-child`),
+		ViolationHeader:        webDriver.Find(`div[class*=Page__TopToolBar] span`),
 		PolicyName:             webDriver.FindByXPath(`//div[text()="Policy Name"]`),
 		PolicyNameValue:        webDriver.FindByXPath(`//a[contains(@href,"/policies/details?")]`),
 		ClusterName:            webDriver.FindByXPath(`//div[text()="Cluster"]`),
