@@ -1,4 +1,3 @@
-import { CircularProgress } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Flex,
@@ -10,21 +9,23 @@ import {
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
-import { useEffect, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import useClusters from '../../hooks/clusters';
 import { localEEMuiTheme } from '../../muiTheme';
+import { Routes } from '../../utils/nav';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { CircularProgress } from '@material-ui/core';
+import { useEffect, useState } from 'react';
+import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
-import { Routes } from '../../utils/nav';
 import { useIsClusterWithSources } from '../Applications/utils';
 import { QueryState } from '../Explorer/hooks';
 import { linkToExplorer } from '../Explorer/utils';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { Tooltip } from '../Shared';
 import ClusterDashboard from './ClusterDashboard';
+import { Page } from '../Layout/App';
+
 type Props = {
   className?: string;
   name: string;
@@ -57,14 +58,14 @@ const ClusterDetails = ({ clusterName }: Props) => {
   );
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="Cluster Page"
+      <Page
+        loading={isLoading}
         path={[
           { label: 'Clusters', url: Routes.Clusters },
           { label: clusterName },
         ]}
       >
-        <ContentWrapper loading={isLoading}>
+        <NotificationsWrapper>
           {currentCluster && (
             <div style={{ overflowX: 'auto' }}>
               <ActionsWrapper>
@@ -131,8 +132,8 @@ const ClusterDetails = ({ clusterName }: Props) => {
               </SubRouterTabs>
             </div>
           )}
-        </ContentWrapper>
-      </PageTemplate>
+        </NotificationsWrapper>
+      </Page>
     </ThemeProvider>
   );
 };

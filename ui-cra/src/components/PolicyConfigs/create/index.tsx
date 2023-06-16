@@ -31,8 +31,7 @@ import { removeToken } from '../../../utils/request';
 import { createDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getRepositoryUrl,
@@ -41,6 +40,7 @@ import {
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { PreviewPRModal } from './PreviewPRModal';
+import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   width: 80%;
@@ -324,8 +324,7 @@ const CreatePolicyConfig = () => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="PolicyConfigs"
+      <Page
         path={[
           { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
           { label: 'Create New PolicyConfig' },
@@ -339,7 +338,7 @@ const CreatePolicyConfig = () => {
             },
           }}
         >
-          <ContentWrapper>
+          <NotificationsWrapper>
             <FormWrapper
               noValidate
               onSubmit={event =>
@@ -426,9 +425,9 @@ const CreatePolicyConfig = () => {
                 </Flex>
               )}
             </FormWrapper>
-          </ContentWrapper>
+          </NotificationsWrapper>
         </CallbackStateContextProvider>
-      </PageTemplate>
+      </Page>
     </ThemeProvider>
   );
 };

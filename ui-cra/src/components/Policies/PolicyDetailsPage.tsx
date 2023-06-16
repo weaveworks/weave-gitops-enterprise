@@ -1,7 +1,6 @@
-import { PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
+import { Page, PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 import { useGetPolicyDetails } from '../../contexts/PolicyViolations';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const PolicyDetailsPage = ({
   clusterName,
@@ -14,18 +13,19 @@ const PolicyDetailsPage = ({
     clusterName,
     policyName: id,
   });
+
   return (
-    <PageTemplate
-      documentTitle="Policies"
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Policies', url: V2Routes.Policies },
         { label: data?.policy?.name || '' },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         <PolicyDetails policy={data?.policy || {}} />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

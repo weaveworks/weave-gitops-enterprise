@@ -23,7 +23,6 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
@@ -47,8 +46,6 @@ import {
   Rancher,
   Vsphere,
 } from '../../utils/icons';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
 import {
@@ -60,14 +57,24 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
+import styled from 'styled-components';
+
+interface Size {
+  size?: 'small';
+}
+
+export const ActionsWrapper = styled(Flex)<Size>`
+  margin-bottom: ${({ theme }) => theme.spacing.medium};
+  & > .actionButton.btn {
+    margin-right: ${({ theme }) => theme.spacing.small};
+    margin-bottom: ${({ theme }) => theme.spacing.small};
+  }
+`;
 
 const IconSpan = styled.span`
   color: ${props => props.theme.colors.neutral30};
-`;
-
-const ActionsFlex = styled(Flex)`
-  align-items: center;
-  margin-bottom: ${props => props.theme.spacing.medium};
 `;
 
 export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
@@ -315,15 +322,15 @@ const MCCP: FC<{
   );
 
   return (
-    <PageTemplate documentTitle="Clusters" path={[{ label: 'Clusters' }]}>
+    <Page path={[{ label: 'Clusters' }]}>
       <CallbackStateContextProvider
         callbackState={{
           page: authRedirectPage as PageRoute,
           state: { formData, selectedCapiCluster },
         }}
       >
-        <ContentWrapper>
-          <ActionsFlex>
+        <NotificationsWrapper>
+          <ActionsWrapper>
             <Button
               id="create-cluster"
               startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -385,7 +392,7 @@ const MCCP: FC<{
               />
             )}
             <OpenedPullRequest />
-          </ActionsFlex>
+          </ActionsWrapper>
           <SubRouterTabs rootPath={`${path}/list`}>
             <RouterTab name="Clusters" path={`${path}/list`}>
               <LoadingWrapper loading={isLoading}>
@@ -475,9 +482,9 @@ const MCCP: FC<{
               <PolicyViolationsList req={{}} />
             </RouterTab>
           </SubRouterTabs>
-        </ContentWrapper>
+        </NotificationsWrapper>
       </CallbackStateContextProvider>
-    </PageTemplate>
+    </Page>
   );
 };
 

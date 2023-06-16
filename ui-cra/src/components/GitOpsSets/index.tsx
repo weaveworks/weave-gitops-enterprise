@@ -1,7 +1,7 @@
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   DataTable,
   KubeStatusIndicator,
-  LoadingPage,
   Timestamp,
   filterByStatusCallback,
   filterConfig,
@@ -16,9 +16,8 @@ import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Condition, computeMessage } from '../../utils/conditions';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { TableWrapper } from '../Shared';
+import { Page } from '../Layout/App';
+
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
@@ -117,28 +116,22 @@ const GitOpsSets: FC = () => {
   ];
 
   return (
-    <PageTemplate
-      documentTitle="GitOpsSets"
+    <Page
       path={[
         {
           label: 'GitOpsSets',
         },
       ]}
+      loading={isLoading}
     >
-      <ContentWrapper errors={data?.errors}>
-        {isLoading ? (
-          <LoadingPage />
-        ) : (
-          <TableWrapper id="gitopssets-list">
-            <DataTable
-              fields={fields}
-              rows={data?.gitopssets}
-              filters={initialFilterState}
-            />
-          </TableWrapper>
-        )}
-      </ContentWrapper>
-    </PageTemplate>
+      <NotificationsWrapper errors={data?.errors}>
+        <DataTable
+          fields={fields}
+          rows={data?.gitopssets}
+          filters={initialFilterState}
+        />
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

@@ -1,23 +1,14 @@
 import { useListCanaries } from '../../../contexts/ProgressiveDelivery';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { SectionHeader } from '../../Layout/SectionHeader';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { CanaryTable } from './Table';
 
 const ProgressiveDelivery = () => {
-  const { data, isLoading } = useListCanaries();
+  const { data } = useListCanaries();
 
   return (
-    <>
-      <SectionHeader
-        className="count-header"
-        path={[
-          { label: 'Delivery' },
-        ]}
-      />
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
-        {data?.canaries && <CanaryTable canaries={data.canaries} />}
-      </ContentWrapper>
-    </>
+    <NotificationsWrapper>
+      {data?.canaries && <CanaryTable canaries={data.canaries} />}
+    </NotificationsWrapper>
   );
 };
 

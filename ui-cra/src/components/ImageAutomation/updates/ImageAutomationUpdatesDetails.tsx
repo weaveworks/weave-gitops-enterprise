@@ -8,9 +8,9 @@ import {
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
+import { Page } from '../../Layout/App';
 
 type Props = {
   className?: string;
@@ -62,15 +62,16 @@ function ImageAutomationUpdatesDetails({
   );
 
   const rootPath = V2Routes.ImageAutomationUpdatesDetails;
+
   return (
-    <PageTemplate
-      documentTitle={name}
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Image Updates', url: V2Routes.ImageUpdates },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         {data && (
           <ImageAutomationDetails
             data={data}
@@ -81,8 +82,8 @@ function ImageAutomationUpdatesDetails({
             <Metadata metadata={data.metadata} labels={data?.labels} />
           </ImageAutomationDetails>
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

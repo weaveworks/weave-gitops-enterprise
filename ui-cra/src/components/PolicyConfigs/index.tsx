@@ -1,10 +1,10 @@
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { PolicyConfigsTable } from './Table';
 import { useListPolicyConfigs } from '../../contexts/PolicyConfigs';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useCallback } from 'react';
+import { Page } from '../Layout/App';
 
 const PolicyConfigsList = () => {
   const { data, isLoading } = useListPolicyConfigs({});
@@ -15,11 +15,8 @@ const PolicyConfigsList = () => {
     [history],
   );
   return (
-    <PageTemplate
-      documentTitle="PolicyConfigs"
-      path={[{ label: 'PolicyConfigs' }]}
-    >
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
+    <Page loading={isLoading} path={[{ label: 'PolicyConfigs' }]}>
+      <NotificationsWrapper errors={data?.errors}>
         <Button
           id="create-cluster"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -30,8 +27,8 @@ const PolicyConfigsList = () => {
         {data?.policyConfigs && (
           <PolicyConfigsTable PolicyConfigs={data.policyConfigs} />
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

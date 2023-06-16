@@ -13,8 +13,6 @@ import {
   encryptSopsSecret,
 } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from './ListClusters';
@@ -33,6 +31,8 @@ import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { Page } from '../../Layout/App';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();
@@ -117,8 +117,7 @@ const CreateSOPS = () => {
   const authRedirectPage = Routes.CreateSopsSecret;
 
   return (
-    <PageTemplate
-      documentTitle="SOPS"
+    <Page
       path={[
         { label: 'Secrets', url: Routes.Secrets },
         { label: 'Create new sops secret' },
@@ -132,7 +131,7 @@ const CreateSOPS = () => {
           },
         }}
       >
-        <ContentWrapper>
+        <NotificationsWrapper>
           <FormWrapper
             noValidate
             onSubmit={event => {
@@ -229,9 +228,9 @@ const CreateSOPS = () => {
               </Button>
             </div>
           </FormWrapper>
-        </ContentWrapper>
+        </NotificationsWrapper>
       </CallbackStateContextProvider>
-    </PageTemplate>
+    </Page>
   );
 };
 
