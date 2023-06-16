@@ -1,6 +1,5 @@
 import { FC } from 'react';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   GitRepositoryDetail,
   Kind,
@@ -9,6 +8,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;
@@ -30,8 +30,8 @@ const WGApplicationsGitRepository: FC<Props> = props => {
   );
 
   return (
-    <PageTemplate
-      documentTitle="Git Repository"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Sources',
@@ -42,8 +42,7 @@ const WGApplicationsGitRepository: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
+      <NotificationsWrapper
         errors={
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
@@ -53,8 +52,8 @@ const WGApplicationsGitRepository: FC<Props> = props => {
           customActions={[<EditButton resource={gitRepository} />]}
           {...props}
         />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

@@ -6,13 +6,12 @@ import {
   formatURL,
 } from '@weaveworks/weave-gitops';
 import { PolicyValidation } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-
 import { Breadcrumb } from '@weaveworks/weave-gitops/ui/components/Breadcrumbs';
 import styled from 'styled-components';
 import { useGetPolicyValidationDetails } from '../../contexts/PolicyViolations';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const getPath = (kind?: string, violation?: PolicyValidation): Breadcrumb[] => {
   if (!violation) return [{ label: '' }];
@@ -68,11 +67,11 @@ const PolicyViolationPage = ({ id, name, clusterName, kind }: Props) => {
   });
 
   return (
-    <PageTemplate
-      documentTitle="Policy Violation"
+    <Page
+      loading={isLoading}
       path={[...getPath(kind, violation), { label: name || '' }]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         {violation && (
           <ViolationDetails
             violation={violation}
@@ -80,8 +79,8 @@ const PolicyViolationPage = ({ id, name, clusterName, kind }: Props) => {
             kind={kind || ''}
           />
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

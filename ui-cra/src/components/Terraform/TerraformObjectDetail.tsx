@@ -28,8 +28,7 @@ import {
 } from '../../contexts/Terraform';
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
@@ -37,6 +36,7 @@ import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 import TerraformPlanView from './TerraformPlanView';
+import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;
@@ -149,8 +149,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
     pathname.endsWith('/plan') && !isLoadingPlan && enablePlanViewing && !error;
 
   return (
-    <PageTemplate
-      documentTitle="Terraform"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Terraform Objects',
@@ -161,7 +161,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         <div className={className}>
           <Box paddingBottom={3}>
             <KubeStatusIndicator
@@ -274,8 +274,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             </RouterTab>
           </SubRouterTabs>
         </div>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

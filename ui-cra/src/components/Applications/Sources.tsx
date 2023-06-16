@@ -8,8 +8,8 @@ import styled from 'styled-components';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
 import Explorer from '../Explorer/Explorer';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -34,15 +34,15 @@ const WGApplicationsSources: FC = ({ className }: any) => {
   }, [error, setNotifications]);
 
   return (
-    <PageTemplate
-      documentTitle="Application Sources"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Sources',
         },
       ]}
     >
-      <ContentWrapper errors={sources?.errors} loading={isLoading}>
+      <NotificationsWrapper errors={sources?.errors}>
         <div className={className}>
           {useQueryServiceBackend ? (
             <Explorer enableBatchSync category="source" />
@@ -50,12 +50,9 @@ const WGApplicationsSources: FC = ({ className }: any) => {
             <SourcesTable sources={sources?.result} />
           )}
         </div>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 
-export default styled(WGApplicationsSources)`
-  width: 100%;
-  overflow: auto;
-`;
+export default styled(WGApplicationsSources)``;

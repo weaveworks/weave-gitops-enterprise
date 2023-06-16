@@ -7,11 +7,11 @@ import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper, Title } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { Title, NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';
+import { Page } from '../../Layout/App';
 
 const EditResource: FC<{
   resource: Resource;
@@ -101,8 +101,8 @@ const EditResourcePage: FC<Props> = props => {
   };
 
   return (
-    <PageTemplate
-      documentTitle="Edit resource"
+    <Page
+      loading={isLoading || isTemplateLoading}
       path={[
         { label: 'Resource' },
         {
@@ -115,15 +115,15 @@ const EditResourcePage: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper loading={isLoading || isTemplateLoading}>
+      <NotificationsWrapper>
         <Grid container>
           <Grid item xs={12} sm={10} md={10} lg={8}>
             <Title>Edit resource</Title>
           </Grid>
           <EditResource resource={getEditableResource() || {}} />
         </Grid>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 
