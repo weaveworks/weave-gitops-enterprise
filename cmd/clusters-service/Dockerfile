@@ -24,7 +24,8 @@ RUN --mount=type=cache,target=/root/.cache/go-build \
 # Use distroless as minimal base image
 # Refer to https://github.com/GoogleContainerTools/distroless for more details
 # Use `base` variant as we compile with CGO_ENABLED=1 for sqlite3 and it includes glibc
-FROM gcr.io/distroless/base:nonroot
+#FROM gcr.io/distroless/base:nonroot
+FROM alpine:3.18
 
 ARG now
 ARG revision
@@ -42,21 +43,8 @@ WORKDIR /
 COPY --from=build /app/cmd/clusters-service/clusters-service .
 
 # gpg is needed for sops encryption and decryption
-COPY --from=build /usr/bin/gpg /usr/bin/gpg
-# required libraries to run gpg
-COPY --from=build /lib/x86_64-linux-gnu/libz.so.1 /lib/x86_64-linux-gnu/libz.so.1
-COPY --from=build /lib/x86_64-linux-gnu/libbz2.so.1.0 /lib/x86_64-linux-gnu/libbz2.so.1.0
-COPY --from=build /usr/lib/x86_64-linux-gnu/libsqlite3.so.0 /usr/lib/x86_64-linux-gnu/libsqlite3.so.0
-COPY --from=build /usr/lib/x86_64-linux-gnu/libgcrypt.so.20 /usr/lib/x86_64-linux-gnu/libgcrypt.so.20
-COPY --from=build /lib/x86_64-linux-gnu/libreadline.so.8 /lib/x86_64-linux-gnu/libreadline.so.8
-COPY --from=build /usr/lib/x86_64-linux-gnu/libassuan.so.0 /usr/lib/x86_64-linux-gnu/libassuan.so.0
-COPY --from=build /lib/x86_64-linux-gnu/libgpg-error.so.0 /lib/x86_64-linux-gnu/libgpg-error.so.0
-COPY --from=build /lib/x86_64-linux-gnu/libc.so.6 /lib/x86_64-linux-gnu/libc.so.6
-COPY --from=build /lib/x86_64-linux-gnu/libm.so.6 /lib/x86_64-linux-gnu/libm.so.6
-COPY --from=build /lib/x86_64-linux-gnu/libpthread.so.0 /lib/x86_64-linux-gnu/libpthread.so.0
-COPY --from=build /lib/x86_64-linux-gnu/libdl.so.2 /lib/x86_64-linux-gnu/libdl.so.2
-COPY --from=build /lib/x86_64-linux-gnu/libtinfo.so.6 /lib/x86_64-linux-gnu/libtinfo.so.6
-COPY --from=build /lib64/ld-linux-x86-64.so.2 /lib64/ld-linux-x86-64.so.2
+RUN apk --no-cache add ca-certificates gnupg \
+  && update-ca-certificates
 
 USER 65532:65532
 
