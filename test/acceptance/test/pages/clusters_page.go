@@ -144,7 +144,7 @@ func GetClustersPage(webDriver *agouti.Page) *ClustersPage {
 func GetClusterDetailPage(webDriver *agouti.Page) *ClusterDetailPage {
 	infoList := webDriver.Find(`table[class*="InfoList"]`)
 	return &ClusterDetailPage{
-		Header:       webDriver.Find(`div[class*=Page__TopToolBar] span`),
+		Header:       webDriver.Find(`div[class*=Page__TopToolBar] span[class*=Breadcrumbs]`),
 		Applications: infoList.FindByButton(`GO TO APPLICATIONS`),
 		Kubeconfig:   infoList.FindByXPath(`//td[.="kubeconfig:"]/following-sibling::td`),
 		Namespace:    webDriver.FindByXPath(`//td[.="Namespace:"]/following-sibling::td`),
