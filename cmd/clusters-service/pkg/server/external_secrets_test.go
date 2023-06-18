@@ -193,6 +193,7 @@ func TestGetExternalSecret(t *testing.T) {
 						},
 						Data: []esv1beta1.ExternalSecretData{
 							{
+								SecretKey: "secret-a",
 								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
 									Key:      "Data/key-a",
 									Property: "property-a",
@@ -217,6 +218,7 @@ func TestGetExternalSecret(t *testing.T) {
 						},
 						Data: []esv1beta1.ExternalSecretData{
 							{
+								SecretKey: "secret-b",
 								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
 									Key:      "Data/key-b",
 									Property: "property-b",
@@ -249,8 +251,8 @@ func TestGetExternalSecret(t *testing.T) {
 				SecretStore:        "aws-secret-store",
 				SecretStoreType:    "AWS Secrets Manager",
 				SecretPath:         "Data/key-a",
-				Properties: []string{
-					"property-a",
+				Properties: map[string]string{
+					"property-a": "secret-a",
 				},
 				Version: "1.0.0",
 			},
@@ -269,8 +271,8 @@ func TestGetExternalSecret(t *testing.T) {
 				SecretStore:        "valt-secret-store",
 				SecretStoreType:    "HashiCorp Vault",
 				SecretPath:         "Data/key-b",
-				Properties: []string{
-					"property-b",
+				Properties: map[string]string{
+					"property-b": "secret-b",
 				},
 				Version: "1.0.0",
 			},

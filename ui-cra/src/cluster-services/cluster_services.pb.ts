@@ -695,7 +695,7 @@ export type GetExternalSecretResponse = {
   secretStore?: string
   secretStoreType?: string
   secretPath?: string
-  properties?: string[]
+  properties?: {[key: string]: string}
   version?: string
   status?: string
   timestamp?: string
