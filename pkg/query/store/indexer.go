@@ -62,8 +62,8 @@ func NewIndexer(s Store, path string) (Indexer, error) {
 	}
 
 	return &bleveIndexer{
-		idx:   index,
-		store: s,
+		idx:      index,
+		store:    s,
 		recorder: metrics.NewRecorder(true, "explorer_indexer"),
 	}, nil
 }
@@ -93,8 +93,8 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 }
 
 type bleveIndexer struct {
-	idx   bleve.Index
-	store Store
+	idx      bleve.Index
+	store    Store
 	recorder metrics.Recorder
 }
 
@@ -102,9 +102,9 @@ func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
 	start := time.Now()
 	batch := i.idx.NewBatch()
 	const action = "add"
-	
+
 	i.recorder.InflightRequests(action, 1)
-	
+
 	var err error
 	defer func() {
 		i.recorder.SetStoreLatency(action, time.Since(start))

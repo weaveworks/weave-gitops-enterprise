@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
+	"github.com/weaveworks/weave-gitops/core/logger"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -23,9 +23,9 @@ import (
 const dbFile = "resources.db"
 
 type SQLiteStore struct {
-	db    *gorm.DB
-	log   logr.Logger
-	debug logr.Logger
+	db       *gorm.DB
+	log      logr.Logger
+	debug    logr.Logger
 	recorder metrics.Recorder
 }
 
@@ -75,9 +75,9 @@ func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) e
 
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
-		db:    db,
-		log:   log.WithName("sqllite"),
-		debug: log.WithName("sqllite").V(logger.LogLevelDebug),
+		db:       db,
+		log:      log.WithName("sqllite"),
+		debug:    log.WithName("sqllite").V(logger.LogLevelDebug),
 		recorder: metrics.NewRecorder(true, "explorer_datastore"),
 	}, nil
 }

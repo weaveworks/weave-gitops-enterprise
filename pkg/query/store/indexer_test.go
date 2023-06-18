@@ -10,6 +10,7 @@ import (
 
 	bleve "github.com/blevesearch/bleve/v2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 )
 
 func TestIndexer_RemoveByQuery(t *testing.T) {
@@ -58,8 +59,9 @@ func TestIndexer_RemoveByQuery(t *testing.T) {
 			g.Expect(err).NotTo(HaveOccurred())
 
 			idx := &bleveIndexer{
-				idx:   index,
-				store: s,
+				idx:      index,
+				store:    s,
+				recorder: metrics.NewRecorder(true, "explorer_indexer"),
 			}
 
 			err = idx.Add(context.Background(), tt.objects)
