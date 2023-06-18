@@ -1,9 +1,10 @@
 import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOpsRunLogs from './GitOpsRunLogs';
+import { Page } from '../../Layout/App';
+
 type Props = {
   name?: string;
   namespace?: string;
@@ -19,19 +20,16 @@ const PageTitle = styled.h4`
 const GitOpsRunDetail = ({ name, namespace }: Props) => {
   const { path } = useRouteMatch();
   return (
-    <PageTemplate
-      documentTitle="GitOps Run Detail"
-      path={[{ label: 'GitOps Run Detail' }]}
-    >
-      <ContentWrapper>
+    <Page path={[{ label: 'GitOps Run Detail' }]}>
+      <NotificationsWrapper>
         <PageTitle>{name}</PageTitle>
         <SubRouterTabs rootPath={`${path}/logs`}>
           <RouterTab name="Logs" path={`${path}/logs`}>
             <GitOpsRunLogs name={name || ''} namespace={namespace || ''} />
           </RouterTab>
         </SubRouterTabs>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

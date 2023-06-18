@@ -9,6 +9,7 @@ import { ListError } from '../../cluster-services/cluster_services.pb';
 
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {
+    width: auto;
     margin-bottom: ${props => props.theme.spacing.base};
     background: ${props => props.theme.colors.alertLight};
     border-radius: ${props => props.theme.spacing.xs};

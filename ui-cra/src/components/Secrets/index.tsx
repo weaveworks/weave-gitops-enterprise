@@ -1,11 +1,11 @@
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
 import { useListSecrets } from '../../contexts/Secrets';
 import { SecretsTable } from './Table';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Button, Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useCallback } from 'react';
 import { Routes } from '../../utils/nav';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const SecretsList = () => {
   const { data, isLoading } = useListSecrets({});
@@ -17,22 +17,24 @@ const SecretsList = () => {
   );
 
   return (
-    <PageTemplate documentTitle="Secrets" path={[{ label: 'Secrets' }]}>
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
-        <Button
-          id="create-secrets"
-          startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={() => handleCreateSecret(Routes.CreateSecret)}
-        >
-          CREATE EXTERNAL SECRET
-        </Button>
-        <Button
-          id="create-sops-secrets"
-          startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={() => handleCreateSecret(Routes.CreateSopsSecret)}
-        >
-          CREATE SOPS SECRET
-        </Button>
+    <Page loading={isLoading} path={[{ label: 'Secrets' }]}>
+      <NotificationsWrapper errors={data?.errors}>
+        <Flex>
+          <Button
+            id="create-secrets"
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={() => handleCreateSecret(Routes.CreateSecret)}
+          >
+            CREATE EXTERNAL SECRET
+          </Button>
+          <Button
+            id="create-sops-secrets"
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={() => handleCreateSecret(Routes.CreateSopsSecret)}
+          >
+            CREATE SOPS SECRET
+          </Button>
+        </Flex>
         {data?.secrets && (
           <>
             <h2
@@ -45,8 +47,8 @@ const SecretsList = () => {
             <SecretsTable secrets={data.secrets} />
           </>
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

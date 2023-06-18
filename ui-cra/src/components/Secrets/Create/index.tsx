@@ -14,11 +14,11 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
-  PolicyConfigApplicationMatch,
+  ExternalSecretStore,
+  GitopsCluster,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
-import { useGetClustersList } from '../../../contexts/PolicyConfigs';
 import {
   expiredTokenNotification,
   useIsAuthenticated,
@@ -28,7 +28,10 @@ import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
-import { createDeploymentObjects } from '../../Applications/utils';
+import {
+  createDeploymentObjects,
+  useClustersWithSources,
+} from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
@@ -37,55 +40,23 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
-import { SelectMatchType } from './Form/Partials/SelectTargetList';
-import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
+import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PreviewPRModal } from './PreviewPRModal';
 import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   width: 80%;
   padding-bottom: ${props => props.theme.spacing.large} !important;
-
   .group-section {
     border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
-    padding-right: ${props => props.theme.spacing.medium};
-    padding-bottom: ${props => props.theme.spacing.medium};
     .form-section {
       width: 50%;
-    }
-    .form-field {
-      label {
-        margin-top: ${props => props.theme.spacing.xs} !important;
-        margin-bottom: ${props => props.theme.spacing.base} !important;
-        font-size: ${props => props.theme.fontSizes.large};
-      }
-      &.policyField {
-        width: 50%;
-        label {
-          margin-bottom: ${props => props.theme.spacing.small} !important;
-        }
-        div[class*='MuiAutocomplete-tag'] {
-          display: none;
-        }
-        div[class*='MuiAutocomplete-inputRoot'] {
-         padding-right: 9px;
-        }
-      }
-      .form-section {
-        label {
-          display: none !important;
-        }
-      }
-    }
-
-    .form-section {
-      display: flex;
-      div[class*='MuiInputBase-root'] {
-        margin-right: ${props => props.theme.spacing.small};
-      }
       .Mui-disabled {
         background: ${props => props.theme.colors.neutral10} !important;
         border-color: ${props => props.theme.colors.neutral20} !important;
+      }
+      .MuiInputBase-root {
+        margin-right: ${props => props.theme.spacing.medium};
       }
     }
   }
@@ -104,16 +75,19 @@ interface FormData {
   pullRequestTitle: string;
   commitMessage: string;
   pullRequestDescription: string;
-  policyConfigName: string;
-  matchType: string;
-  match: any;
-  appMatch: any;
-  wsMatch: any;
-  policies: any;
-  isControlPlane: boolean;
-  clusterName: string;
-  clusterNamespace: string;
-  selectedCluster: any;
+  clusterAutomations: {
+    targetCluster: string;
+    clusterName: string;
+    clusterNamespace: string;
+    isControlPlane: boolean;
+    secretName: string;
+    secretNamespace: string;
+    secretStoreKind: string;
+    secretStoreRef: string;
+    dataSecretKey: string;
+    dataRemoteRefKey: string;
+    dataRemoteRef_property: string;
+  }[];
 }
 
 function getInitialData(
@@ -123,18 +97,25 @@ function getInitialData(
   let defaultFormData = {
     repo: null,
     provider: '',
-    branchName: `add-policyConfig-branch-${random}`,
-    pullRequestTitle: 'Add PolicyConfig',
-    commitMessage: 'Add PolicyConfig',
-    pullRequestDescription: 'This PR adds a new PolicyConfig',
-    clusterName: '',
-    clusterNamespace: '',
-    isControlPlane: false,
-    policyConfigName: '',
-    matchType: '',
-    policies: {},
-    wsMatch: [],
-    appMatch: [],
+    branchName: `add-external-secret-branch-${random}`,
+    pullRequestTitle: 'Add External Secret',
+    commitMessage: 'Add External Secret',
+    pullRequestDescription: 'This PR adds a new External Secret',
+    clusterAutomations: [
+      {
+        clusterName: '',
+        clusterNamespace: '',
+        isControlPlane: false,
+        secretName: '',
+        secretNamespace: '',
+        refreshInterval: '1h',
+        secretStoreRef: '',
+        secretStoreType: '',
+        dataSecretKey: '',
+        dataRemoteRefKey: '',
+        dataRemoteRef_property: '',
+      },
+    ],
   };
 
   const initialFormData = {
@@ -144,44 +125,45 @@ function getInitialData(
 
   return { initialFormData };
 }
-const CreatePolicyConfig = () => {
+const CreateSecret = () => {
   const history = useHistory();
 
-  let { data: allClusters } = useGetClustersList({});
-  const clusters = allClusters?.gitopsClusters
-    ?.filter(s => s.conditions![0].status === 'True')
-    .sort();
-
+  let clusters: GitopsCluster[] | undefined = useClustersWithSources(true);
   const { setNotifications } = useNotifications();
-  const [selectedWorkspacesList, setSelectedWorkspacesList] = useState<any[]>();
-  const [selectedAppsList, setSelectedAppsList] =
-    useState<PolicyConfigApplicationMatch[]>();
 
   const callbackState = useCallbackState();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { initialFormData } = getInitialData(callbackState, random);
-  const authRedirectPage = `/policyConfigs/create`;
+  const authRedirectPage = `/secrets/create`;
 
   const [loading, setLoading] = useState<boolean>(false);
+  const [isclusterSelected, setIsclusterSelected] = useState<boolean>(false);
 
   const [showAuthDialog, setShowAuthDialog] = useState<boolean>(false);
   const [formData, setFormData] = useState<any>(initialFormData);
+  const [selectedSecretStore, setSelectedSecretStore] =
+    useState<ExternalSecretStore>({});
 
-  const { data } = useListSources('', '', { retry: false });
+  const { data } = useListSources();
   const gitRepos = useMemo(() => getGitRepos(data?.result), [data?.result]);
   const initialGitRepo = useGetInitialGitRepo(null, gitRepos);
 
   const [formError, setFormError] = useState<string>('');
+  const automation = formData.clusterAutomations[0];
 
   const {
+    secretName,
+    secretNamespace,
+    secretStoreKind,
+    dataSecretKey,
     clusterName,
-    policyConfigName,
+    secretStoreRef,
+    dataRemoteRefKey,
+    dataRemoteRef_property,
     clusterNamespace,
     isControlPlane,
-    matchType,
-    selectedCluster,
-    policies,
-  } = formData;
+    targetCluster,
+  } = automation;
 
   useEffect(() => clearCallbackState(), []);
 
@@ -192,43 +174,58 @@ const CreatePolicyConfig = () => {
         repo: initialGitRepo,
       }));
     }
-  }, [initialGitRepo, formData.repo, clusterName]);
+    if (targetCluster) {
+      setIsclusterSelected(true);
+    }
+  }, [initialGitRepo, formData.repo, targetCluster]);
 
   const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
-    const clusterDetails = {
+    let currentAutomation = [...formData.clusterAutomations];
+    setSelectedSecretStore({});
+    currentAutomation[0] = {
+      ...automation,
+      isControlPlane: value.name === 'management' ? true : false,
       clusterName: value.name,
       clusterNamespace: value.namespace,
-      selectedCluster: cluster,
-      isControlPlane: value.name === 'management' ? true : false,
+      targetCluster: cluster,
+      secretStoreType: '',
+      secretStoreRef: '',
+      secretNamespace: '',
+      secretStoreKind: '',
     };
-    setFormData(
-      (f: any) =>
-        (f = {
-          ...f,
-          ...clusterDetails,
-        }),
-    );
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
+    setIsclusterSelected(true);
   };
+
   useEffect(() => {
     setFormData((prevState: any) => ({
       ...prevState,
-      pullRequestTitle: `Add PolicyConfig ${formData.policyConfigName}`,
+      pullRequestTitle: `Add External Secret ${formData.clusterAutomations[0].secretName}`,
     }));
-  }, [formData.policyConfigName]);
+  }, [formData.clusterAutomations]);
 
-  const handleFormData = (fieldName?: string, value?: any) => {
-    setFormData((f: any) => (f = { ...f, [fieldName as string]: value }));
+  const handleFormData = (
+    event: React.ChangeEvent<{ name?: string; value: unknown }>,
+    fieldName?: string,
+  ) => {
+    const { value } = event?.target;
+    let currentAutomation = [...formData.clusterAutomations];
+
+    currentAutomation[0] = {
+      ...automation,
+      [fieldName as string]: value,
+    };
+
+    setFormData({
+      ...formData,
+      clusterAutomations: currentAutomation,
+    });
   };
-  const getTargetList = useCallback(() => {
-    switch (matchType) {
-      case 'workspaces':
-        return selectedWorkspacesList;
-      case 'apps':
-        return selectedAppsList;
-    }
-  }, [selectedWorkspacesList, selectedAppsList, matchType]);
 
   const getClusterAutomations = useCallback(() => {
     let clusterAutomations: ClusterAutomation[] = [];
@@ -237,28 +234,43 @@ const CreatePolicyConfig = () => {
         name: clusterName,
         namespace: clusterNamespace,
       },
-      policyConfig: {
+      isControlPlane: isControlPlane,
+      externalSecret: {
         metadata: {
-          name: policyConfigName,
+          name: secretName,
+          namespace: secretNamespace,
         },
         spec: {
-          match: {
-            [matchType]: getTargetList(),
+          refreshInterval: '1h',
+          secretStoreRef: {
+            name: secretStoreRef,
+            kind: secretStoreKind,
           },
-          config: policies,
+          target: {
+            name: dataSecretKey,
+          },
+          data: {
+            secretKey: dataSecretKey,
+            remoteRef: {
+              key: dataRemoteRefKey,
+              property: dataRemoteRef_property,
+            },
+          },
         },
       },
-      isControlPlane: isControlPlane,
     });
     return clusterAutomations;
   }, [
     clusterName,
     clusterNamespace,
     isControlPlane,
-    policyConfigName,
-    policies,
-    getTargetList,
-    matchType,
+    secretName,
+    secretNamespace,
+    secretStoreRef,
+    secretStoreKind,
+    dataSecretKey,
+    dataRemoteRefKey,
+    dataRemoteRef_property,
   ]);
 
   const token = getProviderToken(formData.provider);
@@ -268,7 +280,7 @@ const CreatePolicyConfig = () => {
     token,
   );
 
-  const handleCreatePolicyConfig = useCallback(() => {
+  const handleCreateSecret = useCallback(() => {
     const payload = {
       headBranch: formData.branchName,
       title: formData.pullRequestTitle,
@@ -283,7 +295,7 @@ const CreatePolicyConfig = () => {
       .then(() =>
         createDeploymentObjects(payload, getProviderToken(formData.provider))
           .then(response => {
-            history.push(Routes.PolicyConfigs);
+            history.push(Routes.Secrets);
             setNotifications([
               {
                 message: {
@@ -326,8 +338,8 @@ const CreatePolicyConfig = () => {
     <ThemeProvider theme={localEEMuiTheme}>
       <Page
         path={[
-          { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
-          { label: 'Create New PolicyConfig' },
+          { label: 'Secrets', url: Routes.Secrets },
+          { label: 'Create new external secret' },
         ]}
       >
         <CallbackStateContextProvider
@@ -342,64 +354,89 @@ const CreatePolicyConfig = () => {
             <FormWrapper
               noValidate
               onSubmit={event =>
-                validateFormData(event, handleCreatePolicyConfig, setFormError)
+                validateFormData(event, handleCreateSecret, setFormError)
               }
             >
               <div className="group-section">
+                <div className="form-group">
+                  <Input
+                    className="form-section"
+                    required
+                    name="secretName"
+                    label="EXTERNAL SECRET NAME"
+                    value={secretName}
+                    onChange={event => handleFormData(event, 'secretName')}
+                    error={formError === 'secretName' && !secretName}
+                  />
+                  <Input
+                    className="form-section"
+                    required
+                    name="dataSecretKey"
+                    label="TARGET K8s SECRET NAME"
+                    value={dataSecretKey}
+                    onChange={event => handleFormData(event, 'dataSecretKey')}
+                    error={formError === 'dataSecretKey' && !dataSecretKey}
+                  />
+                  <Select
+                    className="form-section"
+                    name="clusterName"
+                    required={true}
+                    label="TARGET CLUSTER"
+                    value={targetCluster || ''}
+                    onChange={HandleSelectCluster}
+                    error={formError === 'clusterName' && !clusterName}
+                  >
+                    {!clusters?.length ? (
+                      <MenuItem disabled={true}>Loading...</MenuItem>
+                    ) : (
+                      clusters?.map((option, index: number) => {
+                        return (
+                          <MenuItem key={index} value={JSON.stringify(option)}>
+                            {option.name}
+                          </MenuItem>
+                        );
+                      })
+                    )}
+                  </Select>
+                </div>
+                {isclusterSelected && (
+                  <SelectSecretStore
+                    cluster={
+                      clusterNamespace
+                        ? `${clusterNamespace}/${clusterName}`
+                        : clusterName
+                    }
+                    formError={formError}
+                    handleFormData={handleFormData}
+                    selectedSecretStore={selectedSecretStore || {}}
+                    setSelectedSecretStore={setSelectedSecretStore}
+                    formData={formData}
+                    setFormData={setFormData}
+                    automation={automation}
+                  />
+                )}
                 <Input
                   className="form-section"
-                  name="policyConfigName"
                   required
-                  description="The name of your policy config"
-                  label="NAME"
-                  value={policyConfigName}
-                  onChange={e =>
-                    handleFormData('policyConfigName', e.target.value)
-                  }
-                  error={formError === 'policyConfigName' && !policyConfigName}
+                  name="dataRemoteRefKey"
+                  label="SECRET PATH"
+                  value={dataRemoteRefKey}
+                  onChange={event => handleFormData(event, 'dataRemoteRefKey')}
+                  error={formError === 'dataRemoteRefKey' && !dataRemoteRefKey}
                 />
-                <Select
+                <Input
                   className="form-section"
-                  name="clusterName"
                   required
-                  label="CLUSTER"
-                  value={selectedCluster || ''}
-                  description="Select your cluster"
-                  onChange={HandleSelectCluster}
-                  error={formError === 'clusterName' && !clusterName}
-                >
-                  {!clusters?.length ? (
-                    <MenuItem disabled={true}>Loading...</MenuItem>
-                  ) : (
-                    clusters?.map((option, index: number) => {
-                      return (
-                        <MenuItem
-                          key={option.name}
-                          value={JSON.stringify(option)}
-                        >
-                          {option.name}
-                        </MenuItem>
-                      );
-                    })
-                  )}
-                </Select>
-                <SelectMatchType
-                  formError={formError}
-                  formData={formData}
-                  cluster={clusterName}
-                  handleFormData={handleFormData}
-                  selectedWorkspacesList={selectedWorkspacesList || []}
-                  setSelectedWorkspacesList={setSelectedWorkspacesList}
-                  setFormData={setFormData}
-                  selectedAppsList={selectedAppsList || []}
-                  setSelectedAppsList={setSelectedAppsList}
-                />
-
-                <SelectedPolicies
-                  cluster={clusterName}
-                  setFormData={setFormData}
-                  formData={formData}
-                  formError={formError}
+                  name="dataRemoteRef_property"
+                  label="PROPERTY"
+                  value={dataRemoteRef_property}
+                  onChange={event =>
+                    handleFormData(event, 'dataRemoteRef_property')
+                  }
+                  error={
+                    formError === 'dataRemoteRef_property' &&
+                    !dataRemoteRef_property
+                  }
                 />
               </div>
               <PreviewPRModal
@@ -432,4 +469,4 @@ const CreatePolicyConfig = () => {
   );
 };
 
-export default CreatePolicyConfig;
+export default CreateSecret;

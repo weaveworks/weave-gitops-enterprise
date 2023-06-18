@@ -10,19 +10,19 @@ import {
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import SearchIcon from '@material-ui/icons/Search';
-import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { Autocomplete } from '@material-ui/lab';
-import { Dispatch, useEffect, useMemo, useState } from 'react';
 import {
-  Policy,
+  PolicyObj,
   PolicyParam,
-} from '../../../../../cluster-services/cluster_services.pb';
-import { useListListPolicies } from '../../../../../contexts/PolicyViolations';
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import { Dispatch, useEffect, useMemo, useState } from 'react';
+import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { Input } from '../../../../../utils/form';
 import {
   PolicyDetailsCardWrapper,
   usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
+import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 
 interface SelectSecretStoreProps {
   cluster: string;
@@ -38,9 +38,9 @@ export const SelectedPolicies = ({
   formError,
 }: SelectSecretStoreProps) => {
   const classes = usePolicyConfigStyle();
-  const [selectedPolicies, setSelectedPolicies] = useState<Policy[]>([]);
+  const [selectedPolicies, setSelectedPolicies] = useState<PolicyObj[]>([]);
 
-  const { data } = useListListPolicies({});
+  const { data } = useListPolicies({});
 
   const policiesList = useMemo(
     () =>
@@ -58,7 +58,7 @@ export const SelectedPolicies = ({
       data?.policies?.length &&
       selectedPolicies.length === 0
     ) {
-      const selected: Policy[] = policiesList.filter((p: Policy) =>
+      const selected: PolicyObj[] = policiesList.filter((p: PolicyObj) =>
         Object.keys(formData.policies).includes(p.id!),
       );
       setSelectedPolicies(selected);

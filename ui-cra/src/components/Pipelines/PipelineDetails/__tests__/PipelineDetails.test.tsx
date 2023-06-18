@@ -264,8 +264,8 @@ describe('PipelineDetails', () => {
     });
 
     // Breadcrumbs
-    const breadcrumbs = screen.queryAllByRole('heading');
-    expect(breadcrumbs[0].textContent).toEqual('Pipelines');
+    const title = screen.getByTestId('link-Pipelines').textContent;
+    expect(title).toEqual('Pipelines');
     expect(await screen.findByText('podinfo-02')).toBeTruthy();
 
     const targetsStatuses = params?.status?.environments || {};

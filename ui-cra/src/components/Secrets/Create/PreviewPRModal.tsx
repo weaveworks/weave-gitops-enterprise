@@ -1,22 +1,23 @@
 import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
-import styled from 'styled-components';
 import useNotifications from '../../../contexts/Notifications';
-import { PolicyConfigPRPreview } from '../../../types/custom';
+import { SecretPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
+import styled from 'styled-components';
 
 const PreviewPRSection = styled(Flex)`
   padding: ${props => props.theme.spacing.small};
 `;
 
+
+
 export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<PolicyConfigPRPreview | null>(
-    null,
-  );
+  const [PRPreview, setPRPreview] = useState<SecretPRPreview | null>(null);
   const { setNotifications } = useNotifications();
+
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
     return renderKustomization({ clusterAutomations: getClusterAutomations() })
@@ -53,7 +54,7 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
       )}
       {openPreview && PRPreview ? (
         <Preview
-          context="policyconfig"
+          context="secret"
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
           PRPreview={PRPreview}

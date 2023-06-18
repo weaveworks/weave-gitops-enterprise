@@ -1,9 +1,9 @@
 import { useGetPolicyConfigDetails } from '../../../contexts/PolicyConfigs';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import PolicyConfigHeaderSection from './PolicyConfigHeaderSection';
 import PolicyDetailsCard from './PolicyDetailsCard';
+import { Page } from '../../Layout/App';
 
 const PolicyConfigDetails = ({
   clusterName,
@@ -19,15 +19,14 @@ const PolicyConfigDetails = ({
     });
 
   return (
-    <PageTemplate
-      documentTitle="PolicyConfigs"
+    <Page
+      loading={isPolicyConfigLoading}
       path={[
         { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
         { label: PolicyConfig?.name || '' },
       ]}
     >
-      <ContentWrapper
-        loading={isPolicyConfigLoading}
+      <NotificationsWrapper
         warningMsg={
           PolicyConfig?.status === 'Warning'
             ? 'One or more than a policy isn’t found in the cluster.'
@@ -45,8 +44,8 @@ const PolicyConfigDetails = ({
           totalPolicies={PolicyConfig?.totalPolicies}
           clusterName={clusterName}
         />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 
