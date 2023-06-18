@@ -33,13 +33,13 @@ import ImageAutomationUpdatesDetails from './components/ImageAutomation/updates/
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import PolicyViolationPage from './components/Policies/PolicyViolationPage';
+import Policies from './components/Policies/PoliciesListPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
-import CreateExternalSecret from './components/Secrets/ExternalSecrets';
 import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
@@ -53,7 +53,7 @@ import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import { Page } from './components/Layout/App';
-import Policies from './components/Policies/PoliciesListPage';
+import CreateExternalSecret from './components/Secrets/ExternalSecrets';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
