@@ -79,7 +79,7 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.11.3
 	k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/kubernetes v1.15.0-alpha.0
+	k8s.io/kubernetes v1.26.3
 	sigs.k8s.io/cluster-api v1.4.1
 	sigs.k8s.io/kustomize/kyaml v0.13.9
 	sigs.k8s.io/yaml v1.3.0
@@ -109,7 +109,7 @@ require (
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
-	github.com/weaveworks/gitopssets-controller v0.12.0 // indirect
+	github.com/weaveworks/gitopssets-controller v0.12.0
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.117.0 // indirect
