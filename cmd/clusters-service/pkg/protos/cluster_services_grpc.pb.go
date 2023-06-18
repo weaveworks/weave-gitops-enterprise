@@ -51,16 +51,6 @@ type ClustersServiceClient interface {
 	// Creates a pull request for the given list of Kustomizations.
 	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
-	// ListPolicies list policies available on the management cluster
-	ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error)
-	// GetPolicy gets a policy on the management cluster by name
-	GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error)
-	// ListPolicyValidations list policy validations
-	// available on the management cluster
-	ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidation gets a policy validations
-	// on the management cluster by id
-	GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
 	// ListChartsForRepository lists the discovered Helm charts in the provided
@@ -239,42 +229,6 @@ func (c *clustersServiceClient) CreateAutomationsPullRequest(ctx context.Context
 func (c *clustersServiceClient) GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error) {
 	out := new(GetConfigResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetConfig", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) ListPolicies(ctx context.Context, in *ListPoliciesRequest, opts ...grpc.CallOption) (*ListPoliciesResponse, error) {
-	out := new(ListPoliciesResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListPolicies", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) GetPolicy(ctx context.Context, in *GetPolicyRequest, opts ...grpc.CallOption) (*GetPolicyResponse, error) {
-	out := new(GetPolicyResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetPolicy", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) ListPolicyValidations(ctx context.Context, in *ListPolicyValidationsRequest, opts ...grpc.CallOption) (*ListPolicyValidationsResponse, error) {
-	out := new(ListPolicyValidationsResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListPolicyValidations", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) GetPolicyValidation(ctx context.Context, in *GetPolicyValidationRequest, opts ...grpc.CallOption) (*GetPolicyValidationResponse, error) {
-	out := new(GetPolicyValidationResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetPolicyValidation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -479,16 +433,6 @@ type ClustersServiceServer interface {
 	// Creates a pull request for the given list of Kustomizations.
 	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
-	// ListPolicies list policies available on the management cluster
-	ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error)
-	// GetPolicy gets a policy on the management cluster by name
-	GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error)
-	// ListPolicyValidations list policy validations
-	// available on the management cluster
-	ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error)
-	// GetPolicyValidation gets a policy validations
-	// on the management cluster by id
-	GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error)
 	// ListEvents returns the k8s events for a given object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
 	// ListChartsForRepository lists the discovered Helm charts in the provided
@@ -579,18 +523,6 @@ func (UnimplementedClustersServiceServer) CreateAutomationsPullRequest(context.C
 }
 func (UnimplementedClustersServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
-}
-func (UnimplementedClustersServiceServer) ListPolicies(context.Context, *ListPoliciesRequest) (*ListPoliciesResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPolicies not implemented")
-}
-func (UnimplementedClustersServiceServer) GetPolicy(context.Context, *GetPolicyRequest) (*GetPolicyResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPolicy not implemented")
-}
-func (UnimplementedClustersServiceServer) ListPolicyValidations(context.Context, *ListPolicyValidationsRequest) (*ListPolicyValidationsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyValidations not implemented")
-}
-func (UnimplementedClustersServiceServer) GetPolicyValidation(context.Context, *GetPolicyValidationRequest) (*GetPolicyValidationResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyValidation not implemented")
 }
 func (UnimplementedClustersServiceServer) ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListEvents not implemented")
@@ -925,78 +857,6 @@ func _ClustersService_GetConfig_Handler(srv interface{}, ctx context.Context, de
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetConfig(ctx, req.(*GetConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_ListPolicies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPoliciesRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).ListPolicies(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/ListPolicies",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).ListPolicies(ctx, req.(*ListPoliciesRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_GetPolicy_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPolicyRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).GetPolicy(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/GetPolicy",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).GetPolicy(ctx, req.(*GetPolicyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_ListPolicyValidations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPolicyValidationsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).ListPolicyValidations(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/ListPolicyValidations",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).ListPolicyValidations(ctx, req.(*ListPolicyValidationsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_GetPolicyValidation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPolicyValidationRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).GetPolicyValidation(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/GetPolicyValidation",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).GetPolicyValidation(ctx, req.(*GetPolicyValidationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1391,22 +1251,6 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetConfig",
 			Handler:    _ClustersService_GetConfig_Handler,
-		},
-		{
-			MethodName: "ListPolicies",
-			Handler:    _ClustersService_ListPolicies_Handler,
-		},
-		{
-			MethodName: "GetPolicy",
-			Handler:    _ClustersService_GetPolicy_Handler,
-		},
-		{
-			MethodName: "ListPolicyValidations",
-			Handler:    _ClustersService_ListPolicyValidations_Handler,
-		},
-		{
-			MethodName: "GetPolicyValidation",
-			Handler:    _ClustersService_GetPolicyValidation_Handler,
 		},
 		{
 			MethodName: "ListEvents",

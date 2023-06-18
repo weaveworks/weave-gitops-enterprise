@@ -2,6 +2,7 @@ import { MenuItem } from '@material-ui/core';
 import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Button,
+  Flex,
   GitRepository,
   Link,
   LoadingPage,
@@ -30,8 +31,7 @@ import { removeToken } from '../../../utils/request';
 import { createDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getRepositoryUrl,
@@ -40,6 +40,7 @@ import {
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { PreviewPRModal } from './PreviewPRModal';
+import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   width: 80%;
@@ -49,19 +50,25 @@ const FormWrapper = styled.form`
     border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
     padding-right: ${props => props.theme.spacing.medium};
     padding-bottom: ${props => props.theme.spacing.medium};
-    .form-field {
+    .form-section {
       width: 50%;
+    }
+    .form-field {
       label {
         margin-top: ${props => props.theme.spacing.xs} !important;
         margin-bottom: ${props => props.theme.spacing.base} !important;
         font-size: ${props => props.theme.fontSizes.large};
       }
       &.policyField {
+        width: 50%;
         label {
           margin-bottom: ${props => props.theme.spacing.small} !important;
         }
         div[class*='MuiAutocomplete-tag'] {
           display: none;
+        }
+        div[class*='MuiAutocomplete-inputRoot'] {
+         padding-right: 9px;
         }
       }
       .form-section {
@@ -80,6 +87,12 @@ const FormWrapper = styled.form`
         background: ${props => props.theme.colors.neutral10} !important;
         border-color: ${props => props.theme.colors.neutral20} !important;
       }
+    }
+  }
+  .create-cta {
+    padding: ${props => props.theme.spacing.small};
+    button {
+      width: 200px;
     }
   }
 `;
@@ -263,7 +276,7 @@ const CreatePolicyConfig = () => {
       commitMessage: formData.commitMessage,
       clusterAutomations: getClusterAutomations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
-      baseBranch: formData.repo.obj.spec.ref.branch
+      baseBranch: formData.repo.obj.spec.ref.branch,
     };
     setLoading(true);
     return validateToken()
@@ -311,8 +324,7 @@ const CreatePolicyConfig = () => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="PolicyConfigs"
+      <Page
         path={[
           { label: 'PolicyConfigs', url: Routes.PolicyConfigs },
           { label: 'Create New PolicyConfig' },
@@ -326,7 +338,7 @@ const CreatePolicyConfig = () => {
             },
           }}
         >
-          <ContentWrapper>
+          <NotificationsWrapper>
             <FormWrapper
               noValidate
               onSubmit={event =>
@@ -406,16 +418,16 @@ const CreatePolicyConfig = () => {
               {loading ? (
                 <LoadingPage className="create-loading" />
               ) : (
-                <div className="create-cta">
+                <Flex end className="create-cta">
                   <Button type="submit" disabled={!isAuthenticated}>
                     CREATE PULL REQUEST
                   </Button>
-                </div>
+                </Flex>
               )}
             </FormWrapper>
-          </ContentWrapper>
+          </NotificationsWrapper>
         </CallbackStateContextProvider>
-      </PageTemplate>
+      </Page>
     </ThemeProvider>
   );
 };

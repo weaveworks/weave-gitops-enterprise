@@ -9,9 +9,9 @@ import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Routes } from '../../utils/nav';
 import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;
@@ -52,8 +52,8 @@ const WGApplicationsKustomization: FC<Props> = ({
   );
 
   return (
-    <PageTemplate
-      documentTitle="Kustomization"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Applications',
@@ -64,8 +64,7 @@ const WGApplicationsKustomization: FC<Props> = ({
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
+      <NotificationsWrapper
         errors={
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
@@ -85,8 +84,8 @@ const WGApplicationsKustomization: FC<Props> = ({
             customActions={[<EditButton resource={kustomization} />]}
           />
         </LinkResolverProvider>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

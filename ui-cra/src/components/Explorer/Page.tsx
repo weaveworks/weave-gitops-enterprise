@@ -2,10 +2,10 @@ import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 // @ts-ignore
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import AccessRulesDebugger from './AccessRulesDebugger';
 import Explorer from './Explorer';
+import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;
@@ -13,8 +13,8 @@ type Props = {
 
 function ExplorerPage({ className }: Props) {
   return (
-    <PageTemplate documentTitle="Explorer" path={[{ label: 'Explorer' }]}>
-      <ContentWrapper>
+    <Page path={[{ label: 'Explorer' }]}>
+      <NotificationsWrapper>
         <div className={className}>
           <SubRouterTabs rootPath={`${Routes.Explorer}/query`}>
             <RouterTab name="Query" path={`${Routes.Explorer}/query`}>
@@ -25,8 +25,8 @@ function ExplorerPage({ className }: Props) {
             </RouterTab>
           </SubRouterTabs>
         </div>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

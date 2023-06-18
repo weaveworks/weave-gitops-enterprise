@@ -31,11 +31,11 @@ import {
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
+import { Page } from '../Layout/App';
 
 const YAML = require('yaml');
 
@@ -163,8 +163,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   };
 
   return (
-    <PageTemplate
-      documentTitle="GitOpsSets"
+    <Page
+      loading={gitOpsSetLoading || isLoading}
       path={[
         {
           label: 'GitOpsSet',
@@ -175,7 +175,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
         },
       ]}
     >
-      <ContentWrapper loading={gitOpsSetLoading || isLoading}>
+      <NotificationsWrapper>
         <Box paddingBottom={3}>
           <KubeStatusIndicator
             conditions={gs?.conditions || []}
@@ -264,8 +264,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
             />
           </RouterTab>
         </SubRouterTabs>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

@@ -1,4 +1,4 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
+import { PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -30,12 +30,8 @@ import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
 import ImageAutomationUpdatesDetails from './components/ImageAutomation/updates/ImageAutomationUpdatesDetails';
-import { ContentWrapper } from './components/Layout/ContentWrapper';
-import { PageTemplate } from './components/Layout/PageTemplate';
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
-import Policies from './components/Policies';
-import PolicyDetails from './components/Policies/PolicyDetails';
 import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
@@ -55,6 +51,9 @@ import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
+import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
+import { Page } from './components/Layout/App';
+import Policies from './components/Policies/PoliciesListPage';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -85,16 +84,16 @@ const CoreWrapper = styled.div`
 `;
 
 const Page404 = () => (
-  <PageTemplate documentTitle="NotFound" path={[{ label: 'Error' }]}>
-    <ContentWrapper>
+  <Page path={[{ label: 'Error' }]}>
+    <NotificationsWrapper>
       <Lottie
         loop
         animationData={error404}
         play
         style={{ width: '100%', height: 650 }}
       />
-    </ContentWrapper>
-  </PageTemplate>
+    </NotificationsWrapper>
+  </Page>
 );
 
 const AppRoutes = () => {
@@ -238,6 +237,11 @@ const AppRoutes = () => {
         path={V2Routes.UserInfo}
       />
       <Route
+        component={withSearchParams(PolicyViolationPage)}
+        exact
+        path={V2Routes.PolicyViolationDetails}
+      />
+      <Route
         component={withSearchParams((props: any) => (
           <CoreWrapper>
             <WGNotificationsProvider {...props} />
@@ -268,11 +272,10 @@ const AppRoutes = () => {
         path={V2Routes.ImagePolicyDetails}
         component={withSearchParams(ImagePolicyDetails)}
       />
-      <Route exact path={Routes.Policies} component={Policies} />
+      <Route exact path={V2Routes.Policies} component={Policies} />
       <Route
-        exact
-        path={Routes.PolicyDetails}
         component={withSearchParams(PolicyDetails)}
+        path={V2Routes.PolicyDetailsPage}
       />
       <Route component={TemplatesDashboard} exact path={Routes.Templates} />
       <Route

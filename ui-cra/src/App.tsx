@@ -10,6 +10,8 @@ import {
   LinkResolverProvider,
   Pendo,
   theme,
+  SignIn,
+  AuthCheck,
 } from '@weaveworks/weave-gitops';
 import React, { ReactNode, useEffect } from 'react';
 import {
@@ -18,16 +20,15 @@ import {
   QueryClientConfig,
   QueryClientProvider,
 } from 'react-query';
-import { BrowserRouter } from 'react-router-dom';
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
-import Layout from './components/Layout/Layout';
 import Compose from './components/ProvidersCompose';
 import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
@@ -41,6 +42,9 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
+import App from './components/Layout/App';
+import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
+
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
   /* https://github.com/necolas/normalize.css/issues/694 */
@@ -79,6 +83,7 @@ const GlobalStyle = createGlobalStyle`
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
+    justify-content: center;
     margin: 0;
   }
 
@@ -86,7 +91,9 @@ const GlobalStyle = createGlobalStyle`
     text-decoration: none;
     color:  ${props => props.theme.colors.primary10};
   }
-
+  .MuiFormControl-root {
+    min-width: 0px;
+  }
   ::-webkit-scrollbar-track {
     margin-top: 5px;
     box-shadow: transparent;
@@ -157,7 +164,18 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-const App = () => {
+//TO DO: Remove once dark mode is implemented
+const SignInNoToggleMode = styled.div`
+  div[class*='SignIn__FormWrapper'] {
+    div[class*='SignIn__SwitchFlex'] {
+      span[class*='MuiSwitch-root'] {
+        visibility: hidden;
+      }
+    }
+  }
+`;
+
+const AppContainer = () => {
   return (
     <RequestContextProvider fetch={window.fetch}>
       <QueryClientProvider client={queryClient}>
@@ -165,7 +183,7 @@ const App = () => {
           <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
             <PipelinesProvider api={Pipelines}>
               <GitAuthProvider>
-                <AppContextProvider>
+                <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
                   <StylesProvider>
                     <AuthContextProvider>
                       <EnterpriseClientProvider api={ClustersService}>
@@ -179,7 +197,23 @@ const App = () => {
                               />
                               <QueryServiceProvider api={Query}>
                                 <Compose components={[NotificationsProvider]}>
-                                  <Layout />
+                                  <Switch>
+                                    <Route
+                                      component={() => (
+                                        <SignInNoToggleMode>
+                                          <SignIn />
+                                        </SignInNoToggleMode>
+                                      )}
+                                      exact={true}
+                                      path="/sign_in"
+                                    />
+                                    <Route path="*">
+                                      {/* Check we've got a logged in user otherwise redirect back to signin */}
+                                      <AuthCheck>
+                                        <App />
+                                      </AuthCheck>
+                                    </Route>
+                                  </Switch>
                                   <ToastContainer
                                     position="top-center"
                                     autoClose={5000}
@@ -203,4 +237,4 @@ const App = () => {
   );
 };
 
-export default App;
+export default AppContainer;

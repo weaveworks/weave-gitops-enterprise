@@ -1,7 +1,7 @@
 import React, { useState, useEffect, FC } from 'react';
 import { useLocation } from 'react-router-dom';
-import { ContentWrapper } from './Layout/ContentWrapper';
-import { PageTemplate } from './Layout/PageTemplate';
+import { NotificationsWrapper } from './Layout/NotificationsWrapper';
+import { Page } from './Layout/App';
 
 interface Props {
   hasError: boolean;
@@ -32,20 +32,19 @@ class ErrorBoundaryDetail extends React.Component<any, Props> {
   render() {
     if (this.state.hasError) {
       return (
-        <PageTemplate
-          documentTitle="Error"
+        <Page
           path={[
             {
               label: 'Error',
             },
           ]}
         >
-          <ContentWrapper>
+          <NotificationsWrapper>
             <h3>Something went wrong.</h3>
             <pre>{this.state.error?.message}</pre>
             <pre>{this.state.error?.stack}</pre>
-          </ContentWrapper>
-        </PageTemplate>
+          </NotificationsWrapper>
+        </Page>
       );
     }
 

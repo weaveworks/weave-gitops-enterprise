@@ -1,7 +1,6 @@
 import {
   AutomationsTable,
   Button,
-  Flex,
   Icon,
   IconType,
   useFeatureFlags,
@@ -13,18 +12,9 @@ import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
-
-interface Size {
-  size?: 'small';
-}
-const ActionsWrapper = styled(Flex)<Size>`
-  & > .actionButton.btn {
-    margin-right: ${({ theme }) => theme.spacing.small};
-    margin-bottom: ${({ theme }) => theme.spacing.small};
-  }
-`;
+import { ActionsWrapper } from '../Clusters';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Page } from '../Layout/App';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -43,35 +33,26 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
   const handleAddApplication = () => history.push(Routes.AddApplication);
 
   return (
-    <PageTemplate
-      documentTitle="Applications"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Applications',
         },
       ]}
     >
-      <ContentWrapper loading={isLoading} errors={automations?.errors}>
-        <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
-        >
-          <ActionsWrapper>
-            <Button
-              id="add-application"
-              className="actionButton btn"
-              startIcon={<Icon type={IconType.AddIcon} size="base" />}
-              onClick={handleAddApplication}
-            >
-              ADD AN APPLICATION
-            </Button>
-            <OpenedPullRequest />
-          </ActionsWrapper>
-        </div>
-
+      <NotificationsWrapper errors={automations?.errors}>
+        <ActionsWrapper>
+          <Button
+            id="add-application"
+            className="actionButton btn"
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={handleAddApplication}
+          >
+            ADD AN APPLICATION
+          </Button>
+          <OpenedPullRequest />
+        </ActionsWrapper>
         <div className={className}>
           {useQueryServiceBackend ? (
             <Explorer category="automation" enableBatchSync />
@@ -79,12 +60,9 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
             <AutomationsTable automations={automations?.result} />
           )}
         </div>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 
-export default styled(WGApplicationsDashboard)`
-  width: 100%;
-  overflow: auto;
-`;
+export default styled(WGApplicationsDashboard)``;

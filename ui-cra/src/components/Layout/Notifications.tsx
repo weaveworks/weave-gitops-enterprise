@@ -11,6 +11,7 @@ import useNotifications, {
 
 const BoxWrapper = styled(Box)<{ severity: string }>`
   div[class*='MuiAlert-root'] {
+    width: auto;
     margin-bottom: ${props => props.theme.spacing.base};
     border-radius: ${props => props.theme.spacing.xs};
   }
