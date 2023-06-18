@@ -9,10 +9,9 @@ import {
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
+import { Page } from '../../Layout/App';
 
 type Props = {
   className?: string;
@@ -36,15 +35,16 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
     { key: 'imageRepositoryRef', value: name },
   ]);
   const rootPath = V2Routes.ImageAutomationRepositoryDetails;
+
   return (
-    <PageTemplate
-      documentTitle={name}
+    <Page
+      loading={isLoading}
       path={[
         { label: 'Image Repositories', url: V2Routes.ImageRepositories },
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         {data && (
           <ImageAutomationDetails
             data={data}
@@ -71,8 +71,8 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
             </Button>
           </ImageAutomationDetails>
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 

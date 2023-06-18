@@ -7,9 +7,7 @@ import {
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
-
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { Box } from '@material-ui/core';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
@@ -18,6 +16,7 @@ import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import PipelinePullRequests from './PipelinePullRequests';
 import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
+import { Page } from '../../Layout/App';
 
 const mappedErrors = (
   errors: Array<string>,
@@ -82,8 +81,8 @@ const PipelineDetails = ({ name, namespace }: Props) => {
   const path = `/pipelines/details`;
 
   return (
-    <PageTemplate
-      documentTitle="Pipeline Details"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Pipelines',
@@ -94,8 +93,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
+      <NotificationsWrapper
         errors={mappedErrors(data?.errors || [], namespace)}
       >
         <Box marginBottom={2}>
@@ -128,8 +126,8 @@ const PipelineDetails = ({ name, namespace }: Props) => {
             <PipelinePullRequests pipeline={data?.pipeline} />
           </RouterTab>
         </SubRouterTabs>
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

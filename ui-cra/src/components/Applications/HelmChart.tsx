@@ -1,6 +1,5 @@
 import { FC } from 'react';
-import { PageTemplate } from '../Layout/PageTemplate';
-import { ContentWrapper } from '../Layout/ContentWrapper';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   HelmChartDetail,
   Kind,
@@ -9,6 +8,7 @@ import {
 } from '@weaveworks/weave-gitops';
 import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;
@@ -25,8 +25,8 @@ const WGApplicationsHelmChart: FC<Props> = props => {
   } = useGetObject<HelmChart>(name, namespace, Kind.HelmChart, clusterName);
 
   return (
-    <PageTemplate
-      documentTitle="Helm Chart"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Sources',
@@ -37,8 +37,7 @@ const WGApplicationsHelmChart: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
+      <NotificationsWrapper
         errors={
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
@@ -48,8 +47,8 @@ const WGApplicationsHelmChart: FC<Props> = props => {
           customActions={[<EditButton resource={helmChart} />]}
           {...props}
         />
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 
