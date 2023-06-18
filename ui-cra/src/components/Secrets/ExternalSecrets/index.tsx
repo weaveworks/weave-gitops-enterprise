@@ -1,5 +1,11 @@
 import { CircularProgress } from '@material-ui/core';
-import { Button, Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
+import {
+  Button,
+  Flex,
+  GitRepository,
+  Link,
+  Page,
+} from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -14,8 +20,6 @@ import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { createDeploymentObjects } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
@@ -30,6 +34,7 @@ import {
 } from '../Shared/utils';
 import ListSecretsStore from './ListSecretsStore';
 import { SecretProperty } from './SecretProperty';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 
 const CreateExternalSecret = () => {
   const callbackState = useCallbackState();
@@ -118,8 +123,7 @@ const CreateExternalSecret = () => {
   const authRedirectPage = Routes.CreateSecret;
 
   return (
-    <PageTemplate
-      documentTitle="External Secrets"
+    <Page
       path={[
         { label: 'Secrets', url: Routes.Secrets },
         { label: 'Create new external secret' },
@@ -133,7 +137,7 @@ const CreateExternalSecret = () => {
           },
         }}
       >
-        <ContentWrapper>
+        <NotificationsWrapper>
           <FormWrapper
             noValidate
             onSubmit={event => {
@@ -238,9 +242,9 @@ const CreateExternalSecret = () => {
               </Button>
             </div>
           </FormWrapper>
-        </ContentWrapper>
+        </NotificationsWrapper>
       </CallbackStateContextProvider>
-    </PageTemplate>
+    </Page>
   );
 };
 
