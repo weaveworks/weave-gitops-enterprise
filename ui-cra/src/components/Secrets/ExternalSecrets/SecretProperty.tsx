@@ -41,7 +41,7 @@ export const SecretProperty = ({
         />
         Include all properties
       </Text>
-      {formData.includeAllProps && (
+      {!formData.includeAllProps && (
         <Flex column wide>
           {formData.data.map(obj => (
             <div key={obj.id} className="secret-data-list">
