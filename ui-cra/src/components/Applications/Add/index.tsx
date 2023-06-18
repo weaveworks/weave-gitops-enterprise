@@ -2,10 +2,9 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import styled from 'styled-components';
 import { ThemeProvider } from '@material-ui/core/styles';
 import { localEEMuiTheme } from '../../../muiTheme';
-import { PageTemplate } from '../../Layout/PageTemplate';
 import { createDeploymentObjects, renderKustomization } from '../utils';
 import { Grid } from '@material-ui/core';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import {
   Button,
   Flex,
@@ -48,6 +47,7 @@ import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
+import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   .preview-cta {
@@ -362,7 +362,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       commit_message: formData.commitMessage,
       clusterAutomations: getKustomizations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
-      baseBranch: formData.repo.obj.spec.ref.branch
+      baseBranch: formData.repo.obj.spec.ref.branch,
     };
     setLoading(true);
     return validateToken()
@@ -408,8 +408,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   return useMemo(() => {
     return (
       <ThemeProvider theme={localEEMuiTheme}>
-        <PageTemplate
-          documentTitle="Add new application"
+        <Page
           path={[
             {
               label: 'Applications',
@@ -427,7 +426,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
               },
             }}
           >
-            <ContentWrapper>
+            <NotificationsWrapper>
               <FormWrapper
                 noValidate
                 onSubmit={event =>
@@ -533,9 +532,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   </Grid>
                 </Grid>
               </FormWrapper>
-            </ContentWrapper>
+            </NotificationsWrapper>
           </CallbackStateContextProvider>
-        </PageTemplate>
+        </Page>
       </ThemeProvider>
     );
   }, [

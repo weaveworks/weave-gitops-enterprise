@@ -34,8 +34,7 @@ import {
 } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
   getRepositoryUrl,
@@ -43,6 +42,7 @@ import {
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PreviewPRModal } from './PreviewPRModal';
+import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   width: 80%;
@@ -336,8 +336,7 @@ const CreateSecret = () => {
 
   return (
     <ThemeProvider theme={localEEMuiTheme}>
-      <PageTemplate
-        documentTitle="Secrets"
+      <Page
         path={[
           { label: 'Secrets', url: Routes.Secrets },
           { label: 'Create new external secret' },
@@ -351,7 +350,7 @@ const CreateSecret = () => {
             },
           }}
         >
-          <ContentWrapper>
+          <NotificationsWrapper>
             <FormWrapper
               noValidate
               onSubmit={event =>
@@ -463,9 +462,9 @@ const CreateSecret = () => {
                 </Flex>
               )}
             </FormWrapper>
-          </ContentWrapper>
+          </NotificationsWrapper>
         </CallbackStateContextProvider>
-      </PageTemplate>
+      </Page>
     </ThemeProvider>
   );
 };

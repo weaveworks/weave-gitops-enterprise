@@ -6,9 +6,9 @@ import {
 import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { EditButton } from '../Templates/Edit/EditButton';
+import { Page } from '../Layout/App';
 
 type Props = {
   name: string;
@@ -24,10 +24,9 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
     error,
   } = useGetObject<HelmRelease>(name, namespace, Kind.HelmRelease, clusterName);
 
-
   return (
-    <PageTemplate
-      documentTitle="Helm Release"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Applications',
@@ -38,8 +37,7 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
         },
       ]}
     >
-      <ContentWrapper
-        loading={isLoading}
+      <NotificationsWrapper
         errors={
           error ? [{ clusterName, namespace, message: error?.message }] : []
         }
@@ -51,8 +49,8 @@ const WGApplicationsHelmRelease: FC<Props> = props => {
             {...props}
           />
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

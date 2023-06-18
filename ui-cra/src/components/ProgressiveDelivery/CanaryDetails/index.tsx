@@ -1,8 +1,8 @@
-import { ContentWrapper } from '../../Layout/ContentWrapper';
-import { PageTemplate } from '../../Layout/PageTemplate';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
 import CanaryDetailsSection from './CanaryDetailsSection';
 import { Routes } from '../../../utils/nav';
+import { Page } from '../../Layout/App';
 
 type Props = {
   name: string;
@@ -18,8 +18,8 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
   });
 
   return (
-    <PageTemplate
-      documentTitle="Delivery"
+    <Page
+      loading={isLoading}
       path={[
         {
           label: 'Delivery',
@@ -28,15 +28,15 @@ function CanaryDetails({ name, namespace, clusterName }: Props) {
         { label: name },
       ]}
     >
-      <ContentWrapper loading={isLoading}>
+      <NotificationsWrapper>
         {data?.canary && (
           <CanaryDetailsSection
             canary={data.canary}
             automation={data.automation}
           />
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 }
 
