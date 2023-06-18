@@ -20,7 +20,7 @@ type TemplatesPage struct {
 func GetTemplatesPage(webDriver *agouti.Page) *TemplatesPage {
 	templatesPage := TemplatesPage{
 		TemplateHeader:        webDriver.Find(`span[title="Templates"`),
-		TemplatesList:         webDriver.All(`#templates-list tbody tr`),
+		TemplatesList:         webDriver.All(`table tbody tr`),
 		TemplateProvider:      webDriver.FindByID(`filter-by-provider`),
 		TemplateProviderPopup: webDriver.All(`ul#filter-by-provider-popup li`),
 		TemplateView:          webDriver.All(`#display-action > svg`),

@@ -9,6 +9,10 @@ const DialogWrapper = styled(Dialog)`
     padding: ${({ theme }) => theme.spacing.medium};
     border-radius: ${({ theme }) => theme.spacing.xs};
   }
+
+  button {
+    padding: 0;
+  }
 `;
 
 interface Props {

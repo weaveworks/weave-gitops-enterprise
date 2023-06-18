@@ -12,10 +12,10 @@ import { Pipeline } from '../../api/pipelines/types.pb';
 import { useListPipelines } from '../../contexts/Pipelines';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { Routes } from '../../utils/nav';
-import { ContentWrapper } from '../Layout/ContentWrapper';
-import { PageTemplate } from '../Layout/PageTemplate';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
 import { TableWrapper } from '../Shared';
+import { Page } from '../Layout/App';
 
 const Pipelines = ({ className }: any) => {
   const { data, isLoading } = useListPipelines();
@@ -26,8 +26,8 @@ const Pipelines = ({ className }: any) => {
   const history = useHistory();
 
   return (
-    <PageTemplate documentTitle="Pipelines" path={[{ label: 'Pipelines' }]}>
-      <ContentWrapper loading={isLoading} errors={data?.errors}>
+    <Page loading={isLoading} path={[{ label: 'Pipelines' }]}>
+      <NotificationsWrapper errors={data?.errors}>
         <Button
           data-testid="create-pipeline"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -91,8 +91,8 @@ const Pipelines = ({ className }: any) => {
             />
           </TableWrapper>
         )}
-      </ContentWrapper>
-    </PageTemplate>
+      </NotificationsWrapper>
+    </Page>
   );
 };
 

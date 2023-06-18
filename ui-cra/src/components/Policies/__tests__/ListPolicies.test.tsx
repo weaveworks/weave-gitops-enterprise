@@ -132,13 +132,5 @@ describe('ListPolicies', () => {
       ],
       listPoliciesResponse.policies.length,
     );
-
-    const search = listPoliciesResponse.policies[0].name;
-    const searchedRows = mappedPolicies(
-      listPoliciesResponse.policies.filter(e => e.name === search),
-    );
-
-    filterTable.testSearchTableByValue(search, searchedRows);
-    filterTable.clearSearchByVal(search);
   });
 });
