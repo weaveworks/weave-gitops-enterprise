@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/go-logr/logr"
@@ -36,9 +37,6 @@ func TestStart(t *testing.T) {
 			Name:      "collector",
 		},
 	}
-	collector, err := newWatchingCollector(opts)
-	g.Expect(err).To(BeNil())
-	g.Expect(collector).NotTo(BeNil())
 
 	tests := []struct {
 		name                string
@@ -70,6 +68,10 @@ func TestStart(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			cm.GetClustersReturns(tt.clusters)
+
+			collector, err := newWatchingCollector(opts)
+			g.Expect(err).To(BeNil())
+			g.Expect(collector).NotTo(BeNil())
 			ctx, cancel := context.WithCancel(context.TODO())
 			defer cancel()
 			go func() {
@@ -151,13 +153,13 @@ func TestStop(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.TODO())
 	t.Cleanup(cancel)
 
-	stopped := false
+	var stopped atomic.Bool
 	go func() {
 		g.Expect(collector.Start(ctx)).To(Succeed())
-		stopped = true
+		stopped.Store(true)
 	}()
 	cancel()
-	g.Eventually(func() bool { return stopped }, "2s", "0.2s").Should(BeTrue())
+	g.Eventually(func() bool { return stopped.Load() }, "2s", "0.2s").Should(BeTrue())
 }
 
 func TestClusterWatcher_Watch(t *testing.T) {
@@ -359,10 +361,10 @@ func Test_WatcherRetry(t *testing.T) {
 	// but we don't care at this point, since the test is done.
 	var (
 		errcancel context.CancelFunc
-		newcalls  int
+		newcalls  atomic.Int32
 	)
 	newWatcher := func(clusterName string, config *rest.Config) (Starter, error) {
-		newcalls++
+		newcalls.Add(1)
 		var errctx context.Context
 		errctx, errcancel = context.WithCancel(context.TODO())
 		return erroringWatcher{errctx, fmt.Errorf("error exit triggered")}, nil
@@ -396,11 +398,11 @@ func Test_WatcherRetry(t *testing.T) {
 	}
 	checkStarted()
 
-	callsBefore := newcalls
+	callsBefore := newcalls.Load()
 	// return an error from the watcher and wait until it restarts
 	errcancel()
 	g.Eventually(func() bool {
-		return newcalls > callsBefore
+		return newcalls.Load() > callsBefore
 	}, "1s", "0.1s").Should(BeTrue())
 	checkStarted()
 }
