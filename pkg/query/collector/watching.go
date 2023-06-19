@@ -3,6 +3,8 @@ package collector
 import (
 	"context"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
@@ -87,22 +89,29 @@ outer:
 
 type child struct {
 	Starter
-	cancel context.CancelFunc
-	status string
+	cancel           context.CancelFunc
+	status           string
+	lastStatusChange time.Time
+}
+
+func (c *child) setStatus(s string) {
+	c.lastStatusChange = time.Now()
+	c.status = s
 }
 
 // watchingCollector supervises watchers, starting one per cluster it
 // sees from the `Subscriber` and stopping/restarting them as needed.
 type watchingCollector struct {
-	name            string
-	sub             clusters.Subscription
-	subscriber      clusters.Subscriber
-	clusterWatchers map[string]*child
-	newWatcherFunc  NewWatcherFunc
-	stopWatcherFunc StopWatcherFunc
-	queue           workqueue.RateLimitingInterface
-	log             logr.Logger
-	sa              ImpersonateServiceAccount
+	name              string
+	sub               clusters.Subscription
+	subscriber        clusters.Subscriber
+	clusterWatchers   map[string]*child
+	clusterWatchersMu sync.Mutex
+	newWatcherFunc    NewWatcherFunc
+	stopWatcherFunc   StopWatcherFunc
+	queue             workqueue.RateLimitingInterface
+	log               logr.Logger
+	sa                ImpersonateServiceAccount
 }
 
 // Collector factory method. It creates a collection with clusterName watching strategy by default.
@@ -130,15 +139,23 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
 	}
 
 	// make the record, so status works
-	c := &child{
-		status: ClusterWatchingStarting,
-	}
-	w.clusterWatchers[clusterName] = c
+	c := &child{}
+	c.setStatus(ClusterWatchingStarting)
+	childctx, cancel := context.WithCancel(context.Background())
+	c.cancel = cancel
 	defer func() {
 		if reterr != nil {
-			c.status = ClusterWatchingFailed
+			w.clusterWatchersMu.Lock()
+			c.setStatus(ClusterWatchingFailed)
+			cancel := c.cancel
+			w.clusterWatchersMu.Unlock()
+			cancel()
 		}
 	}()
+
+	w.clusterWatchersMu.Lock()
+	w.clusterWatchers[clusterName] = c
+	w.clusterWatchersMu.Unlock()
 
 	config, err := cluster.GetServerConfig()
 	if err != nil {
@@ -159,20 +176,24 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
 		return fmt.Errorf("failed to create watcher for cluster %s: %w", cluster.GetName(), err)
 	}
 
-	childctx, cancel := context.WithCancel(context.Background())
-	c.cancel = cancel
 	go func() {
-		c.status = ClusterWatchingStarted
+		w.clusterWatchersMu.Lock()
+		c.setStatus(ClusterWatchingStarted)
+		w.clusterWatchersMu.Unlock()
 		err := watcher.Start(childctx)
 		if err != nil {
 			w.log.Error(err, "watcher for cluster failed", "cluster", cluster.GetName())
-			c.status = ClusterWatchingFailed
+			w.clusterWatchersMu.Lock()
+			c.setStatus(ClusterWatchingErrored)
+			w.clusterWatchersMu.Unlock()
 			// try again
 			w.queue.AddRateLimited(cluster)
 			return
 		}
 		// TODO remove from map?
-		c.status = ClusterWatchingStopped
+		w.clusterWatchersMu.Lock()
+		c.setStatus(ClusterWatchingStopped)
+		w.clusterWatchersMu.Unlock()
 	}()
 
 	w.log.Info("watching cluster", "cluster", cluster.GetName())
@@ -183,11 +204,14 @@ func (w *watchingCollector) unwatch(clusterName string) error {
 	if clusterName == "" {
 		return fmt.Errorf("cluster name is empty")
 	}
+	w.clusterWatchersMu.Lock()
 	clusterWatcher := w.clusterWatchers[clusterName]
+	delete(w.clusterWatchers, clusterName)
+	w.clusterWatchersMu.Unlock()
+
 	if clusterWatcher == nil {
 		return fmt.Errorf("cluster watcher not found")
 	}
-	w.clusterWatchers[clusterName] = nil
 	if clusterWatcher.cancel != nil {
 		clusterWatcher.cancel()
 	}
@@ -203,7 +227,9 @@ func (w *watchingCollector) Status(clusterName string) (string, error) {
 	if clusterName == "" {
 		return "", fmt.Errorf("cluster name is empty")
 	}
+	w.clusterWatchersMu.Lock()
 	watcher := w.clusterWatchers[clusterName]
+	w.clusterWatchersMu.Unlock()
 	if watcher == nil {
 		return "", fmt.Errorf("cluster not found: %s", clusterName)
 	}
