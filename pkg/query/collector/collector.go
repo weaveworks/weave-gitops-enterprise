@@ -15,6 +15,7 @@ const (
 	ClusterWatchingStarted  = "started"
 	ClusterWatchingStopped  = "stopped"
 	ClusterWatchingFailed   = "failed"
+	ClusterWatchingErrored  = "error"
 )
 
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
