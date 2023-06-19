@@ -53,5 +53,4 @@ func TestNewCollector(t *testing.T) {
 			g.Expect(collector).NotTo(BeNil())
 		})
 	}
-
 }

@@ -2,6 +2,7 @@ package collector
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -341,6 +342,81 @@ type fakeWatcher struct {
 func (f *fakeWatcher) Start(ctx context.Context) error {
 	<-ctx.Done()
 	return nil
+}
+
+func Test_WatcherRetry(t *testing.T) {
+	g := NewGomegaWithT(t)
+	clustersManager := &clustersfakes.FakeSubscriber{}
+	sub := &clustersfakes.FakeSubscription{}
+	clustersManager.SubscribeReturns(sub)
+
+	existingClusterName := "test-cluster"
+	c := makeValidFakeCluster(existingClusterName)
+	clustersManager.GetClustersReturns([]cluster.Cluster{c})
+
+	// this bit lets us cancel the watcher to cause an error and a
+	// retry; it'll get reassigned when newWatcher is called again,
+	// but we don't care at this point, since the test is done.
+	var (
+		errcancel context.CancelFunc
+		newcalls  int
+	)
+	newWatcher := func(clusterName string, config *rest.Config) (Starter, error) {
+		newcalls++
+		var errctx context.Context
+		errctx, errcancel = context.WithCancel(context.TODO())
+		return erroringWatcher{errctx, fmt.Errorf("error exit triggered")}, nil
+	}
+
+	collector, err := newWatchingCollector(CollectorOpts{
+		Clusters:       clustersManager,
+		Log:            testr.New(t),
+		NewWatcherFunc: newWatcher,
+		ServiceAccount: ImpersonateServiceAccount{
+			Namespace: "flux-system",
+			Name:      "collector",
+		},
+	})
+	g.Expect(err).NotTo(HaveOccurred())
+
+	startctx, startcancel := context.WithCancel(context.TODO())
+	defer startcancel()
+	go func() {
+		g.Expect(collector.Start(startctx)).To(Succeed())
+	}()
+
+	// cluster is watched
+	checkStarted := func() {
+		g.EventuallyWithOffset(1, func() string {
+			if s, err := collector.Status(existingClusterName); err == nil {
+				return s
+			}
+			return ""
+		}, "2s", "0.2s").Should(Equal(ClusterWatchingStarted))
+	}
+	checkStarted()
+
+	callsBefore := newcalls
+	// return an error from the watcher and wait until it restarts
+	errcancel()
+	g.Eventually(func() bool {
+		return newcalls > callsBefore
+	}, "1s", "0.1s").Should(BeTrue())
+	checkStarted()
+}
+
+type erroringWatcher struct {
+	exitWithError context.Context
+	startErr      error
+}
+
+func (w erroringWatcher) Start(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return nil
+	case <-w.exitWithError.Done():
+		return w.startErr
+	}
 }
 
 // newLoggerWithLevel creates a logger and a path to the file it
