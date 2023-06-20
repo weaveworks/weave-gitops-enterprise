@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	gitopssets "github.com/weaveworks/gitopssets-controller/pkg/cmd"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/delete"
@@ -136,6 +137,7 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(check.Cmd)
 	rootCmd.AddCommand(beta.GetCommand(options))
 	rootCmd.AddCommand(set.SetCommand(options))
+	rootCmd.AddCommand(gitopssets.NewGenerateCommand())
 
 	return rootCmd
 }
