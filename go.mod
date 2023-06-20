@@ -2,8 +2,6 @@ module github.com/weaveworks/weave-gitops-enterprise
 
 go 1.20
 
-replace k8s.io/client-go => k8s.io/client-go v0.26.3
-
 require (
 	github.com/docker/distribution v2.8.1+incompatible // indirect
 	github.com/go-logr/logr v1.2.4
@@ -105,6 +103,8 @@ require (
 	github.com/blevesearch/zapx/v13 v13.3.7 // indirect
 	github.com/blevesearch/zapx/v14 v14.3.7 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.9 // indirect
+	github.com/fluxcd/pkg/apis/event v0.4.1 // indirect
+	github.com/fluxcd/pkg/http/fetch v0.4.0 // indirect
 	github.com/fluxcd/pkg/tar v0.2.0 // indirect
 	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
@@ -112,12 +112,14 @@ require (
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
+	github.com/opencontainers/go-digest/blake3 v0.0.0-20220411205349-bde1400a84be // indirect
+	github.com/zeebo/blake3 v0.1.1 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	google.golang.org/api v0.117.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
-	k8s.io/component-helpers v0.26.2 // indirect
+	k8s.io/component-helpers v0.26.3 // indirect
 )
 
 require (
@@ -398,7 +400,7 @@ require (
 	k8s.io/component-base v0.26.3 // indirect
 	k8s.io/klog/v2 v2.90.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/kubectl v0.26.2
+	k8s.io/kubectl v0.26.3
 	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
 	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
@@ -409,8 +411,12 @@ require (
 )
 
 replace (
+	// TODO: why do we need to replace this?
 	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
+
+	// TODO: why do we need to replace this?
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
+
 	// Using commit https://github.com/distribution/distribution/commit/03aaf6ab51117e99b4f53fb0db84e1a5348892c9
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
@@ -420,8 +426,32 @@ replace (
 	// xref: https://github.com/opencontainers/go-digest/pull/66
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
-	// Fix for CVE-2022-1996
-	k8s.io/kube-openapi => k8s.io/kube-openapi v0.0.0-20220614142933-1062c7ade5f8
+
+	//
+	// As we import k8s.io/kubernetes, we need to replace the following modules
+	// with the same version as k8s.io/kubernetes. In short, you are not supposed
+	// to use k8s.io/kubernetes as a module (https://github.com/kubernetes/kubernetes/issues/81878#issuecomment-696689706).
+	// The module declares a lot of internal replacements, which we have to re-replace here.
+	//
+	// We need some things in there like the rbac apis which are not exported elsewhere so we have to use it.
+	//
+	// If you add a new k8s.io/* dependency, add it here as well.
+	// If you forget to do this, you will see something like this next time you run `go get`:
+	//
+	// $ go get github.com/weaveworks/weave-gitops@v0.25.1-rc.1
+	// go: downgraded k8s.io/kubernetes v1.26.3 => v1.15.0-alpha.0
+	//
+	// And the project won't build anymore.
+	//
+	k8s.io/api => k8s.io/api v0.26.3
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.3
+	k8s.io/apimachinery => k8s.io/apimachinery v0.26.3
+	k8s.io/apiserver => k8s.io/apiserver v0.26.3
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.3
+	k8s.io/client-go => k8s.io/client-go v0.26.3
+	k8s.io/component-base => k8s.io/component-base v0.26.3
+	k8s.io/component-helpers => k8s.io/component-helpers v0.26.3
+	k8s.io/kubectl => k8s.io/kubectl v0.26.3
 
 // un-comment for local dev
 // github.com/weaveworks/weave-gitops => ../weave-gitops
