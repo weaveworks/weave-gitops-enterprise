@@ -31,6 +31,13 @@ const WGLayout = styled(Layout)`
   div[class*='Nav__NavContainer'] {
     height: calc(100% - 60px);
   }
+
+  //TO DO: Remove once dark mode is implemented
+  div[class*='UserSettings'] {
+    span[class*='MuiSwitch-root'] {
+      visibility: hidden;
+    }
+  }
 `;
 
 function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {

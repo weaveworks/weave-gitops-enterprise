@@ -23,7 +23,7 @@ import {
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import styled, { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
@@ -83,6 +83,7 @@ const GlobalStyle = createGlobalStyle`
     /* Layout - grow to at least viewport height */
     display: flex;
     flex-direction: column;
+    justify-content: center;
     margin: 0;
   }
 
@@ -90,7 +91,9 @@ const GlobalStyle = createGlobalStyle`
     text-decoration: none;
     color:  ${props => props.theme.colors.primary10};
   }
-
+  .MuiFormControl-root {
+    min-width: 0px;
+  }
   ::-webkit-scrollbar-track {
     margin-top: 5px;
     box-shadow: transparent;
@@ -161,6 +164,17 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+//TO DO: Remove once dark mode is implemented
+const SignInNoToggleMode = styled.div`
+  div[class*='SignIn__FormWrapper'] {
+    div[class*='SignIn__SwitchFlex'] {
+      span[class*='MuiSwitch-root'] {
+        visibility: hidden;
+      }
+    }
+  }
+`;
+
 const AppContainer = () => {
   return (
     <RequestContextProvider fetch={window.fetch}>
@@ -185,7 +199,11 @@ const AppContainer = () => {
                                 <Compose components={[NotificationsProvider]}>
                                   <Switch>
                                     <Route
-                                      component={() => <SignIn />}
+                                      component={() => (
+                                        <SignInNoToggleMode>
+                                          <SignIn />
+                                        </SignInNoToggleMode>
+                                      )}
                                       exact={true}
                                       path="/sign_in"
                                     />

@@ -65,7 +65,4 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
   );
 };
 
-export default styled(WGApplicationsDashboard)`
-  width: 100%;
-  overflow: auto;
-`;
+export default styled(WGApplicationsDashboard)``;
