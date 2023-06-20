@@ -36,7 +36,7 @@ type SourceDetailPage struct {
 func GetSourcesPage(webDriver *agouti.Page) *SourcesPage {
 	return &SourcesPage{
 		SourceHeader:          webDriver.Find(`span[title="Sources"]`),
-		ApplicationHeaderLink: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationHeaderLink: webDriver.Find(`div[class*=Page__TopToolBar] a[href="/applications"]`),
 		SourcesList:           webDriver.First(`table tbody`),
 		SupportEmailLink:      webDriver.FindByLink(`support ticket`),
 		MessageBar:            webDriver.FindByXPath(`//div[@id="root"]/div/main/div[2]`),
@@ -68,7 +68,7 @@ func (a SourcesPage) CountSources() int {
 
 func GetSourceDetailPage(webDriver *agouti.Page) *SourceDetailPage {
 	detailPage := SourceDetailPage{
-		Header: webDriver.Find(`.test-id-breadcrumbs > :last-child`),
+		Header: webDriver.Find(`div[class*=Page__TopToolBar] span[class*=Breadcrumbs]`),
 		Title:  webDriver.Find(`div[class*="SourceDetail"]`),
 	}
 	return &detailPage

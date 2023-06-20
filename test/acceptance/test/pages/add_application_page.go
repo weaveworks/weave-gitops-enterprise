@@ -42,7 +42,7 @@ type Messages struct {
 
 func GetAddApplicationsPage(webDriver *agouti.Page) *AddApplicationPage {
 	return &AddApplicationPage{
-		ApplicationHeader: webDriver.Find(`div[role="heading"] a[href="/applications"]`),
+		ApplicationHeader: webDriver.Find(`div[class*=Page__TopToolBar] a[href="/applications"]`),
 	}
 }
 
