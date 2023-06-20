@@ -12,11 +12,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// FilterFunc can be used to only retain relevant objects.
+// For example, we may want to keep Events, but only Events from a particular source.
+type FilterFunc func(obj client.Object) bool
+
 type ObjectKind struct {
 	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
 	NewClientObjectFunc func() client.Object        `json:"-"`
 	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
 	RetentionPolicy     RetentionPolicy             `json:"-"`
+	FilterFunc          FilterFunc
 }
 
 func (ok ObjectKind) String() string {

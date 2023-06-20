@@ -130,15 +130,18 @@ func TestReconciler_Reconcile(t *testing.T) {
 	fakeClient := fake.NewClientBuilder().WithRuntimeObjects(objects...).WithScheme(s).Build()
 
 	tests := []struct {
-		name       string
-		object     client.Object
-		request    ctrl.Request
-		expectedTx transaction
-		errPattern string
+		name         string
+		object       client.Object
+		kind         configuration.ObjectKind
+		request      ctrl.Request
+		expectedTx   transaction
+		errPattern   string
+		shouldHaveTX bool
 	}{
 		{
 			name:   "can reconcile created or updated resource requests",
 			object: createdOrUpdatedHelmRelease,
+			kind:   configuration.HelmReleaseObjectKind,
 			request: ctrl.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      createdOrUpdatedHelmRelease.GetName(),
@@ -150,11 +153,13 @@ func TestReconciler_Reconcile(t *testing.T) {
 				object:          createdOrUpdatedHelmRelease,
 				transactionType: models.TransactionTypeUpsert,
 			},
-			errPattern: "",
+			errPattern:   "",
+			shouldHaveTX: true,
 		},
 		{
 			name:   "can reconcile delete resource requests",
 			object: deleteHelmRelease,
+			kind:   configuration.HelmReleaseObjectKind,
 			request: ctrl.Request{
 				NamespacedName: types.NamespacedName{
 					Name:      deleteHelmRelease.GetName(),
@@ -166,7 +171,30 @@ func TestReconciler_Reconcile(t *testing.T) {
 				object:          deleteHelmRelease,
 				transactionType: models.TransactionTypeDelete,
 			},
-			errPattern: "",
+			errPattern:   "",
+			shouldHaveTX: true,
+		},
+		{
+			name:   "does not retain objects that do not pass the filter func",
+			object: createdOrUpdatedHelmRelease,
+			kind: configuration.ObjectKind{
+				Gvk: v2beta1.GroupVersion.WithKind(v2beta1.HelmReleaseKind),
+				NewClientObjectFunc: func() client.Object {
+					return &v2beta1.HelmRelease{}
+				},
+				AddToSchemeFunc: v2beta1.AddToScheme,
+				FilterFunc: func(object client.Object) bool {
+					return false
+				},
+			},
+			request: ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name:      createdOrUpdatedHelmRelease.GetName(),
+					Namespace: createdOrUpdatedHelmRelease.GetNamespace(),
+				},
+			},
+			expectedTx:   transaction{},
+			shouldHaveTX: false,
 		},
 	}
 	for _, tt := range tests {
