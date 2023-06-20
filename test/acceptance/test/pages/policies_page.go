@@ -93,7 +93,7 @@ func GetPoliciesPage(webDriver *agouti.Page) *PoliciesPage {
 
 func GetPolicyDetailPage(webDriver *agouti.Page) *PolicyDetailPage {
 	return &PolicyDetailPage{
-		Header:          webDriver.Find(`.test-id-breadcrumbs > :last-child`),
+		Header:          webDriver.Find(`div[class*=Page__TopToolBar] span[class*=Breadcrumbs]`),
 		ID:              webDriver.Find(`div[data-testid="Policy ID"]`),
 		ClusterName:     webDriver.Find(`div[data-testid="Cluster"]`),
 		Tags:            webDriver.All(`div[data-testid="Tags"] span`),
