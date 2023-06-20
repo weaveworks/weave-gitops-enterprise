@@ -486,7 +486,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 .c26.MuiButton-outlined {
   padding: 8px 12px;
-  border-color: #737373;
+}
+
+.c26.MuiButton-outlinedPrimary {
+  border-color: #d8d8d8;
 }
 
 .c28.active-tab {

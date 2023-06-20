@@ -856,7 +856,10 @@ exports[`Applications index test snapshots success 1`] = `
 
 .c20.MuiButton-outlined {
   padding: 8px 12px;
-  border-color: #737373;
+}
+
+.c20.MuiButton-outlinedPrimary {
+  border-color: #d8d8d8;
 }
 
 .c28.MuiButton-root {
@@ -871,7 +874,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c29.MuiButton-outlined {
-  border-color: #737373;
+  border-color: #d8d8d8;
   border-left: none;
   border-radius: 0 2px 2px 0;
 }

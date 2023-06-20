@@ -14,12 +14,6 @@ export const muiTheme = (colors: any, mode: ThemeTypes) =>
           minWidth: 52,
           marginRight: baseTheme.spacing.small,
         },
-        outlinedPrimary: {
-          borderColor: `${colors.neutral20} !important`,
-          '&:hover': {
-            borderColor: colors.neutral20,
-          },
-        },
       },
       MuiDialog: {
         root: {
