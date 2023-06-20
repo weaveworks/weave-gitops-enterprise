@@ -156,6 +156,6 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 	}
 
-	debug.Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
+	debug.Info("objects processed", "upsert", len(upsert), "delete", len(delete), "deleteAll", len(deleteAll))
 	return nil
 }
