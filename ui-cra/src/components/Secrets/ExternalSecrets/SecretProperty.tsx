@@ -60,7 +60,6 @@ export const SecretProperty = ({
                 placeholder="Secret key"
                 value={obj.value}
                 handleFormData={val => handleSecretChange(obj.id, false, val)}
-                error={validateForm && !obj.value}
               />
               {formData.data.length > 1 && (
                 <RemoveCircleOutlineIcon

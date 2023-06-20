@@ -2,7 +2,7 @@ import { formatURL, Link } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { getKindRoute, Routes } from '../../../utils/nav';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
+import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import { usePolicyConfigStyle } from '../PolicyConfigStyles';
 
 function PolicyConfigHeaderSection({
@@ -98,7 +98,7 @@ function PolicyConfigHeaderSection({
 
   return (
     <div>
-      {generateRowHeaders(defaultHeaders)}
+      <RowHeaders rows={defaultHeaders} />
       <div>
         <label className={classes.sectionTitle}>Applied To</label>
         <div

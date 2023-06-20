@@ -1,20 +1,16 @@
-import { RouterTab, SubRouterTabs, YamlView } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  Flex,
+  FluxObject,
+  RouterTab,
+  SubRouterTabs,
+  Text,
+  YamlView,
+} from '@weaveworks/weave-gitops';
 import { GetExternalSecretResponse } from '../../../cluster-services/cluster_services.pb';
-import styled from 'styled-components';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import { Routes } from '../../../utils/nav';
+import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import ListEvents from './Events/ListEvents';
-
-const YAML = require('yaml');
-
-const ListEventsWrapper = styled.div`
-  width: 100%;
-`;
-const DetailsHeadersWrapper = styled.div`
-  div {
-    margin-top: 0px !important;
-  }
-`;
 
 const SecretDetailsTabs = ({
   clusterName,
@@ -28,7 +24,13 @@ const SecretDetailsTabs = ({
   secretDetails: GetExternalSecretResponse;
 }) => {
   const path = Routes.SecretDetails;
-
+  const secretObj = new FluxObject({
+    payload: secretDetails?.yaml,
+  });
+  const props = secretObj.obj?.spec?.data?.map((d: any) => ({
+    key: d.secretKey,
+    value: d.remoteRef.property,
+  }));
   const secretDetailsHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'External Secret',
@@ -55,40 +57,59 @@ const SecretDetailsTabs = ({
       value: secretDetails.secretPath,
     },
     {
-      rowkey: 'Property',
-      value: '',
-    },
-    {
       rowkey: 'Version',
       value: secretDetails.version,
     },
+    ...(!secretObj.obj?.spec?.data?.length
+      ? [
+          {
+            rowkey: 'Properties',
+            value: 'All Properties Included',
+          },
+        ]
+      : []),
   ];
-
   return (
     <SubRouterTabs rootPath={`${path}/details`}>
       <RouterTab name="Details" path={`${path}/details`}>
-        <DetailsHeadersWrapper>
-          {generateRowHeaders(secretDetailsHeaders)}
-        </DetailsHeadersWrapper>
+        <Flex column wide gap="8">
+          <RowHeaders rows={secretDetailsHeaders} />
+          {secretObj.obj?.spec?.data.length && (
+            <>
+              <Text size="medium" semiBold>
+                Properties
+              </Text>
+              <DataTable
+                key={props?.length}
+                rows={props}
+                fields={[
+                  {
+                    label: 'PROPERTY',
+                    value: 'value',
+                  },
+                  {
+                    label: 'SECRET KEY',
+                    value: 'key',
+                  },
+                ]}
+              />
+            </>
+          )}
+        </Flex>
       </RouterTab>
       <RouterTab name="Events" path={`${path}/events`}>
-        <ListEventsWrapper>
-          <ListEvents
-            involvedObject={{
-              name: externalSecretName,
-              namespace: namespace || '',
-              kind: 'ExternalSecret',
-            }}
-            clusterName={clusterName}
-          />
-        </ListEventsWrapper>
+        <ListEvents
+          involvedObject={{
+            name: externalSecretName,
+            namespace: namespace || '',
+            kind: 'ExternalSecret',
+          }}
+          clusterName={clusterName}
+        />
       </RouterTab>
       <RouterTab name="Yaml" path={`${path}/yaml`}>
         <YamlView
-          yaml={
-            secretDetails?.yaml &&
-            YAML.stringify(JSON.parse(secretDetails?.yaml as string))
-          }
+          yaml={secretObj.yaml}
           object={{
             kind: 'ExternalSecret',
             name: externalSecretName,

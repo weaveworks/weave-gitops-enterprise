@@ -21,14 +21,18 @@ export interface SectionRowHeader {
   value?: string | JSX.Element | undefined;
   hidden?: boolean;
 }
-export const generateRowHeaders = (rows: Array<SectionRowHeader>) => {
-  return rows.map(r => {
-    return r.hidden === true ? null : (
-      <RowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
-        {r.children}
-      </RowHeader>
-    );
-  });
+export const RowHeaders = ({ rows }: { rows: Array<SectionRowHeader> }) => {
+  return (
+    <>
+      {rows.map(r => {
+        return r.hidden === true ? null : (
+          <RowHeader rowkey={r.rowkey} value={r.value} key={r.rowkey}>
+            {r.children}
+          </RowHeader>
+        );
+      })}
+    </>
+  );
 };
 
 export function KeyValueRow({

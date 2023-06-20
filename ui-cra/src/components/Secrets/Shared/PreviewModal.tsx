@@ -11,10 +11,10 @@ import Preview from '../../Templates/Form/Partials/Preview';
 import { PreviewPRSection } from './styles';
 import {
   ExternalSecret,
+  SOPS,
   getESFormattedPayload,
   getFormattedPayload,
   handleError,
-  SOPS,
 } from './utils';
 
 export enum SecretType {
@@ -85,9 +85,9 @@ export const PreviewModal = ({
           )}
         </Button>
       </div>
-      {openPreview && PRPreview ? (
+      {!previewLoading && openPreview && PRPreview ? (
         <Preview
-          context="sops"
+          context={secretType === SecretType.ES ? 'secret' : 'sops'}
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
           PRPreview={PRPreview}
