@@ -2,7 +2,7 @@ import { DataTable, Link, Severity, formatURL } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import moment from 'moment';
-import { Routes } from '../../../../utils/nav';
+import { V2Routes } from '@weaveworks/weave-gitops';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 
 export const PoliciesTab = ({
@@ -32,7 +32,7 @@ export const PoliciesTab = ({
               label: 'Name',
               value: w => (
                 <Link
-                  to={formatURL(Routes.PolicyDetails, {
+                  to={formatURL(V2Routes.PolicyDetailsPage, {
                     clusterName: clusterName,
                     id: w.id,
                   })}

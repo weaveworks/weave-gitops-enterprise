@@ -1,14 +1,13 @@
 import { Card, CardContent } from '@material-ui/core';
-import { formatURL, Link } from '@weaveworks/weave-gitops';
+import { formatURL, Link, V2Routes } from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
-  PolicyConfigPolicy
+  PolicyConfigPolicy,
 } from '../../../cluster-services/cluster_services.pb';
-import { Routes } from '../../../utils/nav';
 import {
   PolicyDetailsCardWrapper,
   usePolicyConfigStyle,
-  WarningIcon
+  WarningIcon,
 } from '../PolicyConfigStyles';
 
 interface GetCardTitleProps {
@@ -70,10 +69,10 @@ export default function PolicyDetailsCard({
 export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
   const classes = usePolicyConfigStyle();
   const { status, id, name } = policy;
-  
+
   return status === 'OK' ? (
     <Link
-      to={formatURL(Routes.PolicyDetails, {
+      to={formatURL(V2Routes.PolicyDetailsPage, {
         clusterName: clusterName,
         id: id,
       })}
