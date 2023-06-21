@@ -412,9 +412,6 @@ require (
 
 replace (
 	// TODO: why do we need to replace this?
-	github.com/Sirupsen/logrus => github.com/sirupsen/logrus v1.7.0
-
-	// TODO: why do we need to replace this?
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
 
 	// Using commit https://github.com/distribution/distribution/commit/03aaf6ab51117e99b4f53fb0db84e1a5348892c9
