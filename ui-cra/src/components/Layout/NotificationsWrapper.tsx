@@ -1,3 +1,4 @@
+import { Flex } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import styled from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
@@ -76,9 +77,9 @@ export const NotificationsWrapper: FC<Props> = ({
       {children}
 
       {!!bottomNotifications.length && (
-        <div style={{ paddingTop: '16px' }}>
+        <Flex wide style={{ paddingTop: '16px' }}>
           <Notifications notifications={bottomNotifications} />
-        </div>
+        </Flex>
       )}
     </div>
   );
