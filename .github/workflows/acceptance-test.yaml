@@ -378,6 +378,12 @@ jobs:
           fi
 
           ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
+      - name: Clone supercharge docs repository
+        uses: actions/checkout@v2
+        with:
+          repository: taghreed86/PlaywrightExercieses
+          ref: main
+          # ref: wge-integration-workflow
       - name: Set up Python
         if: ${{ (inputs.test-type == 'playwright') }}
         uses: actions/setup-python@v4
@@ -387,16 +393,11 @@ jobs:
         if: ${{ (inputs.test-type == 'playwright') }}
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-      - name: Ensure browsers are installed
-        if: ${{ (inputs.test-type == 'playwright') }}
-        run: python -m playwright install --with-deps
-      - name: Clone supercharge docs repository
-        uses: actions/checkout@v2
-        with:
-          repository: taghreed86/PlaywrightExercieses
-          ref: main
-          # ref: wge-integration-workflow
+          pip install pytest
+          pip install pytest_dotenv
+          pip install pytest-reporter-html1
+          pip install pytest-playwright
+          playwright install chromium
       - name: run tests
         run: |
           pytest -s -v --video=retain-on-failure --screenshot=only-on-failure --template=html1/index.html --report=test-results/report.html -o junit_family=xunit2 --junitxml=${{ env.TEST_ARTIFACT_NAME }}.xml
