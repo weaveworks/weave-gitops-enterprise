@@ -80,10 +80,6 @@ describe('SecretDetails', () => {
     expect(screen.getByTestId('Last Updated')).toHaveTextContent(
       moment(secret.timestamp).fromNow(),
     );
-    // const namespaces = document.querySelectorAll(
-    //   '#workspace-details-header-namespaces span',
-    // );
-    // expect(namespaces).toHaveLength(workspace.namespaces.length);
   });
 
   it('renders secret details tab', async () => {
@@ -115,7 +111,6 @@ describe('SecretDetails', () => {
     expect(screen.getByTestId('Secret path')).toHaveTextContent(
       secret.secretPath,
     );
-    // expect(screen.getByTestId('Property')).toHaveTextContent(secret.property);
     expect(screen.getByTestId('Version')).toHaveTextContent(secret.version);
   });
 
