@@ -1,0 +1,51 @@
+on:
+  workflow_dispatch:
+
+name: playwright acceptance
+jobs:
+  build:
+    uses: ./.github/workflows/build.yaml
+    with:
+      helmrepo: "charts-v3"
+      gitops_platforms: '["ubuntu-latest", "macOS-latest"]'
+    secrets:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
+      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+
+  acceptance-tests-gke-gitlab:
+    needs: [build]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 90
+      kubectl-version: "v1.23.3"
+      login_user_type: "cluster-user"
+      git-provider: gitlab
+      git-provider_hostname: gitlab.com
+      cluster_resource_set: false
+      management-cluster-kind: gke
+      capi_provider: capg
+      gitops-bin-path: /usr/local/bin/gitops
+      test-artifact-name: acceptance-tests-gke-gitlab
+      test-type: playwright
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_DEX_CLI_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLI_CLIENT_SECRET }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_SAS_GITLAB_PRIVATE_KEY }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GITLAB_TOKEN: ${{ secrets.WGE_SAS_GITLAB_TOKEN }}
+      WGE_GITLAB_ORG: ${{ secrets.WGE_SAS_GITLAB_ORG }}
+      WGE_GITLAB_USER: ${{ secrets.WGE_SAS_GITLAB_USER }}
+      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_SAS_GITLAB_PASSWORD }}
+      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_SAS_GITLAB_CLIENT_ID }}
+      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_SAS_GITLAB_CLIENT_SECRET }}
+      GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+      GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+      WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
+      WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}

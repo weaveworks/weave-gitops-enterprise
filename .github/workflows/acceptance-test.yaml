@@ -22,7 +22,7 @@ on:
         type: number
       label-filter:
         description: "Which tests to filter -- eg: --label-filter='smoke' or --label-filter='@smoke && !integration'"
-        required: true
+        required: false
         type: string
       kubectl-version:
         description: "Version of kubectl"
@@ -68,6 +68,11 @@ on:
         type: string
       gce-leaf-kubeconfig:
         description: "GCE leaf cluster kubeconfig path (for connect cluster tests)"
+        required: false
+        type: string
+      test-type:
+        description: "Type of tests to run: ginkgo or playwright"
+        default: "ginkgo"
         required: false
         type: string
     secrets:
@@ -336,13 +341,14 @@ jobs:
           sudo apt install --allow-downgrades -y ./google-chrome.deb
           google-chrome --version
       - name: Setup selenium server
-        if: ${{ runner.os == 'Linux' }}
+        if: ${{ (runner.os == 'Linux') && (inputs.test-type == 'ginkgo') }}
         run: |
           wget --no-verbose https://selenium-release.storage.googleapis.com/3.14/selenium-server-standalone-3.14.0.jar
 
           # Start selenium server in standalone mode
           xvfb-run -a --server-args="-screen 0 1280x1024x24" java -jar ./selenium-server-standalone-3.14.0.jar &
       - name: Install Ginkgo
+        if: ${{ (inputs.test-type == 'ginkgo') }}
         run: |
           go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@v2.5.1
           ginkgo version
@@ -362,6 +368,7 @@ jobs:
 
           ./test/utils/scripts/mgmt-cluster-setup.sh  ${{ inputs.management-cluster-kind }} $(pwd) $CLUSTER_NAME $CLUSTER_REGION
       - name: Run Acceptance tests
+        if: ${{ (inputs.test-type == 'ginkgo') }}
         run: |
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
 
@@ -371,8 +378,29 @@ jobs:
           fi
 
           ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
+      - name: Set up Python
+        if: ${{ (inputs.test-type == 'playwright') }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        if: ${{ (inputs.test-type == 'playwright') }}
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Ensure browsers are installed
+        if: ${{ (inputs.test-type == 'playwright') }}
+        run: python -m playwright install --with-deps
+      - name: Clone supercharge docs repository
+        uses: actions/checkout@v2
+        with:
+          repository: taghreed86/PlaywrightExercieses
+          ref: main
+          # ref: wge-integration-workflow
+      - name: run tests
+        run: |
+          pytest -s -v --video=retain-on-failure --screenshot=only-on-failure --template=html1/index.html --report=test-results/report.html -o junit_family=xunit2 --junitxml=${{ env.TEST_ARTIFACT_NAME }}.xml
       - name: Store test results
-        if: ${{ always() }}
         uses: actions/upload-artifact@v3.1.1
         with:
           name: ${{ env.TEST_ARTIFACT_NAME }}
