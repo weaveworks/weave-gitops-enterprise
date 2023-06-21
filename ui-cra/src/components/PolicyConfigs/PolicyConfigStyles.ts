@@ -5,11 +5,11 @@ import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
 export const SectionTitle = styled.label`
-display: block,
-color: ${props => props.theme.colors.black},
-font-size: ${props => props.theme.fontSizes.medium},
-font-weight: 600,
-margin-top: ${props => props.theme.spacing.large},
+display: block;
+color: ${props => props.theme.colors.black};
+font-size: ${props => props.theme.fontSizes.medium};
+font-weight: 600;
+margin-top: ${props => props.theme.spacing.large};
 `;
 
 export const TargetItemKind = styled.span`
