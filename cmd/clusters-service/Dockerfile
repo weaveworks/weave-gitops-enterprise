@@ -43,7 +43,7 @@ RUN apk --no-cache add ca-certificates tini \
     # gpg is needed for sops encryption and decryption
     gnupg \
     # upgrade openssl to get latest security patches
-    && apk upgrade libssl1.1 libcrypto1.1 \
+    && apk upgrade libssl3 libcrypto3 \
     && update-ca-certificates
 
 ENV GNUPGHOME=/tmp/
