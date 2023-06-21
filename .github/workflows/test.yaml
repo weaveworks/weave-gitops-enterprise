@@ -1,9 +1,9 @@
 on:
-  push:
-    branches-ignore:
-      - "main"
-    tags-ignore:
-      - "*"
+  # push:
+  #   branches-ignore:
+  #     - "main"
+  #   tags-ignore:
+  #     - "*"
   workflow_dispatch:
 
 concurrency:

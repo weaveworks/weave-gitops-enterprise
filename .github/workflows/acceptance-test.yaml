@@ -378,11 +378,12 @@ jobs:
           fi
 
           ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
-      - name: Clone supercharge docs repository
+      - name: Clone playwright code
         uses: actions/checkout@v2
         with:
           repository: taghreed86/PlaywrightExercieses
           ref: main
+          path: playwright-tests
           # ref: wge-integration-workflow
       - name: Set up Python
         if: ${{ (inputs.test-type == 'playwright') }}
@@ -400,6 +401,7 @@ jobs:
           playwright install chromium
       - name: run tests
         run: |
+          cd playwright-tests
           pytest -s -v --video=retain-on-failure --screenshot=only-on-failure --template=html1/index.html --report=test-results/report.html -o junit_family=xunit2 --junitxml=${{ env.TEST_ARTIFACT_NAME }}.xml
       - name: Store test results
         uses: actions/upload-artifact@v3.1.1
