@@ -195,6 +195,13 @@ jobs:
         uses: actions/checkout@v3.1.0
         with:
           fetch-depth: 0
+      - name: Clone playwright code
+        uses: actions/checkout@v3.1.0
+        with:
+          repository: taghreed86/PlaywrightExercieses
+          ref: main
+          path: playwright-tests
+          # ref: wge-integration-workflow
       - name: Go Build Cache
         env:
           GO_CACHE_NAME: cache-go-modules
@@ -378,13 +385,6 @@ jobs:
           fi
 
           ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
-      - name: Clone playwright code
-        uses: actions/checkout@v2
-        with:
-          repository: taghreed86/PlaywrightExercieses
-          ref: main
-          path: playwright-tests
-          # ref: wge-integration-workflow
       - name: Set up Python
         if: ${{ (inputs.test-type == 'playwright') }}
         uses: actions/setup-python@v4
