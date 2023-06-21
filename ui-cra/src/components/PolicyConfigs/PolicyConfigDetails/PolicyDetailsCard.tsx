@@ -6,8 +6,9 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import {
   PolicyDetailsCardWrapper,
-  usePolicyConfigStyle,
+  SectionTitle,
   WarningIcon,
+  usePolicyConfigStyle,
 } from '../PolicyConfigStyles';
 
 interface GetCardTitleProps {
@@ -35,9 +36,9 @@ export default function PolicyDetailsCard({
 
   return (
     <div>
-      <label className={classes.sectionTitle}>
+      <SectionTitle>
         Policies <span data-testid="totalPolicies">({totalPolicies})</span>
-      </label>
+      </SectionTitle>
       <PolicyDetailsCardWrapper>
         {policies?.map(policy => (
           <li key={policy.id} data-testid="list-item">

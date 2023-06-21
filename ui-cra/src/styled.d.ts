@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { ThemeTypes } from '@weaveworks/weave-gitops';
 import 'styled-components';
 export namespace colors {
   const black: string;
@@ -73,5 +74,6 @@ declare module 'styled-components' {
     spacing: typeof spacing;
     borderRadius: typeof borderRadius;
     boxShadow: typeof boxShadow;
+    mode: ThemeTypes;
   }
 }

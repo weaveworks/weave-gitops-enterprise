@@ -2,7 +2,10 @@ import { MenuItem } from '@material-ui/core';
 import { Dispatch } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
-import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
+import {
+  SectionTitle,
+  usePolicyConfigStyle,
+} from '../../../PolicyConfigStyles';
 import { ListApplications } from './ListApplications';
 import { ListWorkSpaces } from './ListWorkSpaces';
 
@@ -66,7 +69,7 @@ export const SelectMatchType = ({
   return (
     <>
       <div className="form-field">
-        <label className={`${classes.sectionTitle}`}>Applied To</label>
+        <SectionTitle>Applied To</SectionTitle>
         <Select
           className="form-section"
           name="matchType"

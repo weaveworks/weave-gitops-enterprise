@@ -4,6 +4,23 @@ import { createStyles, makeStyles } from '@material-ui/styles';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
+export const SectionTitle = styled.label`
+display: block,
+color: ${props => props.theme.colors.black},
+font-size: ${props => props.theme.fontSizes.medium},
+font-weight: 600,
+margin-top: ${props => props.theme.spacing.large},
+`;
+
+export const TargetItemKind = styled.span`
+  text-transform: capitalize;
+  background: ${props => props.theme.colors.neutralGray};
+  padding: 4px 16px;
+  color: ${props => props.theme.colors.black};
+  margin-left: 12px;
+  border-radius: 16px;
+`;
+
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     centered: {
@@ -15,13 +32,6 @@ export const usePolicyConfigStyle = makeStyles(() =>
     },
     upperCase: {
       textTransform: 'uppercase',
-    },
-    sectionTitle: {
-      color: '#1a1a1a',
-      fontSize: 14,
-      fontWeight: 600,
-      marginTop: 32,
-      display: 'block',
     },
     appliedTo: {
       marginTop: 16,
@@ -67,9 +77,6 @@ export const usePolicyConfigStyle = makeStyles(() =>
             marginBottom: '0 !important',
           },
         },
-        '& .Mui-checked': {
-          color: '009CCC',
-        },
         '& svg': {
           marginRight: '5px',
         },
@@ -80,36 +87,7 @@ export const usePolicyConfigStyle = makeStyles(() =>
         },
       },
     },
-    SelectPoliciesWithSearch: {
-      '& div[class*="MuiOutlinedInput-root"]': {
-        paddingTop: '0 !important',
-        paddingBottom: '0 !important',
-        paddingRight: `${12} !important`,
-      },
-      '& fieldset[class*="MuiOutlinedInput-root"]::hover': {
-        borderColor: '#d8d8d8 !important',
-      },
-      '& div[class*="MuiFormControl-root"]': {
-        paddingRight: 12,
-      },
 
-      '& div[class*="MuiChip-root"]': {
-        height: '26px',
-      },
-      '& input': {
-        border: 'none !important',
-      },
-      '& svg': {
-        color: '#0000008a !important',
-      },
-    },
-    fieldNote: {
-      textTransform: 'uppercase',
-      marginBottom: 12,
-      display: 'block',
-      color: '#737373',
-      fontSize: 12,
-    },
     errorSection: {
       color: '#9F3119',
       display: 'Flex',
@@ -149,7 +127,7 @@ export const PolicyConfigsTableWrapper = styled(TableWrapper)`
 
 export const PolicyDetailsCardWrapper = styled.ul`
   padding-left: 0;
-  list-style: 0;
+  list-style: none;
   display: flex;
   flex-flow: wrap;
   li {
@@ -172,13 +150,14 @@ export const PolicyDetailsCardWrapper = styled.ul`
       }
     }
     .MuiCard-root {
+      background: ${props => props.theme.colors.neutralGray};
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
       border: 1px solid ${props => props.theme.colors.neutral20};
       height: 245px;
       border-radius: ${props => props.theme.spacing.xs} !important;
     }
     .cardLbl {
-      color: ${props => props.theme.colors.neutral30};
+      color: ${props => props.theme.colors.black};
       font-size: ${props => props.theme.fontSizes.small};
       display: block;
       font-weight: ${700};

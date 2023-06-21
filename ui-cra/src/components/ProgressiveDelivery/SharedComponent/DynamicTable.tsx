@@ -1,4 +1,5 @@
 import { Size, Table, TableBody } from '@material-ui/core';
+import styled from 'styled-components';
 import { KeyValueRow } from '../../RowHeader';
 
 const DynamicTable = ({
@@ -21,4 +22,4 @@ const DynamicTable = ({
   );
 };
 
-export default DynamicTable;
+export default styled(DynamicTable)``;

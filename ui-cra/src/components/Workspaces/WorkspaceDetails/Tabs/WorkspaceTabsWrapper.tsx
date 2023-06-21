@@ -1,10 +1,8 @@
-import React, { FC } from 'react';
 import { Box, CircularProgress } from '@material-ui/core';
 import { Flex } from '@weaveworks/weave-gitops';
-import Alert from '@material-ui/lab/Alert';
-import { useWorkspaceStyle } from '../../WorkspaceStyles';
-import { AlertListErrors } from '../../../Layout/AlertListErrors';
 import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import { FC } from 'react';
+import { AlertListErrors } from '../../../Layout/AlertListErrors';
 
 interface Props {
   loading: boolean;
@@ -18,25 +16,20 @@ const LoadingWrapper: FC<Props> = ({
   errorMessage,
   loading,
 }) => {
-  const classes = useWorkspaceStyle();
-
   return (
-    <div className={classes.fullWidth}>
+    <Flex wide>
       {loading && (
         <Box margin={4}>
           <Flex wide center>
-            <CircularProgress size={'2rem'}/>
+            <CircularProgress size={'2rem'} />
           </Flex>
         </Box>
       )}
-      {errors && <AlertListErrors errors={errors} />}
-      {errorMessage && (
-        <Alert severity="error" className={classes.alertWrapper}>
-          {errorMessage}
-        </Alert>
+      {(errors?.length || errorMessage) && (
+        <AlertListErrors errors={errors || [{ message: errorMessage }]} />
       )}
       {!loading && !errorMessage && children}
-    </div>
+    </Flex>
   );
 };
 
