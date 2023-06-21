@@ -207,7 +207,7 @@ gitopssets-controller:
       - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
       image:
-        tag: v0.12.0
+        tag: v0.13.2
 
 cluster-controller:
   enabled: true
