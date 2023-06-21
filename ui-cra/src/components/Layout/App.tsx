@@ -1,12 +1,11 @@
-import { Layout, Page as WGPage, Flex, Logo } from '@weaveworks/weave-gitops';
-import { ListConfigProvider, VersionProvider } from '../../contexts/ListConfig';
-import AppRoutes from '../../routes';
-import ErrorBoundary from '../ErrorBoundary';
-import { ToastContainer } from 'react-toastify';
-import { Routes } from '../../utils/nav';
-import styled from 'styled-components';
+import { Layout, Logo, Page as WGPage } from '@weaveworks/weave-gitops';
 import { Breadcrumb } from '@weaveworks/weave-gitops/ui/components/Breadcrumbs';
 import { useState } from 'react';
+import { ToastContainer } from 'react-toastify';
+import { ListConfigProvider, VersionProvider } from '../../contexts/ListConfig';
+import AppRoutes from '../../routes';
+import { Routes } from '../../utils/nav';
+import ErrorBoundary from '../ErrorBoundary';
 import Navigation from './Navigation';
 
 export type PageProps = {
@@ -16,25 +15,10 @@ export type PageProps = {
   path: Breadcrumb[];
 };
 
-const WGLayout = styled(Layout)`
-  div[class*='Nav__NavContainer'] {
-    height: calc(100vh - 60px);
-  }
-
-  //TO DO: Remove once dark mode is implemented
-  div[class*='UserSettings'] {
-    span[class*='MuiSwitch-root'] {
-      visibility: hidden;
-    }
-  }
-`;
-
 export const Page = ({ children, loading, className, path }: PageProps) => (
-  <Flex column wide>
-    <WGPage loading={loading} className={className} path={path}>
-      {children}
-    </WGPage>
-  </Flex>
+  <WGPage loading={loading} className={className} path={path}>
+    {children}
+  </WGPage>
 );
 
 const App = () => {
@@ -45,7 +29,7 @@ const App = () => {
   return (
     <ListConfigProvider>
       <VersionProvider>
-        <WGLayout logo={logo} nav={nav}>
+        <Layout logo={logo} nav={nav}>
           <ErrorBoundary>
             <AppRoutes />
           </ErrorBoundary>
@@ -54,7 +38,7 @@ const App = () => {
             autoClose={5000}
             newestOnTop={false}
           />
-        </WGLayout>
+        </Layout>
       </VersionProvider>
     </ListConfigProvider>
   );

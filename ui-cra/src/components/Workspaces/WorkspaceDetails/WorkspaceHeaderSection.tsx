@@ -1,26 +1,14 @@
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Button, Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
-import { SectionRowHeader, generateRowHeaders } from '../../RowHeader';
-import { useWorkspaceStyle } from '../WorkspaceStyles';
+import RowHeader from '../../RowHeader';
 
 function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
-  const classes = useWorkspaceStyle();
   const history = useHistory();
-  const defaultHeaders: Array<SectionRowHeader> = [
-    {
-      rowkey: 'Workspace Name',
-      value: name,
-    },
-    {
-      rowkey: 'Namespaces',
-      value: namespaces?.join(', '),
-    },
-  ];
 
   return (
-    <>
+    <Flex column gap="16">
       <Button
         onClick={() => {
           const filtersValues = toFilterQueryString([
@@ -29,13 +17,15 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
           ]);
           history.push(`/applications?filters=${filtersValues}`);
         }}
-        className={classes.navigateBtn}
       >
         <Icon type={IconType.FilterIcon} color="primary10" size="small" />
-        go to TENANT applications
+        GO TO TENANT APPLICATIONS
       </Button>
-      {generateRowHeaders(defaultHeaders)}
-    </>
+      <Flex column gap="8">
+        <RowHeader rowkey="Workspace Name" value={name} />
+        <RowHeader rowkey="Namespaces" value={namespaces?.join(', ')} />
+      </Flex>
+    </Flex>
   );
 }
 
