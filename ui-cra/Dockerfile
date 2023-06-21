@@ -20,7 +20,7 @@ ARG version
 ENV CI=true
 RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
 
-FROM alpine:3.16
+FROM alpine:3.18
 
 RUN apk upgrade libssl1.1 libcrypto1.1
 
