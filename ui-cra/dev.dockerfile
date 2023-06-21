@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.18
 
 RUN mkdir /html
 COPY ./build /html
