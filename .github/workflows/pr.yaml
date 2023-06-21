@@ -2,8 +2,6 @@ name: create pr
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 * * * *'
 
 jobs:
   enterprise-pr-release:
