@@ -2,6 +2,7 @@ package metrics
 
 import (
 	// "fmt"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -9,9 +10,16 @@ import (
 
 type Recorder struct {
 	storeLatencyHistogram *prometheus.HistogramVec
-	requestCounter        *prometheus.CounterVec
 	inflightRequests      *prometheus.GaugeVec
 }
+
+const (
+	// const status that is used in metrics.
+	Failed  = "error"
+	Success = "success"
+)
+
+var once sync.Once
 
 // NewRecorder creates a new recorder and registers the Prometheus metrics
 func NewRecorder(register bool, subsystem string) Recorder {
@@ -19,13 +27,7 @@ func NewRecorder(register bool, subsystem string) Recorder {
 		Subsystem: subsystem,
 		Name:      "latency_seconds",
 		Help:      "Store latency",
-		Buckets:   prometheus.LinearBuckets(0.001, 0.001, 10),
-	}, []string{"action"})
-
-	requestCounter := prometheus.NewCounterVec(prometheus.CounterOpts{
-		Subsystem: subsystem,
-		Name:      "requests_total",
-		Help:      "Number of requests",
+		Buckets:   prometheus.LinearBuckets(0.01, 0.01, 10),
 	}, []string{"action", "status"})
 
 	inflightRequests := prometheus.NewGaugeVec(prometheus.GaugeOpts{
@@ -34,25 +36,21 @@ func NewRecorder(register bool, subsystem string) Recorder {
 		Help:      "Number of in-flight requests.",
 	}, []string{"action"})
 
-	_ = prometheus.Register(storeLatencyHistogram)
-	_ = prometheus.Register(requestCounter)
-	_ = prometheus.Register(inflightRequests)
+	once.Do(func() {
+		prometheus.MustRegister(storeLatencyHistogram)
+		prometheus.MustRegister(inflightRequests)
+	})
 
 	record := Recorder{
 		storeLatencyHistogram: storeLatencyHistogram,
-		requestCounter:        requestCounter,
 		inflightRequests:      inflightRequests,
 	}
 
 	return record
 }
 
-func (r Recorder) SetStoreLatency(action string, duration time.Duration) {
-	r.storeLatencyHistogram.WithLabelValues(action).Observe(duration.Seconds())
-}
-
-func (r Recorder) IncRequestCounter(action string, status string) {
-	r.requestCounter.WithLabelValues(action, status).Inc()
+func (r Recorder) SetStoreLatency(action string, status string, duration time.Duration) {
+	r.storeLatencyHistogram.WithLabelValues(action, status).Observe(duration.Seconds())
 }
 
 func (r Recorder) InflightRequests(action string, number float64) {

@@ -28,8 +28,7 @@ func TestRecorder(t *testing.T) {
 
 	t.Run("can set inflight requests", func(t *testing.T) {
 		// Set inflight requests
-		recorder.SetStoreLatency("add", time.Duration(time.Duration.Seconds(1)))
-		recorder.IncRequestCounter("add", "success")
+		recorder.SetStoreLatency("add", Success, time.Duration(time.Duration.Seconds(1)))
 		recorder.InflightRequests("add", 1)
 
 		// Retrieve the metrics
@@ -45,7 +44,6 @@ func TestRecorder(t *testing.T) {
 		expMetrics := []string{
 			`test_inflight_requests_total{action="add"}`,
 			`test_latency_seconds_bucket{action="add"`,
-			`test_requests_total{action="add",status="success"}`,
 		}
 
 		for _, expMetric := range expMetrics {

@@ -3,6 +3,8 @@ package store
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
@@ -14,6 +16,10 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/rbac"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+
+	"github.com/go-logr/logr/testr"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 )
 
 func TestNewSQLiteStore(t *testing.T) {
@@ -90,6 +96,13 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 	store, db := createStore(t)
 	sqlDB, err := db.DB()
 	g.Expect(err).To(BeNil())
+	log := testr.New(t)
+
+	metrics.NewPrometheusServer(metrics.Options{
+		ServerAddress: "localhost:8080",
+	}, prometheus.Gatherers{
+		prometheus.DefaultGatherer,
+	})
 
 	tests := []struct {
 		name       string
@@ -153,6 +166,26 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 			g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects").Scan(&storedObjectsNum)).To(Succeed())
 			g.Expect(storedObjectsNum == len(tt.objects)).To(BeTrue())
 		})
+	}
+
+	// Retrieve the metrics
+	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	resp, err := http.DefaultClient.Do(req)
+	g.Expect(err).NotTo(HaveOccurred())
+	b, err := io.ReadAll(resp.Body)
+	g.Expect(err).NotTo(HaveOccurred())
+	metrics := string(b)
+	log.Info("metrics: %s", metrics)
+
+	expMetrics := []string{
+		`explorer_datastore_inflight_requests_total`,
+		`explorer_datastore_latency_seconds_bucket`,
+	}
+
+	for _, expMetric := range expMetrics {
+		//Contains expected value
+		g.Expect(metrics).To(ContainSubstring(expMetric))
 	}
 }
 

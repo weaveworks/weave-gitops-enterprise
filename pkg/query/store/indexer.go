@@ -98,22 +98,20 @@ type bleveIndexer struct {
 	recorder metrics.Recorder
 }
 
-func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
+func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) (err error) {
 	start := time.Now()
 	batch := i.idx.NewBatch()
 	const action = "add"
 
 	i.recorder.InflightRequests(action, 1)
 
-	var err error
 	defer func() {
-		i.recorder.SetStoreLatency(action, time.Since(start))
 		i.recorder.InflightRequests(action, -1)
 		if err != nil {
-			i.recorder.IncRequestCounter(action, "error")
+			i.recorder.SetStoreLatency(action, metrics.Failed, time.Since(start))
 			return
 		}
-		i.recorder.IncRequestCounter(action, "success")
+		i.recorder.SetStoreLatency(action, metrics.Success, time.Since(start))
 	}()
 
 	for _, obj := range objects {
