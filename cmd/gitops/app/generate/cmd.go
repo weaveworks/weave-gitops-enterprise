@@ -10,7 +10,7 @@ func Command() *cobra.Command {
 		Use:           "generate",
 		SilenceUsage:  true,
 		SilenceErrors: true,
-		Short:         "generate one or more resources",
+		Short:         "Generate one or more resources",
 	}
 
 	generateGitOpsSetCmd := gitopssets.NewGenerateCommand("gitopsset")
