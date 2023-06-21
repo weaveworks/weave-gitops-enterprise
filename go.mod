@@ -419,6 +419,13 @@ replace (
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
 	github.com/docker/distribution => github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111
 
+	// v20.10.8 (https://github.com/moby/moby/tree/v20.10.8)
+	// gitopssets-controller brings in 23.x which is incompatible with helm > oras that needs v20.x otherwise we get an error:
+	// ../../go/pkg/mod/oras.land/oras-go@v1.2.2/pkg/auth/docker/login_tls.go:181:30: assignment mismatch: 3 variables but registry.PingV2Registry returns 2 values
+	// We use this funny format otherwise we get an:
+	// /Users/foo/weave/weave-gitops-enterprise/go.mod:453:2: replace github.com/docker/docker/v2: version "v20.10.8" invalid: should be v2, not v20
+	github.com/docker/docker => github.com/docker/docker v0.0.0-20210730013057-75249d88bc10
+
 	// Replace digest lib to master to gather access to BLAKE3.
 	// xref: https://github.com/opencontainers/go-digest/pull/66
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be

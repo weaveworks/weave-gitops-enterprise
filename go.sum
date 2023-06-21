@@ -373,8 +373,8 @@ github.com/docker/cli v23.0.5+incompatible h1:ufWmAOuD3Vmr7JP2G5K3cyuNC4YZWiAsuD
 github.com/docker/cli v23.0.5+incompatible/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
 github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111 h1:X9Qukzp4ZMThBxO6IqXZU0ao8xX2+h9nJfo3u2YyTrc=
 github.com/docker/distribution v0.0.0-20201106182221-03aaf6ab5111/go.mod h1:j0+FEax3zYG2pUod5Nc0npkx8p9I3HrKgf2TvKDc5LE=
-github.com/docker/docker v23.0.5+incompatible h1:DaxtlTJjFSnLOXVNUBU1+6kXGz2lpDoEAH6QoxaSg8k=
-github.com/docker/docker v23.0.5+incompatible/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
+github.com/docker/docker v0.0.0-20210730013057-75249d88bc10 h1:6LAqZARMsZBMT94glDjN11tCAWX+UNbmmjCqOF5g4vk=
+github.com/docker/docker v0.0.0-20210730013057-75249d88bc10/go.mod h1:eEKB0N0r5NX/I1kEveEz05bcu8tLC/8azJZsviup8Sk=
 github.com/docker/docker-credential-helpers v0.7.0 h1:xtCHsjxogADNZcdv1pKUHXryefjlVRqWqIhk/uXJp0A=
 github.com/docker/docker-credential-helpers v0.7.0/go.mod h1:rETQfLdHNT3foU5kuNkFR1R1V12OJRRO5lzt2D1b5X0=
 github.com/docker/go-connections v0.4.0 h1:El9xVISelRB7BuFusrZozjnkIM5YnzCViNKohAFqRJQ=
