@@ -102,7 +102,7 @@ skip_ui = os.getenv("SKIP_UI_BUILD", False)
 
 if skip_ui:
    dockerfile = """
-   FROM alpine:3.13
+   FROM alpine:3.18
    """
    docker_build("weaveworks/weave-gitops-enterprise-ui-server", "", dockerfile_contents=dockerfile)
 
