@@ -114,7 +114,7 @@ require (
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
-	github.com/weaveworks/gitopssets-controller v0.13.2-0.20230621135608-a1267102b443
+	github.com/weaveworks/gitopssets-controller v0.13.2
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.117.0 // indirect
