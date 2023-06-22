@@ -109,31 +109,31 @@ const GlobalStyle = createGlobalStyle`
     .MuiFormControl-root {
       min-width: 0px;
     }
-    ::-webkit-scrollbar-track {
-      margin-top: 5px;
-      box-shadow: transparent;
-      background-color: transparent;
-      border-radius: 5px;
-    }
-    ::-webkit-scrollbar{
-      width: 5px;
-      height: 5px;
-      background-color: transparent;
-      margin-top: 50px;
-    }
-   ::-webkit-scrollbar-thumb {
-      background-color: ${props => props.theme.colors.neutral30};
-      border-radius: 5px;
-    }
-   ::-webkit-scrollbar-thumb:hover {
-      background-color: ${props => props.theme.colors.neutral30};
-    }
-    ::-webkit-scrollbar:hover{
-      width: 7px;
-      height:7px;
-    }
+   
   }
-
+  ::-webkit-scrollbar-track {
+    margin-top: 5px;
+    box-shadow: transparent;
+    background-color: transparent;
+    border-radius: 5px;
+  }
+  ::-webkit-scrollbar{
+    width: 5px;
+    height: 5px;
+    background-color: transparent;
+    margin-top: 50px;
+  }
+ ::-webkit-scrollbar-thumb {
+    background-color: ${props => props.theme.colors.neutral30};
+    border-radius: 5px;
+  }
+ ::-webkit-scrollbar-thumb:hover {
+    background-color: ${props => props.theme.colors.neutral30};
+  }
+  ::-webkit-scrollbar:hover{
+    width: 7px;
+    height:7px;
+  }
   #root {
     /* Layout - grow to at least viewport height */
     display: flex;
