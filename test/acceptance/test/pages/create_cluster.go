@@ -92,7 +92,7 @@ func (c CreateCluster) GetProfileInList(profileName string) *ProfileInformation 
 		Layer:     cluster.FindByXPath(`td[3]`),
 		Version:   cluster.FindByXPath(`td//div[contains(@class, "profile-version")]`),
 		Namespace: cluster.FindByXPath(`td//div[contains(@class, "profile-namespace")]//input`),
-		Values:    cluster.FindByXPath(`td//div[contains(@class, "profile-version")]/following-sibling::div/button`),
+		Values:    cluster.FindByXPath(`td//div[contains(@class, "profile-version")]/following-sibling::button`),
 	}
 }
 
