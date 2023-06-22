@@ -1,6 +1,7 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
 
 export interface ExternalSecret {
+  defaultSecretNamespace: string;
   secretStoreType: any;
   secretPath: string | undefined;
   secretStore: string;
@@ -39,6 +40,7 @@ export function getESInitialData(
     secretNamespace: '',
     secretStoreType: '',
     secretStore: '',
+    defaultSecretNamespace: '',
     secretPath: '',
     includeAllProps: false,
     data: [{ id: 1, key: '', value: '' }],

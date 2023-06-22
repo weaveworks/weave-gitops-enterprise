@@ -61,6 +61,7 @@ const CreateExternalSecret = () => {
       secretStoreKind: secretStoreKind || '',
       secretNamespace: secretNamespace || '',
       secretStoreType: secretStoreType || '',
+      defaultSecretNamespace: secretNamespace || '',
     }));
   };
   const { setNotifications } = useNotifications();
@@ -199,6 +200,11 @@ const CreateExternalSecret = () => {
                       value={formData.secretNamespace}
                       handleFormData={val =>
                         handleFormData(val, 'secretNamespace')
+                      }
+                      disabled={
+                        !!formData.secretNamespace &&
+                        formData.defaultSecretNamespace ===
+                          formData.secretNamespace
                       }
                       error={validateForm && !formData.secretNamespace}
                     />
