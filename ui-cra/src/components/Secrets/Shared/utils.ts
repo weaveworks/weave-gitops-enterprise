@@ -1,6 +1,7 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
 
 export interface ExternalSecret {
+  secretStoreType: any;
   secretPath: string | undefined;
   secretStore: string;
   dataSecretKey: string | undefined;

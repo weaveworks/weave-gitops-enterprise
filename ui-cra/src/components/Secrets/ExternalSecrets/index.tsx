@@ -185,12 +185,12 @@ const CreateExternalSecret = () => {
                   <Flex wide>
                     <InputDebounced
                       required
-                      name="secretStoreKind"
+                      name="secretStoreType"
                       label="SECRET STORE TYPE"
-                      value={formData.secretStoreKind}
+                      value={formData.secretStoreType}
                       handleFormData={val => {}}
                       disabled={true}
-                      error={validateForm && !formData.secretStoreKind}
+                      error={validateForm && !formData.secretStoreType}
                     />
                     <InputDebounced
                       required
