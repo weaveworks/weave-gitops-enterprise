@@ -153,7 +153,8 @@ export const PolicyDetailsCardWrapper = styled.ul`
       background: ${props => props.theme.colors.neutralGray};
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
       border: 1px solid ${props => props.theme.colors.neutral20};
-      height: 245px;
+      min-height: 245px;
+      height: fit-content;
       border-radius: ${props => props.theme.spacing.xs} !important;
     }
     .cardLbl {
