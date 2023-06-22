@@ -1,10 +1,9 @@
 import { Card, CardContent } from '@material-ui/core';
-import { Link, formatURL } from '@weaveworks/weave-gitops';
+import { formatURL, Link, V2Routes } from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
 } from '../../../cluster-services/cluster_services.pb';
-import { Routes } from '../../../utils/nav';
 import {
   PolicyDetailsCardWrapper,
   SectionTitle,
@@ -74,7 +73,7 @@ export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
 
   return status === 'OK' ? (
     <Link
-      to={formatURL(Routes.PolicyDetails, {
+      to={formatURL(V2Routes.PolicyDetailsPage, {
         clusterName: clusterName,
         id: id,
       })}
