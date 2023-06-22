@@ -131,8 +131,8 @@ export const PolicyDetailsCardWrapper = styled.ul`
   display: flex;
   flex-flow: wrap;
   li {
-    width: 400px;
-    padding: ${props => props.theme.spacing.small};
+    width: 24%;
+    padding: ${props => props.theme.spacing.base} ${props => props.theme.spacing.small};
     .modified {
       color: #c2185b;
       display: block;
@@ -151,10 +151,11 @@ export const PolicyDetailsCardWrapper = styled.ul`
     }
     .MuiCard-root {
       background: ${props => props.theme.colors.neutralGray};
+
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
       border: 1px solid ${props => props.theme.colors.neutral20};
       min-height: 245px;
-      height: fit-content;
+      height: 100%;
       border-radius: ${props => props.theme.spacing.xs} !important;
     }
     .cardLbl {
