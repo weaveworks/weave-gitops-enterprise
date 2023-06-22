@@ -151,7 +151,7 @@ const ProfilesListItem: FC<{
             </SelectSetWidth>
           </FormControl>
         </SpacedDiv>
-        <SpacedDiv>
+        <SpacedDiv className="profile-namespace">
           <FormControl>
             <Input
               id="profile-namespace"
