@@ -174,7 +174,7 @@ export const PolicyDetailsCardWrapper = styled.ul`
         margin-bottom: ${props => props.theme.spacing.xs};
         display: block;
         font-size: ${props => props.theme.fontSizes.small};
-        color: black;
+        color: ${props => props.theme.colors.black};
       }
 
       label[class*='MuiFormControlLabel-root'] {
