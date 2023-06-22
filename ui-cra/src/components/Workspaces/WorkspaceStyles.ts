@@ -1,38 +1,7 @@
 import { Dialog } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/styles';
 import { SubRouterTabs } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
-export const useWorkspaceStyle = makeStyles(() =>
-  createStyles({
-    navigateBtn: {
-      marginBottom: 24,
-      marginRight: 0,
-      textTransform: 'uppercase',
-    },
-    filterIcon: {
-      marginRight: 12,
-    },
-    alertWrapper: {
-      padding: 16,
-      margin: `0 ${16} ${16} ${16}`,
-      borderRadius: '10px',
-    },
-    fullWidth: {
-      width: '100%',
-    },
-    link: {
-      fontWeight: 600,
-      whiteSpace: 'pre-line',
-      cursor: 'pointer',
-    },
-    tabsWrapper: {
-      'a[class*="MuiTab-root"]': {
-        width: 'fit-content',
-      },
-    },
-  }),
-);
 export const CustomSubRouterTabs = styled(SubRouterTabs)(props => ({
   '.MuiTabs-root': {
     marginTop: props.theme.spacing.medium,

@@ -8,6 +8,7 @@ import React, {
   useEffect,
   useState,
 } from 'react';
+import styled from 'styled-components';
 import {
   ClusterNamespacedName,
   RepositoryRef,
@@ -15,17 +16,16 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
-import styled from 'styled-components';
 
-
-const YamlPreviewWrapper = styled(Flex)`
-  width: 100%;
-  button {
-    margin-right: 0;
+const SelectSetWidth = styled(Select)`
+  .MuiSelect-select {
+    width: 155px;
   }
 `;
 
-
+const SpacedDiv = styled.div`
+  margin-right: ${props => props.theme.spacing.small};
+`;
 
 const ProfilesListItem: FC<{
   cluster?: ClusterNamespacedName;
@@ -138,9 +138,9 @@ const ProfilesListItem: FC<{
         style={{ justifyContent: 'space-around' }}
         data-profile-name={profile.name}
       >
-        <div className="profile-version">
+        <SpacedDiv>
           <FormControl>
-            <Select
+            <SelectSetWidth
               disabled={profile.required && profile.values.length === 1}
               value={version}
               onChange={handleSelectVersion}
@@ -148,10 +148,10 @@ const ProfilesListItem: FC<{
               label="Versions"
             >
               {profileVersions(profile)}
-            </Select>
+            </SelectSetWidth>
           </FormControl>
-        </div>
-        <div className="profile-namespace">
+        </SpacedDiv>
+        <SpacedDiv>
           <FormControl>
             <Input
               id="profile-namespace"
@@ -161,12 +161,10 @@ const ProfilesListItem: FC<{
               error={!isNamespaceValid}
             />
           </FormControl>
-        </div>
-        <YamlPreviewWrapper center>
-          <Button variant="text" onClick={handleYamlPreview}>
-            Values.yaml
-          </Button>
-        </YamlPreviewWrapper>
+        </SpacedDiv>
+        <Button variant="text" onClick={handleYamlPreview}>
+          Values.yaml
+        </Button>
       </Flex>
 
       {openYamlPreview && (

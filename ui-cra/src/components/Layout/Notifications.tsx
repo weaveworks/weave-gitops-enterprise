@@ -1,5 +1,6 @@
 import { Box, Collapse } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
+import { Text } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
 import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
@@ -94,7 +95,7 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
         <Collapse in={true}>
           <Alert severity={n?.severity} onClose={() => handleDelete(n)}>
             {getIcon(n?.severity)}
-            {n?.message.text} {n?.message.component}
+            <Text color="black">{n?.message.text}</Text> {n?.message.component}
           </Alert>
         </Collapse>
       </BoxWrapper>

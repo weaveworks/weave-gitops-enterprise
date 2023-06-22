@@ -66,6 +66,7 @@ export const ListWorkSpaces = ({
                   key={workspace.name}
                   control={
                     <Checkbox
+                      color="primary"
                       checked={selectedWorkspacesList.includes(workspace.name)}
                       name={workspace.name}
                       onChange={e => handleChange(e)}

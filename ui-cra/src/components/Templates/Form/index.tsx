@@ -1,9 +1,5 @@
 import { Divider, Grid, useMediaQuery } from '@material-ui/core';
-import {
-  ThemeProvider,
-  createStyles,
-  makeStyles,
-} from '@material-ui/core/styles';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import {
   Button,
   Flex,
@@ -17,7 +13,6 @@ import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import ReactMarkdown from 'react-markdown';
 import { Redirect, useHistory } from 'react-router-dom';
 import remarkGfm from 'remark-gfm';
 import styled from 'styled-components';
@@ -36,7 +31,6 @@ import {
 } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
 import useTemplates from '../../../hooks/templates';
-import { localEEMuiTheme } from '../../../muiTheme';
 import {
   Credential,
   GitopsClusterEnriched,
@@ -56,6 +50,7 @@ import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { Editor } from '../../Shared';
 import { getLink } from '../Edit/EditButton';
 import useNotifications from './../../../contexts/Notifications';
 import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
@@ -137,21 +132,6 @@ const useStyles = makeStyles(theme =>
     },
     previewLoading: {
       padding: '16px',
-    },
-    editor: {
-      '& a': {
-        color: '#00b3ec',
-      },
-      '& > *:first-child': {
-        marginTop: 0,
-      },
-      '& > *:last-child': {
-        marginBottom: 0,
-      },
-      marginTop: '8px',
-      background: '#f5f5f5',
-      padding: '12px',
-      maxHeight: '300px',
     },
   }),
 );
@@ -596,9 +576,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             {template.description ? (
               <Flex column>
                 <div>Description:</div>
-                <ReactMarkdown
+                <Editor
                   children={template.description || ''}
-                  className={`editor ${classes.editor}`}
                   remarkPlugins={[remarkGfm]}
                 />
               </Flex>
@@ -754,11 +733,7 @@ const ResourceFormWrapper: FC<Props> = ({ template, resource }) => {
     );
   }
 
-  return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <ResourceForm template={template} resource={resource || undefined} />
-    </ThemeProvider>
-  );
+  return <ResourceForm template={template} resource={resource || undefined} />;
 };
 
 export default ResourceFormWrapper;
