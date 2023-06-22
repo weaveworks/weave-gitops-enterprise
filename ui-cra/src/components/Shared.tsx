@@ -87,7 +87,7 @@ export const MuiDialogTitle = ({ title, onFinish }: DialogTitleProps) => {
 
 export const Editor = styled(ReactMarkdown)`
   padding: ${props => props.theme.spacing.small};
-  overflow: auto;
+  overflow: scroll;
   background: ${props => props.theme.colors.neutralGray};
   max-height: 300px;
   & a {
