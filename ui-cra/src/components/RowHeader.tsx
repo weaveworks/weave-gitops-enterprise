@@ -78,7 +78,7 @@ function RowHeader({
   value: string | JSX.Element | undefined;
 }) {
   return (
-    <Flex start style={{ margin: `${8} 0` }} data-testid={rowkey}>
+    <Flex start gap="8" data-testid={rowkey}>
       <RowTitle>{rowkey} :</RowTitle>
       <RowBody>{children || value || '--'}</RowBody>
     </Flex>

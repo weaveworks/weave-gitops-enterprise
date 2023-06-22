@@ -9,20 +9,21 @@ import {
   TextField,
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
-import SearchIcon from '@material-ui/icons/Search';
 import { Autocomplete } from '@material-ui/lab';
+import { Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import {
   PolicyObj,
   PolicyParam,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { Dispatch, useEffect, useMemo, useState } from 'react';
 import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
+import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
   PolicyDetailsCardWrapper,
+  SectionTitle,
   usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
-import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 
 interface SelectSecretStoreProps {
   cluster: string;
@@ -143,10 +144,9 @@ export const SelectedPolicies = ({
     }
   };
 
-  const policiesInput = () => (
+  const PoliciesInput = () => (
     <Autocomplete
       multiple
-      className={classes.SelectPoliciesWithSearch}
       id="grouped-demo"
       value={selectedPolicies}
       options={policiesList?.sort((a, b) =>
@@ -159,18 +159,20 @@ export const SelectedPolicies = ({
       filterSelectedOptions
       renderInput={params => (
         <>
-          <span className={classes.fieldNote}>
+          <Text uppercase color="neutral30" style={{ marginBottom: '12px' }}>
             Select the policies to include in this policy config
-          </span>
+          </Text>
           <TextField
+            className="policies-input"
             {...params}
             variant="outlined"
             name="policies"
             disabled={cluster === undefined}
-            style={{ border: 'none !important' }}
             InputProps={{
               ...params.InputProps,
-              endAdornment: <SearchIcon />,
+              endAdornment: (
+                <Icon type={IconType.SearchIcon} size="medium" color="black" />
+              ),
             }}
           />
         </>
@@ -240,17 +242,20 @@ export const SelectedPolicies = ({
   return (
     <>
       <div className="form-field policyField">
-        <label className={classes.sectionTitle}>
+        <SectionTitle>
           Policies <span>({selectedPolicies?.length || 0})</span>
-        </label>
-        {policiesInput()}
+        </SectionTitle>
+        <PoliciesInput />
       </div>
-      {formError === 'policies' && JSON.stringify(formData.policies) === '{}' && (
-        <div className={classes.errorSection}>
-          <ErrorIcon />
-          <span>Please add at least one policy with modified parameter</span>
-        </div>
-      )}
+      {formError === 'policies' &&
+        JSON.stringify(formData.policies) === '{}' && (
+          <div className={classes.errorSection}>
+            <ErrorIcon />
+            <Text color="black">
+              Please add at least one policy with modified parameter
+            </Text>
+          </div>
+        )}
 
       <PolicyDetailsCardWrapper>
         {selectedPolicies?.map(policy => (

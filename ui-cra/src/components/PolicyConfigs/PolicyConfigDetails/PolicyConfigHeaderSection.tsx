@@ -3,7 +3,11 @@ import moment from 'moment';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { getKindRoute, Routes } from '../../../utils/nav';
 import { RowHeaders, SectionRowHeader } from '../../RowHeader';
-import { usePolicyConfigStyle } from '../PolicyConfigStyles';
+import {
+  SectionTitle,
+  TargetItemKind,
+  usePolicyConfigStyle,
+} from '../PolicyConfigStyles';
 
 function PolicyConfigHeaderSection({
   age,
@@ -52,12 +56,9 @@ function PolicyConfigHeaderSection({
                 </span>
               </Link>
             )}
-            <span
-              data-testid={`matchItemKind${item.kind}`}
-              className={`${classes.targetItemKind} ${classes.capitlize}`}
-            >
+            <TargetItemKind data-testid={`matchItemKind${item.kind}`}>
               {item.kind}
-            </span>
+            </TargetItemKind>
           </li>
         );
       case 'resources':
@@ -66,12 +67,9 @@ function PolicyConfigHeaderSection({
             <span data-testid={`matchItem${item.name}`}>
               {item.namespace === '' ? '*' : item.namespace}/{item.name}
             </span>
-            <span
-              data-testid={`matchItemKind${item.kind}`}
-              className={`${classes.targetItemKind} ${classes.capitlize}`}
-            >
+            <TargetItemKind data-testid={`matchItemKind${item.kind}`}>
               {item.kind}
-            </span>
+            </TargetItemKind>
           </li>
         );
       case 'workspaces':
@@ -100,7 +98,7 @@ function PolicyConfigHeaderSection({
     <div>
       <RowHeaders rows={defaultHeaders} />
       <div>
-        <label className={classes.sectionTitle}>Applied To</label>
+        <SectionTitle>Applied To</SectionTitle>
         <div
           data-testid="appliedTo"
           className={`${classes.appliedTo} ${classes.capitlize}`}

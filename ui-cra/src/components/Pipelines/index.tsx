@@ -1,8 +1,8 @@
 import {
   Button,
+  DataTable,
   Icon,
   IconType,
-  DataTable,
   filterConfig,
   formatURL,
 } from '@weaveworks/weave-gitops';

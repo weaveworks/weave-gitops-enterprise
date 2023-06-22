@@ -1,7 +1,7 @@
-import { CheckCircle, Error, RemoveCircle } from '@material-ui/icons';
 import LinearProgress from '@material-ui/core/LinearProgress';
 
-import { useCanaryStyle } from '../CanaryStyles';
+import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 
 enum CanaryDeploymentStatus {
   Initializing = 'Initializing',
@@ -17,7 +17,17 @@ enum CanaryDeploymentStatus {
   Terminated = 'Terminated',
   Ready = 'Ready',
 }
-
+const MuiLinearProgress = styled(LinearProgress)`
+  background-color: ${props => props.theme.colors.neutral20};
+  width: 100%;
+  height: 8px;
+  border-radius: 5px;
+  min-width: 75px;
+  .barroot {
+    background-color: ${props => props.theme.colors.successOriginal};
+    border-radius: 5px;
+  }
+`;
 function CanaryStatus({
   status,
   value = { current: 0, total: 0 },
@@ -25,17 +35,19 @@ function CanaryStatus({
   status: string;
   value?: { current: number; total: number };
 }) {
-  const classes = useCanaryStyle();
-
   return (
-    <div className={classes.statusWrapper}>
+    <Flex gap="8" align start>
       {(() => {
         switch (status) {
           case CanaryDeploymentStatus.Waiting:
           case CanaryDeploymentStatus.WaitingPromotion:
             return (
               <>
-                <RemoveCircle className={`${classes.statusWaiting}`} />
+                <Icon
+                  type={IconType.RemoveCircleIcon}
+                  color="alertOriginal"
+                  size="medium"
+                />
                 {status}
               </>
             );
@@ -44,7 +56,11 @@ function CanaryStatus({
           case CanaryDeploymentStatus.Ready:
             return (
               <>
-                <CheckCircle className={`${classes.statusReady}`} />
+                <Icon
+                  type={IconType.CheckCircleIcon}
+                  color="successOriginal"
+                  size="medium"
+                />
                 {status}
               </>
             );
@@ -53,23 +69,26 @@ function CanaryStatus({
               value.current > value.total ? value.total : value.current;
             return (
               <>
-                <LinearProgress
+                <MuiLinearProgress
                   variant="determinate"
                   value={(current / value.total) * 100}
                   classes={{
-                    barColorPrimary: classes.barroot,
+                    barColorPrimary: 'barroot',
                   }}
-                  className={classes.statusProcessing}
                 />
                 <span
-                  className={classes.statusProcessingText}
+                  style={{ minWidth: 'fit-content' }}
                 >{`${current} / ${value.total}`}</span>
               </>
             );
           case CanaryDeploymentStatus.Failed:
             return (
               <>
-                <Error className={`${classes.statusFailed}`} />
+                <Icon
+                  type={IconType.SuspendedIcon}
+                  color="feedbackOriginal"
+                  size="medium"
+                />
                 {status}
               </>
             );
@@ -77,7 +96,7 @@ function CanaryStatus({
             return <>{status}</>;
         }
       })()}
-    </div>
+    </Flex>
   );
 }
 

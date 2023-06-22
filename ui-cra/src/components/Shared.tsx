@@ -6,6 +6,7 @@ import {
 } from '@material-ui/core';
 import { Flex, Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import ReactMarkdown from 'react-markdown';
 import styled from 'styled-components';
 import CloseIconButton from '../assets/img/close-icon-button';
 
@@ -83,3 +84,21 @@ export const MuiDialogTitle = ({ title, onFinish }: DialogTitleProps) => {
     </DialogTitle>
   );
 };
+
+export const Editor = styled(ReactMarkdown)`
+  padding: ${props => props.theme.spacing.small};
+  overflow: scroll;
+  background: ${props => props.theme.colors.neutralGray};
+  max-height: 300px;
+  & a {
+    color: ${props => props.theme.colors.primary};
+  }
+  ,
+  & > *:first-child {
+    margin-top: ${props => props.theme.spacing.none};
+  }
+  ,
+  & > *:last-child {
+    margin-bottom: ${props => props.theme.spacing.none};
+  }
+`;

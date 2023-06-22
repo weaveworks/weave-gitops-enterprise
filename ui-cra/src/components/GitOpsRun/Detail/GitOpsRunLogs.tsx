@@ -28,7 +28,7 @@ type Props = {
 };
 
 const Header = styled(Flex)`
-  background: ${props => props.theme.colors.neutral10};
+  background: ${props => props.theme.colors.neutralGray};
   padding: ${props => props.theme.spacing.xs};
   width: 100%;
   border-bottom: 1px solid ${props => props.theme.colors.neutral20};
@@ -119,7 +119,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
   }, [isLoading, data]);
 
   return (
-    <Flex className={className} wide tall column>
+    <Flex className={className} wide column>
       <Flex>
         <Select
           label="LOG"
@@ -181,6 +181,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
             size="small"
             //start with latest logs
             className={reverseSort ? 'upward' : 'downward'}
+            color="black"
           />
         </IconButton>
       </Header>

@@ -2,7 +2,6 @@ import { PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
-import styled from 'styled-components';
 import { GitProvider } from './api/gitauth/gitauth.pb';
 import error404 from './assets/img/error404.json';
 import WGApplicationsDashboard from './components/Applications';
@@ -30,16 +29,19 @@ import ImageAutomationPage from './components/ImageAutomation';
 import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
 import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
 import ImageAutomationUpdatesDetails from './components/ImageAutomation/updates/ImageAutomationUpdatesDetails';
+import { Page } from './components/Layout/App';
+import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
-import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import Policies from './components/Policies/PoliciesListPage';
+import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
+import CreateExternalSecret from './components/Secrets/ExternalSecrets';
 import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
@@ -51,9 +53,6 @@ import WGUserInfo from './components/UserInfo';
 import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
-import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
-import { Page } from './components/Layout/App';
-import CreateExternalSecret from './components/Secrets/ExternalSecrets';
 
 function withSearchParams(Cmp: any) {
   return ({ location: { search }, ...rest }: any) => {
@@ -61,27 +60,6 @@ function withSearchParams(Cmp: any) {
     return <Cmp {...rest} {...params} />;
   };
 }
-
-const CoreWrapper = styled.div`
-  div[class*='FilterDialog__SlideContainer'] {
-    overflow: hidden;
-  }
-  .MuiFormControl-root {
-    min-width: 0px;
-  }
-  div[class*='ReconciliationGraph'] {
-    svg {
-      min-height: 600px;
-    }
-    .MuiSlider-root.MuiSlider-vertical {
-      height: 200px;
-    }
-  }
-  .MuiButton-root {
-    margin-right: 0;
-  }
-  width: 100%;
-`;
 
 const Page404 = () => (
   <Page path={[{ label: 'Error' }]}>
@@ -112,9 +90,7 @@ const AppRoutes = () => {
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <EditResourcePage {...props} />
-          </CoreWrapper>
+          <EditResourcePage {...props} />
         ))}
         path={Routes.EditResource}
       />
@@ -134,11 +110,7 @@ const AppRoutes = () => {
         path={Routes.GitOpsRunDetail}
       />
       <Route
-        component={(props: any) => (
-          <CoreWrapper>
-            <WGApplicationsDashboard {...props} />
-          </CoreWrapper>
-        )}
+        component={(props: any) => <WGApplicationsDashboard {...props} />}
         exact
         path={V2Routes.Automations}
       />
@@ -148,91 +120,65 @@ const AppRoutes = () => {
         path={Routes.AddApplication}
       />
       <Route
-        component={(props: any) => (
-          <CoreWrapper>
-            <WGApplicationsSources {...props} />
-          </CoreWrapper>
-        )}
+        component={(props: any) => <WGApplicationsSources {...props} />}
         exact
         path={V2Routes.Sources}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsKustomization {...props} />
-          </CoreWrapper>
+          <WGApplicationsKustomization {...props} />
         ))}
         path={V2Routes.Kustomization}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsGitRepository {...props} />
-          </CoreWrapper>
+          <WGApplicationsGitRepository {...props} />
         ))}
         path={V2Routes.GitRepo}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsHelmRepository {...props} />
-          </CoreWrapper>
+          <WGApplicationsHelmRepository {...props} />
         ))}
         path={V2Routes.HelmRepo}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsBucket {...props} />
-          </CoreWrapper>
+          <WGApplicationsBucket {...props} />
         ))}
         path={V2Routes.Bucket}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsHelmRelease {...props} />
-          </CoreWrapper>
+          <WGApplicationsHelmRelease {...props} />
         ))}
         path={V2Routes.HelmRelease}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsHelmChart {...props} />
-          </CoreWrapper>
+          <WGApplicationsHelmChart {...props} />
         ))}
         path={V2Routes.HelmChart}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGApplicationsOCIRepository {...props} />
-          </CoreWrapper>
+          <WGApplicationsOCIRepository {...props} />
         ))}
         path={V2Routes.OCIRepository}
       />
       <Route
-        component={() => (
-          <CoreWrapper>
-            <WGApplicationsFluxRuntime />
-          </CoreWrapper>
-        )}
+        component={() => <WGApplicationsFluxRuntime />}
         path={V2Routes.FluxRuntime}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGNotifications {...props} />
-          </CoreWrapper>
+          <WGNotifications {...props} />
         ))}
         path={V2Routes.Notifications}
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGUserInfo {...props} />
-          </CoreWrapper>
+          <WGUserInfo {...props} />
         ))}
         path={V2Routes.UserInfo}
       />
@@ -243,9 +189,7 @@ const AppRoutes = () => {
       />
       <Route
         component={withSearchParams((props: any) => (
-          <CoreWrapper>
-            <WGNotificationsProvider {...props} />
-          </CoreWrapper>
+          <WGNotificationsProvider {...props} />
         ))}
         path={V2Routes.Provider}
       />

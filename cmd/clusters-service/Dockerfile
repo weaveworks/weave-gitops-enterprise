@@ -21,10 +21,7 @@ ARG image_tag
 RUN --mount=type=cache,target=/root/.cache/go-build \
       make cmd/clusters-service/clusters-service WEAVE_GITOPS_VERSION=${version} IMAGE_TAG=${image_tag}
 
-# Use distroless as minimal base image
-# Refer to https://github.com/GoogleContainerTools/distroless for more details
-# Use `base` variant as we compile with CGO_ENABLED=1 for sqlite3 and it includes glibc
-FROM gcr.io/distroless/base:nonroot
+FROM alpine:3.18
 
 ARG now
 ARG revision
@@ -40,6 +37,18 @@ LABEL maintainer="Weaveworks <help@weave.works>" \
 
 WORKDIR /
 COPY --from=build /app/cmd/clusters-service/clusters-service .
-USER 65532:65532
 
-ENTRYPOINT ["/clusters-service"]
+
+RUN apk --no-cache add ca-certificates tini \
+    # gpg is needed for sops encryption and decryption
+    gnupg \
+    # upgrade openssl to get latest security patches
+    && apk upgrade libssl3 libcrypto3 \
+    && update-ca-certificates
+
+ENV GNUPGHOME=/tmp/
+
+# nobody user
+USER 65534:65534
+
+ENTRYPOINT [ "/sbin/tini", "--", "/clusters-service"]

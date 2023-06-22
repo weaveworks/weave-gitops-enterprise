@@ -49,7 +49,6 @@ const FormControl = withStyles((theme: Theme) => ({
 const InputLabel = withStyles(() => ({
   root: {
     fontSize: 14,
-    color: 'black',
     paddingBottom: 6,
   },
   formControl: {
@@ -60,9 +59,11 @@ const InputLabel = withStyles(() => ({
 const InputBase = withStyles(() => ({
   root: {
     border: '1px solid #d8d8d8',
+    marginRight: '24px',
   },
   input: {
     border: 'none',
+    padding: '8px 12px',
   },
   inputMultiline: {
     padding: '10px',
