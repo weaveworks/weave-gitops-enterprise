@@ -138,7 +138,7 @@ const ProfilesListItem: FC<{
         style={{ justifyContent: 'space-around' }}
         data-profile-name={profile.name}
       >
-        <SpacedDiv>
+        <SpacedDiv className="profile-version">
           <FormControl>
             <SelectSetWidth
               disabled={profile.required && profile.values.length === 1}

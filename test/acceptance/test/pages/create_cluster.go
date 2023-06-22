@@ -55,7 +55,7 @@ func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new resource with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
-		ProfileList:     webDriver.Find(`div[class*=profiles-table] table tbody`),
+		ProfileList:     webDriver.Find(`.profiles-table table tbody`),
 		PreviewPR:       webDriver.FindByButton("PREVIEW PR"),
 		AddApplication:  webDriver.FindByButton("ADD AN APPLICATION"),
 	}
