@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@material-ui/core';
-import { formatURL, Link, V2Routes } from '@weaveworks/weave-gitops';
+import { Flex, formatURL, Link, V2Routes } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
@@ -83,7 +84,7 @@ export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
       <span data-testid={`policyId-${name}`}>{name}</span>
     </Link>
   ) : (
-    <div className={classes.policyTitle}>
+    <Flex align gap="8">
       <span
         title={`One or more policies are not found in cluster ${clusterName}.`}
         data-testid={`warning-icon-${id}`}
@@ -91,6 +92,6 @@ export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
         <WarningIcon />
       </span>
       <span data-testid={`policyId-${id}`}>{id}</span>
-    </div>
+    </Flex>
   );
 }

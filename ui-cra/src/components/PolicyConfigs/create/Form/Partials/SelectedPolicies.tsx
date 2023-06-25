@@ -10,7 +10,7 @@ import {
 } from '@material-ui/core';
 import { RemoveCircleOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import { Icon, IconType, Text } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType, Text, Button } from '@weaveworks/weave-gitops';
 import {
   PolicyObj,
   PolicyParam,
@@ -23,6 +23,8 @@ import {
   PolicyDetailsCardWrapper,
   SectionTitle,
   usePolicyConfigStyle,
+  ErrorSection,
+  RemoveIcon,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -249,12 +251,12 @@ export const SelectedPolicies = ({
       </div>
       {formError === 'policies' &&
         JSON.stringify(formData.policies) === '{}' && (
-          <div className={classes.errorSection}>
+          <ErrorSection>
             <ErrorIcon />
             <Text color="black">
               Please add at least one policy with modified parameter
             </Text>
-          </div>
+          </ErrorSection>
         )}
 
       <PolicyDetailsCardWrapper>
@@ -262,22 +264,21 @@ export const SelectedPolicies = ({
           <li key={policy.id}>
             <Card>
               <CardContent>
-                <div className={`${classes.policyTitle} editPolicyCardHeader`}>
-                  <span>{policy.name}</span>
-
-                  <RemoveCircleOutline
+                <Flex align between gap="8">
+                  <Text>{policy.name}</Text>
+                  <RemoveIcon
                     onClick={() => handleDeletePolicyParam(policy.id!)}
                   />
-                </div>
+                </Flex>
                 <label className="cardLbl">Parameters</label>
                 {policy?.parameters?.map(param => (
                   <div
                     className="parameterItem"
                     key={`${param.name}${policy.id}`}
                   >
-                    <div className={`parameterItemValue ${classes.upperCase}`}>
+                    <Text uppercase className="parameterItemValue">
                       {getParameterField(param, policy.id!)}
-                    </div>
+                    </Text>
                   </div>
                 ))}
               </CardContent>

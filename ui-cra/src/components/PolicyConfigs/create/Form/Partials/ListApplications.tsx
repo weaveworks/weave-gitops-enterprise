@@ -4,8 +4,8 @@ import { Dispatch, useEffect, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import {
+  CheckList,
   TargetItemKind,
-  usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -23,7 +23,6 @@ export const ListApplications = ({
   setSelectedAppsList,
   setFormData,
 }: SelectSecretStoreProps) => {
-  const classes = usePolicyConfigStyle();
   const [checks, setChecks] = useState<string[]>([]);
   const {
     data: applicationsList,
@@ -76,7 +75,7 @@ export const ListApplications = ({
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {applicationsList?.result.length && applications.length ? (
         <FormGroup>
-          <ul className={classes.checkList}>
+          <CheckList>
             {applications.map(app => (
               <li key={app.obj.metadata.name}>
                 <FormControlLabel
@@ -105,7 +104,7 @@ export const ListApplications = ({
                 />
               </li>
             ))}
-          </ul>
+          </CheckList>
         </FormGroup>
       ) : (
         <span>No Applications found</span>
