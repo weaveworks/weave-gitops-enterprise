@@ -193,8 +193,8 @@ export const getESFormattedPayload = (formData: ExternalSecret) => {
           return {
             secretKey: d.value,
             remoteRef: {
-              key: d.key,
-              property: d.value,
+              key: secretPath,
+              property: d.key,
             },
           };
         }),
