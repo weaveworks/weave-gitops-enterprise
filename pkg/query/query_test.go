@@ -4,7 +4,12 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 	"testing"
+
+	l "github.com/weaveworks/weave-gitops/core/logger"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
@@ -31,6 +36,7 @@ func (c predicateAuthz) ObjectAuthorizer([]models.Role, []models.RoleBinding, *a
 	return c.predicate
 }
 
+// TestRunQuery runs a set of test cases for acceptance on the querying logic.
 func TestRunQuery(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -425,6 +431,121 @@ func TestRunQuery(t *testing.T) {
 		})
 	}
 
+}
+
+// TestRunQuery_ErrorScenarios injects errors to ensure that querying is tolerant to errors where possible.
+func TestRunQuery_ErrorScenarios(t *testing.T) {
+	t.Run("should be tolerant to inconsistency between indexer and datastore", func(t *testing.T) {
+		objects := []models.Object{
+			{
+				Cluster:    "test-cluster-1",
+				Name:       "podinfo1",
+				Namespace:  "namespace-a",
+				Kind:       "Deployment",
+				APIGroup:   "apps",
+				APIVersion: "v1",
+			},
+			{
+				Cluster:    "test-cluster-2",
+				Name:       "podinfo2",
+				Namespace:  "namespace-b",
+				Kind:       "Deployment",
+				APIGroup:   "apps",
+				APIVersion: "v1",
+			},
+		}
+		want := []string{"podinfo1"}
+		g := NewGomegaWithT(t)
+
+		dir, err := os.MkdirTemp("", "test")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		db, err := store.CreateSQLiteDB(dir)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		s, err := store.NewSQLiteStore(db, logr.Discard())
+		g.Expect(err).NotTo(HaveOccurred())
+
+		idxDir, err := os.MkdirTemp("", "indexer-test")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		idx, err := store.NewIndexer(s, idxDir)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		log, loggerPath := newLoggerWithLevel(t, "INFO")
+
+		q := &qs{
+			log:        log,
+			debug:      logr.Discard(),
+			r:          s,
+			index:      idx,
+			authorizer: allowAll,
+		}
+
+		g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
+
+		//force inconsistency by just adding one element in the datastore
+		g.Expect(store.SeedObjects(db, objects[:1])).To(Succeed())
+
+		ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+			ID: "test",
+			Groups: []string{
+				"group-a",
+			},
+		})
+
+		got, err := q.RunQuery(ctx, &query{terms: ""}, nil)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		names := []string{}
+
+		for _, o := range got {
+			names = append(names, o.Name)
+		}
+
+		g.Expect(names).To(Equal(want))
+
+		//assert logs to ensure the error is logged
+		logs, err := os.ReadFile(loggerPath)
+		g.Expect(err).To(BeNil())
+		logss := string(logs)
+		g.Expect(logss).To(MatchRegexp("failed to get object: test-cluster-2/namespace-b/apps/v1/Deployment/podinfo2"))
+
+	})
+}
+
+// newLoggerWithLevel creates a logger and a path to the file it
+// writes to, so you can check the contents of the log during the
+// test.
+func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
+	g := NewGomegaWithT(t)
+
+	tmp, err := os.MkdirTemp("", "query-server-test")
+	g.Expect(err).ShouldNot(HaveOccurred())
+	path := filepath.Join(tmp, "log")
+
+	level, err := zapcore.ParseLevel(logLevel)
+	g.Expect(err).ShouldNot(HaveOccurred())
+	cfg := l.BuildConfig(
+		l.WithLogLevel(level),
+		l.WithMode(false),
+		l.WithOutAndErrPaths("stdout", "stderr"),
+		l.WithOutAndErrPaths(path, path),
+	)
+
+	log, err := l.NewFromConfig(cfg)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	t.Cleanup(func() {
+		if strings.HasPrefix(path, os.TempDir()) {
+			err := os.Remove(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+	})
+
+	return log, path
 }
 
 func TestQueryIteration(t *testing.T) {
