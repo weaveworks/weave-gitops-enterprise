@@ -1,22 +1,22 @@
+import { Box } from '@material-ui/core';
+import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import {
   Flex,
   RouterTab,
   SubRouterTabs,
   YamlView,
 } from '@weaveworks/weave-gitops';
+import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { Box } from '@material-ui/core';
-import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
 import KeyValueTable, { KeyValuePairs } from '../../KeyValueTable';
+import { Page } from '../../Layout/App';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import PipelinePullRequests from './PipelinePullRequests';
-import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
-import { Page } from '../../Layout/App';
+import { usePipelineStyles } from './styles';
 
 const mappedErrors = (
   errors: Array<string>,

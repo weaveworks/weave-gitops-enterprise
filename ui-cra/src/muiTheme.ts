@@ -1,15 +1,19 @@
-import { Theme, createTheme } from '@material-ui/core/styles';
+import { createTheme } from '@material-ui/core/styles';
 import { baseTheme, muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
 import { ThemeTypes } from '@weaveworks/weave-gitops/ui/contexts/AppContext';
 
 const defaultTheme = createTheme();
 
-export const muiTheme = (colors: any, mode: ThemeTypes) =>
-  createTheme({
-    ...coreMuiTheme(colors, mode),
+export const muiTheme = (colors: any, mode: ThemeTypes) => {
+  const theme = coreMuiTheme(colors, mode);
+  return createTheme({
+    ...theme,
     overrides: {
+      ...theme.overrides,
       MuiButton: {
+        ...theme.overrides?.MuiButton,
         root: {
+          ...theme.overrides?.MuiButton?.root,
           textTransform: 'none',
           minWidth: 52,
           marginRight: baseTheme.spacing.small,
@@ -49,6 +53,9 @@ export const muiTheme = (colors: any, mode: ThemeTypes) =>
         select: {
           width: '100%',
         },
+        icon: {
+          color: colors.black,
+        },
       },
       MuiTableCell: {
         head: {
@@ -79,55 +86,4 @@ export const muiTheme = (colors: any, mode: ThemeTypes) =>
       borderRadius: 2,
     },
   });
-
-export const localEEMuiTheme = (theme: Theme) =>
-  createTheme({
-    ...theme,
-    overrides: {
-      ...theme.overrides,
-      MuiInputBase: {
-        ...theme.overrides?.MuiInputBase,
-        root: {
-          ...theme.overrides?.MuiInputBase?.root,
-          marginRight: `${baseTheme.spacing.medium}`,
-        },
-        input: {
-          ...theme.overrides?.MuiInputBase?.input,
-          minWidth: '155px',
-          border: `1px solid #d8d8d8`,
-          position: 'relative',
-          fontSize: 16,
-          width: '100%',
-          padding: '8px 12px',
-          '&:focus': {
-            borderRadius: 2,
-          },
-        },
-      },
-      MuiInputLabel: {
-        ...theme.overrides?.MuiInputLabel,
-        formControl: {
-          ...theme.overrides?.MuiInputLabel?.formControl,
-          fontSize: `${baseTheme.fontSizes.tiny}`,
-        },
-        shrink: {
-          transform: 'none',
-        },
-        asterisk: {
-          display: 'none',
-        },
-      },
-      MuiSelect: {
-        select: {
-          ...theme.overrides?.MuiSelect?.select,
-          minWidth: '155px',
-        },
-      },
-      MuiCheckbox: {
-        root: {
-          ...theme.overrides?.MuiCheckbox?.root,
-          padding: 0,
-        },
-      },
-    },
-  });
+};

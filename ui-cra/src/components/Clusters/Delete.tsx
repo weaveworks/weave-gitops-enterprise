@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, ThemeProvider } from '@material-ui/core';
+import { Dialog, DialogContent } from '@material-ui/core';
 import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
 import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
 import styled from 'styled-components';
@@ -9,7 +9,6 @@ import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../hooks/gitprovider';
-import { localEEMuiTheme } from '../../muiTheme';
 import { PRDefaults } from '../../types/custom';
 import { Input } from '../../utils/form';
 import { removeToken } from '../../utils/request';
@@ -142,63 +141,61 @@ export const DeleteClusterDialog: FC<Props> = ({
   }, [onClose, setFormData, prDefaults]);
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
-        <div id="delete-popup">
-          <MuiDialogTitle
-            title="Create PR to remove clusters"
-            onFinish={cleanUp}
-          />
-          <DialogContent>
-            {!loading ? (
-              <>
-                <Input
-                  className="form-section"
-                  label="CREATE BRANCH"
-                  placeholder={formData.branchName}
-                  onChange={handleChangeBranchName}
-                />
-                <Input
-                  className="form-section"
-                  label="PULL REQUEST TITLE"
-                  placeholder={formData.pullRequestTitle}
-                  onChange={handleChangePullRequestTitle}
-                />
-                <Input
-                  className="form-section"
-                  label="COMMIT MESSAGE"
-                  placeholder={formData.commitMessage}
-                  onChange={handleChangeCommitMessage}
-                />
-                <Input
-                  className="form-section"
-                  label="PULL REQUEST DESCRIPTION"
-                  placeholder={formData.pullRequestDescription}
-                  onChange={handleChangePRDescription}
-                />
-                <GitAuth
-                  formData={formData}
-                  setFormData={setFormData}
-                  showAuthDialog={showAuthDialog}
-                  setShowAuthDialog={setShowAuthDialog}
-                  enableGitRepoSelection={!formData?.repo?.createPRRepo}
-                />
-                <Button
-                  id="delete-cluster"
-                  color="secondary"
-                  startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
-                  onClick={handleClickRemove}
-                  disabled={!isAuthenticated}
-                >
-                  REMOVE CLUSTERS FROM THE MCCP
-                </Button>
-              </>
-            ) : (
-              <Loader />
-            )}
-          </DialogContent>
-        </div>
-      </DeleteClusterWrapper>
-    </ThemeProvider>
+    <DeleteClusterWrapper open maxWidth="md" fullWidth onClose={cleanUp}>
+      <div id="delete-popup">
+        <MuiDialogTitle
+          title="Create PR to remove clusters"
+          onFinish={cleanUp}
+        />
+        <DialogContent>
+          {!loading ? (
+            <>
+              <Input
+                className="form-section"
+                label="CREATE BRANCH"
+                placeholder={formData.branchName}
+                onChange={handleChangeBranchName}
+              />
+              <Input
+                className="form-section"
+                label="PULL REQUEST TITLE"
+                placeholder={formData.pullRequestTitle}
+                onChange={handleChangePullRequestTitle}
+              />
+              <Input
+                className="form-section"
+                label="COMMIT MESSAGE"
+                placeholder={formData.commitMessage}
+                onChange={handleChangeCommitMessage}
+              />
+              <Input
+                className="form-section"
+                label="PULL REQUEST DESCRIPTION"
+                placeholder={formData.pullRequestDescription}
+                onChange={handleChangePRDescription}
+              />
+              <GitAuth
+                formData={formData}
+                setFormData={setFormData}
+                showAuthDialog={showAuthDialog}
+                setShowAuthDialog={setShowAuthDialog}
+                enableGitRepoSelection={!formData?.repo?.createPRRepo}
+              />
+              <Button
+                id="delete-cluster"
+                color="secondary"
+                startIcon={<Icon type={IconType.DeleteIcon} size="base" />}
+                onClick={handleClickRemove}
+                disabled={!isAuthenticated}
+              >
+                REMOVE CLUSTERS FROM THE MCCP
+              </Button>
+            </>
+          ) : (
+            <Loader />
+          )}
+        </DialogContent>
+      </div>
+    </DeleteClusterWrapper>
   );
 };

@@ -75,7 +75,7 @@ export const AlertListErrors: FC<{ errors?: ListError[] }> = ({ errors }) => {
           <Alert severity="error" onClose={() => setShow(false)}>
             <Flex align center>
               <ErrorIcon />
-              <ErrorText size="base" data-testid="error-message">
+              <ErrorText size="base" data-testid="error-message" color="black">
                 {filteredErrors[index].clusterName}:&nbsp;
                 {filteredErrors[index].message}
               </ErrorText>

@@ -84,6 +84,13 @@ const ClusterDashboard = ({
       ]
     : [];
 
+  const StyledChip = styled(Chip)`
+    &.MuiChip-root {
+      background-color: ${props => props.theme.colors.neutralGray};
+      color: ${props => props.theme.colors.black};
+    }
+  `;
+
   const renderer = (
     labels: GitopsClusterEnriched['labels'] | null,
     annotations: GitopsClusterEnriched['annotations'] | null,
@@ -100,7 +107,7 @@ const ClusterDashboard = ({
           {annotations && 'Annotations'}
         </Typography>
         {getObjects().map(([key, value]) => (
-          <Chip
+          <StyledChip
             title={value}
             style={{
               maxWidth: '650px',

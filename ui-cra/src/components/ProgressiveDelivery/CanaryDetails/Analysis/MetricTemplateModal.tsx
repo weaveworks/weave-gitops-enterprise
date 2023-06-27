@@ -1,11 +1,9 @@
-import { usePolicyStyle } from '../../../Policies/PolicyStyles';
-
 import Dialog from '@material-ui/core/Dialog';
 import { CanaryMetricTemplate } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import React, { Dispatch, FC } from 'react';
 
 import { DialogContent } from '@material-ui/core';
-import { YamlView } from '@weaveworks/weave-gitops';
+import { Flex, YamlView } from '@weaveworks/weave-gitops';
 import { MuiDialogTitle } from '../../../Shared';
 
 type Props = {
@@ -19,9 +17,8 @@ export const MetricTemplateModal: FC<Props> = ({
   metricTemplate,
   setOpenMetricTemplate,
 }) => {
-  const classes = usePolicyStyle();
   return (
-    <div className={classes.root}>
+    <Flex wide>
       <Dialog
         id="metric-template-dialog"
         open={open}
@@ -44,6 +41,6 @@ export const MetricTemplateModal: FC<Props> = ({
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </Flex>
   );
 };

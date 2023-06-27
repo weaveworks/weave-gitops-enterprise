@@ -1,6 +1,11 @@
-import { RouterTab, SubRouterTabs, YamlView } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  RouterTab,
+  SubRouterTabs,
+  Text,
+  YamlView,
+} from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { useCanaryStyle } from '../CanaryStyles';
 
 import {
   Automation,
@@ -28,12 +33,11 @@ function CanaryDetailsSection({
   canary: Canary;
   automation?: Automation;
 }) {
-  const classes = useCanaryStyle();
   const path = Routes.CanaryDetails;
   return (
-    <>
+    <Flex column gap="16">
       <TitleWrapper>{canary.name}</TitleWrapper>
-      <div className={classes.statusWrapper}>
+      <Flex gap="8" align start>
         <CanaryStatus
           status={canary.status?.phase || '--'}
           value={getProgressValue(
@@ -42,11 +46,10 @@ function CanaryDetailsSection({
             canary.analysis,
           )}
         />
-        <p className={classes.statusMessage}>
+        <Text color="neutral30">
           {canary.status?.conditions![0].message || '--'}
-        </p>
-      </div>
-
+        </Text>
+      </Flex>
       <SubRouterTabs rootPath={`${path}/details`}>
         <RouterTab name="Details" path={`${path}/details`}>
           <CanaryDetailsWrapper>
@@ -95,7 +98,7 @@ function CanaryDetailsSection({
           </CanaryDetailsWrapper>
         </RouterTab>
       </SubRouterTabs>
-    </>
+    </Flex>
   );
 }
 

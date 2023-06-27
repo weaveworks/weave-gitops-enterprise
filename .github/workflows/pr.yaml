@@ -1,12 +1,7 @@
 name: create pr
 
 on:
-  push:
   workflow_dispatch:
-
-# Manual or scheduled trigger every 1 hour
-schedule:
- - cron: '0 * * * *'
 
 jobs:
   enterprise-pr-release:
