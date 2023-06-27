@@ -34,7 +34,7 @@ const InputLabel = withStyles(() => ({
 
 const InputBase = styled(MuiInputBase)`
   &.MuiInputBase-root {
-    border: 2px solid ${props => props.theme.colors.neutralGray};
+    border: 2px solid ${props => props.theme.colors.neutral20ToPrimary};
     border-radius: 2px;
     margin-right: 24px;
     padding: 0px 8px;
