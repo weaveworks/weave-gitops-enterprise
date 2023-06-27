@@ -54,7 +54,7 @@ describe('Github Authenticate', () => {
       );
       render(c);
     });
-    expect(await screen.findByText('Authenticate with GitHub')).toBeTruthy();
+    expect(await screen.findByText('AUTHORIZE GITHUB ACCESS')).toBeTruthy();
 
     const ghCode = await screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
