@@ -150,8 +150,8 @@ cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.
 BRANCH?=main
 update-weave-gitops:
 	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
-	go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH)
-	go mod tidy
+	# go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH)
+	# go mod tidy
 	$(eval NPM_VERSION := $(shell cd ui-cra && yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | keys | .[] | select(contains("$(SHORTHASH)"))'))
 	cd ui-cra && yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)
 
