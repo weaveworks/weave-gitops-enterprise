@@ -33,7 +33,7 @@ function AzureDevOpsAuthButton({ onClick, ...props }: Props) {
   };
   return (
     <Button onClick={handleClick} {...props}>
-      Authenticate with Azure DevOps
+      AUTHENTICATE WITH AZURE
     </Button>
   );
 }
