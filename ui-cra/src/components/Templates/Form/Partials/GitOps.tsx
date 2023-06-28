@@ -1,10 +1,9 @@
-import React, { FC, useCallback, Dispatch, ChangeEvent } from 'react';
+import React, { ChangeEvent, Dispatch, FC, useCallback } from 'react';
 import styled from 'styled-components';
-import GitAuth from '../../../GitAuth';
 import { Input } from '../../../../utils/form';
+import GitAuth from '../../../GitAuth';
 
 const GitOpsWrapper = styled.div`
-  padding-bottom: ${({ theme }) => theme.spacing.xl};
   .form-section {
     width: 50%;
   }

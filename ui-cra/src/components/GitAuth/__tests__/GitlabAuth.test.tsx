@@ -114,7 +114,7 @@ describe('Gitlab Authenticate', () => {
     });
 
     const button = (await (
-      await screen.findByText('Authenticate with GitLab')
+      await screen.findByText('AUTHENTICATE WITH GITLAB')
     ).closest('button')) as Element;
     expect(onProviderChange).toHaveBeenCalledWith(GitProvider.GitLab);
     fireEvent(button, new MouseEvent('click', { bubbles: true }));

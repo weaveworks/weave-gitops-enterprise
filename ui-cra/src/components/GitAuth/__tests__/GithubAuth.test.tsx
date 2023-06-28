@@ -1,5 +1,4 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
@@ -7,6 +6,7 @@ import {
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
+import { GithubDeviceAuthModal } from '../GithubDeviceAuthModal';
 import { getProviderToken } from '../utils';
 
 Object.assign(navigator, {
@@ -54,7 +54,7 @@ describe('Github Authenticate', () => {
       );
       render(c);
     });
-    expect(await screen.findByText('Authenticate with Github')).toBeTruthy();
+    expect(await screen.findByText('AUTHORIZE GITHUB ACCESS')).toBeTruthy();
 
     const ghCode = await screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);

@@ -137,9 +137,7 @@ export function RepoInputWithAuth({
             )}
           </Flex>
         )}
-        {!isAuthenticated && !res && (
-          <Button disabled>Authenticate with your Git Provider</Button>
-        )}
+        {!isAuthenticated && !res && <Button disabled>AUTHENTICATE</Button>}
         {renderProviderAuthButton && (
           <AuthButton provider={res?.provider} onClick={onAuthClick} />
         )}
