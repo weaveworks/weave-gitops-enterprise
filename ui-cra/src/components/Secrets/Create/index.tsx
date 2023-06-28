@@ -44,18 +44,10 @@ import { PreviewPRModal } from './PreviewPRModal';
 
 const FormWrapper = styled.form`
   width: 80%;
-  padding-bottom: ${props => props.theme.spacing.large} !important;
+  padding-bottom: ${props => props.theme.spacing.large};
   .group-section {
-    border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
     .form-section {
       width: 50%;
-      .Mui-disabled {
-        background: ${props => props.theme.colors.neutral10} !important;
-        border-color: ${props => props.theme.colors.neutral20} !important;
-      }
-      .MuiInputBase-root {
-        margin-right: ${props => props.theme.spacing.medium};
-      }
     }
   }
   .create-cta {
@@ -395,62 +387,23 @@ const CreateSecret = () => {
                     })
                   )}
                 </Select>
-              </div>
-              {isclusterSelected && (
-                <SelectSecretStore
-                  cluster={
-                    clusterNamespace
-                      ? `${clusterNamespace}/${clusterName}`
-                      : clusterName
-                  }
-                  formError={formError}
-                  handleFormData={handleFormData}
-                  selectedSecretStore={selectedSecretStore || {}}
-                  setSelectedSecretStore={setSelectedSecretStore}
-                  formData={formData}
-                  setFormData={setFormData}
-                  automation={automation}
-                />
-              )}
-              <Input
-                className="form-section"
-                required
-                name="secretName"
-                label="EXTERNAL SECRET NAME"
-                value={secretName}
-                onChange={event => handleFormData(event, 'secretName')}
-                error={formError === 'secretName' && !secretName}
-              />
-              <Input
-                className="form-section"
-                required
-                name="dataSecretKey"
-                label="TARGET K8s SECRET NAME"
-                value={dataSecretKey}
-                onChange={event => handleFormData(event, 'dataSecretKey')}
-                error={formError === 'dataSecretKey' && !dataSecretKey}
-              />
-              <Select
-                className="form-section"
-                name="clusterName"
-                required={true}
-                label="TARGET CLUSTER"
-                value={targetCluster || ''}
-                onChange={HandleSelectCluster}
-                error={formError === 'clusterName' && !clusterName}
-              >
-                {!clusters?.length ? (
-                  <MenuItem disabled={true}>Loading...</MenuItem>
-                ) : (
-                  clusters?.map((option, index: number) => {
-                    return (
-                      <MenuItem key={index} value={JSON.stringify(option)}>
-                        {option.name}
-                      </MenuItem>
-                    );
-                  })
+                {isclusterSelected && (
+                  <SelectSecretStore
+                    cluster={
+                      clusterNamespace
+                        ? `${clusterNamespace}/${clusterName}`
+                        : clusterName
+                    }
+                    formError={formError}
+                    handleFormData={handleFormData}
+                    selectedSecretStore={selectedSecretStore || {}}
+                    setSelectedSecretStore={setSelectedSecretStore}
+                    formData={formData}
+                    setFormData={setFormData}
+                    automation={automation}
+                  />
                 )}
-              </Select>
+              </div>
             </div>
             <PreviewPRModal
               formData={formData}
@@ -464,7 +417,6 @@ const CreateSecret = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (

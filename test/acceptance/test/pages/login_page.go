@@ -67,7 +67,7 @@ func WaitForAuthenticationAlert(webDriver *agouti.Page, alert_success_msg string
 
 func AuthenticateWithGithub(webDriver *agouti.Page) *AuthenticateGithub {
 	return &AuthenticateGithub{
-		AuthenticateGithub: webDriver.FindByButton(`Authenticate with GitHub`),
+		AuthenticateGithub: webDriver.FindByButton(`AUTHENTICATE WITH GITHUB`),
 		// FIXME: bit brittle
 		AccessCode:         webDriver.FindByXPath(`//button[contains(.,'Authorize Github Access')]/../../preceding-sibling::div/div/p`),
 		AuthroizeButton:    webDriver.FindByButton(`Authorize Github Access`),
@@ -93,7 +93,7 @@ func ActivateDeviceGithub(webDriver *agouti.Page) *DeviceActivationGitHub {
 
 func AuthenticateWithGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
 	return &AuthenticateGitlab{
-		AuthenticateGitlab: webDriver.FindByButton(`Authenticate with GitLab`),
+		AuthenticateGitlab: webDriver.FindByButton(`AUTHENTICATE WITH GITLAB`),
 		Authorize:          webDriver.Find(`input[name="commit"][value="Authorize"]`),
 		Username:           webDriver.Find(`#user_login`),
 		Password:           webDriver.Find(`#user_password`),
@@ -105,7 +105,7 @@ func AuthenticateWithGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
 
 func AuthenticateWithOnPremGitlab(webDriver *agouti.Page) *AuthenticateGitlab {
 	return &AuthenticateGitlab{
-		AuthenticateGitlab: webDriver.FindByButton(`Authenticate with GitLab`),
+		AuthenticateGitlab: webDriver.FindByButton(`AUTHENTICATE WITH GITLAB`),
 		Authorize:          webDriver.Find(`input[name="commit"][value="Authorize"]`),
 		Username:           webDriver.Find(`#user_login`),
 		Password:           webDriver.Find(`#user_password`),
