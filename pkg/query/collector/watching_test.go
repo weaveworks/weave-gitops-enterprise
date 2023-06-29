@@ -428,7 +428,7 @@ func Test_WatcherRetry(t *testing.T) {
 
 	collector, err := newWatchingCollector(CollectorOpts{
 		Clusters:       clustersManager,
-		Log:            testr.New(t),
+		Log:            logr.Discard(),
 		NewWatcherFunc: newWatcher,
 		ServiceAccount: ImpersonateServiceAccount{
 			Namespace: "flux-system",
