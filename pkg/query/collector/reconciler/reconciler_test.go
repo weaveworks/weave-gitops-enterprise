@@ -2,12 +2,13 @@ package reconciler
 
 import (
 	"context"
+	"testing"
+
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-	"testing"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr/testr"
