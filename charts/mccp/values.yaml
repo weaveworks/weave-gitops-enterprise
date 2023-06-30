@@ -200,14 +200,14 @@ gitopssets-controller:
   # gitops-controller-manager etc
   fullnameOverride: gitopssets
   controllerManager:
-    args:
-      - --health-probe-bind-address=:8081
-      - --metrics-bind-address=127.0.0.1:8080
-      - --leader-elect
-      - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
       image:
         tag: v0.13.2
+      args:
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
 
 cluster-controller:
   enabled: true
