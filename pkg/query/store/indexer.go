@@ -6,6 +6,9 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	bleve "github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
@@ -133,7 +136,11 @@ func (i *bleveIndexer) RemoveByQuery(ctx context.Context, q string) error {
 	return nil
 }
 
-func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (Iterator, error) {
+func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (it Iterator, err error) {
+	// metrics
+	metrics.IndexerAddInflightRequests(metrics.SearchAction, 1)
+	defer recordIndexerMetrics(metrics.SearchAction, time.Now(), err)
+
 	// Match all by default.
 	// Conjunction queries will return results that match all of the subqueries.
 	query := bleve.NewConjunctionQuery(bleve.NewMatchAllQuery())
@@ -209,7 +216,20 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (I
 	return iter, nil
 }
 
-func (i *bleveIndexer) ListFacets(ctx context.Context) (Facets, error) {
+func recordIndexerMetrics(action string, start time.Time, err error) {
+	metrics.IndexerAddInflightRequests(action, -1)
+	if err != nil {
+		metrics.IndexerSetLatency(action, metrics.FailedLabel, time.Since(start))
+		return
+	}
+	metrics.IndexerSetLatency(action, metrics.SuccessLabel, time.Since(start))
+}
+
+func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
+	// metrics
+	metrics.IndexerAddInflightRequests(metrics.ListFacetsAction, 1)
+	defer recordIndexerMetrics(metrics.ListFacetsAction, time.Now(), err)
+
 	query := bleve.NewMatchAllQuery()
 
 	req := bleve.NewSearchRequest(query)
