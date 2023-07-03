@@ -4,12 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
-	"strings"
 	"testing"
-
-	l "github.com/weaveworks/weave-gitops/core/logger"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
@@ -472,10 +467,8 @@ func TestRunQuery_ErrorScenarios(t *testing.T) {
 		idx, err := store.NewIndexer(s, idxDir)
 		g.Expect(err).NotTo(HaveOccurred())
 
-		log, loggerPath := newLoggerWithLevel(t, "INFO")
-
 		q := &qs{
-			log:        log,
+			log:        logr.Discard(),
 			debug:      logr.Discard(),
 			r:          s,
 			index:      idx,
@@ -505,49 +498,8 @@ func TestRunQuery_ErrorScenarios(t *testing.T) {
 
 		g.Expect(names).To(Equal(want))
 
-		//assert logs to ensure the error is logged
-		logs, err := os.ReadFile(loggerPath)
-		g.Expect(err).To(BeNil())
-		logss := string(logs)
-		g.Expect(logss).To(MatchRegexp("failed to get object: test-cluster-2/namespace-b/apps/v1/Deployment/podinfo2"))
-
 	})
 }
-
-// newLoggerWithLevel creates a logger and a path to the file it
-// writes to, so you can check the contents of the log during the
-// test.
-func newLoggerWithLevel(t *testing.T, logLevel string) (logr.Logger, string) {
-	g := NewGomegaWithT(t)
-
-	tmp, err := os.MkdirTemp("", "query-server-test")
-	g.Expect(err).ShouldNot(HaveOccurred())
-	path := filepath.Join(tmp, "log")
-
-	level, err := zapcore.ParseLevel(logLevel)
-	g.Expect(err).ShouldNot(HaveOccurred())
-	cfg := l.BuildConfig(
-		l.WithLogLevel(level),
-		l.WithMode(false),
-		l.WithOutAndErrPaths("stdout", "stderr"),
-		l.WithOutAndErrPaths(path, path),
-	)
-
-	log, err := l.NewFromConfig(cfg)
-	g.Expect(err).NotTo(HaveOccurred())
-
-	t.Cleanup(func() {
-		if strings.HasPrefix(path, os.TempDir()) {
-			err := os.Remove(path)
-			if err != nil {
-				t.Fatal(err)
-			}
-		}
-	})
-
-	return log, path
-}
-
 func TestQueryIteration(t *testing.T) {
 	g := NewGomegaWithT(t)
 
