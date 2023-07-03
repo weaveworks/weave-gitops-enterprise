@@ -113,7 +113,8 @@ func (q *qs) RunQuery(ctx context.Context, query store.Query, opts store.QueryOp
 
 		obj, err := iter.Row()
 		if err != nil {
-			return nil, fmt.Errorf("error getting row from iterator: %w", err)
+			q.log.Error(err, "error getting row from iterator")
+			continue
 		}
 
 		cluster := obj.Cluster

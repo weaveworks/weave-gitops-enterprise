@@ -227,7 +227,7 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (models.Obje
 
 	result := i.db.Model(&object).Where("id = ?", id).First(&object)
 	if result.Error != nil {
-		return models.Object{}, fmt.Errorf("failed to get object: %w", result.Error)
+		return models.Object{}, fmt.Errorf("failed to get object: %s with error: %w", id, result.Error)
 	}
 
 	return object, nil
