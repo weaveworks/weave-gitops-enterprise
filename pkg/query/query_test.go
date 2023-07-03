@@ -31,6 +31,7 @@ func (c predicateAuthz) ObjectAuthorizer([]models.Role, []models.RoleBinding, *a
 	return c.predicate
 }
 
+// TestRunQuery runs a set of test cases for acceptance on the querying logic.
 func TestRunQuery(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -427,6 +428,78 @@ func TestRunQuery(t *testing.T) {
 
 }
 
+// TestRunQuery_ErrorScenarios injects errors to ensure that querying is tolerant to errors where possible.
+func TestRunQuery_ErrorScenarios(t *testing.T) {
+	t.Run("should be tolerant to inconsistency between indexer and datastore", func(t *testing.T) {
+		objects := []models.Object{
+			{
+				Cluster:    "test-cluster-1",
+				Name:       "podinfo1",
+				Namespace:  "namespace-a",
+				Kind:       "Deployment",
+				APIGroup:   "apps",
+				APIVersion: "v1",
+			},
+			{
+				Cluster:    "test-cluster-2",
+				Name:       "podinfo2",
+				Namespace:  "namespace-b",
+				Kind:       "Deployment",
+				APIGroup:   "apps",
+				APIVersion: "v1",
+			},
+		}
+		want := []string{"podinfo1"}
+		g := NewGomegaWithT(t)
+
+		dir, err := os.MkdirTemp("", "test")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		db, err := store.CreateSQLiteDB(dir)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		s, err := store.NewSQLiteStore(db, logr.Discard())
+		g.Expect(err).NotTo(HaveOccurred())
+
+		idxDir, err := os.MkdirTemp("", "indexer-test")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		idx, err := store.NewIndexer(s, idxDir)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		q := &qs{
+			log:        logr.Discard(),
+			debug:      logr.Discard(),
+			r:          s,
+			index:      idx,
+			authorizer: allowAll,
+		}
+
+		g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
+
+		//force inconsistency by just adding one element in the datastore
+		g.Expect(store.SeedObjects(db, objects[:1])).To(Succeed())
+
+		ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+			ID: "test",
+			Groups: []string{
+				"group-a",
+			},
+		})
+
+		got, err := q.RunQuery(ctx, &query{terms: ""}, nil)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		names := []string{}
+
+		for _, o := range got {
+			names = append(names, o.Name)
+		}
+
+		g.Expect(names).To(Equal(want))
+
+	})
+}
 func TestQueryIteration(t *testing.T) {
 	g := NewGomegaWithT(t)
 
