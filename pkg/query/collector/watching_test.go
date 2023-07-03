@@ -3,11 +3,15 @@ package collector
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
@@ -167,6 +171,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	log := testr.New(t)
 	opts := CollectorOpts{
 		Log:            log,
+		Name:           "objects",
 		NewWatcherFunc: newFakeWatcher,
 		ServiceAccount: ImpersonateServiceAccount{
 			Namespace: "flux-system",
@@ -178,6 +183,10 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	g.Expect(collector).NotTo(BeNil())
 
 	c := makeValidFakeCluster("testcluster")
+
+	metrics.NewPrometheusServer(metrics.Options{
+		ServerAddress: "localhost:8080",
+	})
 
 	tests := []struct {
 		name       string
@@ -194,19 +203,43 @@ func TestClusterWatcher_Watch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			err = collector.watch(tt.cluster)
 			g.Expect(err).To(BeNil())
+			t.Cleanup(func() {
+				err := collector.unwatch(c.GetName())
+				if err != nil {
+					t.Fatal(err)
+				}
+			})
 
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			}
-
 			if tt.errPattern == "" {
 				g.Eventually(func() bool {
 					s, err := collector.Status(tt.cluster.GetName())
 					return err == nil && s == ClusterWatchingStarted
 				}, "2s", "0.2s").Should(BeTrue())
+				assertMetrics(g, []string{
+					`collector_cluster_watcher{collector="objects",status="starting"} 0`,
+					`collector_cluster_watcher{collector="objects",status="started"} 1`,
+				})
 			}
 		})
+	}
+}
+
+func assertMetrics(g *WithT, expMetrics []string) {
+	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	resp, err := http.DefaultClient.Do(req)
+	g.Expect(err).NotTo(HaveOccurred())
+	b, err := io.ReadAll(resp.Body)
+	g.Expect(err).NotTo(HaveOccurred())
+	metrics := string(b)
+
+	for _, expMetric := range expMetrics {
+		//Contains expected value
+		g.Expect(metrics).To(ContainSubstring(expMetric))
 	}
 }
 
@@ -214,6 +247,10 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	g := NewGomegaWithT(t)
 	log := testr.New(t)
 	clusterName := "testCluster"
+
+	metrics.NewPrometheusServer(metrics.Options{
+		ServerAddress: "localhost:8080",
+	})
 
 	tests := []struct {
 		name        string
@@ -240,6 +277,7 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			opts := CollectorOpts{
 				Log:            log,
+				Name:           "objects",
 				NewWatcherFunc: newFakeWatcher,
 				ServiceAccount: ImpersonateServiceAccount{
 					Namespace: "flux-system",
@@ -252,7 +290,6 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 
 			c := makeValidFakeCluster(clusterName)
 			g.Expect(collector.watch(c)).To(Succeed())
-
 			if tt.errPattern == "" {
 				g.Expect(err).To(BeNil())
 				g.Eventually(func() bool {
@@ -262,6 +299,13 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 			}
 			err = collector.unwatch(tt.clusterName)
 			if tt.errPattern != "" {
+				t.Cleanup(func() {
+					err := collector.unwatch(c.GetName())
+					if err != nil {
+						t.Fatal(err)
+					}
+				})
+
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
 				return
 			} else {
@@ -269,6 +313,11 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 				// error, since it will have been forgotten.
 				_, err := collector.Status(tt.clusterName)
 				g.Expect(err).To(HaveOccurred())
+
+				assertMetrics(g, []string{
+					`collector_cluster_watcher{collector="objects",status="starting"} 0`,
+					`collector_cluster_watcher{collector="objects",status="started"} 0`,
+				})
 			}
 		})
 	}
@@ -279,6 +328,7 @@ func TestClusterWatcher_Status(t *testing.T) {
 	log := testr.New(t)
 	options := CollectorOpts{
 		Log:            log,
+		Name:           "objects",
 		NewWatcherFunc: newFakeWatcher,
 		ServiceAccount: ImpersonateServiceAccount{
 			Namespace: "flux-system",
@@ -293,6 +343,12 @@ func TestClusterWatcher_Status(t *testing.T) {
 	c := makeValidFakeCluster(existingClusterName)
 	err = collector.watch(c)
 	g.Expect(err).To(BeNil())
+	t.Cleanup(func() {
+		err := collector.unwatch(c.GetName())
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 
 	tests := []struct {
 		name           string
