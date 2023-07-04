@@ -1,58 +1,48 @@
 package metrics
 
 import (
-	// "fmt"
-	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 )
 
-type Recorder struct {
-	storeLatencyHistogram *prometheus.HistogramVec
-	inflightRequests      *prometheus.GaugeVec
-}
-
 const (
-	// const status that is used in metrics.
-	Failed  = "error"
-	Success = "success"
+	dataStoreSubsystem = "datastore"
+
+	GetObjectsAction      = "GetObjects"
+	GetObjectByIdAction   = "GetObjectByID"
+	GetRolesAction        = "GetRoles"
+	GetRoleBindingsAction = "GetRoleBindings"
+	GetAccessRulesAction  = "GetAccessRules"
+
+	FailedLabel  = "error"
+	SuccessLabel = "success"
 )
 
-var once sync.Once
+// TODO review visibility
+var DatastoreLatencyHistogram = prometheus.NewHistogramVec(prometheus.HistogramOpts{
+	Subsystem: dataStoreSubsystem,
+	Name:      "latency_seconds",
+	Help:      "datastore latency",
+	Buckets:   prometheus.LinearBuckets(0.01, 0.01, 10),
+}, []string{"action", "status"})
 
-// NewRecorder creates a new recorder and registers the Prometheus metrics
-func NewRecorder(register bool, subsystem string) Recorder {
-	storeLatencyHistogram := prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Subsystem: subsystem,
-		Name:      "latency_seconds",
-		Help:      "Store latency",
-		Buckets:   prometheus.LinearBuckets(0.01, 0.01, 10),
-	}, []string{"action", "status"})
+// TODO review visibility
+var DatastoreInflightRequests = prometheus.NewGaugeVec(prometheus.GaugeOpts{
+	Subsystem: dataStoreSubsystem,
+	Name:      "inflight_requests",
+	Help:      "number of datastore in-flight requests.",
+}, []string{"action"})
 
-	inflightRequests := prometheus.NewGaugeVec(prometheus.GaugeOpts{
-		Subsystem: subsystem,
-		Name:      "inflight_requests_total",
-		Help:      "Number of in-flight requests.",
-	}, []string{"action"})
-
-	once.Do(func() {
-		prometheus.MustRegister(storeLatencyHistogram)
-		prometheus.MustRegister(inflightRequests)
-	})
-
-	record := Recorder{
-		storeLatencyHistogram: storeLatencyHistogram,
-		inflightRequests:      inflightRequests,
-	}
-
-	return record
+func init() {
+	prometheus.MustRegister(DatastoreLatencyHistogram)
+	prometheus.MustRegister(DatastoreInflightRequests)
 }
 
-func (r Recorder) SetStoreLatency(action string, status string, duration time.Duration) {
-	r.storeLatencyHistogram.WithLabelValues(action, status).Observe(duration.Seconds())
+func DataStoreSetLatency(action string, status string, duration time.Duration) {
+	DatastoreLatencyHistogram.WithLabelValues(action, status).Observe(duration.Seconds())
 }
 
-func (r Recorder) InflightRequests(action string, number float64) {
-	r.inflightRequests.WithLabelValues(action).Add(number)
+func DataStoreInflightRequests(action string, number float64) {
+	DatastoreInflightRequests.WithLabelValues(action).Add(number)
 }

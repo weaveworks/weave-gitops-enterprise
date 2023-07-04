@@ -36,8 +36,8 @@ const (
 	defaultInterval = time.Second
 )
 
-// TestQueryServer is an integration test for excercising the integration of the
-// query system that includes both collecting from a cluster (using env teset) and doing queries via grpc.
+// TestQueryServer is an integration test for exercising the integration of the
+// query system that includes both collecting from a cluster (using envtest) and doing queries via grpc.
 // It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
 func TestQueryServer(t *testing.T) {
 	g := NewGomegaWithT(t)
@@ -50,11 +50,16 @@ func TestQueryServer(t *testing.T) {
 	test.Create(context.Background(), t, cfg, newNamespace("flux-system"))
 
 	testLog := testr.New(t)
+
+	//Given a query environment
+	ctx := context.Background()
+	c, err := makeQueryServer(t, cfg, principal, testLog)
+	g.Expect(err).To(BeNil())
+
 	tests := []struct {
 		name               string
 		objects            []client.Object
 		access             []client.Object
-		principal          *auth.UserPrincipal
 		query              string
 		expectedNumObjects int
 	}{
@@ -65,7 +70,6 @@ func TestQueryServer(t *testing.T) {
 				podinfoHelmRepository(defaultNamespace),
 				podinfoHelmRelease(defaultNamespace),
 			},
-			principal:          principal,
 			query:              "kind:HelmRelease",
 			expectedNumObjects: 1, // should allow only on default namespace
 		},
@@ -76,7 +80,6 @@ func TestQueryServer(t *testing.T) {
 				podinfoHelmRepository(defaultNamespace),
 			},
 			query:              "kind:HelmRepository",
-			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
 		{
@@ -103,7 +106,6 @@ func TestQueryServer(t *testing.T) {
 				},
 			},
 			query:              "kind:HelmChart",
-			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
 		{
@@ -125,7 +127,6 @@ func TestQueryServer(t *testing.T) {
 				},
 			},
 			query:              "kind:GitRepository",
-			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
 		{
@@ -147,7 +148,6 @@ func TestQueryServer(t *testing.T) {
 				},
 			},
 			query:              fmt.Sprintf("kind:%s", sourcev1.OCIRepositoryKind),
-			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
 		{
@@ -167,17 +167,12 @@ func TestQueryServer(t *testing.T) {
 				},
 			},
 			query:              fmt.Sprintf("kind:%s", sourcev1.BucketKind),
-			principal:          principal,
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			//Given a query environment
-			ctx := context.Background()
-			c, err := makeQueryServer(t, cfg, tt.principal, testLog)
-			g.Expect(err).To(BeNil())
-			//And some access rules and objects ingested
+			//When some access rules and objects ingested
 			test.Create(ctx, t, cfg, tt.objects...)
 			test.Create(ctx, t, cfg, tt.access...)
 

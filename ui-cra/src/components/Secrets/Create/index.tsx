@@ -1,5 +1,4 @@
 import { MenuItem } from '@material-ui/core';
-import { ThemeProvider } from '@material-ui/core/styles';
 import {
   Button,
   Flex,
@@ -23,7 +22,6 @@ import {
   expiredTokenNotification,
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
-import { localEEMuiTheme } from '../../../muiTheme';
 import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
@@ -34,6 +32,7 @@ import {
 } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
@@ -42,22 +41,13 @@ import {
 } from '../../Templates/Form/utils';
 import { SelectSecretStore } from './Form/Partials/SelectSecretStore';
 import { PreviewPRModal } from './PreviewPRModal';
-import { Page } from '../../Layout/App';
 
 const FormWrapper = styled.form`
   width: 80%;
-  padding-bottom: ${props => props.theme.spacing.large} !important;
+  padding-bottom: ${props => props.theme.spacing.large};
   .group-section {
-    border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
     .form-section {
       width: 50%;
-      .Mui-disabled {
-        background: ${props => props.theme.colors.neutral10} !important;
-        border-color: ${props => props.theme.colors.neutral20} !important;
-      }
-      .MuiInputBase-root {
-        margin-right: ${props => props.theme.spacing.medium};
-      }
     }
   }
   .create-cta {
@@ -335,70 +325,68 @@ const CreateSecret = () => {
   ]);
 
   return (
-    <ThemeProvider theme={localEEMuiTheme}>
-      <Page
-        path={[
-          { label: 'Secrets', url: Routes.Secrets },
-          { label: 'Create new external secret' },
-        ]}
+    <Page
+      path={[
+        { label: 'Secrets', url: Routes.Secrets },
+        { label: 'Create new external secret' },
+      ]}
+    >
+      <CallbackStateContextProvider
+        callbackState={{
+          page: authRedirectPage as PageRoute,
+          state: {
+            formData,
+          },
+        }}
       >
-        <CallbackStateContextProvider
-          callbackState={{
-            page: authRedirectPage as PageRoute,
-            state: {
-              formData,
-            },
-          }}
-        >
-          <NotificationsWrapper>
-            <FormWrapper
-              noValidate
-              onSubmit={event =>
-                validateFormData(event, handleCreateSecret, setFormError)
-              }
-            >
-              <div className="group-section">
-                <div className="form-group">
-                  <Input
-                    className="form-section"
-                    required
-                    name="secretName"
-                    label="EXTERNAL SECRET NAME"
-                    value={secretName}
-                    onChange={event => handleFormData(event, 'secretName')}
-                    error={formError === 'secretName' && !secretName}
-                  />
-                  <Input
-                    className="form-section"
-                    required
-                    name="dataSecretKey"
-                    label="TARGET K8s SECRET NAME"
-                    value={dataSecretKey}
-                    onChange={event => handleFormData(event, 'dataSecretKey')}
-                    error={formError === 'dataSecretKey' && !dataSecretKey}
-                  />
-                  <Select
-                    className="form-section"
-                    name="clusterName"
-                    required={true}
-                    label="TARGET CLUSTER"
-                    value={targetCluster || ''}
-                    onChange={HandleSelectCluster}
-                    error={formError === 'clusterName' && !clusterName}
-                  >
-                    {!clusters?.length ? (
-                      <MenuItem disabled={true}>Loading...</MenuItem>
-                    ) : (
-                      clusters?.map((option, index: number) => {
-                        return (
-                          <MenuItem key={index} value={JSON.stringify(option)}>
-                            {option.name}
-                          </MenuItem>
-                        );
-                      })
-                    )}
-                  </Select>
-                </div>
+        <NotificationsWrapper>
+          <FormWrapper
+            noValidate
+            onSubmit={event =>
+              validateFormData(event, handleCreateSecret, setFormError)
+            }
+          >
+            <div className="group-section">
+              <div className="form-group">
+                <Input
+                  className="form-section"
+                  required
+                  name="secretName"
+                  label="EXTERNAL SECRET NAME"
+                  value={secretName}
+                  onChange={event => handleFormData(event, 'secretName')}
+                  error={formError === 'secretName' && !secretName}
+                />
+                <Input
+                  className="form-section"
+                  required
+                  name="dataSecretKey"
+                  label="TARGET K8s SECRET NAME"
+                  value={dataSecretKey}
+                  onChange={event => handleFormData(event, 'dataSecretKey')}
+                  error={formError === 'dataSecretKey' && !dataSecretKey}
+                />
+                <Select
+                  className="form-section"
+                  name="clusterName"
+                  required={true}
+                  label="TARGET CLUSTER"
+                  value={targetCluster || ''}
+                  onChange={HandleSelectCluster}
+                  error={formError === 'clusterName' && !clusterName}
+                >
+                  {!clusters?.length ? (
+                    <MenuItem disabled={true}>Loading...</MenuItem>
+                  ) : (
+                    clusters?.map((option, index: number) => {
+                      return (
+                        <MenuItem key={index} value={JSON.stringify(option)}>
+                          {option.name}
+                        </MenuItem>
+                      );
+                    })
+                  )}
+                </Select>
                 {isclusterSelected && (
                   <SelectSecretStore
                     cluster={
@@ -415,57 +403,33 @@ const CreateSecret = () => {
                     automation={automation}
                   />
                 )}
-                <Input
-                  className="form-section"
-                  required
-                  name="dataRemoteRefKey"
-                  label="SECRET PATH"
-                  value={dataRemoteRefKey}
-                  onChange={event => handleFormData(event, 'dataRemoteRefKey')}
-                  error={formError === 'dataRemoteRefKey' && !dataRemoteRefKey}
-                />
-                <Input
-                  className="form-section"
-                  required
-                  name="dataRemoteRef_property"
-                  label="PROPERTY"
-                  value={dataRemoteRef_property}
-                  onChange={event =>
-                    handleFormData(event, 'dataRemoteRef_property')
-                  }
-                  error={
-                    formError === 'dataRemoteRef_property' &&
-                    !dataRemoteRef_property
-                  }
-                />
               </div>
-              <PreviewPRModal
-                formData={formData}
-                getClusterAutomations={getClusterAutomations}
-              />
-              <GitOps
-                formData={formData}
-                setFormData={setFormData}
-                showAuthDialog={showAuthDialog}
-                setShowAuthDialog={setShowAuthDialog}
-                formError={formError}
-                enableGitRepoSelection={true}
-              />
-
-              {loading ? (
-                <LoadingPage className="create-loading" />
-              ) : (
-                <Flex end className="create-cta">
-                  <Button type="submit" disabled={!isAuthenticated}>
-                    CREATE PULL REQUEST
-                  </Button>
-                </Flex>
-              )}
-            </FormWrapper>
-          </NotificationsWrapper>
-        </CallbackStateContextProvider>
-      </Page>
-    </ThemeProvider>
+            </div>
+            <PreviewPRModal
+              formData={formData}
+              getClusterAutomations={getClusterAutomations}
+            />
+            <GitOps
+              formData={formData}
+              setFormData={setFormData}
+              showAuthDialog={showAuthDialog}
+              setShowAuthDialog={setShowAuthDialog}
+              formError={formError}
+              enableGitRepoSelection={true}
+            />
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <Flex end className="create-cta">
+                <Button type="submit" disabled={!isAuthenticated}>
+                  CREATE PULL REQUEST
+                </Button>
+              </Flex>
+            )}
+          </FormWrapper>
+        </NotificationsWrapper>
+      </CallbackStateContextProvider>
+    </Page>
   );
 };
 

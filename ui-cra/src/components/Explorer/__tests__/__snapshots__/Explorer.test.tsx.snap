@@ -118,7 +118,7 @@ exports[`Explorer snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c26 {
+.c27 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -154,13 +154,17 @@ exports[`Explorer snapshots renders 1`] = `
   color: #00b3ec;
 }
 
+.c5 svg {
+  fill: #737373;
+}
+
 .c5 svg path.path-fill,
 .c5 svg line.path-fill,
 .c5 svg polygon.path-fill,
 .c5 svg rect.path-fill,
 .c5 svg circle.path-fill,
 .c5 svg polyline.path-fill {
-  fill: !important;
+  fill: #737373 !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
@@ -171,7 +175,7 @@ exports[`Explorer snapshots renders 1`] = `
 .c5 svg rect.stroke-fill,
 .c5 svg circle.stroke-fill,
 .c5 svg polyline.stroke-fill {
-  stroke: !important;
+  stroke: #737373 !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
@@ -190,6 +194,7 @@ exports[`Explorer snapshots renders 1`] = `
 
 .c5 .c16 {
   margin-left: 4px;
+  color: #737373;
 }
 
 .c15 svg {
@@ -244,9 +249,47 @@ exports[`Explorer snapshots renders 1`] = `
   width: 16px;
 }
 
-.c27 .c16 {
+.c28 .c16 {
   margin-left: 4px;
   color: #d8d8d8;
+}
+
+.c25 svg path.path-fill,
+.c25 svg line.path-fill,
+.c25 svg polygon.path-fill,
+.c25 svg rect.path-fill,
+.c25 svg circle.path-fill,
+.c25 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c25 svg path.stroke-fill,
+.c25 svg line.stroke-fill,
+.c25 svg polygon.stroke-fill,
+.c25 svg rect.stroke-fill,
+.c25 svg circle.stroke-fill,
+.c25 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c25.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c25.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c25 .c16 {
+  margin-left: 4px;
 }
 
 .c20 svg {
@@ -456,15 +499,15 @@ exports[`Explorer snapshots renders 1`] = `
   white-space: nowrap;
 }
 
-.c25 ul {
+.c26 ul {
   padding: 0px 8px;
 }
 
-.c25 h2 {
+.c26 h2 {
   margin-top: 0;
 }
 
-.c25 h3 {
+.c26 h3 {
   margin-bottom: 0;
 }
 
@@ -877,7 +920,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="c4"
                   >
                     <div
-                      class="c4 c5"
+                      class="c4 c25"
                     >
                       <svg
                         aria-hidden="true"
@@ -912,7 +955,7 @@ exports[`Explorer snapshots renders 1`] = `
                   </div>
                 </div>
                 <div
-                  class="c25 Filters"
+                  class="c26 Filters"
                 >
                   <div>
                     <h3>
@@ -1048,7 +1091,7 @@ exports[`Explorer snapshots renders 1`] = `
       </div>
     </div>
     <div
-      class="c26 PaginationControls"
+      class="c27 PaginationControls"
     >
       <div
         class="MuiBox-root MuiBox-root-18"
@@ -1063,7 +1106,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c4 c5"
+              class="c4 c25"
             >
               <svg
                 aria-hidden="true"
@@ -1088,7 +1131,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c4 c5"
+              class="c4 c25"
             >
               <svg
                 aria-hidden="true"

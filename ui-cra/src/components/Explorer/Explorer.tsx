@@ -54,7 +54,7 @@ function Explorer({ className, category, enableBatchSync, manager }: Props) {
         <Flex align wide end>
           <QueryStateChips />
           <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
-            <Icon size="normal" type={IconType.FilterIcon} />
+            <Icon size="normal" type={IconType.FilterIcon} color="neutral30" />
           </IconButton>
         </Flex>
         <Flex wide>

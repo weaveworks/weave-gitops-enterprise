@@ -23,6 +23,7 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
+import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
@@ -46,6 +47,8 @@ import {
   Rancher,
   Vsphere,
 } from '../../utils/icons';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Tooltip } from '../Shared';
 import { EditButton } from '../Templates/Edit/EditButton';
 import {
@@ -57,9 +60,6 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Page } from '../Layout/App';
-import styled from 'styled-components';
 
 interface Size {
   size?: 'small';
@@ -365,7 +365,6 @@ const MCCP: FC<{
                     setNotifications([]);
                     setOpenDeletePR(true);
                   }}
-                  color="secondary"
                   disabled={
                     !selectedCapiCluster ||
                     provider === GitProvider.BitBucketServer

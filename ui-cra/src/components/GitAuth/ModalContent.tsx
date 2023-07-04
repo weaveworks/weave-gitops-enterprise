@@ -36,7 +36,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
             type="button"
             startIcon={<Icon size="base" type={IconType.ExternalTab} />}
           >
-            Authorize Github Access
+            AUTHORIZE GITHUB ACCESS
           </Button>
         </a>
       </Pad>

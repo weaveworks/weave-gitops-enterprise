@@ -51,7 +51,7 @@ type CostEstimation struct {
 
 func GetCreateClusterPage(webDriver *agouti.Page) *CreateCluster {
 	clusterPage := CreateCluster{
-		CreateHeader: webDriver.Find(`.count-header`),
+		CreateHeader: webDriver.Find(`div[class*=Page__TopToolBar]`),
 		// TemplateName:   webDriver.FindByXPath(`//*/div[text()="Create new resource with template"]/following-sibling::text()`),
 		Credentials:     webDriver.Find(`.credentials [role="button"]`),
 		TemplateSection: webDriver.AllByXPath(`//div[contains(@class, "form-group field field-object")]/child::div`),
@@ -92,7 +92,7 @@ func (c CreateCluster) GetProfileInList(profileName string) *ProfileInformation 
 		Layer:     cluster.FindByXPath(`td[3]`),
 		Version:   cluster.FindByXPath(`td//div[contains(@class, "profile-version")]`),
 		Namespace: cluster.FindByXPath(`td//div[contains(@class, "profile-namespace")]//input`),
-		Values:    cluster.FindByXPath(`td//div[contains(@class, "profile-version")]/following-sibling::div/button`),
+		Values:    cluster.FindByXPath(`td//div[contains(@class, "profile-version")]/following-sibling::button`),
 	}
 }
 

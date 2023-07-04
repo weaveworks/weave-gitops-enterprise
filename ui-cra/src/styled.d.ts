@@ -1,4 +1,5 @@
 /* eslint-disable */
+import { ThemeTypes } from '@weaveworks/weave-gitops';
 import 'styled-components';
 export namespace colors {
   const black: string;
@@ -18,7 +19,11 @@ export namespace colors {
   const neutral20: string;
   const neutral30: string;
   const neutral40: string;
-  const backGrey: string;
+  const whiteToPrimary: string;
+  const grayToPrimary: string;
+  const neutral20ToPrimary: string;
+  const backGray: string;
+  const blueWithOpacity: string;
   const feedbackLight: string;
   const feedbackMedium: string;
   const feedbackOriginal: string;
@@ -73,5 +78,6 @@ declare module 'styled-components' {
     spacing: typeof spacing;
     borderRadius: typeof borderRadius;
     boxShadow: typeof boxShadow;
+    mode: ThemeTypes;
   }
 }

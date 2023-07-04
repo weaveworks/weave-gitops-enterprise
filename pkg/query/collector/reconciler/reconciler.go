@@ -3,6 +3,7 @@ package reconciler
 import (
 	"context"
 	"fmt"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -19,7 +20,9 @@ type Reconciler interface {
 	Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error)
 }
 
-func NewReconciler(clusterName string, objectKind configuration.ObjectKind, client client.Client, objectsChannel chan []models.ObjectTransaction, log logr.Logger) (Reconciler, error) {
+type ProcessFunc func(models.ObjectTransaction) error
+
+func NewReconciler(clusterName string, objectKind configuration.ObjectKind, client client.Client, process ProcessFunc, log logr.Logger) (Reconciler, error) {
 
 	if client == nil {
 		return nil, fmt.Errorf("invalid client")
@@ -29,27 +32,23 @@ func NewReconciler(clusterName string, objectKind configuration.ObjectKind, clie
 		return nil, fmt.Errorf("invalid object kind:%w", err)
 	}
 
-	if objectsChannel == nil {
-		return nil, fmt.Errorf("invalid objects channel")
-	}
-
 	return &GenericReconciler{
-		objectKind:     objectKind,
-		client:         client,
-		objectsChannel: objectsChannel,
-		log:            log.WithName("query-collector-reconciler"),
-		debug:          log.WithName("query-collector-reconciler").V(logger.LogLevelDebug),
-		clusterName:    clusterName,
+		objectKind:  objectKind,
+		client:      client,
+		processFunc: process,
+		log:         log.WithName("query-collector-reconciler"),
+		debug:       log.WithName("query-collector-reconciler").V(logger.LogLevelDebug),
+		clusterName: clusterName,
 	}, nil
 }
 
 type GenericReconciler struct {
-	objectsChannel chan []models.ObjectTransaction
-	client         client.Client
-	objectKind     configuration.ObjectKind
-	debug          logr.Logger
-	log            logr.Logger
-	clusterName    string
+	processFunc ProcessFunc
+	client      client.Client
+	objectKind  configuration.ObjectKind
+	debug       logr.Logger
+	log         logr.Logger
+	clusterName string
 }
 
 func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
@@ -84,14 +83,9 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		transactionType: txType,
 	}
 
-	transactions := []models.ObjectTransaction{tx}
-
 	r.debug.Info("object transaction received", "transaction", tx.String())
 
-	//TODO manage error
-	r.objectsChannel <- transactions
-
-	return ctrl.Result{}, nil
+	return ctrl.Result{}, r.processFunc(tx)
 }
 
 type transaction struct {

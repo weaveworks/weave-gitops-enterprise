@@ -26,14 +26,22 @@ func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subs
 		}
 	}()
 
-	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
-		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, kinds, log)
+	newWatcher := func(clusterName string, config *rest.Config) (collector.Starter, error) {
+		return collector.NewWatcher(clusterName, config, kinds, incoming, log)
+	}
+
+	deleteWatcher := func(clusterName string) error {
+		tx := collector.NewDeleteAllTransaction(clusterName)
+		return processRecords([]models.ObjectTransaction{tx}, w, idx, log)
 	}
 
 	opts := collector.CollectorOpts{
-		Log:            log,
-		NewWatcherFunc: newWatcher,
-		Clusters:       mgr,
+		Name:            "objects",
+		Log:             log,
+		NewWatcherFunc:  newWatcher,
+		StopWatcherFunc: deleteWatcher,
+		Clusters:        mgr,
+		ServiceAccount:  sa,
 	}
 
 	col, err := collector.NewCollector(opts)
