@@ -12,7 +12,6 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 	"math/big"
 	"net"
@@ -795,10 +794,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	var metricsServer *http.Server
 
 	if args.MetricsOptions.Enabled {
-		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions, prometheus.Gatherers{
-			prometheus.DefaultGatherer,
-			clustersmngr.Registry,
-		})
+		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions)
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {

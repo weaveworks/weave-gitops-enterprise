@@ -33,7 +33,7 @@ function BitBucketAuthButton({ onClick, ...props }: Props) {
   };
   return (
     <Button onClick={handleClick} {...props}>
-      Authenticate with Bitbucket Server
+      AUTHENTICATE WITH BITBUCKET
     </Button>
   );
 }

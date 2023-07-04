@@ -3,11 +3,16 @@ package store
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"strings"
 	"testing"
 
+	storemetrics "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
+
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -153,6 +158,143 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 			g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM objects").Scan(&storedObjectsNum)).To(Succeed())
 			g.Expect(storedObjectsNum == len(tt.objects)).To(BeTrue())
 		})
+	}
+}
+
+// TestSQLiteStore_Metrics test basic business logic and monitoring instrumentation for sqlite store operations
+func TestSQLiteStore_Metrics(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, _ := createStore(t)
+
+	storemetrics.DatastoreLatencyHistogram.Reset()
+	storemetrics.DatastoreInflightRequests.Reset()
+
+	metrics.NewPrometheusServer(metrics.Options{
+		ServerAddress: "localhost:8080",
+	})
+
+	metricsUrl := "http://localhost:8080/metrics"
+
+	addObject := models.Object{
+		Cluster:    "cluster-with-objects",
+		Name:       "obj-cluster-1",
+		Namespace:  "namespace",
+		Kind:       "ValidKind",
+		APIGroup:   "example.com",
+		APIVersion: "v1",
+		Category:   models.CategoryAutomation,
+	}
+
+	g.Expect(store.StoreObjects(ctx, []models.Object{addObject})).To(Succeed())
+
+	role := models.Role{
+		Cluster:   "test-cluster",
+		Namespace: "namespace",
+		Name:      "someName",
+		Kind:      "Role",
+		PolicyRules: []models.PolicyRule{
+			{
+				APIGroups: strings.Join([]string{"example.com"}, ","),
+				Resources: strings.Join([]string{"helmreleases"}, ","),
+				Verbs:     strings.Join([]string{"get", "list"}, ","),
+			},
+		},
+	}
+
+	rb := models.RoleBinding{
+		Cluster:   "test-cluster",
+		Namespace: "namespace",
+		Name:      "someName",
+		Kind:      "RoleBinding",
+		Subjects: []models.Subject{
+			{
+				APIGroup: "rbac.authorization.k8s.io",
+				Kind:     "User",
+				Name:     role.Name,
+			},
+		},
+		RoleRefName: role.Name,
+		RoleRefKind: role.Kind,
+	}
+
+	g.Expect(store.StoreRoles(ctx, []models.Role{role})).To(Succeed())
+	g.Expect(store.StoreRoleBindings(ctx, []models.RoleBinding{rb})).To(Succeed())
+
+	t.Run("should have GetObjects instrumented", func(t *testing.T) {
+		it, err := store.GetObjects(ctx, []string{addObject.GetID()}, nil)
+		g.Expect(err).NotTo(HaveOccurred())
+		wantMetrics := []string{
+			`# HELP datastore_inflight_requests number of datastore in-flight requests.`,
+			`# TYPE datastore_inflight_requests gauge`,
+			`datastore_inflight_requests{action="GetObjects"} 0`,
+			`# HELP datastore_latency_seconds datastore latency`,
+			`# TYPE datastore_latency_seconds histogram`,
+			`datastore_latency_seconds_bucket{action="GetObjects",status="success",le="0.01"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+		t.Cleanup(func() {
+			err := it.Close()
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	})
+
+	t.Run("should have GetObjectByID instrumented", func(t *testing.T) {
+		_, err := store.GetObjectByID(ctx, addObject.GetID())
+		g.Expect(err).NotTo(HaveOccurred())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="GetObjectByID"} 0`,
+			`datastore_latency_seconds_bucket{action="GetObjectByID",status="success",le="0.01"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have GetRoles instrumented", func(t *testing.T) {
+		_, err := store.GetRoles(ctx)
+		g.Expect(err).NotTo(HaveOccurred())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="GetRoles"} 0`,
+			`datastore_latency_seconds_bucket{action="GetRoles",status="success",le="0.01"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have GetRoleBindings instrumented", func(t *testing.T) {
+		_, err := store.GetRoleBindings(ctx)
+		g.Expect(err).NotTo(HaveOccurred())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="GetRoleBindings"} 0`,
+			`datastore_latency_seconds_bucket{action="GetRoleBindings",status="success",le="0.01"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have GetAccessRules instrumented", func(t *testing.T) {
+		_, err := store.GetAccessRules(ctx)
+		g.Expect(err).NotTo(HaveOccurred())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="GetAccessRules"} 0`,
+			`datastore_latency_seconds_bucket{action="GetAccessRules",status="success",le="0.01"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+}
+
+func assertMetrics(g *WithT, metricsUrl string, expMetrics []string) {
+	req, err := http.NewRequest(http.MethodGet, metricsUrl, nil)
+	g.Expect(err).NotTo(HaveOccurred())
+	resp, err := http.DefaultClient.Do(req)
+	g.Expect(err).NotTo(HaveOccurred())
+	b, err := io.ReadAll(resp.Body)
+	g.Expect(err).NotTo(HaveOccurred())
+	metrics := string(b)
+
+	for _, expMetric := range expMetrics {
+		//Contains expected value
+		g.Expect(metrics).To(ContainSubstring(expMetric))
 	}
 }
 

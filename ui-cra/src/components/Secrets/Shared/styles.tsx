@@ -3,17 +3,12 @@ import styled from 'styled-components';
 export const FormWrapper = styled.form`
   .group-section {
     width: 100%;
-    border-bottom: 1px dashed ${props => props.theme.colors.neutral20};
     .form-group {
       display: flex;
       flex-direction: column;
     }
     .form-section {
       width: 40%;
-      .Mui-disabled {
-        background: ${props => props.theme.colors.neutral10} !important;
-        border-color: ${props => props.theme.colors.neutral20} !important;
-      }
     }
     .MuiRadio-colorSecondary.Mui-checked {
       color: ${props => props.theme.colors.primary10};
