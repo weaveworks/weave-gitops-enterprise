@@ -134,6 +134,9 @@ const GlobalStyle = createGlobalStyle`
     width: 7px;
     height:7px;
   }
+  ::-webkit-scrollbar-corner{
+    background-color: transparent;
+  }
   #root {
     /* Layout - grow to at least viewport height */
     display: flex;
