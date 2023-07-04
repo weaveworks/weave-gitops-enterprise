@@ -3,6 +3,7 @@ import styled from 'styled-components';
 export const FormWrapper = styled.form`
   .group-section {
     width: 100%;
+    border-bottom: 1px dashed ${props => props.theme.colors.neutral20ToPrimary};
     .form-group {
       display: flex;
       flex-direction: column;
