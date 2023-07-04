@@ -75,7 +75,7 @@ func TestIndexer_Metrics(t *testing.T) {
 
 		wantMetrics := []string{
 			`indexer_inflight_requests{action="Search"} 0`,
-			`indexer_latency_seconds_bucket{action="Search",status="success",le="0.01"} 1`,
+			`indexer_latency_seconds_count{action="Search",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 		t.Cleanup(func() {
@@ -92,7 +92,7 @@ func TestIndexer_Metrics(t *testing.T) {
 
 		wantMetrics := []string{
 			`indexer_inflight_requests{action="ListFacets"} 0`,
-			`indexer_latency_seconds_bucket{action="ListFacets",status="success",le="0.01"} 1`,
+			`indexer_latency_seconds_count{action="ListFacets",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
