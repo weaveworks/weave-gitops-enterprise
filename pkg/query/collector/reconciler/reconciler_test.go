@@ -119,6 +119,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 	deleteHelmRelease := testutils.NewHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
 		now := metav1.Now()
 		hr.DeletionTimestamp = &now
+		hr.Finalizers = []string{"helm.weave.works/finalizer"}
 	})
 	objects := []runtime.Object{createdOrUpdatedHelmRelease, deleteHelmRelease}
 

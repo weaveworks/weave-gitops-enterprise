@@ -131,6 +131,7 @@ func TestReconcileDelete(t *testing.T) {
 		makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
 			newTime := metav1.NewTime(time.Now())
 			hr.ObjectMeta.DeletionTimestamp = &newTime
+			hr.Finalizers = []string{"helm.weave.works/finalizer"}
 		}),
 		&fakeValuesFetcher{nil, nil},
 		fakeCache,
@@ -152,6 +153,7 @@ func TestReconcileDeletingTheCacheFails(t *testing.T) {
 	deletedHelmRepo := makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
 		newTime := metav1.NewTime(time.Now())
 		hr.ObjectMeta.DeletionTimestamp = &newTime
+		hr.Finalizers = []string{"helm.weave.works/finalizer"}
 	})
 	fakeErroringCache := helmfakes.NewFakeChartCache(func(fc *helmfakes.FakeChartCache) {
 		fc.DeleteError = errors.New("nope")
