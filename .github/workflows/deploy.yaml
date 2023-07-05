@@ -200,3 +200,17 @@ jobs:
           fi
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
+
+  notify-failure:
+    name: Notify Slack on Failure
+    runs-on: ubuntu-latest
+    if: ${{ failure() }}
+    steps:
+    - name: Send alert
+      uses: actions-ecosystem/action-slack-notifier@v1
+      with:
+        slack_token: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
+        message: ":sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep."
+        channel: weave-gitops-dev
+        color: red
+        verbose: false
