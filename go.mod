@@ -21,7 +21,7 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3
-	k8s.io/cli-runtime v0.26.3
+	k8s.io/cli-runtime v0.27.3
 	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.15.0
 )
@@ -77,9 +77,9 @@ require (
 	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.11.3
 	k8s.io/apiextensions-apiserver v0.27.3
-	k8s.io/kubernetes v1.26.3
+	k8s.io/kubernetes v1.27.3
 	sigs.k8s.io/cluster-api v1.4.1
-	sigs.k8s.io/kustomize/kyaml v0.13.9
+	sigs.k8s.io/kustomize/kyaml v0.14.1
 	sigs.k8s.io/yaml v1.3.0
 )
 
@@ -119,7 +119,7 @@ require (
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.117.0 // indirect
 	gopkg.in/urfave/cli.v1 v1.20.0 // indirect
-	k8s.io/component-helpers v0.26.3 // indirect
+	k8s.io/component-helpers v0.27.3 // indirect
 )
 
 require (
@@ -396,16 +396,16 @@ require (
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/sqlite v1.4.4
-	k8s.io/apiserver v0.26.3
+	k8s.io/apiserver v0.27.3
 	k8s.io/component-base v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/kubectl v0.26.3
+	k8s.io/kubectl v0.27.3
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106
 	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/kustomize/api v0.12.1 // indirect
+	sigs.k8s.io/kustomize/api v0.13.2 // indirect
 	sigs.k8s.io/kustomize/kstatus v0.0.2 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.2.3 // indirect
 )
@@ -436,19 +436,19 @@ replace (
 	// If you forget to do this, you will see something like this next time you run `go get`:
 	//
 	// $ go get github.com/weaveworks/weave-gitops@v0.25.1-rc.1
-	// go: downgraded k8s.io/kubernetes v1.26.3 => v1.15.0-alpha.0
+	// go: downgraded k8s.io/kubernetes v1.27.3 => v1.15.0-alpha.0
 	//
 	// And the project won't build anymore.
 	//
-	k8s.io/api => k8s.io/api v0.26.3
-	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/apimachinery => k8s.io/apimachinery v0.26.3
-	k8s.io/apiserver => k8s.io/apiserver v0.26.3
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.3
-	k8s.io/client-go => k8s.io/client-go v0.26.3
-	k8s.io/component-base => k8s.io/component-base v0.26.3
-	k8s.io/component-helpers => k8s.io/component-helpers v0.26.3
-	k8s.io/kubectl => k8s.io/kubectl v0.26.3
+	k8s.io/api => k8s.io/api v0.27.3
+	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.27.3
+	k8s.io/apimachinery => k8s.io/apimachinery v0.27.3
+	k8s.io/apiserver => k8s.io/apiserver v0.27.3
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.27.3
+	k8s.io/client-go => k8s.io/client-go v0.27.3
+	k8s.io/component-base => k8s.io/component-base v0.27.3
+	k8s.io/component-helpers => k8s.io/component-helpers v0.27.3
+	k8s.io/kubectl => k8s.io/kubectl v0.27.3
 
 // un-comment for local dev
 // github.com/weaveworks/weave-gitops => ../weave-gitops
