@@ -13,6 +13,7 @@ import (
 
 	bleve "github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
+	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 )
 
@@ -51,7 +52,7 @@ type IndexReader interface {
 var indexFile = "index.db"
 var filterFields = []string{"cluster", "namespace", "kind"}
 
-func NewIndexer(s Store, path string) (Indexer, error) {
+func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
 	mapping := bleve.NewIndexMapping()
 
@@ -65,6 +66,7 @@ func NewIndexer(s Store, path string) (Indexer, error) {
 	return &bleveIndexer{
 		idx:   index,
 		store: s,
+		log:   log,
 	}, nil
 }
 
@@ -95,6 +97,7 @@ func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 type bleveIndexer struct {
 	idx   bleve.Index
 	store Store
+	log   logr.Logger
 }
 
 // We want the index to contain our raw JSON objects,
@@ -107,17 +110,22 @@ func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
 
 	for _, obj := range objects {
 		if err := batch.Index(obj.GetID(), obj); err != nil {
-			return fmt.Errorf("failed to index object: %w", err)
+			i.log.Error(err, "failed to index object", "object", obj.GetID())
+			continue
 		}
 
 		if obj.Unstructured != nil {
 			var data interface{}
 
 			if err := json.Unmarshal(obj.Unstructured, &data); err != nil {
-				return fmt.Errorf("failed to unmarshal object: %w", err)
+				i.log.Error(err, "failed to unmarshal object", "object", obj.GetID())
+				continue
 			}
 
-			batch.Index(obj.GetID()+unstructuredSuffix, data)
+			if err := batch.Index(obj.GetID()+unstructuredSuffix, data); err != nil {
+				i.log.Error(err, "failed to index unstructured object", "object", obj.GetID())
+				continue
+			}
 		}
 	}
 

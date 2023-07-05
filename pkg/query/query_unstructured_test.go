@@ -30,7 +30,7 @@ func TestQueryUnstructured(t *testing.T) {
 	idxDir, err := os.MkdirTemp("", "indexer-test")
 	g.Expect(err).NotTo(HaveOccurred())
 
-	idx, err := store.NewIndexer(s, idxDir)
+	idx, err := store.NewIndexer(s, idxDir, logr.Discard())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	myStruct := struct {

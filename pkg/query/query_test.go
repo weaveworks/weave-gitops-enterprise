@@ -391,7 +391,7 @@ func TestRunQuery(t *testing.T) {
 			idxDir, err := os.MkdirTemp("", "indexer-test")
 			g.Expect(err).NotTo(HaveOccurred())
 
-			idx, err := store.NewIndexer(s, idxDir)
+			idx, err := store.NewIndexer(s, idxDir, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
 			q := &qs{
@@ -464,7 +464,7 @@ func TestRunQuery_ErrorScenarios(t *testing.T) {
 		idxDir, err := os.MkdirTemp("", "indexer-test")
 		g.Expect(err).NotTo(HaveOccurred())
 
-		idx, err := store.NewIndexer(s, idxDir)
+		idx, err := store.NewIndexer(s, idxDir, logr.Discard())
 		g.Expect(err).NotTo(HaveOccurred())
 
 		q := &qs{
@@ -512,7 +512,7 @@ func TestQueryIteration(t *testing.T) {
 	s, err := store.NewSQLiteStore(db, logr.Discard())
 	g.Expect(err).NotTo(HaveOccurred())
 
-	idx, err := store.NewIndexer(s, dir)
+	idx, err := store.NewIndexer(s, dir, logr.Discard())
 	g.Expect(err).NotTo(HaveOccurred())
 
 	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
