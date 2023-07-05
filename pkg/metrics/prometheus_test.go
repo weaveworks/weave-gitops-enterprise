@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -56,10 +55,9 @@ func TestNewMetricsServer(t *testing.T) {
 	assert := assert.New(t)
 
 	t.Run("should create new metrics server", func(t *testing.T) {
+
 		NewPrometheusServer(Options{
 			ServerAddress: "localhost:8080",
-		}, prometheus.Gatherers{
-			prometheus.DefaultGatherer,
 		})
 
 		// Get metrics.
@@ -81,12 +79,12 @@ func TestWithMetrics(t *testing.T) {
 	require := require.New(t)
 	assert := assert.New(t)
 	t.Run("should record metrics for http server", func(t *testing.T) {
+
 		// create metrics server
 		NewPrometheusServer(Options{
 			ServerAddress: "localhost:8080",
-		}, prometheus.Gatherers{
-			prometheus.DefaultGatherer,
 		})
+
 		// create http server with metrics recorder
 		next := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			rw.WriteHeader(http.StatusOK)

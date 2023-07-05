@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	"github.com/weaveworks/weave-gitops/core/logger"
 
@@ -188,11 +191,15 @@ func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object)
 	return nil
 }
 
-func (i *SQLiteStore) GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error) {
+func (i *SQLiteStore) GetObjects(ctx context.Context, ids []string, opts QueryOption) (it Iterator, err error) {
 	// If offset is zero, it was not set.
 	// -1 tells GORM to ignore the offset
 	var offset int = -1
 	var orderBy string = ""
+
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.GetObjectsAction, 1)
+	defer recordMetrics(metrics.GetObjectsAction, time.Now(), err)
 
 	if opts != nil {
 		if opts.GetOffset() != 0 {
@@ -222,19 +229,38 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, ids []string, opts QueryOp
 	return sqliterator.New(tx)
 }
 
-func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (models.Object, error) {
+func recordMetrics(action string, start time.Time, err error) {
+
+	metrics.DataStoreInflightRequests(action, -1)
+	if err != nil {
+		metrics.DataStoreSetLatency(action, metrics.FailedLabel, time.Since(start))
+		return
+	}
+	metrics.DataStoreSetLatency(action, metrics.SuccessLabel, time.Since(start))
+}
+
+func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (obj models.Object, err error) {
 	object := models.Object{}
+
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.GetObjectByIdAction, 1)
+	defer recordMetrics(metrics.GetObjectByIdAction, time.Now(), err)
 
 	result := i.db.Model(&object).Where("id = ?", id).First(&object)
 	if result.Error != nil {
-		return models.Object{}, fmt.Errorf("failed to get object: %w", result.Error)
+		return models.Object{}, fmt.Errorf("failed to get object: %s with error: %w", id, result.Error)
 	}
 
 	return object, nil
 }
 
-func (i *SQLiteStore) GetRoles(ctx context.Context) ([]models.Role, error) {
+func (i *SQLiteStore) GetRoles(ctx context.Context) (rs []models.Role, err error) {
 	var roles []models.Role
+
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.GetRolesAction, 1)
+	defer recordMetrics(metrics.GetRolesAction, time.Now(), err)
+
 	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get roles: %w", result.Error)
@@ -242,8 +268,13 @@ func (i *SQLiteStore) GetRoles(ctx context.Context) ([]models.Role, error) {
 	return roles, nil
 }
 
-func (i *SQLiteStore) GetRoleBindings(ctx context.Context) ([]models.RoleBinding, error) {
+func (i *SQLiteStore) GetRoleBindings(ctx context.Context) (rbs []models.RoleBinding, err error) {
 	var rolebindings []models.RoleBinding
+
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.GetRoleBindingsAction, 1)
+	defer recordMetrics(metrics.GetRoleBindingsAction, time.Now(), err)
+
 	result := i.db.Model(&models.RoleBinding{}).Preload("Subjects").Find(&rolebindings)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get rolebindings: %w", result.Error)
@@ -251,9 +282,13 @@ func (i *SQLiteStore) GetRoleBindings(ctx context.Context) ([]models.RoleBinding
 	return rolebindings, nil
 }
 
-func (i *SQLiteStore) GetAccessRules(ctx context.Context) ([]models.AccessRule, error) {
+func (i *SQLiteStore) GetAccessRules(ctx context.Context) (acs []models.AccessRule, err error) {
 	roles := []models.Role{}
 	bindings := []models.RoleBinding{}
+
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.GetAccessRulesAction, 1)
+	defer recordMetrics(metrics.GetAccessRulesAction, time.Now(), err)
 
 	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)
 	if result.Error != nil {

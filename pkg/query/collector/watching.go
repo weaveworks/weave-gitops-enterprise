@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/metrics"
+
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
@@ -90,13 +92,24 @@ outer:
 type child struct {
 	Starter
 	cancel           context.CancelFunc
+	collector        string
 	status           string
 	lastStatusChange time.Time
 }
 
+// setStatus sets watcher status and records it as a metric.
+// It does not record metrics for stopped state non-active states = notStarted and Stopped
 func (c *child) setStatus(s string) {
+	if c.status != "" {
+		metrics.ClusterWatcherDecrease(c.collector, c.status)
+	}
+
 	c.lastStatusChange = time.Now()
 	c.status = s
+
+	if c.status != ClusterWatchingStopped {
+		metrics.ClusterWatcherIncrease(c.collector, c.status)
+	}
 }
 
 // watchingCollector supervises watchers, starting one per cluster it
@@ -139,7 +152,9 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
 	}
 
 	// make the record, so status works
-	c := &child{}
+	c := &child{
+		collector: w.name,
+	}
 	c.setStatus(ClusterWatchingStarting)
 	childctx, cancel := context.WithCancel(context.Background())
 	c.cancel = cancel
@@ -193,6 +208,8 @@ func (w *watchingCollector) watch(cluster cluster.Cluster) (reterr error) {
 		// TODO remove from map?
 		w.clusterWatchersMu.Lock()
 		c.setStatus(ClusterWatchingStopped)
+		w.clusterWatchers[clusterName] = nil
+
 		w.clusterWatchersMu.Unlock()
 	}()
 
