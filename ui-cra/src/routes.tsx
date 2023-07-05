@@ -34,7 +34,7 @@ import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies/PoliciesListPage';
-import PolicyDetails from './components/Policies/PolicyDetailsPage';
+import PolicyDetailsPage from './components/Policies/PolicyDetailsPage';
 import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
@@ -219,7 +219,7 @@ const AppRoutes = () => {
       />
       <Route exact path={V2Routes.Policies} component={Policies} />
       <Route
-        component={withSearchParams(PolicyDetails)}
+        component={withSearchParams(PolicyDetailsPage)}
         path={V2Routes.PolicyDetailsPage}
       />
       <Route component={TemplatesDashboard} exact path={Routes.Templates} />
