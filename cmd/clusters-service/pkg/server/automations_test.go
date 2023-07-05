@@ -728,6 +728,7 @@ spec:
     creationPolicy: Owner
     name: new-secret
 status:
+  binding: {}
   refreshTime: null
 `,
 				},
