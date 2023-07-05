@@ -205,7 +205,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 				txns = append(txns, tx)
 				return nil
 			}
-			reconciler, err := NewReconciler(clusterName, configuration.HelmReleaseObjectKind, fakeClient, process, logger)
+			reconciler, err := NewReconciler(clusterName, tt.kind, fakeClient, process, logger)
 			g.Expect(err).To(BeNil())
 			g.Expect(reconciler).NotTo(BeNil())
 			_, reconcileError = reconciler.Reconcile(ctx, tt.request)
@@ -214,6 +214,12 @@ func TestReconciler_Reconcile(t *testing.T) {
 				return
 			}
 			g.Expect(reconcileError).To(BeNil())
+
+			if !tt.shouldHaveTX {
+				g.Expect(len(txns)).To(Equal(0))
+				return
+			}
+
 			assertObjectTransaction(t, txns[0], tt.expectedTx)
 		})
 	}
