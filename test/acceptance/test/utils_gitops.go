@@ -154,6 +154,7 @@ func waitForGitopsResources(ctx context.Context, request Request, timeout time.D
 	waitCtx, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
 
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	return wait.PollUntil(time.Second*1, func() (bool, error) {
 		jar, _ := cookiejar.New(&cookiejar.Options{})
 		client := http.Client{

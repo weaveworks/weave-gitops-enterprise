@@ -79,6 +79,7 @@ func MakeTar(t *testing.T, chartName, content string) []byte {
 }
 
 func watchForHelmChartAndUpdateStatus(fakeClient client.Client) error {
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 	return wait.PollImmediate(time.Second, 10*time.Second, func() (bool, error) {
 		// List all helm charts in the namespace flux-system
 		helmCharts := &sourcev1.HelmChartList{}

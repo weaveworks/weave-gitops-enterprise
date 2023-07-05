@@ -223,6 +223,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 
 			// Poll GetChartsJob until it's done
 			var jobResponse *protos.GetChartsJobResponse
+			//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 			err = wait.PollImmediate(time.Second, time.Second*5, func() (bool, error) {
 				var err error
 				jobResponse, err = s.GetChartsJob(context.TODO(), &protos.GetChartsJobRequest{JobId: response.JobId})
@@ -316,6 +317,7 @@ func TestGetValuesForChartCached(t *testing.T) {
 
 			// Poll GetChartsJob until it's done
 			var jobResponse *protos.GetChartsJobResponse
+			//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
 			err = wait.PollImmediate(time.Second, time.Second*5, func() (bool, error) {
 				var err error
 				jobResponse, err = s.GetChartsJob(context.TODO(), &protos.GetChartsJobRequest{JobId: response.JobId})

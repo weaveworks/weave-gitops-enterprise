@@ -19,8 +19,8 @@ import (
 	"helm.sh/helm/v3/pkg/repo"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
-	"sigs.k8s.io/cluster-api/util"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 )
@@ -32,7 +32,8 @@ type ValuesFetcher interface {
 
 // use apimachinery wait package to wait for the HelmChart to be ready
 func waitForReady(ctx context.Context, cl client.Client, helmChart *sourcev1.HelmChart) error {
-	err := util.PollImmediate(1*time.Second, 30*time.Second, func() (bool, error) {
+	//nolint:staticcheck // deprecated, tracking issue: https://github.com/weaveworks/weave-gitops/issues/3812
+	err := wait.PollImmediate(1*time.Second, 30*time.Second, func() (bool, error) {
 		err := cl.Get(ctx, types.NamespacedName{Namespace: helmChart.Namespace, Name: helmChart.Name}, helmChart)
 		if err != nil {
 			return false, fmt.Errorf("failed to get HelmChart: %w", err)

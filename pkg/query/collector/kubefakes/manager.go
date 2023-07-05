@@ -13,7 +13,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
-	"sigs.k8s.io/controller-runtime/pkg/config/v1alpha1"
+	"sigs.k8s.io/controller-runtime/pkg/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
@@ -88,7 +88,7 @@ func (f fakeControllerManager) AddReadyzCheck(name string, check healthz.Checker
 	panic("implement me")
 }
 
-func (f fakeControllerManager) GetWebhookServer() *webhook.Server {
+func (f fakeControllerManager) GetWebhookServer() webhook.Server {
 	return nil
 }
 
@@ -96,8 +96,12 @@ func (f fakeControllerManager) GetLogger() logr.Logger {
 	return f.log
 }
 
-func (f fakeControllerManager) GetControllerOptions() v1alpha1.ControllerConfigurationSpec {
-	return v1alpha1.ControllerConfigurationSpec{}
+func (f fakeControllerManager) GetHTTPClient() *http.Client {
+	return nil
+}
+
+func (f fakeControllerManager) GetControllerOptions() config.Controller {
+	return config.Controller{}
 }
 
 func NewControllerManager(config *rest.Config, options ctrl.Options) (ctrl.Manager, error) {
