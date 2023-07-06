@@ -204,6 +204,7 @@ jobs:
   notify-failure:
     name: Notify Slack on Failure
     runs-on: ubuntu-latest
+    needs: [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant]
     if: ${{ failure() }}
     steps:
     - name: Send alert
