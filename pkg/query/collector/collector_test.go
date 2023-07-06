@@ -29,9 +29,14 @@ func TestNewCollector(t *testing.T) {
 		{
 			name: "can create collector with valid arguments",
 			options: CollectorOpts{
+				Name:           "test",
 				Log:            log,
 				NewWatcherFunc: newFakeWatcher,
 				Clusters:       clustersManager,
+				ServiceAccount: ImpersonateServiceAccount{
+					Namespace: "flux-system",
+					Name:      "collector",
+				},
 			},
 			errPattern: "",
 		},
@@ -48,5 +53,4 @@ func TestNewCollector(t *testing.T) {
 			g.Expect(collector).NotTo(BeNil())
 		})
 	}
-
 }

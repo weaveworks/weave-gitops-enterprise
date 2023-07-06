@@ -3,6 +3,7 @@ package objectscollector
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/go-logr/logr"
 	"k8s.io/client-go/rest"
@@ -26,14 +27,22 @@ func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subs
 		}
 	}()
 
-	newWatcher := func(config *rest.Config, clusterName string) (collector.Watcher, error) {
-		return collector.DefaultNewWatcher(config, sa, clusterName, incoming, kinds, log)
+	newWatcher := func(clusterName string, config *rest.Config) (collector.Starter, error) {
+		return collector.NewWatcher(clusterName, config, kinds, incoming, log)
+	}
+
+	deleteWatcher := func(clusterName string) error {
+		tx := collector.NewDeleteAllTransaction(clusterName)
+		return processRecords([]models.ObjectTransaction{tx}, w, idx, log)
 	}
 
 	opts := collector.CollectorOpts{
-		Log:            log,
-		NewWatcherFunc: newWatcher,
-		Clusters:       mgr,
+		Name:            "objects",
+		Log:             log,
+		NewWatcherFunc:  newWatcher,
+		StopWatcherFunc: deleteWatcher,
+		Clusters:        mgr,
+		ServiceAccount:  sa,
 	}
 
 	col, err := collector.NewCollector(opts)
@@ -71,19 +80,36 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
+		k8sTs := objTx.Object().GetDeletionTimestamp()
+
+		modelTs := time.Time{}
+		if k8sTs != nil {
+			modelTs = k8sTs.Time
+		}
+
 		object := models.Object{
-			Cluster:    objTx.ClusterName(),
-			Name:       objTx.Object().GetName(),
-			Namespace:  objTx.Object().GetNamespace(),
-			APIGroup:   gvk.Group,
-			APIVersion: gvk.Version,
-			Kind:       gvk.Kind,
-			Status:     string(adapters.Status(o)),
-			Message:    adapters.Message(o),
-			Category:   cat,
+			Cluster:             objTx.ClusterName(),
+			Name:                objTx.Object().GetName(),
+			Namespace:           objTx.Object().GetNamespace(),
+			APIGroup:            gvk.Group,
+			APIVersion:          gvk.Version,
+			Kind:                gvk.Kind,
+			Status:              string(adapters.Status(o)),
+			Message:             adapters.Message(o),
+			Category:            cat,
+			KubernetesDeletedAt: modelTs,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
+			// We want to retain some objects longer than kubernetes does.
+			// Objects like Events get removed in 1h by default on some cloud providers.
+			// Users want to be able to see these events for longer than that.
+			if !models.IsExpired(objTx.RetentionPolicy(), object) {
+				debug.Info("object is not expired, skipping", "object", object)
+				// We need to upsert here to catch the KubernetesDeletedAt timestamp
+				upsert = append(upsert, object)
+				continue
+			}
 			delete = append(delete, object)
 		} else {
 			upsert = append(upsert, object)

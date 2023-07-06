@@ -80,6 +80,11 @@ const FormWrapper = styled.form`
   .create-loading {
     padding: ${props => props.theme.spacing.base};
   }
+  div[class*='MuiInput-root'] {
+    border: 1px solid ${props => props.theme.colors.neutral20};
+    border-bottom: none;
+    padding: 2px 6px;
+  }
 `;
 
 const CredentialsWrapper = styled(Flex)`

@@ -1,14 +1,14 @@
 import { ButtonProps } from '@material-ui/core';
+import { Button } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
-import { Button } from '@weaveworks/weave-gitops';
-import { gitlabOAuthRedirectURI } from '../../utils/formatters';
+import { GitAuth } from '../../contexts/GitAuth';
 import {
   CallbackStateContext,
   CallbackStateContextType,
 } from '../../contexts/GitAuth/CallbackStateContext';
+import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { navigate, storeCallbackState } from './utils';
-import { GitAuth } from '../../contexts/GitAuth';
 
 type Props = ButtonProps;
 
@@ -34,7 +34,7 @@ function GitlabAuthButton({ ...props }: Props) {
 
   return (
     <Button {...props} onClick={handleClick}>
-      Authenticate with GitLab
+      AUTHENTICATE WITH GITLAB
     </Button>
   );
 }
