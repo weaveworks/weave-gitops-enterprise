@@ -212,5 +212,5 @@ jobs:
         slack-bot-user-oauth-access-token: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
         slack-channel: C01M1BJQ7AT # weave-gitops-dev
         slack-text: |
-          :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep.
+          :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep. Then fix the underlying issue and ensure main remains green.
         slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
