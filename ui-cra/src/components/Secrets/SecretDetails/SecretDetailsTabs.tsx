@@ -74,7 +74,7 @@ const SecretDetailsTabs = ({
       <RouterTab name="Details" path={`${path}/details`}>
         <Flex column wide gap="8">
           <RowHeaders rows={secretDetailsHeaders} />
-          {secretObj.obj?.spec?.data.length && (
+          {secretObj.obj?.spec?.data?.length && (
             <>
               <Text size="medium" semiBold>
                 Properties

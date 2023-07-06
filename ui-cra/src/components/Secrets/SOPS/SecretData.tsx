@@ -14,15 +14,37 @@ const data = ({
   setFormData: Dispatch<React.SetStateAction<any>>;
 }) => {
   const handleSecretChange = (id: number, isKey: boolean, value: string) => {
-    let data = [...formData.data];
-    const mappedData = data.map(e => {
-      if (e.id === id) {
-        if (isKey) e.key = value;
-        else e.value = value;
-      }
-      return e;
-    });
-    setFormData((f: SOPS) => ({ ...f, data: mappedData }));
+    setFormData((f: ExternalSecret) => ({
+      ...f,
+      data: f.data.map(p => {
+        if (p.id !== id) return p;
+
+        if (isKey) p.key = value;
+        else p.value = value;
+
+        return p;
+      }),
+    }));
+  };
+
+  const handleRemoveProp = (id: number) => {
+    setFormData((f: ExternalSecret) => ({
+      ...f,
+      data: f.data.filter(e => e.id !== id),
+    }));
+  };
+  const handleNewProp = () => {
+    setFormData((f: ExternalSecret) => ({
+      ...f,
+      data: [
+        ...f.data,
+        {
+          id: formData.data[formData.data.length - 1].id + 1,
+          key: '',
+          value: '',
+        },
+      ],
+    }));
   };
 
   return (
@@ -50,12 +72,7 @@ const data = ({
           {formData.data.length > 1 && (
             <RemoveCircleOutlineIcon
               className="remove-icon"
-              onClick={() =>
-                setFormData((f: SOPS) => ({
-                  ...f,
-                  data: f.data.filter(e => e.id !== obj.id),
-                }))
-              }
+              onClick={() => handleRemoveProp(obj.id)}
             />
           )}
         </div>
@@ -63,19 +80,7 @@ const data = ({
       <Button
         className="add-secret-data"
         startIcon={<Icon type={IconType.AddIcon} size="base" />}
-        onClick={() =>
-          setFormData((f: SOPS) => ({
-            ...f,
-            data: [
-              ...f.data,
-              {
-                id: f.data.length > 0 ? f.data[f.data.length - 1].id + 1 : 1,
-                key: '',
-                value: '',
-              },
-            ],
-          }))
-        }
+        onClick={() => handleNewProp()}
       >
         Add
       </Button>
