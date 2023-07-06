@@ -50,6 +50,9 @@ spec:
             {{- range .Values.clustersService.args }}
             - {{ . }}
             {{- end }}
+            {{ if .Values.explorer.cleaner.disabled }}
+            - --explorer-cleaner-disabled=true
+            {{- end }}
           imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:
