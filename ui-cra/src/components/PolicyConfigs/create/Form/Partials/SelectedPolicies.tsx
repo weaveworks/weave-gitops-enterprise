@@ -222,7 +222,7 @@ export const SelectedPolicies = ({
         );
       default:
         return (
-          <>
+          <Flex wide wrap>
             {formData.policies[id!]?.parameters[name!] && (
               <span className="modified">Modified</span>
             )}
@@ -236,7 +236,7 @@ export const SelectedPolicies = ({
                 handlePolicyParams(event.target.value, id!, param);
               }}
             />
-          </>
+          </Flex>
         );
     }
   };

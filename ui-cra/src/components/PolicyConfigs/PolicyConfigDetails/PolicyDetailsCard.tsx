@@ -1,6 +1,5 @@
 import { Card, CardContent } from '@material-ui/core';
-import { Flex, formatURL, Link, V2Routes } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
+import { Flex, V2Routes, formatURL , Text} from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
@@ -8,6 +7,7 @@ import {
 import {
   PolicyDetailsCardWrapper,
   SectionTitle,
+  TextLink,
   WarningIcon,
   usePolicyConfigStyle,
 } from '../PolicyConfigStyles';
@@ -50,14 +50,15 @@ export default function PolicyDetailsCard({
                 {Object.entries(policy.parameters || {}).map(([key, value]) => (
                   <div className="parameterItem" key={key}>
                     <label data-testid={key} className={classes.upperCase}>
-                      {key}{' '}
+                      {key}
                     </label>
-                    <div
+                    <Text
+                      uppercase
+                      className="parameterItemValue"
                       data-testid={`${key}Value`}
-                      className={`parameterItemValue ${classes.upperCase}`}
                     >
                       {renderParameterValue(value)}
-                    </div>
+                    </Text>
                   </div>
                 ))}
               </CardContent>
@@ -69,20 +70,18 @@ export default function PolicyDetailsCard({
   );
 }
 export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
-  const classes = usePolicyConfigStyle();
   const { status, id, name } = policy;
 
   return status === 'OK' ? (
-    <Link
+    <TextLink
       to={formatURL(V2Routes.PolicyDetailsPage, {
         clusterName: clusterName,
         id: id,
       })}
-      className={classes.link}
       data-policy-name={name}
     >
       <span data-testid={`policyId-${name}`}>{name}</span>
-    </Link>
+    </TextLink>
   ) : (
     <Flex align gap="8">
       <span

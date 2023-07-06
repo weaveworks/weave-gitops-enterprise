@@ -7,6 +7,8 @@ import {
   SectionTitle,
   TargetItemKind,
   usePolicyConfigStyle,
+  TargetItemsList,
+  AppliedToTitle,
 } from '../PolicyConfigStyles';
 
 function PolicyConfigHeaderSection({
@@ -99,18 +101,15 @@ function PolicyConfigHeaderSection({
       {generateRowHeaders(defaultHeaders)}
       <div>
         <SectionTitle>Applied To</SectionTitle>
-        <div
-          data-testid="appliedTo"
-          className={`${classes.appliedTo} ${classes.capitlize}`}
-        >
+        <AppliedToTitle capitalize data-testid="appliedTo">
           <span>{matchType}</span>
           <span> ({target?.length})</span>
-        </div>
-        <ul className={classes.targetItemsList}>
+        </AppliedToTitle>
+        <TargetItemsList>
           {target?.map((item: any) =>
             getMatchedItem(item, clusterName, matchType || ''),
           )}
-        </ul>
+        </TargetItemsList>
       </div>
     </div>
   );

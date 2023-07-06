@@ -1,9 +1,9 @@
-import { ReportProblem } from '@material-ui/icons';
+import { RemoveCircleOutline, ReportProblem } from '@material-ui/icons';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { Text, Flex, Link } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
-import { RemoveCircleOutline } from '@material-ui/icons';
 
 export const SectionTitle = styled.label`
   display: block;
@@ -13,51 +13,38 @@ export const SectionTitle = styled.label`
   margin-top: ${props => props.theme.spacing.large};
 `;
 
-export const TargetItemKind = styled.span`
-  text-transform: capitalize;
+export const TargetItemKind = styled(Text)`
   background: ${props => props.theme.colors.neutralGray};
-  padding: 4px 16px;
+  padding: ${props => props.theme.spacing.xxs}
+    ${props => props.theme.spacing.base};
   color: ${props => props.theme.colors.black};
-  margin-left: 12px;
-  border-radius: 16px;
+  margin-left: ${props => props.theme.spacing.small};
+  border-radius: ${props => props.theme.spacing.base};
 `;
-
+export const TotalPolicies = styled(Flex)`
+  width: 100px;
+`;
+export const AppliedToTitle = styled(Text)`
+  margin-top: ${props => props.theme.spacing.base};
+  display: block;
+`;
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
-    centered: {
-      textAlign: 'center',
-      width: '100px',
-    },
     capitlize: {
       textTransform: 'capitalize',
     },
     upperCase: {
       textTransform: 'uppercase',
     },
-    appliedTo: {
-      marginTop: 16,
-    },
-    link: {
-      color: '00b3ec',
-      fontWeight: 600,
-      whiteSpace: 'pre-line',
-      textTransform: 'capitalize',
-    },
-    targetItemsList: {
-      '& li': { marginTop: 8, display: 'flex', alignItems: 'center' },
-      padding: 0,
-      margin: 0,
-    },
-    targetItemKind: {
-      background: '#eef0f4',
-      padding: `${4} ${16}`,
-      color: '#1a1a1a',
-      marginLeft: 12,
-      borderRadius: 16,
-    },
   }),
 );
 
+export const TextLink = styled(Link)`
+  color:  ${props => props.theme.colors.primary};
+  font-weight: 600;
+  white-space: pre-line;
+  text-transform: capitalize;
+`;
 export const WarningIcon = styled(ReportProblem)`
   color: ${props => props.theme.colors.feedbackOriginal};
 `;
@@ -201,4 +188,14 @@ svg {
 
 export const RemoveIcon = styled(RemoveCircleOutline)`
   color: ${props => props.theme.colors.alertMedium};
+`;
+
+export const TargetItemsList = styled.ul`
+  li {
+    margin-top: ${props => props.theme.spacing.xs};
+    display: flex;
+    align-items: center;
+  }
+  padding: 0;
+  margin: 0;
 `;

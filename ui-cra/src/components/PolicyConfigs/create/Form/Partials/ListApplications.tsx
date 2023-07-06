@@ -98,7 +98,7 @@ export const ListApplications = ({
                           : app.obj.metadata.namespace}
                         /{app.obj.metadata.name}
                       </span>
-                      <TargetItemKind>{app.obj.kind}</TargetItemKind>
+                      <TargetItemKind capitalize>{app.obj.kind}</TargetItemKind>
                     </>
                   }
                 />

@@ -12,6 +12,7 @@ import {
   PolicyConfigsTableWrapper,
   usePolicyConfigStyle,
   WarningIcon,
+  TotalPolicies
 } from '../PolicyConfigStyles';
 
 interface Props {
@@ -72,7 +73,7 @@ export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
             label: 'Policy Count',
             sortValue: ({ totalPolicies }) => totalPolicies,
             value: ({ totalPolicies }) => (
-              <div className={classes.centered}>{totalPolicies}</div>
+              <TotalPolicies wide center>{totalPolicies}</TotalPolicies>
             ),
             maxWidth: 100,
           },
