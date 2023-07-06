@@ -172,35 +172,6 @@ jobs:
     secrets:
       SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-  snyk-monitor:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Configure git for private modules
-        env:
-          GITHUB_BUILD_USERNAME: wge-build-bot
-          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-      - name: Checkout code
-        uses: actions/checkout@v3.5.0
-      - name: Install Go
-        uses: actions/setup-go@v4.0.0
-        with:
-          go-version: 1.20.x
-      - name: Setup snyk
-        uses: snyk/actions/setup@master
-      - name: Monitor dependencies & license problems with Snyk
-        # Throw an error if the error is "snyk couldn't run".
-        # Don't throw an error on "there are vulnerabilities", those
-        # are notified separately
-        run: |
-          exit_code=0
-          snyk monitor --all-projects --org=product-engineering-ly9 || exit_code=$?
-          if [ $exit_code -gt 1 ]; then
-            exit $exit_code
-          fi
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_API_TOKEN }}
-
   notify-failure:
     name: Notify Slack on Failure
     runs-on: ubuntu-latest
