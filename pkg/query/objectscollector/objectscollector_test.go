@@ -2,10 +2,13 @@ package objectscollector
 
 import (
 	"testing"
+	"time"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
@@ -102,10 +105,60 @@ func TestObjectsCollector_removeAll(t *testing.T) {
 
 }
 
+func TestObjectsCollector_retention(t *testing.T) {
+	g := NewWithT(t)
+	log := logr.Discard()
+	fakeStore := &storefakes.FakeStore{}
+	fakeIndex := &storefakes.FakeIndexWriter{}
+
+	//setup data
+	clusterName := "anyCluster"
+
+	retentionPolicy := configuration.RetentionPolicy(10 * time.Second)
+
+	obj := testutils.NewHelmRelease("anyHelmRelease", clusterName)
+	// Deleted an hour ago, retention policy is only 10 seconds.
+	obj.SetDeletionTimestamp(&metav1.Time{Time: time.Now().Add(1 * -time.Hour)})
+
+	obj2 := testutils.NewHelmRelease("anyHelmRelease2", clusterName)
+	// Deleted 5 seconds ago, retention policy is 10 seconds.
+	obj2.SetDeletionTimestamp(&metav1.Time{Time: time.Now().Add(5 * -time.Second)})
+
+	tx := []models.ObjectTransaction{
+		&transaction{
+			clusterName:     clusterName,
+			object:          obj,
+			transactionType: models.TransactionTypeDelete,
+			retentionPolicy: retentionPolicy,
+		},
+		&transaction{
+			clusterName:     clusterName,
+			object:          obj2,
+			transactionType: models.TransactionTypeDelete,
+			retentionPolicy: retentionPolicy,
+		},
+	}
+
+	err := processRecords(tx, fakeStore, fakeIndex, log)
+	g.Expect(err).To(BeNil())
+
+	// Remove the expired object.
+	_, deleteResult := fakeStore.DeleteObjectsArgsForCall(0)
+	g.Expect(deleteResult).To(HaveLen(1))
+	g.Expect(deleteResult[0].Name).To(Equal("anyHelmRelease"))
+
+	// Keep the object that was deleted but not expired.
+	_, storeResult := fakeStore.StoreObjectsArgsForCall(0)
+	g.Expect(storeResult).To(HaveLen(1))
+	g.Expect(storeResult[0].Name).To(Equal("anyHelmRelease2"))
+
+}
+
 type transaction struct {
 	clusterName     string
 	object          client.Object
 	transactionType models.TransactionType
+	retentionPolicy configuration.RetentionPolicy
 }
 
 func (t *transaction) Object() client.Object {
@@ -118,4 +171,8 @@ func (t *transaction) ClusterName() string {
 
 func (t *transaction) TransactionType() models.TransactionType {
 	return t.transactionType
+}
+
+func (t *transaction) RetentionPolicy() configuration.RetentionPolicy {
+	return t.retentionPolicy
 }

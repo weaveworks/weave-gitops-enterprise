@@ -56,6 +56,7 @@ type Options struct {
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
 	MetricsOptions            metrics.Options
+	EnableObjectCleaner       bool
 }
 
 type Option func(*Options)
@@ -276,5 +277,12 @@ func WithMetrics(enabled bool, address string, log logr.Logger) Option {
 			ServerAddress: address,
 			Log:           log,
 		}
+	}
+}
+
+// WithObjectCleaner enables the object cleaner
+func WithObjectCleaner(enabled bool) Option {
+	return func(o *Options) {
+		o.EnableObjectCleaner = enabled
 	}
 }

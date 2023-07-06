@@ -254,9 +254,17 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (obj models.
 	return object, nil
 }
 
-func (i *SQLiteStore) GetRoles(ctx context.Context) (rs []models.Role, err error) {
-	var roles []models.Role
+func (i *SQLiteStore) GetAllObjects(ctx context.Context) (Iterator, error) {
+	var objects []models.Object
+	result := i.db.Model(&models.Object{}).Find(&objects)
+	if result.Error != nil {
+		return nil, fmt.Errorf("failed to get objects: %w", result.Error)
+	}
 
+	return sqliterator.New(result)
+}
+
+func (i *SQLiteStore) GetRoles(ctx context.Context) (roles []models.Role, err error) {
 	// metrics
 	metrics.DataStoreInflightRequests(metrics.GetRolesAction, 1)
 	defer recordMetrics(metrics.GetRolesAction, time.Now(), err)
