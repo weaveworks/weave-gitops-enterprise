@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.26.1-0.20230627185812-9ff22e250a74
+	github.com/weaveworks/weave-gitops v0.27.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -37,13 +37,13 @@ require (
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.30.0
 	github.com/fluxcd/go-git-providers v0.16.0
-	github.com/fluxcd/helm-controller/api v0.30.0
-	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.1
+	github.com/fluxcd/helm-controller/api v0.33.0
+	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.3
 	github.com/fluxcd/pkg/apis/meta v1.0.0
 	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/pkg/version v0.2.1
-	github.com/fluxcd/source-controller/api v1.0.0-rc.1
+	github.com/fluxcd/source-controller/api v1.0.0-rc.3
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-github/v32 v32.1.0
@@ -163,9 +163,9 @@ require (
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
-	github.com/fluxcd/image-automation-controller/api v0.30.0 // indirect
-	github.com/fluxcd/image-reflector-controller/api v0.27.1 // indirect
-	github.com/fluxcd/notification-controller/api v0.32.1 // indirect
+	github.com/fluxcd/image-automation-controller/api v0.33.1 // indirect
+	github.com/fluxcd/image-reflector-controller/api v0.27.2 // indirect
+	github.com/fluxcd/notification-controller/api v1.0.0-rc.3 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -290,7 +290,7 @@ require (
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
 	github.com/fluxcd/pkg/apis/kustomize v1.0.0 // indirect
-	github.com/fluxcd/pkg/ssa v0.23.1 // indirect
+	github.com/fluxcd/pkg/ssa v0.27.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-asset/generics v0.0.0-20220317100214-d5f632c68060 // indirect
 	github.com/go-errors/errors v1.4.2 // indirect
