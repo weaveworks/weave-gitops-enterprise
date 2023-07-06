@@ -69,6 +69,7 @@ type QueryOption interface {
 type StoreReader interface {
 	GetObjectByID(ctx context.Context, id string) (models.Object, error)
 	GetObjects(ctx context.Context, ids []string, opts QueryOption) (Iterator, error)
+	GetAllObjects(ctx context.Context) (Iterator, error)
 	GetRoles(ctx context.Context) ([]models.Role, error)
 	GetRoleBindings(ctx context.Context) ([]models.RoleBinding, error)
 	GetAccessRules(ctx context.Context) ([]models.AccessRule, error)
@@ -77,6 +78,8 @@ type StoreReader interface {
 // Iterator provides an iterable interface for requesting the next row of an object.
 // Since we are doing the access filtering outside of the database, we need to
 // ensure we are "filling" up the limit of the query.
+//
+//counterfeiter:generate . Iterator
 type Iterator interface {
 	// Next returns true if there is another row to be read
 	Next() bool

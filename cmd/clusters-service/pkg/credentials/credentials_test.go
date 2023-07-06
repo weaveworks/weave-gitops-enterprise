@@ -9,6 +9,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,8 +25,9 @@ import (
 
 func TestMaybeInjectCredentials(t *testing.T) {
 	result, _ := MaybeInjectCredentials(nil, "", nil)
+
 	if diff := cmp.Diff(string(result), ""); diff != "" {
-		t.Fatalf("result wasn't nil! %v", diff)
+		t.Fatalf("expected an empty string with no resource:\n %s", diff)
 	}
 
 	// Wrong kind
@@ -77,7 +79,9 @@ func TestCheckCredentialsExist(t *testing.T) {
 	})
 
 	c := newFakeClient(t)
-	_ = c.Create(context.Background(), u)
+	if err := c.Create(context.Background(), u); err != nil {
+		t.Fatal(err)
+	}
 
 	creds := &capiv1_protos.Credential{
 		Group:     "WrongGroup",
@@ -88,10 +92,10 @@ func TestCheckCredentialsExist(t *testing.T) {
 	}
 	exist, err := CheckCredentialsExist(c, creds)
 	if err != nil {
-		t.Fatalf("err %v", err)
+		t.Fatal(err)
 	}
 	if exist {
-		t.Fatalf("Found credentials when they shouldn't exist: %v", creds)
+		t.Fatalf("found credentials when they shouldn't exist: %v", creds)
 	}
 
 	creds = &capiv1_protos.Credential{
@@ -106,59 +110,150 @@ func TestCheckCredentialsExist(t *testing.T) {
 		t.Fatalf("err %v", err)
 	}
 	if !exist {
-		t.Fatalf("Couldn't find credentials when they should exist: %v", creds)
+		t.Fatal("couldn't find credentials when they should exist")
 	}
 }
 
 func TestInjectCredentials(t *testing.T) {
-	result, _ := InjectCredentials(nil, nil)
-	if diff := cmp.Diff(result, [][]uint8(nil)); diff != "" {
-		t.Fatalf("result wasn't nil! %v", diff)
-	}
-
-	templateBits := [][]byte{
-		[]byte(`
+	templateBits := func(kind string) [][]byte {
+		return [][]byte{
+			[]byte(fmt.Sprintf(`
 apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-kind: AWSCluster
-`),
-	}
-
-	// no credentials
-	result, _ = InjectCredentials(templateBits, nil)
-	resultStr := convertToStringArray(result)
-	if diff := cmp.Diff(resultStr[0], string(templateBits[0])); diff != "" {
-		t.Fatalf("expected didn't match result! %v", diff)
-	}
-
-	for _, clusterKind := range []string{"AWSCluster", "AWSManagedControlPlane"} {
-		t.Run(clusterKind, func(t *testing.T) {
-			templateBits := [][]byte{
-				[]byte(fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
 kind: %s
-`, clusterKind)),
-			}
+`, kind)),
+		}
+	}
 
-			// with creds
-			result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
+	templateBitsWithCreds := func(kind, credKind string) [][]byte {
+		return [][]byte{
+			[]byte(fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: %s
+spec:
+  identityRef:
+    kind: %s
+    name: FooName
+`, kind, credKind)),
+		}
+	}
+
+	injectionTests := []struct {
+		name      string
+		templates [][]byte
+		creds     *capiv1_proto.Credential
+
+		want [][]byte
+	}{
+		{
+			name:      "no templates and no credentials returns nil",
+			templates: nil,
+			creds:     nil,
+			want:      nil,
+		},
+		{
+			name:      "no credentials passes through the templates unchanged",
+			templates: templateBits("AWSCluster"),
+			creds:     nil,
+			want:      templateBits("AWSCluster"),
+		},
+		{
+			name:      "credentials into an AWSCluster",
+			templates: templateBits("AWSCluster"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AWSClusterRoleIdentity",
+				Name:    "FooName",
+			},
+			want: templateBitsWithCreds("AWSCluster", "AWSClusterRoleIdentity"),
+		},
+		{
+			name:      "credentials into an AWSManagedControlPlane",
+			templates: templateBits("AWSManagedControlPlane"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AWSClusterRoleIdentity",
+				Name:    "FooName",
+			},
+			want: templateBitsWithCreds("AWSManagedControlPlane", "AWSClusterRoleIdentity"),
+		},
+		{
+			name:      "static credentials into an AWSCluster",
+			templates: templateBits("AWSCluster"),
+			creds: &capiv1_protos.Credential{
 				Group:   "infrastructure.cluster.x-k8s.io",
 				Version: "v1alpha4",
 				Kind:    "AWSClusterStaticIdentity",
 				Name:    "FooName",
-			})
-			if err != nil {
-				t.Fatalf("unexpected err %v", err)
-			}
-			resultStr = convertToStringArray(result)
+			},
+			want: templateBitsWithCreds("AWSCluster", "AWSClusterStaticIdentity"),
+		},
+		{
+			name:      "static credentials into an AWSManagedControlPlane",
+			templates: templateBits("AWSManagedControlPlane"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AWSClusterStaticIdentity",
+				Name:    "FooName",
+			},
+			want: templateBitsWithCreds("AWSManagedControlPlane", "AWSClusterStaticIdentity"),
+		},
+		{
+			name:      "credentials into an AzureCluster",
+			templates: templateBits("AzureCluster"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AzureClusterIdentity",
+				Name:    "FooName",
+			},
+			want: templateBitsWithCreds("AzureCluster", "AzureClusterIdentity"),
+		},
+		{
+			name:      "credentials into an AzureManagedControlPlane",
+			templates: templateBits("AzureManagedControlPlane"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AzureClusterIdentity",
+				Name:    "FooName",
+			},
+			want: templateBitsWithCreds("AzureManagedControlPlane", "AzureClusterIdentity"),
+		},
+		{
+			name:      "credentials into an VSphereCluster",
+			templates: templateBits("VSphereCluster"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "VSphereClusterIdentity",
+				Name:    "FooName",
+			},
+			want: templateBitsWithCreds("VSphereCluster", "VSphereClusterIdentity"),
+		},
+		{
+			name:      "credentials into an AzureManagedCluster is unchanged",
+			templates: templateBits("AzureManagedCluster"),
+			creds: &capiv1_protos.Credential{
+				Group:   "infrastructure.cluster.x-k8s.io",
+				Version: "v1alpha4",
+				Kind:    "AzureClusterIdentity",
+				Name:    "FooName",
+			},
+			want: templateBits("AzureManagedCluster"),
+		},
+	}
 
-			expected := fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-kind: %s
-spec:
-  identityRef:
-    kind: AWSClusterStaticIdentity
-    name: FooName
-`, clusterKind)
-			if diff := cmp.Diff(expected, resultStr[0]); diff != "" {
-				t.Fatalf("expected didn't match result! %v", diff)
+	for _, tt := range injectionTests {
+		t.Run(tt.name, func(t *testing.T) {
+			result, err := InjectCredentials(tt.templates, tt.creds)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			if diff := cmp.Diff(tt.want, result); diff != "" {
+				t.Fatalf("failed to inject credentials:\n%s", diff)
 			}
 		})
 	}
@@ -184,36 +279,62 @@ kind: AWSCluster
 		t.Fatalf("expected didn't match result! %v", diff)
 	}
 
-	for _, clusterKind := range []string{"AWSManagedCluster"} {
-		t.Run(clusterKind, func(t *testing.T) {
-			templateBits := [][]byte{
-				[]byte(fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-kind: %s
+	t.Run("injecting AWS credentials into AWSManagedCluster", func(t *testing.T) {
+		templateBits := [][]byte{
+			[]byte(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedCluster
 spec: {}
-`, clusterKind)),
-			}
+`),
+		}
 
-			// with creds
-			result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
-				Group:   "infrastructure.cluster.x-k8s.io",
-				Version: "v1alpha4",
-				Kind:    "AWSClusterStaticIdentity",
-				Name:    "FooName",
-			})
-			if err != nil {
-				t.Fatalf("unexpected err %v", err)
-			}
-			resultStr = convertToStringArray(result)
-
-			expected := fmt.Sprintf(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
-kind: %s
-spec: {}
-`, clusterKind)
-			if diff := cmp.Diff(expected, resultStr[0]); diff != "" {
-				t.Fatalf("expected didn't match result! %v", diff)
-			}
+		// with creds
+		result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
+			Group:   "infrastructure.cluster.x-k8s.io",
+			Version: "v1alpha4",
+			Kind:    "AWSClusterStaticIdentity",
+			Name:    "FooName",
 		})
-	}
+		if err != nil {
+			t.Fatalf("unexpected err %v", err)
+		}
+		resultStr = convertToStringArray(result)
+
+		expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AWSManagedCluster
+spec: {}
+`
+		if diff := cmp.Diff(expected, resultStr[0]); diff != "" {
+			t.Fatalf("expected didn't match result! %v", diff)
+		}
+	})
+
+	t.Run("injecting Azure credentials into AzureManagedCluster", func(t *testing.T) {
+		templateBits := [][]byte{
+			[]byte(`apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AzureManagedCluster
+spec: {}
+`)}
+
+		// with creds
+		result, err := InjectCredentials(templateBits, &capiv1_protos.Credential{
+			Group:   "infrastructure.cluster.x-k8s.io",
+			Version: "v1alpha4",
+			Kind:    "AzureClusterIdentity",
+			Name:    "FooName",
+		})
+		if err != nil {
+			t.Fatalf("unexpected err %v", err)
+		}
+		resultStr = convertToStringArray(result)
+
+		expected := `apiVersion: infrastructure.cluster.x-k8s.io/v1alpha4
+kind: AzureManagedCluster
+spec: {}
+`
+		if diff := cmp.Diff(expected, resultStr[0]); diff != "" {
+			t.Fatalf("expected didn't match result! %v", diff)
+		}
+	})
 }
 
 func TestFindCredentials(t *testing.T) {
