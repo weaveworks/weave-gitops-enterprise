@@ -84,3 +84,7 @@ func (t deleteAllTransaction) String() string {
 func (t deleteAllTransaction) TransactionType() models.TransactionType {
 	return models.TransactionTypeDeleteAll
 }
+
+func (r deleteAllTransaction) RetentionPolicy() configuration.RetentionPolicy {
+	return 0
+}
