@@ -74,7 +74,6 @@ require (
 	google.golang.org/grpc v1.54.0
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.30.0
-	gotest.tools/v3 v3.1.0
 	helm.sh/helm/v3 v3.11.3
 	k8s.io/apiextensions-apiserver v0.26.3
 	k8s.io/kubernetes v1.26.3
