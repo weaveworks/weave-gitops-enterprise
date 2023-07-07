@@ -202,7 +202,7 @@ gitopssets-controller:
   controllerManager:
     manager:
       image:
-        tag: v0.13.2
+        tag: v0.13.4
       args:
         - --health-probe-bind-address=:8081
         - --metrics-bind-address=127.0.0.1:8080
