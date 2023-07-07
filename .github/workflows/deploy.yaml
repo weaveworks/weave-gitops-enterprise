@@ -208,7 +208,7 @@ jobs:
     if: ${{ failure() }}
     steps:
     - name: Send alert
-      uses: archive/github-actions-slack@v2
+      uses: archive/github-actions-slack@d9dae40827adf93bddf939db6552d1e392259d7d # v2.7.0
       with:
         slack-bot-user-oauth-access-token: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
         slack-channel: C01M1BJQ7AT # weave-gitops-dev
