@@ -1,13 +1,13 @@
 name: create pr
 
 on:
-  workflow_dispatch:
+  repository_dispatch:
+    types: [create-pr]
 
 jobs:
   enterprise-pr-release:
     name: update oss latest release
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
       - name: Setup Go
         uses: actions/setup-go@v4.0.0
@@ -69,7 +69,6 @@ jobs:
   enterprise-pr-main:
     name: update oss main
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
       - name: Setup Go
         uses: actions/setup-go@v2

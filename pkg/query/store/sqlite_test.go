@@ -230,7 +230,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="GetObjects"} 0`,
 			`# HELP datastore_latency_seconds datastore latency`,
 			`# TYPE datastore_latency_seconds histogram`,
-			`datastore_latency_seconds_bucket{action="GetObjects",status="success",le="0.01"} 1`,
+			`datastore_latency_seconds_count{action="GetObjects",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 		t.Cleanup(func() {
@@ -246,7 +246,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		wantMetrics := []string{
 			`datastore_inflight_requests{action="GetObjectByID"} 0`,
-			`datastore_latency_seconds_bucket{action="GetObjectByID",status="success",le="0.01"} 1`,
+			`datastore_latency_seconds_count{action="GetObjectByID",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
@@ -256,7 +256,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		wantMetrics := []string{
 			`datastore_inflight_requests{action="GetRoles"} 0`,
-			`datastore_latency_seconds_bucket{action="GetRoles",status="success",le="0.01"} 1`,
+			`datastore_latency_seconds_count{action="GetRoles",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
@@ -266,7 +266,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		wantMetrics := []string{
 			`datastore_inflight_requests{action="GetRoleBindings"} 0`,
-			`datastore_latency_seconds_bucket{action="GetRoleBindings",status="success",le="0.01"} 1`,
+			`datastore_latency_seconds_count{action="GetRoleBindings",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
@@ -276,7 +276,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		g.Expect(err).NotTo(HaveOccurred())
 		wantMetrics := []string{
 			`datastore_inflight_requests{action="GetAccessRules"} 0`,
-			`datastore_latency_seconds_bucket{action="GetAccessRules",status="success",le="0.01"} 1`,
+			`datastore_latency_seconds_count{action="GetAccessRules",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
