@@ -21,8 +21,6 @@ export const ListWorkSpaces = ({
   selectedWorkspacesList,
 }: SelectSecretStoreProps) => {
   const { data: workSpacesList, isLoading, error } = useListWorkspaces({});
-
-
   const workspaces =
     workSpacesList?.workspaces?.filter(workspace =>
       formData.isControlPlane

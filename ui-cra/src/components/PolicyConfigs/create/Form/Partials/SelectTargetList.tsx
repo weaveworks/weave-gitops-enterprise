@@ -4,8 +4,8 @@ import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cl
 import { Select } from '../../../../../utils/form';
 import {
   SectionTitle,
-  usePolicyConfigStyle,
 } from '../../../PolicyConfigStyles';
+import { Text } from '@weaveworks/weave-gitops';
 import { ListApplications } from './ListApplications';
 import { ListWorkSpaces } from './ListWorkSpaces';
 
@@ -32,9 +32,7 @@ export const SelectMatchType = ({
   handleFormData,
   setFormData,
 }: SelectSecretStoreProps) => {
-  const classes = usePolicyConfigStyle();
   const { matchType } = formData;
-
   const matchTypeList = ['workspaces', 'apps'];
 
   const getCheckList = (matchType: string) => {
@@ -82,12 +80,8 @@ export const SelectMatchType = ({
         >
           {matchTypeList?.map((option, index: number) => {
             return (
-              <MenuItem
-                key={index}
-                value={option}
-                className={classes.capitlize}
-              >
-                {option}
+              <MenuItem key={index} value={option}>
+                <Text size="base" capitalize> {option}</Text>
               </MenuItem>
             );
           })}

@@ -4,11 +4,10 @@ import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_servi
 import { getKindRoute, Routes } from '../../../utils/nav';
 import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
 import {
+  AppliedToTitle,
   SectionTitle,
   TargetItemKind,
-  usePolicyConfigStyle,
   TargetItemsList,
-  AppliedToTitle,
 } from '../PolicyConfigStyles';
 
 function PolicyConfigHeaderSection({
@@ -17,7 +16,6 @@ function PolicyConfigHeaderSection({
   match = {},
   matchType,
 }: GetPolicyConfigResponse) {
-  const classes = usePolicyConfigStyle();
   const defaultHeaders: Array<SectionRowHeader> = [
     {
       rowkey: 'Cluster',

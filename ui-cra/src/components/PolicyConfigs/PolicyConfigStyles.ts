@@ -40,7 +40,7 @@ export const usePolicyConfigStyle = makeStyles(() =>
 );
 
 export const TextLink = styled(Link)`
-  color:  ${props => props.theme.colors.primary};
+  color: ${props => props.theme.colors.primary};
   font-weight: 600;
   white-space: pre-line;
   text-transform: capitalize;
@@ -69,13 +69,13 @@ export const PolicyDetailsCardWrapper = styled.ul`
   display: flex;
   flex-flow: wrap;
   li {
-    width: 24%;
+    width: 30%;
     padding: ${props => props.theme.spacing.base}
       ${props => props.theme.spacing.small};
     .modified {
       color: #c2185b;
       display: block;
-      margin-bottom: ${props => props.theme.spacing.xxs};
+      margin-bottom: ${props => props.theme.spacing.none} !important;
       font-size: ${props => props.theme.fontSizes.tiny};
       position: absolute;
       bottom: ${props => props.theme.spacing.xs};
@@ -88,9 +88,18 @@ export const PolicyDetailsCardWrapper = styled.ul`
         cursor: pointer;
       }
     }
+    .MuiInputBase-root {
+      border: 1px solid ${props => props.theme.colors.neutral20};
+      margin-right: ${props => props.theme.spacing.none};
+    }
+    .MuiFormControl-root {
+      width: 100%;
+      .MuiFormLabel-root {
+        font-size: ${props => props.theme.fontSizes.small};
+      }
+    }
     .MuiCard-root {
       background: ${props => props.theme.colors.neutralGray};
-
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
       border: 1px solid ${props => props.theme.colors.neutral20};
       min-height: 245px;
@@ -102,25 +111,23 @@ export const PolicyDetailsCardWrapper = styled.ul`
       font-size: ${props => props.theme.fontSizes.small};
       display: block;
       font-weight: ${700};
-      margin: ${props => props.theme.spacing.base} 0 0;
+      margin: ${props => props.theme.spacing.base}
+        ${props => props.theme.spacing.none};
     }
     .parameterItem {
       font-size: ${props => props.theme.fontSizes.small};
       font-weight: 400;
       margin-top: ${props => props.theme.spacing.xs};
       position: relative;
-      label {
-        margin-bottom: ${props => props.theme.spacing.xs};
+      span {
         display: block;
-        font-size: ${props => props.theme.fontSizes.small};
-        color: ${props => props.theme.colors.black};
+        margin-bottom: ${props => props.theme.spacing.xs};
       }
 
       label[class*='MuiFormControlLabel-root'] {
-        height: 40px;
-        display: flex;
-        align-items: center;
-        margin-bottom: ${props => props.theme.spacing.medium} !important;
+        margin-top: ${props => props.theme.spacing.xs};
+        margin-bottom: ${props => props.theme.spacing.xs};
+
         span[class*='PrivateSwitchBase-root'] {
           padding: 0 ${props => props.theme.spacing.xxs} 0
             ${props => props.theme.spacing.xs};
@@ -188,6 +195,7 @@ svg {
 
 export const RemoveIcon = styled(RemoveCircleOutline)`
   color: ${props => props.theme.colors.alertMedium};
+  cursor: pointer;
 `;
 
 export const TargetItemsList = styled.ul`

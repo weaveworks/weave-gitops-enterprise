@@ -8,9 +8,8 @@ import {
   RadioGroup,
   TextField,
 } from '@material-ui/core';
-import { RemoveCircleOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import { Flex, Icon, IconType, Text, Button } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import {
   PolicyObj,
   PolicyParam,
@@ -20,11 +19,10 @@ import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg
 import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
-  PolicyDetailsCardWrapper,
-  SectionTitle,
-  usePolicyConfigStyle,
   ErrorSection,
+  PolicyDetailsCardWrapper,
   RemoveIcon,
+  SectionTitle,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -40,9 +38,7 @@ export const SelectedPolicies = ({
   setFormData,
   formError,
 }: SelectSecretStoreProps) => {
-  const classes = usePolicyConfigStyle();
   const [selectedPolicies, setSelectedPolicies] = useState<PolicyObj[]>([]);
-
   const { data } = useListPolicies({});
 
   const policiesList = useMemo(
@@ -227,7 +223,6 @@ export const SelectedPolicies = ({
               <span className="modified">Modified</span>
             )}
             <Input
-              className="form-section"
               type={type === 'integer' ? 'number' : 'text'}
               name={name}
               label={name}

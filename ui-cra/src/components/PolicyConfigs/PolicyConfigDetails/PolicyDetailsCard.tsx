@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@material-ui/core';
-import { Flex, V2Routes, formatURL , Text} from '@weaveworks/weave-gitops';
+import { Flex, Text, V2Routes, formatURL } from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
@@ -9,7 +9,6 @@ import {
   SectionTitle,
   TextLink,
   WarningIcon,
-  usePolicyConfigStyle,
 } from '../PolicyConfigStyles';
 
 interface GetCardTitleProps {
@@ -33,8 +32,6 @@ export default function PolicyDetailsCard({
   totalPolicies,
   clusterName,
 }: GetPolicyConfigResponse) {
-  const classes = usePolicyConfigStyle();
-
   return (
     <div>
       <SectionTitle>
@@ -49,9 +46,9 @@ export default function PolicyDetailsCard({
                 <label className="cardLbl">Parameters</label>
                 {Object.entries(policy.parameters || {}).map(([key, value]) => (
                   <div className="parameterItem" key={key}>
-                    <label data-testid={key} className={classes.upperCase}>
+                    <Text data-testid={key} uppercase>
                       {key}
-                    </label>
+                    </Text>
                     <Text
                       uppercase
                       className="parameterItemValue"
