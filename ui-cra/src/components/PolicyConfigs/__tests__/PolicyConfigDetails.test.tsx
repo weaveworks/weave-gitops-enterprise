@@ -97,7 +97,7 @@ describe('GetPolicyConfigDetails', () => {
       moment(policyConfig.age).fromNow(),
     );
     const AppliedTo = document.querySelector(
-      'div[data-testid="appliedTo"] span:first-child',
+      'span[data-testid="appliedTo"] span:first-child',
     );
     expect(AppliedTo).toHaveTextContent(policyConfig.matchType);
 

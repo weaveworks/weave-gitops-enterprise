@@ -1,7 +1,7 @@
 import { RemoveCircleOutline, ReportProblem } from '@material-ui/icons';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Text, Flex, Link } from '@weaveworks/weave-gitops';
+import { Flex, Link, Text } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 

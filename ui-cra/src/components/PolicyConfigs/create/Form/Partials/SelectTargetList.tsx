@@ -1,11 +1,11 @@
 import { MenuItem } from '@material-ui/core';
+import { Text } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
 import {
   SectionTitle,
 } from '../../../PolicyConfigStyles';
-import { Text } from '@weaveworks/weave-gitops';
 import { ListApplications } from './ListApplications';
 import { ListWorkSpaces } from './ListWorkSpaces';
 

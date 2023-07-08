@@ -1,9 +1,9 @@
 import {
   DataTable,
-  filterConfig,
   Link,
-  formatURL,
-  Text
+  Text,
+  filterConfig,
+  formatURL
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
@@ -11,8 +11,8 @@ import { PolicyConfigListItem } from '../../../cluster-services/cluster_services
 import { Routes } from '../../../utils/nav';
 import {
   PolicyConfigsTableWrapper,
-  WarningIcon,
   TotalPolicies,
+  WarningIcon,
 } from '../PolicyConfigStyles';
 
 interface Props {

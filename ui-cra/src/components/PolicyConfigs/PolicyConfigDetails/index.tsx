@@ -1,9 +1,9 @@
 import { useGetPolicyConfigDetails } from '../../../contexts/PolicyConfigs';
 import { Routes } from '../../../utils/nav';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import PolicyConfigHeaderSection from './PolicyConfigHeaderSection';
 import PolicyDetailsCard from './PolicyDetailsCard';
-import { Page } from '../../Layout/App';
 
 const PolicyConfigDetails = ({
   clusterName,
