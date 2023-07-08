@@ -3,8 +3,8 @@ package reconciler
 import (
 	"context"
 	"testing"
-	"github.com/stretchr/testify/assert"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"

@@ -18,12 +18,6 @@ const (
 	ClusterWatchingErrored  = "error"
 )
 
-const (
-	ClusterWatchingStarted = "started"
-	ClusterWatchingStopped = "stopped"
-	ClusterWatchingFailed  = "failed"
-)
-
 //go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -generate
 
 // ClusterWatcher is for managing the lifecycle of watchers.
@@ -52,11 +46,6 @@ type StopWatcherFunc = func(clusterName string) error
 type Collector interface {
 	ClusterWatcher
 	Starter
-}
-
-type ImpersonateServiceAccount struct {
-	Name      string
-	Namespace string
 }
 
 type ImpersonateServiceAccount struct {

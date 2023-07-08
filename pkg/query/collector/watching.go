@@ -272,23 +272,3 @@ func makeServiceAccountImpersonationConfig(config *rest.Config, namespace, servi
 
 	return copyCfg, nil
 }
-
-// makeServiceAccountImpersonationConfig when creating a reconciler for watcher we will need to impersonate
-// a user to dont use the default one to enhance security. This method creates a new rest.config from the input parameters
-// with impersonation configuration pointing to the service account
-func makeServiceAccountImpersonationConfig(config *rest.Config, namespace, serviceAccountName string) (*rest.Config, error) {
-	if config == nil {
-		return nil, fmt.Errorf("invalid rest config")
-	}
-
-	if namespace == "" || serviceAccountName == "" {
-		return nil, fmt.Errorf("service account cannot be empty")
-	}
-
-	copyCfg := rest.CopyConfig(config)
-	copyCfg.Impersonate = rest.ImpersonationConfig{
-		UserName: fmt.Sprintf("system:serviceaccount:%s:%s", namespace, serviceAccountName),
-	}
-
-	return copyCfg, nil
-}
