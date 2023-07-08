@@ -102,7 +102,7 @@ describe('GetPolicyConfigDetails', () => {
     expect(AppliedTo).toHaveTextContent(policyConfig.matchType);
 
     const AppliedToLength = document.querySelector(
-      'div[data-testid="appliedTo"] span:last-child',
+      'span[data-testid="appliedTo"] span:last-child',
     );
     expect(AppliedToLength).toHaveTextContent(`(${matchedItem.length})`);
 
@@ -233,9 +233,9 @@ describe('GetPolicyConfigDetails', () => {
         ).toHaveTextContent(policy.id);
       }
       Object.entries(policy.parameters || {}).map(param => {
-        const lbl = document.querySelector(`label[data-testid="${param[0]}"]`);
+        const lbl = document.querySelector(`span[data-testid="${param[0]}"]`);
         const value = document.querySelector(
-          `div[data-testid="${param[0]}Value"]`,
+          `span[data-testid="${param[0]}Value"]`,
         );
 
         expect(lbl).toHaveTextContent(param[0]);
