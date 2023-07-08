@@ -3,10 +3,10 @@ package reconciler
 import (
 	"context"
 	"testing"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
-	"gotest.tools/v3/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -192,7 +192,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 }
 
 func assertObjectTransaction(t *testing.T, actual models.ObjectTransaction, expected models.ObjectTransaction) {
-	assert.Assert(t, expected.ClusterName() == actual.ClusterName(), "different cluster")
-	assert.Assert(t, expected.TransactionType() == actual.TransactionType(), "different tx type")
-	assert.Assert(t, expected.Object().GetName() == actual.Object().GetName(), "different object")
+	assert.Equal(t, expected.ClusterName(), actual.ClusterName(), "different cluster")
+	assert.Equal(t, expected.TransactionType(), actual.TransactionType(), "different tx type")
+	assert.Equal(t, expected.Object().GetName(), actual.Object().GetName(), "different object")
 }

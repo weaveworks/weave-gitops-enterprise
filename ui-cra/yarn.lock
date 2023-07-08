@@ -2338,10 +2338,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.26.0-6-g9ff22e25":
-  version "0.26.0-6-g9ff22e25"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.26.0-6-g9ff22e25/1b95619893c9c9503863fbd1c56f144ad43566a0#1b95619893c9c9503863fbd1c56f144ad43566a0"
-  integrity sha512-mIVd2DGtRuull71k5odV013ZSaKfvXOFY55h6uIEsJoo4Q6QQP1ZrqSU0Fs97g/izsRy3B27qSo2YUviKm0hkg==
+"@weaveworks/weave-gitops@0.27.1-rc.1":
+  version "0.27.1-rc.1"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.27.1-rc.1/50815abf9745422a29e8c3a1c3901c3bdab1e1e2#50815abf9745422a29e8c3a1c3901c3bdab1e1e2"
+  integrity sha512-Bkz861LehdfyntnlKMN7RGmrN38H454tqfK4mQ0C0adzCRdU53yjGSuyDlPMVLlruS0laA54HvDVD0dSp4k4AA==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -10820,8 +10820,7 @@ which@^2.0.1:
 
 word-wrap@^1.2.3, word-wrap@~1.2.3:
   version "1.2.3"
-  resolved "https://registry.npmjs.org/word-wrap/-/word-wrap-1.2.3.tgz"
-  integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
+grity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
 workbox-background-sync@6.5.0:
   version "6.5.0"
@@ -10850,7 +10849,11 @@ workbox-build@6.5.0:
     "@rollup/plugin-babel" "^5.2.0"
     "@rollup/plugin-node-resolve" "^11.2.1"
     "@rollup/plugin-replace" "^2.4.1"
-    "@surma/rollup-plugin-off-main-thread" "^2.2.3"
+    "@surma/rollup-plugin-off-
+    
+    
+    
+    -thread" "^2.2.3"
     ajv "^8.6.0"
     common-tags "^1.8.0"
     fast-json-stable-stringify "^2.1.0"

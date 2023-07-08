@@ -3,9 +3,9 @@ package convert
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
-	"gotest.tools/v3/assert"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
