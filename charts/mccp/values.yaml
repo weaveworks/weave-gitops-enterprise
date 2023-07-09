@@ -200,14 +200,14 @@ gitopssets-controller:
   # gitops-controller-manager etc
   fullnameOverride: gitopssets
   controllerManager:
-    args:
-      - --health-probe-bind-address=:8081
-      - --metrics-bind-address=127.0.0.1:8080
-      - --leader-elect
-      - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
       image:
-        tag: v0.13.2
+        tag: v0.13.4
+      args:
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
 
 cluster-controller:
   enabled: true
@@ -231,3 +231,5 @@ explorer:
     serviceAccount:
       name: "collector"
       namespace: "flux-system"
+  cleaner:
+    disabled: false
