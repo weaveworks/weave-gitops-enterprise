@@ -1,4 +1,4 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
+import { PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -34,7 +34,6 @@ import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import Pipelines from './components/Pipelines';
 import PipelineDetails from './components/Pipelines/PipelineDetails';
 import Policies from './components/Policies/PoliciesListPage';
-import PolicyDetails from './components/Policies/PolicyDetailsPage';
 import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
 import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
@@ -42,7 +41,7 @@ import CreatePolicyConfig from './components/PolicyConfigs/create';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
-import CreateSecret from './components/Secrets/Create';
+import CreateExternalSecret from './components/Secrets/ExternalSecrets';
 import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
 import TemplatesDashboard from './components/Templates';
@@ -238,7 +237,11 @@ const AppRoutes = () => {
         path={Routes.SecretDetails}
         component={withSearchParams(SecretDetails)}
       />
-      <Route exact path={Routes.CreateSecret} component={CreateSecret} />
+      <Route
+        exact
+        path={Routes.CreateSecret}
+        component={CreateExternalSecret}
+      />
       <Route exact path={Routes.CreateSopsSecret} component={CreateSOPS} />
       <Route exact path={Routes.PolicyConfigs} component={PolicyConfigsList} />
       <Route

@@ -1,15 +1,14 @@
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
+import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { useSyncSecret } from './SyncSecret';
-import { Box } from '@material-ui/core';
-import { Page } from '../../Layout/App';
 
 const SecretDetails = ({
   externalSecretName,
@@ -72,7 +71,7 @@ const SecretDetails = ({
       ]}
     >
       <NotificationsWrapper>
-        <Box paddingBottom={3}>
+        <Flex column gap="16">
           <Button
             id="sync-secret"
             loading={syncing}
@@ -82,14 +81,16 @@ const SecretDetails = ({
           >
             Sync
           </Button>
-        </Box>
-        {generateRowHeaders(defaultHeaders)}
-        <SecretDetailsTabs
-          externalSecretName={externalSecretName}
-          clusterName={clusterName}
-          namespace={namespace}
-          secretDetails={secretDetails || {}}
-        />
+          <Flex column gap="8">
+            <RowHeaders rows={defaultHeaders} />
+          </Flex>
+          <SecretDetailsTabs
+            externalSecretName={externalSecretName}
+            clusterName={clusterName}
+            namespace={namespace}
+            secretDetails={secretDetails || {}}
+          />
+        </Flex>
       </NotificationsWrapper>
     </Page>
   );

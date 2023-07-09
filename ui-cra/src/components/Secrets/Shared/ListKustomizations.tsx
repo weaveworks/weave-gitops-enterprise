@@ -1,7 +1,8 @@
 import { MenuItem } from '@material-ui/core';
+import { RequestStateHandler } from '@weaveworks/weave-gitops';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useListKustomizationSOPS } from '../../../hooks/listSOPSKustomization';
 import { Select } from '../../../utils/form';
-import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ListKustomizations = ({
   value,
@@ -22,7 +23,7 @@ const ListKustomizations = ({
   );
 
   return (
-    <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
+    <RequestStateHandler loading={isLoading} error={error as RequestError}>
       <Select
         className="form-section"
         required
@@ -47,7 +48,7 @@ const ListKustomizations = ({
           </MenuItem>
         )}
       </Select>
-    </LoadingWrapper>
+    </RequestStateHandler>
   );
 };
 

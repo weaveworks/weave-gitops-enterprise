@@ -1,8 +1,8 @@
 import { MenuItem } from '@material-ui/core';
-import React from 'react';
+import { RequestStateHandler } from '@weaveworks/weave-gitops';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useListCluster } from '../../../hooks/clusters';
 import { Select } from '../../../utils/form';
-import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ListClusters = ({
   value,
@@ -15,7 +15,7 @@ const ListClusters = ({
 }) => {
   const { isLoading, data, error } = useListCluster();
   return (
-    <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
+    <RequestStateHandler loading={isLoading} error={error as RequestError}>
       <Select
         className="form-section"
         name="clusterName"
@@ -44,7 +44,7 @@ const ListClusters = ({
             );
           })}
       </Select>
-    </LoadingWrapper>
+    </RequestStateHandler>
   );
 };
 

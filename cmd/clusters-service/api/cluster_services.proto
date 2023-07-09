@@ -659,7 +659,8 @@ message ExternalSecretSpec {
   string refresh_interval = 1;
   ExternalSecretStoreRef secret_store_ref = 2;
   ExternalSecretTarget target = 3;
-  ExternalSecretData data = 4;
+  repeated ExternalSecretData data = 4;
+  ExternalSecretDataFromRemoteRef data_from = 5;
 }
 
 message ExternalSecretStoreRef {
@@ -679,6 +680,14 @@ message ExternalSecretData {
 message ExternalSecretRemoteRef {
   string key = 1;
   string property = 2;
+}
+
+message ExternalSecretDataFromRemoteRef {
+  ExternalSecretDataRemoteRef extract = 1;
+}
+
+message ExternalSecretDataRemoteRef {
+  string key = 1;
 }
 
 message Kustomization {
@@ -989,7 +998,7 @@ message GetExternalSecretResponse{
   string secretStore = 5;
   string secretStoreType = 6;
   string secretPath = 7;
-  string property = 8;
+  map <string,string> properties = 8;
   string version = 9;
   string status = 10;
   string timestamp = 11;

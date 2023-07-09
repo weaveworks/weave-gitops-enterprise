@@ -2,7 +2,7 @@ import { formatURL, Link } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { getKindRoute, Routes } from '../../../utils/nav';
-import { generateRowHeaders, SectionRowHeader } from '../../RowHeader';
+import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import {
   AppliedToTitle,
   SectionTitle,
@@ -96,7 +96,7 @@ function PolicyConfigHeaderSection({
 
   return (
     <div>
-      {generateRowHeaders(defaultHeaders)}
+      <RowHeaders rows={defaultHeaders} />
       <div>
         <SectionTitle>Applied To</SectionTitle>
         <AppliedToTitle capitalize data-testid="appliedTo">
