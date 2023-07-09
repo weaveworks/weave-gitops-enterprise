@@ -193,6 +193,7 @@ func TestGetExternalSecret(t *testing.T) {
 						},
 						Data: []esv1beta1.ExternalSecretData{
 							{
+								SecretKey: "secret-a",
 								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
 									Key:      "Data/key-a",
 									Property: "property-a",
@@ -217,6 +218,7 @@ func TestGetExternalSecret(t *testing.T) {
 						},
 						Data: []esv1beta1.ExternalSecretData{
 							{
+								SecretKey: "secret-b",
 								RemoteRef: esv1beta1.ExternalSecretDataRemoteRef{
 									Key:      "Data/key-b",
 									Property: "property-b",
@@ -249,8 +251,10 @@ func TestGetExternalSecret(t *testing.T) {
 				SecretStore:        "aws-secret-store",
 				SecretStoreType:    "AWS Secrets Manager",
 				SecretPath:         "Data/key-a",
-				Property:           "property-a",
-				Version:            "1.0.0",
+				Properties: map[string]string{
+					"property-a": "secret-a",
+				},
+				Version: "1.0.0",
 			},
 		},
 		{
@@ -267,8 +271,10 @@ func TestGetExternalSecret(t *testing.T) {
 				SecretStore:        "valt-secret-store",
 				SecretStoreType:    "HashiCorp Vault",
 				SecretPath:         "Data/key-b",
-				Property:           "property-b",
-				Version:            "1.0.0",
+				Properties: map[string]string{
+					"property-b": "secret-b",
+				},
+				Version: "1.0.0",
 			},
 		},
 		{
@@ -302,7 +308,7 @@ func TestGetExternalSecret(t *testing.T) {
 		assert.Equal(t, tt.response.SecretStore, res.SecretStore, "secret store is not correct")
 		assert.Equal(t, tt.response.SecretStoreType, res.SecretStoreType, "secret store type is not correct")
 		assert.Equal(t, tt.response.SecretPath, res.SecretPath, "secret path is not correct")
-		assert.Equal(t, tt.response.Property, res.Property, "property is not correct")
+		assert.Equal(t, tt.response.Properties, res.Properties, "property is not correct")
 		assert.Equal(t, tt.response.Version, res.Version, "version is not correct")
 	}
 }

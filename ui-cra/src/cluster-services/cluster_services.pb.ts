@@ -355,7 +355,8 @@ export type ExternalSecretSpec = {
   refreshInterval?: string
   secretStoreRef?: ExternalSecretStoreRef
   target?: ExternalSecretTarget
-  data?: ExternalSecretData
+  data?: ExternalSecretData[]
+  dataFrom?: ExternalSecretDataFromRemoteRef
 }
 
 export type ExternalSecretStoreRef = {
@@ -375,6 +376,14 @@ export type ExternalSecretData = {
 export type ExternalSecretRemoteRef = {
   key?: string
   property?: string
+}
+
+export type ExternalSecretDataFromRemoteRef = {
+  extract?: ExternalSecretDataRemoteRef
+}
+
+export type ExternalSecretDataRemoteRef = {
+  key?: string
 }
 
 export type Kustomization = {
@@ -686,7 +695,7 @@ export type GetExternalSecretResponse = {
   secretStore?: string
   secretStoreType?: string
   secretPath?: string
-  property?: string
+  properties?: {[key: string]: string}
   version?: string
   status?: string
   timestamp?: string
