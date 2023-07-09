@@ -1,5 +1,5 @@
 import { MenuItem } from '@material-ui/core';
-import { RequestStateHandler } from '@weaveworks/weave-gitops';
+import { Flex, RequestStateHandler, Text } from '@weaveworks/weave-gitops';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useListCluster } from '../../../hooks/clusters';
 import { Select } from '../../../utils/form';
@@ -39,7 +39,14 @@ const ListClusters = ({
                     : option.name
                 }
               >
-                {option.name}
+                <Flex column>
+                  <Text>{option.name}</Text>
+                  {option.namespace ? (
+                    <Text color="neutral30" size="small">
+                      {`ns:${option.namespace}`}
+                    </Text>
+                  ) : null}
+                </Flex>
               </MenuItem>
             );
           })}

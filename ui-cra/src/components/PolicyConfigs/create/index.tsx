@@ -5,6 +5,7 @@ import {
   GitRepository,
   Link,
   LoadingPage,
+  Text,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
@@ -374,7 +375,14 @@ const CreatePolicyConfig = () => {
                         key={option.name}
                         value={JSON.stringify(option)}
                       >
-                        {option.name}
+                        <Flex column>
+                          <Text>{option.name}</Text>
+                          {option.namespace ? (
+                            <Text color="neutral30" size="small">
+                              {`ns:${option.namespace}`}
+                            </Text>
+                          ) : null}
+                        </Flex>
                       </MenuItem>
                     );
                   })
