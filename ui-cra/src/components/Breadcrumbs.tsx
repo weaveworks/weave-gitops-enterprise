@@ -12,7 +12,7 @@ const Container = styled(Flex)`
   height: 32px;
 `;
 
-const Span = styled.span`
+const EllipsesText = styled.span`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
@@ -58,9 +58,9 @@ export const Breadcrumbs: FC<Props> = ({ path }) => {
             </Divider>
           )}
           {isEmpty(url) ? (
-            <Span className="labelLink" title={label}>
+            <EllipsesText className="labelLink" title={label || ''}>
               {label}
-            </Span>
+            </EllipsesText>
           ) : (
             <Title role="heading">
               <Link

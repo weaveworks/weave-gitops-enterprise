@@ -693,11 +693,13 @@ status: {}
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
-								Data: &capiv1_protos.ExternalSecretData{
-									SecretKey: "test-secret-key",
-									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
-										Key:      "key",
-										Property: "property",
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
 									},
 								},
 							},
@@ -720,6 +722,87 @@ spec:
       key: key
       property: property
     secretKey: test-secret-key
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    kind: SecretStore
+    name: testname
+  target:
+    creationPolicy: Owner
+    name: new-secret
+status:
+  refreshTime: null
+`,
+				},
+			},
+			expected: "https://github.com/org/repo/pull/1",
+		},
+		{
+			name: "committed files for external secret multiple property",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New external secret",
+				Description:   "Creates external secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						ExternalSecret: &capiv1_protos.ExternalSecret{
+							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
+							Spec: &capiv1_protos.ExternalSecretSpec{
+								RefreshInterval: "1h",
+								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+									Name: "testname",
+									Kind: "SecretStore",
+								},
+								Target: &capiv1_protos.ExternalSecretTarget{
+									Name: "new-secret",
+								},
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
+									},
+									{
+										SecretKey: "test-secret-key2",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key2",
+											Property: "property2",
+										},
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
+					Content: `apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  creationTimestamp: null
+  name: new-secret
+  namespace: flux-system
+spec:
+  data:
+  - remoteRef:
+      key: key
+      property: property
+    secretKey: test-secret-key
+  - remoteRef:
+      key: key2
+      property: property2
+    secretKey: test-secret-key2
   refreshInterval: 1h0m0s
   secretStoreRef:
     kind: SecretStore
@@ -760,11 +843,13 @@ status:
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
-								Data: &capiv1_protos.ExternalSecretData{
-									SecretKey: "test-secret-key",
-									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
-										Key:      "key",
-										Property: "property",
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
 									},
 								},
 							},
@@ -824,11 +909,13 @@ status:
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
-								Data: &capiv1_protos.ExternalSecretData{
-									SecretKey: "test-secret-key",
-									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
-										Key:      "key",
-										Property: "property",
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
 									},
 								},
 							},
@@ -891,11 +978,13 @@ status:
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
-								Data: &capiv1_protos.ExternalSecretData{
-									SecretKey: "test-secret-key",
-									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
-										Key:      "key",
-										Property: "property",
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
 									},
 								},
 							},
@@ -957,11 +1046,13 @@ status:
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
-								Data: &capiv1_protos.ExternalSecretData{
-									SecretKey: "test-secret-key",
-									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
-										Key:      "key",
-										Property: "property",
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key:      "key",
+											Property: "property",
+										},
 									},
 								},
 							},
@@ -1024,10 +1115,12 @@ status:
 								Target: &capiv1_protos.ExternalSecretTarget{
 									Name: "new-secret",
 								},
-								Data: &capiv1_protos.ExternalSecretData{
-									SecretKey: "test-secret-key",
-									RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
-										Key: "key",
+								Data: []*capiv1_protos.ExternalSecretData{
+									{
+										SecretKey: "test-secret-key",
+										RemoteRef: &capiv1_protos.ExternalSecretRemoteRef{
+											Key: "key",
+										},
 									},
 								},
 							},
@@ -1062,6 +1155,187 @@ status:
 				},
 			},
 			err: errors.New("remoteRef property kind must be specified in ExternalSecret new-secret"),
+		},
+		{
+			name: "validate extract all properties for external secret",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New external secret",
+				Description:   "Creates external secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						ExternalSecret: &capiv1_protos.ExternalSecret{
+							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
+							Spec: &capiv1_protos.ExternalSecretSpec{
+								RefreshInterval: "1h",
+								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+									Name: "testname",
+									Kind: "SecretStore",
+								},
+								Target: &capiv1_protos.ExternalSecretTarget{
+									Name: "new-secret",
+								},
+								DataFrom: &capiv1_protos.ExternalSecretDataFromRemoteRef{
+									Extract: &capiv1_protos.ExternalSecretDataRemoteRef{
+										Key: "key",
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
+					Content: `apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  creationTimestamp: null
+  name: new-secret
+  namespace: flux-system
+spec:
+  dataFrom:
+  - extract:
+      key: key
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    kind: SecretStore
+    name: testname
+  target:
+    creationPolicy: Owner
+    name: new-secret
+status:
+  refreshTime: null
+`,
+				},
+			},
+			err: nil,
+		},
+		{
+			name: "validate extract all properties for external secret with no key",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New external secret",
+				Description:   "Creates external secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						ExternalSecret: &capiv1_protos.ExternalSecret{
+							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
+							Spec: &capiv1_protos.ExternalSecretSpec{
+								RefreshInterval: "1h",
+								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+									Name: "testname",
+									Kind: "SecretStore",
+								},
+								Target: &capiv1_protos.ExternalSecretTarget{
+									Name: "new-secret",
+								},
+								DataFrom: &capiv1_protos.ExternalSecretDataFromRemoteRef{
+									Extract: &capiv1_protos.ExternalSecretDataRemoteRef{},
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
+					Content: `apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  creationTimestamp: null
+  name: new-secret
+  namespace: flux-system
+spec:
+  dataFrom:
+  - extract: {}
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    kind: SecretStore
+    name: testname
+  target:
+    creationPolicy: Owner
+    name: new-secret
+status:
+  refreshTime: null
+`,
+				},
+			},
+			err: errors.New("extract key must be specified in dataFrom in ExternalSecret new-secret"),
+		},
+		{
+			name: "validate create external secret without data or dataFrom",
+			clusterState: []runtime.Object{
+				makeCAPITemplate(t),
+			},
+			provider: gitfakes.NewFakeGitProvider("", nil, nil, nil, nil),
+			req: &capiv1_protos.CreateAutomationsPullRequestRequest{
+				RepositoryUrl: "https://github.com/org/repo.git",
+				HeadBranch:    "feature-01",
+				BaseBranch:    "main",
+				Title:         "New external secret",
+				Description:   "Creates external secret",
+				ClusterAutomations: []*capiv1_protos.ClusterAutomation{
+					{
+						Cluster:        testNewClusterNamespacedName(t, "management", "default"),
+						IsControlPlane: true,
+						ExternalSecret: &capiv1_protos.ExternalSecret{
+							Metadata: testNewMetadata(t, "new-secret", "flux-system"),
+							Spec: &capiv1_protos.ExternalSecretSpec{
+								RefreshInterval: "1h",
+								SecretStoreRef: &capiv1_protos.ExternalSecretStoreRef{
+									Name: "testname",
+									Kind: "SecretStore",
+								},
+								Target: &capiv1_protos.ExternalSecretTarget{
+									Name: "new-secret",
+								},
+							},
+						},
+					},
+				},
+			},
+			committedFiles: []*capiv1_protos.CommitFile{
+				{
+					Path: "clusters/management/secrets/new-secret-flux-system-externalsecret.yaml",
+					Content: `apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  creationTimestamp: null
+  name: new-secret
+  namespace: flux-system
+spec:
+  refreshInterval: 1h0m0s
+  secretStoreRef:
+    kind: SecretStore
+    name: testname
+  target:
+    creationPolicy: Owner
+    name: new-secret
+status:
+  refreshTime: null
+`,
+				},
+			},
+			err: errors.New("external secret data or dataFrom must be specified in ExternalSecret new-secret"),
 		},
 		{
 			name: "committed files for policy config matching workspace",
