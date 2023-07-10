@@ -53,12 +53,14 @@ export function getPullRequestUrl(
 
   // FIXME: this is not correct
   if (provider === 'bitbucket-server') {
-    return baseUrl + '/pull-requests';
+    let url = baseUrl.replace('/scm/pes/', '/projects/PES/repos/');
+
+    return url + '/pull-requests';
   }
 
   // FIXME: this is not correct
   if (provider === 'azure-devops') {
-    return baseUrl + '/pullrequests';
+    return baseUrl + '/pullrequests?_a=active';
   }
 
   // github is the default
