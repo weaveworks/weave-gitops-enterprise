@@ -219,11 +219,9 @@ const AppFields: FC<{
                 <MenuItem key={index} value={JSON.stringify(option)}>
                   <Flex column>
                     <Text>{option.name}</Text>
-                    {option.namespace ? (
-                      <Text color="neutral30" size="small">
-                        {`ns:${option.namespace}`}
-                      </Text>
-                    ) : null}
+                    <Text color="neutral30" size="small">
+                      {`ns:${option.namespace || '-'}`}
+                    </Text>
                   </Flex>
                 </MenuItem>
               );
