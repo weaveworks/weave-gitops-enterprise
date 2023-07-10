@@ -31,9 +31,8 @@ type SQLiteStore struct {
 
 func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.DeleteAllRolesAction, 1)
-	defer recordMetrics(metrics.DeleteAllRolesAction, startTime, err)
+	defer recordMetrics(metrics.DeleteAllRolesAction, time.Now(), err)
 
 	for _, cluster := range clusters {
 		where := i.db.Where(
@@ -51,9 +50,8 @@ func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) (er
 
 func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.DeleteAllRoleBindingsAction, 1)
-	defer recordMetrics(metrics.DeleteAllRoleBindingsAction, startTime, err)
+	defer recordMetrics(metrics.DeleteAllRoleBindingsAction, time.Now(), err)
 
 	for _, cluster := range clusters {
 		where := i.db.Where(
@@ -70,9 +68,8 @@ func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []stri
 
 func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.DeleteAllObjectsAction, 1)
-	defer recordMetrics(metrics.DeleteAllObjectsAction, startTime, err)
+	defer recordMetrics(metrics.DeleteAllObjectsAction, time.Now(), err)
 
 	for _, cluster := range clusters {
 		where := i.db.Where(
@@ -98,9 +95,8 @@ func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 
 func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.StoreRolesAction, 1)
-	defer recordMetrics(metrics.StoreRolesAction, startTime, err)
+	defer recordMetrics(metrics.StoreRolesAction, time.Now(), err)
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
@@ -141,9 +137,8 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) (err 
 
 func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.StoreRoleBindingsAction, 1)
-	defer recordMetrics(metrics.StoreRoleBindingsAction, startTime, err)
+	defer recordMetrics(metrics.StoreRoleBindingsAction, time.Now(), err)
 
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
@@ -183,9 +178,8 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 
 func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.StoreObjectsAction, 1)
-	defer recordMetrics(metrics.StoreObjectsAction, startTime, err)
+	defer recordMetrics(metrics.StoreObjectsAction, time.Now(), err)
 
 	//do nothing if empty collection
 	if len(objects) == 0 {
@@ -227,9 +221,8 @@ func (i *SQLiteStore) GetObjects(ctx context.Context, ids []string, opts QueryOp
 	var orderBy string = ""
 
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.GetObjectsAction, 1)
-	defer recordMetrics(metrics.GetObjectsAction, startTime, err)
+	defer recordMetrics(metrics.GetObjectsAction, time.Now(), err)
 
 	if opts != nil {
 		if opts.GetOffset() != 0 {
@@ -273,9 +266,8 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (obj models.
 	object := models.Object{}
 
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.GetObjectByIdAction, 1)
-	defer recordMetrics(metrics.GetObjectByIdAction, startTime, err)
+	defer recordMetrics(metrics.GetObjectByIdAction, time.Now(), err)
 
 	result := i.db.Model(&object).Where("id = ?", id).First(&object)
 	if result.Error != nil {
@@ -297,9 +289,8 @@ func (i *SQLiteStore) GetAllObjects(ctx context.Context) (Iterator, error) {
 
 func (i *SQLiteStore) GetRoles(ctx context.Context) (roles []models.Role, err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.GetRolesAction, 1)
-	defer recordMetrics(metrics.GetRolesAction, startTime, err)
+	defer recordMetrics(metrics.GetRolesAction, time.Now(), err)
 
 	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)
 	if result.Error != nil {
@@ -312,9 +303,8 @@ func (i *SQLiteStore) GetRoleBindings(ctx context.Context) (rbs []models.RoleBin
 	var rolebindings []models.RoleBinding
 
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.GetRoleBindingsAction, 1)
-	defer recordMetrics(metrics.GetRoleBindingsAction, startTime, err)
+	defer recordMetrics(metrics.GetRoleBindingsAction, time.Now(), err)
 
 	result := i.db.Model(&models.RoleBinding{}).Preload("Subjects").Find(&rolebindings)
 	if result.Error != nil {
@@ -328,9 +318,8 @@ func (i *SQLiteStore) GetAccessRules(ctx context.Context) (acs []models.AccessRu
 	bindings := []models.RoleBinding{}
 
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.GetAccessRulesAction, 1)
-	defer recordMetrics(metrics.GetAccessRulesAction, startTime, err)
+	defer recordMetrics(metrics.GetAccessRulesAction, time.Now(), err)
 
 	result := i.db.Model(&models.Role{}).Preload("PolicyRules").Find(&roles)
 	if result.Error != nil {
@@ -349,9 +338,8 @@ func (i *SQLiteStore) GetAccessRules(ctx context.Context) (acs []models.AccessRu
 
 func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.DeleteObjectsAction, 1)
-	defer recordMetrics(metrics.DeleteObjectsAction, startTime, err)
+	defer recordMetrics(metrics.DeleteObjectsAction, time.Now(), err)
 
 	for _, object := range objects {
 		if err := object.Validate(); err != nil {
@@ -373,9 +361,8 @@ func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object
 
 func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.DeleteRolesAction, 1)
-	defer recordMetrics(metrics.DeleteRolesAction, startTime, err)
+	defer recordMetrics(metrics.DeleteRolesAction, time.Now(), err)
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
@@ -397,9 +384,8 @@ func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) (err
 
 func (i *SQLiteStore) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) (err error) {
 	// metrics
-	startTime := time.Now()
 	metrics.DataStoreInflightRequests(metrics.DeleteRoleBindingsAction, 1)
-	defer recordMetrics(metrics.DeleteRoleBindingsAction, startTime, err)
+	defer recordMetrics(metrics.DeleteRoleBindingsAction, time.Now(), err)
 
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
