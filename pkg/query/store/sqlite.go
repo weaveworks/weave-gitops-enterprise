@@ -29,7 +29,11 @@ type SQLiteStore struct {
 	debug logr.Logger
 }
 
-func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) error {
+func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.DeleteAllRolesAction, 1)
+	defer recordMetrics(metrics.DeleteAllRolesAction, time.Now(), err)
+
 	for _, cluster := range clusters {
 		where := i.db.Where(
 			"cluster = ? ",
@@ -44,7 +48,11 @@ func (i *SQLiteStore) DeleteAllRoles(ctx context.Context, clusters []string) err
 	return nil
 }
 
-func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) error {
+func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []string) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.DeleteAllRoleBindingsAction, 1)
+	defer recordMetrics(metrics.DeleteAllRoleBindingsAction, time.Now(), err)
+
 	for _, cluster := range clusters {
 		where := i.db.Where(
 			"cluster = ? ",
@@ -58,7 +66,11 @@ func (i *SQLiteStore) DeleteAllRoleBindings(ctx context.Context, clusters []stri
 	return nil
 }
 
-func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) error {
+func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.DeleteAllObjectsAction, 1)
+	defer recordMetrics(metrics.DeleteAllObjectsAction, time.Now(), err)
+
 	for _, cluster := range clusters {
 		where := i.db.Where(
 			"cluster = ? ",
@@ -81,7 +93,10 @@ func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	}, nil
 }
 
-func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error {
+func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.StoreRolesAction, 1)
+	defer recordMetrics(metrics.StoreRolesAction, time.Now(), err)
 
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
@@ -120,7 +135,11 @@ func (i *SQLiteStore) StoreRoles(ctx context.Context, roles []models.Role) error
 	return nil
 }
 
-func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.StoreRoleBindingsAction, 1)
+	defer recordMetrics(metrics.StoreRoleBindingsAction, time.Now(), err)
+
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)
@@ -157,7 +176,11 @@ func (i *SQLiteStore) StoreRoleBindings(ctx context.Context, roleBindings []mode
 	return nil
 }
 
-func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) error {
+func (i *SQLiteStore) StoreObjects(ctx context.Context, objects []models.Object) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.StoreObjectsAction, 1)
+	defer recordMetrics(metrics.StoreObjectsAction, time.Now(), err)
+
 	//do nothing if empty collection
 	if len(objects) == 0 {
 		return nil
@@ -313,7 +336,11 @@ func (i *SQLiteStore) GetAccessRules(ctx context.Context) (acs []models.AccessRu
 	return rules, result.Error
 }
 
-func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object) error {
+func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.DeleteObjectsAction, 1)
+	defer recordMetrics(metrics.DeleteObjectsAction, time.Now(), err)
+
 	for _, object := range objects {
 		if err := object.Validate(); err != nil {
 			return fmt.Errorf("invalid object: %w", err)
@@ -332,7 +359,11 @@ func (i *SQLiteStore) DeleteObjects(ctx context.Context, objects []models.Object
 	return nil
 }
 
-func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) error {
+func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.DeleteRolesAction, 1)
+	defer recordMetrics(metrics.DeleteRolesAction, time.Now(), err)
+
 	for _, role := range roles {
 		if err := role.Validate(); err != nil {
 			return fmt.Errorf("invalid role: %w", err)
@@ -351,7 +382,11 @@ func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) erro
 	return nil
 }
 
-func (i *SQLiteStore) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) error {
+func (i *SQLiteStore) DeleteRoleBindings(ctx context.Context, roleBindings []models.RoleBinding) (err error) {
+	// metrics
+	metrics.DataStoreInflightRequests(metrics.DeleteRoleBindingsAction, 1)
+	defer recordMetrics(metrics.DeleteRoleBindingsAction, time.Now(), err)
+
 	for _, roleBinding := range roleBindings {
 		if err := roleBinding.Validate(); err != nil {
 			return fmt.Errorf("invalid role binding: %w", err)

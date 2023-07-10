@@ -11,11 +11,20 @@ const (
 	indexerSubsystem   = "indexer"
 
 	// datastore actions
-	GetObjectsAction      = "GetObjects"
-	GetObjectByIdAction   = "GetObjectByID"
-	GetRolesAction        = "GetRoles"
-	GetRoleBindingsAction = "GetRoleBindings"
-	GetAccessRulesAction  = "GetAccessRules"
+	StoreRolesAction            = "StoreRoles"
+	StoreRoleBindingsAction     = "StoreRoleBindings"
+	StoreObjectsAction          = "StoreObjects"
+	DeleteObjectsAction         = "DeleteObjects"
+	DeleteAllObjectsAction      = "DeleteAllObjects"
+	DeleteRolesAction           = "DeleteRoles"
+	DeleteAllRolesAction        = "DeleteAllRoles"
+	DeleteRoleBindingsAction    = "DeleteRoleBindings"
+	DeleteAllRoleBindingsAction = "DeleteAllRoleBindings"
+	GetObjectsAction            = "GetObjects"
+	GetObjectByIdAction         = "GetObjectByID"
+	GetRolesAction              = "GetRoles"
+	GetRoleBindingsAction       = "GetRoleBindings"
+	GetAccessRulesAction        = "GetAccessRules"
 
 	// indexer actions
 	SearchAction     = "Search"
