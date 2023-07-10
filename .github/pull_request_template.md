@@ -15,7 +15,7 @@ For UI changes also include a screenshot.
 **What changed?**
 
 
-<!-- Tell your future self why have you made these changes -->
+<!-- Tell your future self why have you made these changes. You could link to stories or initiative here. -->
 **Why was this change made?**
 
 
@@ -28,12 +28,20 @@ refactoring, etc
 **How was this change implemented?**
 
 
-<!--
-How have you verified this change/product value? Tested locally?
-Added integration/acceptance test(s)?
-Unit tests are required.
--->
+<!-- Use the checklist to detail how you're sure that the change
+works.  Check each box when you're satisfied you've dealt with that
+item. -->
 **How did you validate the change?**
+
+ - [ ] Explain how a reviewer can verify the change themselves
+
+
+ - [ ] Integration tests -- what is covered, what cannot be covered;
+       or, explain why there are no new tests
+
+
+ - [ ] Unit tests -- what is covered, what cannot be covered; are
+       there tests that fail _without_ the change?
 
 
 <!--
@@ -50,3 +58,9 @@ Are there any documentation updates that should be made for these changes? We wa
 - architecture docs: https://github.com/weaveworks/weave-gitops-enterprise/blob/main/docs/architecture
 -->
 **Documentation Changes**
+
+
+<!-- Is there anything else that will need to be done after this is
+approved or merged? Ideally, log an issue for each follow-up task and
+list them here -->
+**Other follow ups**
