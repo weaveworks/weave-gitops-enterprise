@@ -32,6 +32,7 @@ export const FormWrapper = styled.form`
   .secret-data-list {
     display: flex;
     align-items: self-start;
+    width: 100%;
     .remove-icon {
       margin-top: 25px;
       color: ${props => props.theme.colors.neutral30};

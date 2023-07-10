@@ -42,7 +42,7 @@ var identityParamsList = []struct {
 		Group:        "infrastructure.cluster.x-k8s.io",
 		Versions:     []string{"v1alpha3", "v1alpha4", "v1beta1"},
 		Kind:         "AzureClusterIdentity",
-		ClusterKinds: []string{"AzureCluster", "AzureManagedCluster"},
+		ClusterKinds: []string{"AzureCluster", "AzureManagedControlPlane"},
 	},
 	{
 		Group:        "infrastructure.cluster.x-k8s.io",
