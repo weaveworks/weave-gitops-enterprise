@@ -378,7 +378,7 @@ const CreatePolicyConfig = () => {
                         <Flex column>
                           <Text>{option.name}</Text>
                           <Text color="neutral30" size="small">
-                            {`ns:${option.namespace || '-'}`}
+                            {option.namespace ? `ns: ${option.namespace}` : '-'}
                           </Text>
                         </Flex>
                       </MenuItem>
