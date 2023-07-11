@@ -51,13 +51,14 @@ export default function PolicyDetailsCard({
                 <label className="cardLbl">Parameters</label>
                 {Object.entries(policy.parameters || {}).map(([key, value]) => (
                   <div className="parameterItem" key={key}>
-                    <Text data-testid={key} uppercase>
+                    <Text data-testid={key} uppercase size="small">
                       {key}
                     </Text>
                     <Text
                       uppercase
                       className="parameterItemValue"
                       data-testid={`${key}Value`}
+                      size="small"
                     >
                       {renderParameterValue(value)}
                     </Text>

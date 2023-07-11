@@ -101,8 +101,7 @@ export const PolicyDetailsCardWrapper = styled.ul`
       font-size: ${props => props.theme.fontSizes.small};
       display: block;
       font-weight: ${700};
-      margin: ${props => props.theme.spacing.base}
-        ${props => props.theme.spacing.none};
+      margin-top: ${props => props.theme.spacing.base};
     }
     .parameterItem {
       font-size: ${props => props.theme.fontSizes.small};
