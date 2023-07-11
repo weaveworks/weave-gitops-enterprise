@@ -354,9 +354,9 @@ export class TerraformClientMock implements Terraform {
   constructor() {
     this.ListTerraformObjects = this.ListTerraformObjects.bind(this);
     this.GetTerraformObject = this.GetTerraformObject.bind(this);
-    this.SyncTerraformObject = this.SyncTerraformObject.bind(this);
-    this.ToggleSuspendTerraformObject =
-      this.ToggleSuspendTerraformObject.bind(this);
+    this.SyncTerraformObjects = this.SyncTerraformObjects.bind(this);
+    this.ToggleSuspendTerraformObjects =
+      this.ToggleSuspendTerraformObjects.bind(this);
   }
 
   ListTerraformObjectsReturns: ListTerraformObjectsResponse = {};
@@ -376,15 +376,15 @@ export class TerraformClientMock implements Terraform {
     return promisify(this.GetTerraformObjectPlanReturns);
   }
 
-  SyncTerraformObjectReturns: SyncTerraformObjectsResponse = {};
-  SyncTerraformObject() {
-    return promisify(this.SyncTerraformObjectReturns);
+  SyncTerraformObjectsReturns: SyncTerraformObjectsResponse = {};
+  SyncTerraformObjects() {
+    return promisify(this.SyncTerraformObjectsReturns);
   }
 
-  ToggleSuspendTerraformObjectReturns: ToggleSuspendTerraformObjectsResponse =
+  ToggleSuspendTerraformObjectsReturns: ToggleSuspendTerraformObjectsResponse =
     {};
-  ToggleSuspendTerraformObject() {
-    return promisify(this.ToggleSuspendTerraformObjectReturns);
+  ToggleSuspendTerraformObjects() {
+    return promisify(this.ToggleSuspendTerraformObjectsReturns);
   }
 
   ReplanTerraformObjectReturns: ReplanTerraformObjectResponse = {};

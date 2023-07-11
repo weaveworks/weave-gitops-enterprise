@@ -46,7 +46,7 @@ describe('TerraformObjectDetail', () => {
     api.GetTerraformObjectReturns = res;
     const recorder = jest.fn();
 
-    api.SyncTerraformObject = (...args) => {
+    api.SyncTerraformObjects = (...args) => {
       recorder(...args);
       return new Promise(() => ({}));
     };
@@ -67,9 +67,13 @@ describe('TerraformObjectDetail', () => {
     fireEvent.click(button);
 
     expect(recorder).toHaveBeenCalledWith({
-      name: 'helloworld',
-      namespace: 'flux-system',
-      clusterName: 'Default',
+      objects: [
+        {
+          name: 'helloworld',
+          namespace: 'flux-system',
+          clusterName: 'Default',
+        },
+      ],
     });
   });
   it('suspends a terraform object', async () => {
@@ -78,7 +82,7 @@ describe('TerraformObjectDetail', () => {
     const recorder = jest.fn();
     const p = new Promise<ToggleSuspendTerraformObjectsResponse>(() => ({}));
 
-    api.ToggleSuspendTerraformObject = (...args) => {
+    api.ToggleSuspendTerraformObjects = (...args) => {
       recorder(...args);
       return p;
     };

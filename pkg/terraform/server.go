@@ -198,7 +198,7 @@ func (s *server) SyncTerraformObjects(ctx context.Context, msg *pb.SyncTerraform
 		return nil, fmt.Errorf("getting impersonated client: %w", err)
 	}
 
-	respErrors := *&multierror.Error{}
+	respErrors := multierror.Error{}
 
 	for _, sync := range msg.Objects {
 		c, err := clustersClient.Scoped(sync.ClusterName)
@@ -239,7 +239,7 @@ func (s *server) ToggleSuspendTerraformObjects(ctx context.Context, msg *pb.Togg
 		return nil, fmt.Errorf("getting impersonated client: %w", err)
 	}
 
-	respErrors := *&multierror.Error{}
+	respErrors := multierror.Error{}
 
 	for _, obj := range msg.Objects {
 		c, err := clustersClient.Scoped(obj.ClusterName)
