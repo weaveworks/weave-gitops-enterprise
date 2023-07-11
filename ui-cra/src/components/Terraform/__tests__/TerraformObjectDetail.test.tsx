@@ -1,9 +1,9 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { ToggleSuspendTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import { ToggleSuspendTerraformObjectsResponse } from '../../../api/terraform/terraform.pb';
 import { TerraformProvider } from '../../../contexts/Terraform';
 import {
-  defaultContexts,
   TerraformClientMock,
+  defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
 import TerraformObjectDetail from '../TerraformObjectDetail';
@@ -76,7 +76,7 @@ describe('TerraformObjectDetail', () => {
     const params: any = res.object;
     api.GetTerraformObjectReturns = res;
     const recorder = jest.fn();
-    const p = new Promise<ToggleSuspendTerraformObjectResponse>(() => ({}));
+    const p = new Promise<ToggleSuspendTerraformObjectsResponse>(() => ({}));
 
     api.ToggleSuspendTerraformObject = (...args) => {
       recorder(...args);
@@ -105,9 +105,13 @@ describe('TerraformObjectDetail', () => {
     fireEvent.click(button);
 
     expect(recorder).toHaveBeenCalledWith({
-      name: 'helloworld',
-      namespace: 'flux-system',
-      clusterName: 'Default',
+      objects: [
+        {
+          name: 'helloworld',
+          namespace: 'flux-system',
+          clusterName: 'Default',
+        },
+      ],
       suspend: true,
     });
   });

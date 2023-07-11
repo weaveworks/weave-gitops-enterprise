@@ -27,6 +27,13 @@ export type NamespacedObjectReference = {
   namespace?: string
 }
 
+export type ObjectRef = {
+  clusterName?: string
+  name?: string
+  namespace?: string
+  kind?: string
+}
+
 export type TerraformObject = {
   name?: string
   namespace?: string

@@ -38,13 +38,17 @@ import {
 } from '../api/pipelines/pipelines.pb';
 
 import {
+  GetPolicyResponse,
+  ListPoliciesResponse,
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
   ReplanTerraformObjectResponse,
-  SyncTerraformObjectResponse,
+  SyncTerraformObjectsResponse,
   Terraform,
-  ToggleSuspendTerraformObjectResponse,
+  ToggleSuspendTerraformObjectsResponse,
 } from '../api/terraform/terraform.pb';
 import {
   GetConfigResponse,
@@ -62,12 +66,6 @@ import {
   ListTemplatesResponse,
   ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
-import {
-  GetPolicyResponse,
-  GetPolicyValidationResponse,
-  ListPoliciesResponse,
-  ListPolicyValidationsResponse,
-} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 import {
   DebugGetAccessRulesRequest,
@@ -378,12 +376,12 @@ export class TerraformClientMock implements Terraform {
     return promisify(this.GetTerraformObjectPlanReturns);
   }
 
-  SyncTerraformObjectReturns: SyncTerraformObjectResponse = {};
+  SyncTerraformObjectReturns: SyncTerraformObjectsResponse = {};
   SyncTerraformObject() {
     return promisify(this.SyncTerraformObjectReturns);
   }
 
-  ToggleSuspendTerraformObjectReturns: ToggleSuspendTerraformObjectResponse =
+  ToggleSuspendTerraformObjectReturns: ToggleSuspendTerraformObjectsResponse =
     {};
   ToggleSuspendTerraformObject() {
     return promisify(this.ToggleSuspendTerraformObjectReturns);

@@ -32,8 +32,14 @@ function TerraformListTable({ className, rows }: Props) {
       ...filterConfig(rows, 'tenant'),
     };
   }
+
+  const kindRows = rows?.map(row => {
+    return { ...row, type: 'Terraform' };
+  });
+
   return (
     <DataTable
+      hasCheckboxes
       className={className}
       fields={[
         {
@@ -89,7 +95,7 @@ function TerraformListTable({ className, rows }: Props) {
           label: 'Message',
         },
       ]}
-      rows={rows}
+      rows={kindRows}
       filters={filterState}
     />
   );
