@@ -65,7 +65,6 @@ export function getRepositoryUrl(repo: GitRepository) {
   if (uri.hostname() === 'ssh.dev.azure.com') {
     uri = azureSshToHttps(uri.toString());
   }
-  console.log(uri.toString());
   return uri.protocol('https').userinfo('').toString();
 }
 
@@ -78,6 +77,15 @@ function azureSshToHttps(sshUrl: string) {
   const httpsUrl = `https://dev.azure.com/${organization}/${project}/_git/${repository}`;
 
   return URI(httpsUrl);
+}
+
+export function bitbucketReposToHttpsUrl(baseUrl: string) {
+  const parts = baseUrl.split('/');
+  const domain = parts[2];
+  const organization = parts[4];
+  const repository = parts[5];
+  const httpsUrl = `https://${domain}/projects/${organization}/repos/${repository}`;
+  return httpsUrl;
 }
 
 export function getProvider(repo: GitRepository, config: GetConfigResponse) {
