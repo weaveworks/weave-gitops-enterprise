@@ -186,7 +186,14 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		Category:   models.CategoryAutomation,
 	}
 
-	g.Expect(store.StoreObjects(ctx, []models.Object{addObject})).To(Succeed())
+	t.Run("should have StoreObjects instrumented", func(t *testing.T) {
+		g.Expect(store.StoreObjects(ctx, []models.Object{addObject})).To(Succeed())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="StoreObjects"`,
+			`datastore_latency_seconds_count{action="StoreObjects",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
 
 	role := models.Role{
 		Cluster:   "test-cluster",
@@ -218,8 +225,23 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		RoleRefKind: role.Kind,
 	}
 
-	g.Expect(store.StoreRoles(ctx, []models.Role{role})).To(Succeed())
-	g.Expect(store.StoreRoleBindings(ctx, []models.RoleBinding{rb})).To(Succeed())
+	t.Run("should have StoreRoles instrumented", func(t *testing.T) {
+		g.Expect(store.StoreRoles(ctx, []models.Role{role})).To(Succeed())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="StoreRoles"`,
+			`datastore_latency_seconds_count{action="StoreObjects",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have StoreRoleBindings instrumented", func(t *testing.T) {
+		g.Expect(store.StoreRoleBindings(ctx, []models.RoleBinding{rb})).To(Succeed())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="StoreRoleBindings"`,
+			`datastore_latency_seconds_count{action="StoreRoleBindings",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
 
 	t.Run("should have GetObjects instrumented", func(t *testing.T) {
 		it, err := store.GetObjects(ctx, []string{addObject.GetID()}, nil)
@@ -277,6 +299,36 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		wantMetrics := []string{
 			`datastore_inflight_requests{action="GetAccessRules"} 0`,
 			`datastore_latency_seconds_count{action="GetAccessRules",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have DeleteAllObjects instrumented", func(t *testing.T) {
+		err := store.DeleteAllObjects(ctx, []string{"test-cluster"})
+		g.Expect(err).To(BeNil())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="DeleteAllObjects"`,
+			`datastore_latency_seconds_count{action="DeleteAllObjects",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have DeleteAllRoles instrumented", func(t *testing.T) {
+		err := store.DeleteAllRoles(ctx, []string{"test-cluster"})
+		g.Expect(err).To(BeNil())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="DeleteAllRoles"`,
+			`datastore_latency_seconds_count{action="DeleteAllRoles",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have DeleteAllRoleBindings instrumented", func(t *testing.T) {
+		err := store.DeleteAllRoleBindings(ctx, []string{"test-cluster"})
+		g.Expect(err).To(BeNil())
+		wantMetrics := []string{
+			`datastore_inflight_requests{action="DeleteAllRoleBindings"`,
+			`datastore_latency_seconds_count{action="DeleteAllRoleBindings",status="success"} 1`,
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
