@@ -4,7 +4,7 @@ import {
   ListSubheader,
   MenuItem,
 } from '@material-ui/core';
-import { Flex, Kind, useListSources } from '@weaveworks/weave-gitops';
+import { Flex, Kind, Text, useListSources } from '@weaveworks/weave-gitops';
 import {
   GitRepository,
   HelmRepository,
@@ -217,7 +217,12 @@ const AppFields: FC<{
             {clusters?.map((option: GitopsCluster, index: number) => {
               return (
                 <MenuItem key={index} value={JSON.stringify(option)}>
-                  {option.name}
+                  <Flex column>
+                    <Text>{option.name}</Text>
+                    <Text color="neutral30" size="small">
+                      {option.namespace ? `ns: ${option.namespace}` : '-'}
+                    </Text>
+                  </Flex>
                 </MenuItem>
               );
             })}
