@@ -9,9 +9,9 @@ import {
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
-import { Page } from '../../Layout/App';
 
 type Props = {
   className?: string;
@@ -52,7 +52,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
             infoFields={[
               ['Kind', Kind.ImageRepository],
               ['Namespace', data?.namespace],
-              ['Namespace', data?.clusterName],
+              ['Cluster Name', data?.clusterName],
               [
                 'Image',
                 <Link newTab={true} to={data.obj?.spec?.image}>
