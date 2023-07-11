@@ -1,10 +1,9 @@
-import { formatURL, Link } from '@weaveworks/weave-gitops';
+import { formatURL, Link, Flex, Text } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { getKindRoute, Routes } from '../../../utils/nav';
 import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import {
-  AppliedToTitle,
   SectionTitle,
   TargetItemKind,
   TargetItemsList,
@@ -97,18 +96,20 @@ function PolicyConfigHeaderSection({
   return (
     <div>
       <RowHeaders rows={defaultHeaders} />
-      <div>
+      <Flex column gap="16">
         <SectionTitle>Applied To</SectionTitle>
-        <AppliedToTitle capitalize data-testid="appliedTo">
-          <span>{matchType}</span>
-          <span> ({target?.length})</span>
-        </AppliedToTitle>
-        <TargetItemsList>
-          {target?.map((item: any) =>
-            getMatchedItem(item, clusterName, matchType || ''),
-          )}
-        </TargetItemsList>
-      </div>
+        <div>
+          <Text capitalize data-testid="appliedTo">
+            <span>{matchType}</span>
+            <span> ({target?.length})</span>
+          </Text>
+          <TargetItemsList>
+            {target?.map((item: any) =>
+              getMatchedItem(item, clusterName, matchType || ''),
+            )}
+          </TargetItemsList>
+        </div>
+      </Flex>
     </div>
   );
 }

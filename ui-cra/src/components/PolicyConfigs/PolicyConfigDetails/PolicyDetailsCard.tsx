@@ -1,5 +1,11 @@
 import { Card, CardContent } from '@material-ui/core';
-import { Flex, Text, V2Routes, formatURL } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  Link,
+  Text,
+  V2Routes,
+  formatURL,
+} from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
@@ -7,7 +13,6 @@ import {
 import {
   PolicyDetailsCardWrapper,
   SectionTitle,
-  TextLink,
   WarningIcon,
 } from '../PolicyConfigStyles';
 
@@ -70,7 +75,12 @@ export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
   const { status, id, name } = policy;
 
   return status === 'OK' ? (
-    <TextLink
+    <Link
+      textProps={{
+        color: 'primary',
+        size: 'medium',
+        capitalize: true,
+      }}
       to={formatURL(V2Routes.PolicyDetailsPage, {
         clusterName: clusterName,
         id: id,
@@ -78,7 +88,7 @@ export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
       data-policy-name={name}
     >
       <span data-testid={`policyId-${name}`}>{name}</span>
-    </TextLink>
+    </Link>
   ) : (
     <Flex align gap="8">
       <span

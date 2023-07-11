@@ -1,7 +1,7 @@
 import { RemoveCircleOutline, ReportProblem } from '@material-ui/icons';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { createStyles, makeStyles } from '@material-ui/styles';
-import { Flex, Link, Text } from '@weaveworks/weave-gitops';
+import { Flex, Text } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
@@ -24,10 +24,6 @@ export const TargetItemKind = styled(Text)`
 export const TotalPolicies = styled(Flex)`
   width: 100px;
 `;
-export const AppliedToTitle = styled(Text)`
-  margin-top: ${props => props.theme.spacing.base};
-  display: block;
-`;
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
     capitlize: {
@@ -39,12 +35,6 @@ export const usePolicyConfigStyle = makeStyles(() =>
   }),
 );
 
-export const TextLink = styled(Link)`
-  color: ${props => props.theme.colors.primary};
-  font-weight: 600;
-  white-space: pre-line;
-  text-transform: capitalize;
-`;
 export const WarningIcon = styled(ReportProblem)`
   color: ${props => props.theme.colors.feedbackOriginal};
 `;
