@@ -42,7 +42,6 @@ export function getPullRequestUrl(
   gitRepo: GitRepository,
   config: GetConfigResponse,
 ) {
-  console.log('gitRepo', gitRepo);
   const provider = getProvider(gitRepo, config);
 
   const repoUrl = getRepositoryUrl(gitRepo);
