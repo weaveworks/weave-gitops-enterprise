@@ -52,7 +52,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
             infoFields={[
               ['Kind', Kind.ImageRepository],
               ['Namespace', data?.namespace],
-              ['Cluster Name', data?.clusterName],
+              ['Cluster', data?.clusterName],
               [
                 'Image',
                 <Link newTab={true} to={data.obj?.spec?.image}>
