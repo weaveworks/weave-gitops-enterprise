@@ -89,7 +89,7 @@ export function useListFacets() {
   const api = useContext(QueryServiceContext);
 
   return useQuery(['facets'], () => api.ListFacets({}), {
-    refetchIntervalInBackground: false,
-    refetchInterval: Infinity,
+    refetchIntervalInBackground: true,
+    refetchInterval: 10000,
   });
 }
