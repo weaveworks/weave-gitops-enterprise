@@ -10,12 +10,13 @@ import (
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
-	"github.com/weaveworks/weave-gitops-enterprise/test"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -48,7 +49,7 @@ func TestQueryServer(t *testing.T) {
 	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
 	defaultNamespace := "default"
 
-	test.Create(context.Background(), t, cfg, newNamespace("flux-system"))
+	createResources(context.Background(), t, k8sClient, newNamespace("flux-system"))
 
 	testLog := testr.New(t)
 
@@ -65,13 +66,23 @@ func TestQueryServer(t *testing.T) {
 		expectedNumObjects int
 	}{
 		{
-			name:   "should support apps (using helm releases)",
+			name:   "should support helm releases",
 			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				podinfoHelmRepository(defaultNamespace),
 				podinfoHelmRelease(defaultNamespace),
 			},
 			query:              "kind:HelmRelease",
+			expectedNumObjects: 1, // should allow only on default namespace
+		},
+		{
+			name:   "should support kustomizations",
+			access: allowKustomizationsAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				podinfoGitRepository(defaultNamespace),
+				podinfoKustomization(defaultNamespace),
+			},
+			query:              "kind:Kustomization",
 			expectedNumObjects: 1, // should allow only on default namespace
 		},
 		{
@@ -113,19 +124,7 @@ func TestQueryServer(t *testing.T) {
 			name:   "should support git repository chart",
 			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
-				&sourcev1.GitRepository{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1.GitRepositoryKind,
-						APIVersion: sourcev1.GroupVersion.String(),
-					},
-					Spec: sourcev1.GitRepositorySpec{
-						URL: "https://example.com/owner/repo",
-					},
-				},
+				podinfoGitRepository(defaultNamespace),
 			},
 			query:              "kind:GitRepository",
 			expectedNumObjects: 1, // should allow only on default namespace,
@@ -174,8 +173,8 @@ func TestQueryServer(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			//When some access rules and objects ingested
-			test.Create(ctx, t, cfg, tt.objects...)
-			test.Create(ctx, t, cfg, tt.access...)
+			createResources(ctx, t, k8sClient, tt.objects...)
+			createResources(ctx, t, k8sClient, tt.access...)
 
 			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
@@ -216,6 +215,22 @@ func podinfoHelmRelease(defaultNamespace string) *helmv2.HelmRelease {
 	}
 }
 
+func podinfoGitRepository(namespace string) *sourcev1.GitRepository {
+	return &sourcev1.GitRepository{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "podinfo",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.GitRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.String(),
+		},
+		Spec: sourcev1.GitRepositorySpec{
+			URL: "https://example.com/owner/repo",
+		},
+	}
+}
+
 func podinfoHelmRepository(namespace string) *sourcev1beta2.HelmRepository {
 	return &sourcev1beta2.HelmRepository{
 		ObjectMeta: metav1.ObjectMeta{
@@ -229,6 +244,27 @@ func podinfoHelmRepository(namespace string) *sourcev1beta2.HelmRepository {
 		Spec: sourcev1beta2.HelmRepositorySpec{
 			Interval: metav1.Duration{Duration: time.Minute},
 			URL:      "http://my-url.com",
+		},
+	}
+}
+
+func podinfoKustomization(namespace string) *kustomizev1.Kustomization {
+	return &kustomizev1.Kustomization{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "podinfo",
+			Namespace: namespace,
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind:       kustomizev1.KustomizationKind,
+			APIVersion: kustomizev1.GroupVersion.String(),
+		},
+		Spec: kustomizev1.KustomizationSpec{
+			SourceRef: kustomizev1.CrossNamespaceSourceReference{
+				Kind:      sourcev1.GitRepositoryKind,
+				Name:      "podinfo",
+				Namespace: namespace,
+			},
+			Interval: metav1.Duration{Duration: time.Minute},
 		},
 	}
 }
@@ -265,6 +301,29 @@ func allowHelmReleaseAnyOnDefaultNamespace(username string) []client.Object {
 			[]rbacv1.PolicyRule{{
 				APIGroups: []string{"helm.toolkit.fluxcd.io"},
 				Resources: []string{"helmreleases"},
+				Verbs:     []string{"*"},
+			}}),
+		newRoleBinding(roleBindingName,
+			"default",
+			"Role",
+			roleName,
+			[]rbacv1.Subject{
+				{
+					Kind: "User",
+					Name: username,
+				},
+			}))
+}
+
+func allowKustomizationsAnyOnDefaultNamespace(username string) []client.Object {
+	roleName := "kustomizations-admin"
+	roleBindingName := "wego-admin-kustomizations-admin"
+
+	return append(createCollectorSecurityContext(),
+		newRole(roleName, "default",
+			[]rbacv1.PolicyRule{{
+				APIGroups: []string{"kustomize.toolkit.fluxcd.io"},
+				Resources: []string{"*"},
 				Verbs:     []string{"*"},
 			}}),
 		newRoleBinding(roleBindingName,
@@ -379,4 +438,23 @@ func typeMeta(kind, apiVersion string) metav1.TypeMeta {
 		Kind:       kind,
 		APIVersion: apiVersion,
 	}
+}
+
+// createResources uses a controller-runtime client to create a set of Kubernetes objects
+func createResources(ctx context.Context, t *testing.T, k client.Client, state ...client.Object) {
+	t.Helper()
+	for _, o := range state {
+		err := k.Create(ctx, o)
+		if err != nil {
+			t.Errorf("failed to create object: %s", err)
+		}
+	}
+	t.Cleanup(func() {
+		for _, o := range state {
+			err := k.Delete(ctx, o)
+			if err != nil {
+				t.Logf("failed to cleanup object: %s", err)
+			}
+		}
+	})
 }
