@@ -101,7 +101,7 @@ function PolicyConfigHeaderSection({
         </Text>
 
         <Flex column gap="8">
-          <Text capitalize>
+          <Text capitalize data-testid="appliedTo">
             {matchType} ({target?.length})
           </Text>
 
