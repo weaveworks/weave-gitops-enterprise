@@ -4,6 +4,11 @@ on:
       - "main"
     tags-ignore:
       - "*"
+    paths-ignore:
+      - "docs/**"
+      - "bin/**"
+      - ".github/pull_request_template.md" # but don't exclude ./workflows !
+      - ".github/ISSUE_TEMPLATE/**"
   workflow_dispatch:
 
 concurrency:
