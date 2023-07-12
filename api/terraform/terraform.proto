@@ -42,16 +42,16 @@ service Terraform {
         };
     }
 
-    rpc SyncTerraformObject(SyncTerraformObjectRequest)
-        returns (SyncTerraformObjectResponse) {
+    rpc SyncTerraformObjects(SyncTerraformObjectsRequest)
+        returns (SyncTerraformObjectsResponse) {
         option (google.api.http) = {
             post : "/v1/terraform_objects/sync"
             body: "*"
         };  
     }
 
-    rpc ToggleSuspendTerraformObject(ToggleSuspendTerraformObjectRequest)
-        returns (ToggleSuspendTerraformObjectResponse) {
+    rpc ToggleSuspendTerraformObjects(ToggleSuspendTerraformObjectsRequest)
+        returns (ToggleSuspendTerraformObjectsResponse) {
         option (google.api.http) = {
             post : "/v1/terraform_objects/suspend"
             body: "*"
@@ -98,24 +98,20 @@ message GetTerraformObjectResponse {
     string          type   = 3;
 }
 
-message SyncTerraformObjectRequest {
-    string clusterName = 1;
-    string name        = 2;
-    string namespace   = 3;
+message SyncTerraformObjectsRequest {
+    repeated ObjectRef objects = 1;
 }
 
-message  SyncTerraformObjectResponse {
+message  SyncTerraformObjectsResponse {
     bool success = 1;
 }
 
-message ToggleSuspendTerraformObjectRequest {
-    string clusterName = 1;
-    string name        = 2;
-    string namespace   = 3;
-    bool   suspend     = 4;
+message ToggleSuspendTerraformObjectsRequest {
+    repeated ObjectRef objects = 1;
+    bool               suspend = 2;
 }
 
-message ToggleSuspendTerraformObjectResponse {
+message ToggleSuspendTerraformObjectsResponse {
 
 }
 

@@ -16,18 +16,19 @@ import { useState } from 'react';
 import { useLocation, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import {
-  GetTerraformObjectResponse,
   GetTerraformObjectPlanResponse,
+  GetTerraformObjectResponse,
 } from '../../api/terraform/terraform.pb';
 import {
   useGetTerraformObjectDetail,
   useGetTerraformObjectPlan,
-  useSyncTerraformObject,
-  useToggleSuspendTerraformObject,
   useReplanTerraformObject,
+  useSyncTerraformObjects,
+  useToggleSuspendTerraformObjects,
 } from '../../contexts/Terraform';
 import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
@@ -36,7 +37,6 @@ import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 import TerraformPlanView from './TerraformPlanView';
-import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;
@@ -56,8 +56,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
     useGetTerraformObjectPlan(params);
   const { plan, enablePlanViewing, error } = (planData ||
     {}) as GetTerraformObjectPlanResponse;
-  const sync = useSyncTerraformObject(params);
-  const toggleSuspend = useToggleSuspendTerraformObject(params);
+  const sync = useSyncTerraformObjects([params]);
+  const toggleSuspend = useToggleSuspendTerraformObjects([params]);
   const replan = useReplanTerraformObject(params);
   const { setNotifications } = useNotifications();
 
@@ -170,43 +170,37 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             />
           </Box>
           <Box paddingBottom={3}>
-            <Flex>
+            <Flex gap={4}>
               <Button
                 loading={syncing}
                 variant="outlined"
                 onClick={handleSyncClick}
-                style={{ marginRight: 0, textTransform: 'uppercase' }}
               >
                 Sync
               </Button>
-              <Box paddingLeft={1}>
-                <Button
-                  loading={suspending}
-                  variant="outlined"
-                  onClick={handleSuspendClick}
-                  style={{ marginRight: 0, textTransform: 'uppercase' }}
-                >
-                  {object?.suspended ? 'Resume' : 'Suspend'}
-                </Button>
-              </Box>
+
+              <Button
+                loading={suspending}
+                variant="outlined"
+                onClick={handleSuspendClick}
+              >
+                {object?.suspended ? 'Resume' : 'Suspend'}
+              </Button>
+
               {shouldShowReplanButton && (
-                <Box paddingLeft={1} paddingRight={1}>
-                  <Button
-                    data-testid="replan-btn"
-                    loading={replanning}
-                    variant="outlined"
-                    onClick={handleReplanClick}
-                    style={{ marginRight: 0, textTransform: 'uppercase' }}
-                  >
-                    Plan
-                  </Button>
-                </Box>
+                <Button
+                  data-testid="replan-btn"
+                  loading={replanning}
+                  variant="outlined"
+                  onClick={handleReplanClick}
+                >
+                  Plan
+                </Button>
               )}
-              <Box paddingLeft={1}>
-                <EditButton
-                  resource={data || ({} as GetTerraformObjectResponse)}
-                />
-              </Box>
+
+              <EditButton
+                resource={data || ({} as GetTerraformObjectResponse)}
+              />
             </Flex>
           </Box>
           <SubRouterTabs rootPath={`${path}/details`}>
