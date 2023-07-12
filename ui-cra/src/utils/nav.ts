@@ -55,7 +55,7 @@ export enum Routes {
   Policies = '/policies',
   PolicyDetails = '/policies/details',
 
-  AddCluster = '/templates/:templateName/create',
+  AddCluster = '/templates/create',
 
   Templates = '/templates',
 
@@ -70,7 +70,6 @@ export enum Routes {
   PolicyConfigs = '/policyConfigs',
   PolicyConfigsDetails = '/policyConfigs/details',
   CreatePolicyConfig = '/policyConfigs/create',
-
 
   GitOpsSets = '/gitopssets',
   GitOpsSetDetail = '/gitopssets/object',
