@@ -38,13 +38,17 @@ import {
 } from '../api/pipelines/pipelines.pb';
 
 import {
+  GetPolicyResponse,
+  ListPoliciesResponse,
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
   ListTerraformObjectsResponse,
   ReplanTerraformObjectResponse,
-  SyncTerraformObjectResponse,
+  SyncTerraformObjectsResponse,
   Terraform,
-  ToggleSuspendTerraformObjectResponse,
+  ToggleSuspendTerraformObjectsResponse,
 } from '../api/terraform/terraform.pb';
 import {
   GetConfigResponse,
@@ -62,12 +66,6 @@ import {
   ListTemplatesResponse,
   ListWorkspacesResponse,
 } from '../cluster-services/cluster_services.pb';
-import {
-  GetPolicyResponse,
-  GetPolicyValidationResponse,
-  ListPoliciesResponse,
-  ListPolicyValidationsResponse,
-} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 
 import {
   DebugGetAccessRulesRequest,
@@ -356,9 +354,9 @@ export class TerraformClientMock implements Terraform {
   constructor() {
     this.ListTerraformObjects = this.ListTerraformObjects.bind(this);
     this.GetTerraformObject = this.GetTerraformObject.bind(this);
-    this.SyncTerraformObject = this.SyncTerraformObject.bind(this);
-    this.ToggleSuspendTerraformObject =
-      this.ToggleSuspendTerraformObject.bind(this);
+    this.SyncTerraformObjects = this.SyncTerraformObjects.bind(this);
+    this.ToggleSuspendTerraformObjects =
+      this.ToggleSuspendTerraformObjects.bind(this);
   }
 
   ListTerraformObjectsReturns: ListTerraformObjectsResponse = {};
@@ -378,15 +376,15 @@ export class TerraformClientMock implements Terraform {
     return promisify(this.GetTerraformObjectPlanReturns);
   }
 
-  SyncTerraformObjectReturns: SyncTerraformObjectResponse = {};
-  SyncTerraformObject() {
-    return promisify(this.SyncTerraformObjectReturns);
+  SyncTerraformObjectsReturns: SyncTerraformObjectsResponse = {};
+  SyncTerraformObjects() {
+    return promisify(this.SyncTerraformObjectsReturns);
   }
 
-  ToggleSuspendTerraformObjectReturns: ToggleSuspendTerraformObjectResponse =
+  ToggleSuspendTerraformObjectsReturns: ToggleSuspendTerraformObjectsResponse =
     {};
-  ToggleSuspendTerraformObject() {
-    return promisify(this.ToggleSuspendTerraformObjectReturns);
+  ToggleSuspendTerraformObjects() {
+    return promisify(this.ToggleSuspendTerraformObjectsReturns);
   }
 
   ReplanTerraformObjectReturns: ReplanTerraformObjectResponse = {};

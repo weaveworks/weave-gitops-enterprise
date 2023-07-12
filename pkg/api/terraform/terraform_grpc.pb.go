@@ -23,12 +23,12 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Terraform_ListTerraformObjects_FullMethodName         = "/terraform.v1.Terraform/ListTerraformObjects"
-	Terraform_GetTerraformObject_FullMethodName           = "/terraform.v1.Terraform/GetTerraformObject"
-	Terraform_SyncTerraformObject_FullMethodName          = "/terraform.v1.Terraform/SyncTerraformObject"
-	Terraform_ToggleSuspendTerraformObject_FullMethodName = "/terraform.v1.Terraform/ToggleSuspendTerraformObject"
-	Terraform_GetTerraformObjectPlan_FullMethodName       = "/terraform.v1.Terraform/GetTerraformObjectPlan"
-	Terraform_ReplanTerraformObject_FullMethodName        = "/terraform.v1.Terraform/ReplanTerraformObject"
+	Terraform_ListTerraformObjects_FullMethodName          = "/terraform.v1.Terraform/ListTerraformObjects"
+	Terraform_GetTerraformObject_FullMethodName            = "/terraform.v1.Terraform/GetTerraformObject"
+	Terraform_SyncTerraformObjects_FullMethodName          = "/terraform.v1.Terraform/SyncTerraformObjects"
+	Terraform_ToggleSuspendTerraformObjects_FullMethodName = "/terraform.v1.Terraform/ToggleSuspendTerraformObjects"
+	Terraform_GetTerraformObjectPlan_FullMethodName        = "/terraform.v1.Terraform/GetTerraformObjectPlan"
+	Terraform_ReplanTerraformObject_FullMethodName         = "/terraform.v1.Terraform/ReplanTerraformObject"
 )
 
 // TerraformClient is the client API for Terraform service.
@@ -37,8 +37,8 @@ const (
 type TerraformClient interface {
 	ListTerraformObjects(ctx context.Context, in *ListTerraformObjectsRequest, opts ...grpc.CallOption) (*ListTerraformObjectsResponse, error)
 	GetTerraformObject(ctx context.Context, in *GetTerraformObjectRequest, opts ...grpc.CallOption) (*GetTerraformObjectResponse, error)
-	SyncTerraformObject(ctx context.Context, in *SyncTerraformObjectRequest, opts ...grpc.CallOption) (*SyncTerraformObjectResponse, error)
-	ToggleSuspendTerraformObject(ctx context.Context, in *ToggleSuspendTerraformObjectRequest, opts ...grpc.CallOption) (*ToggleSuspendTerraformObjectResponse, error)
+	SyncTerraformObjects(ctx context.Context, in *SyncTerraformObjectsRequest, opts ...grpc.CallOption) (*SyncTerraformObjectsResponse, error)
+	ToggleSuspendTerraformObjects(ctx context.Context, in *ToggleSuspendTerraformObjectsRequest, opts ...grpc.CallOption) (*ToggleSuspendTerraformObjectsResponse, error)
 	GetTerraformObjectPlan(ctx context.Context, in *GetTerraformObjectPlanRequest, opts ...grpc.CallOption) (*GetTerraformObjectPlanResponse, error)
 	ReplanTerraformObject(ctx context.Context, in *ReplanTerraformObjectRequest, opts ...grpc.CallOption) (*ReplanTerraformObjectResponse, error)
 }
@@ -69,18 +69,18 @@ func (c *terraformClient) GetTerraformObject(ctx context.Context, in *GetTerrafo
 	return out, nil
 }
 
-func (c *terraformClient) SyncTerraformObject(ctx context.Context, in *SyncTerraformObjectRequest, opts ...grpc.CallOption) (*SyncTerraformObjectResponse, error) {
-	out := new(SyncTerraformObjectResponse)
-	err := c.cc.Invoke(ctx, Terraform_SyncTerraformObject_FullMethodName, in, out, opts...)
+func (c *terraformClient) SyncTerraformObjects(ctx context.Context, in *SyncTerraformObjectsRequest, opts ...grpc.CallOption) (*SyncTerraformObjectsResponse, error) {
+	out := new(SyncTerraformObjectsResponse)
+	err := c.cc.Invoke(ctx, Terraform_SyncTerraformObjects_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *terraformClient) ToggleSuspendTerraformObject(ctx context.Context, in *ToggleSuspendTerraformObjectRequest, opts ...grpc.CallOption) (*ToggleSuspendTerraformObjectResponse, error) {
-	out := new(ToggleSuspendTerraformObjectResponse)
-	err := c.cc.Invoke(ctx, Terraform_ToggleSuspendTerraformObject_FullMethodName, in, out, opts...)
+func (c *terraformClient) ToggleSuspendTerraformObjects(ctx context.Context, in *ToggleSuspendTerraformObjectsRequest, opts ...grpc.CallOption) (*ToggleSuspendTerraformObjectsResponse, error) {
+	out := new(ToggleSuspendTerraformObjectsResponse)
+	err := c.cc.Invoke(ctx, Terraform_ToggleSuspendTerraformObjects_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,8 +111,8 @@ func (c *terraformClient) ReplanTerraformObject(ctx context.Context, in *ReplanT
 type TerraformServer interface {
 	ListTerraformObjects(context.Context, *ListTerraformObjectsRequest) (*ListTerraformObjectsResponse, error)
 	GetTerraformObject(context.Context, *GetTerraformObjectRequest) (*GetTerraformObjectResponse, error)
-	SyncTerraformObject(context.Context, *SyncTerraformObjectRequest) (*SyncTerraformObjectResponse, error)
-	ToggleSuspendTerraformObject(context.Context, *ToggleSuspendTerraformObjectRequest) (*ToggleSuspendTerraformObjectResponse, error)
+	SyncTerraformObjects(context.Context, *SyncTerraformObjectsRequest) (*SyncTerraformObjectsResponse, error)
+	ToggleSuspendTerraformObjects(context.Context, *ToggleSuspendTerraformObjectsRequest) (*ToggleSuspendTerraformObjectsResponse, error)
 	GetTerraformObjectPlan(context.Context, *GetTerraformObjectPlanRequest) (*GetTerraformObjectPlanResponse, error)
 	ReplanTerraformObject(context.Context, *ReplanTerraformObjectRequest) (*ReplanTerraformObjectResponse, error)
 	mustEmbedUnimplementedTerraformServer()
@@ -128,11 +128,11 @@ func (UnimplementedTerraformServer) ListTerraformObjects(context.Context, *ListT
 func (UnimplementedTerraformServer) GetTerraformObject(context.Context, *GetTerraformObjectRequest) (*GetTerraformObjectResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTerraformObject not implemented")
 }
-func (UnimplementedTerraformServer) SyncTerraformObject(context.Context, *SyncTerraformObjectRequest) (*SyncTerraformObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SyncTerraformObject not implemented")
+func (UnimplementedTerraformServer) SyncTerraformObjects(context.Context, *SyncTerraformObjectsRequest) (*SyncTerraformObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SyncTerraformObjects not implemented")
 }
-func (UnimplementedTerraformServer) ToggleSuspendTerraformObject(context.Context, *ToggleSuspendTerraformObjectRequest) (*ToggleSuspendTerraformObjectResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendTerraformObject not implemented")
+func (UnimplementedTerraformServer) ToggleSuspendTerraformObjects(context.Context, *ToggleSuspendTerraformObjectsRequest) (*ToggleSuspendTerraformObjectsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ToggleSuspendTerraformObjects not implemented")
 }
 func (UnimplementedTerraformServer) GetTerraformObjectPlan(context.Context, *GetTerraformObjectPlanRequest) (*GetTerraformObjectPlanResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetTerraformObjectPlan not implemented")
@@ -189,38 +189,38 @@ func _Terraform_GetTerraformObject_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Terraform_SyncTerraformObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SyncTerraformObjectRequest)
+func _Terraform_SyncTerraformObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SyncTerraformObjectsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TerraformServer).SyncTerraformObject(ctx, in)
+		return srv.(TerraformServer).SyncTerraformObjects(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Terraform_SyncTerraformObject_FullMethodName,
+		FullMethod: Terraform_SyncTerraformObjects_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TerraformServer).SyncTerraformObject(ctx, req.(*SyncTerraformObjectRequest))
+		return srv.(TerraformServer).SyncTerraformObjects(ctx, req.(*SyncTerraformObjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Terraform_ToggleSuspendTerraformObject_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ToggleSuspendTerraformObjectRequest)
+func _Terraform_ToggleSuspendTerraformObjects_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ToggleSuspendTerraformObjectsRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(TerraformServer).ToggleSuspendTerraformObject(ctx, in)
+		return srv.(TerraformServer).ToggleSuspendTerraformObjects(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: Terraform_ToggleSuspendTerraformObject_FullMethodName,
+		FullMethod: Terraform_ToggleSuspendTerraformObjects_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TerraformServer).ToggleSuspendTerraformObject(ctx, req.(*ToggleSuspendTerraformObjectRequest))
+		return srv.(TerraformServer).ToggleSuspendTerraformObjects(ctx, req.(*ToggleSuspendTerraformObjectsRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -277,12 +277,12 @@ var Terraform_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Terraform_GetTerraformObject_Handler,
 		},
 		{
-			MethodName: "SyncTerraformObject",
-			Handler:    _Terraform_SyncTerraformObject_Handler,
+			MethodName: "SyncTerraformObjects",
+			Handler:    _Terraform_SyncTerraformObjects_Handler,
 		},
 		{
-			MethodName: "ToggleSuspendTerraformObject",
-			Handler:    _Terraform_ToggleSuspendTerraformObject_Handler,
+			MethodName: "ToggleSuspendTerraformObjects",
+			Handler:    _Terraform_ToggleSuspendTerraformObjects_Handler,
 		},
 		{
 			MethodName: "GetTerraformObjectPlan",

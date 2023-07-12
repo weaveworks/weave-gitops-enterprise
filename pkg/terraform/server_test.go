@@ -164,10 +164,11 @@ func TestSyncTerraformObject(t *testing.T) {
 	defer close(done)
 
 	go func() {
-		_, err := client.SyncTerraformObject(ctx, &pb.SyncTerraformObjectRequest{
-			ClusterName: "Default",
-			Name:        obj.Name,
-			Namespace:   obj.Namespace,
+		_, err := client.SyncTerraformObjects(ctx, &pb.SyncTerraformObjectsRequest{
+			Objects: []*pb.ObjectRef{{ClusterName: "Default",
+				Name:      obj.Name,
+				Namespace: obj.Namespace,
+				Kind:      "Terraform"}},
 		})
 		done <- err
 	}()
@@ -205,11 +206,12 @@ func TestSuspendTerraformObject(t *testing.T) {
 
 	assert.NoError(t, k8s.Create(ctx, obj))
 
-	_, err := client.ToggleSuspendTerraformObject(ctx, &pb.ToggleSuspendTerraformObjectRequest{
+	_, err := client.ToggleSuspendTerraformObjects(ctx, &pb.ToggleSuspendTerraformObjectsRequest{Objects: []*pb.ObjectRef{{
 		Name:        obj.Name,
 		Namespace:   obj.Namespace,
 		ClusterName: "Default",
-		Suspend:     true,
+	}},
+		Suspend: true,
 	})
 	assert.NoError(t, err)
 
