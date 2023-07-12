@@ -12,7 +12,6 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import {
   PolicyDetailsCardWrapper,
-  SectionTitle,
   WarningIcon,
 } from '../PolicyConfigStyles';
 
@@ -38,11 +37,11 @@ export default function PolicyDetailsCard({
   clusterName,
 }: GetPolicyConfigResponse) {
   return (
-    <div>
-      <SectionTitle>
+    <Flex wide column gap="4">
+      <Text capitalize semiBold size="medium">
         Policies <span data-testid="totalPolicies">({totalPolicies})</span>
-      </SectionTitle>
-      <PolicyDetailsCardWrapper>
+      </Text>
+      <PolicyDetailsCardWrapper className="policyDetails">
         {policies?.map(policy => (
           <li key={policy.id} data-testid="list-item">
             <Card>
@@ -69,7 +68,7 @@ export default function PolicyDetailsCard({
           </li>
         ))}
       </PolicyDetailsCardWrapper>
-    </div>
+    </Flex>
   );
 }
 export function CardTitle({ clusterName, policy }: GetCardTitleProps) {

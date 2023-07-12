@@ -1,11 +1,8 @@
 import { MenuItem } from '@material-ui/core';
-import { Text } from '@weaveworks/weave-gitops';
+import { Flex, Text } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
-import {
-  SectionTitle,
-} from '../../../PolicyConfigStyles';
 import { ListApplications } from './ListApplications';
 import { ListWorkSpaces } from './ListWorkSpaces';
 
@@ -66,8 +63,10 @@ export const SelectMatchType = ({
 
   return (
     <>
-      <div className="form-field">
-        <SectionTitle>Applied To</SectionTitle>
+      <Flex column gap="16" className="form-field">
+        <Text capitalize semiBold size="large">
+          Applied To
+        </Text>
         <Select
           className="form-section"
           name="matchType"
@@ -81,12 +80,14 @@ export const SelectMatchType = ({
           {matchTypeList?.map((option, index: number) => {
             return (
               <MenuItem key={index} value={option}>
-                <Text size="base" capitalize> {option}</Text>
+                <Text size="base" capitalize>
+                  {option}
+                </Text>
               </MenuItem>
             );
           })}
         </Select>
-      </div>
+      </Flex>
       {getCheckList(matchType)}
     </>
   );

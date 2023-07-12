@@ -1,13 +1,9 @@
-import { formatURL, Link, Flex, Text } from '@weaveworks/weave-gitops';
+import { Flex, Link, Text, formatURL } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
-import { getKindRoute, Routes } from '../../../utils/nav';
+import { Routes, getKindRoute } from '../../../utils/nav';
 import { RowHeaders, SectionRowHeader } from '../../RowHeader';
-import {
-  SectionTitle,
-  TargetItemKind,
-  TargetItemsList,
-} from '../PolicyConfigStyles';
+import { TargetItemKind } from '../PolicyConfigStyles';
 
 function PolicyConfigHeaderSection({
   age,
@@ -39,7 +35,7 @@ function PolicyConfigHeaderSection({
     switch (type) {
       case 'apps':
         return (
-          <li key={item.name}>
+          <Flex key={item.name}>
             {item.namespace === '' ? (
               <span data-testid={`matchItem${item.name}`}>*/{item.name}</span>
             ) : (
@@ -58,22 +54,22 @@ function PolicyConfigHeaderSection({
             <TargetItemKind data-testid={`matchItemKind${item.kind}`}>
               {item.kind}
             </TargetItemKind>
-          </li>
+          </Flex>
         );
       case 'resources':
         return (
-          <li key={item.name}>
+          <Flex key={item.name}>
             <span data-testid={`matchItem${item.name}`}>
               {item.namespace === '' ? '*' : item.namespace}/{item.name}
             </span>
             <TargetItemKind data-testid={`matchItemKind${item.kind}`}>
               {item.kind}
             </TargetItemKind>
-          </li>
+          </Flex>
         );
       case 'workspaces':
         return (
-          <li key={item}>
+          <Flex key={item}>
             <Link
               to={formatURL(Routes.WorkspaceDetails, {
                 clusterName: clusterName,
@@ -82,7 +78,7 @@ function PolicyConfigHeaderSection({
             >
               <span data-testid={`matchItem${item}`}>{item}</span>
             </Link>
-          </li>
+          </Flex>
         );
       case 'namespaces':
         return (
@@ -94,23 +90,29 @@ function PolicyConfigHeaderSection({
   };
 
   return (
-    <div>
-      <RowHeaders rows={defaultHeaders} />
+    <Flex column gap="32">
+      <Flex wide column gap="8">
+        <RowHeaders rows={defaultHeaders} />
+      </Flex>
+
       <Flex column gap="16">
-        <SectionTitle>Applied To</SectionTitle>
-        <div>
-          <Text capitalize data-testid="appliedTo">
-            <span>{matchType}</span>
-            <span> ({target?.length})</span>
+        <Text capitalize semiBold size="medium">
+          Applied To
+        </Text>
+
+        <Flex column gap="8">
+          <Text capitalize>
+            {matchType} ({target?.length})
           </Text>
-          <TargetItemsList>
+
+          <Flex start column gap="8">
             {target?.map((item: any) =>
               getMatchedItem(item, clusterName, matchType || ''),
             )}
-          </TargetItemsList>
-        </div>
+          </Flex>
+        </Flex>
       </Flex>
-    </div>
+    </Flex>
   );
 }
 

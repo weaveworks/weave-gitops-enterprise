@@ -22,7 +22,6 @@ import {
   ErrorSection,
   PolicyDetailsCardWrapper,
   RemoveIcon,
-  SectionTitle,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -146,6 +145,7 @@ export const SelectedPolicies = ({
     <Autocomplete
       multiple
       id="grouped-demo"
+      style={{width:"98%"}}
       value={selectedPolicies}
       options={policiesList?.sort((a, b) =>
         b.category!.localeCompare(a.category!),
@@ -238,12 +238,12 @@ export const SelectedPolicies = ({
 
   return (
     <>
-      <div className="form-field policyField">
-        <SectionTitle>
+      <Flex wide column gap="16" className="form-field policyField">
+        <Text capitalize semiBold size="large">
           Policies <span>({selectedPolicies?.length || 0})</span>
-        </SectionTitle>
+        </Text>
         <PoliciesInput />
-      </div>
+      </Flex>
       {formError === 'policies' &&
         JSON.stringify(formData.policies) === '{}' && (
           <ErrorSection>

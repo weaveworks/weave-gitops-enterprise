@@ -5,14 +5,6 @@ import { Flex, Text } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
-export const SectionTitle = styled.label`
-  display: block;
-  color: ${props => props.theme.colors.black};
-  font-size: ${props => props.theme.fontSizes.medium};
-  font-weight: 600;
-  margin-top: ${props => props.theme.spacing.large};
-`;
-
 export const TargetItemKind = styled(Text)`
   background: ${props => props.theme.colors.neutralGray};
   padding: ${props => props.theme.spacing.xxs}
@@ -46,6 +38,11 @@ export const WarningWrapper = styled(Alert)`
   color: ${props => props.theme.colors.black} !important;
   display: flex !important;
   align-items: center;
+  padding-right: 0 !important;   
+  padding-left: 0 !important; 
+  .MuiAlert-icon{
+    margin-left: ${props => props.theme.spacing.base} !important;
+  }
 `;
 export const PolicyConfigsTableWrapper = styled(TableWrapper)`
   table tbody tr td:first-child {
@@ -58,6 +55,9 @@ export const PolicyDetailsCardWrapper = styled.ul`
   list-style: none;
   display: flex;
   flex-flow: wrap;
+  &.policyDetails{
+    width: 80%;
+  }
   li {
     width: 30%;
     padding: ${props => props.theme.spacing.base}
@@ -187,12 +187,3 @@ export const RemoveIcon = styled(RemoveCircleOutline)`
   cursor: pointer;
 `;
 
-export const TargetItemsList = styled.ul`
-  li {
-    margin-top: ${props => props.theme.spacing.xs};
-    display: flex;
-    align-items: center;
-  }
-  padding: 0;
-  margin: 0;
-`;
