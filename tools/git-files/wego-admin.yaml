@@ -19,7 +19,14 @@ metadata:
 rules:
   - apiGroups: [""]
     resources:
-      ["secrets", "pods", "namespaces", "serviceaccounts", "configmaps"]
+      [
+        "secrets",
+        "pods",
+        "namespaces",
+        "serviceaccounts",
+        "configmaps",
+        "events",
+      ]
     verbs: ["get", "list"]
   - apiGroups: ["apps"]
     resources: ["deployments", "replicasets"]

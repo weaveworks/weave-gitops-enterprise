@@ -2,6 +2,7 @@ package store
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"strings"
@@ -283,6 +284,35 @@ func TestGetAccessRules(t *testing.T) {
 	if diff != "" {
 		t.Errorf("GetAccessRules() mismatch (-want +got):\n%s", diff)
 	}
+}
+
+func TestStoreUnstructured(t *testing.T) {
+	g := NewGomegaWithT(t)
+	input := []byte(`{"myKey": "someValue"}`)
+	rawMsg := json.RawMessage(input)
+	store, db := createStore(t)
+
+	obj := models.Object{
+		Cluster:      "test-cluster",
+		Name:         "someName",
+		Namespace:    "namespace",
+		Kind:         "ValidKind",
+		APIGroup:     "example.com",
+		APIVersion:   "v1",
+		Category:     models.CategoryAutomation,
+		Unstructured: rawMsg,
+	}
+
+	g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
+
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	result := []byte{}
+
+	g.Expect(sqlDB.QueryRow("SELECT unstructured FROM objects").Scan(&result)).To(Succeed())
+
+	g.Expect(result).To(Equal(input))
 }
 
 func createStore(t *testing.T) (Store, *gorm.DB) {
