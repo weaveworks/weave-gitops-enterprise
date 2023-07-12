@@ -97,14 +97,9 @@ describe('GetPolicyConfigDetails', () => {
       moment(policyConfig.age).fromNow(),
     );
     const AppliedTo = document.querySelector(
-      'span[data-testid="appliedTo"] span:first-child',
+      'span[data-testid="appliedTo"]',
     );
-    expect(AppliedTo).toHaveTextContent(policyConfig.matchType);
-
-    const AppliedToLength = document.querySelector(
-      'span[data-testid="appliedTo"] span:last-child',
-    );
-    expect(AppliedToLength).toHaveTextContent(`(${matchedItem.length})`);
+    expect(AppliedTo).toHaveTextContent(`${policyConfig.matchType} (${matchedItem.length})`);
 
     matchedItem.map(item => {
       const AppliedToItem = document.querySelector(
