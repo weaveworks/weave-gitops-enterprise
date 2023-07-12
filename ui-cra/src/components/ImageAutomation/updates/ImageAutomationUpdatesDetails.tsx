@@ -8,9 +8,9 @@ import {
 import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ImageAutomationDetails from '../ImageAutomationDetails';
-import { Page } from '../../Layout/App';
 
 type Props = {
   className?: string;
@@ -32,7 +32,7 @@ function getInfoList(
   return [
     ['Kind', kind],
     ['Namespace', data?.namespace],
-    ['Namespace', data?.clusterName],
+    ['ClusterName', data?.clusterName],
     [
       'Source',
       <SourceLink sourceRef={data.sourceRef} clusterName={clusterName} />,

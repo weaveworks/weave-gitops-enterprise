@@ -21,9 +21,11 @@ import {
   getDefaultGitRepo,
   getProvider,
   getRepositoryUrl,
+  bitbucketReposToHttpsUrl,
 } from '../Templates/Form/utils';
 import { useGitRepos } from '../../hooks/gitrepos';
 import { useListConfigContext } from '../../contexts/ListConfig';
+import _ from 'lodash';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -51,14 +53,14 @@ export function getPullRequestUrl(
     return baseUrl + '/-/merge_requests';
   }
 
-  // FIXME: this is not correct
   if (provider === 'bitbucket-server') {
-    return baseUrl + '/pull-requests';
+    const url = bitbucketReposToHttpsUrl(baseUrl);
+
+    return url + '/pull-requests';
   }
 
-  // FIXME: this is not correct
   if (provider === 'azure-devops') {
-    return baseUrl + '/pullrequests';
+    return baseUrl + '/pullrequests?_a=active';
   }
 
   // github is the default
@@ -82,7 +84,7 @@ export default function OpenedPullRequest() {
     () =>
       !config
         ? ([] as string[])
-        : gitRepos.map(repo => getPullRequestUrl(repo, config)),
+        : _.uniq(gitRepos.map(repo => getPullRequestUrl(repo, config))),
     [gitRepos, config],
   );
 
@@ -165,11 +167,7 @@ export default function OpenedPullRequest() {
               <ClickAwayListener onClickAway={handleClose}>
                 <MenuList id="split-button-menu">
                   {options.map((option, index) => (
-                    <MenuItem
-                      key={option}
-                      // FIXME: change to openLinkHandler
-                      onClick={openLinkHandler(option)}
-                    >
+                    <MenuItem key={option} onClick={openLinkHandler(option)}>
                       {option}
                     </MenuItem>
                   ))}
