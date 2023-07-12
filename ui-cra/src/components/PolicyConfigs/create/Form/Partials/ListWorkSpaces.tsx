@@ -2,7 +2,7 @@ import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
 import { Dispatch, useEffect } from 'react';
 import { useListWorkspaces } from '../../../../../contexts/Workspaces';
 import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
-import { usePolicyConfigStyle } from '../../../PolicyConfigStyles';
+import { CheckList } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
   cluster: string;
@@ -21,9 +21,6 @@ export const ListWorkSpaces = ({
   selectedWorkspacesList,
 }: SelectSecretStoreProps) => {
   const { data: workSpacesList, isLoading, error } = useListWorkspaces({});
-
-  const classes = usePolicyConfigStyle();
-
   const workspaces =
     workSpacesList?.workspaces?.filter(workspace =>
       formData.isControlPlane
@@ -56,7 +53,7 @@ export const ListWorkSpaces = ({
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {workspaces.length ? (
         <FormGroup>
-          <ul className={classes.checkList}>
+          <CheckList>
             {workspaces.map(workspace => (
               <li
                 key={`${workspace.name}${workspace.clusterName}`}
@@ -76,11 +73,11 @@ export const ListWorkSpaces = ({
                 />
               </li>
             ))}
-          </ul>
+          </CheckList>
         </FormGroup>
       ) : (
         <span>No Workspaces found</span>
-      )}{' '}
+      )}
     </LoadingWrapper>
   ) : (
     <span>No cluster selected yet</span>
