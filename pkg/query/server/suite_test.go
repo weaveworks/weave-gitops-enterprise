@@ -16,7 +16,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -38,6 +37,7 @@ import (
 	"k8s.io/client-go/rest"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	"github.com/onsi/gomega"
 	clusterctrlv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"k8s.io/client-go/kubernetes"

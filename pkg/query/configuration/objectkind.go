@@ -2,28 +2,23 @@ package configuration
 
 import (
 	"fmt"
-	"time"
+
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/fluxcd/kustomize-controller/api/v1beta2"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	corev1 "k8s.io/api/core/v1"
+	v1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// FilterFunc can be used to only retain relevant objects.
-// For example, we may want to keep Events, but only Events from a particular source.
-type FilterFunc func(obj client.Object) bool
-
 type ObjectKind struct {
 	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
 	NewClientObjectFunc func() client.Object        `json:"-"`
 	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
 	RetentionPolicy     RetentionPolicy             `json:"-"`
-	FilterFunc          FilterFunc
 }
 
 func (ok ObjectKind) String() string {
@@ -53,23 +48,23 @@ var (
 		AddToSchemeFunc: v2beta1.AddToScheme,
 	}
 	KustomizationObjectKind = ObjectKind{
-		Gvk: v1beta2.GroupVersion.WithKind(v1beta2.KustomizationKind),
+		Gvk: v1.GroupVersion.WithKind(v1.KustomizationKind),
 		NewClientObjectFunc: func() client.Object {
-			return &v1beta2.Kustomization{}
+			return &v1.Kustomization{}
 		},
-		AddToSchemeFunc: v1beta2.AddToScheme,
+		AddToSchemeFunc: v1.AddToScheme,
 	}
 	HelmRepositoryObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.HelmRepositoryKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmRepositoryKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.HelmRepository{}
+			return &sourcev1beta2.HelmRepository{}
 		},
 		AddToSchemeFunc: sourcev1.AddToScheme,
 	}
 	HelmChartObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.HelmChartKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmChartKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.HelmChart{}
+			return &sourcev1beta2.HelmChart{}
 		},
 		AddToSchemeFunc: sourcev1.AddToScheme,
 	}
@@ -81,18 +76,18 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 	}
 	OCIRepositoryObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.OCIRepositoryKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.OCIRepositoryKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.OCIRepository{}
+			return &sourcev1beta2.OCIRepository{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	BucketObjectKind = ObjectKind{
-		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.BucketKind),
+		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.BucketKind),
 		NewClientObjectFunc: func() client.Object {
-			return &sourcev1.Bucket{}
+			return &sourcev1beta2.Bucket{}
 		},
-		AddToSchemeFunc: sourcev1.AddToScheme,
+		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 	}
 	RoleObjectKind = ObjectKind{
 		Gvk: rbacv1.SchemeGroupVersion.WithKind("Role"),
@@ -122,23 +117,6 @@ var (
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
 	}
-
-	PolicyAgentEventObjectKind = ObjectKind{
-		Gvk: corev1.SchemeGroupVersion.WithKind("Event"),
-		NewClientObjectFunc: func() client.Object {
-			return &corev1.Event{}
-		},
-		AddToSchemeFunc: corev1.AddToScheme,
-		FilterFunc: func(obj client.Object) bool {
-			e, ok := obj.(*corev1.Event)
-			if !ok {
-				return false
-			}
-
-			return e.Source.Component == "policy-agent"
-		},
-		RetentionPolicy: RetentionPolicy(24 * time.Hour),
-	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -150,7 +128,6 @@ var SupportedObjectKinds = []ObjectKind{
 	GitRepositoryObjectKind,
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
-	PolicyAgentEventObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
