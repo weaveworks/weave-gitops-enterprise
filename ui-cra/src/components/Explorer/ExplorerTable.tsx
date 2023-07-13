@@ -4,11 +4,12 @@ import {
   Icon,
   IconType,
   Link,
+  V2Routes,
   formatURL,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { Object } from '../../api/query/query.pb';
-import { getKindRoute } from '../../utils/nav';
+import { Routes, getKindRoute } from '../../utils/nav';
 // @ts-ignore
 import { DataTable } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
@@ -49,11 +50,21 @@ function ExplorerTable({
           value: (o: Object) => {
             const page = getKindRoute(o?.kind as string);
 
-            const url = formatURL(page, {
-              name: o.name,
-              namespace: o.namespace,
-              clusterName: o.cluster,
-            });
+            let url: string;
+            if (page === V2Routes.NotImplemented) {
+              url = formatURL(Routes.ExplorerView, {
+                kind: o.kind,
+                name: o.name,
+                namespace: o.namespace,
+                clusterName: o.cluster,
+              });
+            } else {
+              url = formatURL(page, {
+                name: o.name,
+                namespace: o.namespace,
+                clusterName: o.cluster,
+              });
+            }
 
             return <Link to={url}>{o.name}</Link>;
           },
@@ -75,27 +86,33 @@ function ExplorerTable({
           label: 'Status',
           sortValue: () => 'status',
           defaultSort: sortField === 'status',
-          value: (o: Object) => (
-            <Flex align>
-              <Box marginRight={1}>
-                <Icon
-                  size={24}
-                  color={
-                    o?.status === 'Success'
-                      ? 'successOriginal'
-                      : 'alertOriginal'
-                  }
-                  type={
-                    o?.status === 'Success'
-                      ? IconType.SuccessIcon
-                      : IconType.ErrorIcon
-                  }
-                />
-              </Box>
+          value: (o: Object) => {
+            if (o.status === '-') {
+              return '-';
+            }
 
-              {o?.status}
-            </Flex>
-          ),
+            return (
+              <Flex align>
+                <Box marginRight={1}>
+                  <Icon
+                    size={24}
+                    color={
+                      o?.status === 'Success'
+                        ? 'successOriginal'
+                        : 'alertOriginal'
+                    }
+                    type={
+                      o?.status === 'Success'
+                        ? IconType.SuccessIcon
+                        : IconType.ErrorIcon
+                    }
+                  />
+                </Box>
+
+                {o?.status}
+              </Flex>
+            );
+          },
         },
         {
           label: 'Message',

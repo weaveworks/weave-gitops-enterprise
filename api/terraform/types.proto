@@ -33,6 +33,13 @@ message NamespacedObjectReference {
     string namespace = 2;
 }
 
+message ObjectRef {
+    string clusterName = 1;
+    string name        = 2;
+    string namespace   = 3;
+    string kind        = 4;
+}
+
 message TerraformObject {
     string name        = 1;
     string namespace   = 2;

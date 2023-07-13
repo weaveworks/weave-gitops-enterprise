@@ -468,7 +468,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			s, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
-			indexer, err := store.NewIndexer(s, dir)
+			indexer, err := store.NewIndexer(s, dir, logr.Discard())
 			g.Expect(err).NotTo(HaveOccurred())
 
 			g.Expect(s.StoreObjects(context.Background(), tt.objects)).To(Succeed())

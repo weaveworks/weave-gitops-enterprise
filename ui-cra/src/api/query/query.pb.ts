@@ -28,6 +28,7 @@ export type Object = {
   apiVersion?: string
   message?: string
   category?: string
+  unstructured?: string
 }
 
 export type DebugGetAccessRulesRequest = {

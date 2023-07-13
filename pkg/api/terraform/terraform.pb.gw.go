@@ -137,8 +137,8 @@ func local_request_Terraform_GetTerraformObject_0(ctx context.Context, marshaler
 
 }
 
-func request_Terraform_SyncTerraformObject_0(ctx context.Context, marshaler runtime.Marshaler, client TerraformClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SyncTerraformObjectRequest
+func request_Terraform_SyncTerraformObjects_0(ctx context.Context, marshaler runtime.Marshaler, client TerraformClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq SyncTerraformObjectsRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -149,13 +149,13 @@ func request_Terraform_SyncTerraformObject_0(ctx context.Context, marshaler runt
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.SyncTerraformObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.SyncTerraformObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Terraform_SyncTerraformObject_0(ctx context.Context, marshaler runtime.Marshaler, server TerraformServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq SyncTerraformObjectRequest
+func local_request_Terraform_SyncTerraformObjects_0(ctx context.Context, marshaler runtime.Marshaler, server TerraformServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq SyncTerraformObjectsRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -166,13 +166,13 @@ func local_request_Terraform_SyncTerraformObject_0(ctx context.Context, marshale
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.SyncTerraformObject(ctx, &protoReq)
+	msg, err := server.SyncTerraformObjects(ctx, &protoReq)
 	return msg, metadata, err
 
 }
 
-func request_Terraform_ToggleSuspendTerraformObject_0(ctx context.Context, marshaler runtime.Marshaler, client TerraformClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ToggleSuspendTerraformObjectRequest
+func request_Terraform_ToggleSuspendTerraformObjects_0(ctx context.Context, marshaler runtime.Marshaler, client TerraformClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ToggleSuspendTerraformObjectsRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -183,13 +183,13 @@ func request_Terraform_ToggleSuspendTerraformObject_0(ctx context.Context, marsh
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := client.ToggleSuspendTerraformObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.ToggleSuspendTerraformObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
 }
 
-func local_request_Terraform_ToggleSuspendTerraformObject_0(ctx context.Context, marshaler runtime.Marshaler, server TerraformServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var protoReq ToggleSuspendTerraformObjectRequest
+func local_request_Terraform_ToggleSuspendTerraformObjects_0(ctx context.Context, marshaler runtime.Marshaler, server TerraformServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq ToggleSuspendTerraformObjectsRequest
 	var metadata runtime.ServerMetadata
 
 	newReader, berr := utilities.IOReaderFactory(req.Body)
@@ -200,7 +200,7 @@ func local_request_Terraform_ToggleSuspendTerraformObject_0(ctx context.Context,
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
-	msg, err := server.ToggleSuspendTerraformObject(ctx, &protoReq)
+	msg, err := server.ToggleSuspendTerraformObjects(ctx, &protoReq)
 	return msg, metadata, err
 
 }
@@ -331,7 +331,7 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 
 	})
 
-	mux.Handle("POST", pattern_Terraform_SyncTerraformObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Terraform_SyncTerraformObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -339,12 +339,12 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/SyncTerraformObject", runtime.WithHTTPPathPattern("/v1/terraform_objects/sync"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/SyncTerraformObjects", runtime.WithHTTPPathPattern("/v1/terraform_objects/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Terraform_SyncTerraformObject_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Terraform_SyncTerraformObjects_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -352,11 +352,11 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 			return
 		}
 
-		forward_Terraform_SyncTerraformObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Terraform_SyncTerraformObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Terraform_ToggleSuspendTerraformObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Terraform_ToggleSuspendTerraformObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
@@ -364,12 +364,12 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/ToggleSuspendTerraformObject", runtime.WithHTTPPathPattern("/v1/terraform_objects/suspend"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/ToggleSuspendTerraformObjects", runtime.WithHTTPPathPattern("/v1/terraform_objects/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_Terraform_ToggleSuspendTerraformObject_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_Terraform_ToggleSuspendTerraformObjects_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
@@ -377,7 +377,7 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 			return
 		}
 
-		forward_Terraform_ToggleSuspendTerraformObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Terraform_ToggleSuspendTerraformObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -516,47 +516,47 @@ func RegisterTerraformHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 
 	})
 
-	mux.Handle("POST", pattern_Terraform_SyncTerraformObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Terraform_SyncTerraformObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/SyncTerraformObject", runtime.WithHTTPPathPattern("/v1/terraform_objects/sync"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/SyncTerraformObjects", runtime.WithHTTPPathPattern("/v1/terraform_objects/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Terraform_SyncTerraformObject_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Terraform_SyncTerraformObjects_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Terraform_SyncTerraformObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Terraform_SyncTerraformObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
-	mux.Handle("POST", pattern_Terraform_ToggleSuspendTerraformObject_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle("POST", pattern_Terraform_ToggleSuspendTerraformObjects_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/ToggleSuspendTerraformObject", runtime.WithHTTPPathPattern("/v1/terraform_objects/suspend"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/ToggleSuspendTerraformObjects", runtime.WithHTTPPathPattern("/v1/terraform_objects/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_Terraform_ToggleSuspendTerraformObject_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_Terraform_ToggleSuspendTerraformObjects_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
 
-		forward_Terraform_ToggleSuspendTerraformObject_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_Terraform_ToggleSuspendTerraformObjects_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -612,9 +612,9 @@ var (
 
 	pattern_Terraform_GetTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "terraform_objects", "name"}, ""))
 
-	pattern_Terraform_SyncTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform_objects", "sync"}, ""))
+	pattern_Terraform_SyncTerraformObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform_objects", "sync"}, ""))
 
-	pattern_Terraform_ToggleSuspendTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform_objects", "suspend"}, ""))
+	pattern_Terraform_ToggleSuspendTerraformObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform_objects", "suspend"}, ""))
 
 	pattern_Terraform_GetTerraformObjectPlan_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform_objects", "plan"}, ""))
 
@@ -626,9 +626,9 @@ var (
 
 	forward_Terraform_GetTerraformObject_0 = runtime.ForwardResponseMessage
 
-	forward_Terraform_SyncTerraformObject_0 = runtime.ForwardResponseMessage
+	forward_Terraform_SyncTerraformObjects_0 = runtime.ForwardResponseMessage
 
-	forward_Terraform_ToggleSuspendTerraformObject_0 = runtime.ForwardResponseMessage
+	forward_Terraform_ToggleSuspendTerraformObjects_0 = runtime.ForwardResponseMessage
 
 	forward_Terraform_GetTerraformObjectPlan_0 = runtime.ForwardResponseMessage
 
