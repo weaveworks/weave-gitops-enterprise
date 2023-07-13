@@ -43,7 +43,8 @@ const TemplatesDashboard: FC<{
   };
 
   const handleAddCluster = useCallback(
-    (event, t) => history.push(`/templates/${t.name}/create`),
+    (event, t) =>
+      history.push(`/templates/create?name=${t.name}&namespace=${t.namespace}`),
     [history],
   );
 

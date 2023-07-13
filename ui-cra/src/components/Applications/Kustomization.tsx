@@ -20,14 +20,14 @@ type Props = {
 };
 
 function resolveLink(obj: string, params: any) {
+  const { clusterName } = params;
   switch (obj) {
     case 'Canary':
       return formatURL(Routes.CanaryDetails, params);
-
     case 'Pipeline':
       return formatURL(Routes.PipelineDetails, params);
     case 'ClusterDashboard':
-      return formatClusterDashboardUrl(params.clusterName);
+      return formatClusterDashboardUrl({ clusterName });
     case 'Terraform':
       return formatURL(Routes.TerraformDetail, params);
     default:

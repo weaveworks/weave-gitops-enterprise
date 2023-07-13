@@ -55,7 +55,7 @@ export enum Routes {
   Policies = '/policies',
   PolicyDetails = '/policies/details',
 
-  AddCluster = '/templates/:templateName/create',
+  AddCluster = '/templates/create',
 
   Templates = '/templates',
 
