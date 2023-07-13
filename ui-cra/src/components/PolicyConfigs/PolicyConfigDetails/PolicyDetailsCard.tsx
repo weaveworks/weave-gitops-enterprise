@@ -1,14 +1,18 @@
 import { Card, CardContent } from '@material-ui/core';
-import { formatURL, Link, V2Routes } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  Link,
+  Text,
+  V2Routes,
+  formatURL,
+} from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
 } from '../../../cluster-services/cluster_services.pb';
 import {
   PolicyDetailsCardWrapper,
-  SectionTitle,
   WarningIcon,
-  usePolicyConfigStyle,
 } from '../PolicyConfigStyles';
 
 interface GetCardTitleProps {
@@ -32,14 +36,12 @@ export default function PolicyDetailsCard({
   totalPolicies,
   clusterName,
 }: GetPolicyConfigResponse) {
-  const classes = usePolicyConfigStyle();
-
   return (
-    <div>
-      <SectionTitle>
+    <Flex wide column gap="4">
+      <Text capitalize semiBold size="medium">
         Policies <span data-testid="totalPolicies">({totalPolicies})</span>
-      </SectionTitle>
-      <PolicyDetailsCardWrapper>
+      </Text>
+      <PolicyDetailsCardWrapper className="policyDetails">
         {policies?.map(policy => (
           <li key={policy.id} data-testid="list-item">
             <Card>
@@ -48,15 +50,17 @@ export default function PolicyDetailsCard({
                 <label className="cardLbl">Parameters</label>
                 {Object.entries(policy.parameters || {}).map(([key, value]) => (
                   <div className="parameterItem" key={key}>
-                    <label data-testid={key} className={classes.upperCase}>
-                      {key}{' '}
-                    </label>
-                    <div
+                    <Text data-testid={key} uppercase size="small">
+                      {key}
+                    </Text>
+                    <Text
+                      uppercase
+                      className="parameterItemValue"
                       data-testid={`${key}Value`}
-                      className={`parameterItemValue ${classes.upperCase}`}
+                      size="small"
                     >
                       {renderParameterValue(value)}
-                    </div>
+                    </Text>
                   </div>
                 ))}
               </CardContent>
@@ -64,26 +68,29 @@ export default function PolicyDetailsCard({
           </li>
         ))}
       </PolicyDetailsCardWrapper>
-    </div>
+    </Flex>
   );
 }
 export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
-  const classes = usePolicyConfigStyle();
   const { status, id, name } = policy;
 
   return status === 'OK' ? (
     <Link
+      textProps={{
+        color: 'primary',
+        size: 'medium',
+        capitalize: true,
+      }}
       to={formatURL(V2Routes.PolicyDetailsPage, {
         clusterName: clusterName,
         id: id,
       })}
-      className={classes.link}
       data-policy-name={name}
     >
       <span data-testid={`policyId-${name}`}>{name}</span>
     </Link>
   ) : (
-    <div className={classes.policyTitle}>
+    <Flex align gap="8">
       <span
         title={`One or more policies are not found in cluster ${clusterName}.`}
         data-testid={`warning-icon-${id}`}
@@ -91,6 +98,6 @@ export function CardTitle({ clusterName, policy }: GetCardTitleProps) {
         <WarningIcon />
       </span>
       <span data-testid={`policyId-${id}`}>{id}</span>
-    </div>
+    </Flex>
   );
 }

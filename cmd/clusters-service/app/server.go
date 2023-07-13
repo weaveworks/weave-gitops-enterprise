@@ -682,7 +682,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			SkipCollection:      false,
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
-			EnableObjectCleaner: featureflags.Get("WEAVE_GITOPS_FEATURE_OBJECT_CLEANER") != "",
+			EnableObjectCleaner: args.EnableObjectCleaner,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating query server: %w", err)

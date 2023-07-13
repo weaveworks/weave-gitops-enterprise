@@ -8,9 +8,8 @@ import {
   RadioGroup,
   TextField,
 } from '@material-ui/core';
-import { RemoveCircleOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import { Icon, IconType, Text } from '@weaveworks/weave-gitops';
+import { Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import {
   PolicyObj,
   PolicyParam,
@@ -20,9 +19,9 @@ import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg
 import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
 import {
+  ErrorSection,
   PolicyDetailsCardWrapper,
-  SectionTitle,
-  usePolicyConfigStyle,
+  RemoveIcon,
 } from '../../../PolicyConfigStyles';
 
 interface SelectSecretStoreProps {
@@ -38,9 +37,7 @@ export const SelectedPolicies = ({
   setFormData,
   formError,
 }: SelectSecretStoreProps) => {
-  const classes = usePolicyConfigStyle();
   const [selectedPolicies, setSelectedPolicies] = useState<PolicyObj[]>([]);
-
   const { data } = useListPolicies({});
 
   const policiesList = useMemo(
@@ -148,6 +145,7 @@ export const SelectedPolicies = ({
     <Autocomplete
       multiple
       id="grouped-demo"
+      style={{width:"98%"}}
       value={selectedPolicies}
       options={policiesList?.sort((a, b) =>
         b.category!.localeCompare(a.category!),
@@ -220,12 +218,11 @@ export const SelectedPolicies = ({
         );
       default:
         return (
-          <>
+          <Flex wide wrap>
             {formData.policies[id!]?.parameters[name!] && (
               <span className="modified">Modified</span>
             )}
             <Input
-              className="form-section"
               type={type === 'integer' ? 'number' : 'text'}
               name={name}
               label={name}
@@ -234,27 +231,27 @@ export const SelectedPolicies = ({
                 handlePolicyParams(event.target.value, id!, param);
               }}
             />
-          </>
+          </Flex>
         );
     }
   };
 
   return (
     <>
-      <div className="form-field policyField">
-        <SectionTitle>
+      <Flex wide column gap="16" className="form-field policyField">
+        <Text capitalize semiBold size="large">
           Policies <span>({selectedPolicies?.length || 0})</span>
-        </SectionTitle>
+        </Text>
         <PoliciesInput />
-      </div>
+      </Flex>
       {formError === 'policies' &&
         JSON.stringify(formData.policies) === '{}' && (
-          <div className={classes.errorSection}>
+          <ErrorSection>
             <ErrorIcon />
             <Text color="black">
               Please add at least one policy with modified parameter
             </Text>
-          </div>
+          </ErrorSection>
         )}
 
       <PolicyDetailsCardWrapper>
@@ -262,22 +259,21 @@ export const SelectedPolicies = ({
           <li key={policy.id}>
             <Card>
               <CardContent>
-                <div className={`${classes.policyTitle} editPolicyCardHeader`}>
-                  <span>{policy.name}</span>
-
-                  <RemoveCircleOutline
+                <Flex align between gap="8">
+                  <Text>{policy.name}</Text>
+                  <RemoveIcon
                     onClick={() => handleDeletePolicyParam(policy.id!)}
                   />
-                </div>
+                </Flex>
                 <label className="cardLbl">Parameters</label>
                 {policy?.parameters?.map(param => (
                   <div
                     className="parameterItem"
                     key={`${param.name}${policy.id}`}
                   >
-                    <div className={`parameterItemValue ${classes.upperCase}`}>
+                    <Text uppercase className="parameterItemValue">
                       {getParameterField(param, policy.id!)}
-                    </div>
+                    </Text>
                   </div>
                 ))}
               </CardContent>

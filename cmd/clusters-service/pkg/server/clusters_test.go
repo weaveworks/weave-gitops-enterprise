@@ -1436,6 +1436,7 @@ metadata:
 		t.Run(tt.name, func(t *testing.T) {
 			// setup
 			ts := httptest.NewServer(makeServeMux(t))
+			defer ts.Close()
 			hr := makeTestHelmRepository(ts.URL, func(hr *sourcev1.HelmRepository) {
 				hr.Name = "weaveworks-charts"
 				hr.Namespace = "default"

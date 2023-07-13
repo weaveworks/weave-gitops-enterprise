@@ -29,24 +29,20 @@ export type GetTerraformObjectResponse = {
   type?: string
 }
 
-export type SyncTerraformObjectRequest = {
-  clusterName?: string
-  name?: string
-  namespace?: string
+export type SyncTerraformObjectsRequest = {
+  objects?: TerraformV1Types.ObjectRef[]
 }
 
-export type SyncTerraformObjectResponse = {
+export type SyncTerraformObjectsResponse = {
   success?: boolean
 }
 
-export type ToggleSuspendTerraformObjectRequest = {
-  clusterName?: string
-  name?: string
-  namespace?: string
+export type ToggleSuspendTerraformObjectsRequest = {
+  objects?: TerraformV1Types.ObjectRef[]
   suspend?: boolean
 }
 
-export type ToggleSuspendTerraformObjectResponse = {
+export type ToggleSuspendTerraformObjectsResponse = {
 }
 
 export type GetTerraformObjectPlanRequest = {
@@ -78,11 +74,11 @@ export class Terraform {
   static GetTerraformObject(req: GetTerraformObjectRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectResponse> {
     return fm.fetchReq<GetTerraformObjectRequest, GetTerraformObjectResponse>(`/v1/terraform_objects/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
-  static SyncTerraformObject(req: SyncTerraformObjectRequest, initReq?: fm.InitReq): Promise<SyncTerraformObjectResponse> {
-    return fm.fetchReq<SyncTerraformObjectRequest, SyncTerraformObjectResponse>(`/v1/terraform_objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  static SyncTerraformObjects(req: SyncTerraformObjectsRequest, initReq?: fm.InitReq): Promise<SyncTerraformObjectsResponse> {
+    return fm.fetchReq<SyncTerraformObjectsRequest, SyncTerraformObjectsResponse>(`/v1/terraform_objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
-  static ToggleSuspendTerraformObject(req: ToggleSuspendTerraformObjectRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectResponse> {
-    return fm.fetchReq<ToggleSuspendTerraformObjectRequest, ToggleSuspendTerraformObjectResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  static ToggleSuspendTerraformObjects(req: ToggleSuspendTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectsResponse> {
+    return fm.fetchReq<ToggleSuspendTerraformObjectsRequest, ToggleSuspendTerraformObjectsResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetTerraformObjectPlan(req: GetTerraformObjectPlanRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectPlanResponse> {
     return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/terraform_objects/plan?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

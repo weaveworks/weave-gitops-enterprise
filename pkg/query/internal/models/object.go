@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -16,21 +18,23 @@ type ObjectCategory string
 const (
 	CategoryAutomation ObjectCategory = "automation"
 	CategorySource     ObjectCategory = "source"
+	CategoryEvent      ObjectCategory = "event"
 )
 
 type Object struct {
 	gorm.Model
-	ID                  string         `gorm:"primaryKey;autoIncrement:false"`
-	Cluster             string         `json:"cluster" gorm:"type:text"`
-	Namespace           string         `json:"namespace" gorm:"type:text"`
-	APIGroup            string         `json:"apiGroup" gorm:"type:text"`
-	APIVersion          string         `json:"apiVersion" gorm:"type:text"`
-	Kind                string         `json:"kind" gorm:"type:text"`
-	Name                string         `json:"name" gorm:"type:text"`
-	Status              string         `json:"status" gorm:"type:text"`
-	Message             string         `json:"message" gorm:"type:text"`
-	Category            ObjectCategory `json:"category" gorm:"type:text"`
-	KubernetesDeletedAt time.Time      `json:"kubernetesDeletedAt"`
+	ID                  string          `gorm:"primaryKey;autoIncrement:false"`
+	Cluster             string          `json:"cluster" gorm:"type:text"`
+	Namespace           string          `json:"namespace" gorm:"type:text"`
+	APIGroup            string          `json:"apiGroup" gorm:"type:text"`
+	APIVersion          string          `json:"apiVersion" gorm:"type:text"`
+	Kind                string          `json:"kind" gorm:"type:text"`
+	Name                string          `json:"name" gorm:"type:text"`
+	Status              string          `json:"status" gorm:"type:text"`
+	Message             string          `json:"message" gorm:"type:text"`
+	Category            ObjectCategory  `json:"category" gorm:"type:text"`
+	KubernetesDeletedAt time.Time       `json:"kubernetesDeletedAt"`
+	Unstructured        json.RawMessage `json:"unstructured" gorm:"type:blob"`
 }
 
 func (o Object) Validate() error {
@@ -43,9 +47,6 @@ func (o Object) Validate() error {
 	if o.Namespace == "" {
 		return fmt.Errorf("missing namespace field")
 	}
-	if o.APIGroup == "" {
-		return fmt.Errorf("missing api group field")
-	}
 	if o.APIVersion == "" {
 		return fmt.Errorf("missing api version field")
 	}
@@ -53,8 +54,8 @@ func (o Object) Validate() error {
 		return fmt.Errorf("missing kind field")
 	}
 
-	if o.Category != CategoryAutomation && o.Category != CategorySource {
-		return fmt.Errorf("invalid category: %s", o.Category)
+	if o.Category == "" {
+		return errors.New("category is required")
 	}
 
 	return nil

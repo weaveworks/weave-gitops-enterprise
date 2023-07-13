@@ -46,6 +46,7 @@ import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
+import { addTFSupport } from './utils/request';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -184,6 +185,9 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
     </ThemeProvider>
   );
 };
+
+//adds Terraform Sync and Suspend support to the OSS Sync and Suspend funcs. This is necessary in order to not have to make drastic modifications to DataTable, as CheckboxActions is deeply embedded. When DataTable gets broken up, we can pass down Sync and Suspend functions to it.
+addTFSupport(coreClient);
 
 const AppContainer = () => {
   return (
