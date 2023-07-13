@@ -32,7 +32,10 @@ export function formatClusterDashboardUrl({ clusterName, namespace }: Props) {
   });
 }
 
-export function ClusterDashboardLink({ clusterName }: { clusterName: string }) {
-  const clsUrl = formatClusterDashboardUrl({ clusterName });
+export function ClusterDashboardLink({
+  clusterName,
+  namespace,
+}: Props): JSX.Element {
+  const clsUrl = formatClusterDashboardUrl({ clusterName, namespace });
   return <>{clsUrl ? <Link to={clsUrl}>{clusterName}</Link> : clusterName}</>;
 }
