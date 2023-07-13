@@ -27,6 +27,13 @@ const ClusterDashbordWrapper = styled.div`
   }
 `;
 
+const StyledChip = styled(Chip)`
+  &.MuiChip-root {
+    background-color: ${props => props.theme.colors.neutralGray};
+    color: ${props => props.theme.colors.black};
+  }
+`;
+
 const ClusterDashboard = ({
   currentCluster,
   getDashboardAnnotations,
@@ -83,13 +90,6 @@ const ClusterDashboard = ({
         ['APIVersion', infrastructureRef.apiVersion],
       ]
     : [];
-
-  const StyledChip = styled(Chip)`
-    &.MuiChip-root {
-      background-color: ${props => props.theme.colors.neutralGray};
-      color: ${props => props.theme.colors.black};
-    }
-  `;
 
   const renderer = (
     labels: GitopsClusterEnriched['labels'] | null,

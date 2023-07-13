@@ -1,12 +1,13 @@
 import Grid from '@material-ui/core/Grid';
-import { useParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
 import { NotificationsWrapper, Title } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { Page } from '../../Layout/App';
 
 const CreateResourcePage = () => {
-  const { templateName } = useParams<{ templateName: string }>();
+  const { search } = useLocation();
+  const templateName = new URLSearchParams(search).get('name') as string;
   const { getTemplate, isLoading } = useTemplates();
   return (
     <Page
