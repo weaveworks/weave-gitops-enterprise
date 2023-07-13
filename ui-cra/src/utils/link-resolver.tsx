@@ -4,7 +4,8 @@ import { formatClusterDashboardUrl } from '../components/Clusters/ClusterDashboa
 export const resolver = (path: string, params?: any) => {
   // cover cluster-dashboard resolver path
   if (path === 'ClusterDashboard') {
-    const url = formatClusterDashboardUrl(params.clusterName);
+    const { clusterName } = params;
+    const url = formatClusterDashboardUrl({ clusterName });
     return url;
   }
   // Fix Kind as a path

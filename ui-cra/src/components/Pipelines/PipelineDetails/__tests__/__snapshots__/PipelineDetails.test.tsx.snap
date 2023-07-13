@@ -1051,7 +1051,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         class="c35 cluster-name"
                       >
                         <a
-                          href="/cluster?clusterName=dev"
+                          href="/cluster?clusterName=dev&namespace="
                         >
                           dev
                         </a>
@@ -1183,7 +1183,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         class="c35 cluster-name"
                       >
                         <a
-                          href="/cluster?clusterName=dev"
+                          href="/cluster?clusterName=dev&namespace="
                         >
                           dev
                         </a>
@@ -1294,7 +1294,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         class="c35 cluster-name"
                       >
                         <a
-                          href="/cluster?clusterName=dev"
+                          href="/cluster?clusterName=dev&namespace="
                         >
                           dev
                         </a>
@@ -1426,7 +1426,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         class="c35 cluster-name"
                       >
                         <a
-                          href="/cluster?clusterName=prod"
+                          href="/cluster?clusterName=prod&namespace="
                         >
                           prod
                         </a>
