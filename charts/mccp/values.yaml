@@ -188,12 +188,6 @@ clustersService:
 
 templates-controller:
   enabled: true
-  # templates-controller-controller-manager etc
-  fullnameOverride: templates-controller
-  controllerManager:
-    manager:
-      image:
-        tag: v0.2.0
 
 gitopssets-controller:
   enabled: true
