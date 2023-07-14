@@ -66,6 +66,8 @@ envVars:
 - name: WEAVE_GITOPS_USERS_CLIENTS_TTL
   value: 30s
 explorer:
+  cleaner:
+    disabled: false
   collector:
     serviceAccount:
       name: collector
@@ -74,14 +76,14 @@ extraEnvVars: []
 fullnameOverride: ''
 gitopssets-controller:
   controllerManager:
-    args:
-    - --health-probe-bind-address=:8081
-    - --metrics-bind-address=127.0.0.1:8080
-    - --leader-elect
-    - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix
     manager:
+      args:
+      - --health-probe-bind-address=:8081
+      - --metrics-bind-address=127.0.0.1:8080
+      - --leader-elect
+      - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
       image:
-        tag: v0.12.0
+        tag: v0.13.4
   enabled: true
   fullnameOverride: gitopssets
 global:
@@ -96,11 +98,11 @@ global:
         image: cluster-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       clustersService:
-        digest: sha256:c5119c2272957cceef17278c9cf626e837bf91c5f7e0f180a5152dad379f5bd2
+        digest: sha256:9d6b46b42d34a134770a357a52f06809eab2df845ce4ccba50a4e14120b8e40e
         image: weave-gitops-enterprise-clusters-service
         registry: weaveworksmarketplacepublic.azurecr.io
       gitopssetsController:
-        digest: sha256:54b669b6d7a1cd7c24e629e6e5aea12f40ebd773f4d852a6d93467d17efc378e
+        digest: sha256:47d2981e2328658385ffb90832309d1cb028808f3a38afcc6eb42a770c9be312
         image: gitopssets-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       kubeRbacProxy:
@@ -112,15 +114,11 @@ global:
         image: pipeline-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       policyAgent:
-        digest: sha256:8df4cbeac75d3b916fd1fe190a22efd7a8f9baea2fd4fef47a5bbd66aa5748f1
+        digest: sha256:91e47e05b2b32b1944a45571572345697e2cd10b2f95b3cf028710178439a8cb
         image: policy-agent
         registry: weaveworksmarketplacepublic.azurecr.io
-      templatesController:
-        digest: sha256:dde211af18a48f7379339197a64ce1711fbe3ce6bd2247b965f7fd840f412f74
-        image: templates-controller
-        registry: weaveworksmarketplacepublic.azurecr.io
       uiServer:
-        digest: sha256:f2da25b344187b34d1b48a05e1a9cf0168be38829f6c72d4f15bc29fc0331166
+        digest: sha256:f75f2956889d74b981e211d4464a08e7bdd0eb4c9bdd75b430daea0014d28a17
         image: weave-gitops-enterprise-ui-server
         registry: weaveworksmarketplacepublic.azurecr.io
   capiEnabled: true
@@ -128,8 +126,8 @@ global:
 imagePullSecrets: []
 images:
   clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
-  clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.25.0
-  uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.25.0
+  clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.28.0-rc.1
+  uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.28.0-rc.1
 ingress:
   annotations: {}
   className: ''
@@ -190,12 +188,7 @@ serviceAccount:
   create: true
   name: ''
 templates-controller:
-  controllerManager:
-    manager:
-      image:
-        tag: v0.2.0
   enabled: true
-  fullnameOverride: templates-controller
 tls:
   enabled: true
   secretName: ''

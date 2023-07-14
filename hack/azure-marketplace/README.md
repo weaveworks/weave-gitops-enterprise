@@ -55,6 +55,13 @@ az acr login -n weaveworksmarketplacepublic.azurecr.io
 ```bash
 helm repo add weave-gitops-enterprise-charts https://charts.dev.wkp.weave.works/releases/charts-v3
 helm repo update
+
+# this branch, maybe will merge to main one day
+git checkout aws-marketplace
+# where you have the weave-gitops-enterprise repo
+cd ~/weave-gitops-enterprise
+cd ./hack/azure-marketplace
+
 ./publish_images_azure.py --version 0.25.0 --local-helm-chart weave-gitops-enterprise-charts --dry-run
 ```
 
@@ -64,6 +71,8 @@ Check that it looks sort of sensible then run it for real
 ./publish_images_azure.py --version 0.25.0 --local-helm-chart weave-gitops-enterprise-charts
 ```
 
+Head to the [weaveworksmarketplacepublic.azurecr.io registry on the Azure portal](https://portal.azure.com/#@Weave365.onmicrosoft.com/resource/subscriptions/ace37984-3d07-4051-9002-d5a52c0ae14b/resourceGroups/team-pesto-use1/providers/Microsoft.ContainerRegistry/registries/weaveworksmarketplacepublic/repository) and check that the images are there
+
 ## Convert some weave-gitops-enterprise helm chart to an azure compatible chart
 
 Grab a chart from some weaveworks helm repo
@@ -72,31 +81,40 @@ Grab a chart from some weaveworks helm repo
 # add if you haven't already
 helm repo add weave-gitops-enterprise-charts https://charts.dev.wkp.weave.works/releases/charts-v3
 helm repo update
+
+# then pull the chart
 helm pull weave-gitops-enterprise-charts/mccp --version 0.25.0
 ```
 
 Extract the chart and inspect it
 
 ```bash
-# -xtractzeefiles
+# remove the existing chart
+rm -rf ./mccp/*
+
+# -xtractzeefiles back out to recreate the chart
 tar -xzf mccp-0.25.0.tgz
-cd mccp
+
+# Have a look at the base chart to see the diff between the "normal" chart, and the azure chart we just removed
+git diff
 ```
 
 Convert it to an azure compatible chart
 
 ```bash
 # up, if you haven't already
-cd ..
 # convert the chart to an azure compatible chart
 python3 to_azure_chart.py mccp
-cd mccp
 
 # See whats changed
 git diff
 ```
 
 ## Test the helm chart
+
+> **Warning**
+> FIXME: This doesn't work right now. `kind_load_images.py` is broken, see here -
+> https://github.com/kubernetes-sigs/kind/issues/2394
 
 Lets test with `kind`!
 
@@ -110,11 +128,8 @@ The standard prep:
 
 Pull all the images from `global.azure.images` section from ACR, then push them into a kind cluster.
 
-> **Warning**
-> FIXME: This load_kind_images.py isn't working right now
-
 ```
-python3 load_kind_images.py ./mccp
+python3 kind_load_images.py ./mccp
 ```
 
 Install the chart
@@ -165,6 +180,14 @@ cpa verify
 cpa buildbundle
 ```
 
+Shut down the container, commit the new chart to git and push it up
+
+```bash
+git add .
+git commit -m "Add published chart for 0.24.3"
+git push
+```
+
 ## Update the marketplace offering
 
 1. Head to https://partner.microsoft.com/en-us/dashboard/commercial-marketplace/offers/c4ad183b-9eb3-4c72-b237-969f1ebcf6e7/plans/4c72a3fe-e39e-44a6-9720-bae241dce038/technicalconfiguration
@@ -183,3 +206,19 @@ Azure does not allow the user to configure values.yaml directly, instead a UI mu
 # User-guide
 
 see [./user-guide.md](./user-guide.md)
+
+## Oh no! An image got flagged as vulnerable during marketplace publishing! CVEs..
+
+The "quick and easy way to do this" is
+
+1. Address the CVE in the container image, for example, some go lib in WGE needs to be bumped we:
+   1. Add the `replace` directive to the go.mod file
+2. Get a new docker image
+   1. Either build it locally or push a branch to github and let it build the images
+   2. Go find where it build and pushed that image to on dockerhub/ghcr by looking at the github actions logs
+3. Get the new image up to ACR (after logging in), something like:
+   1. Copy from weaveworks CI: `crane cp weaveworks/weave-gitops-enterprise-clusters-service:fix-azure-cve-circl-4ffa57ce weaveworksmarketplacepublic.azurecr.io/weave-gitops-enterprise-clusters-service:v0.28.1-rc.1`
+   2. Push a locally rebuild image ith `docker tag docker.io/library/policy-agent:452.f950f4b weaveworksmarketplacepublic.azurecr.io/policy-agent:v2.6.0-rc.1`, `docker push weaveworksmarketplacepublic.azurecr.io/policy-agent:v2.6.0-rc.1`)
+4. Find the new sha via the ACR UI
+5. Update ./hack/azure-marketplace/mccp/values.yaml with the new sha
+6. Follow the **Build and push it up to the ACR registry** above, bumping the patch version again, the Azure version will be our of sync with the WGE version but that's ok.

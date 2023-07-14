@@ -13,7 +13,7 @@ config:
 excludeNamespaces: null
 failurePolicy: Fail
 image: weaveworks/policy-agent
-imageTag: v2.4.0
+imageTag: v2.5.0
 key: ""
 persistence:
   enabled: false
