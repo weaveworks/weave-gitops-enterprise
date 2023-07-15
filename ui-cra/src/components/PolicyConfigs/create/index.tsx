@@ -42,7 +42,7 @@ import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { PreviewPRModal } from './PreviewPRModal';
 
 const FormWrapper = styled.form`
-width:80%;
+  width: 80%;
   padding-bottom: ${props => props.theme.spacing.large} !important;
   .group-section {
     border-bottom: 1px dotted ${props => props.theme.colors.neutral20};

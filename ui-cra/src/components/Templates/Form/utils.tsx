@@ -12,6 +12,7 @@ import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitRepositoryEnriched } from '.';
+import styled from 'styled-components';
 
 const yamlConverter = require('js-yaml');
 
@@ -149,3 +150,30 @@ export function getDefaultGitRepo(
 
   return gitRepos[0];
 }
+
+export const FormWrapper = styled.form`
+  .preview-cta {
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+  .preview-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+  .create-cta {
+    padding: ${({ theme }) => theme.spacing.small};
+    button {
+      width: 200px;
+    }
+  }
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+  div[class*='MuiInput-root'] {
+    border: 1px solid ${props => props.theme.colors.neutral20};
+    border-bottom: none;
+    padding: 2px 6px;
+  }
+`;

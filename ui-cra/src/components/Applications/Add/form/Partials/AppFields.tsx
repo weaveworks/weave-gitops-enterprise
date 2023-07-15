@@ -21,7 +21,7 @@ import { useClustersWithSources } from '../../../utils';
 
 const AppFieldsWrapper = styled.div`
   .form-section {
-    width: 50%;
+    width: calc(100% / 3);
   }
   .input-wrapper {
     padding-bottom: ${({ theme }) => theme.spacing.medium};

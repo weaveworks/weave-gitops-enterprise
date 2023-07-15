@@ -1,4 +1,4 @@
-import { FormControl, Input, MenuItem, Select } from '@material-ui/core';
+import { Box, FormControl, Input, MenuItem, Select } from '@material-ui/core';
 import { Button, Flex } from '@weaveworks/weave-gitops';
 import React, {
   ChangeEvent,
@@ -23,17 +23,14 @@ const SelectSetWidth = styled(Select)`
   }
 `;
 
-const SpacedDiv = styled.div`
-  margin-right: ${props => props.theme.spacing.small};
-`;
-
 const ProfilesListItem: FC<{
+  className?: string;
   cluster?: ClusterNamespacedName;
   profile: UpdatedProfile;
   context?: string;
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   helmRepo: RepositoryRef;
-}> = ({ profile, cluster, setUpdatedProfiles, helmRepo }) => {
+}> = ({ profile, cluster, setUpdatedProfiles, helmRepo, className }) => {
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
@@ -134,11 +131,8 @@ const ProfilesListItem: FC<{
 
   return (
     <>
-      <Flex
-        style={{ justifyContent: 'space-around' }}
-        data-profile-name={profile.name}
-      >
-        <SpacedDiv className="profile-version">
+      <Flex data-profile-name={profile.name} className={className}>
+        <Box className="profile-version">
           <FormControl>
             <SelectSetWidth
               disabled={profile.required && profile.values.length === 1}
@@ -150,8 +144,8 @@ const ProfilesListItem: FC<{
               {profileVersions(profile)}
             </SelectSetWidth>
           </FormControl>
-        </SpacedDiv>
-        <SpacedDiv className="profile-namespace">
+        </Box>
+        <Box className="profile-namespace">
           <FormControl>
             <Input
               id="profile-namespace"
@@ -161,7 +155,7 @@ const ProfilesListItem: FC<{
               error={!isNamespaceValid}
             />
           </FormControl>
-        </SpacedDiv>
+        </Box>
         <Button variant="text" onClick={handleYamlPreview}>
           Values.yaml
         </Button>

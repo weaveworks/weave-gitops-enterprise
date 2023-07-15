@@ -7,7 +7,7 @@ import { Routes } from '../../../../utils/nav';
 
 const TemplateFieldsWrapper = styled.div`
   .form-section {
-    width: 50%;
+    width: calc(100% / 3);
   }
 `;
 

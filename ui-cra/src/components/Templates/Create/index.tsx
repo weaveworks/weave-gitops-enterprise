@@ -1,4 +1,3 @@
-import Grid from '@material-ui/core/Grid';
 import { useLocation } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
 import { NotificationsWrapper, Title } from '../../Layout/NotificationsWrapper';
@@ -18,12 +17,8 @@ const CreateResourcePage = () => {
       ]}
     >
       <NotificationsWrapper>
-        <Grid container>
-          <Grid item xs={12} sm={10} md={10} lg={8}>
-            <Title>Create new resource with template</Title>
-          </Grid>
-          <ResourceForm template={getTemplate(templateName)} />
-        </Grid>
+        <Title>Create new resource with template</Title>
+        <ResourceForm template={getTemplate(templateName)} />
       </NotificationsWrapper>
     </Page>
   );
