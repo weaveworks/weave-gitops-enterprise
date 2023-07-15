@@ -306,7 +306,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const editLink = resource && getLink(resource);
   const authRedirectPage = resource
     ? editLink
-    : `/templates/${template?.name}/create`;
+    : `/templates/create?name=${template.name}&namespace=${template.namespace}`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
   const [PRPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
     null,
