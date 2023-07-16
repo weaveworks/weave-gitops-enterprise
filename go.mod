@@ -423,6 +423,10 @@ replace (
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
+	// replace circl to 1.3.3
+	// https://github.com/advisories/GHSA-2q89-485c-9j2x
+	github.com/cloudflare/circl => github.com/cloudflare/circl v1.3.3
+
 	//
 	// As we import k8s.io/kubernetes, we need to replace the following modules
 	// with the same version as k8s.io/kubernetes. In short, you are not supposed
