@@ -152,28 +152,27 @@ export function getDefaultGitRepo(
 }
 
 export const FormWrapper = styled.form`
-  .preview-cta {
+  width: 85%;
+  .preview-cta,
+  .create-cta {
     padding: ${({ theme }) => theme.spacing.small}
       ${({ theme }) => theme.spacing.base};
     button {
       width: 200px;
     }
   }
-  .preview-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
-  .create-cta {
-    padding: ${({ theme }) => theme.spacing.small};
-    button {
-      width: 200px;
-    }
-  }
+  .preview-loading,
   .create-loading {
     padding: ${({ theme }) => theme.spacing.base};
   }
+
   div[class*='MuiInput-root'] {
     border: 1px solid ${props => props.theme.colors.neutral20};
     border-bottom: none;
     padding: 2px 6px;
+  }
+  //By default, a form field will take 50% of the space it is in
+  div[class*='MuiFormControl-root'] {
+    width: 50%;
   }
 `;

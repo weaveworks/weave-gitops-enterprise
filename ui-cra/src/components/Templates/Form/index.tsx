@@ -553,7 +553,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               />
             </Flex>
           ) : null}
-
           <Divider
             className={!isLargeScreen ? classes.divider : classes.largeDivider}
           />

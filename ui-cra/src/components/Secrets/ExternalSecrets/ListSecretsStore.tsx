@@ -5,11 +5,13 @@ import { RequestError } from '../../../types/custom';
 import { Select } from '../../../utils/form';
 
 const ListSecretsStore = ({
+  className,
   value,
   validateForm,
   handleFormData,
   clusterName,
 }: {
+  className?: string;
   value: string;
   validateForm: boolean;
   handleFormData: (value: any) => void;
@@ -21,7 +23,7 @@ const ListSecretsStore = ({
   return (
     <RequestStateHandler loading={isLoading} error={error as RequestError}>
       <Select
-        className="form-section"
+        className={className}
         required
         name="secretStoreRef"
         label="SECRET STORE"

@@ -17,7 +17,6 @@ const ListClusters = ({
   return (
     <RequestStateHandler loading={isLoading} error={error as RequestError}>
       <Select
-        className="form-section"
         name="clusterName"
         required={true}
         label="CLUSTER"

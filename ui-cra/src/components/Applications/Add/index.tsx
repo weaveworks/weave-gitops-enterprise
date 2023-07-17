@@ -438,7 +438,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   sourceType={formData.source_type}
                 />
               ) : null}
-              <Box>
+              <Box className="selected-source">
                 {formData.source_url && 'Selected source: '}
                 {optionUrl(formData.source_url, formData.source_branch)}
               </Box>

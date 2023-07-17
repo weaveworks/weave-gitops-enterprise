@@ -6,7 +6,7 @@ import { Input, Select } from '../../../../utils/form';
 import { Routes } from '../../../../utils/nav';
 
 const TemplateFieldsWrapper = styled.div`
-  .form-section {
+  div[class*='MuiFormControl-root'] {
     width: calc(100% / 3);
   }
 `;
@@ -48,7 +48,6 @@ const TemplateFields: FC<{
           return (
             <Select
               key={index}
-              className="form-section"
               name={name}
               required={required}
               label={name}
@@ -62,7 +61,6 @@ const TemplateFields: FC<{
           return (
             <Input
               key={index}
-              className="form-section"
               required={required}
               name={name}
               label={name}
