@@ -1,5 +1,5 @@
 import { CircularProgress } from '@material-ui/core';
-import { Button } from '@weaveworks/weave-gitops';
+import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { SecretPRPreview } from '../../../types/custom';
@@ -8,7 +8,6 @@ import {
   renderKustomization,
 } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
-import { PreviewPRSection } from './styles';
 import {
   ExternalSecret,
   SOPS,
@@ -76,15 +75,16 @@ export const PreviewModal = ({
   }, [formData, secretType, setNotifications]);
 
   return (
-    <PreviewPRSection>
-      <div className="preview-cta">
-        <Button onClick={() => handlePRPreview()} disabled={previewLoading}>
-          PREVIEW PR
-          {previewLoading && (
-            <CircularProgress size={'1rem'} style={{ marginLeft: '4px' }} />
-          )}
-        </Button>
-      </div>
+    <>
+      {previewLoading ? (
+        <LoadingPage className="preview-loading" />
+      ) : (
+        <Flex end className="preview-cta">
+          <Button onClick={() => handlePRPreview()} disabled={previewLoading}>
+            PREVIEW PR
+          </Button>
+        </Flex>
+      )}
       {!previewLoading && openPreview && PRPreview ? (
         <Preview
           context={secretType === SecretType.ES ? 'secret' : 'sops'}
@@ -93,6 +93,6 @@ export const PreviewModal = ({
           PRPreview={PRPreview}
         />
       ) : null}
-    </PreviewPRSection>
+    </>
   );
 };

@@ -38,6 +38,9 @@ const ProfilesWrapper = styled.div`
     .profile-details {
       justify-content: space-evenly;
     }
+    .MuiFormControl-root {
+      min-width: 150px;
+    }
   }
 `;
 

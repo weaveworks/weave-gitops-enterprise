@@ -17,11 +17,7 @@ import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
 
-const SelectSetWidth = styled(Select)`
-  .MuiSelect-select {
-    width: 155px;
-  }
-`;
+const SelectSetWidth = styled(Select)``;
 
 const ProfilesListItem: FC<{
   className?: string;
