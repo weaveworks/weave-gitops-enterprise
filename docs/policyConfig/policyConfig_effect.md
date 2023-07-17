@@ -22,7 +22,6 @@ The first step is to create the tenant. This is done by creating a namespace and
 apiVersion: v1
 kind: Namespace
 metadata:
-  creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: dev-tenant
   name: dev-ns
@@ -32,7 +31,6 @@ status: {}
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: dev-tenant
   name: dev-tenant
@@ -41,7 +39,6 @@ metadata:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: dev-tenant
   name: dev-tenant-service-account
@@ -59,7 +56,6 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  creationTimestamp: null
   labels:
     toolkit.fluxcd.io/tenant: dev-tenant
   name: dev-tenant-service-account
@@ -73,10 +69,11 @@ subjects:
   name: dev-tenant
   namespace: dev-ns
 ```
+
 </details>
 
 ```bash
-gitops create tenants --from-file dev-tenant.yaml
+kubectl apply -f dev-tenant.yaml
 ```
 
 Navigate to workspaces list, it should looks like below.
@@ -159,8 +156,11 @@ Remove the `policy-configs` directory from the remote repository.
 
 Remove the three Apps kustomization from the repository.
 
-Delete the `dev-tenant.yaml` file content which we have used on creating the Workspace, and run the same command again.
+Clean the `dev-tenant` workspace.
 
 ```bash
-gitops create tenants --from-file dev-tenant.yaml
+kubectl delete rolebindings -n dev-ns dev-tenant-service-account 
+kubectl delete roles -n dev-ns dev-tenant-service-account 
+kubectl delete serviceaccounts -n dev-ns dev-tenant 
+kubectl delete namespaces dev-ns
 ```
