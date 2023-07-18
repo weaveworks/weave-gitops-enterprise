@@ -35,7 +35,7 @@ const ActionsWrapper = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.xs};
 `;
 
-const ClusterDetails = ({ clusterName }: Props) => {
+const ClusterDetails = ({ clusterName, namespace }: Props) => {
   const { path } = useRouteMatch();
   const history = useHistory();
   const { isLoading, getCluster, getDashboardAnnotations, getKubeconfig } =
@@ -51,8 +51,8 @@ const ClusterDetails = ({ clusterName }: Props) => {
   );
 
   useEffect(
-    () => setCurrentCluster(getCluster(clusterName)),
-    [clusterName, getCluster],
+    () => setCurrentCluster(getCluster(clusterName, namespace)),
+    [clusterName, namespace, getCluster],
   );
 
   return (

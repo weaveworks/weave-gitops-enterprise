@@ -48,8 +48,11 @@ const useClusters = () => {
   ) as GitopsClusterEnriched[];
   const count: number | null = data?.gitopsClusters?.length || null;
 
-  const getCluster = (clusterName: string) =>
-    clusters?.find(cluster => cluster.name === clusterName) || null;
+  const getCluster = (clusterName: string, namespace: string) =>
+    clusters?.find(
+      cluster =>
+        cluster.name === clusterName && namespace === cluster.namespace,
+    ) || null;
 
   const getDashboardAnnotations = useCallback(
     (cluster: GitopsClusterEnriched) => {

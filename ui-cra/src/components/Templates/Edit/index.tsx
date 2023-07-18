@@ -68,7 +68,7 @@ const EditResourcePage: FC<Props> = props => {
   );
 
   const { getCluster } = useClusters();
-  const cluster = getCluster(name);
+  const cluster = getCluster(name, namespace);
 
   const { data: tfData } = useGetTerraformObjectDetail(
     {

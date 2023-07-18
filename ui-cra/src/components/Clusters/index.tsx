@@ -423,7 +423,7 @@ const MCCP: FC<{
                           <span data-cluster-name={c.name}>{c.name}</span>
                         ) : (
                           <Link
-                            to={`/cluster?clusterName=${c.name}&namespace=${c.namespace}`}
+                            to={`/cluster?namespace=${c.namespace}&clusterName=${c.name}`}
                             data-cluster-name={c.name}
                           >
                             {c.name}
