@@ -30,6 +30,9 @@
     "app-title": {
       "type": "String"
     },
+    "capiEnabled": {
+      "type": "Bool"
+    },
     "vmSize": {
       "type": "String",
       "defaultValue": "Standard_DS2_v2",
@@ -189,7 +192,8 @@
       "autoUpgradeMinorVersion": true,
       "releaseTrain": "[variables('releaseTrain')]",
       "configurationSettings": {
-        "title": "[parameters('app-title')]"
+        "title": "[parameters('app-title')]",
+        "global.capiEnabled": "[parameters('capiEnabled')]"
       },
       "configurationProtectedSettings": {
 

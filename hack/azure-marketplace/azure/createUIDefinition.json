@@ -206,6 +206,11 @@
 							"regex": "^[a-z0-9A-Z ]{1,30}$",
 							"validationMessage": "Only alphanumeric characters are allowed, and the value must be 6-30 characters long."
 						}
+					},
+					{
+						"name": "capiEnabled",
+						"type": "Microsoft.Common.CheckBox",
+						"label": "Enable CAPI support, a CAPI Provider must already be installed on the cluster"
 					}
 				]
 			}
@@ -219,7 +224,8 @@
 			"vmSize": "[steps('clusterDetails').newClusterSection.vmSize]",
 			"vmEnableAutoScale": "[steps('clusterDetails').newClusterSection.enableAutoScaling]",
 			"vmCount": "[steps('clusterDetails').newClusterSection.vmCount]",
-			"app-title": "[steps('applicationDetails').title]"
+			"app-title": "[steps('applicationDetails').title]",
+			"capiEnabled": "[steps('applicationDetails').capiEnabled]"
 		}
 	}
 }
