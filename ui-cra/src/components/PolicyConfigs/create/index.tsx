@@ -45,17 +45,18 @@ import { PreviewPRModal } from './PreviewPRModal';
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
     width: 50%;
+    margin-right: 24px;
+    div[class*='MuiFormControl-root'] {
+      width: 100%;
+      div[class*='MuiInputBase-root MuiOutlinedInput-root'] {
+        padding-right: 10px;
+      }
+    }
     label {
       margin-bottom: ${props => props.theme.spacing.small} !important;
     }
     div[class*='MuiAutocomplete-tag'] {
       display: none;
-    }
-    div[class*='MuiAutocomplete-inputRoot'] {
-      padding-right: 10px;
-    }
-    div[class*='MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']'] {
-      padding-right: 0px;
     }
   }
   .Mui-disabled {

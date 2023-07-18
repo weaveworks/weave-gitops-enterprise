@@ -1,4 +1,3 @@
-import { CircularProgress } from '@material-ui/core';
 import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';

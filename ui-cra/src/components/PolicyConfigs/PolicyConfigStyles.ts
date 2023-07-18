@@ -142,8 +142,8 @@ export const PolicyDetailsCardWrapper = styled.ul`
 
 export const SelectPoliciesWithSearch = styled(Autocomplete)`
   div[class*='MuiOutlinedInput-root'] {
-    // padding-top: 0 !important;
-    // padding-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
   }
   input {
     border: 0 !important;

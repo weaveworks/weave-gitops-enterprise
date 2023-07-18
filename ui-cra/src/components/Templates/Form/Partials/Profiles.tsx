@@ -39,7 +39,7 @@ const ProfilesWrapper = styled.div`
       justify-content: space-evenly;
     }
     .MuiFormControl-root {
-      min-width: 150px;
+      width: 150px;
     }
   }
 `;
