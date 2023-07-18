@@ -209,16 +209,16 @@ see [./user-guide.md](./user-guide.md)
 
 ## Oh no! An image got flagged as vulnerable during marketplace publishing! CVEs..
 
-The "quick and easy way to do this" is
+The "quick and easy" way to do this is
 
 1. Address the CVE in the container image, for example, some go lib in WGE needs to be bumped we:
    1. Add the `replace` directive to the go.mod file
 2. Get a new docker image
    1. Either build it locally or push a branch to github and let it build the images
-   2. Go find where it build and pushed that image to on dockerhub/ghcr by looking at the github actions logs
-3. Get the new image up to ACR (after logging in), something like:
+   2. Go find where it built and pushed that image to on dockerhub/ghcr by looking at the github actions logs
+3. Get the new image up to ACR (after logging in), choosing some sensible new tag, if `2.5.0` has the CVE, maybe push as `2.5.1-rc.1`.
    1. Copy from weaveworks CI: `crane cp weaveworks/weave-gitops-enterprise-clusters-service:fix-azure-cve-circl-4ffa57ce weaveworksmarketplacepublic.azurecr.io/weave-gitops-enterprise-clusters-service:v0.28.1-rc.1`
-   2. Push a locally rebuild image ith `docker tag docker.io/library/policy-agent:452.f950f4b weaveworksmarketplacepublic.azurecr.io/policy-agent:v2.6.0-rc.1`, `docker push weaveworksmarketplacepublic.azurecr.io/policy-agent:v2.6.0-rc.1`)
+   2. Push a locally rebuild image with `docker tag docker.io/library/policy-agent:452.f950f4b weaveworksmarketplacepublic.azurecr.io/policy-agent:v2.6.0-rc.1`, `docker push weaveworksmarketplacepublic.azurecr.io/policy-agent:v2.6.0-rc.1`)
 4. Find the new sha via the ACR UI
 5. Update ./hack/azure-marketplace/mccp/values.yaml with the new sha
 6. Follow the **Build and push it up to the ACR registry** above, bumping the patch version again, the Azure version will be our of sync with the WGE version but that's ok.
