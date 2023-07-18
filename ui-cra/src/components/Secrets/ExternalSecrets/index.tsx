@@ -21,11 +21,12 @@ import { removeToken } from '../../../utils/request';
 import { createDeploymentObjects } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import GitOps from '../../Templates/Form/Partials/GitOps';
-import { FormWrapper, getRepositoryUrl } from '../../Templates/Form/utils';
+import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
 import { PreviewModal, SecretType } from '../Shared/PreviewModal';
 import {
   ExternalSecret,
+  FormWrapperSecret,
   getESFormattedPayload,
   getESInitialData,
   handleError,
@@ -34,31 +35,6 @@ import {
 import ListSecretsStore from './ListSecretsStore';
 import { SecretProperty } from './SecretProperty';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import styled from 'styled-components';
-
-export const FormWrapperSecret = styled(FormWrapper)`
-  .secret-data-list {
-    display: flex;
-    align-items: self-start;
-    width: 100%;
-    .remove-icon {
-      margin-top: 25px;
-      color: ${props => props.theme.colors.neutral30};
-      cursor: pointer;
-    }
-  }
-  .secret-data-hint {
-    background-color: ${props => props.theme.colors.primaryLight05};
-    padding: ${props => props.theme.spacing.xs};
-    font-weight: 600;
-    width: fit-content;
-    border-radius: 4px;
-    margin-top: 0px;
-  }
-  .add-secret-data {
-    margin-bottom: ${props => props.theme.spacing.medium};
-  }
-`;
 
 const CreateExternalSecret = () => {
   const callbackState = useCallbackState();

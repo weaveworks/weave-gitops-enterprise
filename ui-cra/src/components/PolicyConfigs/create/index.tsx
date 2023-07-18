@@ -34,6 +34,7 @@ import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import {
+  FormWrapper,
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
@@ -41,57 +42,25 @@ import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { PreviewPRModal } from './PreviewPRModal';
 
-const FormWrapper = styled.form`
-  width: 80%;
-  padding-bottom: ${props => props.theme.spacing.large} !important;
-  .group-section {
-    border-bottom: 1px dotted ${props => props.theme.colors.neutral20};
-    padding-right: ${props => props.theme.spacing.medium};
-    padding-bottom: ${props => props.theme.spacing.medium};
-    .form-section {
-      width: 50%;
+const FormWrapperPolicyConfig = styled(FormWrapper)`
+  .policyField {
+    width: 50%;
+    label {
+      margin-bottom: ${props => props.theme.spacing.small} !important;
     }
-    .form-field {
-      label {
-        margin-top: ${props => props.theme.spacing.xs} !important;
-        margin-bottom: ${props => props.theme.spacing.base} !important;
-        font-size: ${props => props.theme.fontSizes.large};
-      }
-      &.policyField {
-        width: 50%;
-        label {
-          margin-bottom: ${props => props.theme.spacing.small} !important;
-        }
-        div[class*='MuiAutocomplete-tag'] {
-          display: none;
-        }
-        div[class*='MuiAutocomplete-inputRoot'] {
-          padding-right: 9px;
-        }
-      }
-      .form-section {
-        label {
-          display: none !important;
-        }
-      }
+    div[class*='MuiAutocomplete-tag'] {
+      display: none;
     }
-
-    .form-section {
-      display: flex;
-      div[class*='MuiInputBase-root'] {
-        margin-right: ${props => props.theme.spacing.small};
-      }
-      .Mui-disabled {
-        background: ${props => props.theme.colors.neutral10} !important;
-        border-color: ${props => props.theme.colors.neutral20} !important;
-      }
+    div[class*='MuiAutocomplete-inputRoot'] {
+      padding-right: 10px;
+    }
+    div[class*='MuiAutocomplete-inputRoot[class*='MuiOutlinedInput-root']'] {
+      padding-right: 0px;
     }
   }
-  .create-cta {
-    padding: ${props => props.theme.spacing.small};
-    button {
-      width: 200px;
-    }
+  .Mui-disabled {
+    background: ${props => props.theme.colors.neutral10} !important;
+    border-color: ${props => props.theme.colors.neutral20} !important;
   }
 `;
 
@@ -336,15 +305,14 @@ const CreatePolicyConfig = () => {
         }}
       >
         <NotificationsWrapper>
-          <FormWrapper
+          <FormWrapperPolicyConfig
             noValidate
             onSubmit={event =>
               validateFormData(event, handleCreatePolicyConfig, setFormError)
             }
           >
-            <div className="group-section">
+            <Flex column>
               <Input
-                className="form-section"
                 name="policyConfigName"
                 required
                 description="The name of your policy config"
@@ -356,7 +324,6 @@ const CreatePolicyConfig = () => {
                 error={formError === 'policyConfigName' && !policyConfigName}
               />
               <Select
-                className="form-section"
                 name="clusterName"
                 required
                 label="CLUSTER"
@@ -396,14 +363,13 @@ const CreatePolicyConfig = () => {
                 selectedAppsList={selectedAppsList || []}
                 setSelectedAppsList={setSelectedAppsList}
               />
-
               <SelectedPolicies
                 cluster={clusterName}
                 setFormData={setFormData}
                 formData={formData}
                 formError={formError}
               />
-            </div>
+            </Flex>
             <PreviewPRModal
               formData={formData}
               getClusterAutomations={getClusterAutomations}
@@ -416,7 +382,6 @@ const CreatePolicyConfig = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-
             {loading ? (
               <LoadingPage className="create-loading" />
             ) : (
@@ -426,7 +391,7 @@ const CreatePolicyConfig = () => {
                 </Button>
               </Flex>
             )}
-          </FormWrapper>
+          </FormWrapperPolicyConfig>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
     </Page>

@@ -31,6 +31,7 @@ import {
   handleError,
   getInitialData,
   SOPS,
+  FormWrapperSecret,
 } from '../Shared/utils';
 import {
   expiredTokenNotification,
@@ -38,7 +39,6 @@ import {
 } from '../../../hooks/gitprovider';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { Page } from '../../Layout/App';
-import { FormWrapperSecret } from '../ExternalSecrets';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();
