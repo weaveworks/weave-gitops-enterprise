@@ -1,0 +1,229 @@
+# HELP certwatcher_read_certificate_errors_total Total number of certificate read errors
+# TYPE certwatcher_read_certificate_errors_total counter
+certwatcher_read_certificate_errors_total 0
+# HELP certwatcher_read_certificate_total Total number of certificate reads
+# TYPE certwatcher_read_certificate_total counter
+certwatcher_read_certificate_total 0
+# HELP controller_runtime_active_workers Number of currently used workers per controller
+# TYPE controller_runtime_active_workers gauge
+controller_runtime_active_workers{controller="fluxshardset"} 0
+# HELP controller_runtime_max_concurrent_reconciles Maximum number of concurrent reconciles per controller
+# TYPE controller_runtime_max_concurrent_reconciles gauge
+controller_runtime_max_concurrent_reconciles{controller="fluxshardset"} 1
+# HELP controller_runtime_reconcile_errors_total Total number of reconciliation errors per controller
+# TYPE controller_runtime_reconcile_errors_total counter
+controller_runtime_reconcile_errors_total{controller="fluxshardset"} 0
+# HELP controller_runtime_reconcile_time_seconds Length of time per reconciliation per controller
+# TYPE controller_runtime_reconcile_time_seconds histogram
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.005"} 0
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.01"} 0
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.025"} 1
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.05"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.1"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.15"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.2"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.25"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.3"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.35"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.4"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.45"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.5"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.6"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.7"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.8"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="0.9"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="1"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="1.25"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="1.5"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="1.75"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="2"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="2.5"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="3"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="3.5"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="4"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="4.5"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="5"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="6"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="7"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="8"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="9"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="10"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="15"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="20"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="25"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="30"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="40"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="50"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="60"} 2
+controller_runtime_reconcile_time_seconds_bucket{controller="fluxshardset",le="+Inf"} 2
+controller_runtime_reconcile_time_seconds_sum{controller="fluxshardset"} 0.043693078
+controller_runtime_reconcile_time_seconds_count{controller="fluxshardset"} 2
+# HELP controller_runtime_reconcile_total Total number of reconciliations per controller
+# TYPE controller_runtime_reconcile_total counter
+controller_runtime_reconcile_total{controller="fluxshardset",result="error"} 0
+controller_runtime_reconcile_total{controller="fluxshardset",result="requeue"} 0
+controller_runtime_reconcile_total{controller="fluxshardset",result="requeue_after"} 0
+controller_runtime_reconcile_total{controller="fluxshardset",result="success"} 2
+# HELP go_gc_duration_seconds A summary of the pause duration of garbage collection cycles.
+# TYPE go_gc_duration_seconds summary
+go_gc_duration_seconds{quantile="0"} 4.8959e-05
+go_gc_duration_seconds{quantile="0.25"} 7.39e-05
+go_gc_duration_seconds{quantile="0.5"} 0.000214533
+go_gc_duration_seconds{quantile="0.75"} 0.000365024
+go_gc_duration_seconds{quantile="1"} 0.000474971
+go_gc_duration_seconds_sum 0.003078904
+go_gc_duration_seconds_count 14
+# HELP go_goroutines Number of goroutines that currently exist.
+# TYPE go_goroutines gauge
+go_goroutines 45
+# HELP go_info Information about the Go environment.
+# TYPE go_info gauge
+go_info{version="go1.20.5"} 1
+# HELP go_memstats_alloc_bytes Number of bytes allocated and still in use.
+# TYPE go_memstats_alloc_bytes gauge
+go_memstats_alloc_bytes 5.01688e+06
+# HELP go_memstats_alloc_bytes_total Total number of bytes allocated, even if freed.
+# TYPE go_memstats_alloc_bytes_total counter
+go_memstats_alloc_bytes_total 3.6382216e+07
+# HELP go_memstats_buck_hash_sys_bytes Number of bytes used by the profiling bucket hash table.
+# TYPE go_memstats_buck_hash_sys_bytes gauge
+go_memstats_buck_hash_sys_bytes 1.465606e+06
+# HELP go_memstats_frees_total Total number of frees.
+# TYPE go_memstats_frees_total counter
+go_memstats_frees_total 363383
+# HELP go_memstats_gc_sys_bytes Number of bytes used for garbage collection system metadata.
+# TYPE go_memstats_gc_sys_bytes gauge
+go_memstats_gc_sys_bytes 8.597592e+06
+# HELP go_memstats_heap_alloc_bytes Number of heap bytes allocated and still in use.
+# TYPE go_memstats_heap_alloc_bytes gauge
+go_memstats_heap_alloc_bytes 5.01688e+06
+# HELP go_memstats_heap_idle_bytes Number of heap bytes waiting to be used.
+# TYPE go_memstats_heap_idle_bytes gauge
+go_memstats_heap_idle_bytes 4.292608e+06
+# HELP go_memstats_heap_inuse_bytes Number of heap bytes that are in use.
+# TYPE go_memstats_heap_inuse_bytes gauge
+go_memstats_heap_inuse_bytes 7.274496e+06
+# HELP go_memstats_heap_objects Number of allocated objects.
+# TYPE go_memstats_heap_objects gauge
+go_memstats_heap_objects 36187
+# HELP go_memstats_heap_released_bytes Number of heap bytes released to OS.
+# TYPE go_memstats_heap_released_bytes gauge
+go_memstats_heap_released_bytes 3.375104e+06
+# HELP go_memstats_heap_sys_bytes Number of heap bytes obtained from system.
+# TYPE go_memstats_heap_sys_bytes gauge
+go_memstats_heap_sys_bytes 1.1567104e+07
+# HELP go_memstats_last_gc_time_seconds Number of seconds since 1970 of last garbage collection.
+# TYPE go_memstats_last_gc_time_seconds gauge
+go_memstats_last_gc_time_seconds 1.6896257029559534e+09
+# HELP go_memstats_lookups_total Total number of pointer lookups.
+# TYPE go_memstats_lookups_total counter
+go_memstats_lookups_total 0
+# HELP go_memstats_mallocs_total Total number of mallocs.
+# TYPE go_memstats_mallocs_total counter
+go_memstats_mallocs_total 399570
+# HELP go_memstats_mcache_inuse_bytes Number of bytes in use by mcache structures.
+# TYPE go_memstats_mcache_inuse_bytes gauge
+go_memstats_mcache_inuse_bytes 9600
+# HELP go_memstats_mcache_sys_bytes Number of bytes used for mcache structures obtained from system.
+# TYPE go_memstats_mcache_sys_bytes gauge
+go_memstats_mcache_sys_bytes 15600
+# HELP go_memstats_mspan_inuse_bytes Number of bytes in use by mspan structures.
+# TYPE go_memstats_mspan_inuse_bytes gauge
+go_memstats_mspan_inuse_bytes 178720
+# HELP go_memstats_mspan_sys_bytes Number of bytes used for mspan structures obtained from system.
+# TYPE go_memstats_mspan_sys_bytes gauge
+go_memstats_mspan_sys_bytes 195840
+# HELP go_memstats_next_gc_bytes Number of heap bytes when next garbage collection will take place.
+# TYPE go_memstats_next_gc_bytes gauge
+go_memstats_next_gc_bytes 6.690448e+06
+# HELP go_memstats_other_sys_bytes Number of bytes used for other system allocations.
+# TYPE go_memstats_other_sys_bytes gauge
+go_memstats_other_sys_bytes 1.387962e+06
+# HELP go_memstats_stack_inuse_bytes Number of bytes in use by the stack allocator.
+# TYPE go_memstats_stack_inuse_bytes gauge
+go_memstats_stack_inuse_bytes 1.015808e+06
+# HELP go_memstats_stack_sys_bytes Number of bytes obtained from system for stack allocator.
+# TYPE go_memstats_stack_sys_bytes gauge
+go_memstats_stack_sys_bytes 1.015808e+06
+# HELP go_memstats_sys_bytes Number of bytes obtained from system.
+# TYPE go_memstats_sys_bytes gauge
+go_memstats_sys_bytes 2.4245512e+07
+# HELP go_threads Number of OS threads created.
+# TYPE go_threads gauge
+go_threads 13
+# HELP leader_election_master_status Gauge of if the reporting system is master of the relevant lease, 0 indicates backup, 1 indicates master. 'name' is the string used to identify the lease. Please make sure to group by name.
+# TYPE leader_election_master_status gauge
+leader_election_master_status{name="c6815ea0.weave.works"} 1
+# HELP process_cpu_seconds_total Total user and system CPU time spent in seconds.
+# TYPE process_cpu_seconds_total counter
+process_cpu_seconds_total 4.79
+# HELP process_max_fds Maximum number of open file descriptors.
+# TYPE process_max_fds gauge
+process_max_fds 1.048576e+06
+# HELP process_open_fds Number of open file descriptors.
+# TYPE process_open_fds gauge
+process_open_fds 11
+# HELP process_resident_memory_bytes Resident memory size in bytes.
+# TYPE process_resident_memory_bytes gauge
+process_resident_memory_bytes 3.8842368e+07
+# HELP process_start_time_seconds Start time of the process since unix epoch in seconds.
+# TYPE process_start_time_seconds gauge
+process_start_time_seconds 1.68962452186e+09
+# HELP process_virtual_memory_bytes Virtual memory size in bytes.
+# TYPE process_virtual_memory_bytes gauge
+process_virtual_memory_bytes 5.06368e+09
+# HELP process_virtual_memory_max_bytes Maximum amount of virtual memory available in bytes.
+# TYPE process_virtual_memory_max_bytes gauge
+process_virtual_memory_max_bytes 1.8446744073709552e+19
+# HELP rest_client_requests_total Number of HTTP requests, partitioned by status code, method, and host.
+# TYPE rest_client_requests_total counter
+rest_client_requests_total{code="200",host="10.96.0.1:443",method="GET"} 649
+rest_client_requests_total{code="200",host="10.96.0.1:443",method="PATCH"} 3
+rest_client_requests_total{code="200",host="10.96.0.1:443",method="PUT"} 639
+rest_client_requests_total{code="201",host="10.96.0.1:443",method="POST"} 3
+rest_client_requests_total{code="404",host="10.96.0.1:443",method="GET"} 1
+# HELP workqueue_adds_total Total number of adds handled by workqueue
+# TYPE workqueue_adds_total counter
+workqueue_adds_total{name="fluxshardset"} 2
+# HELP workqueue_depth Current depth of workqueue
+# TYPE workqueue_depth gauge
+workqueue_depth{name="fluxshardset"} 0
+# HELP workqueue_longest_running_processor_seconds How many seconds has the longest running processor for workqueue been running.
+# TYPE workqueue_longest_running_processor_seconds gauge
+workqueue_longest_running_processor_seconds{name="fluxshardset"} 0
+# HELP workqueue_queue_duration_seconds How long in seconds an item stays in workqueue before being requested
+# TYPE workqueue_queue_duration_seconds histogram
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="1e-08"} 0
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="1e-07"} 0
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="1e-06"} 0
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="9.999999999999999e-06"} 1
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="9.999999999999999e-05"} 2
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="0.001"} 2
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="0.01"} 2
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="0.1"} 2
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="1"} 2
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="10"} 2
+workqueue_queue_duration_seconds_bucket{name="fluxshardset",le="+Inf"} 2
+workqueue_queue_duration_seconds_sum{name="fluxshardset"} 4.4751e-05
+workqueue_queue_duration_seconds_count{name="fluxshardset"} 2
+# HELP workqueue_retries_total Total number of retries handled by workqueue
+# TYPE workqueue_retries_total counter
+workqueue_retries_total{name="fluxshardset"} 0
+# HELP workqueue_unfinished_work_seconds How many seconds of work has been done that is in progress and hasn't been observed by work_duration. Large values indicate stuck threads. One can deduce the number of stuck threads by observing the rate at which this increases.
+# TYPE workqueue_unfinished_work_seconds gauge
+workqueue_unfinished_work_seconds{name="fluxshardset"} 0
+# HELP workqueue_work_duration_seconds How long in seconds processing an item from workqueue takes.
+# TYPE workqueue_work_duration_seconds histogram
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="1e-08"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="1e-07"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="1e-06"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="9.999999999999999e-06"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="9.999999999999999e-05"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="0.001"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="0.01"} 0
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="0.1"} 2
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="1"} 2
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="10"} 2
+workqueue_work_duration_seconds_bucket{name="fluxshardset",le="+Inf"} 2
+workqueue_work_duration_seconds_sum{name="fluxshardset"} 0.043736973
+workqueue_work_duration_seconds_count{name="fluxshardset"} 2
