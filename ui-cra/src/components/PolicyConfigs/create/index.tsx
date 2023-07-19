@@ -7,6 +7,7 @@ import {
   LoadingPage,
   Text,
   useListSources,
+  ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -45,8 +46,12 @@ import { PreviewPRModal } from './PreviewPRModal';
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
     width: 50%;
-    div[class*='MuiFormControl-root'] {
+    .policies-input {
       width: 100%;
+      border: ${props =>
+        props.theme.mode === ThemeTypes.Dark
+          ? `1px solid ${props.theme.colors.neutral20}`
+          : 'none'};
       div[class*='MuiInputBase-root MuiOutlinedInput-root'] {
         padding-right: 10px;
       }

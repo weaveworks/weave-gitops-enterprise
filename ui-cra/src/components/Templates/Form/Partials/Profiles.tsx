@@ -39,7 +39,8 @@ const ProfilesWrapper = styled.div`
       justify-content: space-evenly;
     }
     .MuiFormControl-root {
-      width: 150px;
+      min-width: 150px;
+      margin-right: 24px;
     }
   }
 `;

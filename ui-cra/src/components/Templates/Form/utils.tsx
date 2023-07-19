@@ -152,7 +152,7 @@ export function getDefaultGitRepo(
 }
 
 export const FormWrapper = styled.form`
-  width: 85%;
+  width: 80%;
   .preview-cta,
   .create-cta {
     padding: ${({ theme }) => theme.spacing.small}

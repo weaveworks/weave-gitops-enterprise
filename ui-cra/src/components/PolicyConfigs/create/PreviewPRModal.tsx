@@ -1,6 +1,5 @@
 import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import { useCallback, useState } from 'react';
-import styled from 'styled-components';
 import useNotifications from '../../../contexts/Notifications';
 import { PolicyConfigPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
