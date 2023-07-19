@@ -6,10 +6,6 @@ import { PolicyConfigPRPreview } from '../../../types/custom';
 import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
 
-const PreviewPRSection = styled(Flex)`
-  padding: ${props => props.theme.spacing.small};
-`;
-
 export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -43,13 +39,13 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
   ]);
 
   return (
-    <PreviewPRSection end>
+    <>
       {previewLoading ? (
         <LoadingPage className="preview-loading" />
       ) : (
-        <div className="preview-cta">
+        <Flex end className="preview-cta">
           <Button onClick={() => handlePRPreview()}>PREVIEW PR</Button>
-        </div>
+        </Flex>
       )}
       {openPreview && PRPreview ? (
         <Preview
@@ -60,6 +56,6 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
           sourceType={formData.source_type}
         />
       ) : null}
-    </PreviewPRSection>
+    </>
   );
 };

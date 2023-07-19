@@ -45,7 +45,6 @@ import { PreviewPRModal } from './PreviewPRModal';
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
     width: 50%;
-    margin-right: 24px;
     div[class*='MuiFormControl-root'] {
       width: 100%;
       div[class*='MuiInputBase-root MuiOutlinedInput-root'] {
