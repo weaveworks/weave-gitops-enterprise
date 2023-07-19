@@ -709,13 +709,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
         >
           <span
             aria-disabled="false"
-            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-88 MuiSwitch-switchBase MuiSwitch-colorPrimary"
+            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-92 MuiSwitch-switchBase MuiSwitch-colorPrimary"
           >
             <span
               class="MuiIconButton-label"
             >
               <input
-                class="PrivateSwitchBase-input-91 MuiSwitch-input"
+                class="PrivateSwitchBase-input-95 MuiSwitch-input"
                 type="checkbox"
                 value=""
               />
@@ -775,7 +775,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
             style="width: 100%;"
           >
             <div
-              class="MuiBox-root MuiBox-root-92"
+              class="MuiBox-root MuiBox-root-96"
+              style="width: 100%;"
+            />
+            <div
+              class="MuiBox-root MuiBox-root-97"
             >
               <div
                 class="c21"
@@ -791,7 +795,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-                        class="MuiBox-root MuiBox-root-93 "
+                        class="MuiBox-root MuiBox-root-98 "
                       >
                         <div
                           aria-label="Automated"
@@ -810,7 +814,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-                        class="MuiBox-root MuiBox-root-94 "
+                        class="MuiBox-root MuiBox-root-99 "
                       >
                         <div
                           aria-label="Strategy"
@@ -829,7 +833,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-                        class="MuiBox-root MuiBox-root-95 "
+                        class="MuiBox-root MuiBox-root-100 "
                       >
                         <div
                           aria-label="URL"
@@ -852,7 +856,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-                        class="MuiBox-root MuiBox-root-96 "
+                        class="MuiBox-root MuiBox-root-101 "
                       >
                         <div
                           aria-label="Branch"
@@ -879,7 +883,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     style="pointer-events: none;"
                   >
                     <div
-                      class="makeStyles-editButton-87"
+                      class="makeStyles-editButton-91"
                     >
                       <button
                         class="MuiButtonBase-root MuiButton-root MuiButton-outlined c25 c26 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
@@ -1005,7 +1009,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                   </div>
                   <span
-                    class="PrivateTabIndicator-root-97 PrivateTabIndicator-colorPrimary-98 MuiTabs-indicator"
+                    class="PrivateTabIndicator-root-102 PrivateTabIndicator-colorPrimary-103 MuiTabs-indicator"
                     style="left: 0px; width: 0px;"
                   />
                 </div>
@@ -1014,22 +1018,22 @@ exports[`PipelineDetails snapshots renders 1`] = `
                 class="c30"
               />
               <div
-                class="MuiGrid-root makeStyles-gridWrapper-82 c31 MuiGrid-container MuiGrid-spacing-xs-4"
+                class="MuiGrid-root makeStyles-gridWrapper-86 c31 MuiGrid-container MuiGrid-spacing-xs-4"
               >
                 <div
-                  class="MuiGrid-root makeStyles-gridContainer-81 MuiGrid-item MuiGrid-grid-xs-true"
+                  class="MuiGrid-root makeStyles-gridContainer-85 MuiGrid-item MuiGrid-grid-xs-true"
                   id="dev"
                 >
                   <div
-                    class="makeStyles-mbSmall-85"
+                    class="makeStyles-mbSmall-89"
                   >
                     <div
-                      class="makeStyles-title-83"
+                      class="makeStyles-title-87"
                     >
                       dev
                     </div>
                     <div
-                      class="makeStyles-subtitle-84"
+                      class="makeStyles-subtitle-88"
                     >
                       1
                        Targets
@@ -1126,7 +1130,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-                            class="makeStyles-subtitle-84 makeStyles-subtitleColor-86"
+                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
                           >
                             <span>
                               Specification:
@@ -1149,19 +1153,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   
                 </div>
                 <div
-                  class="MuiGrid-root makeStyles-gridContainer-81 MuiGrid-item MuiGrid-grid-xs-true"
+                  class="MuiGrid-root makeStyles-gridContainer-85 MuiGrid-item MuiGrid-grid-xs-true"
                   id="test"
                 >
                   <div
-                    class="makeStyles-mbSmall-85"
+                    class="makeStyles-mbSmall-89"
                   >
                     <div
-                      class="makeStyles-title-83"
+                      class="makeStyles-title-87"
                     >
                       test
                     </div>
                     <div
-                      class="makeStyles-subtitle-84"
+                      class="makeStyles-subtitle-88"
                     >
                       2
                        Targets
@@ -1258,7 +1262,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-                            class="makeStyles-subtitle-84 makeStyles-subtitleColor-86"
+                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
                           >
                             <span>
                               Specification:
@@ -1369,7 +1373,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-                            class="makeStyles-subtitle-84 makeStyles-subtitleColor-86"
+                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
                           >
                             <span>
                               Specification:
@@ -1392,19 +1396,19 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   
                 </div>
                 <div
-                  class="MuiGrid-root makeStyles-gridContainer-81 MuiGrid-item MuiGrid-grid-xs-true"
+                  class="MuiGrid-root makeStyles-gridContainer-85 MuiGrid-item MuiGrid-grid-xs-true"
                   id="prod"
                 >
                   <div
-                    class="makeStyles-mbSmall-85"
+                    class="makeStyles-mbSmall-89"
                   >
                     <div
-                      class="makeStyles-title-83"
+                      class="makeStyles-title-87"
                     >
                       prod
                     </div>
                     <div
-                      class="makeStyles-subtitle-84"
+                      class="makeStyles-subtitle-88"
                     >
                       1
                        Targets
@@ -1501,7 +1505,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-                            class="makeStyles-subtitle-84 makeStyles-subtitleColor-86"
+                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
                           >
                             <span>
                               Specification:

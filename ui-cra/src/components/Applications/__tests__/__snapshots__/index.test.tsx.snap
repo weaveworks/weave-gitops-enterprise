@@ -259,13 +259,13 @@ exports[`Applications index test snapshots loading 1`] = `
         >
           <span
             aria-disabled="false"
-            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-7 MuiSwitch-switchBase MuiSwitch-colorPrimary"
+            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-8 MuiSwitch-switchBase MuiSwitch-colorPrimary"
           >
             <span
               class="MuiIconButton-label"
             >
               <input
-                class="PrivateSwitchBase-input-10 MuiSwitch-input"
+                class="PrivateSwitchBase-input-11 MuiSwitch-input"
                 type="checkbox"
                 value=""
               />
@@ -1181,13 +1181,13 @@ exports[`Applications index test snapshots success 1`] = `
         >
           <span
             aria-disabled="false"
-            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiSwitch-switchBase MuiSwitch-colorPrimary"
+            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiSwitch-switchBase MuiSwitch-colorPrimary"
           >
             <span
               class="MuiIconButton-label"
             >
               <input
-                class="PrivateSwitchBase-input-16 MuiSwitch-input"
+                class="PrivateSwitchBase-input-18 MuiSwitch-input"
                 type="checkbox"
                 value=""
               />
@@ -1246,6 +1246,10 @@ exports[`Applications index test snapshots success 1`] = `
           <div
             style="width: 100%;"
           >
+            <div
+              class="MuiBox-root MuiBox-root-19"
+              style="width: 100%;"
+            />
             <div
               class="c17 c18"
             >
@@ -1559,14 +1563,14 @@ exports[`Applications index test snapshots success 1`] = `
                           >
                             <span
                               aria-disabled="false"
-                              class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-14 Mui-checked MuiIconButton-colorPrimary"
+                              class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiCheckbox-root MuiCheckbox-colorPrimary PrivateSwitchBase-checked-16 Mui-checked MuiIconButton-colorPrimary"
                             >
                               <span
                                 class="MuiIconButton-label"
                               >
                                 <input
                                   checked=""
-                                  class="PrivateSwitchBase-input-16"
+                                  class="PrivateSwitchBase-input-18"
                                   data-indeterminate="false"
                                   type="checkbox"
                                   value=""
@@ -2013,14 +2017,14 @@ exports[`Applications index test snapshots success 1`] = `
                                   >
                                     <span
                                       aria-disabled="true"
-                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-15 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-17 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                       tabindex="-1"
                                     >
                                       <span
                                         class="MuiIconButton-label"
                                       >
                                         <input
-                                          class="PrivateSwitchBase-input-16"
+                                          class="PrivateSwitchBase-input-18"
                                           data-indeterminate="false"
                                           disabled=""
                                           id="clusterName"
@@ -2063,14 +2067,14 @@ exports[`Applications index test snapshots success 1`] = `
                                   >
                                     <span
                                       aria-disabled="true"
-                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-15 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-17 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                       tabindex="-1"
                                     >
                                       <span
                                         class="MuiIconButton-label"
                                       >
                                         <input
-                                          class="PrivateSwitchBase-input-16"
+                                          class="PrivateSwitchBase-input-18"
                                           data-indeterminate="false"
                                           disabled=""
                                           id="namespace"
@@ -2113,14 +2117,14 @@ exports[`Applications index test snapshots success 1`] = `
                                   >
                                     <span
                                       aria-disabled="true"
-                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-15 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-17 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                       tabindex="-1"
                                     >
                                       <span
                                         class="MuiIconButton-label"
                                       >
                                         <input
-                                          class="PrivateSwitchBase-input-16"
+                                          class="PrivateSwitchBase-input-18"
                                           data-indeterminate="false"
                                           disabled=""
                                           id="status"
@@ -2163,14 +2167,14 @@ exports[`Applications index test snapshots success 1`] = `
                                   >
                                     <span
                                       aria-disabled="true"
-                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-15 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-17 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                       tabindex="-1"
                                     >
                                       <span
                                         class="MuiIconButton-label"
                                       >
                                         <input
-                                          class="PrivateSwitchBase-input-16"
+                                          class="PrivateSwitchBase-input-18"
                                           data-indeterminate="false"
                                           disabled=""
                                           id="tenant"
@@ -2213,14 +2217,14 @@ exports[`Applications index test snapshots success 1`] = `
                                   >
                                     <span
                                       aria-disabled="true"
-                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-13 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-15 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
+                                      class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-15 MuiCheckbox-root MuiCheckbox-colorSecondary PrivateSwitchBase-disabled-17 Mui-disabled MuiIconButton-colorSecondary Mui-disabled Mui-disabled"
                                       tabindex="-1"
                                     >
                                       <span
                                         class="MuiIconButton-label"
                                       >
                                         <input
-                                          class="PrivateSwitchBase-input-16"
+                                          class="PrivateSwitchBase-input-18"
                                           data-indeterminate="false"
                                           disabled=""
                                           id="type"
