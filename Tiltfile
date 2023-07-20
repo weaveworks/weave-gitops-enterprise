@@ -23,7 +23,7 @@ if not os.getenv('GITHUB_TOKEN'):
 
 # --- what to edit
 # e.g.
-# TO_EDIT="templates-controller,clusters-controller" tilt up
+# TO_EDIT="clusters-controller" tilt up
 
 to_edit = os.getenv('TO_EDIT', '').split(",")
 
@@ -43,13 +43,6 @@ if 'cluster-controller' in to_edit:
    docker_build('weaveworks/cluster-controller', '../cluster-controller/')
    cluster_bootstrap_controller_labels = ["local"]
 
-templates_controller_labels = ["remote-images"]
-if 'templates-controller' in to_edit:
-   if not os.path.exists("../templates-controller"):
-      fail("You need to git clone https://github.com/weaveworks/templates-controller to a directory next to this")
-   docker_build('ghcr.io/weaveworks/templates-controller', '../templates-controller/')
-   templates_controller_labels = ["local"]
-
 gitopssets_controller_labels = ["remote-images"]
 if 'gitopssets-controller' in to_edit:
    if not os.path.exists("../gitopssets-controller"):
@@ -63,7 +56,6 @@ k8s_resource('chart-mccp-cluster-service', new_name='cluster-service', labels=["
 k8s_resource('chart-pipeline-controller', new_name='pipeline-controller', labels=["remote-images"])
 k8s_resource('chart-mccp-cluster-bootstrap-controller', new_name='cluster-bootstrap-controller', labels=cluster_bootstrap_controller_labels)
 k8s_resource('cluster-controller-manager', new_name='cluster-controller', labels=cluster_controller_labels)
-k8s_resource('templates-controller-controller-manager', new_name='templates-controller', labels=templates_controller_labels)
 k8s_resource('gitopssets-controller-manager', new_name='gitopssets-controller', labels=gitopssets_controller_labels)
 k8s_resource('policy-agent', labels=["remote-images"])
 
