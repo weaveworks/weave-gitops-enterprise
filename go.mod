@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.27.1-rc.1.0.20230711092854-589c27e4e87b
+	github.com/weaveworks/weave-gitops v0.28.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -412,6 +412,10 @@ require (
 replace (
 	// TODO: why do we need to replace this?
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
+
+	// replace circl to 1.3.3
+	// https://github.com/advisories/GHSA-2q89-485c-9j2x
+	github.com/cloudflare/circl => github.com/cloudflare/circl v1.3.3
 
 	// Using commit https://github.com/distribution/distribution/commit/03aaf6ab51117e99b4f53fb0db84e1a5348892c9
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
