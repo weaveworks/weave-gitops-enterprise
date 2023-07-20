@@ -413,6 +413,10 @@ replace (
 	// TODO: why do we need to replace this?
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
 
+	// replace circl to 1.3.3
+	// https://github.com/advisories/GHSA-2q89-485c-9j2x
+	github.com/cloudflare/circl => github.com/cloudflare/circl v1.3.3
+
 	// Using commit https://github.com/distribution/distribution/commit/03aaf6ab51117e99b4f53fb0db84e1a5348892c9
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit
 	// https://security.snyk.io/vuln/SNYK-GOLANG-GITHUBCOMGORILLAHANDLERS-540773. Newer versions _should_ also work.
