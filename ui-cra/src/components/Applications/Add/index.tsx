@@ -128,6 +128,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [formError, setFormError] = useState<string>('');
 
   const optionUrl = (url?: string, branch?: string) => {
+    const className = 'selected-source';
     const linkText = branch ? (
       <>
         {url}@<strong>{branch}</strong>
@@ -137,13 +138,17 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     );
     if (branch) {
       return (
-        <Link href={getGitRepoHTTPSURL(url, branch)} newTab>
+        <Link
+          className={className}
+          href={getGitRepoHTTPSURL(url, branch)}
+          newTab
+        >
           {linkText}
         </Link>
       );
     } else {
       return (
-        <Link href={getGitRepoHTTPSURL(url)} newTab>
+        <Link className={className} href={getGitRepoHTTPSURL(url)} newTab>
           {linkText}
         </Link>
       );
@@ -438,7 +443,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   sourceType={formData.source_type}
                 />
               ) : null}
-              <Box className="selected-source">
+              <Box>
                 {formData.source_url && 'Selected source: '}
                 {optionUrl(formData.source_url, formData.source_branch)}
               </Box>
