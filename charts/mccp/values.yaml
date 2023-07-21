@@ -191,16 +191,13 @@ templates-controller:
 
 gitopssets-controller:
   enabled: true
-  # gitops-controller-manager etc
-  fullnameOverride: gitopssets
   controllerManager:
     manager:
-      image:
-        tag: v0.13.4
       args:
         - --health-probe-bind-address=:8081
         - --metrics-bind-address=127.0.0.1:8080
         - --leader-elect
+        # enable the cluster generator which is not enabled by default
         - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
 
 cluster-controller:
