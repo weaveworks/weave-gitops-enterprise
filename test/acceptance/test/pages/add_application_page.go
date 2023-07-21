@@ -61,9 +61,8 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 		Cluster:               app.Find(`[id="SELECT CLUSTER-input"]`),
 		RemoveApplication:     app.Find(`button#remove-application`),
 		CreateTargetNamespace: app.First(`input[type="checkbox"]`),
-		// PoliciesTab:               webDriver.First(`div[role="tablist"] a[href*="/workspaces/details/policies?"]`),
-		SourceHref:            app.Find(`a[class*=selected-source]`),
-		GitRepository:         app.Find(`[id="SELECT_GIT_REPO-input"]`),
+		SourceHref:    app.Find(`a[class*=selected-source]`),
+		GitRepository: app.Find(`[id="SELECT_GIT_REPO-input"]`),
 	}
 }
 
