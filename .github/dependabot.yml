@@ -1,0 +1,27 @@
+version: 2
+updates:
+  # Maintain dependencies for frontend
+  - package-ecosystem: "npm"
+    directory: "/ui-cra"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "weaveworks/timber-wolf"
+      - "weaveworks/pesto"
+      - "weaveworks/wild-watermelon"
+      - "weaveworks/tangerine"
+    # Only do security updates not version updates.
+    open-pull-requests-limit: 0
+
+  # Maintain dependencies for backend
+  - package-ecosystem: "gomod"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "weaveworks/timber-wolf"
+      - "weaveworks/pesto"
+      - "weaveworks/wild-watermelon"
+      - "weaveworks/tangerine"
+    # Only do security updates not version updates.
+    open-pull-requests-limit: 0

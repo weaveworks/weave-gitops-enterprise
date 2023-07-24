@@ -6,6 +6,7 @@ import {
   InfoList,
   Interval,
   KubeStatusIndicator,
+  LargeInfo,
   LinkResolverProvider,
   Metadata,
   RouterTab,
@@ -170,37 +171,49 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             />
           </Box>
           <Box paddingBottom={3}>
-            <Flex gap={4}>
-              <Button
-                loading={syncing}
-                variant="outlined"
-                onClick={handleSyncClick}
-              >
-                Sync
-              </Button>
-
-              <Button
-                loading={suspending}
-                variant="outlined"
-                onClick={handleSuspendClick}
-              >
-                {object?.suspended ? 'Resume' : 'Suspend'}
-              </Button>
-
-              {shouldShowReplanButton && (
+            <Flex wide>
+              <Flex gap={4}>
                 <Button
-                  data-testid="replan-btn"
-                  loading={replanning}
+                  loading={syncing}
                   variant="outlined"
-                  onClick={handleReplanClick}
+                  onClick={handleSyncClick}
                 >
-                  Plan
+                  Sync
                 </Button>
-              )}
 
-              <EditButton
-                resource={data || ({} as GetTerraformObjectResponse)}
-              />
+                <Button
+                  loading={suspending}
+                  variant="outlined"
+                  onClick={handleSuspendClick}
+                >
+                  {object?.suspended ? 'Resume' : 'Suspend'}
+                </Button>
+
+                {shouldShowReplanButton && (
+                  <Button
+                    data-testid="replan-btn"
+                    loading={replanning}
+                    variant="outlined"
+                    onClick={handleReplanClick}
+                  >
+                    Plan
+                  </Button>
+                )}
+
+                <EditButton
+                  resource={data || ({} as GetTerraformObjectResponse)}
+                />
+              </Flex>
+              <Flex wide end align>
+                <LargeInfo
+                  title="Applied Revision"
+                  info={object?.appliedRevision || '-'}
+                />
+                <LargeInfo
+                  title="Last Updated"
+                  info={object?.lastUpdatedAt || '-'}
+                />
+              </Flex>
             </Flex>
           </Box>
           <SubRouterTabs rootPath={`${path}/details`}>
@@ -210,14 +223,12 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   data-testid="info-list"
                   items={[
                     ['Source', object?.sourceRef?.name],
-                    ['Applied Revision', object?.appliedRevision],
                     ['Cluster', object?.clusterName],
                     ['Path', object?.path],
                     [
                       'Interval',
                       <Interval interval={object?.interval as any} />,
                     ],
-                    ['Last Update', object?.lastUpdatedAt],
                     [
                       'Drift Detection Result',
                       object?.driftDetectionResult ? 'True' : 'False',
