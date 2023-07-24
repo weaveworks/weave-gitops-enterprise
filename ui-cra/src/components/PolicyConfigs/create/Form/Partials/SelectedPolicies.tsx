@@ -145,7 +145,6 @@ export const SelectedPolicies = ({
     <Autocomplete
       multiple
       id="grouped-demo"
-      style={{ width: '95%' }}
       value={selectedPolicies}
       options={policiesList?.sort((a, b) =>
         b.category!.localeCompare(a.category!),
