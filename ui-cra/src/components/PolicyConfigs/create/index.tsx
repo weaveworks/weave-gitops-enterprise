@@ -46,7 +46,7 @@ import { PreviewPRModal } from './PreviewPRModal';
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
     div[class*='MuiAutocomplete-root'] {
-      width: 50%;
+      width: calc(50% - 24px);
     }
     div[class*='MuiFormControl-root'] {
       width: 100%;
