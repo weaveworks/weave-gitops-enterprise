@@ -27,8 +27,12 @@ const (
 	GetAccessRulesAction        = "GetAccessRules"
 
 	// indexer actions
-	SearchAction     = "Search"
-	ListFacetsAction = "ListFacets"
+	// addFieldMappingsAction = "AddFieldMappings"
+	AddAction           = "Add"
+	RemoveAction        = "Remove"
+	RemoveByQueryAction = "RemoveByQuery"
+	SearchAction        = "Search"
+	ListFacetsAction    = "ListFacets"
 
 	FailedLabel  = "error"
 	SuccessLabel = "success"

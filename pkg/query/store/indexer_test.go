@@ -62,8 +62,17 @@ func TestIndexer_Metrics(t *testing.T) {
 		},
 	}
 
-	err = idx.Add(context.Background(), objects)
-	g.Expect(err).NotTo(HaveOccurred())
+	t.Run("should have Add instrumented", func(t *testing.T) {
+
+		err = idx.Add(context.Background(), objects)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		wantMetrics := []string{
+			`indexer_inflight_requests{action="Add"} 0`,
+			`indexer_latency_seconds_count{action="Add",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
 
 	err = s.StoreObjects(context.Background(), objects)
 	g.Expect(err).NotTo(HaveOccurred())
