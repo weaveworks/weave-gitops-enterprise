@@ -435,7 +435,7 @@ replace (
 	//github.com/weaveworks/weave-gitops => ../weave-gitops
 
 	// un-comment for using a weave-gitops branch
-	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops flux-v2-take-4-cr-14
+	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.28.1-0.20230726130147-f43053dc7356
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
