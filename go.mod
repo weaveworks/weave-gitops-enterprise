@@ -432,7 +432,10 @@ replace (
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 
 	// un-comment for local dev
-	github.com/weaveworks/weave-gitops => ../weave-gitops
+	//github.com/weaveworks/weave-gitops => ../weave-gitops
+
+	// un-comment for using a weave-gitops branch
+	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops flux-v2-take-4-cr-14
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
