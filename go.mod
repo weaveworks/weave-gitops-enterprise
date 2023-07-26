@@ -8,9 +8,9 @@ require (
 	github.com/google/go-cmp v0.5.9
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0 // indirect
-	github.com/onsi/gomega v1.27.6
+	github.com/onsi/gomega v1.27.7
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/prometheus/client_golang v1.14.0
+	github.com/prometheus/client_golang v1.15.1
 	github.com/sclevine/agouti v3.0.0+incompatible
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
@@ -19,12 +19,16 @@ require (
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.26.3
-	k8s.io/apimachinery v0.26.3
+	k8s.io/api v0.27.3
+	k8s.io/apimachinery v0.27.3
 	k8s.io/cli-runtime v0.26.3
 	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.14.6
+	sigs.k8s.io/controller-runtime v0.15.0
 )
+
+// Replace k8s.io packages v0.26 to downgrade controller-runtime to v0.14.6
+
+replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.6
 
 require (
 	filippo.io/age v1.1.1
@@ -37,13 +41,13 @@ require (
 	github.com/external-secrets/external-secrets v0.7.0
 	github.com/fluxcd/flagger v1.30.0
 	github.com/fluxcd/go-git-providers v0.16.0
-	github.com/fluxcd/helm-controller/api v0.33.0
-	github.com/fluxcd/kustomize-controller/api v1.0.0-rc.3
-	github.com/fluxcd/pkg/apis/meta v1.0.0
+	github.com/fluxcd/helm-controller/api v0.35.0
+	github.com/fluxcd/kustomize-controller/api v1.0.0
+	github.com/fluxcd/pkg/apis/meta v1.1.1
 	github.com/fluxcd/pkg/runtime v0.35.0
 	github.com/fluxcd/pkg/untar v0.2.0
 	github.com/fluxcd/pkg/version v0.2.1
-	github.com/fluxcd/source-controller/api v1.0.0-rc.3
+	github.com/fluxcd/source-controller/api v1.0.0
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/golang/protobuf v1.5.3
 	github.com/google/go-github/v32 v32.1.0
@@ -57,7 +61,7 @@ require (
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.5.0
 	github.com/microsoft/azure-devops-go-api/azuredevops v1.0.0-b5
 	github.com/mkmik/multierror v0.3.0
-	github.com/onsi/ginkgo/v2 v2.9.2
+	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/slok/go-http-metrics v0.10.0
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.15.0
@@ -75,7 +79,7 @@ require (
 	google.golang.org/grpc/cmd/protoc-gen-go-grpc v1.1.0
 	google.golang.org/protobuf v1.30.0
 	helm.sh/helm/v3 v3.11.3
-	k8s.io/apiextensions-apiserver v0.26.3
+	k8s.io/apiextensions-apiserver v0.27.3
 	k8s.io/kubernetes v1.26.3
 	sigs.k8s.io/cluster-api v1.4.1
 	sigs.k8s.io/kustomize/kyaml v0.13.9
@@ -159,13 +163,13 @@ require (
 	github.com/charmbracelet/bubbles v0.14.0 // indirect
 	github.com/charmbracelet/bubbletea v0.22.1 // indirect
 	github.com/charmbracelet/lipgloss v0.6.0 // indirect
-	github.com/cloudflare/circl v1.3.2 // indirect
+	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/containerd/console v1.0.3 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/evanphx/json-patch/v5 v5.6.0 // indirect
 	github.com/fluxcd/image-automation-controller/api v0.33.1 // indirect
 	github.com/fluxcd/image-reflector-controller/api v0.27.2 // indirect
-	github.com/fluxcd/notification-controller/api v1.0.0-rc.3 // indirect
+	github.com/fluxcd/notification-controller/api v1.0.0 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
 	github.com/gobuffalo/flect v1.0.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
@@ -210,7 +214,7 @@ require (
 	github.com/skeema/knownhosts v1.1.0 // indirect
 	github.com/yannh/kubeconform v0.5.0 // indirect
 	go.mozilla.org/gopgagent v0.0.0-20170926210634-4d7ea76ff71a // indirect
-	golang.org/x/tools v0.8.0 // indirect
+	golang.org/x/tools v0.9.1 // indirect
 	gorm.io/gorm v1.24.0
 )
 
@@ -289,7 +293,7 @@ require (
 	github.com/exponent-io/jsonpath v0.0.0-20210407135951-1de76d718b3f // indirect
 	github.com/fatih/color v1.15.0 // indirect
 	github.com/fluxcd/pkg/apis/acl v0.1.0 // indirect
-	github.com/fluxcd/pkg/apis/kustomize v1.0.0 // indirect
+	github.com/fluxcd/pkg/apis/kustomize v1.1.1 // indirect
 	github.com/fluxcd/pkg/ssa v0.27.0 // indirect
 	github.com/fsnotify/fsnotify v1.6.0 // indirect
 	github.com/go-asset/generics v0.0.0-20220317100214-d5f632c68060 // indirect
@@ -298,14 +302,14 @@ require (
 	github.com/go-git/go-billy/v5 v5.4.1 // indirect
 	github.com/go-git/go-git/v5 v5.6.1
 	github.com/go-gorp/gorp/v3 v3.0.5 // indirect
-	github.com/go-logr/zapr v1.2.3 // indirect
+	github.com/go-logr/zapr v1.2.4 // indirect
 	github.com/go-openapi/jsonpointer v0.19.6 // indirect
 	github.com/go-openapi/jsonreference v0.20.2 // indirect
 	github.com/go-openapi/swag v0.22.3 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
 	github.com/gofrs/flock v0.8.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
+	github.com/golang-jwt/jwt/v4 v4.4.3 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
@@ -337,7 +341,7 @@ require (
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
-	github.com/mattn/go-isatty v0.0.17 // indirect
+	github.com/mattn/go-isatty v0.0.18 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
 	github.com/matttproud/golang_protobuf_extensions v1.0.4 // indirect
 	github.com/mitchellh/copystructure v1.2.0 // indirect
@@ -359,7 +363,7 @@ require (
 	github.com/pelletier/go-toml/v2 v2.0.6 // indirect
 	github.com/peterbourgon/diskv v2.0.1+incompatible // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/prometheus/client_model v0.3.0 // indirect
+	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.42.0 // indirect
 	github.com/prometheus/procfs v0.9.0 // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
@@ -382,13 +386,13 @@ require (
 	go.uber.org/atomic v1.10.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.24.0
-	golang.org/x/net v0.9.0
-	golang.org/x/sync v0.1.0
-	golang.org/x/sys v0.7.0 // indirect
-	golang.org/x/term v0.7.0 // indirect
+	golang.org/x/net v0.10.0
+	golang.org/x/sync v0.2.0
+	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/term v0.8.0 // indirect
 	golang.org/x/text v0.9.0
 	golang.org/x/time v0.3.0 // indirect
-	gomodules.xyz/jsonpatch/v2 v2.2.0 // indirect
+	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
@@ -397,11 +401,11 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/sqlite v1.4.4
 	k8s.io/apiserver v0.26.3
-	k8s.io/component-base v0.26.3 // indirect
-	k8s.io/klog/v2 v2.90.1 // indirect
+	k8s.io/component-base v0.27.3 // indirect
+	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 	k8s.io/kubectl v0.26.3
-	k8s.io/utils v0.0.0-20230406110748-d93618cff8a2
+	k8s.io/utils v0.0.0-20230505201702-9f6742963106
 	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
@@ -426,6 +430,10 @@ replace (
 	// Replace digest lib to master to gather access to BLAKE3.
 	// xref: https://github.com/opencontainers/go-digest/pull/66
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
+
+	// un-comment for local dev
+	github.com/weaveworks/weave-gitops => ../weave-gitops
+
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
 	//
@@ -453,7 +461,4 @@ replace (
 	k8s.io/component-base => k8s.io/component-base v0.26.3
 	k8s.io/component-helpers => k8s.io/component-helpers v0.26.3
 	k8s.io/kubectl => k8s.io/kubectl v0.26.3
-
-// un-comment for local dev
-// github.com/weaveworks/weave-gitops => ../weave-gitops
 )
