@@ -34,8 +34,9 @@ function TerraformListTable({ className, rows }: Props) {
   }
 
   //for all other instaces/reqs in the UI, we know that the type is Terraform, so it doesn't exist on the obj. When passing it to OSS for Sync/Suspend however, we need to supply the "type" to satisfy the ObjectRef[] type and determine which func to use
-  const kindRows = rows?.map(row => {
-    return { ...row, type: 'Terraform' };
+  //The uid needs to be supplied for the CheckboxActions component in OSS to work properly
+  const kindRows = rows?.map((row, index) => {
+    return { ...row, type: 'Terraform', uid: index };
   });
 
   return (
