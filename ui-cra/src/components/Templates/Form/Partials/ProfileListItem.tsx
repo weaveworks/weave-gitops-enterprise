@@ -17,8 +17,6 @@ import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
 import ChartValuesDialog from './ChartValuesDialog';
 
-const SelectSetWidth = styled(Select)``;
-
 const ProfilesListItem: FC<{
   className?: string;
   cluster?: ClusterNamespacedName;
@@ -130,7 +128,7 @@ const ProfilesListItem: FC<{
       <Flex data-profile-name={profile.name} className={className}>
         <Box className="profile-version">
           <FormControl>
-            <SelectSetWidth
+            <Select
               disabled={profile.required && profile.values.length === 1}
               value={version}
               onChange={handleSelectVersion}
@@ -138,7 +136,7 @@ const ProfilesListItem: FC<{
               label="Versions"
             >
               {profileVersions(profile)}
-            </SelectSetWidth>
+            </Select>
           </FormControl>
         </Box>
         <Box className="profile-namespace">
