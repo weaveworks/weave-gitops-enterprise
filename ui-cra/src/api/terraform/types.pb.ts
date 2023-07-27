@@ -38,6 +38,8 @@ export type TerraformObject = {
   name?: string
   namespace?: string
   clusterName?: string
+  type?: string
+  uid?: string
   sourceRef?: SourceRef
   appliedRevision?: string
   path?: string
