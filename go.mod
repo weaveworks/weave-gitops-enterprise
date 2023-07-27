@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.27.1-rc.1
+	github.com/weaveworks/weave-gitops v0.28.1-0.20230720174918-4ea48f562055
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -83,6 +83,7 @@ require (
 )
 
 require (
+	dario.cat/mergo v1.0.0 // indirect
 	github.com/fluxcd/pkg/tar v0.2.0 // indirect
 	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/google/go-containerregistry v0.12.0 // indirect
@@ -113,7 +114,7 @@ require (
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
-	github.com/weaveworks/gitopssets-controller v0.13.2
+	github.com/weaveworks/gitopssets-controller v0.14.0
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.117.0 // indirect
@@ -412,6 +413,10 @@ require (
 replace (
 	// TODO: why do we need to replace this?
 	github.com/appscode/jsonpatch => gomodules.xyz/jsonpatch/v2 v2.0.0
+
+	// replace circl to 1.3.3
+	// https://github.com/advisories/GHSA-2q89-485c-9j2x
+	github.com/cloudflare/circl => github.com/cloudflare/circl v1.3.3
 
 	// Using commit https://github.com/distribution/distribution/commit/03aaf6ab51117e99b4f53fb0db84e1a5348892c9
 	// to fix a vulnerability affecting the github.com/gorilla/handlers dependency. For more info visit

@@ -4,7 +4,9 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/rbac/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -217,4 +219,22 @@ func NewBindingAdapter(clusterName string, obj client.Object) (BindingLike, erro
 		return nil, fmt.Errorf("unknown object type %T", obj)
 	}
 
+}
+
+type EventLike interface {
+	client.Object
+	GetConditions() []metav1.Condition
+}
+
+type eventAdapter struct {
+	*corev1.Event
+}
+
+func (ea *eventAdapter) GetConditions() []metav1.Condition {
+	cond := metav1.Condition{
+		Type:    string(NoStatus),
+		Message: ea.Message,
+		Status:  "True",
+	}
+	return []metav1.Condition{cond}
 }

@@ -2337,10 +2337,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.27.1-rc.1":
-  version "0.27.1-rc.1"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.27.1-rc.1/50815abf9745422a29e8c3a1c3901c3bdab1e1e2#50815abf9745422a29e8c3a1c3901c3bdab1e1e2"
-  integrity sha512-Bkz861LehdfyntnlKMN7RGmrN38H454tqfK4mQ0C0adzCRdU53yjGSuyDlPMVLlruS0laA54HvDVD0dSp4k4AA==
+"@weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@0.28.0-9-g4ea48f56":
+  version "0.28.0-9-g4ea48f56"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops-main/0.28.0-9-g4ea48f56/1ce7bd3473faf326822fdd49e3785adff0ddc693#1ce7bd3473faf326822fdd49e3785adff0ddc693"
+  integrity sha512-sRtDdUcwpjpBcXgliTvFCOtM5T4S3Lh6ujkdcjfHc/RF2N9BxowU55TuADSc9XgNeqPTzNXttiGSA+n4oBKmSA==
   dependencies:
     "@material-ui/core" "^4.12.3"
     "@material-ui/icons" "^4.11.2"
@@ -6903,7 +6903,7 @@ lru-cache@^6.0.0:
 
 luxon@^3.2.1:
   version "3.3.0"
-  resolved "https://registry.npmjs.org/luxon/-/luxon-3.3.0.tgz"
+  resolved "https://registry.yarnpkg.com/luxon/-/luxon-3.3.0.tgz#d73ab5b5d2b49a461c47cedbc7e73309b4805b48"
   integrity sha512-An0UCfG/rSiqtAIiBPO0Y9/zAnHUZxAMiCpTd5h2smgsj7GGmcenvrvww2cqNA8/4A5ZrD1gJpHN2mIHZQF+Mg==
 
 lz-string@^1.4.4:
@@ -9024,7 +9024,7 @@ react-toastify@^8.0.2:
 
 react-toastify@^9.1.2:
   version "9.1.3"
-  resolved "https://registry.npmjs.org/react-toastify/-/react-toastify-9.1.3.tgz"
+  resolved "https://registry.yarnpkg.com/react-toastify/-/react-toastify-9.1.3.tgz#1e798d260d606f50e0fab5ee31daaae1d628c5ff"
   integrity sha512-fPfb8ghtn/XMxw3LkxQBk3IyagNpF/LIKjOBflbexr2AWxAH1MJgvnESwEwBn9liLFXgTKWgBSdZpw9m4OTHTg==
   dependencies:
     clsx "^1.1.1"

@@ -1,9 +1,10 @@
+import { Flex } from '@weaveworks/weave-gitops';
 import { useGetPolicyConfigDetails } from '../../../contexts/PolicyConfigs';
 import { Routes } from '../../../utils/nav';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import PolicyConfigHeaderSection from './PolicyConfigHeaderSection';
 import PolicyDetailsCard from './PolicyDetailsCard';
-import { Page } from '../../Layout/App';
 
 const PolicyConfigDetails = ({
   clusterName,
@@ -33,17 +34,19 @@ const PolicyConfigDetails = ({
             : ''
         }
       >
-        <PolicyConfigHeaderSection
-          clusterName={PolicyConfig?.clusterName}
-          age={PolicyConfig?.age}
-          match={PolicyConfig?.match}
-          matchType={PolicyConfig?.matchType}
-        />
-        <PolicyDetailsCard
-          policies={PolicyConfig?.policies}
-          totalPolicies={PolicyConfig?.totalPolicies}
-          clusterName={clusterName}
-        />
+        <Flex wide column gap="32">
+          <PolicyConfigHeaderSection
+            clusterName={PolicyConfig?.clusterName}
+            age={PolicyConfig?.age}
+            match={PolicyConfig?.match}
+            matchType={PolicyConfig?.matchType}
+          />
+          <PolicyDetailsCard
+            policies={PolicyConfig?.policies}
+            totalPolicies={PolicyConfig?.totalPolicies}
+            clusterName={clusterName}
+          />
+        </Flex>
       </NotificationsWrapper>
     </Page>
   );

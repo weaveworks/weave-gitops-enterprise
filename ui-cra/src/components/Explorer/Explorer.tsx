@@ -115,7 +115,7 @@ function filterFacetsForCategory(
   const kindFacets = _.map(categoryKinds[category], k => k);
 
   withoutKind.unshift({
-    field: 'Kind',
+    field: 'kind',
     values: kindFacets,
   });
 

@@ -82,6 +82,8 @@ You can use a [previous release](https://github.com/weaveworks/weave-gitops-ente
 - Add a **Breaking Changes** section, calling out any breaking changes in this new release.
 - Add a **Known Issues** section, calling out any known issues in this new release.
 
+If the previous release was an `rc.x` release, add notes from its release notes.
+
 Notify your Product Manager at this stage that the release notes are available. They will combine with content from the product newsletter to update the website **after** the release.
 
 #### The https://docs.gitops.weave.works/ Enterprise releases page
@@ -89,14 +91,14 @@ Notify your Product Manager at this stage that the release notes are available. 
 > **Note**
 > This is for non-rc.x releases only
 
-Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/releases.mdx).
+Copy the **Dependency Versions**, **Highlights**, **Breaking Changes** and **Known Issues** sections from the Github release notes into the [Enterprise releases page](https://github.com/weaveworks/weave-gitops/blob/main/website/docs/enterprise/getting-started/releases-enterprise.mdx).
 
 - Paste it up the top, keeping previous releases in order.
 - Add the current date under the release version
 
 Make sure to backport the docs changes to the most recent versioned docs. For example when releasing 0.9.5, both these files should be the same:
-- weave-gitops/website/docs/enterprise/releases.mdx
-- weave-gitops/website/versioned_docs/version-0.9.5/enterprise/releases.mdx
+- weave-gitops/website/docs/enterprise/getting-started/releases-enterprise.mdx
+- weave-gitops/website/versioned_docs/version-0.9.5/enterprise/getting-started/releases-enterprise.mdx
 
 #### Make sure the installation docs are updated for the upcoming version
 
@@ -106,13 +108,13 @@ The following pages reference the version:
 
 Ensure that the version referenced in the instructions for downloading the CLI and the version used in the WGE Helm release example, match the upcoming version.
 
-### Announce final (non-rc) releases in #weave-gitops on slack
+### Announce final (non-rc) releases in #weave-gitops on Weaveworks slack
 
 Sample:
 
 > Hi! There is a new release of Weave Gitops Enterprise v0.9.6!
 > - https://github.com/weaveworks/weave-gitops-enterprise/releases/tag/v0.9.6
-> - https://docs.gitops.weave.works/docs/enterprise/releases/
+> - https://docs.gitops.weave.works/docs/enterprise/getting-started/releases-enterprise/
 
 
 ### Update this document with any thing that unclear!

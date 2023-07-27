@@ -142,12 +142,12 @@
     },
     "/v1/terraform_objects/suspend": {
       "post": {
-        "operationId": "Terraform_ToggleSuspendTerraformObject",
+        "operationId": "Terraform_ToggleSuspendTerraformObjects",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendTerraformObjectResponse"
+              "$ref": "#/definitions/v1ToggleSuspendTerraformObjectsResponse"
             }
           },
           "default": {
@@ -163,7 +163,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendTerraformObjectRequest"
+              "$ref": "#/definitions/v1ToggleSuspendTerraformObjectsRequest"
             }
           }
         ],
@@ -174,12 +174,12 @@
     },
     "/v1/terraform_objects/sync": {
       "post": {
-        "operationId": "Terraform_SyncTerraformObject",
+        "operationId": "Terraform_SyncTerraformObjects",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1SyncTerraformObjectResponse"
+              "$ref": "#/definitions/v1SyncTerraformObjectsResponse"
             }
           },
           "default": {
@@ -195,7 +195,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1SyncTerraformObjectRequest"
+              "$ref": "#/definitions/v1SyncTerraformObjectsRequest"
             }
           }
         ],
@@ -371,6 +371,23 @@
         }
       }
     },
+    "v1ObjectRef": {
+      "type": "object",
+      "properties": {
+        "clusterName": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      }
+    },
     "v1Pagination": {
       "type": "object",
       "properties": {
@@ -436,21 +453,19 @@
         }
       }
     },
-    "v1SyncTerraformObjectRequest": {
+    "v1SyncTerraformObjectsRequest": {
       "type": "object",
       "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ObjectRef"
+          }
         }
       }
     },
-    "v1SyncTerraformObjectResponse": {
+    "v1SyncTerraformObjectsResponse": {
       "type": "object",
       "properties": {
         "success": {
@@ -540,24 +555,22 @@
         }
       }
     },
-    "v1ToggleSuspendTerraformObjectRequest": {
+    "v1ToggleSuspendTerraformObjectsRequest": {
       "type": "object",
       "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1ObjectRef"
+          }
         },
         "suspend": {
           "type": "boolean"
         }
       }
     },
-    "v1ToggleSuspendTerraformObjectResponse": {
+    "v1ToggleSuspendTerraformObjectsResponse": {
       "type": "object"
     }
   }

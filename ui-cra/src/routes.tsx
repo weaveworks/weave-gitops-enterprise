@@ -20,6 +20,7 @@ import WGApplicationsSources from './components/Applications/Sources';
 import MCCP from './components/Clusters';
 import ClusterDetails from './components/Clusters/ClusterDetails';
 import Explorer from './components/Explorer';
+import ObjectViewerPage from './components/Explorer/ObjectViewerPage';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
 import GitOpsRunDetail from './components/GitOpsRun/Detail';
 import GitOpsRun from './components/GitOpsRun/List';
@@ -260,7 +261,12 @@ const AppRoutes = () => {
         path={Routes.TerraformDetail}
         component={withSearchParams(TerraformObjectDetail)}
       />
+      <Route
+        path={Routes.ExplorerView}
+        component={withSearchParams(ObjectViewerPage)}
+      />
       <Route path={Routes.Explorer} component={withSearchParams(Explorer)} />
+
       <Route
         exact
         path={Routes.GitOpsSets}

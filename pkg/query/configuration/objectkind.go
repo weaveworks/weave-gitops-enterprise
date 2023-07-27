@@ -2,21 +2,28 @@ package configuration
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/kustomize-controller/api/v1beta2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	corev1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// FilterFunc can be used to only retain relevant objects.
+// For example, we may want to keep Events, but only Events from a particular source.
+type FilterFunc func(obj client.Object) bool
+
 type ObjectKind struct {
 	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
 	NewClientObjectFunc func() client.Object        `json:"-"`
 	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
 	RetentionPolicy     RetentionPolicy             `json:"-"`
+	FilterFunc          FilterFunc
 }
 
 func (ok ObjectKind) String() string {
@@ -115,6 +122,23 @@ var (
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
 	}
+
+	PolicyAgentEventObjectKind = ObjectKind{
+		Gvk: corev1.SchemeGroupVersion.WithKind("Event"),
+		NewClientObjectFunc: func() client.Object {
+			return &corev1.Event{}
+		},
+		AddToSchemeFunc: corev1.AddToScheme,
+		FilterFunc: func(obj client.Object) bool {
+			e, ok := obj.(*corev1.Event)
+			if !ok {
+				return false
+			}
+
+			return e.Source.Component == "policy-agent"
+		},
+		RetentionPolicy: RetentionPolicy(24 * time.Hour),
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -126,6 +150,7 @@ var SupportedObjectKinds = []ObjectKind{
 	GitRepositoryObjectKind,
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
+	PolicyAgentEventObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.

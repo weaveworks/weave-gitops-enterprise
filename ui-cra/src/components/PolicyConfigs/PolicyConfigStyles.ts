@@ -1,108 +1,28 @@
-import { ReportProblem } from '@material-ui/icons';
+import { RemoveCircleOutline, ReportProblem } from '@material-ui/icons';
 import { Alert, Autocomplete } from '@material-ui/lab';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { Flex, Text } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { TableWrapper } from '../Shared';
 
-export const SectionTitle = styled.label`
-display: block;
-color: ${props => props.theme.colors.black};
-font-size: ${props => props.theme.fontSizes.medium};
-font-weight: 600;
-margin-top: ${props => props.theme.spacing.large};
-`;
-
-export const TargetItemKind = styled.span`
-  text-transform: capitalize;
+export const TargetItemKind = styled(Text)`
   background: ${props => props.theme.colors.neutralGray};
-  padding: 4px 16px;
+  padding: ${props => props.theme.spacing.xxs}
+    ${props => props.theme.spacing.base};
   color: ${props => props.theme.colors.black};
-  margin-left: 12px;
-  border-radius: 16px;
+  margin-left: ${props => props.theme.spacing.small};
+  border-radius: ${props => props.theme.spacing.base};
 `;
-
+export const TotalPolicies = styled(Flex)`
+  width: 100px;
+`;
 export const usePolicyConfigStyle = makeStyles(() =>
   createStyles({
-    centered: {
-      textAlign: 'center',
-      width: '100px',
-    },
     capitlize: {
       textTransform: 'capitalize',
     },
     upperCase: {
       textTransform: 'uppercase',
-    },
-    appliedTo: {
-      marginTop: 16,
-    },
-    link: {
-      color: '00b3ec',
-      fontWeight: 600,
-      whiteSpace: 'pre-line',
-      textTransform: 'capitalize',
-    },
-    targetItemsList: {
-      '& li': { marginTop: 8, display: 'flex', alignItems: 'center' },
-      padding: 0,
-      margin: 0,
-    },
-    targetItemKind: {
-      background: '#eef0f4',
-      padding: `${4} ${16}`,
-      color: '#1a1a1a',
-      marginLeft: 12,
-      borderRadius: 16,
-    },
-    policyTitle: {
-      '& span': {
-        marginRight: 8,
-      },
-      display: 'flex',
-      alignItems: 'flex-start',
-      whiteSpace: 'pre-line',
-      textTransform: 'capitalize',
-    },
-    checkList: {
-      display: 'flex',
-      listStyle: 'none',
-      flexFlow: 'wrap',
-      paddingLeft: 12,
-      marginTop: 0,
-      '& li': {
-        width: '45%',
-        '&.workspaces': {
-          width: '33%',
-          '& label': {
-            marginBottom: '0 !important',
-          },
-        },
-        '& svg': {
-          marginRight: '5px',
-        },
-        '& label': {
-          marginTop: `${8} !important`,
-          marginBottom: `${16} !important`,
-          fontSize: 20,
-        },
-      },
-    },
-
-    errorSection: {
-      color: '#9F3119',
-      display: 'Flex',
-      alignItems: 'center',
-      margin: 0,
-      fontSize: 12,
-      marginTop: 8,
-      textAlign: 'left',
-      fontWeight: 400,
-      lineHeight: 1.66,
-      '& svg': {
-        marginRight: 4,
-        width: '20px',
-        height: '20px',
-      },
     },
   }),
 );
@@ -118,6 +38,11 @@ export const WarningWrapper = styled(Alert)`
   color: ${props => props.theme.colors.black} !important;
   display: flex !important;
   align-items: center;
+  padding-right: 0 !important;   
+  padding-left: 0 !important; 
+  .MuiAlert-icon{
+    margin-left: ${props => props.theme.spacing.base} !important;
+  }
 `;
 export const PolicyConfigsTableWrapper = styled(TableWrapper)`
   table tbody tr td:first-child {
@@ -130,13 +55,17 @@ export const PolicyDetailsCardWrapper = styled.ul`
   list-style: none;
   display: flex;
   flex-flow: wrap;
+  &.policyDetails{
+    width: 80%;
+  }
   li {
-    width: 400px;
-    padding: ${props => props.theme.spacing.small};
+    width: 30%;
+    padding: ${props => props.theme.spacing.base}
+      ${props => props.theme.spacing.small};
     .modified {
       color: #c2185b;
       display: block;
-      margin-bottom: ${props => props.theme.spacing.xxs};
+      margin-bottom: ${props => props.theme.spacing.none} !important;
       font-size: ${props => props.theme.fontSizes.tiny};
       position: absolute;
       bottom: ${props => props.theme.spacing.xs};
@@ -149,12 +78,22 @@ export const PolicyDetailsCardWrapper = styled.ul`
         cursor: pointer;
       }
     }
+    .MuiInputBase-root {
+      border: 1px solid ${props => props.theme.colors.neutral20};
+      margin-right: ${props => props.theme.spacing.none};
+    }
+    .MuiFormControl-root {
+      width: 100%;
+      .MuiFormLabel-root {
+        font-size: ${props => props.theme.fontSizes.small};
+      }
+    }
     .MuiCard-root {
       background: ${props => props.theme.colors.neutralGray};
       box-shadow: 0px 2px 8px 1px rgb(0 0 0 / 10%);
       border: 1px solid ${props => props.theme.colors.neutral20};
       min-height: 245px;
-      height: fit-content;
+      height: 100%;
       border-radius: ${props => props.theme.spacing.xs} !important;
     }
     .cardLbl {
@@ -162,25 +101,22 @@ export const PolicyDetailsCardWrapper = styled.ul`
       font-size: ${props => props.theme.fontSizes.small};
       display: block;
       font-weight: ${700};
-      margin: ${props => props.theme.spacing.base} 0 0;
+      margin-top: ${props => props.theme.spacing.base};
     }
     .parameterItem {
       font-size: ${props => props.theme.fontSizes.small};
       font-weight: 400;
       margin-top: ${props => props.theme.spacing.xs};
       position: relative;
-      label {
-        margin-bottom: ${props => props.theme.spacing.xs};
+      span {
         display: block;
-        font-size: ${props => props.theme.fontSizes.small};
-        color: black;
+        margin-bottom: ${props => props.theme.spacing.xs};
       }
 
       label[class*='MuiFormControlLabel-root'] {
-        height: 40px;
-        display: flex;
-        align-items: center;
-        margin-bottom: ${props => props.theme.spacing.medium} !important;
+        margin-top: ${props => props.theme.spacing.xs};
+        margin-bottom: ${props => props.theme.spacing.xs};
+
         span[class*='PrivateSwitchBase-root'] {
           padding: 0 ${props => props.theme.spacing.xxs} 0
             ${props => props.theme.spacing.xs};
@@ -213,3 +149,41 @@ export const SelectPoliciesWithSearch = styled(Autocomplete)`
     border: 0 !important;
   }
 `;
+export const CheckList = styled.ul`
+  display:flex;
+  min-width: 100vh;  
+  list-style: none;
+  flex-flow: wrap;
+  padding-left:   ${props => props.theme.spacing.small};
+  margin-top:  ${props => props.theme.spacing.none};
+   li{
+    width: 49%;
+    &.workspaces {
+      width: 33%;
+    },
+    svg {
+      margin-right: ${props => props.theme.spacing.xxs};
+    },
+},`;
+export const ErrorSection = styled.div`
+color: ${props => props.theme.colors.alertDark};
+display: Flex;
+align-items: center;
+margin: ${props => props.theme.spacing.none};
+font-size: ${props => props.theme.fontSizes.small};
+margin-top:  ${props => props.theme.spacing.xs};
+text-align: left;
+font-weight: 400;
+line-height: 1.66;
+svg {
+  margin-right: ${props => props.theme.spacing.xxs};
+  width: 20px;
+  height: 20px;
+},
+`;
+
+export const RemoveIcon = styled(RemoveCircleOutline)`
+  color: ${props => props.theme.colors.alertMedium};
+  cursor: pointer;
+`;
+

@@ -1,10 +1,10 @@
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
+import { useListPolicyConfigs } from '../../contexts/PolicyConfigs';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { PolicyConfigsTable } from './Table';
-import { useListPolicyConfigs } from '../../contexts/PolicyConfigs';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
-import { useCallback } from 'react';
-import { Page } from '../Layout/App';
 
 const PolicyConfigsList = () => {
   const { data, isLoading } = useListPolicyConfigs({});

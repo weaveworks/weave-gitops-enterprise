@@ -9,6 +9,7 @@ import (
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/hashicorp/go-multierror"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/terraform/internal/adapter"
@@ -191,70 +192,85 @@ func (s *server) GetTerraformObjectPlan(ctx context.Context, msg *pb.GetTerrafor
 	return result, nil
 }
 
-func (s *server) SyncTerraformObject(ctx context.Context, msg *pb.SyncTerraformObjectRequest) (*pb.SyncTerraformObjectResponse, error) {
+func (s *server) SyncTerraformObjects(ctx context.Context, msg *pb.SyncTerraformObjectsRequest) (*pb.SyncTerraformObjectsResponse, error) {
 	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("getting impersonated client: %w", err)
 	}
 
-	c, err := clustersClient.Scoped(msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("getting scoped client: %w", err)
+	respErrors := multierror.Error{}
+
+	for _, sync := range msg.Objects {
+		c, err := clustersClient.Scoped(sync.ClusterName)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting scoped client: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		key := client.ObjectKey{
+			Name:      sync.Name,
+			Namespace: sync.Namespace,
+		}
+
+		obj := adapter.TerraformObjectAdapter{Terraform: &tfctrl.Terraform{}}
+
+		if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting object %s in namespace %s: %w", sync.Name, sync.Namespace, err), respErrors.Errors...)
+			continue
+		}
+
+		if err := fluxsync.RequestReconciliation(ctx, c, key, obj.GroupVersionKind()); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("requesting reconciliation: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("waiting for sync: %w", err), respErrors.Errors...)
+			continue
+		}
 	}
 
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	obj := adapter.TerraformObjectAdapter{Terraform: &tfctrl.Terraform{}}
-
-	if err := c.Get(ctx, key, obj.AsClientObject()); err != nil {
-		return nil, fmt.Errorf("getting object %s in namespace %s: %w", msg.Name, msg.Namespace, err)
-	}
-
-	if err := fluxsync.RequestReconciliation(ctx, c, key, obj.GroupVersionKind()); err != nil {
-		return nil, fmt.Errorf("requesting reconciliation: %w", err)
-	}
-
-	if err := fluxsync.WaitForSync(ctx, c, key, obj); err != nil {
-		return nil, fmt.Errorf("waiting for sync: %w", err)
-	}
-
-	return &pb.SyncTerraformObjectResponse{Success: true}, nil
+	return &pb.SyncTerraformObjectsResponse{Success: true}, respErrors.ErrorOrNil()
 }
 
-func (s *server) ToggleSuspendTerraformObject(ctx context.Context, msg *pb.ToggleSuspendTerraformObjectRequest) (*pb.ToggleSuspendTerraformObjectResponse, error) {
+func (s *server) ToggleSuspendTerraformObjects(ctx context.Context, msg *pb.ToggleSuspendTerraformObjectsRequest) (*pb.ToggleSuspendTerraformObjectsResponse, error) {
 	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
 		return nil, fmt.Errorf("getting impersonated client: %w", err)
 	}
 
-	c, err := clustersClient.Scoped(msg.ClusterName)
-	if err != nil {
-		return nil, fmt.Errorf("getting scoped client: %w", err)
+	respErrors := multierror.Error{}
+
+	for _, obj := range msg.Objects {
+		c, err := clustersClient.Scoped(obj.ClusterName)
+		if err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting scoped client: %w", err), respErrors.Errors...)
+			continue
+		}
+
+		key := client.ObjectKey{
+			Name:      obj.Name,
+			Namespace: obj.Namespace,
+		}
+
+		obj := &tfctrl.Terraform{}
+
+		if err := c.Get(ctx, key, obj); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("getting object %s in namespace %s: %w", obj.Name, obj.Namespace, err), respErrors.Errors...)
+			continue
+		}
+
+		patch := client.MergeFrom(obj.DeepCopy())
+
+		obj.Spec.Suspend = msg.Suspend
+
+		if err := c.Patch(ctx, obj, patch); err != nil {
+			respErrors = *multierror.Append(fmt.Errorf("patching object: %w", err), respErrors.Errors...)
+			continue
+		}
 	}
 
-	key := client.ObjectKey{
-		Name:      msg.Name,
-		Namespace: msg.Namespace,
-	}
-
-	obj := &tfctrl.Terraform{}
-
-	if err := c.Get(ctx, key, obj); err != nil {
-		return nil, fmt.Errorf("getting object %s in namespace %s: %w", msg.Name, msg.Namespace, err)
-	}
-
-	patch := client.MergeFrom(obj.DeepCopy())
-
-	obj.Spec.Suspend = msg.Suspend
-
-	if err := c.Patch(ctx, obj, patch); err != nil {
-		return nil, fmt.Errorf("patching object: %w", err)
-	}
-
-	return &pb.ToggleSuspendTerraformObjectResponse{}, nil
+	return &pb.ToggleSuspendTerraformObjectsResponse{}, respErrors.ErrorOrNil()
 }
 
 func (s *server) ReplanTerraformObject(ctx context.Context, msg *pb.ReplanTerraformObjectRequest) (*pb.ReplanTerraformObjectResponse, error) {

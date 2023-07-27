@@ -54,6 +54,8 @@ cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9
 cloud.google.com/go/storage v1.14.0/go.mod h1:GrKmX003DSIwi9o29oFT7YDnHYwZoctc3fOKtUw0Xmo=
 code.gitea.io/sdk/gitea v0.14.0 h1:m4J352I3p9+bmJUfS+g0odeQzBY/5OXP91Gv6D4fnJ0=
 code.gitea.io/sdk/gitea v0.14.0/go.mod h1:89WiyOX1KEcvjP66sRHdu0RafojGo60bT9UqW17VbWs=
+dario.cat/mergo v1.0.0 h1:AGCNq9Evsj31mOgNPcLyXc+4PNABt905YmuqPYYpBWk=
+dario.cat/mergo v1.0.0/go.mod h1:uNxQE+84aUszobStD9th8a29P2fMDhsBdgRYvZOxGmk=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
 filippo.io/age v1.1.1 h1:pIpO7l151hCnQ4BdyBujnGP2YlUo0uj6sAVNHGBvXHg=
 filippo.io/age v1.1.1/go.mod h1:l03SrzDUrBkdBx8+IILdnn2KZysqQdbEBUQ4p3sqEQE=
@@ -268,7 +270,7 @@ github.com/bugsnag/osext v0.0.0-20130617224835-0dd3f918b21b h1:otBG+dV+YK+Soembj
 github.com/bugsnag/osext v0.0.0-20130617224835-0dd3f918b21b/go.mod h1:obH5gd0BsqsP2LwDJ9aOkm/6J86V6lyAXCoQWGw3K50=
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0 h1:nvj0OLI3YqYXer/kZD8Ri1aaunCxIEsOst1BVJswV0o=
 github.com/bugsnag/panicwrap v0.0.0-20151223152923-e2c28503fcd0/go.mod h1:D/8v3kj0zr8ZAKg1AQ6crr+5VwKN5eIywRkfhyM/+dE=
-github.com/bwesterb/go-ristretto v1.2.0/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=
+github.com/bwesterb/go-ristretto v1.2.3/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=
 github.com/cenkalti/backoff v2.2.1+incompatible h1:tNowT99t7UNflLxfYYSlKYsBpXdEet03Pg2g16Swow4=
 github.com/cenkalti/backoff/v3 v3.2.2 h1:cfUAAO3yvKMYKPrvhDuHSwQnhZNk/RMHKdZqKTxfm6M=
 github.com/cenkalti/backoff/v3 v3.2.2/go.mod h1:cIeZDE3IrqwwJl6VUwCN6trj1oXrTS4rc0ij+ULvLYs=
@@ -309,9 +311,8 @@ github.com/circonus-labs/circonusllhist v0.1.3/go.mod h1:kMXHVDlOchFAehlya5ePtbp
 github.com/clbanning/mxj/v2 v2.3.3-0.20201214204241-e937bdee5a3e h1:h0bq6tdJcD7OQPQRJ0oInvx6//C04Vzeddt2kiJAD8Y=
 github.com/clbanning/mxj/v2 v2.3.3-0.20201214204241-e937bdee5a3e/go.mod h1:hNiWqW14h+kc+MdF9C6/YoRfjEJoR3ou6tn/Qo+ve2s=
 github.com/client9/misspell v0.3.4/go.mod h1:qj6jICC3Q7zFZvVWo7KLAzC3yx5G7kyvSDkc90ppPyw=
-github.com/cloudflare/circl v1.1.0/go.mod h1:prBCrKB9DV4poKZY1l9zBXg2QJY7mvgRvtMxxK7fi4I=
-github.com/cloudflare/circl v1.3.2 h1:VWp8dY3yH69fdM7lM6A1+NhhVoDu9vqK0jOgmkQHFWk=
-github.com/cloudflare/circl v1.3.2/go.mod h1:+CauBF6R70Jqcyl8N2hC8pAXYbWkGIezuSbuGLtRhnw=
+github.com/cloudflare/circl v1.3.3 h1:fE/Qz0QdIGqeWfnwq0RE0R7MI51s0M2E4Ga9kq5AEMs=
+github.com/cloudflare/circl v1.3.3/go.mod h1:5XYMA4rFBvNIrhs50XuiBJ15vF2pZn4nnUKZrLbUZFA=
 github.com/cncf/udpa/go v0.0.0-20191209042840-269d4d468f6f/go.mod h1:M8M6+tZqaGXZJjfX53e64911xZQV5JYwmTeXPW+k8Sc=
 github.com/cncf/udpa/go v0.0.0-20200629203442-efcf912fb354/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
 github.com/cncf/udpa/go v0.0.0-20201120205902-5459f2c99403/go.mod h1:WmhPx2Nbnhtbo57+VJT5O0JRkEi1Wbu0z5j0R8u5Hbk=
@@ -1285,8 +1286,8 @@ github.com/tv42/httpunix v0.0.0-20150427012821-b75d8614f926/go.mod h1:9ESjWnEqri
 github.com/ugorji/go v1.1.4/go.mod h1:uQMGLiO92mf5W77hV/PUCpI3pbzQx3CRekS0kk+RGrc=
 github.com/weaveworks/cluster-controller v1.5.2 h1:HEgiovJSvrLsdU7Y4mswfCzq8ca2hzpnygBVIzbQQW8=
 github.com/weaveworks/cluster-controller v1.5.2/go.mod h1:rYBv/mUMvXOP6NdSSUvvpT6ptpOPE9cqSl7WMM4LkcY=
-github.com/weaveworks/gitopssets-controller v0.13.2 h1:cWPinG77c/aki4IBHKOakdPLhJfgai4lDk74E0ZNLlA=
-github.com/weaveworks/gitopssets-controller v0.13.2/go.mod h1:TYZXcMObdGcckAoMVHfGGKCBUEiOgiqddJK2mkKgcsw=
+github.com/weaveworks/gitopssets-controller v0.14.0 h1:E9iWMN53uU4zupNJPRC8agjCXXtE7A4BnrKRUHQEuyQ=
+github.com/weaveworks/gitopssets-controller v0.14.0/go.mod h1:Cs4hqXZP8RWGoh8Ub12cowQRAB4VzwRpcEZ13l2lC5o=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d h1:HhH19ygpcDDadUMNIc8PtSCqpQ49gpY7je7P/Ow4ZAc=
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d/go.mod h1:EMw4dkvNuR0GBKVbDFjZMUIma1sZhyS6heAZXM59s0Y=
 github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/CDoU7zdCw5A0=
@@ -1297,8 +1298,8 @@ github.com/weaveworks/templates-controller v0.2.0 h1:7pWLCoHasLyk1qgDH6N9XVgozZv
 github.com/weaveworks/templates-controller v0.2.0/go.mod h1:qO/4Eeqas5kjLCacboFKcisszFMjCjIUMxhtqxYlMUw=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 h1:+IkLtnXzCkhJzojbadPd+UxwaTa6K/Eb2grY6LcYfeo=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4/go.mod h1:LUBkwqS7FHz/QTNuYzvWj6svehhh1djnV0Gj3OTc87E=
-github.com/weaveworks/weave-gitops v0.27.1-rc.1 h1:xWBlj5I7NdEvDNvHZBm8EZ0mq7jfiSrNP6iVgLAzV+E=
-github.com/weaveworks/weave-gitops v0.27.1-rc.1/go.mod h1:oZv94IrootZYwiHRkwzETbC4PFDLFEhBzAHn8TTEdrM=
+github.com/weaveworks/weave-gitops v0.28.1-0.20230720174918-4ea48f562055 h1:FRAZms1d6p+COMXmZW5Sag6C99TOkntuRER56zMjDI0=
+github.com/weaveworks/weave-gitops v0.28.1-0.20230720174918-4ea48f562055/go.mod h1:oZv94IrootZYwiHRkwzETbC4PFDLFEhBzAHn8TTEdrM=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.83.0 h1:37p0MpTPNbsTMKX/JnmJtY8Ch1sFiJzVF342+RvZEGw=
@@ -1434,6 +1435,7 @@ golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa/go.mod h1:IxCIyHEi3zRg3s0
 golang.org/x/crypto v0.0.0-20220826181053-bd7e27e6170d/go.mod h1:IxCIyHEi3zRg3s0A5j5BB6A9Jmi73HwBIUl50j+osU4=
 golang.org/x/crypto v0.1.0/go.mod h1:RecgLatLF4+eUMCP1PoPZQb+cVrJcOPbHkTkbkB9sbw=
 golang.org/x/crypto v0.3.0/go.mod h1:hebNnKkNXi2UzZN1eVRvBB7co0a+JxK6XbPiWVs/3J4=
+golang.org/x/crypto v0.3.1-0.20221117191849-2c476679df9a/go.mod h1:hebNnKkNXi2UzZN1eVRvBB7co0a+JxK6XbPiWVs/3J4=
 golang.org/x/crypto v0.5.0/go.mod h1:NK/OQwhpMQP3MwtdjgLlYHnH9ebylxKWv3e0fK+mkQU=
 golang.org/x/crypto v0.6.0/go.mod h1:OFC/31mSvZgRz0V1QTNCzfAI1aIRzbiufJtkMIlEp58=
 golang.org/x/crypto v0.7.0/go.mod h1:pYwdfH91IfpZVANVyUOhSIPZaFoJGxTFbZhFTx+dXZU=
@@ -1663,7 +1665,6 @@ golang.org/x/sys v0.0.0-20210809222454-d867a43fc93e/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20210823070655-63515b42dcdf/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210908233432-aa78b53d3365/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20210927094055-39ccf1dd6fa6/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
-golang.org/x/sys v0.0.0-20211007075335-d3039528d8ac/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211019181941-9d821ace8654/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220114195835-da31bd327af9/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=

@@ -223,6 +223,9 @@
         },
         "category": {
           "type": "string"
+        },
+        "unstructured": {
+          "type": "string"
         }
       }
     },

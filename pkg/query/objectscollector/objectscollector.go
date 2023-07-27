@@ -2,6 +2,7 @@ package objectscollector
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -74,7 +75,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
-		cat, err := adapters.Category(o)
+		cat, err := adapters.Category(objTx.Object())
 		if err != nil {
 			log.Error(err, "failed to get category from flux object")
 			continue
@@ -85,6 +86,12 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		modelTs := time.Time{}
 		if k8sTs != nil {
 			modelTs = k8sTs.Time
+		}
+
+		raw, err := json.Marshal(objTx.Object())
+		if err != nil {
+			log.Error(err, "failed to marshal object to json")
+			continue
 		}
 
 		object := models.Object{
@@ -98,6 +105,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			Message:             adapters.Message(o),
 			Category:            cat,
 			KubernetesDeletedAt: modelTs,
+			Unstructured:        raw,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
@@ -148,6 +156,6 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 	}
 
-	debug.Info("objects processed", "upsert", upsert, "delete", delete, "deleteAll", deleteAll)
+	debug.Info("objects processed", "upsert", len(upsert), "delete", len(delete), "deleteAll", len(deleteAll))
 	return nil
 }
