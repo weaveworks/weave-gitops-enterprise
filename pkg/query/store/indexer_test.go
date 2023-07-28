@@ -74,8 +74,29 @@ func TestIndexer_Metrics(t *testing.T) {
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
 
-	err = s.StoreObjects(context.Background(), objects)
-	g.Expect(err).NotTo(HaveOccurred())
+	t.Run("should have Remove instrumented", func(t *testing.T) {
+
+		err = idx.Remove(context.Background(), objects)
+		g.Expect(err).NotTo(HaveOccurred())
+
+		wantMetrics := []string{
+			`indexer_inflight_requests{action="Remove"} 0`,
+			`indexer_latency_seconds_count{action="Remove",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
+
+	t.Run("should have RemoveByQuery instrumented", func(t *testing.T) {
+
+		err = idx.RemoveByQuery(context.Background(), "+cluster:management")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		wantMetrics := []string{
+			`indexer_inflight_requests{action="RemoveByQuery"} 0`,
+			`indexer_latency_seconds_count{action="RemoveByQuery",status="success"} 1`,
+		}
+		assertMetrics(g, metricsUrl, wantMetrics)
+	})
 
 	t.Run("should have Search instrumented", func(t *testing.T) {
 
