@@ -27,7 +27,6 @@ const (
 	GetAccessRulesAction        = "GetAccessRules"
 
 	// indexer actions
-	// addFieldMappingsAction = "AddFieldMappings"
 	AddAction           = "Add"
 	RemoveAction        = "Remove"
 	RemoveByQueryAction = "RemoveByQuery"
