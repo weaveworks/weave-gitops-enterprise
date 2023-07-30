@@ -105,7 +105,11 @@ type bleveIndexer struct {
 // So we prepend the ID with a prefix, and then store the JSON under that ID.
 const unstructuredSuffix = "_unstructured"
 
-func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
+func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) (err error) {
+	// metrics
+	metrics.IndexerAddInflightRequests(metrics.AddAction, 1)
+	defer recordIndexerMetrics(metrics.AddAction, time.Now(), err)
+
 	batch := i.idx.NewBatch()
 
 	for _, obj := range objects {
@@ -132,7 +136,11 @@ func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) error {
 	return i.idx.Batch(batch)
 }
 
-func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) error {
+func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) (err error) {
+	// metrics
+	metrics.IndexerAddInflightRequests(metrics.RemoveAction, 1)
+	defer recordIndexerMetrics(metrics.RemoveAction, time.Now(), err)
+
 	for _, obj := range objects {
 		if err := i.idx.Delete(obj.GetID()); err != nil {
 			return fmt.Errorf("failed to delete object: %w", err)
@@ -142,7 +150,11 @@ func (i *bleveIndexer) Remove(ctx context.Context, objects []models.Object) erro
 	return nil
 }
 
-func (i *bleveIndexer) RemoveByQuery(ctx context.Context, q string) error {
+func (i *bleveIndexer) RemoveByQuery(ctx context.Context, q string) (err error) {
+	// metrics
+	metrics.IndexerAddInflightRequests(metrics.RemoveByQueryAction, 1)
+	defer recordIndexerMetrics(metrics.RemoveByQueryAction, time.Now(), err)
+
 	query := bleve.NewQueryStringQuery(q)
 	req := bleve.NewSearchRequest(query)
 
