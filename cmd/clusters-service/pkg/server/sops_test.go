@@ -11,7 +11,7 @@ import (
 	goage "filippo.io/age"
 
 	"github.com/ProtonMail/gopenpgp/v2/crypto"
-	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/stretchr/testify/assert"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -109,9 +109,9 @@ func TestEncryptSecret(t *testing.T) {
 						"gpg.asc": []byte(gpgPublicKey),
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					TypeMeta: metav1.TypeMeta{
-						Kind:       kustomizev1beta2.KustomizationKind,
+						Kind:       kustomizev1.KustomizationKind,
 						APIVersion: v1.SchemeGroupVersion.Identifier(),
 					},
 					ObjectMeta: metav1.ObjectMeta{
@@ -122,9 +122,9 @@ func TestEncryptSecret(t *testing.T) {
 							SopsPublicKeyNamespaceAnnotation: "flux-system",
 						},
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
+					Spec: kustomizev1.KustomizationSpec{
 						Path: "./secrets/age",
-						Decryption: &kustomizev1beta2.Decryption{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "sops",
 							SecretRef: &meta.LocalObjectReference{
 								Name: "sops-age",
@@ -132,9 +132,9 @@ func TestEncryptSecret(t *testing.T) {
 						},
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					TypeMeta: metav1.TypeMeta{
-						Kind:       kustomizev1beta2.KustomizationKind,
+						Kind:       kustomizev1.KustomizationKind,
 						APIVersion: v1.SchemeGroupVersion.Identifier(),
 					},
 					ObjectMeta: metav1.ObjectMeta{
@@ -145,9 +145,9 @@ func TestEncryptSecret(t *testing.T) {
 							SopsPublicKeyNamespaceAnnotation: "flux-system",
 						},
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
+					Spec: kustomizev1.KustomizationSpec{
 						Path: "./secrets/gpg",
-						Decryption: &kustomizev1beta2.Decryption{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "sops",
 							SecretRef: &meta.LocalObjectReference{
 								Name: "sops-gpg",
@@ -377,7 +377,7 @@ func TestListKustomizations(t *testing.T) {
 						Name: "namespace-a-2",
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-1",
 						Namespace: "namespace-a-1",
@@ -386,13 +386,13 @@ func TestListKustomizations(t *testing.T) {
 							"sops-public-key/namespace": "flux-system",
 						},
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
-						Decryption: &kustomizev1beta2.Decryption{
+					Spec: kustomizev1.KustomizationSpec{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "sops",
 						},
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-2",
 						Namespace: "namespace-a-2",
@@ -401,36 +401,36 @@ func TestListKustomizations(t *testing.T) {
 							"sops-public-key/namespace": "flux-system",
 						},
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
-						Decryption: &kustomizev1beta2.Decryption{
+					Spec: kustomizev1.KustomizationSpec{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "sops",
 						},
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-3",
 						Namespace: "namespace-a-1",
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
-						Decryption: &kustomizev1beta2.Decryption{
+					Spec: kustomizev1.KustomizationSpec{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "decryption-provider-a-2",
 						},
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-4",
 						Namespace: "namespace-a-2",
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-a-5",
 						Namespace: "namespace-a-1",
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
-						Decryption: &kustomizev1beta2.Decryption{
+					Spec: kustomizev1.KustomizationSpec{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "sops",
 						},
 					},
@@ -450,7 +450,7 @@ func TestListKustomizations(t *testing.T) {
 						Name: "namespace-a-2",
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-b-1",
 						Namespace: "namespace-b-1",
@@ -459,13 +459,13 @@ func TestListKustomizations(t *testing.T) {
 							"sops-public-key/namespace": "flux-system",
 						},
 					},
-					Spec: kustomizev1beta2.KustomizationSpec{
-						Decryption: &kustomizev1beta2.Decryption{
+					Spec: kustomizev1.KustomizationSpec{
+						Decryption: &kustomizev1.Decryption{
 							Provider: "sops",
 						},
 					},
 				},
-				&kustomizev1beta2.Kustomization{
+				&kustomizev1.Kustomization{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "kustomization-b-2",
 						Namespace: "namespace-a-2",
