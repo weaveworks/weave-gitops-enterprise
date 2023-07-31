@@ -859,8 +859,11 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c29.MuiButton-outlined {
-  border-color: #737373;
   border-radius: 0 2px 2px 0;
+}
+
+.c29.MuiButton-outlinedPrimary {
+  border-color: #d8d8d8;
 }
 
 .c29.MuiButton-root {
