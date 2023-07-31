@@ -218,7 +218,7 @@ const AppRoutes = () => {
         path={V2Routes.ImagePolicyDetails}
         component={withSearchParams(ImagePolicyDetails)}
       />
-      <Route exact path={V2Routes.Policies} component={Policies} />
+      <Route path={V2Routes.Policies} component={Policies} />
       <Route
         component={withSearchParams(PolicyDetailsPage)}
         path={V2Routes.PolicyDetailsPage}

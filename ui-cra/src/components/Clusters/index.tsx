@@ -10,13 +10,10 @@ import {
   Kind,
   KubeStatusIndicator,
   Link,
-  PolicyViolationsList,
-  RouterTab,
-  SubRouterTabs,
   filterByStatusCallback,
   filterConfig,
   statusSortHelper,
-  useListSources,
+  useListSources
 } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';

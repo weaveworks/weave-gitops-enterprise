@@ -123,7 +123,7 @@ var (
 		AddToSchemeFunc: rbacv1.AddToScheme,
 	}
 
-	PolicyAgentEventObjectKind = ObjectKind{
+	PolicyAgentAuditEventObjectKind = ObjectKind{
 		Gvk: corev1.SchemeGroupVersion.WithKind("Event"),
 		NewClientObjectFunc: func() client.Object {
 			return &corev1.Event{}
@@ -135,7 +135,7 @@ var (
 				return false
 			}
 
-			return e.Source.Component == "policy-agent"
+			return e.Labels["pac.weave.works/type"] == "Audit" && e.Source.Component == "policy-agent"
 		},
 		RetentionPolicy: RetentionPolicy(24 * time.Hour),
 	}
@@ -150,7 +150,7 @@ var SupportedObjectKinds = []ObjectKind{
 	GitRepositoryObjectKind,
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
-	PolicyAgentEventObjectKind,
+	PolicyAgentAuditEventObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.

@@ -9,6 +9,7 @@ import {
   SubRouterTabs,
 } from '@weaveworks/weave-gitops';
 import { useRouteMatch } from 'react-router-dom';
+import PolicyAuditList from './PolicyAuditList';
 
 const Policies = () => {
   const { data, isLoading } = useListPolicies({});
@@ -17,8 +18,8 @@ const Policies = () => {
   return (
     <Page loading={isLoading} path={[{ label: 'Policies' }]}>
       <NotificationsWrapper errors={data?.errors}>
-        <SubRouterTabs rootPath={`${path}/`}>
-          <RouterTab name="Policies" path={`${path}/list/`}>
+        <SubRouterTabs rootPath={`${path}/list`}>
+          <RouterTab name="Policies" path={`${path}/list`}>
             <>
               {data?.policies && (
                 <Flex wide id="policy-list">
@@ -27,12 +28,12 @@ const Policies = () => {
               )}
             </>
           </RouterTab>
-          <RouterTab name="Audit Violations" path={`${path}/auditViolations/`}>
-            <div>violations</div>
+          <RouterTab name="Audit Violations" path={`${path}/auditViolations`}>
+            <PolicyAuditList />
           </RouterTab>
           <RouterTab
             name="Enforcement Events"
-            path={`${path}/enforcementEvent/`}
+            path={`${path}/enforcementEvent`}
           >
             <PolicyViolationsList req={{}} />
           </RouterTab>
