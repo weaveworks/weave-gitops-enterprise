@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.28.1-0.20230727103922-d65045d0dc88
+	github.com/weaveworks/weave-gitops v0.29.0-rc.1
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -26,8 +26,7 @@ require (
 	sigs.k8s.io/controller-runtime v0.15.0
 )
 
-// Replace k8s.io packages v0.26 to downgrade controller-runtime to v0.14.6
-
+// Downgrade controller-runtime to v0.14.6 to limit the scope of the required changes
 replace sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.14.6
 
 require (
@@ -433,9 +432,6 @@ replace (
 
 	// un-comment for local dev
 	//github.com/weaveworks/weave-gitops => ../weave-gitops
-
-	// un-comment for using a weave-gitops branch
-	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.28.1-0.20230728151746-13f8a32af2a1
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
