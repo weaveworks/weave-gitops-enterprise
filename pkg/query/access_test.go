@@ -504,4 +504,114 @@ func TestRunQuery_AccessRules(t *testing.T) {
 			}
 		})
 	}
+
+	// from https://github.com/weaveworks/weave-gitops-enterprise/issues/2733
+	t.Run("should find objects after binding has been removed", func(t *testing.T) {
+
+		user := auth.NewUserPrincipal(auth.ID("some-user"), auth.Groups([]string{"group-a"}))
+		objects := []models.Object{
+			{
+				Cluster:    "cluster-a",
+				Namespace:  "ns-a",
+				APIGroup:   helmv2.GroupVersion.Group,
+				APIVersion: helmv2.GroupVersion.Version,
+				Kind:       helmv2.HelmReleaseKind,
+				Name:       "somename",
+				Category:   models.CategoryAutomation,
+			},
+		}
+		roles := []models.Role{
+			{
+				Name:      "role-a",
+				Cluster:   "cluster-a",
+				Namespace: "ns-a",
+				Kind:      "Role",
+				PolicyRules: []models.PolicyRule{{
+					APIGroups:     strings.Join([]string{helmv2.GroupVersion.Group}, ","),
+					Resources:     strings.Join([]string{"helmreleases"}, ","),
+					Verbs:         strings.Join([]string{"get", "list", "watch"}, ","),
+					ResourceNames: strings.Join([]string{"somename"}, ","),
+				}},
+			},
+		}
+		bindings := []models.RoleBinding{{
+			Cluster:   "cluster-a",
+			Name:      "binding-a",
+			Namespace: "ns-a",
+			Kind:      "RoleBinding",
+			Subjects: []models.Subject{{
+				Kind: "Group",
+				Name: "group-a",
+			}},
+			RoleRefName: "role-a",
+			RoleRefKind: "Role",
+		}}
+
+		expectedWithBinding := []models.Object{
+			{
+				Cluster:    "cluster-a",
+				Namespace:  "ns-a",
+				APIGroup:   helmv2.GroupVersion.Group,
+				APIVersion: helmv2.GroupVersion.Version,
+				Kind:       helmv2.HelmReleaseKind,
+				Name:       "somename",
+				Category:   models.CategoryAutomation,
+			},
+		}
+
+		g := NewGomegaWithT(t)
+
+		ctx := auth.WithPrincipal(context.Background(), user)
+
+		dir, err := os.MkdirTemp("", "test")
+		g.Expect(err).NotTo(HaveOccurred())
+
+		s, err := store.NewStore(store.StorageBackendSQLite, dir, logr.Discard())
+		g.Expect(err).NotTo(HaveOccurred())
+
+		indexer, err := store.NewIndexer(s, dir, logr.Discard())
+		g.Expect(err).NotTo(HaveOccurred())
+
+		g.Expect(s.StoreObjects(context.Background(), objects)).To(Succeed())
+		g.Expect(s.StoreRoles(context.Background(), roles)).To(Succeed())
+		g.Expect(s.StoreRoleBindings(context.Background(), bindings)).To(Succeed())
+
+		g.Expect(indexer.Add(context.Background(), objects)).To(Succeed())
+
+		//create authorizer
+		kindToResourceMap, err := testutils.CreateDefaultResourceKindMap()
+		assert.NoError(t, err)
+		authz := rbac.NewAuthorizer(kindToResourceMap)
+
+		qs, err := NewQueryService(QueryServiceOpts{
+			Log:         logr.Discard(),
+			StoreReader: s,
+			IndexReader: indexer,
+			Authorizer:  authz,
+		})
+		assert.NoError(t, err)
+
+		// I should see resources when binding exists
+		actual, err := qs.RunQuery(ctx, &query{}, nil)
+		assert.NoError(t, err)
+
+		opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt", "Category")
+		diff := cmp.Diff(expectedWithBinding, actual, opt)
+		if diff != "" {
+			t.Errorf("RunQuery() mismatch (-want +got):\n%s", diff)
+		}
+
+		// I should see empty when bindings are removed
+		expectedWithoutBinding := []models.Object{}
+
+		g.Expect(s.DeleteRoleBindings(context.Background(), bindings)).To(Succeed())
+		actual, err = qs.RunQuery(ctx, &query{}, nil)
+		assert.NoError(t, err)
+
+		diff = cmp.Diff(expectedWithoutBinding, actual, opt)
+		if diff != "" {
+			t.Errorf("RunQuery() mismatch (-want +got):\n%s", diff)
+		}
+
+	})
 }
