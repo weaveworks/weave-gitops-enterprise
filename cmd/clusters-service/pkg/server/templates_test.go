@@ -1169,7 +1169,7 @@ metadata:
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/apps-capi-flux-system-kustomization.yaml",
-						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1189,7 +1189,7 @@ status: {}
 					},
 					{
 						Path: "clusters/clusters-namespace/dev/apps-billing-flux-system-kustomization.yaml",
-						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -1254,7 +1254,7 @@ metadata:
 				KustomizationFiles: []*capiv1_protos.CommitFile{
 					{
 						Path: "clusters/clusters-namespace/dev/clusters-bases-kustomization.yaml",
-						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+						Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
