@@ -18,9 +18,6 @@ const CostEstimation: FC<{
 }) => {
   const useStyles = makeStyles(() =>
     createStyles({
-      getEstimationButton: {
-        marginRight: '12px',
-      },
       costWrapper: {
         marginRight: '12px',
         fontWeight: 'bold',
@@ -76,7 +73,6 @@ const CostEstimation: FC<{
               <Button
                 id="get-estimation"
                 type="submit"
-                className={classes.getEstimationButton}
                 onClick={() => setSubmitType('Get cost estimation')}
               >
                 GET ESTIMATION
