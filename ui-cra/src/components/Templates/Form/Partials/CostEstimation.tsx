@@ -1,6 +1,6 @@
 import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { Button, LoadingPage } from '@weaveworks/weave-gitops';
+import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
 
 const CostEstimation: FC<{
@@ -72,14 +72,16 @@ const CostEstimation: FC<{
             alignItems="center"
             container
           >
-            <Button
-              id="get-estimation"
-              type="submit"
-              className={classes.getEstimationButton}
-              onClick={() => setSubmitType('Get cost estimation')}
-            >
-              GET ESTIMATION
-            </Button>
+            <Flex end className="preview-cta">
+              <Button
+                id="get-estimation"
+                type="submit"
+                className={classes.getEstimationButton}
+                onClick={() => setSubmitType('Get cost estimation')}
+              >
+                GET ESTIMATION
+              </Button>
+            </Flex>
           </Grid>
           {costEstimateMessage && (
             <Alert className={classes.errorMessage} severity="warning">
