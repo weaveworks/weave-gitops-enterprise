@@ -32,12 +32,6 @@ function TerraformListTable({ className, rows }: Props) {
       ...filterConfig(rows, 'tenant'),
     };
   }
-
-  //for all other instaces/reqs in the UI, we know that the type is Terraform, so it doesn't exist on the obj. When passing it to OSS for Sync/Suspend however, we need to supply the "type" to satisfy the ObjectRef[] type and determine which func to use
-  const kindRows = rows?.map(row => {
-    return { ...row, type: 'Terraform' };
-  });
-
   return (
     <DataTable
       hasCheckboxes
@@ -96,7 +90,7 @@ function TerraformListTable({ className, rows }: Props) {
           label: 'Message',
         },
       ]}
-      rows={kindRows}
+      rows={rows}
       filters={filterState}
     />
   );
