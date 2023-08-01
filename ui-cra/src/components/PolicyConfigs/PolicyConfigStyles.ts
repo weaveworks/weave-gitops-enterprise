@@ -38,9 +38,9 @@ export const WarningWrapper = styled(Alert)`
   color: ${props => props.theme.colors.black} !important;
   display: flex !important;
   align-items: center;
-  padding-right: 0 !important;   
-  padding-left: 0 !important; 
-  .MuiAlert-icon{
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  .MuiAlert-icon {
     margin-left: ${props => props.theme.spacing.base} !important;
   }
 `;
@@ -55,7 +55,7 @@ export const PolicyDetailsCardWrapper = styled.ul`
   list-style: none;
   display: flex;
   flex-flow: wrap;
-  &.policyDetails{
+  &.policyDetails {
     width: 80%;
   }
   li {
@@ -186,4 +186,3 @@ export const RemoveIcon = styled(RemoveCircleOutline)`
   color: ${props => props.theme.colors.alertMedium};
   cursor: pointer;
 `;
-

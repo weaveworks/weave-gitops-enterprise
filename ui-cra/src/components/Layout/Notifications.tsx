@@ -103,14 +103,14 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
   };
 
   return (
-    <>
+    <Box style={{ width: "100%"}}>
       {notifications.map((n, index) => {
         return (
           (n?.message.text || n?.message.component) &&
           notificationAlert(n, index)
         );
       })}
-    </>
+    </Box>
   );
 };
 

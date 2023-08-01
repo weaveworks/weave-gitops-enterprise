@@ -1,4 +1,3 @@
-import { Grid } from '@material-ui/core';
 import {
   Button,
   Flex,
@@ -7,11 +6,11 @@ import {
   LoadingPage,
   useListSources,
 } from '@weaveworks/weave-gitops';
+import { Box } from '@material-ui/core';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import {
   ClusterAutomation,
   RepositoryRef,
@@ -41,38 +40,12 @@ import GitOps from '../../Templates/Form/Partials/GitOps';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import {
+  FormWrapper,
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
 import { createDeploymentObjects, renderKustomization } from '../utils';
 import AppFields from './form/Partials/AppFields';
-
-const FormWrapper = styled.form`
-  .preview-cta {
-    padding: ${({ theme }) => theme.spacing.small}
-      ${({ theme }) => theme.spacing.base};
-    button {
-      width: 200px;
-    }
-  }
-  .preview-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
-  .create-cta {
-    padding: ${({ theme }) => theme.spacing.small};
-    button {
-      width: 200px;
-    }
-  }
-  .create-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
-`;
-
-const SourceLinkWrapper = styled.div`
-  padding-top: ${({ theme }) => theme.spacing.medium};
-  overflow-x: auto;
-`;
 
 interface FormData {
   repo: GitRepository | null;
@@ -437,95 +410,85 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 )
               }
             >
-              <Grid container>
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {formData.clusterAutomations.map(
-                    (
-                      automation: FormData['clusterAutomations'][0],
-                      index: number,
-                    ) => {
-                      return (
-                        <AppFields
-                          context="app"
-                          key={index}
-                          index={index}
-                          formData={formData}
-                          setFormData={setFormData}
-                          allowSelectCluster
-                          clusterName={clusterName}
-                          formError={formError}
-                        />
-                      );
-                    },
-                  )}
-                  {openPreview && PRPreview ? (
-                    <Preview
+              {formData.clusterAutomations.map(
+                (
+                  automation: FormData['clusterAutomations'][0],
+                  index: number,
+                ) => {
+                  return (
+                    <AppFields
                       context="app"
-                      openPreview={openPreview}
-                      setOpenPreview={setOpenPreview}
-                      PRPreview={PRPreview}
-                      sourceType={formData.source_type}
+                      key={index}
+                      index={index}
+                      formData={formData}
+                      setFormData={setFormData}
+                      allowSelectCluster
+                      clusterName={clusterName}
+                      formError={formError}
                     />
-                  ) : null}
-                </Grid>
-                <Grid item sm={2} md={2} lg={4}>
-                  <SourceLinkWrapper>
-                    {optionUrl(formData.source_url, formData.source_branch)}
-                  </SourceLinkWrapper>
-                </Grid>
-                {formData.source_type === 'HelmRepository' ? (
-                  <Profiles
-                    cluster={{
-                      name: formData.clusterAutomations[0].cluster_name,
-                      namespace:
-                        formData.clusterAutomations[0].cluster_namespace,
-                    }}
-                    // Temp fix to hide layers when using profiles in Add App until we update the BE
-                    context="app"
-                    isLoading={profilesIsLoading}
-                    updatedProfiles={updatedProfiles}
-                    setUpdatedProfiles={setUpdatedProfiles}
-                    helmRepo={helmRepo}
-                  />
-                ) : null}
-                <Grid item xs={12} sm={10} md={10} lg={8}>
-                  {previewLoading ? (
-                    <LoadingPage className="preview-loading" />
-                  ) : (
-                    <Flex end className="preview-cta">
-                      <Button
-                        type="submit"
-                        onClick={() => setSubmitType('PR Preview')}
-                      >
-                        PREVIEW PR
-                      </Button>
-                    </Flex>
-                  )}
-                </Grid>
-                <Grid item xs={12} sm={12} md={12} lg={10}>
-                  <GitOps
-                    formData={formData}
-                    setFormData={setFormData}
-                    showAuthDialog={showAuthDialog}
-                    setShowAuthDialog={setShowAuthDialog}
-                    formError={formError}
-                    enableGitRepoSelection={true}
-                  />
-                  {loading ? (
-                    <LoadingPage className="create-loading" />
-                  ) : (
-                    <Flex end className="create-cta">
-                      <Button
-                        type="submit"
-                        onClick={() => setSubmitType('Create app')}
-                        disabled={!isAuthenticated}
-                      >
-                        CREATE PULL REQUEST
-                      </Button>
-                    </Flex>
-                  )}
-                </Grid>
-              </Grid>
+                  );
+                },
+              )}
+              {openPreview && PRPreview ? (
+                <Preview
+                  context="app"
+                  openPreview={openPreview}
+                  setOpenPreview={setOpenPreview}
+                  PRPreview={PRPreview}
+                  sourceType={formData.source_type}
+                />
+              ) : null}
+              <Box className="selected-source">
+                {formData.source_url && 'Selected source: '}
+                {optionUrl(formData.source_url, formData.source_branch)}
+              </Box>
+              {formData.source_type === 'HelmRepository' ? (
+                <Profiles
+                  cluster={{
+                    name: formData.clusterAutomations[0].cluster_name,
+                    namespace: formData.clusterAutomations[0].cluster_namespace,
+                  }}
+                  // Temp fix to hide layers when using profiles in Add App until we update the BE
+                  context="app"
+                  isLoading={profilesIsLoading}
+                  updatedProfiles={updatedProfiles}
+                  setUpdatedProfiles={setUpdatedProfiles}
+                  helmRepo={helmRepo}
+                />
+              ) : null}
+              {previewLoading ? (
+                <LoadingPage className="preview-loading" />
+              ) : (
+                <Flex end className="preview-cta">
+                  <Button
+                    type="submit"
+                    onClick={() => setSubmitType('PR Preview')}
+                  >
+                    PREVIEW PR
+                  </Button>
+                </Flex>
+              )}
+              <GitOps
+                formData={formData}
+                setFormData={setFormData}
+                showAuthDialog={showAuthDialog}
+                setShowAuthDialog={setShowAuthDialog}
+                formError={formError}
+                enableGitRepoSelection={true}
+              />
+              {loading ? (
+                <LoadingPage className="create-loading" />
+              ) : (
+                <Flex end className="create-cta">
+                  <Button
+                    type="submit"
+                    onClick={() => setSubmitType('Create app')}
+                    disabled={!isAuthenticated}
+                  >
+                    CREATE PULL REQUEST
+                  </Button>
+                </Flex>
+              )}
             </FormWrapper>
           </NotificationsWrapper>
         </CallbackStateContextProvider>

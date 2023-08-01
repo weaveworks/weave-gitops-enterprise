@@ -21,7 +21,6 @@ const ListSecretsStore = ({
   return (
     <RequestStateHandler loading={isLoading} error={error as RequestError}>
       <Select
-        className="form-section"
         required
         name="secretStoreRef"
         label="SECRET STORE"

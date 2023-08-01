@@ -10,7 +10,7 @@ const PolicyConfigsList = () => {
   const { data, isLoading } = useListPolicyConfigs({});
   const history = useHistory();
 
-  const handleCreateSecret = useCallback(
+  const handleCreatePolicyConfig = useCallback(
     () => history.push(`/policyConfigs/create`),
     [history],
   );
@@ -18,9 +18,9 @@ const PolicyConfigsList = () => {
     <Page loading={isLoading} path={[{ label: 'PolicyConfigs' }]}>
       <NotificationsWrapper errors={data?.errors}>
         <Button
-          id="create-cluster"
+          id="create-policy-config"
           startIcon={<Icon type={IconType.AddIcon} size="base" />}
-          onClick={handleCreateSecret}
+          onClick={handleCreatePolicyConfig}
         >
           CREATE A POLICY CONFIG
         </Button>

@@ -1,5 +1,11 @@
-import { CircularProgress, MenuItem } from '@material-ui/core';
-import { Button, GitRepository, Link } from '@weaveworks/weave-gitops';
+import { MenuItem } from '@material-ui/core';
+import {
+  Button,
+  Flex,
+  GitRepository,
+  Link,
+  LoadingPage,
+} from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -19,13 +25,13 @@ import ListClusters from '../Shared/ListClusters';
 import ListKustomizations from '../Shared/ListKustomizations';
 import { PreviewModal } from '../Shared/PreviewModal';
 import SecretData from './SecretData';
-import { FormWrapper } from '../Shared/styles';
 import {
   getFormattedPayload,
   scrollToAlertSection,
   handleError,
   getInitialData,
   SOPS,
+  FormWrapperSecret,
 } from '../Shared/utils';
 import {
   expiredTokenNotification,
@@ -132,81 +138,72 @@ const CreateSOPS = () => {
         }}
       >
         <NotificationsWrapper>
-          <FormWrapper
+          <FormWrapperSecret
             noValidate
             onSubmit={event => {
               setValidateForm(true);
               validateFormData(event, handleCreateSecret, setFormError);
             }}
           >
-            <div className="group-section">
-              <div className="form-group">
-                <ListClusters
-                  value={formData.clusterName}
-                  validateForm={validateForm}
-                  handleFormData={(val: any) => {
-                    handleFormData(val, 'clusterName');
-                    handleFormData('', 'kustomization');
-                  }}
-                />
-                <InputDebounced
-                  required
-                  name="secretName"
-                  label="SECRET NAME"
-                  value={formData.secretName}
-                  handleFormData={val => handleFormData(val, 'secretName')}
-                  error={validateForm && !formData.secretName}
-                />
-                <InputDebounced
-                  required
-                  name="secretNamespace"
-                  label="SECRET NAMESPACE"
-                  value={formData.secretNamespace}
-                  handleFormData={val => handleFormData(val, 'secretNamespace')}
-                  error={validateForm && !formData.secretNamespace}
-                />
-              </div>
-            </div>
-            <div className="group-section">
-              <h2>Encryption</h2>
-              <div className="form-group">
-                <Select
-                  className="form-section"
-                  required
-                  name="encryptionType"
-                  label="ENCRYPT USING"
-                  value={formData.encryptionType}
-                  onChange={event =>
-                    handleFormData(event.target.value, 'encryptionType')
-                  }
-                >
-                  <MenuItem value="GPG/AGE">GPG / AGE</MenuItem>
-                </Select>
-                {!!formData.clusterName && (
-                  <ListKustomizations
-                    validateForm={validateForm}
-                    value={formData.kustomization}
-                    handleFormData={(val: any) =>
-                      handleFormData(val, 'kustomization')
-                    }
-                    clusterName={formData.clusterName}
-                  />
-                )}
-              </div>
-            </div>
-            <div className="group-section">
-              <h2>Secret Data</h2>
-              <p className="secret-data-hint">
-                Please note that we will encode the secret values to base64
-                before encryption
-              </p>
-              <SecretData
-                formData={formData}
-                setFormData={setFormData}
+            <Flex column>
+              <ListClusters
+                value={formData.clusterName}
                 validateForm={validateForm}
+                handleFormData={(val: any) => {
+                  handleFormData(val, 'clusterName');
+                  handleFormData('', 'kustomization');
+                }}
               />
-              <PreviewModal formData={formData} />
-            </div>
+              <InputDebounced
+                required
+                name="secretName"
+                label="SECRET NAME"
+                value={formData.secretName}
+                handleFormData={val => handleFormData(val, 'secretName')}
+                error={validateForm && !formData.secretName}
+              />
+              <InputDebounced
+                required
+                name="secretNamespace"
+                label="SECRET NAMESPACE"
+                value={formData.secretNamespace}
+                handleFormData={val => handleFormData(val, 'secretNamespace')}
+                error={validateForm && !formData.secretNamespace}
+              />
+            </Flex>
+            <h2>Encryption</h2>
+            <Select
+              required
+              name="encryptionType"
+              label="ENCRYPT USING"
+              value={formData.encryptionType}
+              onChange={event =>
+                handleFormData(event.target.value, 'encryptionType')
+              }
+            >
+              <MenuItem value="GPG/AGE">GPG / AGE</MenuItem>
+            </Select>
+            {!!formData.clusterName && (
+              <ListKustomizations
+                validateForm={validateForm}
+                value={formData.kustomization}
+                handleFormData={(val: any) =>
+                  handleFormData(val, 'kustomization')
+                }
+                clusterName={formData.clusterName}
+              />
+            )}
+            <h2>Secret Data</h2>
+            <p className="secret-data-hint">
+              Please note that we will encode the secret values to base64 before
+              encryption
+            </p>
+            <SecretData
+              formData={formData}
+              setFormData={setFormData}
+              validateForm={validateForm}
+            />
+            <PreviewModal formData={formData} />
             <GitOps
               formData={formData}
               setFormData={setFormData}
@@ -215,19 +212,16 @@ const CreateSOPS = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-
-            <div className="create-cta">
-              <Button type="submit" disabled={!isAuthenticated || loading}>
-                CREATE PULL REQUEST
-                {loading && (
-                  <CircularProgress
-                    size={'1rem'}
-                    style={{ marginLeft: '4px' }}
-                  />
-                )}
-              </Button>
-            </div>
-          </FormWrapper>
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <Flex end className="create-cta">
+                <Button type="submit" disabled={!isAuthenticated}>
+                  CREATE PULL REQUEST
+                </Button>
+              </Flex>
+            )}
+          </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
     </Page>

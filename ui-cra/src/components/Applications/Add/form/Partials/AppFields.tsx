@@ -12,21 +12,11 @@ import {
 import _ from 'lodash';
 import React, { Dispatch, FC, useCallback, useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
-import styled from 'styled-components';
 import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
 import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
 import { Input, Select } from '../../../../../utils/form';
 import { Tooltip } from '../../../../Shared';
 import { useClustersWithSources } from '../../../utils';
-
-const AppFieldsWrapper = styled.div`
-  .form-section {
-    width: 50%;
-  }
-  .input-wrapper {
-    padding-bottom: ${({ theme }) => theme.spacing.medium};
-  }
-`;
 
 const AppFields: FC<{
   formData: any;
@@ -198,11 +188,10 @@ const AppFields: FC<{
   };
 
   return (
-    <AppFieldsWrapper>
+    <>
       {!!clusters && (
         <>
           <Select
-            className="form-section"
             name="cluster_name"
             required={true}
             label="SELECT CLUSTER"
@@ -228,7 +217,6 @@ const AppFields: FC<{
             })}
           </Select>
           <Select
-            className="form-section"
             name="source"
             required={true}
             label="SELECT SOURCE"
@@ -264,7 +252,6 @@ const AppFields: FC<{
       {formData.source_type === 'GitRepository' || !clusters ? (
         <>
           <Input
-            className="form-section"
             required={true}
             name="name"
             label="KUSTOMIZATION NAME"
@@ -273,7 +260,6 @@ const AppFields: FC<{
             error={formError === 'name' && !name}
           />
           <Input
-            className="form-section"
             name="namespace"
             label="KUSTOMIZATION NAMESPACE"
             placeholder={DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE}
@@ -282,7 +268,6 @@ const AppFields: FC<{
             error={formError === 'namespace' && !namespace}
           />
           <Input
-            className="form-section"
             name="target_namespace"
             label="TARGET NAMESPACE"
             description="OPTIONAL If omitted all resources must specify a namespace"
@@ -291,7 +276,6 @@ const AppFields: FC<{
             error={formError === 'target_namespace' && !target_namespace}
           />
           <Input
-            className="form-section"
             required={true}
             name="path"
             label="SELECT PATH"
@@ -307,7 +291,6 @@ const AppFields: FC<{
             >
               <span className="input-wrapper">
                 <Input
-                  className="form-section"
                   type="text"
                   disabled={true}
                   value="flux-system"
@@ -347,7 +330,7 @@ const AppFields: FC<{
           </div>
         </Tooltip>
       ) : null}
-    </AppFieldsWrapper>
+    </>
   );
 };
 
