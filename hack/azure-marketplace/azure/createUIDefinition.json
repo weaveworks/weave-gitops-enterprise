@@ -46,6 +46,15 @@
 		},
 		"basics": [
 			{
+				"name": "appParamsInfoBox",
+				"type": "Microsoft.Common.InfoBox",
+				"options": {
+					"icon": "Info",
+					"text": "Please make sure the Flux cluster extension is installed on your cluster before proceeding.",
+					"uri": "https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/conceptual-gitops-flux2"
+				}
+			},
+			{
 				"name": "createNewCluster",
 				"type": "Microsoft.Common.OptionsGroup",
 				"label": "Create new dev cluster?",
@@ -198,9 +207,9 @@
 					{
 						"name": "title",
 						"type": "Microsoft.Common.TextBox",
-						"label": "Weave Gitops Enterprise Title",
+						"label": "Weave GitOps Enterprise Title",
 						"toolTip": "This will replace the title's value inside your values.yaml",
-						"defaultValue": "Weave Gitops Enterprise",
+						"defaultValue": "Weave GitOps Enterprise",
 						"constraints": {
 							"required": true,
 							"regex": "^[a-z0-9A-Z ]{1,30}$",
@@ -210,7 +219,7 @@
 					{
 						"name": "capiEnabled",
 						"type": "Microsoft.Common.CheckBox",
-						"label": "Enable CAPI support, a CAPI Provider must already be installed on the cluster"
+						"label": "Enable CAPI support (a CAPI Provider must already be installed on the cluster)"
 					}
 				]
 			}
