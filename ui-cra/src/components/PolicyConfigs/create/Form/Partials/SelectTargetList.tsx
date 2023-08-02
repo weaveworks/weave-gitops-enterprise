@@ -63,12 +63,11 @@ export const SelectMatchType = ({
 
   return (
     <>
-      <Flex column gap="16" className="form-field">
+      <Flex column gap="16" className="form-field" wide>
         <Text capitalize semiBold size="large">
           Applied To
         </Text>
         <Select
-          className="form-section"
           name="matchType"
           placeholder="Select your target"
           required

@@ -499,6 +499,12 @@
         "clusterName": {
           "type": "string"
         },
+        "type": {
+          "type": "string"
+        },
+        "uid": {
+          "type": "string"
+        },
         "sourceRef": {
           "$ref": "#/definitions/v1SourceRef"
         },

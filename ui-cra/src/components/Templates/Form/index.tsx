@@ -1,4 +1,4 @@
-import { Divider, Grid, useMediaQuery } from '@material-ui/core';
+import { Divider, useMediaQuery } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import {
   Button,
@@ -61,6 +61,7 @@ import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
+  FormWrapper,
   getCreateRequestAnnotation,
   getRepositoryUrl,
   useGetInitialGitRepo,
@@ -69,23 +70,6 @@ import {
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
 }
-
-const FormWrapper = styled.form`
-  .create-cta {
-    padding: ${props => props.theme.spacing.small};
-    button {
-      width: 200px;
-    }
-  }
-  .create-loading {
-    padding: ${props => props.theme.spacing.base};
-  }
-  div[class*='MuiInput-root'] {
-    border: 1px solid ${props => props.theme.colors.neutral20};
-    border-bottom: none;
-    padding: 2px 6px;
-  }
-`;
 
 const CredentialsWrapper = styled(Flex)`
   & .template-title {
@@ -120,23 +104,6 @@ const useStyles = makeStyles(theme =>
     },
     largeDivider: {
       margin: `32px 0`,
-    },
-    steps: {
-      display: 'flex',
-      flexDirection: 'column',
-      [theme.breakpoints.down('md')]: {
-        visibility: 'hidden',
-        height: 0,
-      },
-      paddingRight: '4px',
-    },
-    previewCta: {
-      display: 'flex',
-      justifyContent: 'flex-end',
-      padding: '12px',
-    },
-    previewLoading: {
-      padding: '16px',
     },
   }),
 );
@@ -566,40 +533,35 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             )
           }
         >
-          <Grid item>
-            <CredentialsWrapper align>
-              <div className="template-title">
-                Template: <span>{template.name}</span>
-              </div>
-              {isCredentialEnabled ? (
-                <Credentials
-                  infraCredential={infraCredential}
-                  setInfraCredential={setInfraCredential}
-                />
-              ) : null}
-            </CredentialsWrapper>
-            {template.description ? (
-              <Flex column>
-                <div>Description:</div>
-                <Editor
-                  children={template.description || ''}
-                  remarkPlugins={[remarkGfm]}
-                />
-              </Flex>
+          <CredentialsWrapper align>
+            <div className="template-title">
+              Template: <span>{template.name}</span>
+            </div>
+            {isCredentialEnabled ? (
+              <Credentials
+                infraCredential={infraCredential}
+                setInfraCredential={setInfraCredential}
+              />
             ) : null}
-
-            <Divider
-              className={
-                !isLargeScreen ? classes.divider : classes.largeDivider
-              }
-            />
-            <TemplateFields
-              template={template}
-              formData={formData}
-              setFormData={setFormData}
-              formError={formError}
-            />
-          </Grid>
+          </CredentialsWrapper>
+          {template.description ? (
+            <Flex column>
+              <div>Description:</div>
+              <Editor
+                children={template.description || ''}
+                remarkPlugins={[remarkGfm]}
+              />
+            </Flex>
+          ) : null}
+          <Divider
+            className={!isLargeScreen ? classes.divider : classes.largeDivider}
+          />
+          <TemplateFields
+            template={template}
+            formData={formData}
+            setFormData={setFormData}
+            formError={formError}
+          />
           {isProfilesEnabled ? (
             <Profiles
               isLoading={profilesIsLoading}
@@ -608,27 +570,22 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               helmRepo={DEFAULT_PROFILE_REPO}
             />
           ) : null}
-          <Grid item>
-            {isKustomizationsEnabled ? (
-              <ApplicationsWrapper
-                formData={formData}
-                setFormData={setFormData}
-                formError={formError}
-              />
-            ) : null}
-            {previewLoading ? (
-              <LoadingPage className={classes.previewLoading} />
-            ) : (
-              <div className={classes.previewCta}>
-                <Button
-                  type="submit"
-                  onClick={() => setSubmitType('PR Preview')}
-                >
-                  PREVIEW PR
-                </Button>
-              </div>
-            )}
-          </Grid>
+          {isKustomizationsEnabled ? (
+            <ApplicationsWrapper
+              formData={formData}
+              setFormData={setFormData}
+              formError={formError}
+            />
+          ) : null}
+          {previewLoading ? (
+            <LoadingPage className="preview-loading" />
+          ) : (
+            <Flex end className="preview-cta">
+              <Button type="submit" onClick={() => setSubmitType('PR Preview')}>
+                PREVIEW PR
+              </Button>
+            </Flex>
+          )}
           {openPreview && PRPreview ? (
             <Preview
               openPreview={openPreview}
@@ -636,46 +593,42 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               PRPreview={PRPreview}
             />
           ) : null}
-          <Grid item>
-            {isCostEstimationEnabled ? (
-              <CostEstimation
-                handleCostEstimation={handleCostEstimation}
-                costEstimate={costEstimate}
-                isCostEstimationLoading={costEstimationLoading}
-                costEstimateMessage={costEstimateMessage}
-                setFormError={setFormError}
-                setSubmitType={setSubmitType}
-              />
-            ) : null}
-          </Grid>
-          <Grid item>
-            <GitOps
-              formData={formData}
-              setFormData={setFormData}
-              showAuthDialog={showAuthDialog}
-              setShowAuthDialog={setShowAuthDialog}
-              formError={formError}
-              enableGitRepoSelection={
-                !(
-                  resource &&
-                  (initialGitRepo as GitRepositoryEnriched)?.createPRRepo
-                )
-              }
+          {isCostEstimationEnabled ? (
+            <CostEstimation
+              handleCostEstimation={handleCostEstimation}
+              costEstimate={costEstimate}
+              isCostEstimationLoading={costEstimationLoading}
+              costEstimateMessage={costEstimateMessage}
+              setFormError={setFormError}
+              setSubmitType={setSubmitType}
             />
-            {loading ? (
-              <LoadingPage className="create-loading" />
-            ) : (
-              <Flex end className="create-cta">
-                <Button
-                  type="submit"
-                  onClick={() => setSubmitType('Create resource')}
-                  disabled={!isAuthenticated}
-                >
-                  CREATE PULL REQUEST
-                </Button>
-              </Flex>
-            )}
-          </Grid>
+          ) : null}
+          <GitOps
+            formData={formData}
+            setFormData={setFormData}
+            showAuthDialog={showAuthDialog}
+            setShowAuthDialog={setShowAuthDialog}
+            formError={formError}
+            enableGitRepoSelection={
+              !(
+                resource &&
+                (initialGitRepo as GitRepositoryEnriched)?.createPRRepo
+              )
+            }
+          />
+          {loading ? (
+            <LoadingPage className="create-loading" />
+          ) : (
+            <Flex end className="create-cta">
+              <Button
+                type="submit"
+                onClick={() => setSubmitType('Create resource')}
+                disabled={!isAuthenticated}
+              >
+                CREATE PULL REQUEST
+              </Button>
+            </Flex>
+          )}
         </FormWrapper>
       </CallbackStateContextProvider>
     );

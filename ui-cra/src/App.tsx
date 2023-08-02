@@ -91,9 +91,6 @@ const GlobalStyle = createGlobalStyle`
     font-family: ${props => props.theme.fontFamilies.regular};
     font-size: ${props => props.theme.fontSizes.medium};
     //we can not override Autocomplete in Mui createTheme without updating our Mui version. 
-    .policies-input {
-      border: 1px solid ${props => props.theme.colors.neutral20};
-    }
     .MuiAutocomplete-inputRoot {
       &.MuiInputBase-root {
         padding: 0;

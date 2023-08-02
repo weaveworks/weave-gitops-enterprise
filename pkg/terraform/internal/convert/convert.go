@@ -51,6 +51,8 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		Name:        tf.Name,
 		Namespace:   tf.Namespace,
 		ClusterName: clusterName,
+		Type:        "Terraform",
+		Uid:         string(tf.GetUID()),
 
 		SourceRef: &pb.SourceRef{
 			ApiVersion: tf.Spec.SourceRef.APIVersion,
