@@ -138,7 +138,7 @@ func TestCreateAutomationsPullRequest(t *testing.T) {
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -158,7 +158,7 @@ status: {}
 				},
 				{
 					Path: "clusters/dev/billing/apps-billing-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -230,7 +230,7 @@ status: {}
 				},
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -250,7 +250,7 @@ status: {}
 				},
 				{
 					Path: "clusters/dev/billing/apps-billing-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -308,7 +308,7 @@ status: {}
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -623,7 +623,7 @@ status: {}
 			committedFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/dev/test-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
@@ -2214,7 +2214,7 @@ func TestRenderAutomation(t *testing.T) {
 			kustomizationFiles: []*capiv1_protos.CommitFile{
 				{
 					Path: "clusters/management/apps-capi-flux-system-kustomization.yaml",
-					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1beta2
+					Content: `apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
   creationTimestamp: null
