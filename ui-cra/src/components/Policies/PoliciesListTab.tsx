@@ -1,23 +1,18 @@
-import {
-    Flex,
-    LoadingPage,
-    PolicyTable
-} from '@weaveworks/weave-gitops';
+import { PolicyTable } from '@weaveworks/weave-gitops';
 import { useListPolicies } from '../../contexts/PolicyViolations';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { TableWrapper } from '../Shared';
+import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 export const PoliciesTab = () => {
   const { data, isLoading } = useListPolicies({});
 
-  return isLoading ? (
-    <LoadingPage />
-  ) : (
-    <NotificationsWrapper errors={data?.errors}>
+  return (
+    <LoadingWrapper loading={isLoading} errors={data?.errors}>
       {data?.policies && (
-        <Flex wide id="policy-list">
+        <TableWrapper id="policy-list">
           <PolicyTable policies={data.policies} />
-        </Flex>
+        </TableWrapper>
       )}
-    </NotificationsWrapper>
+    </LoadingWrapper>
   );
 };
