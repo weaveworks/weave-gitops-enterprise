@@ -14,7 +14,7 @@ import {
   Timestamp,
   V2Routes,
   formatURL,
-  useFeatureFlags
+  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useListFacets, useQueryService } from '../../hooks/query';
@@ -65,7 +65,7 @@ const PolicyAuditList = () => {
         annotations: { category, policy_name, severity, policy_id },
         creationTimestamp,
       },
-      involvedObject: { namespace, name },
+      involvedObject: { namespace, name, kind },
       message,
     } = details;
     return {
@@ -78,6 +78,7 @@ const PolicyAuditList = () => {
       policy_id,
       namespace,
       name,
+      kind,
     };
   });
 
@@ -118,7 +119,10 @@ const PolicyAuditList = () => {
                   },
                   {
                     label: 'Application',
-                    value: ({ namespace, name }) => `${namespace}/${name}`,
+                    value: ({ namespace, name, kind }) =>
+                      kind === 'Kustomization' || kind === 'HelmRelease'
+                        ? `${namespace}/${name}`
+                        : '-',
                     sortValue: ({ namespace, name }) => `${namespace}/${name}`,
                     maxWidth: 150,
                   },
