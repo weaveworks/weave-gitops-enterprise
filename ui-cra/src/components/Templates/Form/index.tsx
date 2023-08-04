@@ -4,6 +4,7 @@ import {
   Button,
   Flex,
   GitRepository,
+  HelmRepository,
   Link,
   LoadingPage,
   useFeatureFlags,
@@ -48,7 +49,7 @@ import { validateFormData } from '../../../utils/form';
 import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
-import { getGitRepos } from '../../Clusters';
+import { getGitRepos, getHelmRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { Editor } from '../../Shared';
 import { getLink } from '../Edit/EditButton';
@@ -197,6 +198,7 @@ const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
     .map(p => {
       // FIXME: handle this somehow..
       const v = p.values.find(v => v.selected)!;
+      // add repo that profile belongs to
       return {
         name: p.name,
         version: v?.version,
@@ -250,8 +252,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const { annotations } = template;
   const { setNotifications } = useNotifications();
   const { data } = useListSources();
+
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
+    [data?.result],
+  );
+  const helmRepos = React.useMemo(
+    () => getHelmRepos(data?.result),
     [data?.result],
   );
   const resourceData = resource && getCreateRequestAnnotation(resource);
@@ -282,11 +289,20 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isFlagEnabled('WEAVE_GITOPS_FEATURE_COST_ESTIMATION') &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
+  // const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
+  //   HelmRepository[]
+  // >([]);
+
+  const helmReposRefs = helmRepos.map((repo: HelmRepository) => ({
+    name: repo.name,
+    namespace: repo.namespace,
+  }));
+
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
     isProfilesEnabled,
     template,
     resource || undefined,
-    DEFAULT_PROFILE_REPO,
+    helmReposRefs,
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
@@ -564,7 +580,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           />
           {isProfilesEnabled ? (
             <Profiles
-              isLoading={profilesIsLoading}
+              // isLoading={profilesIsLoading}
+              isLoading={false}
               updatedProfiles={updatedProfiles}
               setUpdatedProfiles={setUpdatedProfiles}
               helmRepo={DEFAULT_PROFILE_REPO}
@@ -640,7 +657,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     classes,
     openPreview,
     PRPreview,
-    profilesIsLoading,
+    // profilesIsLoading,
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,

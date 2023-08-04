@@ -11,10 +11,10 @@ import React, {
 import {
   ClusterNamespacedName,
   RepositoryRef,
-} from '../../../../cluster-services/cluster_services.pb';
-import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
-import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
-import ChartValuesDialog from './ChartValuesDialog';
+} from '../../../../../cluster-services/cluster_services.pb';
+import { ProfilesIndex, UpdatedProfile } from '../../../../../types/custom';
+import { DEFAULT_PROFILE_NAMESPACE } from '../../../../../utils/config';
+import ChartValuesDialog from './../ChartValuesDialog';
 
 const ProfilesListItem: FC<{
   className?: string;

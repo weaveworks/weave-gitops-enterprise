@@ -1,15 +1,26 @@
-import { Checkbox } from '@material-ui/core';
-import { DataTable, Flex } from '@weaveworks/weave-gitops';
+import { Checkbox, MenuItem, TextField } from '@material-ui/core';
+import { Autocomplete } from '@material-ui/lab';
+import {
+  DataTable,
+  Flex,
+  HelmRepository,
+  Kind,
+  useListSources,
+} from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import React, { Dispatch, FC } from 'react';
+import React, { Dispatch, FC, useState } from 'react';
 import styled from 'styled-components';
 import {
   ClusterNamespacedName,
   RepositoryRef,
-} from '../../../../cluster-services/cluster_services.pb';
-import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
-import { Loader } from '../../../Loader';
+} from '../../../../../cluster-services/cluster_services.pb';
+import { ProfilesIndex, UpdatedProfile } from '../../../../../types/custom';
+import { Loader } from '../../../../Loader';
 import ProfilesListItem from './ProfileListItem';
+import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
+
+const icon = <CheckBoxOutlineBlank fontSize="small" />;
+const checkedIcon = <CheckBox fontSize="small" />;
 
 const ProfilesWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};
@@ -70,6 +81,21 @@ const Profiles: FC<{
   isProfilesEnabled = 'true',
   helmRepo,
 }) => {
+  const { data } = useListSources();
+  const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
+    HelmRepository[]
+  >([]);
+
+  const helmRepos: HelmRepository[] = _.orderBy(
+    _.filter(
+      data?.result,
+      (item): item is HelmRepository =>
+        item.type === Kind.HelmRepository && item.clusterName === 'management',
+    ),
+    ['name'],
+    ['asc'],
+  );
+
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -101,6 +127,36 @@ const Profiles: FC<{
   return (
     <ProfilesWrapper>
       <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
+      <Autocomplete
+        multiple
+        id="helmrepositories-select"
+        options={helmRepos}
+        disableCloseOnSelect
+        getOptionLabel={option => option.name}
+        onChange={(event, selectedHelmRepos) =>
+          setSelectedHelmRepositories(selectedHelmRepos)
+        }
+        renderOption={(option: HelmRepository, { selected }) => (
+          <li>
+            <Checkbox
+              icon={icon}
+              checkedIcon={checkedIcon}
+              style={{ marginRight: 8 }}
+              checked={selected}
+            />
+            {option.name}
+          </li>
+        )}
+        style={{ width: '100%' }}
+        renderInput={params => (
+          <TextField
+            {...params}
+            label="HelmRepositories"
+            placeholder="Helm Repositories"
+          />
+        )}
+      />
+
       {isLoading && <Loader />}
       {!isLoading && (
         <DataTable
@@ -159,6 +215,7 @@ const Profiles: FC<{
                   context={context}
                   profile={p}
                   setUpdatedProfiles={setUpdatedProfiles}
+                  // get helm repo for this specific profile
                   helmRepo={helmRepo}
                 />
               ),

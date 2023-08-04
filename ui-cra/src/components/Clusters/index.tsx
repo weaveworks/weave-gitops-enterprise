@@ -5,6 +5,7 @@ import {
   DataTable,
   Flex,
   GitRepository,
+  HelmRepository,
   Icon,
   IconType,
   Kind,
@@ -160,6 +161,16 @@ export const getGitRepos = (sources: Source[] | undefined) =>
       repo => repo?.obj?.spec?.url,
     ),
     ['url'],
+    ['asc'],
+  );
+
+export const getHelmRepos = (sources: Source[] | undefined) =>
+  _.orderBy(
+    _.filter(
+      sources,
+      (item): item is HelmRepository => item.type === Kind.HelmRepository,
+    ),
+    ['name'],
     ['asc'],
   );
 
