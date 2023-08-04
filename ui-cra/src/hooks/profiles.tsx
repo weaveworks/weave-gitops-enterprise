@@ -3,7 +3,6 @@ import { useContext, useMemo } from 'react';
 import { useQueries, useQuery } from 'react-query';
 import {
   GetConfigResponse,
-  HelmRepository,
   ListChartsForRepositoryResponse,
   RepositoryChart,
   RepositoryRef,
@@ -81,6 +80,8 @@ const toUpdatedProfiles = (profiles?: RepositoryChart[]): UpdatedProfile[] => {
           values: [value],
           required: false,
           layer: profile.layer,
+          repoName: profile.repoName,
+          repoNamespace: profile.repoNamespace,
         });
       }
     }),
@@ -194,65 +195,41 @@ const useProfiles = (
     api.GetConfig({}),
   );
 
-  const hrQueries = helmReposRefs.map(helmRepo => {
-    return {
-      queryKey: [
-        'profiles',
-        helmRepo.name,
-        helmRepo.namespace,
-        helmRepo.cluster?.name,
-        helmRepo.cluster?.namespace,
-      ],
-      queryFn: () =>
-        api.ListChartsForRepository({
-          repository: {
-            name: helmRepo.name || 'weaveworks-charts',
-            namespace: helmRepo.namespace || 'flux-system',
-            cluster: helmRepo.cluster
-              ? {
-                  name: helmRepo.cluster?.name,
-                  namespace: helmRepo.cluster?.namespace,
-                }
-              : { name: getConfigResponse?.data?.managementClusterName },
-          },
-        }),
-    };
-  });
+  const hrQueries = useMemo(
+    () =>
+      helmReposRefs.map(helmRepo => {
+        return {
+          queryKey: [
+            'profiles',
+            helmRepo.name,
+            helmRepo.namespace,
+            helmRepo.cluster?.name,
+            helmRepo.cluster?.namespace,
+          ],
+          queryFn: () =>
+            api.ListChartsForRepository({
+              repository: {
+                name: helmRepo.name,
+                namespace: helmRepo.namespace,
+                cluster: helmRepo.cluster
+                  ? {
+                      name: helmRepo.cluster?.name,
+                      namespace: helmRepo.cluster?.namespace,
+                    }
+                  : { name: getConfigResponse?.data?.managementClusterName },
+              },
+            }),
+        };
+      }),
+    [api, getConfigResponse?.data?.managementClusterName, helmReposRefs],
+  );
 
   const results = useQueries(hrQueries);
 
   const isLoading = results.map(result => result.isLoading).length > 0;
-
   const data = results.map(
     result => result.data,
   ) as ListChartsForRepositoryResponse[];
-
-  // const { isLoading, data } = useQuery<ListChartsForRepositoryResponse, Error>(
-  //   [
-  //     'profiles',
-  //     helmRepo.name,
-  //     helmRepo.namespace,
-  //     helmRepo.cluster?.name,
-  //     helmRepo.cluster?.namespace,
-  //   ],
-  //   () =>
-  //     api.ListChartsForRepository({
-  //       repository: {
-  //         name: helmRepo.name || 'weaveworks-charts',
-  //         namespace: helmRepo.namespace || 'flux-system',
-  //         cluster: helmRepo.cluster
-  //           ? {
-  //               name: helmRepo.cluster?.name,
-  //               namespace: helmRepo.cluster?.namespace,
-  //             }
-  //           : { name: getConfigResponse?.data?.managementClusterName },
-  //       },
-  //     }),
-  //   {
-  //     enabled: enabled && !!getConfigResponse?.data?.managementClusterName,
-  //     onError,
-  //   },
-  // );
 
   const profiles = useMemo(
     () =>

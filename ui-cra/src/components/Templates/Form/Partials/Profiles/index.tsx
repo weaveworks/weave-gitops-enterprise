@@ -1,12 +1,6 @@
 import { Checkbox, MenuItem, TextField } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
-import {
-  DataTable,
-  Flex,
-  HelmRepository,
-  Kind,
-  useListSources,
-} from '@weaveworks/weave-gitops';
+import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import React, { Dispatch, FC, useState } from 'react';
 import styled from 'styled-components';
@@ -71,7 +65,7 @@ const Profiles: FC<{
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   isLoading: boolean;
   isProfilesEnabled?: string;
-  helmRepo: RepositoryRef;
+  helmRepos: RepositoryRef[];
 }> = ({
   context,
   cluster,
@@ -79,22 +73,11 @@ const Profiles: FC<{
   setUpdatedProfiles,
   isLoading,
   isProfilesEnabled = 'true',
-  helmRepo,
+  helmRepos,
 }) => {
-  const { data } = useListSources();
   const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
-    HelmRepository[]
+    RepositoryRef[]
   >([]);
-
-  const helmRepos: HelmRepository[] = _.orderBy(
-    _.filter(
-      data?.result,
-      (item): item is HelmRepository =>
-        item.type === Kind.HelmRepository && item.clusterName === 'management',
-    ),
-    ['name'],
-    ['asc'],
-  );
 
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -132,11 +115,11 @@ const Profiles: FC<{
         id="helmrepositories-select"
         options={helmRepos}
         disableCloseOnSelect
-        getOptionLabel={option => option.name}
+        getOptionLabel={option => option.name as string}
         onChange={(event, selectedHelmRepos) =>
           setSelectedHelmRepositories(selectedHelmRepos)
         }
-        renderOption={(option: HelmRepository, { selected }) => (
+        renderOption={(option: RepositoryRef, { selected }) => (
           <li>
             <Checkbox
               icon={icon}
@@ -215,8 +198,11 @@ const Profiles: FC<{
                   context={context}
                   profile={p}
                   setUpdatedProfiles={setUpdatedProfiles}
-                  // get helm repo for this specific profile
-                  helmRepo={helmRepo}
+                  helmRepo={
+                    helmRepos.find(
+                      hr => hr.name === p.repoName,
+                    ) as RepositoryRef
+                  }
                 />
               ),
             },

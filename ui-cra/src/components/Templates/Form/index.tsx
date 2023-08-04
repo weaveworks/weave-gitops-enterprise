@@ -41,7 +41,6 @@ import {
 import { utf8_to_b64 } from '../../../utils/base64';
 import { useCallbackState } from '../../../utils/callback-state';
 import {
-  DEFAULT_PROFILE_REPO,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAME,
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
@@ -288,10 +287,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const isCostEstimationEnabled =
     isFlagEnabled('WEAVE_GITOPS_FEATURE_COST_ESTIMATION') &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
-
-  // const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
-  //   HelmRepository[]
-  // >([]);
 
   const helmReposRefs = helmRepos.map((repo: HelmRepository) => ({
     name: repo.name,
@@ -580,11 +575,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           />
           {isProfilesEnabled ? (
             <Profiles
-              // isLoading={profilesIsLoading}
-              isLoading={false}
+              isLoading={profilesIsLoading}
               updatedProfiles={updatedProfiles}
               setUpdatedProfiles={setUpdatedProfiles}
-              helmRepo={DEFAULT_PROFILE_REPO}
+              helmRepos={helmReposRefs}
             />
           ) : null}
           {isKustomizationsEnabled ? (
@@ -657,7 +651,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     classes,
     openPreview,
     PRPreview,
-    // profilesIsLoading,
+    profilesIsLoading,
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
@@ -678,6 +672,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     resource,
     initialGitRepo,
     isAuthenticated,
+    helmReposRefs,
   ]);
 };
 

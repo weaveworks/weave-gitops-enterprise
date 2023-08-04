@@ -173,7 +173,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     firstAuto.source_type === 'HelmRepository',
     undefined,
     undefined,
-    helmRepo,
+    [helmRepo],
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
@@ -453,7 +453,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   isLoading={profilesIsLoading}
                   updatedProfiles={updatedProfiles}
                   setUpdatedProfiles={setUpdatedProfiles}
-                  helmRepo={helmRepo}
+                  helmRepos={[helmRepo]}
                 />
               ) : null}
               {previewLoading ? (

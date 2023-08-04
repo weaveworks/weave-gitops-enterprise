@@ -98,6 +98,8 @@ export type UpdatedProfile = {
   layer?: string;
   namespace?: string;
   selected?: boolean;
+  repoName?: string;
+  repoNamespace?: string;
 };
 
 export type ListProfileValuesResponse = {

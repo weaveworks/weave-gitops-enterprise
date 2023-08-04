@@ -66,6 +66,8 @@ func (s *server) ListChartsForRepository(ctx context.Context, req *protos.ListCh
 			Name:     name,
 			Layer:    chartsLayers[name],
 			Versions: sortedVersions,
+			RepoName: req.Repository.Name,
+			RepoNamespace: req.Repository.Namespace,
 		})
 	}
 

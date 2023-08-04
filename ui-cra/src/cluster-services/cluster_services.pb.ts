@@ -531,6 +531,8 @@ export type RepositoryChart = {
   name?: string
   versions?: string[]
   layer?: string
+  repoName?: string
+  repoNamespace?: string
 }
 
 export type ListChartsForRepositoryResponse = {
