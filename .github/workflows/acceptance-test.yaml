@@ -378,10 +378,3 @@ jobs:
           name: ${{ env.TEST_ARTIFACT_NAME }}
           path: ${{ env.ARTIFACTS_BASE_DIR }}
           retention-days: 3
-      - name: Reset management cluster
-        if: ${{ always() }}
-        continue-on-error: true
-        run: |
-          if [ ${{ inputs.management-cluster-kind }} = "eks" ] || [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
-            ./test/utils/scripts/wego-enterprise.sh reset
-          fi

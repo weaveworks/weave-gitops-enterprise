@@ -30,10 +30,10 @@ func initUserCredentials() UserCredentials {
 	userCredentials := UserCredentials{
 		UserType:            GetEnv("LOGIN_USER_TYPE", ClusterUserLogin),
 		UserName:            AdminUserName,
-		UserPassword:        GetEnv("CLUSTER_ADMIN_PASSWORD", ""),
+		UserPassword:        GetEnv("CLUSTER_ADMIN_PASSWORD", "dev"),
 		UserKubeconfig:      GetEnv("OIDC_KUBECONFIG", ""),
 		ClusterUserName:     AdminUserName,
-		ClusterUserPassword: GetEnv("CLUSTER_ADMIN_PASSWORD", ""),
+		ClusterUserPassword: GetEnv("CLUSTER_ADMIN_PASSWORD", "dev"),
 	}
 
 	if userCredentials.UserType == OidcUserLogin {

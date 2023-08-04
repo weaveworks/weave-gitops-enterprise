@@ -1,0 +1,13 @@
+---
+# Create user - username: wego-admin, password: dev
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cluster-user-auth
+  namespace: flux-system
+type: Opaque
+data:
+  username: d2Vnby1hZG1pbg==
+  password: JDJ5JDEwJHBjeTlGVjBXTVFaVUhGRGN1ZDhKdWVjSXhsVVMvRWg5WC5paXRadEpFWVlIVWhLeXpsSllt
+
+
