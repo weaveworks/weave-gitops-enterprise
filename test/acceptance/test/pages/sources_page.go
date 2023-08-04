@@ -18,6 +18,7 @@ type SourceInformation struct {
 	Name        *agouti.Selection
 	Kind        *agouti.Selection
 	Namespace   *agouti.Selection
+	Verified    *agouti.Selection
 	Tenant      *agouti.Selection
 	Cluster     *agouti.Selection
 	Status      *agouti.Selection
@@ -49,14 +50,15 @@ func (a SourcesPage) FindSourceInList(sourceName string) *SourceInformation {
 		Name:        source.FindByXPath(`td[2]//a`),
 		Kind:        source.FindByXPath(`td[3]`),
 		Namespace:   source.FindByXPath(`td[4]`),
-		Tenant:      source.FindByXPath(`td[5]`),
-		Cluster:     source.FindByXPath(`td[6]`),
-		Status:      source.FindByXPath(`td[7]`),
-		Message:     source.FindByXPath(`td[8]`),
-		Url:         source.FindByXPath(`td[9]`),
-		Reference:   source.FindByXPath(`td[10]`),
-		Interval:    source.FindByXPath(`td[11]`),
-		LastUpdated: source.FindByXPath(`td[12]`),
+		Verified:    source.FindByXPath(`td[5]`),
+		Tenant:      source.FindByXPath(`td[6]`),
+		Cluster:     source.FindByXPath(`td[7]`),
+		Status:      source.FindByXPath(`td[8]`),
+		Message:     source.FindByXPath(`td[9]`),
+		Url:         source.FindByXPath(`td[10]`),
+		Reference:   source.FindByXPath(`td[11]`),
+		Interval:    source.FindByXPath(`td[12]`),
+		LastUpdated: source.FindByXPath(`td[13]`),
 	}
 }
 
