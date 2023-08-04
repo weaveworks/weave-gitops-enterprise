@@ -21,6 +21,7 @@ type SourceInformation struct {
 	Tenant      *agouti.Selection
 	Cluster     *agouti.Selection
 	Status      *agouti.Selection
+	Verified    *agouti.Selection
 	Message     *agouti.Selection
 	Url         *agouti.Selection
 	Reference   *agouti.Selection
@@ -52,11 +53,12 @@ func (a SourcesPage) FindSourceInList(sourceName string) *SourceInformation {
 		Tenant:      source.FindByXPath(`td[5]`),
 		Cluster:     source.FindByXPath(`td[6]`),
 		Status:      source.FindByXPath(`td[7]`),
-		Message:     source.FindByXPath(`td[8]`),
-		Url:         source.FindByXPath(`td[9]`),
-		Reference:   source.FindByXPath(`td[10]`),
-		Interval:    source.FindByXPath(`td[11]`),
-		LastUpdated: source.FindByXPath(`td[12]`),
+		Verified:    source.FindByXPath(`td[8]`),
+		Message:     source.FindByXPath(`td[9]`),
+		Url:         source.FindByXPath(`td[10]`),
+		Reference:   source.FindByXPath(`td[11]`),
+		Interval:    source.FindByXPath(`td[12]`),
+		LastUpdated: source.FindByXPath(`td[13]`),
 	}
 }
 
