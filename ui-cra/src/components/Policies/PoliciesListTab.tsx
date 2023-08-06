@@ -1,21 +1,18 @@
-import { PolicyTable, RequestStateHandler } from '@weaveworks/weave-gitops';
+import { PolicyTable } from '@weaveworks/weave-gitops';
 import { useListPolicies } from '../../contexts/PolicyViolations';
 import { TableWrapper } from '../Shared';
-import { RequestError } from '../../types/custom';
+import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 export const PoliciesTab = () => {
   const { data, isLoading } = useListPolicies({});
 
   return (
-    <RequestStateHandler
-      loading={isLoading}
-      error={data?.errors![0] as RequestError}
-    >
+    <LoadingWrapper loading={isLoading} errors={data?.errors}>
       {data?.policies && (
         <TableWrapper id="policy-list">
           <PolicyTable policies={data.policies} />
         </TableWrapper>
       )}
-    </RequestStateHandler>
+    </LoadingWrapper>
   );
 };
