@@ -101,9 +101,9 @@ func getCheckoutRepoPath() string {
 
 func setupTestEnvironment() {
 	mgmtClusterKind = GetEnv("MANAGEMENT_CLUSTER_KIND", "kind")
-	seleniumServiceUrl = "http://localhost:4444/wd/hub"
-	testUiUrl = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
-	wgeEndpointUrl = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
+	seleniumServiceUrl = "http://localhost:4444"
+	testUiUrl = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
+	wgeEndpointUrl = fmt.Sprintf(`http://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	gitopsBinPath = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
 	artifactsBaseDir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 	testScriptsPath = path.Join(getCheckoutRepoPath(), "test", "utils", "scripts")
@@ -169,6 +169,7 @@ func initializeWebdriver(wgeURL string) {
 			a := make(map[string]bool)
 			a["enableNetwork"] = true
 			chromeDriver := agouti.ChromeDriver(
+				agouti.ChromeOptions("binary", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
 				agouti.ChromeOptions("w3c", false),
 				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
 				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}),
@@ -326,7 +327,9 @@ func dumpingDOM(name string) {
 		filepath := path.Join(artifactsBaseDir, SCREENSHOTS_DIR_NAME, name+".html")
 		var htmlDocument interface{}
 		_ = webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)
-		_ = os.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+		if htmlDocument != nil {
+			_ = os.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+		}
 	}
 }
 

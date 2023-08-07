@@ -376,6 +376,11 @@ func copyFluxSystemGitRepo(namespace string) {
 	ginkgo.By("Copy flux-system git repo and its secret from the flux-system namespace a tenant namespace", func() {
 		// Copy the flux-system git repo and its secret from the flux-system namespace to a given namespace
 		// This is required for the cluster to be able to sync with the git repo
+
+		// these can fail, try and clean up
+		_ = runCommandPassThrough("sh", "-c", "kubectl delete gitrepositories -n "+namespace+" flux-system")
+		_ = runCommandPassThrough("sh", "-c", "kubectl delete secret -n "+namespace+" flux-system")
+
 		err := runCommandPassThrough("sh", "-c", "kubectl get gitrepositories -n flux-system flux-system -o yaml | sed 's/  namespace: flux-system/  namespace: "+namespace+"/' | kubectl apply -f -")
 		gomega.Expect(err).ShouldNot(gomega.HaveOccurred(), "Failed to get gitrepositories from flux-system namespace")
 

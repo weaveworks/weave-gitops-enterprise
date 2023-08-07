@@ -20,6 +20,7 @@ tenants:
         - weaveworks:pesto
         - weaveworks:QA
         - wge-test
+        - {{ .Org }}
       rules:
         - apiGroups: [""]
           resources: ["secrets", "pods", "services"]
@@ -90,6 +91,7 @@ tenants:
         - weaveworks:pesto
         - weaveworks:QA
         - wge-test
+        - {{ .Org }}
       rules:
         - apiGroups: [""]
           resources: ["secrets", "pods", "services"]

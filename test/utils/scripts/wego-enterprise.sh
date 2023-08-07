@@ -11,13 +11,15 @@ WORKSPACE_PATH=$(dirname $(dirname $(dirname ${SCRIPT_DIR})))
 GIT_PROVIDER=${GIT_PROVIDER:-gitlab}
 GIT_PROVIDER_HOSTNAME=${GIT_PROVIDER_HOSTNAME:-gitlab.git.dev.weave.works}
 GITLAB_ORG=${GITLAB_ORG:-${GITLAB_USER}-org}
-GITLAB_CLIENT_ID="8dcc1729811e1233469a5c1df201b1685fee5808b7c2a44633bfd420095f0bef"
-GITLAB_CLIENT_SECRET="1b3f5c9ac5d341046de6b8f44bde626c49305b1ec6df5f1c6c7657e32b9ad499"
+GITLAB_CLIENT_ID="438bb793d4815349394735dad8644406d5f9ffd7b8d861ef61984d1cbee7df3c"
+GITLAB_CLIENT_SECRET="e3c613dab49ebd7d4d921fe60f4c649a8c414497fd54181b541c6f95f1b3a66d"
 WEAVE_GITOPS_GIT_HOST_TYPES="gitlab.git.dev.weave.works=gitlab"
 GITLAB_HOSTNAME="gitlab.git.dev.weave.works"
 CLUSTER_REPOSITORY=${CLUSTER_REPOSITORY:-smoke-tests}
+OIDC_ISSUER_URL=${OIDC_ISSUER_URL:-https://dex-01.wge.dev.weave.works}
 DEX_CLIENT_ID=${DEX_CLIENT_ID:-weave-gitops-enterprise}
 DEX_CLIENT_SECRET=${DEX_CLIENT_SECRET:-2JPIcb5IvO1isJ3Zii7jvjqbUtLtTC}
+UI_NODEPORT=${UI_NODEPORT:-30080}
 
 function preflight {
   # check that required env vars are set
@@ -77,7 +79,7 @@ function setup {
       --interval=30s
   fi  
 
-  kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
+  # kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
     
   # Create admin cluster user secret
   kubectl apply -f ${WORKSPACE_PATH}/test/utils/data/auth/base.yaml
@@ -98,8 +100,16 @@ function setup {
     CHART_VERSION=${ENTERPRISE_CHART_VERSION}
   fi
 
+  # enable cluster resource sets
+  export EXP_CLUSTER_RESOURCE_SET=true
+  # Install capi infrastructure provider
+  clusterctl init --infrastructure docker   
+  kubectl wait --for=condition=Ready --timeout=300s -n capd-system --all pod 
+
   # Install weave gitops enterprise controllers
   helmArgs=()
+  helmArgs+=( --set "service.type=NodePort" )
+  helmArgs+=( --set "service.ports.https=8000" )
   helmArgs+=( --set "service.nodePorts.https=30080" )
   helmArgs+=( --set "config.git.type=${GIT_PROVIDER}" )
   helmArgs+=( --set "config.git.hostname=${GIT_PROVIDER_HOSTNAME}" )
@@ -118,7 +128,7 @@ function setup {
   helmArgs+=( --set "policy-agent.config.clusterId=management" )
   helmArgs+=( --set "features.progressiveDelivery.enabled=true" )
  
-  helm install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
+  helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
   
    # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod
@@ -128,12 +138,6 @@ function setup {
 
   # Install RBAC for user authentication
   kubectl apply -f ${WORKSPACE_PATH}/test/utils/data/rbac/user-role-bindings.yaml
-
-  # enable cluster resource sets
-  export EXP_CLUSTER_RESOURCE_SET=true
-  # Install capi infrastructure provider
-  clusterctl init --infrastructure docker   
-  kubectl wait --for=condition=Ready --timeout=300s -n capd-system --all pod 
 
   kubectl get pods -A
 

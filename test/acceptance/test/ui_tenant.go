@@ -29,8 +29,10 @@ func renderTenants(tenantDefinition string, gp GitProviderEnv) string {
 	t := template.Must(template.New(tenantDefinition).Parse(string(contents)))
 	input := struct {
 		MainRepoURL string
+		Org         string
 	}{
 		MainRepoURL: gitRepoURL,
+		Org:         gp.Org,
 	}
 	path := path.Join("/tmp", "rendered-tenant.yaml")
 	f, err := os.Create(path)
@@ -107,6 +109,11 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 		})
 
 		ginkgo.JustAfterEach(func() {
+			// if SKIP_CLEANUP is set just return
+			if os.Getenv("SKIP_CLEANUP") != "" {
+				return
+			}
+
 			useClusterContext(mgmtClusterContext)
 
 			deleteSecret([]string{leafClusterkubeconfig, patSecret}, leafCluster.Namespace)
