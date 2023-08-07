@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/logger"
@@ -69,13 +68,9 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 		gvk := objTx.Object().GetObjectKind().GroupVersionKind()
 
-		o, err := adapters.ToFluxObject(objTx.Object())
-		if err != nil {
-			log.Error(err, "failed to convert object to flux object")
-			continue
-		}
+		o := objTx.Object()
 
-		cat, err := adapters.Category(objTx.Object())
+		cat, err := o.GetCategory()
 		if err != nil {
 			log.Error(err, "failed to get category from flux object")
 			continue
@@ -94,6 +89,18 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
+		status, err := o.GetStatus()
+		if err != nil {
+			log.Error(err, "failed to get status from object")
+			continue
+		}
+
+		message, err := o.GetMessage()
+		if err != nil {
+			log.Error(err, "failed to get message from object")
+			continue
+		}
+
 		object := models.Object{
 			Cluster:             objTx.ClusterName(),
 			Name:                objTx.Object().GetName(),
@@ -101,8 +108,8 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			APIGroup:            gvk.Group,
 			APIVersion:          gvk.Version,
 			Kind:                gvk.Kind,
-			Status:              string(adapters.Status(o)),
-			Message:             adapters.Message(o),
+			Status:              string(status),
+			Message:             message,
 			Category:            cat,
 			KubernetesDeletedAt: modelTs,
 			Unstructured:        raw,

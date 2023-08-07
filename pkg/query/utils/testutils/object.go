@@ -68,14 +68,14 @@ func NewRole(name string, namespace string, opts ...func(*rbacv1.Role)) *rbacv1.
 func NewObjectTransaction(clusterName string, object client.Object, txType models.TransactionType) models.ObjectTransaction {
 	return objectTransaction{
 		clusterName:     clusterName,
-		object:          object,
+		object:          models.NewNormalizedObject(object, configuration.HelmReleaseObjectKind),
 		transactionType: txType,
 	}
 }
 
 type objectTransaction struct {
 	clusterName     string
-	object          client.Object
+	object          models.NormalizedObject
 	transactionType models.TransactionType
 }
 
@@ -83,7 +83,7 @@ func (r objectTransaction) ClusterName() string {
 	return r.clusterName
 }
 
-func (r objectTransaction) Object() client.Object {
+func (r objectTransaction) Object() models.NormalizedObject {
 	return r.object
 }
 

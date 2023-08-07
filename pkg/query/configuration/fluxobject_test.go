@@ -1,4 +1,4 @@
-package adapters
+package configuration
 
 import (
 	"testing"
@@ -72,11 +72,11 @@ func TestStatusAndMessage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Status(tt.obj); got != tt.desiredStatus {
+			if got := defaultFluxObjectStatusFunc(tt.obj); got != tt.desiredStatus {
 				t.Errorf("Status() = %v, want %v", got, tt.desiredStatus)
 			}
 
-			if got := Message(tt.obj); got != tt.desiredMessage {
+			if got := defaultFluxObjectMessageFunc(tt.obj); got != tt.desiredMessage {
 				t.Errorf("Message() = %v, want %v", got, tt.desiredMessage)
 			}
 		})

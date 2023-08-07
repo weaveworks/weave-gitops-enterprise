@@ -90,6 +90,7 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 		object:          clientObject,
 		transactionType: txType,
 		retentionPolicy: r.objectKind.RetentionPolicy,
+		config:          r.objectKind,
 	}
 
 	r.debug.Info("object transaction received", "transaction", tx.String())
@@ -100,6 +101,7 @@ func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ct
 type transaction struct {
 	clusterName     string
 	object          client.Object
+	config          configuration.ObjectKind
 	transactionType models.TransactionType
 	retentionPolicy configuration.RetentionPolicy
 }
@@ -108,8 +110,8 @@ func (r transaction) ClusterName() string {
 	return r.clusterName
 }
 
-func (r transaction) Object() client.Object {
-	return r.object
+func (r transaction) Object() models.NormalizedObject {
+	return models.NewNormalizedObject(r.object, r.config)
 }
 
 func (r transaction) TransactionType() models.TransactionType {

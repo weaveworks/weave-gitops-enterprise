@@ -152,6 +152,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 				clusterName:     "anyCluster",
 				object:          createdOrUpdatedHelmRelease,
 				transactionType: models.TransactionTypeUpsert,
+				config:          configuration.HelmReleaseObjectKind,
 			},
 			errPattern:   "",
 			shouldHaveTX: true,
@@ -170,6 +171,7 @@ func TestReconciler_Reconcile(t *testing.T) {
 				clusterName:     "anyCluster",
 				object:          deleteHelmRelease,
 				transactionType: models.TransactionTypeDelete,
+				config:          configuration.HelmReleaseObjectKind,
 			},
 			errPattern:   "",
 			shouldHaveTX: true,
@@ -229,4 +231,17 @@ func assertObjectTransaction(t *testing.T, actual models.ObjectTransaction, expe
 	assert.Equal(t, expected.ClusterName(), actual.ClusterName(), "different cluster")
 	assert.Equal(t, expected.TransactionType(), actual.TransactionType(), "different tx type")
 	assert.Equal(t, expected.Object().GetName(), actual.Object().GetName(), "different object")
+
+	cat, err := expected.Object().GetCategory()
+	if err != nil {
+		t.Fatalf("could not get category: %v", err)
+	}
+
+	expectedCat, err := actual.Object().GetCategory()
+	if err != nil {
+		t.Fatalf("could not get category: %v", err)
+	}
+
+	// This is effectively a check for NormalizedObject,config being populated.
+	assert.Equal(t, cat, expectedCat, "different category")
 }
