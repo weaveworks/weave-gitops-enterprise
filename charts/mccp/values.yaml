@@ -137,20 +137,9 @@ cluster-controller:
   enabled: true
 
 policy-agent:
-  enabled: true
+  enabled: false
   config:
     accountId: ""
-    admission:
-      enabled: false
-      sinks:
-        k8sEventsSink:
-          enabled: true
-    audit:
-      interval: 1
-      enabled: true
-      sinks:
-        k8sEventsSink:
-          enabled: true
     clusterId: ""
 
 ingress:
