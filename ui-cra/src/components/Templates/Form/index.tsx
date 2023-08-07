@@ -288,10 +288,14 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isFlagEnabled('WEAVE_GITOPS_FEATURE_COST_ESTIMATION') &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
-  const helmReposRefs = helmRepos.map((repo: HelmRepository) => ({
-    name: repo.name,
-    namespace: repo.namespace,
-  }));
+  const helmReposRefs = useMemo(
+    () =>
+      helmRepos.map((repo: HelmRepository) => ({
+        name: repo.name,
+        namespace: repo.namespace,
+      })),
+    [helmRepos],
+  );
 
   const { profiles, isLoading: profilesIsLoading } = useProfiles(
     isProfilesEnabled,
@@ -299,6 +303,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     resource || undefined,
     helmReposRefs,
   );
+
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
 
   useEffect(() => clearCallbackState(), []);

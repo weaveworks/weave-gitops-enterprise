@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { useContext, useMemo } from 'react';
+import { useDeepCompareMemo } from 'use-deep-compare';
 import { useQueries, useQuery } from 'react-query';
 import {
   GetConfigResponse,
@@ -189,8 +190,6 @@ const useProfiles = (
   const clusterData =
     cluster?.annotations?.['templates.weave.works/create-request'];
 
-  const onError = (error: Error) => setNotifications(formatError(error));
-
   const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
@@ -226,19 +225,18 @@ const useProfiles = (
 
   const results = useQueries(hrQueries);
 
-  const isLoading = results.map(result => result.isLoading).length > 0;
-  const data = results.map(
-    result => result.data,
-  ) as ListChartsForRepositoryResponse[];
+  const isLoading = results.some(query => query.isLoading);
 
-  const profiles = useMemo(
+  // check for errors and generate notifications // (error: Error) => setNotifications(formatError(error)
+
+  const profiles = useDeepCompareMemo(
     () =>
       mergeClusterAndTemplate(
-        data,
+        results.map(result => result.data) as ListChartsForRepositoryResponse[],
         template,
         maybeParseJSON(clusterData || ''),
       ),
-    [data, template, clusterData],
+    [isLoading, results, template, clusterData],
   );
 
   return {
@@ -246,4 +244,5 @@ const useProfiles = (
     profiles,
   };
 };
+
 export default useProfiles;
