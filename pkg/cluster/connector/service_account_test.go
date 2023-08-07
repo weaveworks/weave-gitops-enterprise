@@ -3,7 +3,6 @@ package connector
 import (
 	"context"
 	"fmt"
-	syslog "log"
 	"testing"
 	"time"
 
@@ -105,11 +104,8 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, s
 		return err
 	}
 
-	fmt.Printf("Service Account created: %v\n", serviceAccountName)
-	fmt.Printf("Service Account created: %v\n", serviceAccount.Name)
-
 	// Create ClusterRole
-	clusterRoleName := serviceAccountName + "-cluster-role" // TODO Rename
+	clusterRoleName := serviceAccount.Name + "-cluster-role" // TODO Rename
 	clusterRoleObj := newClusterRole(clusterRoleName, []rbacv1.PolicyRule{
 		{
 			APIGroups: []string{"*"},
@@ -125,14 +121,12 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, s
 	fmt.Printf("Cluster Role created: %v\n", clusterRoleName) // TODO remove/ change to log
 
 	// Create  cluster role binding
-	clusterRoleBindingName := serviceAccountName + "-cluster-role-binding" // TODO rename
+	clusterRoleBindingName := serviceAccount.Name + "-cluster-role-binding" // TODO rename
 	clusterRoleBindingObj := newClusterRoleBinding(clusterRoleBindingName, namespace, clusterRole.Kind, clusterRole.Name, serviceAccountName)
-	clusterRoleBinding, err := client.RbacV1().ClusterRoleBindings().Create(ctx, clusterRoleBindingObj, metav1.CreateOptions{})
+	_, err = client.RbacV1().ClusterRoleBindings().Create(ctx, clusterRoleBindingObj, metav1.CreateOptions{})
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Cluster RoleBinding created: %v\n", clusterRoleBindingName)  // TODO remove/change to log
-	fmt.Printf("Cluster RoleBinding created: %v\n", clusterRoleBinding.Name) // TODO remove
 
 	// Create secret
 	secretName := serviceAccountName + "-token"
@@ -141,12 +135,12 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, s
 	if err != nil {
 		return err
 	}
+
 	err = wait.PollUntilContextTimeout(ctx, time.Second, 10*time.Second, true, func(ctx context.Context) (done bool, err error) {
 		secret, err := client.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
-		syslog.Printf("RANA!!! the secret = %#v", secret)
 		if secret.Data != nil && secret.Data["token"] != nil {
 			return true, nil
 		}
@@ -155,12 +149,17 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, s
 	if err != nil {
 		return err
 	}
+
 	secret, err := client.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {
 		return err
 	}
-	// token := secret.Data["token"]
-	fmt.Printf("Secret created: %v\n", secret.Name) // TODO remove
+
+	token := secret.Data["token"]
+	if token == nil {
+		return fmt.Errorf("secret %s/%s was not populated with a token", namespace, secretName)
+	}
+	fmt.Printf("Secret created: %s\n", token)
 
 	return nil
 }
@@ -176,6 +175,8 @@ func GetServiceAccount(ctx context.Context, client kubernetes.Interface, service
 
 // Test with non-existing SA
 // Test with existing SA
+// Test with existing other resources
+// Test timeout when token doesn't get set
 // Look for the fake client in client-go
 func TestReconcileServiceAccount(t *testing.T) {
 	// Call ReconcileServiceAccount with a fake client and service name
@@ -219,12 +220,35 @@ func TestReconcileServiceAccount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			cli := fake.NewSimpleClientset()
+			remoteClientSet := fake.NewSimpleClientset()
 			// client := cli.CoreV1()
 
-			ReconcileServiceAccount(context.Background(), cli, "test-service-account")
+			go func(secretName, namespace string, token []byte) {
+				if err := wait.PollUntilContextTimeout(context.Background(), time.Second, 10*time.Second, true, func(ctx context.Context) (done bool, err error) {
+					secret, err := remoteClientSet.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})
+					if err != nil {
+						if apierrors.IsNotFound(err) {
+							return false, nil
+						}
+						return false, err
+					}
 
-			serviceAccount, err := GetServiceAccount(context.Background(), cli, "test-service-account", "default")
+					secret.Data = map[string][]byte{
+						"token": token,
+					}
+					if _, err := remoteClientSet.CoreV1().Secrets(namespace).Update(context.Background(), secret, metav1.UpdateOptions{}); err != nil {
+						return false, err
+					}
+
+					return true, nil
+				}); err != nil {
+					t.Fatal(err)
+				}
+			}(tt.serviceAccountName+"-token", "default", []byte("usertest"))
+
+			assert.NoError(t, ReconcileServiceAccount(context.Background(), remoteClientSet, "test-service-account"))
+
+			serviceAccount, err := GetServiceAccount(context.Background(), remoteClientSet, "test-service-account", "default")
 			assert.NoError(t, err)
 			t.Logf("Service account retrieved: %v", serviceAccount)
 
@@ -240,12 +264,12 @@ func TestReconcileServiceAccount(t *testing.T) {
 					Verbs:     []string{"*"},
 				},
 			})
-			clusterRole, err := cli.RbacV1().ClusterRoles().Get(context.Background(), tt.serviceAccountName+"-cluster-role", metav1.GetOptions{})
+			clusterRole, err := remoteClientSet.RbacV1().ClusterRoles().Get(context.Background(), tt.serviceAccountName+"-cluster-role", metav1.GetOptions{})
 			assert.NoError(t, err)
 			assert.Equal(t, expectedClusterRole, clusterRole, "cluster role found doesn't match expected")
 
 			expectedClusterRoleBinding := newClusterRoleBinding(tt.serviceAccountName+"-cluster-role-binding", "default", clusterRole.Kind, clusterRole.Name, tt.serviceAccountName)
-			clusterRoleBinding, err := cli.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.serviceAccountName+"-cluster-role-binding", metav1.GetOptions{})
+			clusterRoleBinding, err := remoteClientSet.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.serviceAccountName+"-cluster-role-binding", metav1.GetOptions{})
 			assert.NoError(t, err)
 			assert.Equal(t, expectedClusterRoleBinding, clusterRoleBinding, "cluster role found doesn't match expected")
 
@@ -254,21 +278,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 				"token": []byte("usertest"), //TODO
 			}
 
-			// time.Sleep(10 * time.Second)
-			// go func(secretName, namespace string, token []byte) {
-			// 	t.Logf("In go routine")
-
-			// 	secret, _ := cli.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})
-			// 	secret.Data = map[string][]byte{
-			// 		"token": token,
-			// 	}
-			// 	cli.CoreV1().Secrets("default").Update(context.Background(), secret, metav1.UpdateOptions{})
-
-			// }(tt.serviceAccountName+"-token", "default", []byte("usertest"))
-
-			// secret, err := cli.CoreV1().Secrets("default").Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
-			// assert.NoError(t, err)
-			// assert.Equal(t, expectedSecret, secret, "secret found doesn't match expected")
+			secret, err := remoteClientSet.CoreV1().Secrets("default").Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
+			assert.NoError(t, err)
+			assert.Equal(t, expectedSecret, secret, "secret found doesn't match expected")
 		})
 	}
 
