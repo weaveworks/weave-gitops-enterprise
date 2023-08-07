@@ -188,6 +188,13 @@ func TestReconciler_Reconcile(t *testing.T) {
 				FilterFunc: func(object client.Object) bool {
 					return false
 				},
+				StatusFunc: func(obj client.Object) configuration.ObjectStatus {
+					return configuration.NoStatus
+				},
+				MessageFunc: func(obj client.Object) string {
+					return ""
+				},
+				Category: "test",
 			},
 			request: ctrl.Request{
 				NamespacedName: types.NamespacedName{

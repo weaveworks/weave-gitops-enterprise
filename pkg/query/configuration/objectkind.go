@@ -63,6 +63,18 @@ func (o ObjectKind) Validate() error {
 		return fmt.Errorf("missing add to scheme func")
 	}
 
+	if o.StatusFunc == nil {
+		return fmt.Errorf("missing status func")
+	}
+
+	if o.MessageFunc == nil {
+		return fmt.Errorf("missing message func")
+	}
+
+	if o.Category == "" {
+		return fmt.Errorf("missing category")
+	}
+
 	return nil
 }
 
