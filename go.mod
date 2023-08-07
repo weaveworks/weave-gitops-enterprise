@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.29.0-rc.1
+	github.com/weaveworks/weave-gitops v0.29.0
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -117,7 +117,7 @@ require (
 	github.com/google/s2a-go v0.1.0 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
-	github.com/weaveworks/gitopssets-controller v0.14.0
+	github.com/weaveworks/gitopssets-controller v0.14.1
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.117.0 // indirect

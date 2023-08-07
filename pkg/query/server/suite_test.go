@@ -14,13 +14,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
+	clusterctrlv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
@@ -36,18 +39,14 @@ import (
 	"k8s.io/client-go/discovery"
 	typedauth "k8s.io/client-go/kubernetes/typed/authorization/v1"
 	"k8s.io/client-go/rest"
+	"k8s.io/kubectl/pkg/scheme"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/onsi/gomega"
-	clusterctrlv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
 var k8sClient client.Client
-var clientset *kubernetes.Clientset
 var cfg *rest.Config
 
 func TestMain(m *testing.M) {
@@ -70,12 +69,22 @@ func TestMain(m *testing.M) {
 
 	log.Println("environment started")
 
+	err = sourcev1beta2.AddToScheme(scheme.Scheme)
+	if err != nil {
+		log.Fatalf("add helm to schema failed: %s", err)
+	}
+
 	err = sourcev1.AddToScheme(scheme.Scheme)
 	if err != nil {
 		log.Fatalf("add helm to schema failed: %s", err)
 	}
 
-	err = v2beta1.AddToScheme(scheme.Scheme)
+	err = kustomizev1.AddToScheme(scheme.Scheme)
+	if err != nil {
+		log.Fatalf("add helm to schema failed: %s", err)
+	}
+
+	err = helmv2beta1.AddToScheme(scheme.Scheme)
 	if err != nil {
 		log.Fatalf("add helm to schema failed: %s", err)
 	}
@@ -93,10 +102,6 @@ func TestMain(m *testing.M) {
 		log.Fatalf("cannot create kubernetes client: %s", err)
 	}
 
-	clientset, err = kubernetes.NewForConfig(cfg)
-	if err != nil {
-		log.Fatalf("cannot create kubernetes client: %s", err)
-	}
 	log.Println("kube client created")
 
 	gomega.RegisterFailHandler(func(message string, skip ...int) {
