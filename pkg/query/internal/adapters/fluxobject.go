@@ -6,8 +6,9 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
+	corev1 "k8s.io/api/core/v1"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,14 +21,15 @@ type FluxObject interface {
 type ObjectStatus string
 
 const (
-	Success ObjectStatus = "Success"
-	Failed  ObjectStatus = "Failed"
+	Success  ObjectStatus = "Success"
+	Failed   ObjectStatus = "Failed"
+	NoStatus ObjectStatus = "-"
 )
 
-// TODO can we generlise it?
+// TODO can we generalise it?
 func ToFluxObject(obj client.Object) (FluxObject, error) {
 	switch t := obj.(type) {
-	case *v2beta1.HelmRelease:
+	case *helmv2beta1.HelmRelease:
 		return t, nil
 	case *kustomizev1.Kustomization:
 		return t, nil
@@ -41,6 +43,12 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *sourcev1beta2.OCIRepository:
 		return t, nil
+	case *corev1.Event:
+		e, ok := obj.(*corev1.Event)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast object to event")
+		}
+		return &eventAdapter{e}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)
@@ -48,6 +56,9 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 
 func Status(fo FluxObject) ObjectStatus {
 	for _, c := range fo.GetConditions() {
+		if ObjectStatus(c.Type) == NoStatus {
+			return NoStatus
+		}
 		if c.Type == "Ready" || c.Type == "Available" {
 			if c.Status == "True" {
 				return Success
@@ -70,9 +81,9 @@ func Message(fo FluxObject) string {
 	return ""
 }
 
-func Category(fo FluxObject) (models.ObjectCategory, error) {
+func Category(fo client.Object) (models.ObjectCategory, error) {
 	switch fo.(type) {
-	case *v2beta1.HelmRelease:
+	case *helmv2beta1.HelmRelease:
 		return models.CategoryAutomation, nil
 	case *kustomizev1.Kustomization:
 		return models.CategoryAutomation, nil
@@ -86,6 +97,8 @@ func Category(fo FluxObject) (models.ObjectCategory, error) {
 		return models.CategorySource, nil
 	case *sourcev1beta2.OCIRepository:
 		return models.CategorySource, nil
+	case *corev1.Event:
+		return models.CategoryEvent, nil
 	}
 
 	return "", fmt.Errorf("unknown object type: %T", fo)

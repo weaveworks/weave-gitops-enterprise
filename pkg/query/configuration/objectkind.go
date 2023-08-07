@@ -2,11 +2,13 @@ package configuration
 
 import (
 	"fmt"
+	"time"
 
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	corev1 "k8s.io/api/core/v1"
 
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	v1 "github.com/fluxcd/kustomize-controller/api/v1"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -14,11 +16,16 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// FilterFunc can be used to only retain relevant objects.
+// For example, we may want to keep Events, but only Events from a particular source.
+type FilterFunc func(obj client.Object) bool
+
 type ObjectKind struct {
 	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
 	NewClientObjectFunc func() client.Object        `json:"-"`
 	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
 	RetentionPolicy     RetentionPolicy             `json:"-"`
+	FilterFunc          FilterFunc
 }
 
 func (ok ObjectKind) String() string {
@@ -41,18 +48,18 @@ func (o ObjectKind) Validate() error {
 
 var (
 	HelmReleaseObjectKind = ObjectKind{
-		Gvk: v2beta1.GroupVersion.WithKind(v2beta1.HelmReleaseKind),
+		Gvk: helmv2beta1.GroupVersion.WithKind(helmv2beta1.HelmReleaseKind),
 		NewClientObjectFunc: func() client.Object {
-			return &v2beta1.HelmRelease{}
+			return &helmv2beta1.HelmRelease{}
 		},
-		AddToSchemeFunc: v2beta1.AddToScheme,
+		AddToSchemeFunc: helmv2beta1.AddToScheme,
 	}
 	KustomizationObjectKind = ObjectKind{
-		Gvk: v1.GroupVersion.WithKind(v1.KustomizationKind),
+		Gvk: kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind),
 		NewClientObjectFunc: func() client.Object {
-			return &v1.Kustomization{}
+			return &kustomizev1.Kustomization{}
 		},
-		AddToSchemeFunc: v1.AddToScheme,
+		AddToSchemeFunc: kustomizev1.AddToScheme,
 	}
 	HelmRepositoryObjectKind = ObjectKind{
 		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmRepositoryKind),
@@ -117,6 +124,23 @@ var (
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
 	}
+
+	PolicyAgentEventObjectKind = ObjectKind{
+		Gvk: corev1.SchemeGroupVersion.WithKind("Event"),
+		NewClientObjectFunc: func() client.Object {
+			return &corev1.Event{}
+		},
+		AddToSchemeFunc: corev1.AddToScheme,
+		FilterFunc: func(obj client.Object) bool {
+			e, ok := obj.(*corev1.Event)
+			if !ok {
+				return false
+			}
+
+			return e.Source.Component == "policy-agent"
+		},
+		RetentionPolicy: RetentionPolicy(24 * time.Hour),
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -128,6 +152,7 @@ var SupportedObjectKinds = []ObjectKind{
 	GitRepositoryObjectKind,
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
+	PolicyAgentEventObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
