@@ -27,6 +27,12 @@ func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subs
 		}
 	}()
 
+	for _, k := range kinds {
+		if err := k.Validate(); err != nil {
+			return nil, fmt.Errorf("invalid object kind: %w", err)
+		}
+	}
+
 	newWatcher := func(clusterName string, config *rest.Config) (collector.Starter, error) {
 		return collector.NewWatcher(clusterName, config, kinds, incoming, log)
 	}

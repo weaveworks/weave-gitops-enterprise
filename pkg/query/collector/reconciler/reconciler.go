@@ -28,8 +28,8 @@ func NewReconciler(clusterName string, objectKind configuration.ObjectKind, clie
 		return nil, fmt.Errorf("invalid client")
 	}
 
-	if err := objectKind.Validate(); err != nil {
-		return nil, fmt.Errorf("invalid object kind:%w", err)
+	if objectKind.Gvk.Kind == "" {
+		return nil, fmt.Errorf("missing gvk")
 	}
 
 	return &GenericReconciler{
