@@ -1,212 +1,219 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
   "contentVersion": "1.0.0.0",
+  "outputs": {},
   "parameters": {
-    "extensionResourceName": {
-      "type": "string",
-      "metadata": {
-        "description": "The name of the extension."
-      }
-    },
-    "clusterResourceName": {
-      "type": "String",
-      "metadata": {
-        "description": "The name of the Managed Cluster resource."
-      }
-    },
-    "createNewCluster": {
-      "type": "Bool",
-      "defaultValue": true,
-      "metadata": {
-        "description": "When set to 'true', creates new AKS cluster. Otherwise, an existing cluster is used."
-      }
-    },
-    "location": {
-      "type": "String",
-      "metadata": {
-        "description": "The location of AKS resource."
-      }
-    },
     "app-title": {
       "type": "String"
     },
     "capiEnabled": {
       "type": "Bool"
     },
-    "vmSize": {
-      "type": "String",
-      "defaultValue": "Standard_DS2_v2",
+    "clusterResourceName": {
       "metadata": {
-        "description": "VM size"
-      }
+        "description": "The name of the Managed Cluster resource."
+      },
+      "type": "String"
     },
-    "vmEnableAutoScale": {
-      "type": "Bool",
+    "createNewCluster": {
       "defaultValue": true,
       "metadata": {
-        "description": "enable auto scaling"
-      }
-    },
-    "vmCount": {
-      "type": "Int",
-      "defaultValue": 3,
-      "metadata": {
-        "description": "VM count"
-      }
+        "description": "When set to 'true', creates new AKS cluster. Otherwise, an existing cluster is used."
+      },
+      "type": "Bool"
     },
     "dnsPrefix": {
       "defaultValue": "[concat(parameters('clusterResourceName'),'-dns')]",
-      "type": "String",
       "metadata": {
         "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
-      }
-    },
-    "osDiskSizeGB": {
-      "defaultValue": 0,
-      "minValue": 0,
-      "maxValue": 1023,
-      "type": "Int",
-      "metadata": {
-        "description": "Disk size (in GiB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
-      }
-    },
-    "kubernetesVersion": {
-      "type": "String",
-      "defaultValue": "1.24.0",
-      "metadata": {
-        "description": "The version of Kubernetes."
-      }
-    },
-    "networkPlugin": {
-      "defaultValue": "kubenet",
-      "allowedValues": ["azure", "kubenet"],
-      "type": "String",
-      "metadata": {
-        "description": "Network plugin used for building Kubernetes network."
-      }
-    },
-    "enableRBAC": {
-      "defaultValue": true,
-      "type": "Bool",
-      "metadata": {
-        "description": "Boolean flag to turn on and off of RBAC."
-      }
-    },
-    "enablePrivateCluster": {
-      "defaultValue": false,
-      "type": "Bool",
-      "metadata": {
-        "description": "Enable private network access to the Kubernetes cluster."
-      }
-    },
-    "enableHttpApplicationRouting": {
-      "defaultValue": true,
-      "type": "Bool",
-      "metadata": {
-        "description": "Boolean flag to turn on and off http application routing."
-      }
+      },
+      "type": "String"
     },
     "enableAzurePolicy": {
       "defaultValue": false,
-      "type": "Bool",
       "metadata": {
         "description": "Boolean flag to turn on and off Azure Policy addon."
-      }
+      },
+      "type": "Bool"
+    },
+    "enableHttpApplicationRouting": {
+      "defaultValue": true,
+      "metadata": {
+        "description": "Boolean flag to turn on and off http application routing."
+      },
+      "type": "Bool"
+    },
+    "enablePrivateCluster": {
+      "defaultValue": false,
+      "metadata": {
+        "description": "Enable private network access to the Kubernetes cluster."
+      },
+      "type": "Bool"
+    },
+    "enableRBAC": {
+      "defaultValue": true,
+      "metadata": {
+        "description": "Boolean flag to turn on and off of RBAC."
+      },
+      "type": "Bool"
     },
     "enableSecretStoreCSIDriver": {
       "defaultValue": false,
-      "type": "Bool",
       "metadata": {
         "description": "Boolean flag to turn on and off secret store CSI driver."
-      }
+      },
+      "type": "Bool"
+    },
+    "extensionResourceName": {
+      "metadata": {
+        "description": "The name of the extension."
+      },
+      "type": "string"
+    },
+    "kubernetesVersion": {
+      "defaultValue": "1.24.0",
+      "metadata": {
+        "description": "The version of Kubernetes."
+      },
+      "type": "String"
+    },
+    "location": {
+      "metadata": {
+        "description": "The location of AKS resource."
+      },
+      "type": "String"
+    },
+    "networkPlugin": {
+      "allowedValues": [
+        "azure",
+        "kubenet"
+      ],
+      "defaultValue": "kubenet",
+      "metadata": {
+        "description": "Network plugin used for building Kubernetes network."
+      },
+      "type": "String"
+    },
+    "osDiskSizeGB": {
+      "defaultValue": 0,
+      "maxValue": 1023,
+      "metadata": {
+        "description": "Disk size (in GiB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+      },
+      "minValue": 0,
+      "type": "Int"
+    },
+    "vmCount": {
+      "defaultValue": 3,
+      "metadata": {
+        "description": "VM count"
+      },
+      "type": "Int"
+    },
+    "vmEnableAutoScale": {
+      "defaultValue": true,
+      "metadata": {
+        "description": "enable auto scaling"
+      },
+      "type": "Bool"
+    },
+    "vmSize": {
+      "defaultValue": "Standard_DS2_v2",
+      "metadata": {
+        "description": "VM size"
+      },
+      "type": "String"
     }
   },
-  "variables": {
-    "plan-name": "DONOTMODIFY",
-    "plan-publisher": "DONOTMODIFY",
-    "plan-offerID": "DONOTMODIFY",
-    "releaseTrain": "DONOTMODIFY",
-    "clusterExtensionTypeName": "DONOTMODIFY"
-  },
-  "resources": [{
-    "type": "Microsoft.ContainerService/managedClusters",
-    "condition": "[parameters('createNewCluster')]",
-    "apiVersion": "2022-11-01",
-    "name": "[parameters('clusterResourceName')]",
-    "location": "[parameters('location')]",
-    "dependsOn": [],
-    "tags": {},
-    "sku": {
-      "name": "Basic",
-      "tier": "Free"
-    },
-    "identity": {
-      "type": "SystemAssigned"
-    },
-    "properties": {
-      "kubernetesVersion": "[parameters('kubernetesVersion')]",
-      "enableRBAC": "[parameters('enableRBAC')]",
-      "dnsPrefix": "[parameters('dnsPrefix')]",
-      "agentPoolProfiles": [{
-        "name": "agentpool",
-        "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
-        "count": "[parameters('vmCount')]",
-        "enableAutoScaling": "[parameters('vmEnableAutoScale')]",
-        "minCount": 1,
-        "maxCount": 10,
-        "vmSize": "[parameters('vmSize')]",
-        "osType": "Linux",
-        "storageProfile": "ManagedDisks",
-        "type": "VirtualMachineScaleSets",
-        "mode": "System",
-        "maxPods": 110,
-        "availabilityZones": [],
-        "enableNodePublicIP": false,
-        "tags": {}
-      }],
-      "networkProfile": {
-        "loadBalancerSku": "standard",
-        "networkPlugin": "[parameters('networkPlugin')]"
+  "resources": [
+    {
+      "apiVersion": "2022-11-01",
+      "condition": "[parameters('createNewCluster')]",
+      "dependsOn": [],
+      "identity": {
+        "type": "SystemAssigned"
       },
-      "apiServerAccessProfile": {
-        "enablePrivateCluster": "[parameters('enablePrivateCluster')]"
-      },
-      "addonProfiles": {
-        "httpApplicationRouting": {
-          "enabled": "[parameters('enableHttpApplicationRouting')]"
+      "location": "[parameters('location')]",
+      "name": "[parameters('clusterResourceName')]",
+      "properties": {
+        "addonProfiles": {
+          "azureKeyvaultSecretsProvider": {
+            "enabled": "[parameters('enableSecretStoreCSIDriver')]"
+          },
+          "azurepolicy": {
+            "enabled": "[parameters('enableAzurePolicy')]"
+          },
+          "httpApplicationRouting": {
+            "enabled": "[parameters('enableHttpApplicationRouting')]"
+          }
         },
-        "azurepolicy": {
-          "enabled": "[parameters('enableAzurePolicy')]"
+        "agentPoolProfiles": [
+          {
+            "availabilityZones": [],
+            "count": "[parameters('vmCount')]",
+            "enableAutoScaling": "[parameters('vmEnableAutoScale')]",
+            "enableNodePublicIP": false,
+            "maxCount": 10,
+            "maxPods": 110,
+            "minCount": 1,
+            "mode": "System",
+            "name": "agentpool",
+            "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+            "osType": "Linux",
+            "storageProfile": "ManagedDisks",
+            "tags": {},
+            "type": "VirtualMachineScaleSets",
+            "vmSize": "[parameters('vmSize')]"
+          }
+        ],
+        "apiServerAccessProfile": {
+          "enablePrivateCluster": "[parameters('enablePrivateCluster')]"
         },
-        "azureKeyvaultSecretsProvider": {
-          "enabled": "[parameters('enableSecretStoreCSIDriver')]"
+        "dnsPrefix": "[parameters('dnsPrefix')]",
+        "enableRBAC": "[parameters('enableRBAC')]",
+        "kubernetesVersion": "[parameters('kubernetesVersion')]",
+        "networkProfile": {
+          "loadBalancerSku": "standard",
+          "networkPlugin": "[parameters('networkPlugin')]"
         }
-      }
-    }
-  }, {
-    "type": "Microsoft.KubernetesConfiguration/extensions",
-    "apiVersion": "2022-11-01",
-    "name": "[parameters('extensionResourceName')]",
-    "properties": {
-      "extensionType": "[variables('clusterExtensionTypeName')]",
-      "autoUpgradeMinorVersion": true,
-      "releaseTrain": "[variables('releaseTrain')]",
-      "configurationSettings": {
-        "title": "[parameters('app-title')]",
-        "global.capiEnabled": "[parameters('capiEnabled')]"
       },
-      "configurationProtectedSettings": {
-
-      }
+      "sku": {
+        "name": "Basic",
+        "tier": "Free"
+      },
+      "tags": {},
+      "type": "Microsoft.ContainerService/managedClusters"
     },
-    "plan": {
-      "name": "[variables('plan-name')]",
-      "publisher": "[variables('plan-publisher')]",
-      "product": "[variables('plan-offerID')]"
-    },
-    "scope": "[concat('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]",
-    "dependsOn": ["[resourceId('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]"]
-  }],
-  "outputs": {}
+    {
+      "apiVersion": "2022-11-01",
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]"
+      ],
+      "name": "[parameters('extensionResourceName')]",
+      "plan": {
+        "name": "[variables('plan-name')]",
+        "product": "[variables('plan-offerID')]",
+        "publisher": "[variables('plan-publisher')]"
+      },
+      "properties": {
+        "autoUpgradeMinorVersion": true,
+        "configurationProtectedSettings": {},
+        "configurationSettings": {
+          "global.capiEnabled": "[parameters('capiEnabled')]",
+          "title": "[parameters('app-title')]"
+        },
+        "extensionType": "[variables('clusterExtensionTypeName')]",
+        "releaseTrain": "[variables('releaseTrain')]"
+      },
+      "scope": "[concat('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]",
+      "type": "Microsoft.KubernetesConfiguration/extensions"
+    }
+  ],
+  "variables": {
+    "clusterExtensionTypeName": "DONOTMODIFY",
+    "plan-name": "DONOTMODIFY",
+    "plan-offerID": "DONOTMODIFY",
+    "plan-publisher": "DONOTMODIFY",
+    "releaseTrain": "DONOTMODIFY"
+  }
 }
-
