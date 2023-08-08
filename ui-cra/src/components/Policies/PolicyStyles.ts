@@ -1,5 +1,6 @@
 import { Theme } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/styles';
+import { Flex } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
@@ -22,6 +23,11 @@ export const usePolicyStyle = makeStyles((wtheme: Theme) =>
     },
   }),
 );
+export const BorderFlexBox = styled(Flex)`
+  border: 1px solid ${props => props.theme.colors.neutral10};
+  border-radius: ${props => props.theme.spacing.xs};
+  padding: ${props => props.theme.spacing.medium};
+`;
 
 export const LinkWrapper = styled(Link)`
   color: ${props => props.theme.colors.primary};
