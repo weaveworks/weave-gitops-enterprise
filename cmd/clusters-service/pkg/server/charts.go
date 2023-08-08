@@ -63,10 +63,10 @@ func (s *server) ListChartsForRepository(ctx context.Context, req *protos.ListCh
 		}
 
 		responseCharts = append(responseCharts, &protos.RepositoryChart{
-			Name:     name,
-			Layer:    chartsLayers[name],
-			Versions: sortedVersions,
-			RepoName: req.Repository.Name,
+			Name:          name,
+			Layer:         chartsLayers[name],
+			Versions:      sortedVersions,
+			RepoName:      req.Repository.Name,
 			RepoNamespace: req.Repository.Namespace,
 		})
 	}

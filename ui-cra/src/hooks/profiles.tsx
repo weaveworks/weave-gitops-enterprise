@@ -227,6 +227,12 @@ const useProfiles = (
 
   const isLoading = results.some(query => query.isLoading);
 
+  const errors = results.map(query => query.error);
+
+  // if (errors.length > 0) {
+  //   errors.forEach(error => setNotifications(formatError(error)));
+  // }
+
   // check for errors and generate notifications // (error: Error) => setNotifications(formatError(error)
 
   const profiles = useDeepCompareMemo(

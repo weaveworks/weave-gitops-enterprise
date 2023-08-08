@@ -144,6 +144,7 @@ const Profiles: FC<{
       {!isLoading && (
         <DataTable
           className="profiles-table table-wrapper"
+          // show only profiles from selectedHelmRepositories
           rows={updatedProfilesList}
           fields={[
             {
@@ -166,7 +167,6 @@ const Profiles: FC<{
               ),
               maxWidth: 25,
             },
-
             {
               label: 'Name',
               value: (p: UpdatedProfile) => (
@@ -188,6 +188,14 @@ const Profiles: FC<{
                   },
                 ]
               : []),
+            {
+              label: 'Repository',
+              value: (p: UpdatedProfile) => (
+                <span data-profile-repository={p.repoName}>{p.repoName}</span>
+              ),
+              sortValue: ({ repoName }) => repoName,
+              maxWidth: 220,
+            },
             {
               label: 'Version',
               labelRenderer: () => <ProfileDetailsLabelRenderer />,
