@@ -9,7 +9,7 @@ fullnameOverride: ""
 images:
   clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.0.2
   uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.0.2
-  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
+  clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.7.1
 
 serviceAccount:
   # Specifies whether a service account should be created
