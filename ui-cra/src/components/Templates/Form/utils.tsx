@@ -12,6 +12,7 @@ import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitRepositoryEnriched } from '.';
+import styled from 'styled-components';
 
 const yamlConverter = require('js-yaml');
 
@@ -149,3 +150,29 @@ export function getDefaultGitRepo(
 
   return gitRepos[0];
 }
+
+export const FormWrapper = styled.form`
+  width: 80%;
+  .preview-cta,
+  .create-cta {
+    padding: ${({ theme }) => theme.spacing.small}
+      ${({ theme }) => theme.spacing.base};
+    button {
+      width: 200px;
+    }
+  }
+  .preview-loading,
+  .create-loading {
+    padding: ${({ theme }) => theme.spacing.base};
+  }
+
+  div[class*='MuiInput-root'] {
+    border: 1px solid ${props => props.theme.colors.neutral20};
+    border-bottom: none;
+    padding: 2px 6px;
+  }
+  //By default, a form field will take 50% of the space it is in
+  div[class*='MuiFormControl-root'] {
+    width: 50%;
+  }
+`;

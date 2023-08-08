@@ -84,6 +84,7 @@ jobs:
   integration-tests:
     needs: cache
     runs-on: ubuntu-latest
+    if: ${{ github.actor != 'dependabot[bot]' }} # do not run integration test for dependabot dependency updates
     env:
       AZURE_DEVOPS_TOKEN: ${{ secrets.AZURE_DEVOPS_TOKEN }}
       GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}

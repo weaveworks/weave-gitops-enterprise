@@ -1,9 +1,9 @@
-import { CircularProgress } from '@material-ui/core';
 import {
   Button,
   Flex,
   GitRepository,
   Link,
+  LoadingPage,
   Page,
 } from '@weaveworks/weave-gitops';
 import { useCallback, useMemo, useState } from 'react';
@@ -24,9 +24,9 @@ import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
 import { PreviewModal, SecretType } from '../Shared/PreviewModal';
-import { FormWrapper } from '../Shared/styles';
 import {
   ExternalSecret,
+  FormWrapperSecret,
   getESFormattedPayload,
   getESInitialData,
   handleError,
@@ -139,94 +139,86 @@ const CreateExternalSecret = () => {
         }}
       >
         <NotificationsWrapper>
-          <FormWrapper
+          <FormWrapperSecret
             noValidate
             onSubmit={event => {
               setValidateForm(true);
               validateFormData(event, handleCreateSecret, setFormError);
             }}
           >
-            <div className="group-section">
-              <div className="form-group">
-                <Flex wide>
-                  <InputDebounced
-                    required
-                    name="secretName"
-                    label="EXTERNAL SECRET NAME"
-                    value={formData.secretName}
-                    handleFormData={val => handleFormData(val, 'secretName')}
-                    error={validateForm && !formData.secretName}
-                  />
-                  <InputDebounced
-                    required
-                    name="dataSecretKey"
-                    label="TARGET K8s SECRET NAME"
-                    value={formData.dataSecretKey}
-                    handleFormData={val => handleFormData(val, 'dataSecretKey')}
-                    error={validateForm && !formData.dataSecretKey}
-                  />
-                </Flex>
-                <ListClusters
-                  value={formData.clusterName}
-                  validateForm={validateForm}
-                  handleFormData={(val: any) => {
-                    handleFormData(val, 'clusterName');
-                    handleFormData('', 'secretStoreRef');
-                  }}
-                />
-                {formData.clusterName && (
-                  <ListSecretsStore
-                    validateForm={validateForm}
-                    value={formData.secretStore}
-                    handleFormData={(val: any) => handleSecretStoreChange(val)}
-                    clusterName={formData.clusterName}
-                  />
-                )}
-                {formData.secretStore && (
-                  <Flex wide>
-                    <InputDebounced
-                      required
-                      name="secretStoreType"
-                      label="SECRET STORE TYPE"
-                      value={formData.secretStoreType}
-                      handleFormData={val => {}}
-                      disabled={true}
-                      error={validateForm && !formData.secretStoreType}
-                    />
-                    <InputDebounced
-                      required
-                      name="secretNamespace"
-                      label="SECRET NAMESPACE"
-                      value={formData.secretNamespace}
-                      handleFormData={val =>
-                        handleFormData(val, 'secretNamespace')
-                      }
-                      disabled={
-                        !!formData.secretNamespace &&
-                        formData.defaultSecretNamespace ===
-                          formData.secretNamespace
-                      }
-                      error={validateForm && !formData.secretNamespace}
-                    />
-                  </Flex>
-                )}
+            <InputDebounced
+              required
+              name="secretName"
+              label="EXTERNAL SECRET NAME"
+              value={formData.secretName}
+              handleFormData={val => handleFormData(val, 'secretName')}
+              error={validateForm && !formData.secretName}
+            />
+            <InputDebounced
+              required
+              name="dataSecretKey"
+              label="TARGET K8s SECRET NAME"
+              value={formData.dataSecretKey}
+              handleFormData={val => handleFormData(val, 'dataSecretKey')}
+              error={validateForm && !formData.dataSecretKey}
+            />
+            <Flex column>
+              <ListClusters
+                value={formData.clusterName}
+                validateForm={validateForm}
+                handleFormData={(val: any) => {
+                  handleFormData(val, 'clusterName');
+                  handleFormData('', 'secretStoreRef');
+                }}
+              />
+            </Flex>
+            {formData.clusterName && (
+              <ListSecretsStore
+                validateForm={validateForm}
+                value={formData.secretStore}
+                handleFormData={(val: any) => handleSecretStoreChange(val)}
+                clusterName={formData.clusterName}
+              />
+            )}
+            {formData.secretStore && (
+              <Flex wide>
                 <InputDebounced
                   required
-                  name="secretPath"
-                  label="SECRET PATH"
-                  value={formData.secretPath}
-                  handleFormData={val => handleFormData(val, 'secretPath')}
-                  error={validateForm && !formData.secretPath}
+                  name="secretStoreType"
+                  label="SECRET STORE TYPE"
+                  value={formData.secretStoreType}
+                  handleFormData={val => {}}
+                  disabled={true}
+                  error={validateForm && !formData.secretStoreType}
                 />
-              </div>
-
-              <SecretProperty
-                formData={formData}
-                setFormData={setFormData}
-                validateForm={validateForm}
-              />
-              <PreviewModal formData={formData} secretType={SecretType.ES} />
-            </div>
+                <InputDebounced
+                  required
+                  name="secretNamespace"
+                  label="SECRET NAMESPACE"
+                  value={formData.secretNamespace}
+                  handleFormData={val => handleFormData(val, 'secretNamespace')}
+                  disabled={
+                    !!formData.secretNamespace &&
+                    formData.defaultSecretNamespace === formData.secretNamespace
+                  }
+                  error={validateForm && !formData.secretNamespace}
+                />
+              </Flex>
+            )}
+            <InputDebounced
+              required
+              name="secretPath"
+              label="SECRET PATH"
+              value={formData.secretPath}
+              handleFormData={val => handleFormData(val, 'secretPath')}
+              error={validateForm && !formData.secretPath}
+            />
+            <SecretProperty
+              formData={formData}
+              setFormData={setFormData}
+              validateForm={validateForm}
+            />
+            <PreviewModal formData={formData} secretType={SecretType.ES} />
             <GitOps
               formData={formData}
               setFormData={setFormData}
@@ -235,19 +227,16 @@ const CreateExternalSecret = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-
-            <div className="create-cta">
-              <Button type="submit" disabled={!isAuthenticated || loading}>
-                CREATE PULL REQUEST
-                {loading && (
-                  <CircularProgress
-                    size={'1rem'}
-                    style={{ marginLeft: '4px' }}
-                  />
-                )}
-              </Button>
-            </div>
-          </FormWrapper>
+            {loading ? (
+              <LoadingPage className="create-loading" />
+            ) : (
+              <Flex end className="create-cta">
+                <Button type="submit" disabled={!isAuthenticated}>
+                  CREATE PULL REQUEST
+                </Button>
+              </Flex>
+            )}
+          </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
     </Page>

@@ -32,7 +32,7 @@ spec:
       default: 30s
   resourcetemplates:
     - content:
-        - apiVersion: source.toolkit.fluxcd.io/v1beta2
+        - apiVersion: source.toolkit.fluxcd.io/v1
           kind: GitRepository
           metadata:
             name: ${{ .params.RESOURCE_NAME }}

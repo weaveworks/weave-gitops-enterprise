@@ -44,22 +44,24 @@ message TerraformObject {
     string name        = 1;
     string namespace   = 2;
     string clusterName = 3;
+    string type        = 4;
+    string uid         = 5;
 
-    SourceRef sourceRef            = 4;
+    SourceRef sourceRef            = 6;
 
-    string    appliedRevision      = 5;
-    string    path                 = 6;
-    Interval  interval             = 7;
-    string    lastUpdatedAt        = 8;
-    bool      driftDetectionResult = 9;
+    string    appliedRevision      = 7;
+    string    path                 = 8;
+    Interval  interval             = 9;
+    string    lastUpdatedAt        = 10;
+    bool      driftDetectionResult = 11;
     
-    repeated ResourceRef               inventory   = 10;
-    repeated Condition                 conditions  = 11;
-    map<string, string>                labels      = 12;
-    map<string, string>                annotations = 13;
-    repeated NamespacedObjectReference dependsOn   = 14;
+    repeated ResourceRef               inventory   = 12;
+    repeated Condition                 conditions  = 13;
+    map<string, string>                labels      = 14;
+    map<string, string>                annotations = 15;
+    repeated NamespacedObjectReference dependsOn   = 16;
 
-    bool suspended = 15;
+    bool suspended = 17;
 }
 
 message Pagination {

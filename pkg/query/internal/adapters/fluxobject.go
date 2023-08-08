@@ -3,12 +3,13 @@ package adapters
 import (
 	"fmt"
 
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-
-	"github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1beta2"
 	corev1 "k8s.io/api/core/v1"
+
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -25,22 +26,22 @@ const (
 	NoStatus ObjectStatus = "-"
 )
 
-// TODO can we generlise it?
+// TODO can we generalise it?
 func ToFluxObject(obj client.Object) (FluxObject, error) {
 	switch t := obj.(type) {
-	case *v2beta1.HelmRelease:
+	case *helmv2beta1.HelmRelease:
 		return t, nil
 	case *kustomizev1.Kustomization:
 		return t, nil
-	case *sourcev1.HelmRepository:
+	case *sourcev1beta2.HelmRepository:
 		return t, nil
-	case *sourcev1.HelmChart:
+	case *sourcev1beta2.HelmChart:
 		return t, nil
-	case *sourcev1.Bucket:
+	case *sourcev1beta2.Bucket:
 		return t, nil
 	case *sourcev1.GitRepository:
 		return t, nil
-	case *sourcev1.OCIRepository:
+	case *sourcev1beta2.OCIRepository:
 		return t, nil
 	case *corev1.Event:
 		e, ok := obj.(*corev1.Event)
@@ -82,19 +83,19 @@ func Message(fo FluxObject) string {
 
 func Category(fo client.Object) (models.ObjectCategory, error) {
 	switch fo.(type) {
-	case *v2beta1.HelmRelease:
+	case *helmv2beta1.HelmRelease:
 		return models.CategoryAutomation, nil
 	case *kustomizev1.Kustomization:
 		return models.CategoryAutomation, nil
-	case *sourcev1.HelmRepository:
+	case *sourcev1beta2.HelmRepository:
 		return models.CategorySource, nil
-	case *sourcev1.HelmChart:
+	case *sourcev1beta2.HelmChart:
 		return models.CategorySource, nil
-	case *sourcev1.Bucket:
+	case *sourcev1beta2.Bucket:
 		return models.CategorySource, nil
 	case *sourcev1.GitRepository:
 		return models.CategorySource, nil
-	case *sourcev1.OCIRepository:
+	case *sourcev1beta2.OCIRepository:
 		return models.CategorySource, nil
 	case *corev1.Event:
 		return models.CategoryEvent, nil

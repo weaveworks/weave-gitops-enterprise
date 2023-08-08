@@ -1,4 +1,4 @@
-apiVersion: addons.cluster.x-k8s.io/v1alpha3
+apiVersion: addons.cluster.x-k8s.io/v1beta1
 kind: ClusterResourceSet
 metadata:
   name: "{{.Name}}"
@@ -8,6 +8,5 @@ spec:
     matchLabels:
       cni: calico
   resources:
-  - kind: ConfigMap
-    name: "{{.Name}}-calico-crs-configmap"
-
+    - kind: ConfigMap
+      name: "{{.Name}}-calico-crs-configmap"

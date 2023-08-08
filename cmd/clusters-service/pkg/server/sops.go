@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	gopgp "github.com/ProtonMail/gopenpgp/v2/crypto"
-	kustomizev1beta2 "github.com/fluxcd/kustomize-controller/api/v1beta2"
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	"go.mozilla.org/sops/v3"
@@ -125,7 +125,7 @@ func (s *server) EncryptSopsSecret(ctx context.Context, msg *capiv1_proto.Encryp
 		return nil, fmt.Errorf("error getting impersonating client: %w", err)
 	}
 
-	var kustomization kustomizev1beta2.Kustomization
+	var kustomization kustomizev1.Kustomization
 	kustomizationKey := client.ObjectKey{
 		Name:      msg.KustomizationName,
 		Namespace: msg.KustomizationNamespace,
@@ -257,7 +257,7 @@ func (s *server) ListSopsKustomizations(ctx context.Context, req *capiv1_proto.L
 	}
 
 	kustomizations := []*capiv1_proto.SopsKustomizations{}
-	kustomizationList := &kustomizev1beta2.KustomizationList{}
+	kustomizationList := &kustomizev1.KustomizationList{}
 
 	if err := clustersClient.List(ctx, req.ClusterName, kustomizationList); err != nil {
 		if strings.Contains(err.Error(), "no matches for kind") {

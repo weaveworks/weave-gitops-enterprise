@@ -1,4 +1,6 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
+import { FormWrapper } from '../../Templates/Form/utils';
 
 export interface ExternalSecret {
   defaultSecretNamespace: string;
@@ -222,3 +224,27 @@ export const getESFormattedPayload = (formData: ExternalSecret) => {
     isControlPlane: c_namespace ? true : false,
   };
 };
+
+export const FormWrapperSecret = styled(FormWrapper)`
+  .secret-data-list {
+    display: flex;
+    align-items: self-start;
+    width: 100%;
+    .remove-icon {
+      margin-top: 25px;
+      color: ${props => props.theme.colors.neutral30};
+      cursor: pointer;
+    }
+  }
+  .secret-data-hint {
+    background-color: ${props => props.theme.colors.primaryLight05};
+    padding: ${props => props.theme.spacing.xs};
+    font-weight: 600;
+    width: fit-content;
+    border-radius: 4px;
+    margin-top: 0px;
+  }
+  .add-secret-data {
+    margin-bottom: ${props => props.theme.spacing.medium};
+  }
+`;
