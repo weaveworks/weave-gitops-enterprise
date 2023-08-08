@@ -70,6 +70,13 @@
       },
       "type": "string"
     },
+    "installFlux": {
+      "defaultValue": true,
+      "metadata": {
+        "description": "When set to 'true', installs the Flux extension. If a new cluster is created flux will always be installed"
+      },
+      "type": "Bool"
+    },
     "kubernetesVersion": {
       "defaultValue": "1.24.0",
       "metadata": {
@@ -84,10 +91,7 @@
       "type": "String"
     },
     "networkPlugin": {
-      "allowedValues": [
-        "azure",
-        "kubenet"
-      ],
+      "allowedValues": ["azure", "kubenet"],
       "defaultValue": "kubenet",
       "metadata": {
         "description": "Network plugin used for building Kubernetes network."
@@ -186,9 +190,22 @@
     },
     {
       "apiVersion": "2022-11-01",
+      "condition": "[or(parameters('createNewCluster'), parameters('installFlux'))]",
       "dependsOn": [
         "[resourceId('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]"
       ],
+      "name": "flux",
+      "properties": {
+        "autoUpgradeMinorVersion": true,
+        "configurationProtectedSettings": {},
+        "extensionType": "microsoft.flux"
+      },
+      "scope": "[concat('Microsoft.ContainerService/managedClusters/', parameters('clusterResourceName'))]",
+      "type": "Microsoft.KubernetesConfiguration/extensions"
+    },
+    {
+      "apiVersion": "2022-11-01",
+      "dependsOn": ["flux"],
       "name": "[parameters('extensionResourceName')]",
       "plan": {
         "name": "[variables('plan-name')]",

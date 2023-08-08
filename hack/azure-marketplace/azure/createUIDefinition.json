@@ -46,15 +46,6 @@
     },
     "basics": [
       {
-        "name": "appParamsInfoBox",
-        "type": "Microsoft.Common.InfoBox",
-        "options": {
-          "icon": "Info",
-          "text": "Please make sure the Flux cluster extension is installed on your cluster before proceeding.",
-          "uri": "https://learn.microsoft.com/en-us/azure/azure-arc/kubernetes/conceptual-gitops-flux2"
-        }
-      },
-      {
         "name": "createNewCluster",
         "type": "Microsoft.Common.OptionsGroup",
         "label": "Create new dev cluster?",
@@ -220,6 +211,14 @@
             "name": "capiEnabled",
             "type": "Microsoft.Common.CheckBox",
             "label": "Enable CAPI support (a CAPI Provider must already be installed on the cluster)"
+          },
+          {
+            "name": "existingFluxLookupControl",
+            "type": "Microsoft.Solutions.ArmApiControl",
+            "request": {
+              "method": "GET",
+              "path": "[concat(subscription().id, '/resourcegroups/', resourceGroup().name,  '/providers/Microsoft.ContainerService/managedClusters/', steps('clusterDetails').existingClusterSection.existingClusterResourceName,'/providers/Microsoft.KubernetesConfiguration/extensions?api-version=2022-11-01')]"
+            }
           }
         ]
       }
@@ -234,7 +233,8 @@
       "vmEnableAutoScale": "[steps('clusterDetails').newClusterSection.enableAutoScaling]",
       "vmCount": "[steps('clusterDetails').newClusterSection.vmCount]",
       "app-title": "[steps('applicationDetails').title]",
-      "capiEnabled": "[steps('applicationDetails').capiEnabled]"
+      "capiEnabled": "[steps('applicationDetails').capiEnabled]",
+      "installFlux": "[empty(filter(steps('applicationDetails').existingFluxLookupControl.value, (i) =>  equals(i.properties.extensionType, 'microsoft.flux')))]"
     }
   }
 }
