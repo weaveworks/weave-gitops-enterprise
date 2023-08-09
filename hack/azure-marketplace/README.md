@@ -34,7 +34,7 @@ Given the above, how can we take an EE helm chart and get the equivilant CNAB th
 
 ## Prerequisites
 
-- cli tools:
+- cli tools, all these can be installed via `brew install` on mac:
   - `az`
   - `docker`
   - `python`
@@ -167,6 +167,9 @@ So now we'll actually push it up, we're going to roughly follow the instructions
 - https://learn.microsoft.com/en-us/partner-center/marketplace/azure-container-technical-assets-kubernetes?tabs=linux#manually-run-the-packaging-tool
 
 ```bash
+# (if you're not already in the hack/azure-marketplace dir..)
+cd ./hack/azure-marketplace
+
 docker run -it -v /var/run/docker.sock:/var/run/docker.sock -v `pwd`:/data --entrypoint "/bin/bash" mcr.microsoft.com/container-package-app:latest
 
 export REGISTRY_NAME=weaveworksmarketplacepublic.azurecr.io
@@ -180,6 +183,8 @@ cpa verify
 cpa buildbundle
 ```
 
+Once this is done you should be able to see the new CNAB in the [weave.works.weave-gitops-enterprise repository on ACR](https://portal.azure.com/#view/Microsoft_Azure_ContainerRegistries/RepositoryBlade/id/%2Fsubscriptions%2Face37984-3d07-4051-9002-d5a52c0ae14b%2FresourceGroups%2Fteam-pesto-use1%2Fproviders%2FMicrosoft.ContainerRegistry%2Fregistries%2Fweaveworksmarketplacepublic/repository/weave.works.weave-gitops-enterprise)
+
 Shut down the container, commit the new chart to git and push it up
 
 ```bash
@@ -190,12 +195,14 @@ git push
 
 ## Update the marketplace offering
 
-1. Head to https://partner.microsoft.com/en-us/dashboard/commercial-marketplace/offers/c4ad183b-9eb3-4c72-b237-969f1ebcf6e7/plans/4c72a3fe-e39e-44a6-9720-bae241dce038/technicalconfiguration
-2. If the ids have changed by the time you're following these instructions then maybe head to https://partner.microsoft.com/en-us/dashboard/commercial-marketplace and then to the bit about the "technical" component of the offering.
-3. Remove the existing CNAB bundle
-4. Add the new CNAB bundle (public marketplace > weave.works.weave-gitops-enterprise > 0.24.3)
-5. Save draft
-6. Review and publish, I've been leaving the "notes for reviewer" section empty so far.
+> **Warning**
+> The marketplace UI is a bit funky and the "Add CNAB bundle" button mentioned here often stays disabled, reloading the browser a few times usually fixes it. If the previous CNAB bundle was not actually published (because it had a CVE detected in it etc), then you might need to delete the existing CNAB bundle before you can add the new one. Maybe.
+
+1. Head to https://partner.microsoft.com/en-us/dashboard/commercial-marketplace/offers/c4ad183b-9eb3-4c72-b237-969f1ebcf6e7/plans/a30c11a0-ec49-408b-9818-fcd2675bb104/technicalconfiguration
+1. If the ids have changed by the time you're following these instructions then maybe head to https://partner.microsoft.com/en-us/dashboard/commercial-marketplace and then to the bit about the "technical" component of the offering.
+1. Add the new CNAB bundle (public marketplace > weave.works.weave-gitops-enterprise > 0.24.3)
+1. Save draft
+1. Review and publish, I've been leaving the "notes for reviewer" section empty so far.
 
 ## User-configuration
 
@@ -206,6 +213,12 @@ Azure does not allow the user to configure values.yaml directly, instead a UI mu
 # User-guide
 
 see [./user-guide.md](./user-guide.md)
+
+## Modifying the createUIDefinition.json
+
+If you're modifying the createUIDefinition.json you can test it out in the "Sandbox" before publishing: https://portal.azure.com/#view/Microsoft_Azure_CreateUIDef/SandboxBlade
+
+Click through the steps and see if the changes you've made look alright. At the end of the wizard there is an option to see all the generated values that will be passed to the mainTemplate.json too.
 
 ## Oh no! An image got flagged as vulnerable during marketplace publishing! CVEs..
 
