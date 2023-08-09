@@ -7,12 +7,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// ConnectCluster will ensure that the cluster referenced by newContext can be
-// accessed from the cluster pointed to by hubContext.
-//
-// func ConnectCluster(ctx context.Context, kubeconfigName, newContext, hubContext string) error {
-// }
-
+// ConfigForContext will return the kube config given a context name and set of path options if exists
 func ConfigForContext(pathOpts *clientcmd.PathOptions, contextName string) (*rest.Config, error) {
 	config, err := pathOpts.GetStartingConfig()
 	if err != nil {

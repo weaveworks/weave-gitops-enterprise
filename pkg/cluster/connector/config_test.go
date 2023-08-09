@@ -3,11 +3,17 @@ package connector
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
 func TestConfigForContext_missing_context(t *testing.T) {
-	t.Skip()
+	opts := clientcmd.NewDefaultPathOptions()
+	opts.LoadingRules.ExplicitPath = "testdata/nonexisting-kube-config.yaml"
+
+	_, err := ConfigForContext(opts, "context2")
+	assert.Error(t, err, "failed to get context context2")
+
 }
 
 func TestConfigForContext(t *testing.T) {

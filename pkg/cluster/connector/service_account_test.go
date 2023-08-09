@@ -2,10 +2,10 @@ package connector
 
 import (
 	"context"
-	"reflect"
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -25,7 +25,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 		serviceAccountName     string
 		expectedServiceAccount v1.ServiceAccount
 		expectedResources      map[string]runtime.Object // Should include expected ServiceAccount,ClusterRole, ClusterRoleBinding
-		expectedError          error
 	}{
 		{
 			"create new service account",
@@ -54,7 +53,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
 			},
-			nil,
 		},
 		{
 			"existing service account",
@@ -89,7 +87,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
 			},
-			nil,
 		},
 		{
 			"existing cluster role with different rules than expected",
@@ -127,7 +124,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
 			},
-			nil,
 		},
 		{
 			"existing cluster role binding",
@@ -157,7 +153,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "existing-cluster-role", "test-service-account"),
 			},
-			nil,
 		},
 		{
 			"existing cluster role and cluster role binding",
@@ -190,44 +185,27 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
 			},
-			nil,
 		},
 	}
 
 	for _, tt := range tests {
+		log := logr.Logger{}
 		t.Run(tt.name, func(t *testing.T) {
 			remoteClientSet := fake.NewSimpleClientset()
 
-			// This is artificial where it populates the token of the secret as kubernetes isn't running. Kubernetes should populate it once the secret is created.
-			go func(secretName, namespace string, token []byte) {
-				if err := wait.PollUntilContextTimeout(context.Background(), time.Second, 10*time.Second, true, func(ctx context.Context) (done bool, err error) {
-					secret, err := remoteClientSet.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})
-					if err != nil {
-						if apierrors.IsNotFound(err) {
-							return false, nil
-						}
-						return false, err
-					}
+			setupFakeSecretToken(t, remoteClientSet, tt.serviceAccountName+"-token", corev1.NamespaceDefault, []byte("usertest"))
 
-					secret.Data = map[string][]byte{
-						"token": token,
-					}
-					if _, err := remoteClientSet.CoreV1().Secrets(namespace).Update(context.Background(), secret, metav1.UpdateOptions{}); err != nil {
-						return false, err
-					}
+			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
-					return true, nil
-				}); err != nil {
-					t.Logf("failed to update secret with token: %s", err)
-				}
-			}(tt.serviceAccountName+"-token", corev1.NamespaceDefault, []byte("usertest"))
-
-			err := addFakeResources(remoteClientSet, tt.existingResources)
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
 			// Reconcile Service account
-			saToken, err := ReconcileServiceAccount(context.Background(), remoteClientSet, "test-service-account")
+			clusterConnectionOpts := ClusterConnectionOptions{
+				ServiceAccountName:     tt.serviceAccountName,
+				ClusterRoleName:        tt.serviceAccountName + "-cluster-role",
+				ClusterRoleBindingName: tt.serviceAccountName + "-cluster-role-binding",
+				Namespace:              corev1.NamespaceDefault,
+			}
+
+			saToken, err := ReconcileServiceAccount(context.Background(), remoteClientSet, clusterConnectionOpts, log)
 			assert.NoError(t, err)
 			assert.Equal(t, []byte("usertest"), saToken, "service account token doesn't match expected")
 
@@ -243,7 +221,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 			assert.NoError(t, err)
 			assert.Equal(t, expectedClusterRole, clusterRole, "cluster role found doesn't match expected")
 
-			// Verfiy ClusterRoleBinding created/exists
+			// Verify ClusterRoleBinding created/exists
 			expectedClusterRoleBinding := tt.expectedResources["ClusterRoleBinding"].(*rbacv1.ClusterRoleBinding)
 			clusterRoleBinding, err := remoteClientSet.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.serviceAccountName+"-cluster-role-binding", metav1.GetOptions{})
 			assert.NoError(t, err)
@@ -263,6 +241,34 @@ func TestReconcileServiceAccount(t *testing.T) {
 
 }
 
+// setupFakeSecretToken populates the token of the secret with the given token
+// This is artificial where it populates the token of the secret as kubernetes isn't running. Kubernetes should populate it once the secret is created.
+func setupFakeSecretToken(t *testing.T, client kubernetes.Interface, secretName, namespace string, token []byte) {
+	go func(secretName, namespace string, token []byte) {
+		if err := wait.PollUntilContextTimeout(context.Background(), time.Second, 10*time.Second, true, func(ctx context.Context) (done bool, err error) {
+			secret, err := client.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})
+			if err != nil {
+				if apierrors.IsNotFound(err) {
+					return false, nil
+				}
+				return false, err
+			}
+
+			secret.Data = map[string][]byte{
+				"token": token,
+			}
+			if _, err := client.CoreV1().Secrets(namespace).Update(context.Background(), secret, metav1.UpdateOptions{}); err != nil {
+				return false, err
+			}
+
+			return true, nil
+		}); err != nil {
+			t.Logf("failed to update secret with token: %s", err)
+		}
+	}(secretName, namespace, token)
+
+}
+
 func TestGetServiceAccount(t *testing.T) {
 	var tests = []struct {
 		name               string
@@ -271,7 +277,7 @@ func TestGetServiceAccount(t *testing.T) {
 		expected           v1.ServiceAccount
 	}{
 		{
-			"get exisiting service account",
+			"get existing service account",
 			"test-service-account",
 			[]string{
 				"test-service-account",
@@ -306,38 +312,35 @@ func TestGetServiceAccount(t *testing.T) {
 
 // Add resources of different types to the client based on the type of the resource
 // Valid resources: v1.ServiceAccount, rbacv1.ClusterRole, rbacv1.ClusterRoleBinding, v1.Secret
-func addFakeResources(client kubernetes.Interface, resources []runtime.Object) error {
-	if resources == nil {
-		return nil
-	}
+func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...runtime.Object) {
 	for _, resource := range resources {
-		switch reflect.TypeOf(resource) {
-
-		case reflect.TypeOf(&v1.ServiceAccount{}):
-			_, err := client.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Create(context.Background(), resource.(*v1.ServiceAccount), metav1.CreateOptions{})
+		switch resource := resource.(type) {
+		case *v1.ServiceAccount:
+			_, err := client.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
 			if err != nil {
-				return err
+				t.Errorf("error adding resources: %v", err)
 			}
-		case reflect.TypeOf(&rbacv1.ClusterRole{}):
-			_, err := client.RbacV1().ClusterRoles().Create(context.Background(), resource.(*rbacv1.ClusterRole), metav1.CreateOptions{})
+		case *rbacv1.ClusterRole:
+			_, err := client.RbacV1().ClusterRoles().Create(context.Background(), resource, metav1.CreateOptions{})
 			if err != nil {
-				return err
+				t.Errorf("error adding resources: %v", err)
 			}
-		case reflect.TypeOf(&rbacv1.ClusterRoleBinding{}):
-			_, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), resource.(*rbacv1.ClusterRoleBinding), metav1.CreateOptions{})
+		case *rbacv1.ClusterRoleBinding:
+			_, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), resource, metav1.CreateOptions{})
 			if err != nil {
-				return err
+				t.Errorf("error adding resources: %v", err)
 			}
-		case reflect.TypeOf(&v1.Secret{}):
-			_, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Create(context.Background(), resource.(*v1.Secret), metav1.CreateOptions{})
+		case *v1.Secret:
+			_, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
 			if err != nil {
-				return err
+				t.Errorf("error adding resources: %v", err)
 			}
+		default:
+			t.Error("invalid resource type")
 
 		}
 
 	}
-	return nil
 }
 
 func addFakeServiceAccounts(client kubernetes.Interface, serviceAccounts []string) error {
