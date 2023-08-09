@@ -268,6 +268,60 @@ func TestRunQuery(t *testing.T) {
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
 		{
+			name: "order by name asc",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo-a",
+					Namespace:  "namespace-a",
+					Kind:       "A",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-b",
+					Namespace:  "namespace-b",
+					Kind:       "B",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: &query{},
+			opts: &query{
+				orderBy:   "name",
+				ascending: true,
+			},
+			want: []string{"podinfo-a", "podinfo-b"},
+		},
+		{
+			name: "order by name desc",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "podinfo-a",
+					Namespace:  "namespace-a",
+					Kind:       "A",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+				{
+					Cluster:    "management",
+					Name:       "podinfo-b",
+					Namespace:  "namespace-b",
+					Kind:       "B",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+				},
+			},
+			query: &query{},
+			opts: &query{
+				orderBy:   "name",
+				ascending: false,
+			},
+			want: []string{"podinfo-b", "podinfo-a"},
+		},
+		{
 			name: "by kind",
 			objects: []models.Object{
 				{
