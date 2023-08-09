@@ -24,7 +24,8 @@ func Bootstrap() error {
 	checks.CheckEntitlementFile()
 	checks.CheckFluxIsInstalled()
 	checks.CheckFluxReconcile()
-	checks.SelectWgeVersion()
+	wgeVersion := checks.SelectWgeVersion()
 	checks.CreateAdminPasswordSecret()
+	checks.InstallWge(wgeVersion)
 	return nil
 }

@@ -12,7 +12,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-const CHART_URL string = "https://charts.dev.wkp.weave.works/releases/charts-v3/index.yaml"
+const CHART_URL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
 
 type HelmChart struct {
 	ApiVersion string
@@ -52,7 +52,7 @@ func SelectWgeVersion() string {
 
 func fetchHelmChart(username, password string) []string {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", CHART_URL, nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", CHART_URL), nil)
 	if err != nil {
 		log.Fatalf("error creating request: %v", err)
 	}

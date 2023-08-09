@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/manifoldco/promptui"
 	"golang.org/x/exp/slices"
@@ -176,7 +177,7 @@ func createSecret(secretName string, secretNamespace string, secretData map[stri
 	_, err = clientset.CoreV1().Secrets(secretNamespace).Create(context.TODO(), secret, v1.CreateOptions{
 		TypeMeta: secret.TypeMeta,
 	})
-	if err != nil {
+	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		panic(err.Error())
 	}
 	fmt.Println("✅ admin secret is created")
