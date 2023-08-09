@@ -21,7 +21,7 @@ const Policies = () => {
           <PolicyAuditList />
         </RouterTab>
         <RouterTab name="Enforcement Events" path={`${path}/enforcement`}>
-          <PolicyViolationsList req={{}} />
+          <PolicyViolationsList req={{ kind: 'AllPoliciesViolations' }} />
         </RouterTab>
       </SubRouterTabs>
     </Page>
