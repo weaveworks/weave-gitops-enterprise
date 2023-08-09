@@ -1,0 +1,21 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "pipeline-controller.fullname" . }}-viewer
+  labels:
+  {{- include "pipeline-controller.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - pipelines.weave.works
+  resources:
+  - pipelines
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pipelines.weave.works
+  resources:
+  - pipelines/status
+  verbs:
+  - get

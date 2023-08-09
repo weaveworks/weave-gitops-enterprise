@@ -1,0 +1,28 @@
+{{- if .Values.promotion.service.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pipeline-controller.promotionName" . }}
+  labels:
+    control-plane: controller
+    {{- include "pipeline-controller.labels" . | nindent 4 }}
+    {{- with .Values.promotion.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.promotion.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.promotion.service.type }}
+  selector:
+    {{- include "pipeline-controller.selectorLabels" . | nindent 4 }}
+  ports:
+    - port: {{ .Values.promotion.service.port }}
+      targetPort: promotion
+      {{- if and (eq .Values.promotion.service.type "NodePort") .Values.promotion.service.nodePort }}
+      nodePort: {{ .Values.promotion.service.nodePort }}
+      {{- end }}
+      protocol: TCP
+      name: promotion
+{{- end -}}
