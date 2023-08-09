@@ -99,10 +99,12 @@ export const AuditTable = ({
                   ),
                   textSearchable: true,
                   maxWidth: 300,
+                  sortValue: ({ message }) => message,
                 },
                 {
                   label: 'Cluster',
                   value: 'cluster',
+                  sortValue: ({ cluster }) => cluster,
                 },
                 {
                   label: 'Application',
