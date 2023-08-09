@@ -21,14 +21,51 @@ type promptContent struct {
 	label    string
 }
 
-func promptGetInput(pc promptContent) string {
+func promptGetBoolInput(pc promptContent) string {
 	validate := func(input string) error {
 		if !slices.Contains([]string{"y", "n", "Y", "N"}, input) {
 			return errors.New(pc.errorMsg)
 		}
 		return nil
 	}
+	return getPrompt(pc, validate)
+}
 
+func promptGetStringInput(pc promptContent) string {
+	validate := func(input string) error {
+		if input == "" {
+			return errors.New(pc.errorMsg)
+		}
+		return nil
+	}
+
+	return getPrompt(pc, validate)
+}
+
+func promptGetPasswordInput(pc promptContent) string {
+	validate := func(input string) error {
+		if len(input) < 6 {
+			return errors.New("password must have more than 6 characters")
+		}
+		return nil
+	}
+	prompt := promptui.Prompt{
+		Label:    pc.label,
+		Validate: validate,
+		Mask:     '*',
+	}
+
+	result, err := prompt.Run()
+
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		os.Exit(1)
+	}
+
+	return result
+}
+
+func getPrompt(pc promptContent, validate promptui.ValidateFunc) string {
 	templates := &promptui.PromptTemplates{
 		Prompt:  "{{ . }} ",
 		Valid:   "{{ . | green }} ",
@@ -80,13 +117,12 @@ func promptGetSelect(pc promptContent, items []string) string {
 	return result
 }
 
-// retunn the whole secret
-func getSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
+func getKubernetesClient() (*kubernetes.Clientset, error) {
 	// Path to the kubeconfig file. This is typically located at "~/.kube/config".
 	// Obtain the user's home directory.
 	home, err := os.UserHomeDir()
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	// Construct the full path to the kubeconfig file.
@@ -94,11 +130,21 @@ func getSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
-		panic(err.Error())
+		return nil, err
 	}
 
 	// Create a new Kubernetes client using the config.
 	clientset, err := kubernetes.NewForConfig(config)
+	if err != nil {
+		return nil, err
+	}
+
+	return clientset, nil
+}
+
+func getSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
+	// Create a new Kubernetes client using the config.
+	clientset, err := getKubernetesClient()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -110,6 +156,30 @@ func getSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 	}
 
 	return secret, nil
+}
+
+func createSecret(secretName string, secretNamespace string, secretData map[string][]byte) {
+	// Create a new Kubernetes client using the config.
+	clientset, err := getKubernetesClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	secret := &corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      secretName,
+			Namespace: secretNamespace,
+		},
+		Data: secretData,
+	}
+
+	_, err = clientset.CoreV1().Secrets(secretNamespace).Create(context.TODO(), secret, v1.CreateOptions{
+		TypeMeta: secret.TypeMeta,
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+	fmt.Println("✅ admin secret is created")
 }
 
 func isValidBase64(s string) bool {

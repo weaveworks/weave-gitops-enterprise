@@ -26,30 +26,28 @@ type ChartEntry struct {
 	Version    string
 }
 
-func CheckWgeVersion() {
+func SelectWgeVersion() string {
 	//get secret from getSecret()
 	entitlementSecret, err := getSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
 	if err != nil {
-		fmt.Printf("An error occured %v\n", err)
+		fmt.Printf("An error occurred %v\n", err)
 		os.Exit(1)
 	}
 
 	//get username and password from entitlementSecret
 	username, password, err := getSecretUsernamePassword(entitlementSecret)
 	if err != nil {
-		fmt.Printf("An error occured %v\n", err)
+		fmt.Printf("An error occurred %v\n", err)
 		os.Exit(1)
 	}
 
-	VERSIONS := fetchHelmChart(username, password)
+	versions := fetchHelmChart(username, password)
 
 	versionSelectorPrompt := promptContent{
 		"",
 		"Please select a version for WGE to be installed",
 	}
-	selectedVersion := promptGetSelect(versionSelectorPrompt, VERSIONS)
-
-	fmt.Printf("Installing Weave Gitops Enterprise ... %s\n", selectedVersion)
+	return promptGetSelect(versionSelectorPrompt, versions)
 }
 
 func fetchHelmChart(username, password string) []string {
