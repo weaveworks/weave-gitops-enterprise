@@ -98,7 +98,7 @@ global:
         image: cluster-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       clustersService:
-        digest: sha256:9d6b46b42d34a134770a357a52f06809eab2df845ce4ccba50a4e14120b8e40e
+        digest: sha256:a1c55886a71ff49cdd3e3bd4f0df2f4a88c428e62aa9eff66270159348509ab2
         image: weave-gitops-enterprise-clusters-service
         registry: weaveworksmarketplacepublic.azurecr.io
       gitopssetsController:
