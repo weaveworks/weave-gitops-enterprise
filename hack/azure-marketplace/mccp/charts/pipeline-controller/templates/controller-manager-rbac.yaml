@@ -1,0 +1,64 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "pipeline-controller.fullname" . }}
+  labels:
+  {{- include "pipeline-controller.labels" . | nindent 4 }}
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - gitops.weave.works
+  resources:
+  - gitopsclusters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - pipelines.weave.works
+  resources:
+  - pipelines
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - pipelines.weave.works
+  resources:
+  - pipelines/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - pipelines.weave.works
+  resources:
+  - pipelines/status
+  verbs:
+  - get
+  - patch
+  - update
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "pipeline-controller.fullname" . }}
+  labels:
+  {{- include "pipeline-controller.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: '{{ include "pipeline-controller.fullname" . }}'
+subjects:
+- kind: ServiceAccount
+  name: '{{ include "pipeline-controller.fullname" . }}'
+  namespace: '{{ .Release.Namespace }}'

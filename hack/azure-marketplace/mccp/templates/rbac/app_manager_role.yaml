@@ -1,0 +1,38 @@
+# permissions for end users to view WeGO applications.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: app-manager-role
+rules:
+  - apiGroups:
+      - wego.weave.works
+      - helm.toolkit.fluxcd.io
+      - kustomize.toolkit.fluxcd.io
+      - notification.toolkit.fluxcd.io
+      - source.toolkit.fluxcd.io
+      - image.toolkit.fluxcd.io
+      - notification.toolkit.fluxcd.io
+      # profiles
+      - weave.works
+      # capi
+      - cluster.x-k8s.io
+      - bootstrap.cluster.x-k8s.io
+      - controlplane.cluster.x-k8s.io
+      - infrastructure.cluster.x-k8s.io
+      # crds
+      - apiextensions.k8s.io
+    resources: ["*"]
+    verbs:
+      - get
+      - list
+      - watch
+      - patch
+      - create
+      - update
+      - delete
+  - apiGroups:
+      - wego.weave.works
+    resources:
+      - apps/status
+    verbs:
+      - get

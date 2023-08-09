@@ -1,0 +1,6 @@
+apiVersion: v2
+appVersion: v0.0.31
+description: Pipeline-controller Helm chart for Weave GitOps Enterprise
+name: pipeline-controller
+type: application
+version: 0.21.0
