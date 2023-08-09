@@ -75,25 +75,21 @@ func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *c
 func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions, log logr.Logger) ([]byte, error) {
 	namespace := clusterConnectionOpts.Namespace
 
-	// Create service account
-	_, err := createServiceAccount(ctx, client, clusterConnectionOpts)
+	err := createServiceAccount(ctx, client, clusterConnectionOpts)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create ClusterRole
-	_, err = createClusterRole(ctx, client, log, clusterConnectionOpts)
+	err = createClusterRole(ctx, client, log, clusterConnectionOpts)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create  cluster role binding
-	_, err = createClusterRoleBinding(ctx, client, log, clusterConnectionOpts)
+	err = createClusterRoleBinding(ctx, client, log, clusterConnectionOpts)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create secret
 	secret, err := createSecret(ctx, client, log, clusterConnectionOpts)
 	if err != nil {
 		return nil, err
@@ -127,11 +123,11 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 
 }
 
-func createServiceAccount(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) (*corev1.ServiceAccount, error) {
+func createServiceAccount(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	namespace := clusterConnectionOpts.Namespace
 
-	serviceAccount, err := client.CoreV1().ServiceAccounts(namespace).Create(ctx, &v1.ServiceAccount{
+	_, err := client.CoreV1().ServiceAccounts(namespace).Create(ctx, &v1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceAccountName,
 			Namespace: namespace,
@@ -140,19 +136,19 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
-			return nil, err
+			return err
 		}
-		serviceAccount, err = client.CoreV1().ServiceAccounts(namespace).Get(ctx, serviceAccountName, metav1.GetOptions{})
+		_, err = client.CoreV1().ServiceAccounts(namespace).Get(ctx, serviceAccountName, metav1.GetOptions{})
 		if err != nil {
-			return nil, err
+			return err
 		}
 
 	}
-	return serviceAccount, nil
+	return nil
 
 }
 
-func createClusterRole(ctx context.Context, client kubernetes.Interface, log logr.Logger, clusterConnectionOpts ClusterConnectionOptions) (*rbacv1.ClusterRole, error) {
+func createClusterRole(ctx context.Context, client kubernetes.Interface, log logr.Logger, clusterConnectionOpts ClusterConnectionOptions) error {
 	namespace := clusterConnectionOpts.Namespace
 	clusterRoleName := clusterConnectionOpts.ClusterRoleName
 
@@ -168,21 +164,21 @@ func createClusterRole(ctx context.Context, client kubernetes.Interface, log log
 	clusterRole, err := client.RbacV1().ClusterRoles().Create(ctx, clusterRoleObj, metav1.CreateOptions{})
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
-			return nil, err
+			return err
 		} else {
 			clusterRole, err = client.RbacV1().ClusterRoles().Get(ctx, clusterRoleName, metav1.GetOptions{})
 			if err != nil {
-				return nil, err
+				return err
 			}
 			if !reflect.DeepEqual(clusterRole.Rules, clusterRoleObj.Rules) {
 				log.Info("cluster role already exists with a different set of rules", "clusterRole", clusterRole.Name)
 			}
 		}
 	}
-	return clusterRole, nil
+	return nil
 }
 
-func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, log logr.Logger, clusterConnectionOpts ClusterConnectionOptions) (*rbacv1.ClusterRoleBinding, error) {
+func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, log logr.Logger, clusterConnectionOpts ClusterConnectionOptions) error {
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	clusterRoleName := clusterConnectionOpts.ClusterRoleName
 	clusterRoleBindingName := clusterConnectionOpts.ClusterRoleBindingName
@@ -192,17 +188,17 @@ func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, 
 	_, err := client.RbacV1().ClusterRoleBindings().Create(ctx, clusterRoleBindingObj, metav1.CreateOptions{})
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
-			return nil, err
+			return err
 		} else {
 			clusterRoleBinding, err := client.RbacV1().ClusterRoleBindings().Get(ctx, clusterRoleBindingName, metav1.GetOptions{})
 			if err != nil {
-				return nil, err
+				return err
 			}
 			log.Info("cluster role binding already exists", "clusterRoleBinding", clusterRoleBinding.Name)
 
 		}
 	}
-	return clusterRoleBindingObj, nil
+	return nil
 }
 
 func createSecret(ctx context.Context, client kubernetes.Interface, log logr.Logger, clusterConnectionOpts ClusterConnectionOptions) (*corev1.Secret, error) {
