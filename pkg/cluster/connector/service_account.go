@@ -16,56 +16,12 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// ClusterConnectionOptions holds the options to create the resources with such as the target names and namespace
 type ClusterConnectionOptions struct {
 	ServiceAccountName     string
 	ClusterRoleName        string
 	ClusterRoleBindingName string
 	Namespace              string
-}
-
-func newClusterRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
-	return &rbacv1.ClusterRole{
-		TypeMeta: metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Rules: rules,
-	}
-
-}
-
-func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string) *rbacv1.ClusterRoleBinding {
-	return &rbacv1.ClusterRoleBinding{
-		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
-		},
-		Subjects: []rbacv1.Subject{
-			{
-				Kind:      "ServiceAccount",
-				Name:      serviceAccountName,
-				Namespace: namespace,
-			},
-		},
-		RoleRef: rbacv1.RoleRef{
-			APIGroup: "rbac.authorization.k8s.io",
-			Kind:     "ClusterRole",
-			Name:     roleName,
-		},
-	}
-}
-
-func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *corev1.Secret {
-	return &corev1.Secret{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-			Annotations: map[string]string{
-				corev1.ServiceAccountNameKey: serviceAccountName,
-			},
-		},
-		Type: corev1.SecretTypeServiceAccountToken,
-	}
-
 }
 
 // ReconcileServiceAccount accepts a client and the name for a service account.
@@ -123,6 +79,51 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 
 }
 
+func newClusterRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
+	return &rbacv1.ClusterRole{
+		TypeMeta: metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Rules: rules,
+	}
+
+}
+
+func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string) *rbacv1.ClusterRoleBinding {
+	return &rbacv1.ClusterRoleBinding{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
+		},
+		Subjects: []rbacv1.Subject{
+			{
+				Kind:      "ServiceAccount",
+				Name:      serviceAccountName,
+				Namespace: namespace,
+			},
+		},
+		RoleRef: rbacv1.RoleRef{
+			APIGroup: "rbac.authorization.k8s.io",
+			Kind:     "ClusterRole",
+			Name:     roleName,
+		},
+	}
+}
+
+func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *corev1.Secret {
+	return &corev1.Secret{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+			Annotations: map[string]string{
+				corev1.ServiceAccountNameKey: serviceAccountName,
+			},
+		},
+		Type: corev1.SecretTypeServiceAccountToken,
+	}
+
+}
+
 func createServiceAccount(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	namespace := clusterConnectionOpts.Namespace
@@ -161,12 +162,12 @@ func createClusterRole(ctx context.Context, client kubernetes.Interface, log log
 	}
 	clusterRoleObj := newClusterRole(clusterRoleName, namespace, clusterAccessRules)
 
-	clusterRole, err := client.RbacV1().ClusterRoles().Create(ctx, clusterRoleObj, metav1.CreateOptions{})
+	_, err := client.RbacV1().ClusterRoles().Create(ctx, clusterRoleObj, metav1.CreateOptions{})
 	if err != nil {
 		if !apierrors.IsAlreadyExists(err) {
 			return err
 		} else {
-			clusterRole, err = client.RbacV1().ClusterRoles().Get(ctx, clusterRoleName, metav1.GetOptions{})
+			clusterRole, err := client.RbacV1().ClusterRoles().Get(ctx, clusterRoleName, metav1.GetOptions{})
 			if err != nil {
 				return err
 			}

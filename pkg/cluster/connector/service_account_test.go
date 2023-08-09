@@ -336,7 +336,7 @@ func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...ru
 				t.Errorf("error adding resources: %v", err)
 			}
 		default:
-			t.Error("invalid resource type")
+			t.Fatalf("invalid resource type %s", resource)
 
 		}
 

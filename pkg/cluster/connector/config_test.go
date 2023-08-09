@@ -28,4 +28,11 @@ func TestConfigForContext(t *testing.T) {
 	if restCfg.Host != "https://cluster2.example.com" {
 		t.Fatalf("expected Host = %s, got %s", "https://cluster2.example.com", restCfg.Host)
 	}
+	if string(restCfg.CertData) != "USER2_CADATA" {
+		t.Fatalf("expected CertData = %s, got %s", "USER2_CADATA", restCfg.CertData)
+	}
+	if string(restCfg.KeyData) != "USER1_CKDATA" {
+		t.Fatalf("expected KeyData = %s, got %s", "USER1_CKDATA", restCfg.KeyData)
+	}
+
 }
