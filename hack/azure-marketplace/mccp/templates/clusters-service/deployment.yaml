@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "mccp.fullname" . }}-cluster-service
+  namespace: {{ .Release.Namespace | quote }}
+  labels:
+    {{- include "mccp.labels" . | nindent 4 }}
+    {{- include "mccp.appSelectorLabels" . | nindent 4 }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: clusters-service
+  template:
+    metadata:
+      # https://helm.sh/docs/howto/charts_tips_and_tricks/#automatically-roll-deployments
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/clusters-service/configmap.yaml") . | sha256sum }}
+      labels:
+        app: clusters-service
+        {{- include "mccp.selectorLabels" . | nindent 8 }}
+        {{- include "mccp.appSelectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "mccp.serviceAccountName" . }}
+      initContainers:
+      - name: mount-ui-server
+        image: {{ .Values.global.azure.images.uiServer.registry }}/{{ .Values.global.azure.images.uiServer.image }}@{{ .Values.global.azure.images.uiServer.digest }}
+        volumeMounts:
+        - mountPath: /target
+          name: ui-server-volume
+      containers:
+        - name: clusters-service
+          ports:
+            - containerPort: 8000
+              name: server
+              protocol: TCP
+          {{- if .Values.metrics.enabled }}
+            - name: http-metrics
+              containerPort: {{ .Values.metrics.service.port }}
+              protocol: TCP
+          {{- end }}
+          image: {{ .Values.global.azure.images.clustersService.registry }}/{{ .Values.global.azure.images.clustersService.image }}@{{ .Values.global.azure.images.clustersService.digest }}
+          args:
+            - --pipeline-controller-address={{ .Values.clustersService.pipeline_controller_address | default (printf "http://%s-pipeline-controller-promotion" .Release.Name) }}:8082
+            - --log-level={{ .Values.config.logLevel }}
+            {{- range .Values.clustersService.args }}
+            - {{ . }}
+            {{- end }}
+            {{ if .Values.explorer.cleaner.disabled }}
+            - --explorer-cleaner-disabled=true
+            {{- end }}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+          - configMapRef:
+              name: {{ include "mccp.fullname" . }}-cluster-service
+          - secretRef:
+              name: git-provider-credentials
+              optional: true
+          {{- if .Values.extraEnvVarsSecret }}
+          - secretRef:
+              name: {{ include "common.tplvalues.render" (dict "value" .Values.extraEnvVarsSecret "context" $) }}
+          {{- end }}
+          - configMapRef:
+              name: cluster-service-extra-config
+              optional: true
+          env:
+            - name: RUNTIME_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            {{- if .Values.config.oidc.enabled }}
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.oidc.clientCredentialsSecret }}
+                  key: clientID
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.config.oidc.clientCredentialsSecret }}
+                  key: clientSecret
+            {{- end }}
+            {{- if .Values.listOCIRepositories }}
+            - name: WEAVE_GITOPS_FEATURE_OCI_REPOSITORIES
+              value: "true"
+            {{- end }}
+            {{- if .Values.enablePipelines }}
+            - name: WEAVE_GITOPS_FEATURE_PIPELINES
+              value: "true"
+            {{- end }}
+            {{- if .Values.enableExplorer }}
+            - name: WEAVE_GITOPS_FEATURE_EXPLORER
+              value: "true"
+            {{- end }}
+            {{- if .Values.enableTerraformUI }}
+            - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
+              value: "true"
+            {{- end }}
+            {{- if .Values.useQueryServiceBackend }}
+            - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
+              value: "true"
+            {{- end }}
+            {{- if .Values.enableRunUI }}
+            - name: WEAVE_GITOPS_FEATURE_RUN_UI
+              value: "true"
+            {{- end }}
+            {{- if .Values.envVars }}
+            {{- with .Values.envVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
+            {{- if .Values.extraEnvVars }}
+            {{- with .Values.extraEnvVars }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- end }}
+          volumeMounts:
+            - name: ui-server-volume
+              mountPath: /html
+            {{- if .Values.tls.secretName }}
+            - name: clusters-service-tls-volume
+              mountPath: /etc/clusters-service-tls
+            {{- end }}
+            {{- if .Values.config.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+            {{- if .Values.extraVolumeMounts }}
+            {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumeMounts "context" $) | nindent 12 }}
+            {{- end }}
+      volumes:
+      {{- if .Values.tls.secretName }}
+      - name: clusters-service-tls-volume
+        secret:
+          secretName: {{ .Values.tls.secretName }}
+      {{- end }}
+      - name: ui-server-volume
+        emptyDir: {}
+      {{- if .Values.config.extraVolumes }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.config.extraVolumes  "context" $) | nindent 6 }}
+      {{- end }}
+      {{- if .Values.extraVolumes }}
+      {{- include "common.tplvalues.render" (dict "value" .Values.extraVolumes  "context" $) | nindent 6 }}
+      {{- end }}
