@@ -1,6 +1,6 @@
 applicationName: weave.works.weave-gitops-enterprise
 publisher: "Weaveworks"
-description: "Weave Gitops Enterprise"
+description: "Weave GitOps Enterprise"
 version: 0.28.5
 helmChart: "../mccp"
 clusterArmTemplate: "./mainTemplate.json"
