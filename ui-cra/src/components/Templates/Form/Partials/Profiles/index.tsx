@@ -1,7 +1,7 @@
 import { Checkbox, MenuItem, TextField } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { DataTable, Flex } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
+import _, { get } from 'lodash';
 import React, { Dispatch, FC, useState } from 'react';
 import styled from 'styled-components';
 import {
@@ -104,8 +104,22 @@ const Profiles: FC<{
   const updatedProfilesList = _.sortBy(Object.values(updatedProfiles), [
     'name',
   ]);
+
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
+
+  // Showing helm repositories in autocomplete as name:namespace as there could be multiple repositories with same name in different namespaces
+  const nameNamespaceHelmRepos = helmRepos.map(
+    hr => `${hr.name}:${hr.namespace}`,
+  );
+
+  const getSelectedHelmRepos = (selectedHelmRepos: string[]) =>
+    selectedHelmRepos.map((selectedHelmRepo: string) => {
+      const [name, namespace] = selectedHelmRepo.split(':');
+      return helmRepos.find(
+        hr => hr.name === name && hr.namespace === namespace,
+      ) as RepositoryRef;
+    });
 
   return (
     <ProfilesWrapper>
@@ -113,13 +127,15 @@ const Profiles: FC<{
       <Autocomplete
         multiple
         id="helmrepositories-select"
-        options={helmRepos}
+        options={nameNamespaceHelmRepos.sort()}
         disableCloseOnSelect
-        getOptionLabel={option => option.name as string}
-        onChange={(event, selectedHelmRepos) =>
-          setSelectedHelmRepositories(selectedHelmRepos)
+        getOptionLabel={option => option as string}
+        onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
+          setSelectedHelmRepositories(
+            getSelectedHelmRepos(selectedNameNamespaceHelmRepos),
+          )
         }
-        renderOption={(option: RepositoryRef, { selected }) => (
+        renderOption={(option: string, { selected }) => (
           <li>
             <Checkbox
               icon={icon}
@@ -127,7 +143,7 @@ const Profiles: FC<{
               style={{ marginRight: 8 }}
               checked={selected}
             />
-            {option.name}
+            {option}
           </li>
         )}
         style={{ width: '100%' }}
@@ -144,8 +160,14 @@ const Profiles: FC<{
       {!isLoading && (
         <DataTable
           className="profiles-table table-wrapper"
-          // show only profiles from selectedHelmRepositories
-          rows={updatedProfilesList}
+          // show only profiles from updatedProfilesList that are also in selectedHelmRepositories
+          rows={updatedProfilesList.filter(
+            up =>
+              selectedHelmRepositories.find(
+                hr =>
+                  hr.name === up.repoName && hr.namespace === up.repoNamespace,
+              ) !== undefined,
+          )}
           fields={[
             {
               label: 'checkbox',
