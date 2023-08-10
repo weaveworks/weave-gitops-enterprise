@@ -13,7 +13,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
@@ -90,7 +89,7 @@ func TestObjectsCollector_removeAll(t *testing.T) {
 	tx := []models.ObjectTransaction{
 		&transaction{
 			clusterName:     clusterName,
-			object:          testutils.NewHelmRelease("anyHelmRelease", clusterName),
+			object:          models.NewNormalizedObject(testutils.NewHelmRelease("anyHelmRelease", clusterName), configuration.HelmReleaseObjectKind),
 			transactionType: models.TransactionTypeDeleteAll,
 		},
 	}
@@ -116,11 +115,18 @@ func TestObjectsCollector_retention(t *testing.T) {
 
 	retentionPolicy := configuration.RetentionPolicy(10 * time.Second)
 
-	obj := testutils.NewHelmRelease("anyHelmRelease", clusterName)
+	obj := models.NewNormalizedObject(
+		testutils.NewHelmRelease("anyHelmRelease", clusterName),
+		configuration.HelmReleaseObjectKind,
+	)
 	// Deleted an hour ago, retention policy is only 10 seconds.
 	obj.SetDeletionTimestamp(&metav1.Time{Time: time.Now().Add(1 * -time.Hour)})
 
-	obj2 := testutils.NewHelmRelease("anyHelmRelease2", clusterName)
+	obj2 := models.NewNormalizedObject(
+		testutils.NewHelmRelease("anyHelmRelease2", clusterName),
+		configuration.HelmReleaseObjectKind,
+	)
+
 	// Deleted 5 seconds ago, retention policy is 10 seconds.
 	obj2.SetDeletionTimestamp(&metav1.Time{Time: time.Now().Add(5 * -time.Second)})
 
@@ -156,12 +162,12 @@ func TestObjectsCollector_retention(t *testing.T) {
 
 type transaction struct {
 	clusterName     string
-	object          client.Object
+	object          models.NormalizedObject
 	transactionType models.TransactionType
 	retentionPolicy configuration.RetentionPolicy
 }
 
-func (t *transaction) Object() client.Object {
+func (t *transaction) Object() models.NormalizedObject {
 	return t.object
 }
 

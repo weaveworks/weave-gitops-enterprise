@@ -12,6 +12,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 
 	"gorm.io/gorm"
@@ -60,7 +61,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster",
@@ -69,7 +70,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			toRemove: []models.Object{
@@ -80,7 +81,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			want: []models.Object{{
@@ -90,7 +91,7 @@ func TestDeleteObjects(t *testing.T) {
 				Kind:       "ValidKind",
 				APIGroup:   "example.com",
 				APIVersion: "v1",
-				Category:   models.CategoryAutomation,
+				Category:   configuration.CategoryAutomation,
 			}},
 		},
 		{
@@ -103,7 +104,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster",
@@ -112,7 +113,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			toRemove: []models.Object{
@@ -123,7 +124,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster",
@@ -132,7 +133,7 @@ func TestDeleteObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			want: []models.Object{},
@@ -177,7 +178,7 @@ func TestStoreObjects(t *testing.T) {
 			Kind:       "ValidKind",
 			APIGroup:   "example.com",
 			APIVersion: "v1",
-			Category:   models.CategoryAutomation,
+			Category:   configuration.CategoryAutomation,
 		}
 
 		g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
@@ -200,7 +201,7 @@ func TestStoreObjects(t *testing.T) {
 			Kind:       "ValidKind",
 			APIGroup:   "example.com",
 			APIVersion: "v1",
-			Category:   models.CategoryAutomation,
+			Category:   configuration.CategoryAutomation,
 		}
 
 		g.Expect(store.StoreObjects(context.Background(), []models.Object{obj})).To(Succeed())
@@ -299,7 +300,7 @@ func TestStoreUnstructured(t *testing.T) {
 		Kind:         "ValidKind",
 		APIGroup:     "example.com",
 		APIVersion:   "v1",
-		Category:     models.CategoryAutomation,
+		Category:     configuration.CategoryAutomation,
 		Unstructured: rawMsg,
 	}
 
