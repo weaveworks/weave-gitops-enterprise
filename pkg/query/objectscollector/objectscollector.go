@@ -97,13 +97,13 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 
 		status, err := o.GetStatus()
 		if err != nil {
-			log.Error(err, "failed to get status from object")
+			log.Error(err, fmt.Sprintf("failed to get status from object %s/%s/%s", objTx.ClusterName(), o.GetNamespace(), o.GetName()))
 			continue
 		}
 
 		message, err := o.GetMessage()
 		if err != nil {
-			log.Error(err, "failed to get message from object")
+			log.Error(err, fmt.Sprintf("failed to get message from object %s/%s/%s", objTx.ClusterName(), o.GetNamespace(), o.GetName()))
 			continue
 		}
 
