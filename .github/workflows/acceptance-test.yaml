@@ -314,9 +314,9 @@ jobs:
           curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/0.29.1/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
       - name: chmod gitops binary
         run: |
-          chmod +x /tmp/gitops-${{ inputs.runs-on }}
-          ls -la /tmp/gitops-${{ inputs.runs-on }}
-          sudo mv /tmp/gitops-${{ inputs.runs-on }} ${{ env.GITOPS_BIN_PATH }}
+          chmod +x /tmp/gitops
+          ls -la /tmp/gitops
+          sudo mv /tmp/gitops ${{ env.GITOPS_BIN_PATH }}
           gitops version
       - name: Install chromedriver
         if: ${{ (runner.os == 'Linux') && (inputs.git-provider_hostname == 'gitlab.com') }}
