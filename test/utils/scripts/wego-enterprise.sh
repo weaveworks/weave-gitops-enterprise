@@ -127,6 +127,9 @@ function setup {
   helmArgs+=( --set "policy-agent.config.accountId=weaveworks" )
   helmArgs+=( --set "policy-agent.config.clusterId=management" )
   helmArgs+=( --set "features.progressiveDelivery.enabled=true" )
+  # helmArgs+=( --set "extraEnvVars[0].name=WEAVE_GITOPS_USERS_CLIENTS_TTL" )
+  # helmArgs+=( --set-string "extraEnvVars[0].value=5m" )
+
  
   helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
   

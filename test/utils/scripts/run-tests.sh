@@ -22,7 +22,8 @@ export DEX_CLIENT_SECRET=${DEX_CLIENT_SECRET:-2JPIcb5IvO1isJ3Zii7jvjqbUtLtTC}
 export UI_NODEPORT=${UI_NODEPORT:-30080}
 
 export GITOPS_BIN_PATH=`which gitops`
-export LOGIN_USER_TYPE="cluster-user"
+# export LOGIN_USER_TYPE="cluster-user"
+export LOGIN_USER_TYPE="oidc"
 
-# ginkgo --label-filter='smoke&&tenant' --v --output-dir=/tmp/foot-smoke --timeout=2h ${WORKSPACE_PATH}/test/acceptance/test/
-ginkgo --label-filter='smoke&&capd' --v --output-dir=/tmp/foot-smoke --timeout=2h ${WORKSPACE_PATH}/test/acceptance/test/
+ginkgo --label-filter='smoke&&tenant' --v --output-dir=/tmp/foot-smoke --timeout=2h ${WORKSPACE_PATH}/test/acceptance/test/
+# ginkgo --label-filter='smoke&&capd' --v --output-dir=/tmp/foot-smoke --timeout=2h ${WORKSPACE_PATH}/test/acceptance/test/
