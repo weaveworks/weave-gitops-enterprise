@@ -310,10 +310,8 @@ jobs:
           tar -xf totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
           mv ./totp-cli /usr/local/bin
       - name: Download gitops binary
-        uses: actions/download-artifact@v3.0.1
-        with:
-          name: gitops
-          path: /tmp
+        run: |
+          curl --silent --location "https://artifacts.wge.dev.weave.works/releases/bin/0.29.1/gitops-$(uname)-$(uname -m).tar.gz" | tar xz -C /tmp
       - name: chmod gitops binary
         run: |
           chmod +x /tmp/gitops-${{ inputs.runs-on }}
