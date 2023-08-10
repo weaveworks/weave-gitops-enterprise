@@ -12,12 +12,13 @@ import WarningMsg from './WarningMsg';
 const PolicyAuditList = () => {
   const [areQueryParamsRemoved, setAreQueryParamsRemoved] =
     useState<boolean>(false);
+  const [history] = useState(useHistory());
+  const [location] = useState(useLocation());
+
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
-  const history = useHistory();
-  const location = useLocation();
 
   const manager = new URLQueryStateManager(history);
   const queryState = manager.read();
@@ -31,8 +32,8 @@ const PolicyAuditList = () => {
       search: params.toString(),
     });
     setAreQueryParamsRemoved(true);
-  }, []);
-  
+  }, [history, location]);
+
   const { data, error, isLoading } = useQueryService({
     terms: queryState.terms,
     filters: ['kind:Event', ...queryState.filters],
