@@ -1,0 +1,79 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "pipeline-controller.fullname" . }}
+  labels:
+  {{- include "pipeline-controller.labels" . | nindent 4 }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "pipeline-controller.fullname" . }}
+  labels:
+    control-plane: controller
+  {{- include "pipeline-controller.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  selector:
+    matchLabels:
+    {{- include "pipeline-controller.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        azure-extensions-usage-release-identifier: {{ .Release.Name }}
+      {{- include "pipeline-controller.selectorLabels" . | nindent 8 }}
+      annotations:
+        kubectl.kubernetes.io/default-container: manager
+    spec:
+      containers:
+      - args:
+        - --leader-elect
+        - --log-encoding={{ .Values.logging.encoding }}
+        - --log-level={{ .Values.logging.level }}
+        - --events-addr={{ .Values.controller.manager.eventsAddr }}
+        {{- $promotion := .Values.promotion }}
+        - --promotion-hook-rate-limit={{ $promotion.rateLimit.value }}
+        - --promotion-hook-rate-limit-interval={{ $promotion.rateLimit.interval }}
+        - --promotion-retry-delay={{ $promotion.retry.delay }}
+        - --promotion-retry-max-delay={{ $promotion.retry.maxDelay }}
+        - --promotion-retry-threshold={{ $promotion.retry.threshold }}
+        command:
+        - /manager
+        env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ .Values.kubernetesClusterDomain }}
+        image: {{ .Values.global.azure.images.pipelineController.registry }}/{{ .Values.global.azure.images.pipelineController.image }}@{{ .Values.global.azure.images.pipelineController.digest }}
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: health
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        name: manager
+        ports:
+        - containerPort: 8080
+          name: metrics
+          protocol: TCP
+        - containerPort: 8081
+          name: health
+          protocol: TCP
+        - containerPort: 8082
+          name: promotion
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: health
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        resources: {{- toYaml .Values.controller.manager.resources | nindent 10 }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      securityContext:
+        runAsNonRoot: true
+      serviceAccountName: {{ include "pipeline-controller.fullname" . }}
+      terminationGracePeriodSeconds: 10
