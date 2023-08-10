@@ -180,7 +180,6 @@ func createSecret(secretName string, secretNamespace string, secretData map[stri
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		panic(err.Error())
 	}
-	fmt.Println("✅ admin secret is created")
 }
 
 func isValidBase64(s string) bool {

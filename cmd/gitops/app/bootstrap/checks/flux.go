@@ -28,7 +28,7 @@ func CheckFluxIsInstalled() {
 		os.Exit(1)
 	}
 
-	fmt.Println("✅ flux is installed")
+	fmt.Println("✔ flux is installed")
 }
 
 func CheckFluxReconcile() {
@@ -40,5 +40,5 @@ func CheckFluxReconcile() {
 		os.Exit(1)
 	}
 
-	fmt.Println("✅ flux is installed properly and can reconcile successfully")
+	fmt.Println("✔ flux is installed properly and can reconcile successfully")
 }

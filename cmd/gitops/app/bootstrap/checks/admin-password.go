@@ -1,9 +1,15 @@
 package checks
 
+import (
+	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
+)
+
 const ADMIN_SECRET_NAME string = "cluster-user-auth"
 const ADMIN_SECRET_NAMESPACE string = "flux-system"
 
-func GetAdminPasswordSecrets() (string, string) {
+func GetAdminPasswordSecrets() (string, []byte) {
 	AdminUsernamePromptContent := promptContent{
 		"Admin username can't be empty",
 		"Please enter your admin username: ",
@@ -15,15 +21,19 @@ func GetAdminPasswordSecrets() (string, string) {
 		"Please enter your admin password",
 	}
 	adminPassword := promptGetPasswordInput(AdminPasswordPromptContent)
-
-	return adminUsername, adminPassword
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
+	if err != nil {
+		panic(err.Error())
+	}
+	return adminUsername, encryptedPassword
 }
 
 func CreateAdminPasswordSecret() {
 	adminUsername, adminPassword := GetAdminPasswordSecrets()
 	data := map[string][]byte{
 		"username": []byte(adminUsername),
-		"password": []byte(adminPassword),
+		"password": adminPassword,
 	}
 	createSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE, data)
+	fmt.Println("✔ admin secret is created")
 }

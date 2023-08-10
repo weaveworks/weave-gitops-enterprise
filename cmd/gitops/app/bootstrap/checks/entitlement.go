@@ -27,5 +27,5 @@ func CheckEntitlementFile() {
 		fmt.Printf("\nInvalid entitlement file, Please check secret: '%s' under namespace: '%s'  on your cluster\n", ENTITLEMENT_SECRET_NAME, ENTITLEMENT_SECRET_NAMESPACE)
 		os.Exit(1)
 	}
-	fmt.Println("✅ entitlement file is checked and valid!")
+	fmt.Println("✔ entitlement file is checked and valid!")
 }

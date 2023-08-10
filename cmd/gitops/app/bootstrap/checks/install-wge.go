@@ -13,7 +13,7 @@ const UI_URL string = "https://localhost:8000"
 
 func InstallWge(version string) {
 
-	fmt.Printf("\n✅ All set installing WGE v%s, This may take few minutes...\n", version)
+	fmt.Printf("✔ All set installing WGE v%s, This may take few minutes...\n", version)
 	var runner runner.CLIRunner
 
 	_, err := runner.Run("flux", "create", "source", "helm", HELMREPOSITORY_NAME, "--url", CHART_URL, "--secret-ref", ENTITLEMENT_SECRET_NAME)
@@ -35,12 +35,12 @@ func InstallWge(version string) {
 		os.Exit(1)
 	}
 
-	aa, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-	fmt.Println("aa", string(aa), err.Error())
+	fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI using portforward at %s\n", version, UI_URL)
+
+	_, err = runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {
 		fmt.Printf("An error occurred port-forwarding %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Printf("\n\n✅ WGE v%s is installed successfully\n You can visit the UI at %s\n", version, UI_URL)
 }
