@@ -368,7 +368,7 @@ jobs:
             export GITLAB_HOSTNAME=${{ env.GIT_PROVIDER_HOSTNAME }}
           fi
 
-          export ENTERPRISE_CHART_VERSION=v0.29.1
+          export ENTERPRISE_CHART_VERSION=0.29.1-23-gd05cfc7
 
           ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
       - name: Store test results
