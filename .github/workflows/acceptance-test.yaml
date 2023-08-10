@@ -160,7 +160,7 @@ env:
   GITLAB_CLIENT_ID: ${{ secrets.WGE_GITLAB_CLIENT_ID }}
   GITLAB_CLIENT_SECRET: ${{ secrets.WGE_GITLAB_CLIENT_SECRET }}
   UI_NODEPORT: 30080
-  MANAGEMENT_CLUSTER_CNAME: weave.gitops.enterprise.com
+  MANAGEMENT_CLUSTER_CNAME: localhost
   UPGRADE_MANAGEMENT_CLUSTER_CNAME: weave.gitops.upgrade.enterprise.com
   MANAGEMENT_CLUSTER_KIND: ${{ inputs.management-cluster-kind }}
   CAPI_PROVIDER: ${{ inputs.capi_provider }}
