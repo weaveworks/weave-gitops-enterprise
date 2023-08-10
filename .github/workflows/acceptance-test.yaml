@@ -358,7 +358,7 @@ jobs:
             export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}
           fi
 
-          ./test/utils/scripts/mgmt-cluster-setup.sh  ${{ inputs.management-cluster-kind }} $(pwd) $CLUSTER_NAME $CLUSTER_REGION
+          ./test/utils/scripts/mgmt-cluster-setup.sh $CLUSTER_NAME
       - name: Run Acceptance tests
         run: |
           export CLUSTER_REPOSITORY=gitops-capi-template-${{ github.run_id }}-$(openssl rand -hex 8)
