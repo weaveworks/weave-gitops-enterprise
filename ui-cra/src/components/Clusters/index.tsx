@@ -1,5 +1,4 @@
 import { Checkbox } from '@material-ui/core';
-import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
   DataTable,
@@ -25,6 +24,14 @@ import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import EKS from '../../assets/img/EKS.svg';
+import GKE from '../../assets/img/GKE.svg';
+import Kubernetes from '../../assets/img/Kubernetes.svg';
+import LiquidMetal from '../../assets/img/LiquidMetal.svg';
+import Openshift from '../../assets/img/Openshift.svg';
+import Rancher from '../../assets/img/Rancher.svg';
+import Vsphere from '../../assets/img/Vsphere.svg';
+import Docker from '../../assets/img/docker.svg';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import { useListConfigContext } from '../../contexts/ListConfig';
@@ -36,17 +43,6 @@ import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { useCallbackState } from '../../utils/callback-state';
 import { computeMessage } from '../../utils/conditions';
-import {
-  EKSDefault,
-  GKEDefault,
-  KindIcon,
-  Kubernetes,
-  LiquidMetal,
-  Openshift,
-  OtherOnprem,
-  Rancher,
-  Vsphere,
-} from '../../utils/icons';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Tooltip } from '../Shared';
@@ -74,7 +70,11 @@ export const ActionsWrapper = styled(Flex)<Size>`
 `;
 
 const IconSpan = styled.span`
-  color: ${props => props.theme.colors.neutral30};
+  display: flex;
+  img {
+    height: 32px;
+    width: 32px;
+  }
 `;
 
 export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
@@ -86,11 +86,7 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       <IconSpan>
-        <Octicon
-          icon={getClusterTypeIcon(clusterKind)}
-          size="medium"
-          verticalAlign="middle"
-        />
+        <img src={getClusterTypeIcon(clusterKind)} />
       </IconSpan>
     </Tooltip>
   );
@@ -113,21 +109,21 @@ const ClusterRowCheckbox = ({
   />
 );
 
-const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
+const getClusterTypeIcon = (clusterType?: string) => {
   if (clusterType === 'DockerCluster') {
-    return KindIcon;
+    return Docker;
   } else if (
     clusterType === 'AWSCluster' ||
     clusterType === 'AWSManagedCluster'
   ) {
-    return EKSDefault;
+    return EKS;
   } else if (
     clusterType === 'AzureCluster' ||
     clusterType === 'AzureManagedCluster'
   ) {
     return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
-    return GKEDefault;
+    return GKE;
   } else if (clusterType === 'VSphereCluster') {
     return Vsphere;
   } else if (clusterType === 'MicrovmCluster') {
@@ -136,8 +132,6 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     return Rancher;
   } else if (clusterType === 'Openshift') {
     return Openshift;
-  } else if (clusterType === 'OtherOnprem') {
-    return OtherOnprem;
   }
   return Kubernetes;
 };
@@ -442,7 +436,7 @@ const MCCP: FC<{
                     {
                       label: 'Type',
                       value: (c: GitopsClusterEnriched) => (
-                        <ClusterIcon cluster={c}></ClusterIcon>
+                        <ClusterIcon cluster={c} />
                       ),
                     },
                     {
