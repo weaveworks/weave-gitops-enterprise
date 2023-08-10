@@ -370,6 +370,14 @@ func dumpConfigRepo(testName string) {
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, repoPath, archivedPath))
 }
 
+func dumpTenantInfo(testName string) {
+	archiveTenantPath := path.Join(artifactsBaseDir, "tenants")
+	logger.Info("Dumping tenant info ...")
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cp /tmp/rendered-tenant.yaml %s`, archiveTenantPath))
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cp /tmp/generated-tenant.yaml %s`, archiveTenantPath))
+}
+
 func dumpBrowserLogs(testName string) {
 	if webDriver == nil {
 		return

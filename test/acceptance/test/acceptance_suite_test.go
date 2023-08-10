@@ -21,6 +21,7 @@ func GomegaFail(message string, callerSkip ...int) {
 	dumpResources(randID)
 	dumpClusterInfo(randID)
 	dumpConfigRepo(randID)
+	dumpTenantInfo(randID)
 
 	//Pass this down to the default handler for onward processing
 	ginkgo.Fail(message, callerSkip...)
