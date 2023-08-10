@@ -86,7 +86,10 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       <IconSpan>
-        <img src={getClusterTypeIcon(clusterKind)} />
+        <img
+          src={getClusterTypeIcon(clusterKind)}
+          alt={clusterKind || 'kubernetes'}
+        />
       </IconSpan>
     </Tooltip>
   );
@@ -172,57 +175,6 @@ const MCCP: FC<{
     setSelectedCluster(null);
   }, [setOpenDeletePR, setSelectedCluster]);
   const { data: sources } = useListSources();
-  clusters.push(
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'DockerCluster' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'AWSCluster' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'GCPCluster' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'VSphereCluster' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'MicrovmCluster' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'Rancher' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-    {
-      name: 'test',
-      namespace: 'test',
-      capiCluster: { infrastructureRef: { kind: 'Openshift' } },
-      updatedAt: '0',
-      type: 'cluster',
-    },
-  );
 
   const gitRepos = useMemo(
     () => getGitRepos(sources?.result),
