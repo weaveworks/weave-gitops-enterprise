@@ -438,7 +438,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 			})
 
 			ginkgo.By(`And navigate to 'Add Application' page`, func() {
-				gomega.Expect(applicationsPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
+				gomega.Eventually(applicationsPage.AddApplication.Click).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 
 				addApplication := pages.GetAddApplicationsPage(webDriver)
 				gomega.Eventually(addApplication.ApplicationHeader.Text).Should(gomega.MatchRegexp("Applications"))

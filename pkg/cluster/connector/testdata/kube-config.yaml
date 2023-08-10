@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Config
+preferences: {}
+current-context: context1
+
+clusters:
+  - cluster:
+      certificate-authority-data: Q0FEQVRBMg==
+      server: https://cluster1.example.com
+      insecure-skip-tls-verify: true
+    name: cluster1
+
+  - cluster:
+      certificate-authority-data: Q0FEQVRBMg==
+      server: https://cluster2.example.com
+      insecure-skip-tls-verify: true
+    name: cluster2
+
+contexts:
+  - context:
+      cluster: cluster1
+      user: user1
+    name: context1
+  - context:
+      cluster: cluster2
+      user: user2
+    name: context2
+
+
+users:
+  - name: user1
+    user:
+      client-certificate-data: VVNFUjFfQ0FEQVRB
+      client-key-data: VVNFUjFfQ0tEQVRB
+  - name: user2
+    user:
+      client-certificate-data: VVNFUjJfQ0FEQVRB
+      client-key-data: VVNFUjFfQ0tEQVRB
