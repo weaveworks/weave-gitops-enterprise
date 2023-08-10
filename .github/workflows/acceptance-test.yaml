@@ -138,8 +138,7 @@ on:
 env:
   GO_CACHE_NAME: cache-go-modules
   LOGIN_USER_TYPE: ${{ inputs.login_user_type }}
-  CLUSTER_ADMIN_PASSWORD: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}
-  CLUSTER_ADMIN_PASSWORD_HASH: ${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}
+  CLUSTER_ADMIN_PASSWORD: dev
   OIDC_ISSUER_URL: https://dex-01.wge.dev.weave.works
   DEX_CLIENT_ID: weave-gitops-enterprise
   DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
