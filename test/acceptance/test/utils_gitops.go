@@ -132,10 +132,9 @@ func waitForGitopsResources(ctx context.Context, request Request, timeout time.D
 		contextTimeout = timeoutCtx[0]
 	}
 	adminPassword := GetEnv("CLUSTER_ADMIN_PASSWORD", "")
-	waitCtx, cancel := context.WithTimeout(ctx, contextTimeout)
+	_, cancel := context.WithTimeout(ctx, contextTimeout)
 	defer cancel()
-
-	return wait.PollUntil(time.Second*1, func() (bool, error) {
+	return wait.PollUntilContextCancel(ctx, time.Second*1, true, func(ctx context.Context) (bool, error) {
 		jar, _ := cookiejar.New(&cookiejar.Options{})
 		client := http.Client{
 			Timeout: timeout,
@@ -181,7 +180,7 @@ func waitForGitopsResources(ctx context.Context, request Request, timeout time.D
 		}
 
 		return regexp.MatchString(strings.ToLower(fmt.Sprintf(`%s[\\"]+`, strings.Split(parseUrl.Path, "/")[0])), strings.ToLower(string(bodyBytes)))
-	}, waitCtx.Done())
+	})
 }
 
 func runGitopsCommand(cmd string, timeout ...time.Duration) (stdOut, stdErr string) {

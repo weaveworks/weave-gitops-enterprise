@@ -223,7 +223,7 @@ func TestGetValuesForChartFromValuesFetcher(t *testing.T) {
 
 			// Poll GetChartsJob until it's done
 			var jobResponse *protos.GetChartsJobResponse
-			err = wait.PollImmediate(time.Second, time.Second*5, func() (bool, error) {
+			err = wait.PollUntilContextTimeout(context.TODO(), time.Second, time.Second*5, true, func(ctx context.Context) (bool, error) {
 				var err error
 				jobResponse, err = s.GetChartsJob(context.TODO(), &protos.GetChartsJobRequest{JobId: response.JobId})
 				if err != nil {
@@ -316,7 +316,7 @@ func TestGetValuesForChartCached(t *testing.T) {
 
 			// Poll GetChartsJob until it's done
 			var jobResponse *protos.GetChartsJobResponse
-			err = wait.PollImmediate(time.Second, time.Second*5, func() (bool, error) {
+			err = wait.PollUntilContextTimeout(context.TODO(), time.Second, time.Second*5, true, func(ctx context.Context) (bool, error) {
 				var err error
 				jobResponse, err = s.GetChartsJob(context.TODO(), &protos.GetChartsJobRequest{JobId: response.JobId})
 				if err != nil {
