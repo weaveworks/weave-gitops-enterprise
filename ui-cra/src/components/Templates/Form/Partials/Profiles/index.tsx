@@ -1,8 +1,8 @@
-import { Checkbox, MenuItem, TextField } from '@material-ui/core';
+import { Checkbox, TextField } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { DataTable, Flex } from '@weaveworks/weave-gitops';
-import _, { get } from 'lodash';
-import React, { Dispatch, FC, useState } from 'react';
+import _ from 'lodash';
+import React, { Dispatch, FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import {
   ClusterNamespacedName,
@@ -79,6 +79,11 @@ const Profiles: FC<{
     RepositoryRef[]
   >([]);
 
+  // We need to check the updated profiles and see if there have been any selections made (callbackState).
+  // If there have been,  we need to find those helm repositories and set them as selectedHelmRepositories
+
+  useEffect(() => setSelectedHelmRepositories(helmRepos), [helmRepos]);
+
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -121,6 +126,9 @@ const Profiles: FC<{
       ) as RepositoryRef;
     });
 
+  // TO DO: Check Gitlab - do we need to add the selected repos to the state as we do with the profiles?
+  // TO DO: Check the form in EDIT mode once we're able to create resources in this new format
+
   return (
     <ProfilesWrapper>
       <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
@@ -138,6 +146,7 @@ const Profiles: FC<{
         renderOption={(option: string, { selected }) => (
           <li>
             <Checkbox
+              color="primary"
               icon={icon}
               checkedIcon={checkedIcon}
               style={{ marginRight: 8 }}
@@ -146,7 +155,6 @@ const Profiles: FC<{
             {option}
           </li>
         )}
-        style={{ width: '100%' }}
         renderInput={params => (
           <TextField
             {...params}
@@ -155,15 +163,13 @@ const Profiles: FC<{
           />
         )}
       />
-
       {isLoading && <Loader />}
       {!isLoading && (
         <DataTable
           className="profiles-table table-wrapper"
-          // show only profiles from updatedProfilesList that are also in selectedHelmRepositories
           rows={updatedProfilesList.filter(
             up =>
-              selectedHelmRepositories.find(
+              selectedHelmRepositories?.find(
                 hr =>
                   hr.name === up.repoName && hr.namespace === up.repoNamespace,
               ) !== undefined,
