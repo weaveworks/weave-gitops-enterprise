@@ -169,7 +169,7 @@ func initializeWebdriver(wgeURL string) {
 			a := make(map[string]bool)
 			a["enableNetwork"] = true
 			chromeDriver := agouti.ChromeDriver(
-				// agouti.ChromeOptions("binary", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
+				agouti.ChromeOptions("binary", "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"),
 				agouti.ChromeOptions("w3c", false),
 				agouti.ChromeOptions("args", []string{"--disable-gpu", "--no-sandbox", "--disable-blink-features=AutomationControlled", "--ignore-ssl-errors=yes", "--ignore-certificate-errors"}),
 				agouti.ChromeOptions("excludeSwitches", []string{"enable-automation"}),
@@ -327,8 +327,9 @@ func dumpingDOM(name string) {
 		filepath := path.Join(artifactsBaseDir, SCREENSHOTS_DIR_NAME, name+".html")
 		var htmlDocument interface{}
 		_ = webDriver.RunScript(`return document.documentElement.innerHTML;`, map[string]interface{}{}, &htmlDocument)
+		stringDocument := fmt.Sprintf("%v", htmlDocument)
 		if htmlDocument != nil {
-			_ = os.WriteFile(filepath, []byte(htmlDocument.(string)), 0644)
+			_ = os.WriteFile(filepath, []byte(stringDocument), 0644)
 		}
 	}
 }
@@ -341,10 +342,17 @@ func dumpResources(testName string) {
 
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`rm -rf %[1]v && mkdir -p %[1]v && mkdir -p %[2]v`, resourcesPath, archiveResourcePath))
 
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get all --all-namespaces -o wide > %s", path.Join(resourcesPath, "resources.txt")))
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml > %s", CLUSTER_SERVICE_DEPLOYMENT_APP, path.Join(resourcesPath, CLUSTER_SERVICE_DEPLOYMENT_APP+"-configmap.txt")))
-	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get crds -o wide > %s", path.Join(resourcesPath, "crds.txt")))
+	summaryResourceTypes := []string{"all", "crds"}
+	for _, res := range summaryResourceTypes {
+		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get %s --all-namespaces -o wide > %s", res, path.Join(resourcesPath, res+".txt")))
+	}
 
+	resourceTypes := []string{"gitopsclusters", "gitrepo", "kustomizations"}
+	for _, res := range resourceTypes {
+		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get %s --all-namespaces -o yaml > %s", res, path.Join(resourcesPath, res+".txt")))
+	}
+
+	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get configmap %s -n flux-system -o yaml > %s", CLUSTER_SERVICE_DEPLOYMENT_APP, path.Join(resourcesPath, CLUSTER_SERVICE_DEPLOYMENT_APP+"-configmap.txt")))
 	_ = runCommandPassThrough("sh", "-c", fmt.Sprintf(`cd %s && tar -czf %s .`, resourcesPath, archivedPath))
 }
 
