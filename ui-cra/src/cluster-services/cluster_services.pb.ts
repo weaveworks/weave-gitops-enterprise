@@ -468,12 +468,18 @@ export type Profile = {
   availableVersions?: string[]
 }
 
+export type HelmRepositoryRef = {
+  name?: string
+  namespace?: string
+}
+
 export type ProfileValues = {
   name?: string
   version?: string
   values?: string
   layer?: string
   namespace?: string
+  helmRepository?: HelmRepositoryRef
 }
 
 export type GetConfigRequest = {

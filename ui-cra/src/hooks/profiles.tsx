@@ -228,15 +228,14 @@ const useProfiles = (
     result => result.data,
   ) as ListChartsForRepositoryResponse[];
 
-  const profiles = useDeepCompareMemo(
-    () =>
-      mergeClusterAndTemplate(
-        data,
-        template,
-        maybeParseJSON(clusterData || ''),
-      ),
-    [isLoading, data, template, clusterData],
-  );
+  const profiles = useDeepCompareMemo(() => {
+    console.log(data);
+    return mergeClusterAndTemplate(
+      data,
+      template,
+      maybeParseJSON(clusterData || ''),
+    );
+  }, [isLoading, data, template, clusterData]);
 
   return {
     isLoading,

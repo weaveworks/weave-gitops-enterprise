@@ -773,12 +773,18 @@ message Profile {
   repeated string available_versions = 11;
 }
 
+message HelmRepositoryRef { 
+  string name = 1; 
+  string namespace = 2;
+}
+
 message ProfileValues {
   string name = 1;
   string version = 2;
   string values = 3;
   string layer = 4;
   string namespace = 5;
+  HelmRepositoryRef helm_repository  = 6; 
 }
 
 message GetConfigRequest {}

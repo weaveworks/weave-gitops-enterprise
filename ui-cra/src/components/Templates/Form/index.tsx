@@ -197,13 +197,13 @@ const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
     .map(p => {
       // FIXME: handle this somehow..
       const v = p.values.find(v => v.selected)!;
-      // add repo that profile belongs to
       return {
         name: p.name,
         version: v?.version,
         values: utf8_to_b64(v?.yaml),
         layer: p.layer,
         namespace: p.namespace,
+        helmRepository: { name: p.repoName, namespace: p.repoNamespace },
       };
     });
 

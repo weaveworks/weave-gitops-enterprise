@@ -2291,6 +2291,17 @@
         }
       }
     },
+    "v1HelmRepositoryRef": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "namespace": {
+          "type": "string"
+        }
+      }
+    },
     "v1Kustomization": {
       "type": "object",
       "properties": {
@@ -2819,6 +2830,9 @@
         },
         "namespace": {
           "type": "string"
+        },
+        "helmRepository": {
+          "$ref": "#/definitions/v1HelmRepositoryRef"
         }
       }
     },

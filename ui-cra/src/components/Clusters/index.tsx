@@ -170,7 +170,7 @@ export const getHelmRepos = (sources: Source[] | undefined) =>
       sources,
       (item): item is HelmRepository => item.type === Kind.HelmRepository,
     ),
-    ['name'],
+    ['name', 'namespace'],
     ['asc'],
   );
 
