@@ -82,7 +82,11 @@ const Profiles: FC<{
   // We need to check the updated profiles and see if there have been any selections made (callbackState).
   // If there have been,  we need to find those helm repositories and set them as selectedHelmRepositories
 
-  useEffect(() => setSelectedHelmRepositories(helmRepos), [helmRepos]);
+  useEffect(() => {
+    if (selectedHelmRepositories.length === 0) {
+      setSelectedHelmRepositories(helmRepos);
+    }
+  }, [helmRepos, selectedHelmRepositories.length]);
 
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
