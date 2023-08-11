@@ -12,7 +12,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/logger"
@@ -27,6 +26,12 @@ func NewObjectsCollector(w store.Store, idx store.IndexWriter, mgr clusters.Subs
 			}
 		}
 	}()
+
+	for _, k := range kinds {
+		if err := k.Validate(); err != nil {
+			return nil, fmt.Errorf("invalid object kind: %w", err)
+		}
+	}
 
 	newWatcher := func(clusterName string, config *rest.Config) (collector.Starter, error) {
 		return collector.NewWatcher(clusterName, config, kinds, incoming, log)
@@ -69,13 +74,9 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 		gvk := objTx.Object().GetObjectKind().GroupVersionKind()
 
-		o, err := adapters.ToFluxObject(objTx.Object())
-		if err != nil {
-			log.Error(err, "failed to convert object to flux object")
-			continue
-		}
+		o := objTx.Object()
 
-		cat, err := adapters.Category(objTx.Object())
+		cat, err := o.GetCategory()
 		if err != nil {
 			log.Error(err, "failed to get category from flux object")
 			continue
@@ -94,6 +95,18 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
+		status, err := o.GetStatus()
+		if err != nil {
+			log.Error(err, fmt.Sprintf("failed to get status from object %s/%s/%s", objTx.ClusterName(), o.GetNamespace(), o.GetName()))
+			continue
+		}
+
+		message, err := o.GetMessage()
+		if err != nil {
+			log.Error(err, fmt.Sprintf("failed to get message from object %s/%s/%s", objTx.ClusterName(), o.GetNamespace(), o.GetName()))
+			continue
+		}
+
 		object := models.Object{
 			Cluster:             objTx.ClusterName(),
 			Name:                objTx.Object().GetName(),
@@ -101,8 +114,8 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			APIGroup:            gvk.Group,
 			APIVersion:          gvk.Version,
 			Kind:                gvk.Kind,
-			Status:              string(adapters.Status(o)),
-			Message:             adapters.Message(o),
+			Status:              string(status),
+			Message:             message,
 			Category:            cat,
 			KubernetesDeletedAt: modelTs,
 			Unstructured:        raw,

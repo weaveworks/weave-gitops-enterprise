@@ -63,6 +63,7 @@ function Explorer({ className, category, enableBatchSync, manager }: Props) {
             rows={data?.objects || []}
             onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
             enableBatchSync={enableBatchSync}
+            sortField={queryState.orderBy}
           />
 
           <FilterDrawer

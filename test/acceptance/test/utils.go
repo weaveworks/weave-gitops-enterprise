@@ -1,12 +1,10 @@
 package acceptance
 
 import (
-	"archive/zip"
 	"bufio"
 	"fmt"
 	"io"
 	"math/rand"
-	"net/http"
 	"os"
 	"os/exec"
 	"path"
@@ -35,10 +33,8 @@ var (
 	gitProviderEnv     GitProviderEnv
 	userCredentials    UserCredentials
 	mgmtClusterKind    string
-	gitRepositoryUrl   string
 	seleniumServiceUrl string
 	gitopsBinPath      string
-	capiProvider       string
 	wgeEndpointUrl     string
 	testUiUrl          string
 	artifactsBaseDir   string
@@ -109,13 +105,11 @@ func setupTestEnvironment() {
 	testUiUrl = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	wgeEndpointUrl = fmt.Sprintf(`https://%s:%s`, GetEnv("MANAGEMENT_CLUSTER_CNAME", "localhost"), GetEnv("UI_NODEPORT", "30080"))
 	gitopsBinPath = GetEnv("GITOPS_BIN_PATH", "/usr/local/bin/gitops")
-	capiProvider = GetEnv("CAPI_PROVIDER", "capd")
 	artifactsBaseDir = GetEnv("ARTIFACTS_BASE_DIR", "/tmp/gitops-test/")
 	testScriptsPath = path.Join(getCheckoutRepoPath(), "test", "utils", "scripts")
 	testDataPath = path.Join(getCheckoutRepoPath(), "test", "utils", "data")
 
 	gitProviderEnv = initGitProviderData()
-	gitRepositoryUrl = "https://" + path.Join(gitProviderEnv.Hostname, gitProviderEnv.Org, gitProviderEnv.Repo)
 
 	userCredentials = initUserCredentials()
 
@@ -149,11 +143,6 @@ func installWeaveGitopsControllers() {
 		setupScriptPath := path.Join(checkoutRepoPath, "test", "utils", "scripts", "wego-enterprise.sh")
 		_, _ = runCommandAndReturnStringOutput(fmt.Sprintf(`%s setup %s`, setupScriptPath, checkoutRepoPath), ASSERTION_15MINUTE_TIME_OUT)
 	}
-}
-
-func resetControllers(controllers string) {
-	scriptPath := path.Join(testScriptsPath, "wego-enterprise.sh")
-	_ = runCommandPassThrough(scriptPath, "reset_controllers", controllers)
 }
 
 func GetEnv(key, fallback string) string {
@@ -469,48 +458,6 @@ func copyFile(sourceFile, destination string) error {
 	}
 
 	return nil
-}
-
-func getMimeType(archiveFile string) (string, error) {
-	file, err := os.Open(archiveFile)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	buf := make([]byte, 512)
-	_, err = file.Read(buf)
-	if err != nil {
-		return "", err
-	}
-
-	mimeType := http.DetectContentType(buf)
-	return mimeType, nil
-}
-
-func getArchiveFileList(archiveFile string) ([]string, error) {
-	mimeType, err := getMimeType(archiveFile)
-	if err != nil {
-		return []string{}, err
-	}
-
-	fileList := []string{}
-	switch mimeType {
-	case "application/zip":
-		archive, err := zip.OpenReader(archiveFile)
-		if err != nil {
-			panic(err)
-		}
-		defer archive.Close()
-
-		for _, f := range archive.File {
-			if f.FileInfo().IsDir() {
-				continue
-			}
-			fileList = append(fileList, f.Name)
-		}
-	}
-	return fileList, nil
 }
 
 func StringToLines(s string) (lines []string, err error) {
