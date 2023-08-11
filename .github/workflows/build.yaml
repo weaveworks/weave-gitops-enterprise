@@ -35,6 +35,7 @@ env:
 
 jobs:
   helm-chart:
+    concurrency: publish-helm-chart
     permissions:
       id-token: write
       contents: read
@@ -75,7 +76,6 @@ jobs:
         run: |
           echo $GITHUB_BUILD_TOKEN | helm registry login ghcr.io -u $GITHUB_BUILD_USERNAME --password-stdin
       - name: Publish helm chart to s3
-        concurrency: publish-helm-chart
         env:
           TAG: ${{ steps.release_tags.outputs.tag }}
         run: |
@@ -86,7 +86,6 @@ jobs:
           # Publish the MCCP Helm v3 chart
           ./bin/publish-chart-to-s3.sh $TAG $HELM_REPO ./charts/mccp
       - name: Publish helm chart to s3 branch repo
-        concurrency: publish-helm-chart-branch
         run: |
           CHART_VALUES_PATH=./charts/mccp/values.yaml
           # Update the MCCP chart values.yaml file with the current image tag
@@ -103,7 +102,6 @@ jobs:
           ./bin/publish-chart-to-s3.sh $HELM_TAG $BRANCH_HELM_REPO ./charts/mccp
       - name: Publish Helm chart for main only
         if: github.ref_name == 'main'
-        concurrency: publish-helm-chart-main
         env:
           HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
           HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
