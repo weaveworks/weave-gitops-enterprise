@@ -1,5 +1,5 @@
 import _ from 'lodash';
-import { useContext, useMemo } from 'react';
+import { useContext } from 'react';
 import { useDeepCompareMemo } from 'use-deep-compare';
 import { useQueries, useQuery } from 'react-query';
 import {
@@ -194,55 +194,48 @@ const useProfiles = (
     api.GetConfig({}),
   );
 
-  const hrQueries = useMemo(
-    () =>
-      helmReposRefs.map(helmRepo => {
-        return {
-          queryKey: [
-            'profiles',
-            helmRepo.name,
-            helmRepo.namespace,
-            helmRepo.cluster?.name,
-            helmRepo.cluster?.namespace,
-          ],
-          queryFn: () =>
-            api.ListChartsForRepository({
-              repository: {
-                name: helmRepo.name,
-                namespace: helmRepo.namespace,
-                cluster: helmRepo.cluster
-                  ? {
-                      name: helmRepo.cluster?.name,
-                      namespace: helmRepo.cluster?.namespace,
-                    }
-                  : { name: getConfigResponse?.data?.managementClusterName },
-              },
-            }),
-        };
-      }),
-    [api, getConfigResponse?.data?.managementClusterName, helmReposRefs],
-  );
+  const hrQueries = helmReposRefs.map(helmRepo => {
+    return {
+      queryKey: [
+        'profiles',
+        helmRepo.name,
+        helmRepo.namespace,
+        helmRepo.cluster?.name,
+        helmRepo.cluster?.namespace,
+      ],
+      queryFn: () =>
+        api.ListChartsForRepository({
+          repository: {
+            name: helmRepo.name,
+            namespace: helmRepo.namespace,
+            cluster: helmRepo.cluster
+              ? {
+                  name: helmRepo.cluster?.name,
+                  namespace: helmRepo.cluster?.namespace,
+                }
+              : { name: getConfigResponse?.data?.managementClusterName },
+          },
+        }),
+      onError: (error: Error) => setNotifications(formatError(error)),
+    };
+  });
 
   const results = useQueries(hrQueries);
 
   const isLoading = results.some(query => query.isLoading);
 
-  const errors = results.map(query => query.error);
-
-  // if (errors.length > 0) {
-  //   errors.forEach(error => setNotifications(formatError(error)));
-  // }
-
-  // check for errors and generate notifications // (error: Error) => setNotifications(formatError(error)
+  const data = results.map(
+    result => result.data,
+  ) as ListChartsForRepositoryResponse[];
 
   const profiles = useDeepCompareMemo(
     () =>
       mergeClusterAndTemplate(
-        results.map(result => result.data) as ListChartsForRepositoryResponse[],
+        data,
         template,
         maybeParseJSON(clusterData || ''),
       ),
-    [isLoading, results, template, clusterData],
+    [isLoading, data, template, clusterData],
   );
 
   return {
