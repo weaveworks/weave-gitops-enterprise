@@ -75,7 +75,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		kind := obj.Object().GetObjectKind().GroupVersionKind().Kind
 
 		if kind == "ClusterRole" || kind == "Role" {
-			role, err := adapters.NewRoleAdapter(obj.ClusterName(), obj.Object())
+			role, err := adapters.NewRoleAdapter(obj.ClusterName(), kind, obj.Object().Raw())
 			if err != nil {
 				return fmt.Errorf("cannot create role: %w", err)
 			}
@@ -95,7 +95,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 
 		if kind == "ClusterRoleBinding" || kind == "RoleBinding" {
-			binding, err := adapters.NewBindingAdapter(obj.ClusterName(), obj.Object())
+			binding, err := adapters.NewBindingAdapter(obj.ClusterName(), obj.Object().Raw())
 			if err != nil {
 				return fmt.Errorf("cannot create binding: %w", err)
 			}

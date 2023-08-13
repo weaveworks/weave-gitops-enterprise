@@ -8,6 +8,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
 
 	"github.com/alecthomas/assert"
@@ -43,7 +44,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-a",
@@ -52,7 +53,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{{
@@ -86,7 +87,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 		},
@@ -101,7 +102,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{{
@@ -135,7 +136,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 		},
@@ -150,7 +151,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -200,7 +201,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -250,7 +251,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "nginx-113",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -300,7 +301,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "notSupportedKind",
 					Name:       "nginx-113",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -368,7 +369,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-a",
@@ -377,7 +378,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "otherkind",
 					Name:       "othername",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			expected: []models.Object{
@@ -388,7 +389,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: "v1",
 					Kind:       "somekind",
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 		},
@@ -403,7 +404,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-a",
@@ -412,7 +413,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "othername",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -449,7 +450,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 		},
@@ -464,7 +465,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-a",
@@ -473,7 +474,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "othername",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			roles: []models.Role{
@@ -509,7 +510,7 @@ func TestRunQuery_AccessRules(t *testing.T) {
 					APIVersion: helmv2.GroupVersion.Version,
 					Kind:       helmv2.HelmReleaseKind,
 					Name:       "somename",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 		},

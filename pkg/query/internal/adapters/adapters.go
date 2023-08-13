@@ -4,9 +4,7 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
-	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/rbac/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -104,11 +102,16 @@ func (r *roleAdapter) GetSubjects() []v1.Subject {
 	}}
 }
 
-func NewRoleAdapter(clusterName string, obj client.Object) (RoleLike, error) {
-	switch o := obj.(type) {
-	case *v1.ClusterRole:
+// NewRoleAdapter returns a RoleLike for the given object.
+// We use this adapter pattern instead of NormalizedObjects because we don't plan on adding new Role-like objects,
+// and users don't interact with them directly.
+func NewRoleAdapter(clusterName string, kind string, obj client.Object) (RoleLike, error) {
+	switch kind {
+	case "ClusterRole":
+		o := obj.(*v1.ClusterRole)
 		return &cRoleAdapter{o, clusterName}, nil
-	case *v1.Role:
+	case "Role":
+		o := obj.(*v1.Role)
 		return &roleAdapter{o, clusterName}, nil
 
 	default:
@@ -219,22 +222,4 @@ func NewBindingAdapter(clusterName string, obj client.Object) (BindingLike, erro
 		return nil, fmt.Errorf("unknown object type %T", obj)
 	}
 
-}
-
-type EventLike interface {
-	client.Object
-	GetConditions() []metav1.Condition
-}
-
-type eventAdapter struct {
-	*corev1.Event
-}
-
-func (ea *eventAdapter) GetConditions() []metav1.Condition {
-	cond := metav1.Condition{
-		Type:    string(NoStatus),
-		Message: ea.Message,
-		Status:  "True",
-	}
-	return []metav1.Condition{cond}
 }
