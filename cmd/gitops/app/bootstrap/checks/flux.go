@@ -5,40 +5,30 @@ import (
 	"os"
 
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"golang.org/x/exp/slices"
 )
 
 func CheckFluxIsInstalled() {
-	fluxPromptContent := promptContent{
-		"Please provide an answer with (y/n).",
-		"Do you have a valid flux installation on your cluster (y/n)?",
-	}
-
-	fluxExists := promptGetBoolInput(fluxPromptContent)
-	if !slices.Contains([]string{"Y", "y"}, fluxExists) {
-		fmt.Println("\nPlease refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster")
-		os.Exit(1)
-	}
+	fmt.Println("Checking flux is installed ...")
 
 	var runner runner.CLIRunner
-
-	_, err := runner.Run("flux", "check")
+	out, err := runner.Run("flux", "check")
 	if err != nil {
-		fmt.Printf("An error occurred %v\n", err)
+		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster\nerror: %v\n", string(out))
 		os.Exit(1)
 	}
 
-	fmt.Println("✔ flux is installed")
+	fmt.Println("✔  flux is installed")
 }
 
 func CheckFluxReconcile() {
-	var runner runner.CLIRunner
+	fmt.Println("Checking flux installation is valid ...")
 
-	_, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
+	var runner runner.CLIRunner
+	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		fmt.Printf("An error occurred %v\n", err)
+		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster\nerror: %v\n", string(out))
 		os.Exit(1)
 	}
 
-	fmt.Println("✔ flux is installed properly and can reconcile successfully")
+	fmt.Println("✔  flux is installed properly and can reconcile successfully")
 }

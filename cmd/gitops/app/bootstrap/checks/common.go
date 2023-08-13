@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/manifoldco/promptui"
-	"golang.org/x/exp/slices"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -20,16 +19,6 @@ import (
 type promptContent struct {
 	errorMsg string
 	label    string
-}
-
-func promptGetBoolInput(pc promptContent) string {
-	validate := func(input string) error {
-		if !slices.Contains([]string{"y", "n", "Y", "N"}, input) {
-			return errors.New(pc.errorMsg)
-		}
-		return nil
-	}
-	return getPrompt(pc, validate)
 }
 
 func promptGetStringInput(pc promptContent) string {
@@ -181,6 +170,29 @@ func createSecret(secretName string, secretNamespace string, secretData map[stri
 		panic(err.Error())
 	}
 }
+
+// func createConfigMap(Name string, Namespace string, Data map[string]string) {
+// 	// Create a new Kubernetes client using the config.
+// 	clientset, err := getKubernetesClient()
+// 	if err != nil {
+// 		panic(err.Error())
+// 	}
+
+// 	configMap := &corev1.ConfigMap{
+// 		ObjectMeta: v1.ObjectMeta{
+// 			Name:      Name,
+// 			Namespace: Namespace,
+// 		},
+// 		Data: Data,
+// 	}
+
+// 	_, err = clientset.CoreV1().ConfigMaps(Namespace).Create(context.TODO(), configMap, v1.CreateOptions{
+// 		TypeMeta: configMap.TypeMeta,
+// 	})
+// 	if err != nil && !strings.Contains(err.Error(), "already exists") {
+// 		panic(err.Error())
+// 	}
+// }
 
 func isValidBase64(s string) bool {
 	_, err := base64.StdEncoding.DecodeString(s)
