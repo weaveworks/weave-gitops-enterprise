@@ -63,7 +63,7 @@ export const AuditTable = ({
       },
       involvedObject: { namespace, name, kind },
       message,
-    } = details;
+    } = details.Object;
     return {
       message,
       cluster,
