@@ -72,6 +72,7 @@ require (
 	github.com/xanzy/go-gitlab v0.83.0
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.8.0
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/oauth2 v0.7.0
 	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1
 	google.golang.org/grpc v1.54.0
@@ -90,7 +91,6 @@ require (
 	github.com/fluxcd/pkg/tar v0.2.0 // indirect
 	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/google/go-containerregistry v0.12.0 // indirect
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 )
 
 require (
