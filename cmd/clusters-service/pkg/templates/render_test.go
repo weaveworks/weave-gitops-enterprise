@@ -6,7 +6,9 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/stretchr/testify/assert"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 )
 
 func TestCAPIRender(t *testing.T) {
@@ -344,8 +346,14 @@ kind: KubeadmControlPlane
 metadata:
   name: testing-control-plane
 spec:
-  replicas: 5`)
-	updated, err := processUnstructured(raw, InNamespace("new-namespace"))
+  replicas: 5
+`)
+
+	mapper := meta.NewDefaultRESTMapper([]schema.GroupVersion{})
+	mapper.Add(schema.GroupVersionKind{Group: "cluster.x-k8s.io", Version: "v1alpha3", Kind: "Cluster"}, meta.RESTScopeNamespace)
+	mapper.Add(schema.GroupVersionKind{Group: "controlplane.cluster.x-k8s.io", Version: "v1alpha4", Kind: "KubeadmControlPlane"}, meta.RESTScopeNamespace)
+
+	updated, err := processUnstructured(raw, InNamespace("new-namespace", mapper))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -369,9 +377,14 @@ func TestInNamespaceGitOps(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	mapper := meta.NewDefaultRESTMapper([]schema.GroupVersion{})
+	mapper.Add(schema.GroupVersionKind{Group: "cluster.x-k8s.io", Version: "v1alpha3", Kind: "Cluster"}, meta.RESTScopeNamespace)
+	mapper.Add(schema.GroupVersionKind{Group: "gitops.weave.works", Version: "v1alpha1", Kind: "GitopsCluster"}, meta.RESTScopeNamespace)
+	mapper.Add(schema.GroupVersionKind{Group: "tfcontroller.contrib.fluxcd.io", Version: "v1alpha1", Kind: "Terraform"}, meta.RESTScopeNamespace)
+
 	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME": "testing",
-	}, InNamespace("new-namespace"))
+	}, InNamespace("new-namespace", mapper))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -414,7 +427,11 @@ metadata:
   name: testing
   namespace: old-namespace
 `)
-	updated, err := processUnstructured(raw, InNamespace("new-namespace"))
+
+	mapper := meta.NewDefaultRESTMapper([]schema.GroupVersion{})
+	mapper.Add(schema.GroupVersionKind{Group: "cluster.x-k8s.io", Version: "v1alpha3", Kind: "Cluster"}, meta.RESTScopeNamespace)
+
+	updated, err := processUnstructured(raw, InNamespace("new-namespace", mapper))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -431,6 +448,61 @@ metadata:
 	}
 }
 
+func TestInNamespaceNonNamespacedResource(t *testing.T) {
+	namespace := "testNamespace"
+	inputRaw := `
+apiVersion: v1
+kind: Node
+metadata:
+  name: testNode
+`
+	expected := `apiVersion: v1
+kind: Node
+metadata:
+  name: testNode
+`
+
+	mapper := meta.NewDefaultRESTMapper([]schema.GroupVersion{})
+	mapper.Add(schema.GroupVersionKind{Group: "", Version: "v1", Kind: "Node"}, meta.RESTScopeRoot)
+
+	updated, err := processUnstructured([]byte(inputRaw), InNamespace(namespace, mapper))
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if diff := cmp.Diff(expected, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+
+}
+
+func TestInNamespaceNoKindMatchError(t *testing.T) {
+	namespace := "testNamespace"
+	inputRaw := `
+apiVersion: v1
+kind: Node
+metadata:
+  name: testNode
+`
+	expected := `apiVersion: v1
+kind: Node
+metadata:
+  name: testNode
+  namespace: testNamespace
+`
+
+	mapper := meta.NewDefaultRESTMapper([]schema.GroupVersion{})
+
+	updated, err := processUnstructured([]byte(inputRaw), InNamespace(namespace, mapper))
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+
+	if diff := cmp.Diff(expected, string(updated)); diff != "" {
+		t.Fatalf("rendering with option failed:\n%s", diff)
+	}
+}
+
 func TestRender_in_namespace(t *testing.T) {
 	parsed := parseCAPITemplateFromFile(t, "testdata/template3.yaml")
 	processor, err := NewProcessorForTemplate(parsed)
@@ -438,11 +510,17 @@ func TestRender_in_namespace(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	mapper := meta.NewDefaultRESTMapper([]schema.GroupVersion{})
+	mapper.Add(schema.GroupVersionKind{Group: "cluster.x-k8s.io", Version: "v1alpha3", Kind: "Cluster"}, meta.RESTScopeNamespace)
+	mapper.Add(schema.GroupVersionKind{Group: "gitops.weave.works", Version: "v1alpha1", Kind: "GitopsCluster"}, meta.RESTScopeNamespace)
+	mapper.Add(schema.GroupVersionKind{Group: "infrastructure.cluster.x-k8s.io", Version: "v1alpha3", Kind: "AWSMachineTemplate"}, meta.RESTScopeNamespace)
+	mapper.Add(schema.GroupVersionKind{Group: "controlplane.cluster.x-k8s.io", Version: "v1alpha4", Kind: "KubeadmControlPlane"}, meta.RESTScopeNamespace)
+
 	b, err := processor.RenderTemplates(map[string]string{
 		"CLUSTER_NAME":                "testing",
 		"CONTROL_PLANE_MACHINE_COUNT": "5",
 	},
-		InNamespace("new-test-namespace"))
+		InNamespace("new-test-namespace", mapper))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -124,6 +124,7 @@ function ExplorerTable({
       hideSearchAndFilters
       onColumnHeaderClick={onColumnHeaderClick}
       hasCheckboxes={enableBatchSync}
+      disableSort
     />
   );
 }
