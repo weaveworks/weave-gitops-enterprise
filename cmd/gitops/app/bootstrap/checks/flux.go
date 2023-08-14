@@ -13,7 +13,7 @@ func CheckFluxIsInstalled() {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster\nerror: %v\n", string(out))
+		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
 		os.Exit(1)
 	}
 
@@ -26,7 +26,7 @@ func CheckFluxReconcile() {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster\nerror: %v\n", string(out))
+		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
 		os.Exit(1)
 	}
 

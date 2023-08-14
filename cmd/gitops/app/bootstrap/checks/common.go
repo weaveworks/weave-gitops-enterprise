@@ -84,10 +84,9 @@ func promptGetSelect(pc promptContent, items []string) string {
 	var err error
 
 	for index < 0 {
-		prompt := promptui.SelectWithAdd{
-			Label:    pc.label,
-			Items:    items,
-			AddLabel: "Other",
+		prompt := promptui.Select{
+			Label: pc.label,
+			Items: items,
 		}
 
 		index, result, err = prompt.Run()

@@ -27,14 +27,13 @@ type ChartEntry struct {
 }
 
 func SelectWgeVersion() string {
-	//get secret from getSecret()
+
 	entitlementSecret, err := getSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
 	if err != nil {
 		fmt.Printf("An error occurred %v\n", err)
 		os.Exit(1)
 	}
 
-	//get username and password from entitlementSecret
 	username, password, err := getSecretUsernamePassword(entitlementSecret)
 	if err != nil {
 		fmt.Printf("An error occurred %v\n", err)
