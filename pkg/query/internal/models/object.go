@@ -8,33 +8,24 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-
 	"gorm.io/gorm"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-type ObjectCategory string
-
-const (
-	CategoryAutomation ObjectCategory = "automation"
-	CategorySource     ObjectCategory = "source"
-	CategoryEvent      ObjectCategory = "event"
-)
-
 type Object struct {
 	gorm.Model
-	ID                  string          `gorm:"primaryKey;autoIncrement:false"`
-	Cluster             string          `json:"cluster" gorm:"type:text"`
-	Namespace           string          `json:"namespace" gorm:"type:text"`
-	APIGroup            string          `json:"apiGroup" gorm:"type:text"`
-	APIVersion          string          `json:"apiVersion" gorm:"type:text"`
-	Kind                string          `json:"kind" gorm:"type:text"`
-	Name                string          `json:"name" gorm:"type:text"`
-	Status              string          `json:"status" gorm:"type:text"`
-	Message             string          `json:"message" gorm:"type:text"`
-	Category            ObjectCategory  `json:"category" gorm:"type:text"`
-	KubernetesDeletedAt time.Time       `json:"kubernetesDeletedAt"`
-	Unstructured        json.RawMessage `json:"unstructured" gorm:"type:blob"`
+	ID                  string                       `gorm:"primaryKey;autoIncrement:false"`
+	Cluster             string                       `json:"cluster" gorm:"type:text"`
+	Namespace           string                       `json:"namespace" gorm:"type:text"`
+	APIGroup            string                       `json:"apiGroup" gorm:"type:text"`
+	APIVersion          string                       `json:"apiVersion" gorm:"type:text"`
+	Kind                string                       `json:"kind" gorm:"type:text"`
+	Name                string                       `json:"name" gorm:"type:text"`
+	Status              string                       `json:"status" gorm:"type:text"`
+	Message             string                       `json:"message" gorm:"type:text"`
+	Category            configuration.ObjectCategory `json:"category" gorm:"type:text"`
+	KubernetesDeletedAt time.Time                    `json:"kubernetesDeletedAt"`
+	Unstructured        json.RawMessage              `json:"unstructured" gorm:"type:blob"`
 }
 
 func (o Object) Validate() error {
@@ -96,9 +87,62 @@ const (
 //counterfeiter:generate . ObjectTransaction
 type ObjectTransaction interface {
 	ClusterName() string
-	Object() client.Object
+	Object() NormalizedObject
 	TransactionType() TransactionType
 	RetentionPolicy() configuration.RetentionPolicy
+}
+
+type NormalizedObject interface {
+	client.Object
+	// GetStatus returns the status of the object, as determined by the ObjectKind StatusFunc
+	GetStatus() (configuration.ObjectStatus, error)
+	// GetMessage returns the message of the object, as determined by the ObjectKind MessageFunc
+	GetMessage() (string, error)
+	// GetCategory returns the category of the object, as determined by the ObjectKind Category
+	GetCategory() (configuration.ObjectCategory, error)
+	// Raw returns the underlying client.Object
+	Raw() client.Object
+}
+
+type defaultNormalizedObject struct {
+	client.Object
+	config configuration.ObjectKind
+}
+
+func (n defaultNormalizedObject) GetStatus() (configuration.ObjectStatus, error) {
+	o, err := configuration.ToFluxObject(n.Object)
+	if err != nil {
+		return "", err
+	}
+
+	return n.config.StatusFunc(o), nil
+}
+
+func (n defaultNormalizedObject) GetMessage() (string, error) {
+	o, err := configuration.ToFluxObject(n.Object)
+	if err != nil {
+		return "", err
+	}
+
+	return n.config.MessageFunc(o), nil
+}
+
+func (n defaultNormalizedObject) GetCategory() (configuration.ObjectCategory, error) {
+	if n.config.Category == "" {
+		return "", fmt.Errorf("category not found for object kind %q", n.config.Gvk.Kind)
+	}
+	return n.config.Category, nil
+}
+
+func (n defaultNormalizedObject) Raw() client.Object {
+	return n.Object
+}
+
+func NewNormalizedObject(obj client.Object, config configuration.ObjectKind) NormalizedObject {
+	return defaultNormalizedObject{
+		Object: obj,
+		config: config,
+	}
 }
 
 func IsExpired(policy configuration.RetentionPolicy, obj Object) bool {
