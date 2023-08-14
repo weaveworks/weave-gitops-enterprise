@@ -45,6 +45,7 @@ func SelectWgeVersion() string {
 	versionSelectorPrompt := promptContent{
 		"",
 		"Please select a version for WGE to be installed",
+		"",
 	}
 	return promptGetSelect(versionSelectorPrompt, versions)
 }

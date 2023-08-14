@@ -17,8 +17,9 @@ import (
 )
 
 type promptContent struct {
-	errorMsg string
-	label    string
+	errorMsg     string
+	label        string
+	defaultValue string
 }
 
 func promptGetStringInput(pc promptContent) string {
@@ -28,8 +29,19 @@ func promptGetStringInput(pc promptContent) string {
 		}
 		return nil
 	}
+	prompt := promptui.Prompt{
+		Label:    pc.label,
+		Validate: validate,
+		Default:  pc.defaultValue,
+	}
 
-	return getPrompt(pc, validate)
+	result, err := prompt.Run()
+	if err != nil {
+		fmt.Printf("Prompt failed %v\n", err)
+		os.Exit(1)
+	}
+
+	return result
 }
 
 func promptGetPasswordInput(pc promptContent) string {
@@ -47,29 +59,6 @@ func promptGetPasswordInput(pc promptContent) string {
 
 	result, err := prompt.Run()
 
-	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		os.Exit(1)
-	}
-
-	return result
-}
-
-func getPrompt(pc promptContent, validate promptui.ValidateFunc) string {
-	templates := &promptui.PromptTemplates{
-		Prompt:  "{{ . }} ",
-		Valid:   "{{ . | green }} ",
-		Invalid: "{{ . | red }} ",
-		Success: "{{ . | bold }} ",
-	}
-
-	prompt := promptui.Prompt{
-		Label:     pc.label,
-		Templates: templates,
-		Validate:  validate,
-	}
-
-	result, err := prompt.Run()
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
 		os.Exit(1)

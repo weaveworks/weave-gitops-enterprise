@@ -25,6 +25,7 @@ func InstallWge(version string) {
 	domainSelectorPrompt := promptContent{
 		"",
 		"Please select the domain to be used",
+		"",
 	}
 	domainType := promptGetSelect(domainSelectorPrompt, domainTypes)
 
@@ -32,7 +33,8 @@ func InstallWge(version string) {
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
 		userDomainPrompt := promptContent{
 			"Domain can't be empty",
-			"Please enter your cluster domain: ",
+			"Please enter your cluster domain",
+			"",
 		}
 		userDomain = promptGetStringInput(userDomainPrompt)
 	}

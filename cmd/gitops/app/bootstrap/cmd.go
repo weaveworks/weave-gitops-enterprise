@@ -21,6 +21,7 @@ gitops bootstrap`,
 }
 
 func Bootstrap() error {
+	checks.BootstrapFlux()
 	checks.CheckEntitlementFile()
 	checks.CheckFluxIsInstalled()
 	checks.CheckFluxReconcile()

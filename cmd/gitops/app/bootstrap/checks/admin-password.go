@@ -12,13 +12,15 @@ const ADMIN_SECRET_NAMESPACE string = "flux-system"
 func GetAdminPasswordSecrets() (string, []byte) {
 	AdminUsernamePromptContent := promptContent{
 		"Admin username can't be empty",
-		"Please enter your admin username: ",
+		"Please enter your admin username (default: wego-admin)",
+		"wego-admin",
 	}
 	adminUsername := promptGetStringInput(AdminUsernamePromptContent)
 
 	AdminPasswordPromptContent := promptContent{
 		"Admin password can't be empty",
 		"Please enter your admin password",
+		"",
 	}
 	adminPassword := promptGetPasswordInput(AdminPasswordPromptContent)
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)

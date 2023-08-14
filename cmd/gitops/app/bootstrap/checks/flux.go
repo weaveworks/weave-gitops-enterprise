@@ -3,9 +3,68 @@ package checks
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
+	"github.com/manifoldco/promptui"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
+
+func BootstrapFlux() {
+
+	prompt := promptui.Prompt{
+		Label:     "Do you want to bootstrap flux on your cluster",
+		IsConfirm: true,
+	}
+
+	result, _ := prompt.Run()
+
+	if result == "y" {
+
+		gitURLPrompt := promptContent{
+			"Host can't be empty",
+			"Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)",
+			"",
+		}
+		gitURL := promptGetStringInput(gitURLPrompt)
+
+		gitBranchPrompt := promptContent{
+			"Branch can't be empty",
+			"Please enter your git repository branch (default: main)",
+			"main",
+		}
+		gitBranch := promptGetStringInput(gitBranchPrompt)
+
+		gitPathPrompt := promptContent{
+			"Path can't be empty",
+			"Please enter your path for your cluster (default: clusters/my-cluster)",
+			"clusters/my-cluster",
+		}
+		gitPath := promptGetStringInput(gitPathPrompt)
+
+		home, err := os.UserHomeDir()
+		if err != nil {
+			panic(err)
+		}
+
+		defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
+		privateKeyPathPrompt := promptContent{
+			"Private key path can't be empty",
+			fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath),
+			defaultPrivateKeyPath,
+		}
+		privateKeyPath := promptGetStringInput(privateKeyPathPrompt)
+
+		var runner runner.CLIRunner
+		out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
+		if err != nil {
+			fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
+			os.Exit(1)
+		}
+
+		fmt.Println("✔  flux is bootstrapped successfully")
+	}
+
+}
 
 func CheckFluxIsInstalled() {
 	fmt.Println("Checking flux is installed ...")
