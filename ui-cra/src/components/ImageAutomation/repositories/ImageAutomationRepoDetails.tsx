@@ -66,7 +66,7 @@ function ImageAutomationRepoDetails({ name, namespace, clusterName }: Props) {
           >
             <Button>
               <Link to={`/image_automation/policies?filters=${filtersValues}`}>
-                Go To Image Policy
+                GO TO IMAGE POLICY
               </Link>
             </Button>
           </ImageAutomationDetails>
