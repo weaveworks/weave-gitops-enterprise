@@ -1,7 +1,7 @@
 applicationName: weave.works.weave-gitops-enterprise
 publisher: "Weaveworks"
 description: "Weave GitOps Enterprise"
-version: 0.28.5
+version: 0.29.1
 helmChart: "../mccp"
 clusterArmTemplate: "./mainTemplate.json"
 uiDefinition: "./createUIDefinition.json"

@@ -213,6 +213,15 @@
             "label": "Enable CAPI support (a CAPI Provider must already be installed on the cluster)"
           },
           {
+            "name": "clusterUserPassword",
+            "type": "Microsoft.Common.PasswordBox",
+            "label": {
+              "password": "Cluster user password",
+              "confirmPassword": "Confirm cluster user password"
+            },
+            "toolTip": "Provide the password for the 'wego-admin' cluster user."
+          },
+          {
             "name": "existingFluxLookupControl",
             "type": "Microsoft.Solutions.ArmApiControl",
             "request": {
@@ -234,6 +243,7 @@
       "vmCount": "[steps('clusterDetails').newClusterSection.vmCount]",
       "app-title": "[steps('applicationDetails').title]",
       "capiEnabled": "[steps('applicationDetails').capiEnabled]",
+      "clusterUserPassword": "[steps('applicationDetails').clusterUserPassword]",
       "installFlux": "[empty(filter(steps('applicationDetails').existingFluxLookupControl.value, (i) =>  equals(i.properties.extensionType, 'microsoft.flux')))]"
     }
   }

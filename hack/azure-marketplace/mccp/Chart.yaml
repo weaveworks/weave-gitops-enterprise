@@ -19,9 +19,9 @@ dependencies:
   version: 0.21.0
 - condition: gitopssets-controller.enabled
   name: gitopssets-controller
-  repository: file://../gitopssets-controller
-  version: 0.1.0
+  repository: oci://ghcr.io/weaveworks/charts
+  version: 0.14.1
 description: A Helm chart for Kubernetes
 name: mccp
 type: application
-version: 0.28.0-rc.1
+version: 0.29.1
