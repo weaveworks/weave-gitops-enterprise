@@ -1,10 +1,10 @@
 import { useFeatureFlags } from '@weaveworks/weave-gitops';
-import { useHistory, useLocation } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { useQueryService } from '../../../hooks/query';
 import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
 
 // @ts-ignore
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { AuditTable } from './AuditTable';
 import WarningMsg from './WarningMsg';
@@ -13,7 +13,6 @@ const PolicyAuditList = () => {
   const [areQueryParamsRemoved, setAreQueryParamsRemoved] =
     useState<boolean>(false);
   const [history] = useState(useHistory());
-  const [location] = useState(useLocation());
 
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
@@ -24,15 +23,22 @@ const PolicyAuditList = () => {
   const queryState = manager.read();
   const setQueryState = manager.write;
 
-  useEffect(() => {
+  const removeFilters = useCallback(() => {
     const params = new URLSearchParams();
     params.delete('search');
     history.replace({
-      ...location,
+      ...history.location,
       search: params.toString(),
     });
+  }, [history]);
+
+  useEffect(() => {
+    removeFilters();
     setAreQueryParamsRemoved(true);
-  }, [history, location]);
+    return () => {
+      removeFilters();
+    };
+  }, [removeFilters]);
 
   const { data, error, isLoading } = useQueryService({
     terms: queryState.terms,
