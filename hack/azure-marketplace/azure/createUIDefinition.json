@@ -210,7 +210,8 @@
           {
             "name": "capiEnabled",
             "type": "Microsoft.Common.CheckBox",
-            "label": "Enable CAPI support (a CAPI Provider must already be installed on the cluster)"
+            "label": "Enable CAPI support (a CAPI Provider must already be installed on the cluster)",
+            "toolTip": "Indicate whether CAPI is supported or not."
           },
           {
             "name": "clusterUserPassword",
@@ -219,7 +220,12 @@
               "password": "Cluster user password",
               "confirmPassword": "Confirm cluster user password"
             },
-            "toolTip": "Provide the password for the 'wego-admin' cluster user."
+            "toolTip": "Provide the password for the 'wego-admin' cluster user.",
+            "constraints": {
+              "required": true,
+              "regex": "^[a-zA-Z0-9]{8,}$",
+              "validationMessage": "Password must be at least 8 characters long, contain only numbers and letters."
+            }
           },
           {
             "name": "existingFluxLookupControl",
