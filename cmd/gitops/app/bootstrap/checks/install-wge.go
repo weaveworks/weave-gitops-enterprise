@@ -31,7 +31,7 @@ func InstallWge(version string) {
 
 	var userDomain string
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
-		fmt.Println("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
+		fmt.Printf("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
 		userDomainPrompt := promptContent{
 			"Domain can't be empty",
 			"Please enter your cluster domain",
