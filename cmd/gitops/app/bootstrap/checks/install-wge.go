@@ -12,7 +12,7 @@ const HELMREPOSITORY_NAME string = "weave-gitops-enterprise-charts"
 const HELMRELEASE_NAME string = "weave-gitops-enterprise"
 const VALUES_FILES_LOCATION string = "/tmp/mccp-values.yaml"
 const DOMAIN_TYPE_LOCALHOST string = "localhost (Using Portforward)"
-const DOMAIN_TYPE_EXTERNALDNS string = "external DNS (See the docs: )"
+const DOMAIN_TYPE_EXTERNALDNS string = "external DNS"
 const UI_URL_LOCALHOST string = "localhost:8000"
 
 func InstallWge(version string) {
@@ -31,6 +31,7 @@ func InstallWge(version string) {
 
 	var userDomain string
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
+		fmt.Println("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
 		userDomainPrompt := promptContent{
 			"Domain can't be empty",
 			"Please enter your cluster domain",
@@ -42,9 +43,9 @@ func InstallWge(version string) {
 	fmt.Printf("✔ All set installing WGE v%s, This may take few minutes...\n", version)
 	var runner runner.CLIRunner
 
-	_, err := runner.Run("flux", "create", "source", "helm", HELMREPOSITORY_NAME, "--url", CHART_URL, "--secret-ref", ENTITLEMENT_SECRET_NAME)
+	out, err := runner.Run("flux", "create", "source", "helm", HELMREPOSITORY_NAME, "--url", CHART_URL, "--secret-ref", ENTITLEMENT_SECRET_NAME)
 	if err != nil {
-		fmt.Printf("An error occurred creating helmrepository %v\n", err)
+		fmt.Printf("An error occurred creating helmrepository\n%v\n", string(out))
 		os.Exit(1)
 	}
 
@@ -83,7 +84,8 @@ tls:
 			fmt.Printf("An error occurred finializing writing values file %v\n", err)
 			os.Exit(1)
 		}
-		_, err = runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
+		fmt.Println("Installing WGE ...")
+		out, err := runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
 			"--source", fmt.Sprintf("HelmRepository/%s", HELMREPOSITORY_NAME),
 			"--chart", "mccp",
 			"--chart-version", version,
@@ -92,18 +94,19 @@ tls:
 			"--values", VALUES_FILES_LOCATION,
 		)
 		if err != nil {
-			fmt.Printf("An error occurred creating helmrelease %v\n", err)
+			fmt.Printf("An error occurred creating helmrelease\n%v\n", string(out))
 			os.Exit(1)
 		}
 	} else {
-		_, err = runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
+		fmt.Println("Installing WGE ...")
+		out, err := runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
 			"--source", fmt.Sprintf("HelmRepository/%s", HELMREPOSITORY_NAME),
 			"--chart", "mccp",
 			"--chart-version", version,
 			"--interval", "65m",
 			"--crds", "CreateReplace")
 		if err != nil {
-			fmt.Printf("An error occurred creating helmrelease %v\n", err)
+			fmt.Printf("An error occurred creating helmrelease\n%v\n", string(out))
 			os.Exit(1)
 		}
 	}
@@ -112,9 +115,9 @@ tls:
 		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, userDomain)
 	} else {
 		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, UI_URL_LOCALHOST)
-		_, err = runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
+		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 		if err != nil {
-			fmt.Printf("An error occurred port-forwarding %v\n", err)
+			fmt.Printf("An error occurred port-forwarding\n%v\n", string(out))
 			os.Exit(1)
 		}
 	}

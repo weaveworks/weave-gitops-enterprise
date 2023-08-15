@@ -12,7 +12,7 @@ import (
 func BootstrapFlux() {
 
 	prompt := promptui.Prompt{
-		Label:     "Do you want to bootstrap flux on your cluster",
+		Label:     "Do you want to bootstrap flux with the generic way on your cluster",
 		IsConfirm: true,
 	}
 
@@ -53,7 +53,7 @@ func BootstrapFlux() {
 			defaultPrivateKeyPath,
 		}
 		privateKeyPath := promptGetStringInput(privateKeyPathPrompt)
-
+		fmt.Println("Installing flux ...")
 		var runner runner.CLIRunner
 		out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
 		if err != nil {
@@ -62,6 +62,8 @@ func BootstrapFlux() {
 		}
 
 		fmt.Println("✔  flux is bootstrapped successfully")
+	} else {
+		os.Exit(1)
 	}
 
 }
@@ -72,11 +74,12 @@ func CheckFluxIsInstalled() {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
-		os.Exit(1)
+		fmt.Printf("%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n", string(out))
+		BootstrapFlux()
+	} else {
+		fmt.Println("✔  flux is installed")
 	}
 
-	fmt.Println("✔  flux is installed")
 }
 
 func CheckFluxReconcile() {
