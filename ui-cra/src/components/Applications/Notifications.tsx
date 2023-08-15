@@ -13,7 +13,6 @@ const WGNotifications: FC = () => {
       path={[
         {
           label: 'Notifications',
-          url: '/notifications',
         },
       ]}
     >
