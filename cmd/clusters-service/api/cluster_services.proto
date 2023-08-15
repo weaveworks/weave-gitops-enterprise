@@ -18,12 +18,16 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
  * Weave GitOps Enterprise ClustersService service definition
  */
 service ClustersService {
+  /**
+    * ListTemplates queries the available Templates.
+    */
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {
       get : "/v1/templates"
     };
   }
 
+  // GetTemplate queries for a specific template name.
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}"
@@ -277,7 +281,11 @@ service ClustersService {
 }
 
 message ListTemplatesRequest {
+  // provider allows filtering of templates the provider can be one of "aws", "azure", "digitalocean", "docker", "gcp", "openstack", "packet", "vsphere"
+  // which will filter the templates by the type of the resource they provide as annotation on the Template resource.
   string provider = 1;
+  // template_kind indicates what kind of templates to list, can be either
+  // GitOpsTemplate or CAPITemplate
   string template_kind = 2;
 }
 
@@ -299,7 +307,10 @@ message ListTemplatesResponse {
 }
 
 message GetTemplateRequest {
+  // template_name is the name of the Template to get this is combined with the
+  // namespace to load the specific Template.
   string template_name = 1;
+  // template_kind is the kind i.e. GitOpsTemplate or CAPITemplate.
   string template_kind = 2;
   string template_namespace = 3;
 }
