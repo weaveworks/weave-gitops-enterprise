@@ -27,5 +27,14 @@ func Bootstrap() error {
 	wgeVersion := checks.SelectWgeVersion()
 	checks.CreateAdminPasswordSecret()
 	checks.InstallWge(wgeVersion)
+
+	var extraControllers []string = []string{
+		"None",
+		"policy-agent",
+		"pipeline-controller",
+		"gitopssets-controller",
+	}
+
+	checks.CheckExtraControllers(wgeVersion, extraControllers)
 	return nil
 }
