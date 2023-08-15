@@ -4,7 +4,7 @@ import { useQueryService } from '../../../hooks/query';
 import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
 
 // @ts-ignore
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { AuditTable } from './AuditTable';
 import WarningMsg from './WarningMsg';
@@ -23,20 +23,16 @@ const PolicyAuditList = () => {
   const queryState = manager.read();
   const setQueryState = manager.write;
 
-  const removeFilters = useCallback(() => {
+  useEffect(() => {
     const params = new URLSearchParams();
     params.delete('search');
+    params.delete('filters');
     history.replace({
       ...history.location,
       search: params.toString(),
     });
-  }, [history]);
-
-  useEffect(() => {
-    removeFilters();
     setAreQueryParamsRemoved(true);
-
-  }, [removeFilters]);
+  }, [history]);
 
   const { data, error, isLoading } = useQueryService({
     terms: queryState.terms,
