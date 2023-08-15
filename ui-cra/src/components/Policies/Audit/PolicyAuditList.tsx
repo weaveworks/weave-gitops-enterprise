@@ -35,9 +35,7 @@ const PolicyAuditList = () => {
   useEffect(() => {
     removeFilters();
     setAreQueryParamsRemoved(true);
-    return () => {
-      removeFilters();
-    };
+
   }, [removeFilters]);
 
   const { data, error, isLoading } = useQueryService({
