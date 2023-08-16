@@ -317,24 +317,16 @@ func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...ru
 		switch resource := resource.(type) {
 		case *v1.ServiceAccount:
 			_, err := client.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		case *rbacv1.ClusterRole:
 			_, err := client.RbacV1().ClusterRoles().Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		case *rbacv1.ClusterRoleBinding:
 			_, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		case *v1.Secret:
 			_, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		default:
 			t.Fatalf("invalid resource type %s", resource)
 

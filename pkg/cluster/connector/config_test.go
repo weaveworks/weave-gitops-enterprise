@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/client-go/rest"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
@@ -39,48 +39,44 @@ func TestConfigForContext(t *testing.T) {
 
 }
 
-// kubeConfigWithToken takes a rest.Config and generates a KubeConfig with the
-// named context and configured user credentials from the provided token.
-func kubeConfigWithToken(config *rest.Config, context string, token []byte) (*clientcmdapi.Config, error) {
-	cfg := clientcmdapi.NewConfig()
-	cfg.Clusters[context] = &clientcmdapi.Cluster{
-		Server: config.Host,
-	}
-
-	return cfg, nil
-}
-
+// TestKubeConfigWithToken tests the kubeConfigWithToken function.
+// spoke is considered the remote cluster to connect to
 func TestKubeConfigWithToken(t *testing.T) {
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
 	restCfg, err := ConfigForContext(opts, "spoke")
 	assert.NoError(t, err)
-
 	config, err := kubeConfigWithToken(restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)
 
 	want := clientcmdapi.Config{
+		Kind:       "",
+		APIVersion: "",
 		Clusters: map[string]*clientcmdapi.Cluster{
 			"spoke": {
 				Server:                   "https://spoke.example.com",
-				CertificateAuthorityData: []byte("Q0FEQVRBMg=="),
+				CertificateAuthorityData: []byte("CADATA2"),
 				InsecureSkipTLSVerify:    true,
 			},
 		},
 		AuthInfos: map[string]*clientcmdapi.AuthInfo{
-			"user1": {
+			"spoke-cluster-user": {
 				Token: "testing-token",
 			},
 		},
 		Contexts: map[string]*clientcmdapi.Context{
-			"context1": {
+			"spoke": {
 				Cluster:  "spoke",
-				AuthInfo: "user1",
+				AuthInfo: "spoke-cluster-user",
 			},
 		},
 		CurrentContext: "spoke",
+		Preferences: clientcmdapi.Preferences{
+			Extensions: map[string]runtime.Object{},
+		},
+		Extensions: map[string]runtime.Object{},
 	}
 
-	assert.Equal(t, want, config)
+	assert.Equal(t, want, *config)
 }
