@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/spf13/viper"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/util/sets"
 
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
@@ -13,13 +14,16 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 )
 
-func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string) ([]templates.RenderedTemplate, error) {
+func renderTemplateWithValues(t apitemplates.Template, name, namespace string, values map[string]string, mapper meta.RESTMapper) ([]templates.RenderedTemplate, error) {
 	opts := []templates.RenderOptFunc{
-		templates.InNamespace(namespace),
 		templates.InjectLabels(map[string]string{
 			"templates.weave.works/template-name":      name,
 			"templates.weave.works/template-namespace": viper.GetString("capi-templates-namespace"),
 		}),
+	}
+
+	if mapper != nil {
+		opts = append(opts, templates.InNamespace(namespace, mapper))
 	}
 
 	if shouldInjectPruneAnnotation(t) {

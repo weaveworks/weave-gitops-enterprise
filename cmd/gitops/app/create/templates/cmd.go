@@ -266,6 +266,7 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 	templateResources, err := server.GetFiles(
 		context.Background(),
 		nil, // no need for a kube client as we're providing the helm repo no
+		nil,
 		log,
 		estimation.NilEstimator(),
 		chartsCache,
