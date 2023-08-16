@@ -49,7 +49,7 @@ function setup {
   # Set enterprise cluster CNAME host entry mapping in the /etc/hosts file
   ${args[1]}/test/utils/scripts/hostname-to-ip.sh ${MANAGEMENT_CLUSTER_CNAME}
    
-  helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3/
+  helm repo add wkpv3 https://s3.us-east-1.amazonaws.com/weaveworks-wkp/charts-v3-r2/
   helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
   helm repo add cert-manager https://charts.jetstack.io
   helm repo update  
