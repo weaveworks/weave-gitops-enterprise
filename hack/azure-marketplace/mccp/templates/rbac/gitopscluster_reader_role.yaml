@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitopscluster-reader
+rules:
+  - apiGroups: ["gitops.weave.works"]
+    resources: ["gitopsclusters"]
+    verbs: ["get", "watch", "list"]
+
+{{- if .Values.enableExplorer }}
+  - apiGroups: ["rbac.authorization.k8s.io"]
+    resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
+    verbs: ["get", "watch", "list"]
+{{- end }}
+

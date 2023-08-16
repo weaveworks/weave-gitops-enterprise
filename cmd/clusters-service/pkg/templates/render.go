@@ -2,7 +2,9 @@ package templates
 
 import (
 	"fmt"
+	"log"
 
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	serializer "k8s.io/apimachinery/pkg/runtime/serializer/yaml"
 	"sigs.k8s.io/yaml"
@@ -30,10 +32,30 @@ func InjectPruneAnnotation(uns *unstructured.Unstructured) error {
 }
 
 // InNamespace is a Render option that updates the object metadata to put it
-// into the correct namespace.
-func InNamespace(ns string) RenderOptFunc {
+// into the correct namespace. It uses the RESTMapper to determine if the object
+// is namespaced or not.
+func InNamespace(ns string, rm meta.RESTMapper) RenderOptFunc {
 	return func(uns *unstructured.Unstructured) error {
-		// If not specified set it.
+		gvk := uns.GroupVersionKind()
+		mapping, err := rm.RESTMapping(gvk.GroupKind(), gvk.Version)
+		if err != nil {
+			// Check if the error is a NoKindMatchError
+			if _, isNoKindMatchError := err.(*meta.NoKindMatchError); isNoKindMatchError {
+				log.Printf("kind '%s' not matched due to missing CRD. adding to namespace: %s", gvk.Kind, ns)
+
+				uns.SetNamespace(ns)
+
+				return nil
+			}
+
+			return err
+		}
+
+		// For root-scoped resource, don't set the namespace.
+		if mapping.Scope.Name() == meta.RESTScopeNameRoot {
+			return nil
+		}
+		// For namespaced resources, set the namespace if not specified.
 		if uns.GetNamespace() == "" {
 			uns.SetNamespace(ns)
 		}

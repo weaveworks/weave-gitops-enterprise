@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	storemetrics "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -116,7 +117,7 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			errPattern: "",
@@ -131,7 +132,7 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "test-cluster-2",
@@ -140,7 +141,7 @@ func TestSQLiteStore_StoreObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategorySource,
+					Category:   configuration.CategorySource,
 				},
 			},
 			errPattern: "",
@@ -183,7 +184,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 		Kind:       "ValidKind",
 		APIGroup:   "example.com",
 		APIVersion: "v1",
-		Category:   models.CategoryAutomation,
+		Category:   configuration.CategoryAutomation,
 	}
 
 	t.Run("should have StoreObjects instrumented", func(t *testing.T) {
@@ -379,7 +380,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			deleteClusters: []string{"cluster-without-objects"},
@@ -395,7 +396,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 				{
 					Cluster:    "cluster-with-objects",
@@ -404,7 +405,7 @@ func TestSQLiteStore_DeleteAllObjects(t *testing.T) {
 					Kind:       "ValidKind",
 					APIGroup:   "example.com",
 					APIVersion: "v1",
-					Category:   models.CategoryAutomation,
+					Category:   configuration.CategoryAutomation,
 				},
 			},
 			deleteClusters: []string{"cluster-with-objects"},

@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -237,6 +238,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	files, err := GetFiles(
 		ctx,
 		client,
+		client.RESTMapper(),
 		s.log,
 		s.estimator,
 		s.chartsCache,
@@ -268,6 +270,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 func GetFiles(
 	ctx context.Context,
 	client client.Client,
+	mapper meta.RESTMapper,
 	log logr.Logger,
 	estimator estimation.Estimator,
 	chartsCache helm.ProfilesGeneratorCache,
@@ -279,7 +282,7 @@ func GetFiles(
 
 	resourcesNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
-	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, resourcesNamespace, msg.ParameterValues)
+	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, resourcesNamespace, msg.ParameterValues, mapper)
 	if err != nil {
 		return nil, fmt.Errorf("failed to render template with parameter values: %w", err)
 	}

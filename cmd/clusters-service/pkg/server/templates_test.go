@@ -1625,6 +1625,7 @@ status: {}
 	files, err := GetFiles(
 		context.TODO(),
 		c,
+		c.RESTMapper(),
 		log,
 		testEstimator,
 		fakeChartCache,

@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -55,7 +56,7 @@ func TestQueryUnstructured(t *testing.T) {
 			APIGroup:     "example.com",
 			APIVersion:   "v1",
 			Unstructured: b,
-			Category:     models.CategoryEvent,
+			Category:     configuration.CategoryEvent,
 		},
 	}
 
