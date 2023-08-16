@@ -19,9 +19,6 @@ import DetailsSection from './Details/DetailsSection';
 import ListEvents from './Events/ListEvents';
 import ListManagedObjects from './ManagedObjects/ListManagedObjects';
 
-const TitleWrapper = styled.h2`
-  margin: 0px;
-`;
 const CanaryDetailsWrapper = styled.div`
   width: 100%;
 `;
@@ -36,7 +33,6 @@ function CanaryDetailsSection({
   const path = Routes.CanaryDetails;
   return (
     <Flex column gap="16">
-      <TitleWrapper>{canary.name}</TitleWrapper>
       <Flex gap="8" align start>
         <CanaryStatus
           status={canary.status?.phase || '--'}
