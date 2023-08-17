@@ -15,15 +15,18 @@ import { useListFacets } from '../../../hooks/query';
 import { QueryState, columnHeaderHandler } from '../../Explorer/hooks';
 
 import { IconButton } from '@material-ui/core';
-import { useState } from 'react';
+import _ from 'lodash';
+import qs from 'query-string';
+import { useEffect, useState } from 'react';
+import { useHistory } from 'react-router';
 import { QueryResponse } from '../../../api/query/query.pb';
+import { RequestError } from '../../../types/custom';
 import FilterDrawer from '../../Explorer/FilterDrawer';
 import Filters from '../../Explorer/Filters';
 import PaginationControls from '../../Explorer/PaginationControls';
 import QueryInput from '../../Explorer/QueryInput';
 import QueryStateChips from '../../Explorer/QueryStateChips';
 import { TableWrapper } from '../../Shared';
-import { RequestError } from '../../../types/custom';
 
 type AuditProps = {
   data: QueryResponse | undefined;
@@ -32,7 +35,9 @@ type AuditProps = {
 };
 
 export const AuditTable = ({ data, queryState, setQueryState }: AuditProps) => {
+  const history = useHistory();
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [showTable, setshowTable] = useState(false);
 
   const { data: facetsRes, error, isLoading } = useListFacets();
   const filteredFacets = facetsRes?.facets?.filter(f => f.field !== 'kind');
@@ -60,6 +65,16 @@ export const AuditTable = ({ data, queryState, setQueryState }: AuditProps) => {
       kind,
     };
   });
+
+  useEffect(() => {
+    const url = qs.parse(history.location.search);
+    const clearFilters = _.omit(url, ['filters', 'search']);
+    history.replace({
+      ...history.location,
+      search: qs.stringify(clearFilters),
+    });
+    setshowTable(true);
+  }, [history]);
   return (
     <RequestStateHandler error={error as RequestError} loading={isLoading}>
       <Flex wide column>
@@ -71,7 +86,7 @@ export const AuditTable = ({ data, queryState, setQueryState }: AuditProps) => {
         </Flex>
         <Flex wide>
           <TableWrapper id="auditViolations-list">
-            {rows?.length && (
+            {showTable && (
               <DataTable
                 key={rows?.length}
                 rows={rows}
