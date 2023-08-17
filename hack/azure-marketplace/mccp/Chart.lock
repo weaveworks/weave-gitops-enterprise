@@ -12,7 +12,7 @@ dependencies:
   repository: oci://ghcr.io/weaveworks/charts
   version: 0.21.0
 - name: gitopssets-controller
-  repository: file://../gitopssets-controller
-  version: 0.1.0
-digest: sha256:11e97827588046cba14d962c136f4321fba4bb9cc25072292cf08001e193e455
-generated: "2023-07-13T12:02:11.9285+02:00"
+  repository: oci://ghcr.io/weaveworks/charts
+  version: 0.14.1
+digest: sha256:27971cca153e0e0ffdbb225de7f4f25f2a7628263dbf6ed99b865e39f822265f
+generated: "2023-08-04T10:57:19.86700343Z"
