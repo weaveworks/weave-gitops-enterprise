@@ -6,31 +6,31 @@ import (
 	"fmt"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
-	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
-// getSecretNameFromCluster gets the secret name from the secretref of a gitops cluster given its name and namespace if found
-func getSecretNameFromCluster(client *dynamic.DynamicClient, clusterName, namespace string) (string, error) {
-	resource := gitopsv1alpha1.GroupVersion.WithResource("gitopscluster")
-	fmt.Printf("error %v", client.Resource(gitopsv1alpha1.SchemeBuilder.GroupVersion.WithResource("gitopscluster")))
-	u, err := client.Resource(resource).Namespace(namespace).Get(context.Background(), clusterName, metav1.GetOptions{})
-	if err != nil {
-		return "", err
-	}
-	gitopsCluster := capiv1_protos.GitopsCluster{}
-	err = runtime.DefaultUnstructuredConverter.FromUnstructured(u.UnstructuredContent(), &gitopsCluster)
+// getSecretNameFromCluster gets the secret name from the secretref of a
+// GitopsCluster given its name and namespace if found.
+func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, scheme *runtime.Scheme, clusterName, namespace string) (string, error) {
+	resource := gitopsv1alpha1.GroupVersion.WithResource("gitopsclusters")
+	u, err := client.Resource(resource).Namespace(namespace).Get(ctx, clusterName, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
 
-	secretName := gitopsCluster.SecretRef.Name
+	gitopsCluster, err := unstructuredToGitopsCluster(scheme, u)
+	if err != nil {
+		return "", fmt.Errorf("failed to load GitopsCluster %s/%s: %w", namespace, clusterName, err)
+	}
+
+	secretName := gitopsCluster.Spec.SecretRef.Name
 	if secretName != "" {
 		return secretName, nil
 	}
@@ -74,4 +74,13 @@ func secretWithKubeconfig(client kubernetes.Interface, secretName, namespace str
 
 	return updatedSecret, nil
 
+}
+
+func unstructuredToGitopsCluster(scheme *runtime.Scheme, uns *unstructured.Unstructured) (*gitopsv1alpha1.GitopsCluster, error) {
+	newObj, err := scheme.New(uns.GetObjectKind().GroupVersionKind())
+	if err != nil {
+		return nil, err
+	}
+
+	return newObj.(*gitopsv1alpha1.GitopsCluster), scheme.Convert(uns, newObj, nil)
 }
