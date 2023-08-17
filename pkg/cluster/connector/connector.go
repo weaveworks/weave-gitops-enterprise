@@ -50,6 +50,9 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 
 	// Get the gitopsCluster secret name
 	dynClient, err := dynamic.NewForConfig(remoteClusterConfig)
+	if err != nil {
+		return err
+	}
 	scheme, err := NewGitopsClusterScheme()
 	if err != nil {
 		return err

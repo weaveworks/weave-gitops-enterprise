@@ -12,7 +12,6 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
@@ -82,12 +81,4 @@ func newTestScheme(t *testing.T) *runtime.Scheme {
 	assert.NoError(t, err)
 
 	return scheme
-}
-
-func toUnstructured(t *testing.T, obj runtime.Object) *unstructured.Unstructured {
-	t.Helper()
-	raw, err := runtime.DefaultUnstructuredConverter.ToUnstructured(obj)
-	assert.NoError(t, err)
-
-	return &unstructured.Unstructured{Object: raw}
 }
