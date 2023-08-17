@@ -12,47 +12,30 @@ import {
   formatURL,
 } from '@weaveworks/weave-gitops';
 import { useListFacets } from '../../../hooks/query';
-import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
-import {
-  QueryState,
-  QueryStateProvider,
-  columnHeaderHandler,
-} from '../../Explorer/hooks';
+import { QueryState, columnHeaderHandler } from '../../Explorer/hooks';
 
-// @ts-ignore
 import { IconButton } from '@material-ui/core';
-import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useState } from 'react';
+import { QueryResponse } from '../../../api/query/query.pb';
 import FilterDrawer from '../../Explorer/FilterDrawer';
 import Filters from '../../Explorer/Filters';
 import PaginationControls from '../../Explorer/PaginationControls';
 import QueryInput from '../../Explorer/QueryInput';
 import QueryStateChips from '../../Explorer/QueryStateChips';
 import { TableWrapper } from '../../Shared';
-import { QueryResponse } from '../../../api/query/query.pb';
+import { RequestError } from '../../../types/custom';
 
 type AuditProps = {
   data: QueryResponse | undefined;
-  error: Error | null;
-  isLoading: boolean;
-  manager: URLQueryStateManager;
   queryState: QueryState;
   setQueryState: (queryState: QueryState) => void;
 };
 
-export const AuditTable = ({
-  data,
-  error,
-  isLoading,
-  manager,
-  queryState,
-  setQueryState,
-}: AuditProps) => {
+export const AuditTable = ({ data, queryState, setQueryState }: AuditProps) => {
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
 
-  const { data: facetsRes } = useListFacets();
+  const { data: facetsRes, error, isLoading } = useListFacets();
   const filteredFacets = facetsRes?.facets?.filter(f => f.field !== 'kind');
-
   const rows = data?.objects?.map(obj => {
     const { unstructured, cluster } = obj;
     const details = JSON.parse(unstructured || '');
@@ -78,21 +61,17 @@ export const AuditTable = ({
     };
   });
   return (
-    <QueryStateProvider manager={manager}>
-      <RequestStateHandler error={error as RequestError} loading={isLoading}>
-        <Flex wide column>
-          <Flex align wide end>
-            <QueryStateChips />
-            <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
-              <Icon
-                size="normal"
-                type={IconType.FilterIcon}
-                color="neutral30"
-              />
-            </IconButton>
-          </Flex>
-          <Flex wide>
-            <TableWrapper id="auditViolations-list">
+    <RequestStateHandler error={error as RequestError} loading={isLoading}>
+      <Flex wide column>
+        <Flex align wide end>
+          <QueryStateChips />
+          <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
+            <Icon size="normal" type={IconType.FilterIcon} color="neutral30" />
+          </IconButton>
+        </Flex>
+        <Flex wide>
+          <TableWrapper id="auditViolations-list">
+            {rows?.length && (
               <DataTable
                 key={rows?.length}
                 rows={rows}
@@ -176,23 +155,23 @@ export const AuditTable = ({
                   setQueryState,
                 )}
               />
-            </TableWrapper>
-            <FilterDrawer
-              onClose={() => setFilterDrawerOpen(false)}
-              open={filterDrawerOpen}
-            >
-              <QueryInput />
+            )}
+          </TableWrapper>
+          <FilterDrawer
+            onClose={() => setFilterDrawerOpen(false)}
+            open={filterDrawerOpen}
+          >
+            <QueryInput />
 
-              <Filters facets={filteredFacets || []} />
-            </FilterDrawer>
-          </Flex>
-          <PaginationControls
-            queryState={queryState}
-            setQueryState={setQueryState}
-            count={data?.objects?.length || 0}
-          />
+            <Filters facets={filteredFacets || []} />
+          </FilterDrawer>
         </Flex>
-      </RequestStateHandler>
-    </QueryStateProvider>
+        <PaginationControls
+          queryState={queryState}
+          setQueryState={setQueryState}
+          count={data?.objects?.length || 0}
+        />
+      </Flex>
+    </RequestStateHandler>
   );
 };

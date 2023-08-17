@@ -1,39 +1,21 @@
-import { useFeatureFlags } from '@weaveworks/weave-gitops';
+import { RequestStateHandler, useFeatureFlags } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useQueryService } from '../../../hooks/query';
+import { RequestError } from '../../../types/custom';
 import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
-
-// @ts-ignore
-import { useEffect, useState } from 'react';
-import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { QueryStateProvider } from '../../Explorer/hooks';
 import { AuditTable } from './AuditTable';
 import WarningMsg from './WarningMsg';
 
 const PolicyAuditList = () => {
-  const [areQueryParamsRemoved, setAreQueryParamsRemoved] =
-    useState<boolean>(false);
-  const [history] = useState(useHistory());
-
+  const history = useHistory();
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
-
   const manager = new URLQueryStateManager(history);
   const queryState = manager.read();
   const setQueryState = manager.write;
-
-  useEffect(() => {
-    const params = new URLSearchParams();
-    params.delete('search');
-    params.delete('filters');
-    history.replace({
-      ...history.location,
-      search: params.toString(),
-    });
-    setAreQueryParamsRemoved(true);
-  }, [history]);
-
   const { data, error, isLoading } = useQueryService({
     terms: queryState.terms,
     filters: ['kind:Event', ...queryState.filters],
@@ -44,20 +26,21 @@ const PolicyAuditList = () => {
   });
 
   return (
-    <LoadingWrapper loading={!areQueryParamsRemoved}>
-      {useQueryServiceBackend ? (
-        <AuditTable
-          data={data}
-          error={error}
-          isLoading={isLoading}
-          queryState={queryState}
-          setQueryState={setQueryState}
-          manager={manager}
-        />
-      ) : (
-        <WarningMsg />
-      )}
-    </LoadingWrapper>
+    <QueryStateProvider manager={manager}>
+      <RequestStateHandler error={error as RequestError} loading={isLoading}>
+        {useQueryServiceBackend ? (
+          data?.objects?.length && (
+            <AuditTable
+              data={data}
+              queryState={queryState}
+              setQueryState={setQueryState}
+            />
+          )
+        ) : (
+          <WarningMsg />
+        )}
+      </RequestStateHandler>
+    </QueryStateProvider>
   );
 };
 export default PolicyAuditList;
