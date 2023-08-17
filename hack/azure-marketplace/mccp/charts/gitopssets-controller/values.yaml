@@ -32,7 +32,7 @@ controllerManager:
         - ALL
     image:
       repository: ghcr.io/weaveworks/gitopssets-controller
-      tag: latest
+      tag: v0.14.1
     resources:
       limits:
         cpu: 500m
@@ -49,3 +49,4 @@ metricsService:
     protocol: TCP
     targetPort: https
   type: ClusterIP
+fullnameOverride: gitopssets

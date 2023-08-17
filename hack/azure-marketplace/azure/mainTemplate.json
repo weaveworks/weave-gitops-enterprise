@@ -9,6 +9,9 @@
     "capiEnabled": {
       "type": "Bool"
     },
+    "clusterUserPassword": {
+      "type": "securestring"
+    },
     "clusterResourceName": {
       "metadata": {
         "description": "The name of the Managed Cluster resource."
@@ -214,7 +217,9 @@
       },
       "properties": {
         "autoUpgradeMinorVersion": true,
-        "configurationProtectedSettings": {},
+        "configurationProtectedSettings": {
+          "config.auth.userAccount.password": "[parameters('clusterUserPassword')]"
+        },
         "configurationSettings": {
           "global.capiEnabled": "[parameters('capiEnabled')]",
           "title": "[parameters('app-title')]"
