@@ -24,6 +24,7 @@ import {
   Kustomization,
   ProfileValues,
   RenderTemplateResponse,
+  RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import {
@@ -305,6 +306,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   );
 
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
+  const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
+    RepositoryRef[]
+  >([]);
 
   useEffect(() => clearCallbackState(), []);
 
@@ -314,6 +318,19 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       ...callbackState?.state?.updatedProfiles,
     });
   }, [callbackState?.state?.updatedProfiles, profiles]);
+
+  useEffect(() => {
+    if (selectedHelmRepositories.length === 0) {
+      setSelectedHelmRepositories([
+        ...helmReposRefs,
+        ...(callbackState?.state?.selectedHelmRepositories || []),
+      ]);
+    }
+  }, [
+    callbackState?.state?.selectedHelmRepositories,
+    helmReposRefs,
+    selectedHelmRepositories.length,
+  ]);
 
   const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -534,6 +551,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           state: {
             infraCredential,
             formData,
+            selectedHelmRepositories,
             updatedProfiles,
           },
         }}
@@ -583,7 +601,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               isLoading={profilesIsLoading}
               updatedProfiles={updatedProfiles}
               setUpdatedProfiles={setUpdatedProfiles}
-              helmRepos={helmReposRefs}
+              // helmRepos={helmReposRefs}
+              selectedHelmRepositories={selectedHelmRepositories}
+              setSelectedHelmRepositories={setSelectedHelmRepositories}
             />
           ) : null}
           {isKustomizationsEnabled ? (
@@ -677,7 +697,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     resource,
     initialGitRepo,
     isAuthenticated,
-    helmReposRefs,
+    selectedHelmRepositories,
   ]);
 };
 

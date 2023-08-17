@@ -453,7 +453,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   isLoading={profilesIsLoading}
                   updatedProfiles={updatedProfiles}
                   setUpdatedProfiles={setUpdatedProfiles}
-                  helmRepos={[helmRepo]}
+                  selectedHelmRepositories={[helmRepo]}
                 />
               ) : null}
               {previewLoading ? (

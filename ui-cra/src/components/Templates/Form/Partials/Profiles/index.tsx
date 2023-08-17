@@ -2,7 +2,7 @@ import { Checkbox, TextField } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import React, { Dispatch, FC, useEffect, useState } from 'react';
+import React, { Dispatch, FC } from 'react';
 import styled from 'styled-components';
 import {
   ClusterNamespacedName,
@@ -65,7 +65,9 @@ const Profiles: FC<{
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   isLoading: boolean;
   isProfilesEnabled?: string;
-  helmRepos: RepositoryRef[];
+  // helmRepos: RepositoryRef[];
+  selectedHelmRepositories: RepositoryRef[];
+  setSelectedHelmRepositories?: Dispatch<RepositoryRef[]>;
 }> = ({
   context,
   cluster,
@@ -73,21 +75,11 @@ const Profiles: FC<{
   setUpdatedProfiles,
   isLoading,
   isProfilesEnabled = 'true',
-  helmRepos,
+  // helmRepos,
+  selectedHelmRepositories,
+  setSelectedHelmRepositories,
 }) => {
-  const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
-    RepositoryRef[]
-  >([]);
-
-  // We need to check the updated profiles and see if there have been any selections made (callbackState).
-  // If there have been,  we need to find those helm repositories and set them as selectedHelmRepositories
-
-  useEffect(() => {
-    if (selectedHelmRepositories.length === 0) {
-      setSelectedHelmRepositories(helmRepos);
-    }
-  }, [helmRepos, selectedHelmRepositories.length]);
-
+  console.log(setSelectedHelmRepositories);
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -118,24 +110,25 @@ const Profiles: FC<{
   const rowCount = updatedProfilesList.length || 0;
 
   // Showing helm repositories in autocomplete as name:namespace as there could be multiple repositories with same name in different namespaces
-  const nameNamespaceHelmRepos = helmRepos.map(
+  const nameNamespaceHelmRepos = selectedHelmRepositories?.map(
     hr => `${hr.name}:${hr.namespace}`,
   );
 
   const getSelectedHelmRepos = (selectedHelmRepos: string[]) =>
     selectedHelmRepos.map((selectedHelmRepo: string) => {
       const [name, namespace] = selectedHelmRepo.split(':');
-      return helmRepos.find(
+      return selectedHelmRepositories?.find(
         hr => hr.name === name && hr.namespace === namespace,
       ) as RepositoryRef;
     });
 
-  // TO DO: Check Gitlab - do we need to add the selected repos to the state as we do with the profiles?
   // TO DO: Check the form in EDIT mode once we're able to create resources in this new format
 
   return (
     <ProfilesWrapper>
       <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
+      {/* TO DO: Update this as for app creation the helm repo selection is made
+      in another section */}
       <Autocomplete
         multiple
         id="helmrepositories-select"
@@ -143,7 +136,7 @@ const Profiles: FC<{
         disableCloseOnSelect
         getOptionLabel={option => option as string}
         onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
-          setSelectedHelmRepositories(
+          setSelectedHelmRepositories?.(
             getSelectedHelmRepos(selectedNameNamespaceHelmRepos),
           )
         }
@@ -239,7 +232,7 @@ const Profiles: FC<{
                   profile={p}
                   setUpdatedProfiles={setUpdatedProfiles}
                   helmRepo={
-                    helmRepos.find(
+                    selectedHelmRepositories?.find(
                       hr => hr.name === p.repoName,
                     ) as RepositoryRef
                   }

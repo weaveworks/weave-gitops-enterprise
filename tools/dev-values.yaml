@@ -31,6 +31,8 @@ extraEnvVars:
     value: "bitbucket.yiannis.net"
   - name: DEV_MODE
     value: "true"
+  - name: GIT_HOST_TYPES
+    value: gitlab.git.dev.weave.works=gitlab
 
 extraEnvVarsSecret: ""
 
