@@ -223,8 +223,8 @@
             "toolTip": "Provide the password for the 'wego-admin' cluster user.",
             "constraints": {
               "required": true,
-              "regex": "^[a-zA-Z0-9]{8,}$",
-              "validationMessage": "Password must be at least 8 characters long, contain only numbers and letters."
+              "regex": "^[\u0020-\u007E\u00A0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u0250-\u02AF]{8,}$",
+              "validationMessage": "Password must be at least 8 characters long, and may contain numbers, letters and special characters."
             }
           },
           {
