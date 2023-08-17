@@ -121,11 +121,12 @@ const Profiles: FC<{
             hr.selected = true;
             return hr;
           }
+          return null;
         }) as SelectedHelmRepoRefs;
       },
     );
 
-    const remaining = selectedHelmRepositories?.filter(hr => {
+    const unselected = selectedHelmRepositories?.filter(hr => {
       if (
         !newlySelected.find(
           ns => ns.name === hr.name && ns.namespace === hr.namespace,
@@ -134,9 +135,10 @@ const Profiles: FC<{
         hr.selected = false;
         return hr;
       }
+      return null;
     });
 
-    setSelectedHelmRepositories?.([...newlySelected, ...remaining]);
+    setSelectedHelmRepositories?.([...newlySelected, ...unselected]);
   };
 
   // TO DO: Check form in EDIT mode
