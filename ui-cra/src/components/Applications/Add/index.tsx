@@ -11,10 +11,7 @@ import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import {
-  ClusterAutomation,
-  RepositoryRef,
-} from '../../../cluster-services/cluster_services.pb';
+import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -46,6 +43,7 @@ import {
 } from '../../Templates/Form/utils';
 import { createDeploymentObjects, renderKustomization } from '../utils';
 import AppFields from './form/Partials/AppFields';
+import { SelectedHelmRepoRefs } from '../../Templates/Form';
 
 interface FormData {
   repo: GitRepository | null;
@@ -158,7 +156,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const [formData, setFormData] = useState<any>(initialFormData);
   const firstAuto = formData.clusterAutomations[0];
-  const helmRepo: RepositoryRef = useMemo(() => {
+  const helmRepo: SelectedHelmRepoRefs = useMemo(() => {
     return {
       name: firstAuto.source_name,
       namespace: firstAuto.source_namespace,

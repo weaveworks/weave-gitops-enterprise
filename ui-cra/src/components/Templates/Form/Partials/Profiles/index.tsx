@@ -12,6 +12,7 @@ import { ProfilesIndex, UpdatedProfile } from '../../../../../types/custom';
 import { Loader } from '../../../../Loader';
 import ProfilesListItem from './ProfileListItem';
 import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
+import { SelectedHelmRepoRefs } from '../..';
 
 const icon = <CheckBoxOutlineBlank fontSize="small" />;
 const checkedIcon = <CheckBox fontSize="small" />;
@@ -65,9 +66,8 @@ const Profiles: FC<{
   setUpdatedProfiles: Dispatch<React.SetStateAction<ProfilesIndex>>;
   isLoading: boolean;
   isProfilesEnabled?: string;
-  // helmRepos: RepositoryRef[];
-  selectedHelmRepositories: RepositoryRef[];
-  setSelectedHelmRepositories?: Dispatch<RepositoryRef[]>;
+  selectedHelmRepositories: SelectedHelmRepoRefs[];
+  setSelectedHelmRepositories?: Dispatch<SelectedHelmRepoRefs[]>;
 }> = ({
   context,
   cluster,
@@ -75,15 +75,13 @@ const Profiles: FC<{
   setUpdatedProfiles,
   isLoading,
   isProfilesEnabled = 'true',
-  // helmRepos,
   selectedHelmRepositories,
   setSelectedHelmRepositories,
 }) => {
-  console.log(setSelectedHelmRepositories);
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
-  ) => {
+  ) =>
     setUpdatedProfiles(sp => ({
       ...sp,
       [name]: {
@@ -91,16 +89,14 @@ const Profiles: FC<{
         selected: event.target.checked,
       },
     }));
-  };
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) =>
     setUpdatedProfiles(sp =>
       _.mapValues(sp, p => ({
         ...p,
         selected: event.target.checked || p.required,
       })),
     );
-  };
 
   const updatedProfilesList = _.sortBy(Object.values(updatedProfiles), [
     'name',
@@ -114,21 +110,42 @@ const Profiles: FC<{
     hr => `${hr.name}:${hr.namespace}`,
   );
 
-  const getSelectedHelmRepos = (selectedHelmRepos: string[]) =>
-    selectedHelmRepos.map((selectedHelmRepo: string) => {
-      const [name, namespace] = selectedHelmRepo.split(':');
-      return selectedHelmRepositories?.find(
-        hr => hr.name === name && hr.namespace === namespace,
-      ) as RepositoryRef;
+  const handleHelmRepoSelection = (
+    selectedNameNamespaceHelmRepos: string[],
+  ) => {
+    const newlySelected = selectedNameNamespaceHelmRepos.map(
+      (selectedHelmRepo: string) => {
+        const [name, namespace] = selectedHelmRepo.split(':');
+        return selectedHelmRepositories?.find(hr => {
+          if (hr.name === name && hr.namespace === namespace) {
+            hr.selected = true;
+            return hr;
+          }
+        }) as SelectedHelmRepoRefs;
+      },
+    );
+
+    const remaining = selectedHelmRepositories?.filter(hr => {
+      if (
+        !newlySelected.find(
+          ns => ns.name === hr.name && ns.namespace === hr.namespace,
+        )
+      ) {
+        hr.selected = false;
+        return hr;
+      }
     });
 
-  // TO DO: Check the form in EDIT mode once we're able to create resources in this new format
+    setSelectedHelmRepositories?.([...newlySelected, ...remaining]);
+  };
+
+  // TO DO: Check form in EDIT mode
 
   return (
     <ProfilesWrapper>
       <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
       {/* TO DO: Update this as for app creation the helm repo selection is made
-      in another section */}
+              in another section */}
       <Autocomplete
         multiple
         id="helmrepositories-select"
@@ -136,9 +153,7 @@ const Profiles: FC<{
         disableCloseOnSelect
         getOptionLabel={option => option as string}
         onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
-          setSelectedHelmRepositories?.(
-            getSelectedHelmRepos(selectedNameNamespaceHelmRepos),
-          )
+          handleHelmRepoSelection(selectedNameNamespaceHelmRepos)
         }
         renderOption={(option: string, { selected }) => (
           <li>
@@ -164,13 +179,19 @@ const Profiles: FC<{
       {!isLoading && (
         <DataTable
           className="profiles-table table-wrapper"
-          rows={updatedProfilesList.filter(
-            up =>
-              selectedHelmRepositories?.find(
-                hr =>
-                  hr.name === up.repoName && hr.namespace === up.repoNamespace,
-              ) !== undefined,
-          )}
+          rows={
+            selectedHelmRepositories?.filter(hr => hr.selected).length === 0
+              ? updatedProfilesList
+              : updatedProfilesList?.filter(
+                  up =>
+                    selectedHelmRepositories?.find(
+                      hr =>
+                        hr.name === up.repoName &&
+                        hr.namespace === up.repoNamespace &&
+                        hr.selected,
+                    ) !== undefined,
+                )
+          }
           fields={[
             {
               label: 'checkbox',
@@ -245,6 +266,21 @@ const Profiles: FC<{
       )}
     </ProfilesWrapper>
   );
+  // }, [
+  //   isLoading,
+  //   numSelected,
+  //   rowCount,
+  //   updatedProfiles,
+  //   setUpdatedProfiles,
+  //   cluster,
+  //   context,
+  //   selectedHelmRepositories,
+  //   handleHelmRepoSelection,
+  //   handleIndividualClick,
+  //   handleSelectAllClick,
+  //   nameNamespaceHelmRepos,
+  //   updatedProfilesList,
+  // ]);
 };
 
 export default Profiles;

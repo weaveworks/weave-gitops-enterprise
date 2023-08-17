@@ -20,11 +20,11 @@ import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import {
+  ClusterNamespacedName,
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
   RenderTemplateResponse,
-  RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import {
@@ -68,6 +68,12 @@ import {
   useGetInitialGitRepo,
 } from './utils';
 
+export interface SelectedHelmRepoRefs {
+  name: string;
+  namespace: string;
+  selected?: boolean;
+  cluster?: ClusterNamespacedName;
+}
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
 }
@@ -294,6 +300,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       helmRepos.map((repo: HelmRepository) => ({
         name: repo.name,
         namespace: repo.namespace,
+        selected: false,
       })),
     [helmRepos],
   );
@@ -307,7 +314,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
 
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [selectedHelmRepositories, setSelectedHelmRepositories] = useState<
-    RepositoryRef[]
+    SelectedHelmRepoRefs[]
   >([]);
 
   useEffect(() => clearCallbackState(), []);
