@@ -16,14 +16,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
-// ClusterConnectionOptions holds the options to create the resources with such as the target names and namespace
-type ClusterConnectionOptions struct {
-	ServiceAccountName     string
-	ClusterRoleName        string
-	ClusterRoleBindingName string
-	Namespace              string
-}
-
 // ReconcileServiceAccount accepts a client and the name for a service account.
 // A new Service account is created, if one with same name exists that will be used
 // A new cluster role and cluster role binding are created, if already existing those will be used
