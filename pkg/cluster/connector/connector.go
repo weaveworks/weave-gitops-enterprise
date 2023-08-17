@@ -16,26 +16,33 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 )
 
+// NewGitopsClusterScheme returns a scheme with the GitopsCluster schema
+// information registered.
+func NewGitopsClusterScheme() (*runtime.Scheme, error) {
+	scheme := runtime.NewScheme()
+	err := gitopsv1alpha1.AddToScheme(scheme)
+	if err != nil {
+		return nil, err
+	}
+
+	return scheme, nil
+}
+
 // getSecretNameFromCluster gets the secret name from the secretref of a
 // GitopsCluster given its name and namespace if found.
-func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, scheme *runtime.Scheme, clusterName, namespace string) (string, error) {
+func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, scheme *runtime.Scheme, clusterName runtime.NamespacedName) (string, error) {
 	resource := gitopsv1alpha1.GroupVersion.WithResource("gitopsclusters")
-	u, err := client.Resource(resource).Namespace(namespace).Get(ctx, clusterName, metav1.GetOptions{})
+	u, err := client.Resource(resource).Namespace(clusterName.Namespace).Get(ctx, clusterName.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", err
 	}
 
 	gitopsCluster, err := unstructuredToGitopsCluster(scheme, u)
 	if err != nil {
-		return "", fmt.Errorf("failed to load GitopsCluster %s/%s: %w", namespace, clusterName, err)
+		return "", fmt.Errorf("failed to load GitopsCluster %s: %w", clusterName, err)
 	}
 
-	secretName := gitopsCluster.Spec.SecretRef.Name
-	if secretName != "" {
-		return secretName, nil
-	}
-
-	return secretName, nil
+	return gitopsCluster.Spec.SecretRef.Name, nil
 }
 
 // secretWithKubeconfig updates/creates the secret with the kubeconfig data given the secret name and namespace of the secret

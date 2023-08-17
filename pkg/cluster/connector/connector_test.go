@@ -69,12 +69,11 @@ func TestSecretWithKubeconfig(t *testing.T) {
 	secretRetrieved, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Get(context.Background(), secretName, metav1.GetOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSecret, secretRetrieved, "Secret retrieved from client not equal expected")
-
 }
 
 func newTestScheme(t *testing.T) *runtime.Scheme {
-	scheme := runtime.NewScheme()
-	assert.NoError(t, gitopsv1alpha1.AddToScheme(scheme))
+	scheme, err := NewGitopsClusterScheme()
+	assert.NoError(t, err)
 
 	return scheme
 }
