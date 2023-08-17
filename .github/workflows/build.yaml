@@ -35,6 +35,7 @@ env:
 
 jobs:
   helm-chart:
+    concurrency: publish-helm-chart
     permissions:
       id-token: write
       contents: read

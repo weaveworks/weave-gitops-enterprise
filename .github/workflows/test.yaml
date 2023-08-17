@@ -73,7 +73,7 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
     with:
-      helmrepo: "charts-v3"
+      helmrepo: "charts-v3-r2"
     secrets:
       BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
       WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
