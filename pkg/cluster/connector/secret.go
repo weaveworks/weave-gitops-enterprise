@@ -11,30 +11,41 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // getSecretNameFromCluster gets the secret name from the secretref of a
 // GitopsCluster given its name and namespace if found.
-func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, scheme *runtime.Scheme, clusterName runtime.NamespacedName) (string, error) {
+func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, scheme *runtime.Scheme, clusterName types.NamespacedName) (string, error) {
+	logger := log.FromContext(ctx)
 	resource := gitopsv1alpha1.GroupVersion.WithResource("gitopsclusters")
 	u, err := client.Resource(resource).Namespace(clusterName.Namespace).Get(ctx, clusterName.Name, metav1.GetOptions{})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to get GitopsCluster %s: %w", clusterName, err)
 	}
+	logger.Info("remote gitopscluster found", "gitopscluster", clusterName.Name)
 
 	gitopsCluster, err := unstructuredToGitopsCluster(scheme, u)
 	if err != nil {
 		return "", fmt.Errorf("failed to load GitopsCluster %s: %w", clusterName, err)
 	}
 
-	return gitopsCluster.Spec.SecretRef.Name, nil
+	secretName := gitopsCluster.Spec.SecretRef.Name
+	if secretName == "" {
+		return "", fmt.Errorf("failed to find referenced secret in gitopscluster %s", clusterName)
+	}
+	logger.Info("referenced secret name found in gitops cluster", "gitopscluster", clusterName)
+
+	return secretName, nil
 }
 
 // secretWithKubeconfig updates/creates the secret with the kubeconfig data given the secret name and namespace of the secret
-func secretWithKubeconfig(client kubernetes.Interface, secretName, namespace string, config *clientcmdapi.Config) (*v1.Secret, error) {
+func secretWithKubeconfig(ctx context.Context, client kubernetes.Interface, secretName, namespace string, config *clientcmdapi.Config) (*v1.Secret, error) {
+	logger := log.FromContext(ctx)
 	configBytes, err := json.Marshal(config)
 	// configStr, err := clientcmd.NewClientConfigFromBytes(configBytes)
 	if err != nil {
@@ -59,6 +70,8 @@ func secretWithKubeconfig(client kubernetes.Interface, secretName, namespace str
 		if err != nil {
 			return nil, err
 		}
+		logger.Info("new secret with kubeconfig data created", "secret", secretName)
+
 	}
 
 	secret.Data["value"] = configBytes
@@ -66,6 +79,7 @@ func secretWithKubeconfig(client kubernetes.Interface, secretName, namespace str
 	if err != nil {
 		return nil, err
 	}
+	logger.Info("secret updated with kubeconfig data successfully")
 
 	return updatedSecret, nil
 

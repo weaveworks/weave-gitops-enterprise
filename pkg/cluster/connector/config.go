@@ -1,15 +1,18 @@
 package connector
 
 import (
+	"context"
 	"fmt"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // ConfigForContext will return the kube config given a context name and set of path options if exists
-func ConfigForContext(pathOpts *clientcmd.PathOptions, contextName string) (*rest.Config, error) {
+func ConfigForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, contextName string) (*rest.Config, error) {
+	logger := log.FromContext(ctx)
 	config, err := pathOpts.GetStartingConfig()
 	if err != nil {
 		return nil, err
@@ -24,13 +27,14 @@ func ConfigForContext(pathOpts *clientcmd.PathOptions, contextName string) (*res
 		Context: *configContext,
 	}
 	clientConfig := clientcmd.NewDefaultClientConfig(*config, &overrides)
-
+	logger.Info("Config for context retrieved", "context", contextName)
 	return clientConfig.ClientConfig()
 }
 
 // kubeConfigWithToken takes a rest.Config and generates a KubeConfig with the
 // named context and configured user credentials from the provided token.
-func kubeConfigWithToken(config *rest.Config, context string, token []byte) (*clientcmdapi.Config, error) {
+func kubeConfigWithToken(ctx context.Context, config *rest.Config, context string, token []byte) (*clientcmdapi.Config, error) {
+	logger := log.FromContext(ctx)
 	clusterName := context + "-cluster"
 	username := clusterName + "-user"
 
@@ -50,6 +54,7 @@ func kubeConfigWithToken(config *rest.Config, context string, token []byte) (*cl
 		AuthInfo: username,
 	}
 	cfg.CurrentContext = context
+	logger.Info("kubeconfig with token generated successfully")
 
 	return cfg, nil
 }

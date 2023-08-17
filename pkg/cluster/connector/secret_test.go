@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/fluxcd/pkg/apis/meta"
+	"github.com/go-logr/stdr"
 	"github.com/stretchr/testify/assert"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -13,9 +14,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func TestGetSecretNameFromCluster(t *testing.T) {
@@ -33,20 +36,23 @@ func TestGetSecretNameFromCluster(t *testing.T) {
 	},
 	)
 
-	secretName, err := getSecretNameFromCluster(context.TODO(), dynClient, scheme, "spoke", corev1.NamespaceDefault)
+	secretName, err := getSecretNameFromCluster(context.TODO(), dynClient, scheme, types.NamespacedName{Name: "spoke", Namespace: corev1.NamespaceDefault})
 	assert.NoError(t, err)
 	assert.Equal(t, "spoke-secret", secretName)
 }
 
 func TestSecretWithKubeconfig(t *testing.T) {
+	logger := stdr.New(nil)
+	ctx := log.IntoContext(context.Background(), logger)
+
 	client := fake.NewSimpleClientset()
 	secretName := "spoke-secret"
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(opts, "spoke")
+	restCfg, err := ConfigForContext(ctx, opts, "spoke")
 	assert.NoError(t, err)
-	config, err := kubeConfigWithToken(restCfg, "spoke", []byte("testing-token"))
+	config, err := kubeConfigWithToken(ctx, restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)
 	configBytes, err := json.Marshal(config)
 	assert.NoError(t, err)
@@ -62,7 +68,7 @@ func TestSecretWithKubeconfig(t *testing.T) {
 		},
 	}
 
-	secretCreated, err := secretWithKubeconfig(client, "spoke-secret", "default", config)
+	secretCreated, err := secretWithKubeconfig(ctx, client, "spoke-secret", "default", config)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSecret, secretCreated, "Secret created not equal expected")
 
