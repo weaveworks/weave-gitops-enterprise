@@ -15,7 +15,7 @@ const ProgressiveDelivery = () => {
   return (
     <>
       {!isLoading && isFlaggerAvailable ? (
-        <Page loading={isLoading} path={[]}>
+        <Page loading={isLoading} path={[{ label: 'Delivery' }]}>
           {error && <Alert severity="error">{error.message}</Alert>}
           <CanariesList />
         </Page>
