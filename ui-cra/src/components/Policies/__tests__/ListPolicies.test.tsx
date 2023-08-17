@@ -1,4 +1,10 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  getByTestId,
+  render,
+  screen,
+} from '@testing-library/react';
 import moment from 'moment';
 import Policies from '../PoliciesListPage';
 import {
@@ -8,6 +14,7 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
+import { PoliciesTab } from '../PoliciesListTab';
 
 const listPoliciesResponse = {
   policies: [
@@ -109,15 +116,30 @@ describe('ListPolicies', () => {
     const errorCount = screen.queryByTestId('errorsCount');
     expect(errorCount?.textContent).toEqual('2');
   });
-  it('renders a list of policies', async () => {
-    const filterTable = new TestFilterableTable('policy-list', fireEvent);
+  it('renders Tabs of policies Page', async () => {
     api.ListPoliciesReturns = listPoliciesResponse;
     await act(async () => {
       const c = wrap(<Policies />);
       render(c);
     });
 
-    expect(await screen.findByText('Policies')).toBeTruthy();
+    const tabs = await screen.getAllByRole('tab');
+    expect(await screen.getByTestId('text-Policies')).toHaveTextContent(
+      'Policies',
+    );
+    expect(tabs).toHaveLength(3);
+    expect(tabs[0]).toHaveTextContent('Policies');
+    expect(tabs[1]).toHaveTextContent('Policy Audit');
+    expect(tabs[2]).toHaveTextContent('Enforcement Events');
+  });
+
+  it('renders a list of policies', async () => {
+    const filterTable = new TestFilterableTable('policy-list', fireEvent);
+    api.ListPoliciesReturns = listPoliciesResponse;
+    await act(async () => {
+      const c = wrap(<PoliciesTab />);
+      render(c);
+    });
 
     filterTable.testRenderTable(
       [
