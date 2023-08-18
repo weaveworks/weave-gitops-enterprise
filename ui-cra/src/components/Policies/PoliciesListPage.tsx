@@ -14,7 +14,7 @@ const Policies = () => {
   const { path } = useRouteMatch();
   const { isFlagEnabled } = useFeatureFlags();
 
-  const useQueryServiceBackend = isFlagEnabled(
+  const isQueryServiceBackendEnabled = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
   return (
@@ -24,7 +24,7 @@ const Policies = () => {
           <PoliciesTab />
         </RouterTab>
         <RouterTab name="Policy Audit" path={`${path}/audit`}>
-          {useQueryServiceBackend ? <PolicyAuditList /> : <WarningMsg />}
+          {isQueryServiceBackendEnabled ? <PolicyAuditList /> : <WarningMsg />}
         </RouterTab>
         <RouterTab name="Enforcement Events" path={`${path}/enforcement`}>
           <PolicyViolationsList req={{}} />
