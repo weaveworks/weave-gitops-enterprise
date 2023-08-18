@@ -347,7 +347,7 @@ func dumpResources(testName string) {
 		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get %s --all-namespaces -o wide > %s", res, path.Join(resourcesPath, res+".txt")))
 	}
 
-	resourceTypes := []string{"gitopsclusters", "gitrepositories", "kustomizations"}
+	resourceTypes := []string{"gitopsclusters", "gitrepositories", "kustomizations", "namespaces"}
 	for _, res := range resourceTypes {
 		_ = runCommandPassThrough("sh", "-c", fmt.Sprintf("kubectl get %s --all-namespaces -o yaml > %s", res, path.Join(resourcesPath, res+".txt")))
 	}
