@@ -8,6 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 )
 
@@ -39,6 +40,20 @@ type ClusterConnectionOptions struct {
 	GitopsClusterName types.NamespacedName
 }
 
+func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *ClusterConnectionOptions) (string, error) {
+	dynClient, err := dynamic.NewForConfig(config)
+	if err != nil {
+		return "", err
+	}
+	scheme, err := NewGitopsClusterScheme()
+	if err != nil {
+		return "", err
+	}
+
+	return getSecretNameFromCluster(ctx, dynClient, scheme, options.GitopsClusterName)
+
+}
+
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
 	// Get the context from RemoteClusterContext
 	pathOpts := clientcmd.NewDefaultPathOptions()
@@ -48,16 +63,7 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 		return err
 	}
 
-	// Get the gitopsCluster secret name
-	dynClient, err := dynamic.NewForConfig(remoteClusterConfig)
-	if err != nil {
-		return err
-	}
-	scheme, err := NewGitopsClusterScheme()
-	if err != nil {
-		return err
-	}
-	secertName, err := getSecretNameFromCluster(ctx, dynClient, scheme, options.GitopsClusterName)
+	secretName, err := getSecretNameForConfig(ctx, remoteClusterConfig, options)
 	if err != nil {
 		return err
 	}
@@ -77,7 +83,7 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	if err != nil {
 		return err
 	}
-	_, err = secretWithKubeconfig(ctx, kubernetesClient, secertName, options.GitopsClusterName.Namespace, newConfig)
+	_, err = createOrUpdateGitOpsClusterSecret(ctx, kubernetesClient, secretName, options.GitopsClusterName.Namespace, newConfig)
 	if err != nil {
 		return err
 	}

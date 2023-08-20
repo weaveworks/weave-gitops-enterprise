@@ -40,9 +40,9 @@ func TestGetSecretNameFromCluster(t *testing.T) {
 	assert.Equal(t, "spoke-secret", secretName)
 }
 
-func TestSecretWithKubeconfig(t *testing.T) {
+func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
 	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.Background(), logger)
+	ctx := log.IntoContext(context.TODO(), logger)
 
 	client := fake.NewSimpleClientset()
 	secretName := "spoke-secret"
@@ -67,11 +67,11 @@ func TestSecretWithKubeconfig(t *testing.T) {
 		},
 	}
 
-	secretCreated, err := secretWithKubeconfig(ctx, client, "spoke-secret", "default", config)
+	secretCreated, err := createOrUpdateGitOpsClusterSecret(ctx, client, "spoke-secret", "default", config)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSecret, secretCreated, "Secret created not equal expected")
 
-	secretRetrieved, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Get(context.Background(), secretName, metav1.GetOptions{})
+	secretRetrieved, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Get(context.TODO(), secretName, metav1.GetOptions{})
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSecret, secretRetrieved, "Secret retrieved from client not equal expected")
 }

@@ -43,16 +43,15 @@ func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, sch
 	return secretName, nil
 }
 
-// secretWithKubeconfig updates/creates the secret with the kubeconfig data given the secret name and namespace of the secret
-func secretWithKubeconfig(ctx context.Context, client kubernetes.Interface, secretName, namespace string, config *clientcmdapi.Config) (*v1.Secret, error) {
+// createOrUpdateGitOpsClusterSecret updates/creates the secret with the kubeconfig data given the secret name and namespace of the secret
+func createOrUpdateGitOpsClusterSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string, config *clientcmdapi.Config) (*v1.Secret, error) {
 	logger := log.FromContext(ctx)
 	configBytes, err := json.Marshal(config)
-	// configStr, err := clientcmd.NewClientConfigFromBytes(configBytes)
 	if err != nil {
 		return nil, err
 	}
 
-	secret, err := client.CoreV1().Secrets(namespace).Get(context.Background(), secretName, metav1.GetOptions{})
+	secret, err := client.CoreV1().Secrets(namespace).Get(ctx, secretName, metav1.GetOptions{})
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			return nil, err
@@ -66,7 +65,7 @@ func secretWithKubeconfig(ctx context.Context, client kubernetes.Interface, secr
 				"value": configBytes,
 			},
 		}
-		secret, err = client.CoreV1().Secrets(namespace).Create(context.Background(), newSecretObj, metav1.CreateOptions{})
+		secret, err = client.CoreV1().Secrets(namespace).Create(ctx, newSecretObj, metav1.CreateOptions{})
 		if err != nil {
 			return nil, err
 		}
@@ -75,7 +74,7 @@ func secretWithKubeconfig(ctx context.Context, client kubernetes.Interface, secr
 	}
 
 	secret.Data["value"] = configBytes
-	updatedSecret, err := client.CoreV1().Secrets(namespace).Update(context.Background(), secret, metav1.UpdateOptions{})
+	updatedSecret, err := client.CoreV1().Secrets(namespace).Update(ctx, secret, metav1.UpdateOptions{})
 	if err != nil {
 		return nil, err
 	}

@@ -14,7 +14,7 @@ import (
 
 func TestConfigForContext_missing_context(t *testing.T) {
 	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.Background(), logger)
+	ctx := log.IntoContext(context.TODO(), logger)
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/nonexisting-kube-config.yaml"
 
@@ -25,7 +25,7 @@ func TestConfigForContext_missing_context(t *testing.T) {
 
 func TestConfigForContext(t *testing.T) {
 	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.Background(), logger)
+	ctx := log.IntoContext(context.TODO(), logger)
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
@@ -50,7 +50,7 @@ func TestConfigForContext(t *testing.T) {
 // spoke is considered the remote cluster to connect to
 func TestKubeConfigWithToken(t *testing.T) {
 	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.Background(), logger)
+	ctx := log.IntoContext(context.TODO(), logger)
 
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
