@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/manifoldco/promptui"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -20,26 +21,26 @@ func BootstrapFlux() {
 
 	if result == "y" {
 
-		gitURLPrompt := promptContent{
-			"Host can't be empty",
-			"Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)",
-			"",
+		gitURLPrompt := utils.PromptContent{
+			ErrorMsg:     "Host can't be empty",
+			Label:        "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)",
+			DefaultValue: "",
 		}
-		gitURL := promptGetStringInput(gitURLPrompt)
+		gitURL := utils.GetPromptStringInput(gitURLPrompt)
 
-		gitBranchPrompt := promptContent{
-			"Branch can't be empty",
-			"Please enter your git repository branch (default: main)",
-			"main",
+		gitBranchPrompt := utils.PromptContent{
+			ErrorMsg:     "Branch can't be empty",
+			Label:        "Please enter your git repository branch (default: main)",
+			DefaultValue: "main",
 		}
-		gitBranch := promptGetStringInput(gitBranchPrompt)
+		gitBranch := utils.GetPromptStringInput(gitBranchPrompt)
 
-		gitPathPrompt := promptContent{
-			"Path can't be empty",
-			"Please enter your path for your cluster (default: clusters/my-cluster)",
-			"clusters/my-cluster",
+		gitPathPrompt := utils.PromptContent{
+			ErrorMsg:     "Path can't be empty",
+			Label:        "Please enter your path for your cluster (default: clusters/my-cluster)",
+			DefaultValue: "clusters/my-cluster",
 		}
-		gitPath := promptGetStringInput(gitPathPrompt)
+		gitPath := utils.GetPromptStringInput(gitPathPrompt)
 
 		home, err := os.UserHomeDir()
 		if err != nil {
@@ -47,12 +48,12 @@ func BootstrapFlux() {
 		}
 
 		defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
-		privateKeyPathPrompt := promptContent{
-			"Private key path can't be empty",
-			fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath),
-			defaultPrivateKeyPath,
+		privateKeyPathPrompt := utils.PromptContent{
+			ErrorMsg:     "Private key path can't be empty",
+			Label:        fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath),
+			DefaultValue: defaultPrivateKeyPath,
 		}
-		privateKeyPath := promptGetStringInput(privateKeyPathPrompt)
+		privateKeyPath := utils.GetPromptStringInput(privateKeyPathPrompt)
 		fmt.Println("Installing flux ...")
 		var runner runner.CLIRunner
 		out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")

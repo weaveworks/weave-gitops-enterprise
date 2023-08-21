@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -22,22 +23,22 @@ func InstallWge(version string) {
 		DOMAIN_TYPE_EXTERNALDNS,
 	}
 
-	domainSelectorPrompt := promptContent{
-		"",
-		"Please select the domain to be used",
-		"",
+	domainSelectorPrompt := utils.PromptContent{
+		ErrorMsg:     "",
+		Label:        "Please select the domain to be used",
+		DefaultValue: "",
 	}
-	domainType := promptGetSelect(domainSelectorPrompt, domainTypes)
+	domainType := utils.GetPromptSelect(domainSelectorPrompt, domainTypes)
 
 	var userDomain string
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
 		fmt.Printf("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
-		userDomainPrompt := promptContent{
-			"Domain can't be empty",
-			"Please enter your cluster domain",
-			"",
+		userDomainPrompt := utils.PromptContent{
+			ErrorMsg:     "Domain can't be empty",
+			Label:        "Please enter your cluster domain",
+			DefaultValue: "",
 		}
-		userDomain = promptGetStringInput(userDomainPrompt)
+		userDomain = utils.GetPromptStringInput(userDomainPrompt)
 	}
 
 	fmt.Printf("✔ All set installing WGE v%s, This may take few minutes...\n", version)

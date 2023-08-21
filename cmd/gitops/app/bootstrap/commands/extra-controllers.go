@@ -5,19 +5,21 @@ import (
 	"os"
 	"strings"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers/profiles"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	"golang.org/x/exp/slices"
 )
 
 func CheckExtraControllers(version string, extraControllers []string) {
 
-	extraControllerPrompt := promptContent{
-		"",
-		"Do you want another controller to be installed on your cluster",
-		"",
+	extraControllerPrompt := utils.PromptContent{
+		ErrorMsg:     "",
+		Label:        "Do you want another controller to be installed on your cluster",
+		DefaultValue: "",
 	}
 
-	controllerName := promptGetSelect(extraControllerPrompt, extraControllers)
+	controllerName := utils.GetPromptSelect(extraControllerPrompt, extraControllers)
 	if strings.Compare(controllerName, "None") == 0 {
 		return
 	}
@@ -32,25 +34,8 @@ func CheckExtraControllers(version string, extraControllers []string) {
 
 	switch controllerName {
 	case "policy-agent":
-		values = `policy-agent:
-  enabled: true
-  config:
-    admission:
-      enabled: true
-      sinks:
-        k8sEventsSink:
-          enabled: true
-    audit:
-      enabled: true
-      sinks:
-        k8sEventsSink:
-          enabled: true
-    excludeNamespaces:
-    - kube-system
-      flux-system
-    accountId: ""
-    clusterId: ""
-`
+		profiles.BootstrapPolicyAgent()
+		return
 	case "pipeline-controller":
 		values = "enablePipelines: true"
 	case "gitopssets-controller":

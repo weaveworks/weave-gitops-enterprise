@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands/controllers/controllers"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers/profiles"
 )
 
 func Command() *cobra.Command {
@@ -13,6 +13,6 @@ func Command() *cobra.Command {
 # Bootstrap controllers
 gitops bootstrap controllers <controller-name>`,
 	}
-	cmd.AddCommand(controllers.PolicyAgentCommand)
+	cmd.AddCommand(profiles.PolicyAgentCommand)
 	return cmd
 }

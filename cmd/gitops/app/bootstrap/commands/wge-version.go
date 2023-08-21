@@ -1,15 +1,14 @@
 package commands
 
 import (
-	"encoding/base64"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"gopkg.in/yaml.v2"
-	corev1 "k8s.io/api/core/v1"
 )
 
 const CHART_URL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
@@ -28,26 +27,26 @@ type ChartEntry struct {
 
 func SelectWgeVersion() string {
 
-	entitlementSecret, err := getSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
+	entitlementSecret, err := utils.GetSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
 	if err != nil {
-		fmt.Printf("An error occurred %v\n", err)
+		fmt.Printf("An error occurred\n%v", err)
 		os.Exit(1)
 	}
 
-	username, password, err := getSecretUsernamePassword(entitlementSecret)
+	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
 	if err != nil {
-		fmt.Printf("An error occurred %v\n", err)
+		fmt.Printf("An error occurred\n%v", err)
 		os.Exit(1)
 	}
 
 	versions := fetchHelmChart(username, password)
 
-	versionSelectorPrompt := promptContent{
-		"",
-		"Please select a version for WGE to be installed",
-		"",
+	versionSelectorPrompt := utils.PromptContent{
+		ErrorMsg:     "",
+		Label:        "Please select a version for WGE to be installed",
+		DefaultValue: "",
 	}
-	return promptGetSelect(versionSelectorPrompt, versions)
+	return utils.GetPromptSelect(versionSelectorPrompt, versions)
 }
 
 func fetchHelmChart(username, password string) []string {
@@ -87,29 +86,4 @@ func fetchHelmChart(username, password string) []string {
 		}
 	}
 	return versions
-}
-
-func getSecretUsernamePassword(secret *corev1.Secret) (string, string, error) {
-
-	username := string(secret.Data["username"])
-	password := string(secret.Data["password"])
-
-	// If the username and password are base64 encoded, decode them.
-	if isValidBase64(username) {
-		decodedUsername, err := base64.StdEncoding.DecodeString(username)
-		if err != nil {
-			return "", "", err
-		}
-		username = string(decodedUsername)
-	}
-
-	if isValidBase64(password) {
-		decodedPassword, err := base64.StdEncoding.DecodeString(password)
-		if err != nil {
-			return "", "", err
-		}
-		password = string(decodedPassword)
-	}
-
-	return username, password, nil
 }

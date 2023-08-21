@@ -1,8 +1,7 @@
-package commands
+package utils
 
 import (
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -16,23 +15,23 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-type promptContent struct {
-	errorMsg     string
-	label        string
-	defaultValue string
+type PromptContent struct {
+	ErrorMsg     string
+	Label        string
+	DefaultValue string
 }
 
-func promptGetStringInput(pc promptContent) string {
+func GetPromptStringInput(pc PromptContent) string {
 	validate := func(input string) error {
 		if input == "" {
-			return errors.New(pc.errorMsg)
+			return errors.New(pc.ErrorMsg)
 		}
 		return nil
 	}
 	prompt := promptui.Prompt{
-		Label:    pc.label,
+		Label:    pc.Label,
 		Validate: validate,
-		Default:  pc.defaultValue,
+		Default:  pc.DefaultValue,
 	}
 
 	result, err := prompt.Run()
@@ -44,7 +43,7 @@ func promptGetStringInput(pc promptContent) string {
 	return result
 }
 
-func promptGetPasswordInput(pc promptContent) string {
+func GetPromptPasswordInput(pc PromptContent) string {
 	validate := func(input string) error {
 		if len(input) < 6 {
 			return errors.New("password must have more than 6 characters")
@@ -52,7 +51,7 @@ func promptGetPasswordInput(pc promptContent) string {
 		return nil
 	}
 	prompt := promptui.Prompt{
-		Label:    pc.label,
+		Label:    pc.Label,
 		Validate: validate,
 		Mask:     '*',
 	}
@@ -67,14 +66,14 @@ func promptGetPasswordInput(pc promptContent) string {
 	return result
 }
 
-func promptGetSelect(pc promptContent, items []string) string {
+func GetPromptSelect(pc PromptContent, items []string) string {
 	index := -1
 	var result string
 	var err error
 
 	for index < 0 {
 		prompt := promptui.Select{
-			Label: pc.label,
+			Label: pc.Label,
 			Items: items,
 		}
 
@@ -95,7 +94,7 @@ func promptGetSelect(pc promptContent, items []string) string {
 	return result
 }
 
-func getKubernetesClient() (*kubernetes.Clientset, error) {
+func GetKubernetesClient() (*kubernetes.Clientset, error) {
 	// Path to the kubeconfig file. This is typically located at "~/.kube/config".
 	// Obtain the user's home directory.
 	home, err := os.UserHomeDir()
@@ -120,9 +119,9 @@ func getKubernetesClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-func getSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
+func GetSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 	// Create a new Kubernetes client using the config.
-	clientset, err := getKubernetesClient()
+	clientset, err := GetKubernetesClient()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -136,9 +135,9 @@ func getSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 	return secret, nil
 }
 
-func createSecret(secretName string, secretNamespace string, secretData map[string][]byte) {
+func CreateSecret(secretName string, secretNamespace string, secretData map[string][]byte) {
 	// Create a new Kubernetes client using the config.
-	clientset, err := getKubernetesClient()
+	clientset, err := GetKubernetesClient()
 	if err != nil {
 		panic(err.Error())
 	}
@@ -159,7 +158,7 @@ func createSecret(secretName string, secretNamespace string, secretData map[stri
 	}
 }
 
-// func createConfigMap(Name string, Namespace string, Data map[string]string) {
+// func CreateConfigMap(Name string, Namespace string, Data map[string]string) {
 // 	// Create a new Kubernetes client using the config.
 // 	clientset, err := getKubernetesClient()
 // 	if err != nil {
@@ -181,8 +180,3 @@ func createSecret(secretName string, secretNamespace string, secretData map[stri
 // 		panic(err.Error())
 // 	}
 // }
-
-func isValidBase64(s string) bool {
-	_, err := base64.StdEncoding.DecodeString(s)
-	return err == nil
-}
