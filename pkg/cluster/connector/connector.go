@@ -55,8 +55,7 @@ func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *C
 }
 
 // ConnectCluster connects a cluster to a remote cluster given its name and context
-// Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster
-// Token and kubeconfig from remote cluster service account created is used to create a secret to access the cluster	
+// Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
 	// Get the context from RemoteClusterContext
 	pathOpts := clientcmd.NewDefaultPathOptions()
