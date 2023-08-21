@@ -38,7 +38,7 @@ func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, sch
 	if secretName == "" {
 		return "", fmt.Errorf("failed to find referenced secret in gitopscluster %s", clusterName)
 	}
-	logger.Info("referenced secret name found in gitops cluster", "gitopscluster", clusterName)
+	logger.Info("referenced secret name found in gitops cluster", "gitopscluster", clusterName, "secret", secretName)
 
 	return secretName, nil
 }
