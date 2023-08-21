@@ -1,4 +1,4 @@
-package checks
+package commands
 
 import (
 	"encoding/base64"

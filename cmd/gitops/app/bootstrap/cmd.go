@@ -2,8 +2,16 @@ package bootstrap
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/checks"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands/controllers"
 )
+
+var extraControllers []string = []string{
+	"None",
+	"policy-agent",
+	"pipeline-controller",
+	"gitopssets-controller",
+}
 
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
@@ -17,24 +25,18 @@ gitops bootstrap`,
 		},
 	}
 
+	cmd.AddCommand(controllers.Command())
+
 	return cmd
 }
 
 func Bootstrap() error {
-	checks.CheckEntitlementFile()
-	checks.CheckFluxIsInstalled()
-	checks.CheckFluxReconcile()
-	wgeVersion := checks.SelectWgeVersion()
-	checks.CreateAdminPasswordSecret()
-	checks.InstallWge(wgeVersion)
-
-	var extraControllers []string = []string{
-		"None",
-		"policy-agent",
-		"pipeline-controller",
-		"gitopssets-controller",
-	}
-
-	checks.CheckExtraControllers(wgeVersion, extraControllers)
+	commands.CheckEntitlementFile()
+	commands.CheckFluxIsInstalled()
+	commands.CheckFluxReconcile()
+	wgeVersion := commands.SelectWgeVersion()
+	commands.CreateAdminPasswordSecret()
+	commands.InstallWge(wgeVersion)
+	commands.CheckExtraControllers(wgeVersion, extraControllers)
 	return nil
 }
