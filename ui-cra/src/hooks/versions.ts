@@ -25,7 +25,7 @@ export function useListConfig() {
   );
   const { gitAuthClient } = useContext(GitAuth);
 
-  const repositoryURL = queryResponse?.data?.repositoryURL || '';
+  const repositoryURL = queryResponse?.data?.repositoryUrl || '';
   const uiConfig = JSON.parse(queryResponse?.data?.uiConfig || '{}');
   useEffect(() => {
     repositoryURL &&
