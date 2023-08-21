@@ -2,7 +2,6 @@ package connector
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/fluxcd/pkg/apis/meta"
@@ -48,7 +47,7 @@ func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
 	assert.NoError(t, err)
 	config, err := kubeConfigWithToken(context.TODO(), restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)
-	configBytes, err := json.Marshal(config)
+	configBytes, err := clientcmd.Write(*config)
 	assert.NoError(t, err)
 
 	//serialize config

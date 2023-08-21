@@ -2,7 +2,6 @@ package connector
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
@@ -14,6 +13,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -46,7 +46,7 @@ func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, sch
 // createOrUpdateGitOpsClusterSecret updates/creates the secret with the kubeconfig data given the secret name and namespace of the secret
 func createOrUpdateGitOpsClusterSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string, config *clientcmdapi.Config) (*v1.Secret, error) {
 	logger := log.FromContext(ctx)
-	configBytes, err := json.Marshal(config)
+	configBytes, err := clientcmd.Write(*config)
 	if err != nil {
 		return nil, err
 	}
