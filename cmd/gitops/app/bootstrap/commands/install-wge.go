@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
 const (
@@ -14,7 +13,7 @@ const (
 )
 
 // InstallWge installs weave gitops enterprise chart
-func InstallWge(version string) error {
+func InstallWge(version string) (error, bool, string) {
 	domainTypes := []string{
 		DOMAIN_TYPE_LOCALHOST,
 		DOMAIN_TYPE_EXTERNALDNS,
@@ -22,7 +21,7 @@ func InstallWge(version string) error {
 
 	domainType, err := utils.GetSelectInput(DOMAIN_MSG, domainTypes)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
 	userDomain := "localhost"
@@ -33,7 +32,7 @@ func InstallWge(version string) error {
 
 		userDomain, err = utils.GetStringInput(CLUSTER_DOMAIN_MSG, "")
 		if err != nil {
-			return utils.CheckIfError(err)
+			return utils.CheckIfError(err), false, ""
 		}
 
 	}
@@ -42,7 +41,7 @@ func InstallWge(version string) error {
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
 	defer func() {
@@ -54,38 +53,29 @@ func InstallWge(version string) error {
 
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
 	err = utils.CreateFileToRepo(WGE_HELMREPO_FILENAME, wgehelmRepo, pathInRepo, WGE_HELMREPO_COMMITMSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
 	wgeHelmRelease, err := constructWGEhelmRelease(userDomain, version)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
 	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, wgeHelmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
 	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return utils.CheckIfError(err), false, ""
 	}
 
-	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
-		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, userDomain)
-	} else {
-		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://%s:8000/\n", version, userDomain)
-		var runner runner.CLIRunner
-		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-		if err != nil {
-			return utils.CheckIfError(err, string(out))
-		}
-	}
-	return nil
+	return nil, strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0, userDomain
+
 }
