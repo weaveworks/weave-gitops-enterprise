@@ -13,7 +13,7 @@ const HELMRELEASE_NAME string = "weave-gitops-enterprise"
 const DOMAIN_TYPE_LOCALHOST string = "localhost (Using Portforward)"
 const DOMAIN_TYPE_EXTERNALDNS string = "external DNS"
 
-func InstallWge(version string) {
+func InstallWge(version string) (bool, string) {
 
 	domainTypes := []string{
 		DOMAIN_TYPE_LOCALHOST,
@@ -105,10 +105,6 @@ spec:
 	out, err = runner.Run("flux", "reconcile", "helmrelease", HELMRELEASE_NAME)
 	utils.CheckIfError(err, string(out))
 
-	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
-		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, userDomain)
-	} else {
-		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-		utils.CheckIfError(err, string(out))
-	}
+	return strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0, userDomain
+
 }
