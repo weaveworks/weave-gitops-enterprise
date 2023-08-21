@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/fluxcd/pkg/apis/meta"
-	"github.com/go-logr/stdr"
 	"github.com/stretchr/testify/assert"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
@@ -17,7 +16,6 @@ import (
 	dynamicfake "k8s.io/client-go/dynamic/fake"
 	"k8s.io/client-go/kubernetes/fake"
 	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func TestGetSecretNameFromCluster(t *testing.T) {
@@ -41,17 +39,14 @@ func TestGetSecretNameFromCluster(t *testing.T) {
 }
 
 func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
-	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.TODO(), logger)
-
 	client := fake.NewSimpleClientset()
 	secretName := "spoke-secret"
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(ctx, opts, "spoke")
+	restCfg, err := ConfigForContext(context.TODO(), opts, "spoke")
 	assert.NoError(t, err)
-	config, err := kubeConfigWithToken(ctx, restCfg, "spoke", []byte("testing-token"))
+	config, err := kubeConfigWithToken(context.TODO(), restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)
 	configBytes, err := json.Marshal(config)
 	assert.NoError(t, err)
@@ -67,7 +62,7 @@ func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
 		},
 	}
 
-	secretCreated, err := createOrUpdateGitOpsClusterSecret(ctx, client, "spoke-secret", "default", config)
+	secretCreated, err := createOrUpdateGitOpsClusterSecret(context.TODO(), client, "spoke-secret", "default", config)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedSecret, secretCreated, "Secret created not equal expected")
 

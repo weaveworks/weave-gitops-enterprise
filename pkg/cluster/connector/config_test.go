@@ -4,32 +4,26 @@ import (
 	"context"
 	"testing"
 
-	"github.com/go-logr/stdr"
 	"github.com/stretchr/testify/assert"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 func TestConfigForContext_missing_context(t *testing.T) {
-	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.TODO(), logger)
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/nonexisting-kube-config.yaml"
 
-	_, err := ConfigForContext(ctx, opts, "hub")
+	_, err := ConfigForContext(context.TODO(), opts, "hub")
 	assert.Error(t, err, "failed to get context hub")
 
 }
 
 func TestConfigForContext(t *testing.T) {
-	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.TODO(), logger)
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(ctx, opts, "hub")
+	restCfg, err := ConfigForContext(context.TODO(), opts, "hub")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -49,15 +43,12 @@ func TestConfigForContext(t *testing.T) {
 // TestKubeConfigWithToken tests the kubeConfigWithToken function.
 // spoke is considered the remote cluster to connect to
 func TestKubeConfigWithToken(t *testing.T) {
-	logger := stdr.New(nil)
-	ctx := log.IntoContext(context.TODO(), logger)
-
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(ctx, opts, "spoke")
+	restCfg, err := ConfigForContext(context.TODO(), opts, "spoke")
 	assert.NoError(t, err)
-	config, err := kubeConfigWithToken(ctx, restCfg, "spoke", []byte("testing-token"))
+	config, err := kubeConfigWithToken(context.TODO(), restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)
 
 	want := clientcmdapi.Config{
