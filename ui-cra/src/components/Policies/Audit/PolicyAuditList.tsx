@@ -23,13 +23,11 @@ const PolicyAuditList = () => {
   return (
     <QueryStateProvider manager={manager}>
       <RequestStateHandler error={error as RequestError} loading={isLoading}>
-        {data?.objects?.length && (
-          <AuditTable
-            data={data}
-            queryState={queryState}
-            setQueryState={setQueryState}
-          />
-        )}
+        <AuditTable
+          objects={data?.objects || []}
+          queryState={queryState}
+          setQueryState={setQueryState}
+        />
       </RequestStateHandler>
     </QueryStateProvider>
   );

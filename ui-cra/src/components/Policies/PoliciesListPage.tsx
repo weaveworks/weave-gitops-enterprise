@@ -14,9 +14,13 @@ const Policies = () => {
   const { path } = useRouteMatch();
   const { isFlagEnabled } = useFeatureFlags();
 
+  const isQueryServiceExplorerEnabled = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_EXPLORER',
+  );
   const isQueryServiceBackendEnabled = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
+
   return (
     <Page path={[{ label: 'Policies' }]}>
       <SubRouterTabs rootPath={`${path}/list`}>
@@ -24,7 +28,11 @@ const Policies = () => {
           <PoliciesTab />
         </RouterTab>
         <RouterTab name="Policy Audit" path={`${path}/audit`}>
-          {isQueryServiceBackendEnabled ? <PolicyAuditList /> : <WarningMsg />}
+          {isQueryServiceBackendEnabled && isQueryServiceExplorerEnabled ? (
+            <PolicyAuditList />
+          ) : (
+            <WarningMsg />
+          )}
         </RouterTab>
         <RouterTab name="Enforcement Events" path={`${path}/enforcement`}>
           <PolicyViolationsList req={{}} />
