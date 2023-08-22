@@ -5,7 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-logr/logr"
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -13,6 +12,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/kubernetes/fake"
@@ -189,7 +189,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		log := logr.Logger{}
 		t.Run(tt.name, func(t *testing.T) {
 			remoteClientSet := fake.NewSimpleClientset()
 
@@ -202,15 +201,15 @@ func TestReconcileServiceAccount(t *testing.T) {
 				ServiceAccountName:     tt.serviceAccountName,
 				ClusterRoleName:        tt.serviceAccountName + "-cluster-role",
 				ClusterRoleBindingName: tt.serviceAccountName + "-cluster-role-binding",
-				Namespace:              corev1.NamespaceDefault,
+				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
 			}
 
-			saToken, err := ReconcileServiceAccount(context.Background(), remoteClientSet, clusterConnectionOpts, log)
+			saToken, err := ReconcileServiceAccount(context.Background(), remoteClientSet, clusterConnectionOpts)
 			assert.NoError(t, err)
 			assert.Equal(t, []byte("usertest"), saToken, "service account token doesn't match expected")
 
 			// Verify Service account created/exists
-			serviceAccount, err := remoteClientSet.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Get(context.Background(), "test-service-account", metav1.GetOptions{})
+			serviceAccount, err := remoteClientSet.CoreV1().ServiceAccounts(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), "test-service-account", metav1.GetOptions{})
 			assert.NoError(t, err)
 			expectedServiceAccount := tt.expectedResources["ServiceAccount"].(*v1.ServiceAccount)
 			assert.Equal(t, expectedServiceAccount, serviceAccount, "service account found doesn't match expected")
@@ -228,12 +227,12 @@ func TestReconcileServiceAccount(t *testing.T) {
 			assert.Equal(t, expectedClusterRoleBinding, clusterRoleBinding, "cluster role found doesn't match expected")
 
 			// Verify Secret created with populated token(token is fake in test)
-			expectedSecret := newServiceAccountTokenSecret(tt.serviceAccountName+"-token", tt.serviceAccountName, corev1.NamespaceDefault)
+			expectedSecret := newServiceAccountTokenSecret(tt.serviceAccountName+"-token", tt.serviceAccountName, clusterConnectionOpts.GitopsClusterName.Namespace)
 			expectedSecret.Data = map[string][]byte{
 				"token": []byte("usertest"),
 			}
 
-			secret, err := remoteClientSet.CoreV1().Secrets(corev1.NamespaceDefault).Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
+			secret, err := remoteClientSet.CoreV1().Secrets(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
 			assert.NoError(t, err)
 			assert.Equal(t, expectedSecret, secret, "secret found doesn't match expected")
 		})
@@ -317,24 +316,16 @@ func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...ru
 		switch resource := resource.(type) {
 		case *v1.ServiceAccount:
 			_, err := client.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		case *rbacv1.ClusterRole:
 			_, err := client.RbacV1().ClusterRoles().Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		case *rbacv1.ClusterRoleBinding:
 			_, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		case *v1.Secret:
 			_, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			if err != nil {
-				t.Errorf("error adding resources: %v", err)
-			}
+			assert.NoError(t, err)
 		default:
 			t.Fatalf("invalid resource type %s", resource)
 

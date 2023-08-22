@@ -12,5 +12,6 @@ module.exports = function (app) {
     secure,
   });
   app.use('/v1', proxyMiddleWare);
+  app.use('/debug', proxyMiddleWare);
   app.use('/oauth2', proxyMiddleWare);
 };
