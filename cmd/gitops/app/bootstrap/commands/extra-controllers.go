@@ -8,7 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
-func CheckExtraControllers(version string) {
+func CheckExtraControllers(version string) error {
 
 	var extraControllers []string = []string{
 		"None",
@@ -23,18 +23,21 @@ func CheckExtraControllers(version string) {
 		DefaultValue: "",
 	}
 
-	controllerName := utils.GetPromptSelect(extraControllerPrompt, extraControllers)
+	controllerName, err := utils.GetPromptSelect(extraControllerPrompt, extraControllers)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 	if strings.Compare(controllerName, "None") == 0 {
-		return
+		return nil
 	}
 
 	switch controllerName {
 	case "policy-agent":
-		profiles.BootstrapPolicyAgent()
-		return
+		return profiles.BootstrapPolicyAgent()
 	case "pipeline-controller":
 		fmt.Println("not implemented yet!")
 	case "gitopssets-controller":
 		fmt.Println("not implemented yet!")
 	}
+	return nil
 }

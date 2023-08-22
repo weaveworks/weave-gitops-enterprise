@@ -23,15 +23,22 @@ type ChartEntry struct {
 	Version    string
 }
 
-func SelectWgeVersion() string {
+func SelectWgeVersion() (string, error) {
 
 	entitlementSecret, err := utils.GetSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
-	utils.CheckIfError(err)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
-	utils.CheckIfError(err)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
 
-	versions := fetchHelmChart(username, password)
+	versions, err := fetchHelmChart(username, password)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
 
 	versionSelectorPrompt := utils.PromptContent{
 		ErrorMsg:     "",
@@ -41,23 +48,31 @@ func SelectWgeVersion() string {
 	return utils.GetPromptSelect(versionSelectorPrompt, versions)
 }
 
-func fetchHelmChart(username, password string) []string {
+func fetchHelmChart(username, password string) ([]string, error) {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", CHART_URL), nil)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 
 	req.SetBasicAuth(username, password)
 
 	resp, err := client.Do(req)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 
 	var chart HelmChart
 	err = yaml.Unmarshal(bodyBytes, &chart)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 
 	entries := chart.Entries["mccp"]
 	var versions []string
@@ -69,5 +84,5 @@ func fetchHelmChart(username, password string) []string {
 			}
 		}
 	}
-	return versions
+	return versions, nil
 }

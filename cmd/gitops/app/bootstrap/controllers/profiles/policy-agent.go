@@ -2,22 +2,18 @@ package profiles
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
 const (
-	POLICY_AGENT_HELMREPO_NAME         = "policy-agent"
-	POLICY_AGENT_CHART_URL             = "https://weaveworks.github.io/policy-agent/"
-	POLICY_AGENT_HELMRELEASE_NAME      = "policy-agent"
-	POLICY_AGENT_VALUES_FILES_LOCATION = "/tmp/agent-values.yaml"
-	TARGET_NAMESPACE                   = "flux-system"
-	AGENT_VERSION                      = "2.5.0"
+	POLICY_AGENT_HELMREPO_NAME    = "policy-agent"
+	POLICY_AGENT_CHART_URL        = "https://weaveworks.github.io/policy-agent/"
+	POLICY_AGENT_HELMRELEASE_NAME = "policy-agent"
+	AGENT_VERSION                 = "2.5.0"
 )
 
 var FailurePolicies []string = []string{
@@ -44,7 +40,10 @@ func BootstrapPolicyAgent() error {
 		IsConfirm: true,
 	}
 
-	enableAdmissionResult, _ := admissionPrompt.Run()
+	enableAdmissionResult, err := admissionPrompt.Run()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 	if strings.Compare(enableAdmissionResult, "y") == 0 {
 		enableAdmissionResult = "true"
 	} else {
@@ -56,7 +55,10 @@ func BootstrapPolicyAgent() error {
 		IsConfirm: true,
 	}
 
-	enableMutationResult, _ := mutationPrompt.Run()
+	enableMutationResult, err := mutationPrompt.Run()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 	if strings.Compare(enableMutationResult, "y") == 0 {
 		enableMutationResult = "true"
 	} else {
@@ -68,7 +70,10 @@ func BootstrapPolicyAgent() error {
 		IsConfirm: true,
 	}
 
-	enableAuditResult, _ := auditPrompt.Run()
+	enableAuditResult, err := auditPrompt.Run()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 	if strings.Compare(enableAuditResult, "y") == 0 {
 		enableAuditResult = "true"
 	} else {
@@ -81,66 +86,91 @@ func BootstrapPolicyAgent() error {
 		DefaultValue: "",
 	}
 
-	failurePolicyResult := utils.GetPromptSelect(FailurePolicyPrompt, FailurePolicies)
+	failurePolicyResult, err := utils.GetPromptSelect(FailurePolicyPrompt, FailurePolicies)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
 	fmt.Println("Installing policy agent ...")
 
-	var runner runner.CLIRunner
-
-	out, err := runner.Run("flux", "create", "source", "helm", POLICY_AGENT_HELMREPO_NAME, "--url", POLICY_AGENT_CHART_URL)
+	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		fmt.Printf("An error occurred creating helmrepository\n%v\n", string(out))
-		os.Exit(1)
+		return utils.CheckIfError(err)
 	}
 
-	values := fmt.Sprintf(`caCertificate: ""
-certificate: ""
-config:
-  accountId: ""
-  admission:
-    enabled: %s
-    sinks:
-      k8sEventsSink:
-        enabled: true
-    mutate: %s
-  audit:
-    enabled: %s
-    sinks:
-      k8sEventsSink:
-        enabled: true
-  clusterId: ""
-excludeNamespaces:
-- kube-system
-failurePolicy: %s
-image: weaveworks/policy-agent
-key: ""
-persistence:
-  enabled: false
-useCertManager: true
-`, enableAdmissionResult, enableMutationResult, enableAuditResult, failurePolicyResult)
+	defer utils.CleanupRepo()
 
-	valuesFile, err := os.Create(POLICY_AGENT_VALUES_FILES_LOCATION)
-	utils.CheckIfError(err)
+	policyAgentHelmRepo := fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: HelmRepository
+metadata:
+  name: %s
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  url: %s
+`, POLICY_AGENT_HELMREPO_NAME, POLICY_AGENT_CHART_URL)
 
-	defer valuesFile.Close()
-	_, err = valuesFile.WriteString(values)
-	utils.CheckIfError(err)
-
-	err = valuesFile.Sync()
-	utils.CheckIfError(err)
-
-	out, err = runner.Run("flux", "create", "hr", POLICY_AGENT_HELMRELEASE_NAME,
-		"--source", fmt.Sprintf("HelmRepository/%s", POLICY_AGENT_HELMREPO_NAME),
-		"--chart", POLICY_AGENT_HELMRELEASE_NAME,
-		"--chart-version", AGENT_VERSION,
-		"--interval", "10m0s",
-		"--crds", "CreateReplace",
-		"--values", POLICY_AGENT_VALUES_FILES_LOCATION,
-		"--target-namespace", TARGET_NAMESPACE,
-	)
+	err = utils.CreateFileToRepo("policy-agent-helmrepo.yaml", policyAgentHelmRepo, pathInRepo, "create policy agent helmrepository")
 	if err != nil {
-		fmt.Printf("An error occurred installing policy agent\n%v", string(out))
+		return utils.CheckIfError(err)
 	}
-	fmt.Printf("✔ Policy Agent is installed successfully")
+
+	policyAgentHelmRelease := fmt.Sprintf(`apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: %s
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: %s
+      sourceRef:
+        apiVersion: source.toolkit.fluxcd.io/v1beta2
+        kind: HelmRepository
+        name: %s
+        namespace: flux-system
+      version: %s
+  interval: 10m0s
+  targetNamespace: policy-system
+  install:
+    createNamespace: true
+  values:
+    caCertificate: ""
+    certificate: ""
+    config:
+      accountId: ""
+      admission:
+        enabled: %s
+        sinks:
+          k8sEventsSink:
+            enabled: true
+        mutate: %s
+      audit:
+        enabled: %s
+        sinks:
+          k8sEventsSink:
+            enabled: true
+      clusterId: ""
+    excludeNamespaces:
+    - kube-system
+    failurePolicy: %s
+    image: weaveworks/policy-agent
+    key: ""
+    persistence:
+      enabled: false
+    useCertManager: true
+`, POLICY_AGENT_HELMRELEASE_NAME, POLICY_AGENT_HELMRELEASE_NAME, POLICY_AGENT_HELMREPO_NAME, AGENT_VERSION, enableAdmissionResult, enableMutationResult, enableAuditResult, failurePolicyResult)
+
+	err = utils.CreateFileToRepo("policy-agent-helmrelease.yaml", policyAgentHelmRelease, pathInRepo, "create policy agent helmrelease")
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
+	err = utils.ReconcileFlux()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
+	fmt.Println("✔ Policy Agent is installed successfully")
 	return nil
 }

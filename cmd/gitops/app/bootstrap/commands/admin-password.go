@@ -10,31 +10,46 @@ import (
 const ADMIN_SECRET_NAME string = "cluster-user-auth"
 const ADMIN_SECRET_NAMESPACE string = "flux-system"
 
-func GetAdminPasswordSecrets() (string, []byte) {
+func GetAdminPasswordSecrets() (string, []byte, error) {
 	AdminUsernamePromptContent := utils.PromptContent{
 		ErrorMsg:     "Admin username can't be empty",
 		Label:        "Please enter your admin username (default: wego-admin)",
 		DefaultValue: "wego-admin",
 	}
-	adminUsername := utils.GetPromptStringInput(AdminUsernamePromptContent)
+	adminUsername, err := utils.GetPromptStringInput(AdminUsernamePromptContent)
+	if err != nil {
+		return "", nil, utils.CheckIfError(err)
+	}
 
 	AdminPasswordPromptContent := utils.PromptContent{
 		ErrorMsg:     "Admin password can't be empty",
 		Label:        "Please enter your admin password",
 		DefaultValue: "",
 	}
-	adminPassword := utils.GetPromptPasswordInput(AdminPasswordPromptContent)
+	adminPassword, err := utils.GetPromptPasswordInput(AdminPasswordPromptContent)
+	if err != nil {
+		return "", nil, utils.CheckIfError(err)
+	}
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
-	utils.CheckIfError(err)
-	return adminUsername, encryptedPassword
+	if err != nil {
+		return "", nil, utils.CheckIfError(err)
+	}
+	return adminUsername, encryptedPassword, nil
 }
 
-func CreateAdminPasswordSecret() {
-	adminUsername, adminPassword := GetAdminPasswordSecrets()
+func CreateAdminPasswordSecret() error {
+	adminUsername, adminPassword, err := GetAdminPasswordSecrets()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 	data := map[string][]byte{
 		"username": []byte(adminUsername),
 		"password": adminPassword,
 	}
-	utils.CreateSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE, data)
+	err = utils.CreateSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE, data)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 	fmt.Println("✔ admin secret is created")
+	return nil
 }

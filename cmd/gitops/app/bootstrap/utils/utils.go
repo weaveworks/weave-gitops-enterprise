@@ -25,7 +25,7 @@ type PromptContent struct {
 	DefaultValue string
 }
 
-func GetPromptStringInput(pc PromptContent) string {
+func GetPromptStringInput(pc PromptContent) (string, error) {
 	validate := func(input string) error {
 		if input == "" {
 			return errors.New(pc.ErrorMsg)
@@ -40,14 +40,13 @@ func GetPromptStringInput(pc PromptContent) string {
 
 	result, err := prompt.Run()
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		os.Exit(1)
+		return "", CheckIfError(err, "Prompt failed")
 	}
 
-	return result
+	return result, nil
 }
 
-func GetPromptPasswordInput(pc PromptContent) string {
+func GetPromptPasswordInput(pc PromptContent) (string, error) {
 	validate := func(input string) error {
 		if len(input) < 6 {
 			return errors.New("password must have more than 6 characters")
@@ -63,14 +62,13 @@ func GetPromptPasswordInput(pc PromptContent) string {
 	result, err := prompt.Run()
 
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		os.Exit(1)
+		return "", CheckIfError(err, "Prompt failed")
 	}
 
-	return result
+	return result, nil
 }
 
-func GetPromptSelect(pc PromptContent, items []string) string {
+func GetPromptSelect(pc PromptContent, items []string) (string, error) {
 	index := -1
 	var result string
 	var err error
@@ -89,13 +87,12 @@ func GetPromptSelect(pc PromptContent, items []string) string {
 	}
 
 	if err != nil {
-		fmt.Printf("Prompt failed %v\n", err)
-		os.Exit(1)
+		return "", CheckIfError(err, "Prompt failed")
 	}
 
 	fmt.Printf("Selected: %s\n", result)
 
-	return result
+	return result, nil
 }
 
 func GetKubernetesClient() (*kubernetes.Clientset, error) {
@@ -103,7 +100,7 @@ func GetKubernetesClient() (*kubernetes.Clientset, error) {
 	// Obtain the user's home directory.
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return nil, err
+		return nil, CheckIfError(err)
 	}
 
 	// Construct the full path to the kubeconfig file.
@@ -111,13 +108,13 @@ func GetKubernetesClient() (*kubernetes.Clientset, error) {
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
-		return nil, err
+		return nil, CheckIfError(err)
 	}
 
 	// Create a new Kubernetes client using the config.
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, err
+		return nil, CheckIfError(err)
 	}
 
 	return clientset, nil
@@ -127,23 +124,23 @@ func GetSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 	// Create a new Kubernetes client using the config.
 	clientset, err := GetKubernetesClient()
 	if err != nil {
-		panic(err.Error())
+		return nil, CheckIfError(err)
 	}
 
 	// Fetch the secret from the Kubernetes cluster.
 	secret, err := clientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(), secretName, v1.GetOptions{})
 	if err != nil {
-		return nil, err
+		return nil, CheckIfError(err)
 	}
 
 	return secret, nil
 }
 
-func CreateSecret(secretName string, secretNamespace string, secretData map[string][]byte) {
+func CreateSecret(secretName string, secretNamespace string, secretData map[string][]byte) error {
 	// Create a new Kubernetes client using the config.
 	clientset, err := GetKubernetesClient()
 	if err != nil {
-		panic(err.Error())
+		return CheckIfError(err)
 	}
 
 	secret := &corev1.Secret{
@@ -158,19 +155,25 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 		TypeMeta: secret.TypeMeta,
 	})
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
-		panic(err.Error())
+		return CheckIfError(err)
 	}
+	return nil
 }
 
 const WORKINGDIR = "/tmp/bootstrap-flux"
 
 func CloneRepo() (string, error) {
 
-	CleanupRepo()
+	err := CleanupRepo()
+	if err != nil {
+		return "", CheckIfError(err)
+	}
 
 	var runner runner.CLIRunner
 	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
-	CheckIfError(err)
+	if err != nil {
+		return "", CheckIfError(err)
+	}
 
 	repoUrlParsed := string(repoUrl[1 : len(repoUrl)-1])
 
@@ -180,19 +183,22 @@ func CloneRepo() (string, error) {
 	}
 
 	repoBranch, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.ref.branch}\"")
-	CheckIfError(err)
+	if err != nil {
+		return "", CheckIfError(err)
+	}
 
 	repoBranchParsed := string(repoBranch[1 : len(repoBranch)-1])
 
 	repoPath, err := runner.Run("kubectl", "get", "kustomization", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.path}\"")
-	CheckIfError(err)
+	if err != nil {
+		return "", CheckIfError(err)
+	}
 
 	repoPathParsed := strings.TrimPrefix(string(repoPath[1:len(repoPath)-1]), "./")
 
 	out, err := runner.Run("git", "clone", repoUrlParsed, WORKINGDIR, "--depth", "1", "-b", repoBranchParsed)
 	if err != nil {
-		fmt.Printf("An error occured cloning repo %s\n%v", repoUrlParsed, string(out))
-		os.Exit(1)
+		return "", CheckIfError(err, string(out))
 	}
 
 	return repoPathParsed, nil
@@ -201,22 +207,32 @@ func CloneRepo() (string, error) {
 func CreateFileToRepo(filename string, filecontent string, path string, commitmsg string) error {
 
 	repo, err := git.PlainOpen(WORKINGDIR)
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	worktree, err := repo.Worktree()
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	filePath := filepath.Join(WORKINGDIR, path, filename)
 
 	file, err := os.Create(filePath)
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	defer file.Close()
 	_, err = file.WriteString(filecontent)
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	_, err = worktree.Add(filepath.Join(path, filename))
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	_, err = worktree.Commit(commitmsg, &git.CommitOptions{
 		Author: &object.Signature{
@@ -225,47 +241,49 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 			When:  time.Now(),
 		},
 	})
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	err = repo.Push(&git.PushOptions{})
-	CheckIfError(err)
+	if err != nil {
+		return CheckIfError(err)
+	}
 
 	return nil
 }
 
-func CheckIfError(err error, extramsg ...string) {
+func CheckIfError(err error, extramsg ...string) error {
 	if err == nil {
-		return
+		return nil
 	}
-
-	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s\n%s", err, extramsg[0]))
-	os.Exit(1)
+	if len(extramsg) > 0 {
+		return fmt.Errorf("\x1b[31;1m%s\x1b[0m", fmt.Sprintf("%s\n%s", err.Error(), extramsg[0]))
+	}
+	return fmt.Errorf("\x1b[31;1m%s\x1b[0m", err.Error())
 }
 
-func CleanupRepo() {
+func CleanupRepo() error {
 	err := os.RemoveAll(WORKINGDIR)
-	CheckIfError(err)
+	return CheckIfError(err)
 }
 
-// func CreateConfigMap(Name string, Namespace string, Data map[string]string) {
-// 	// Create a new Kubernetes client using the config.
-// 	clientset, err := getKubernetesClient()
-// 	if err != nil {
-// 		panic(err.Error())
-// 	}
+func ReconcileFlux(helmReleaseName ...string) error {
 
-// 	configMap := &corev1.ConfigMap{
-// 		ObjectMeta: v1.ObjectMeta{
-// 			Name:      Name,
-// 			Namespace: Namespace,
-// 		},
-// 		Data: Data,
-// 	}
-
-// 	_, err = clientset.CoreV1().ConfigMaps(Namespace).Create(context.TODO(), configMap, v1.CreateOptions{
-// 		TypeMeta: configMap.TypeMeta,
-// 	})
-// 	if err != nil && !strings.Contains(err.Error(), "already exists") {
-// 		panic(err.Error())
-// 	}
-// }
+	var runner runner.CLIRunner
+	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
+	if err != nil {
+		return CheckIfError(err, string(out))
+	}
+	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
+	if err != nil {
+		CheckIfError(err, string(out))
+	}
+	if len(helmReleaseName) > 0 {
+		out, err = runner.Run("flux", "reconcile", "helmrelease", helmReleaseName[0])
+		if err != nil {
+			CheckIfError(err, string(out))
+		}
+	}
+	return nil
+}

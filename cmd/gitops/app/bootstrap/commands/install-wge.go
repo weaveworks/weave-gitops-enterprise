@@ -13,7 +13,7 @@ const HELMRELEASE_NAME string = "weave-gitops-enterprise"
 const DOMAIN_TYPE_LOCALHOST string = "localhost (Using Portforward)"
 const DOMAIN_TYPE_EXTERNALDNS string = "external DNS"
 
-func InstallWge(version string) {
+func InstallWge(version string) error {
 
 	domainTypes := []string{
 		DOMAIN_TYPE_LOCALHOST,
@@ -25,7 +25,10 @@ func InstallWge(version string) {
 		Label:        "Please select the domain to be used",
 		DefaultValue: "",
 	}
-	domainType := utils.GetPromptSelect(domainSelectorPrompt, domainTypes)
+	domainType, err := utils.GetPromptSelect(domainSelectorPrompt, domainTypes)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
 	userDomain := "localhost"
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
@@ -35,13 +38,20 @@ func InstallWge(version string) {
 			Label:        "Please enter your cluster domain",
 			DefaultValue: "",
 		}
-		userDomain = utils.GetPromptStringInput(userDomainPrompt)
+		userDomain, err = utils.GetPromptStringInput(userDomainPrompt)
+		if err != nil {
+			return utils.CheckIfError(err)
+		}
 	}
 
 	fmt.Printf("✔ All set installing WGE v%s, This may take few minutes...\n", version)
 
 	pathInRepo, err := utils.CloneRepo()
-	utils.CheckIfError(err)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
+	defer utils.CleanupRepo()
 
 	wgeHelmRepo := fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
@@ -56,7 +66,9 @@ spec:
 `, HELMREPOSITORY_NAME, ENTITLEMENT_SECRET_NAME, CHART_URL)
 
 	err = utils.CreateFileToRepo("wge-hrepo.yaml", wgeHelmRepo, pathInRepo, "create wge helmrepository")
-	utils.CheckIfError(err)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
 	wgeHelmRelease := fmt.Sprintf(`apiVersion: helm.toolkit.fluxcd.io/v2beta1
 kind: HelmRelease
@@ -95,20 +107,24 @@ spec:
 `, HELMRELEASE_NAME, HELMREPOSITORY_NAME, version, userDomain, userDomain)
 
 	err = utils.CreateFileToRepo("wge-hrelease.yaml", wgeHelmRelease, pathInRepo, "create wge helmrelease")
-	utils.CheckIfError(err)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
-	var runner runner.CLIRunner
-	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
-	utils.CheckIfError(err, string(out))
-	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
-	utils.CheckIfError(err, string(out))
-	out, err = runner.Run("flux", "reconcile", "helmrelease", HELMRELEASE_NAME)
-	utils.CheckIfError(err, string(out))
+	err = utils.ReconcileFlux(HELMRELEASE_NAME)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
 		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, userDomain)
 	} else {
+		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://%s:8000/\n", version, userDomain)
+		var runner runner.CLIRunner
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-		utils.CheckIfError(err, string(out))
+		if err != nil {
+			return utils.CheckIfError(err, string(out))
+		}
 	}
+	return nil
 }
