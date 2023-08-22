@@ -111,9 +111,14 @@ func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) (err er
 	defer recordIndexerMetrics(metrics.AddAction, time.Now(), err)
 
 	batch := i.idx.NewBatch()
+	delBatch := i.idx.NewBatch()
 
 	for _, obj := range objects {
-		if err := batch.Index(obj.GetID(), obj); err != nil {
+		id := obj.GetID()
+
+		delBatch.Delete(id)
+
+		if err := batch.Index(id, obj); err != nil {
 			i.log.Error(err, "failed to index object", "object", obj.GetID())
 			continue
 		}
@@ -121,16 +126,25 @@ func (i *bleveIndexer) Add(ctx context.Context, objects []models.Object) (err er
 		if obj.Unstructured != nil {
 			var data interface{}
 
+			unstructuredID := obj.GetID() + unstructuredSuffix
+
+			delBatch.Delete(unstructuredID)
+
 			if err := json.Unmarshal(obj.Unstructured, &data); err != nil {
 				i.log.Error(err, "failed to unmarshal object", "object", obj.GetID())
 				continue
 			}
 
-			if err := batch.Index(obj.GetID()+unstructuredSuffix, data); err != nil {
+			if err := batch.Index(unstructuredID, data); err != nil {
 				i.log.Error(err, "failed to index unstructured object", "object", obj.GetID())
 				continue
 			}
 		}
+	}
+
+	// Delete the old objects before adding the new ones.
+	if err := i.idx.Batch(delBatch); err != nil {
+		i.log.Error(err, "failed to delete objects from index")
 	}
 
 	return i.idx.Batch(batch)
