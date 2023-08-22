@@ -23,7 +23,7 @@ const Policies = () => {
 
   return (
     <Page path={[{ label: 'Policies' }]}>
-      <SubRouterTabs rootPath={`${path}/list`}>
+      <SubRouterTabs rootPath={`${path}/list`} clearQuery>
         <RouterTab name="Policies" path={`${path}/list`}>
           <PoliciesTab />
         </RouterTab>
