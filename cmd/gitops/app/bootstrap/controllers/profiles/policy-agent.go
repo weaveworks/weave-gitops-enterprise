@@ -120,23 +120,14 @@ useCertManager: true
 `, enableAdmissionResult, enableMutationResult, enableAuditResult, failurePolicyResult)
 
 	valuesFile, err := os.Create(POLICY_AGENT_VALUES_FILES_LOCATION)
-	if err != nil {
-		fmt.Printf("An error occurred creating values file %v\n", err)
-		os.Exit(1)
-	}
+	utils.CheckIfError(err)
 
 	defer valuesFile.Close()
 	_, err = valuesFile.WriteString(values)
-	if err != nil {
-		fmt.Printf("An error occurred writing values file %v\n", err)
-		os.Exit(1)
-	}
+	utils.CheckIfError(err)
 
 	err = valuesFile.Sync()
-	if err != nil {
-		fmt.Printf("An error occurred finializing writing values file %v\n", err)
-		os.Exit(1)
-	}
+	utils.CheckIfError(err)
 
 	out, err = runner.Run("flux", "create", "hr", POLICY_AGENT_HELMRELEASE_NAME,
 		"--source", fmt.Sprintf("HelmRepository/%s", POLICY_AGENT_HELMREPO_NAME),

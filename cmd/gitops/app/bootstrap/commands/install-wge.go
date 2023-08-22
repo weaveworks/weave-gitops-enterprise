@@ -68,23 +68,15 @@ tls:
 `, userDomain, userDomain)
 
 		valuesFile, err := os.Create(VALUES_FILES_LOCATION)
-		if err != nil {
-			fmt.Printf("An error occurred creating values file %v\n", err)
-			os.Exit(1)
-		}
+		utils.CheckIfError(err)
 
 		defer valuesFile.Close()
 		_, err = valuesFile.WriteString(values)
-		if err != nil {
-			fmt.Printf("An error occurred writing values file %v\n", err)
-			os.Exit(1)
-		}
+		utils.CheckIfError(err)
 
 		err = valuesFile.Sync()
-		if err != nil {
-			fmt.Printf("An error occurred finializing writing values file %v\n", err)
-			os.Exit(1)
-		}
+		utils.CheckIfError(err)
+
 		fmt.Println("Installing WGE ...")
 		out, err := runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
 			"--source", fmt.Sprintf("HelmRepository/%s", HELMREPOSITORY_NAME),

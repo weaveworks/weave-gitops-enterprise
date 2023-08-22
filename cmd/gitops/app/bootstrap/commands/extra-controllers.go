@@ -53,7 +53,7 @@ func CheckExtraControllers(version string, extraControllers []string) {
 	}
 
 	if _, err = valuesFile.WriteString(values); err != nil {
-		panic(err)
+		utils.CheckIfError(err)
 	}
 
 	var runner runner.CLIRunner

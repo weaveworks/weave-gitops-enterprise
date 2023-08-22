@@ -45,9 +45,7 @@ func BootstrapFlux() {
 	gitPath := utils.GetPromptStringInput(gitPathPrompt)
 
 	home, err := os.UserHomeDir()
-	if err != nil {
-		panic(err)
-	}
+	utils.CheckIfError(err)
 
 	defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
 	privateKeyPathPrompt := utils.PromptContent{

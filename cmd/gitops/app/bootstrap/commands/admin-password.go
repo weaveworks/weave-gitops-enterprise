@@ -25,9 +25,7 @@ func GetAdminPasswordSecrets() (string, []byte) {
 	}
 	adminPassword := utils.GetPromptPasswordInput(AdminPasswordPromptContent)
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
-	if err != nil {
-		panic(err.Error())
-	}
+	utils.CheckIfError(err)
 	return adminUsername, encryptedPassword
 }
 

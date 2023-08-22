@@ -3,9 +3,7 @@ package commands
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
-	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"gopkg.in/yaml.v2"
@@ -28,16 +26,10 @@ type ChartEntry struct {
 func SelectWgeVersion() string {
 
 	entitlementSecret, err := utils.GetSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
-	if err != nil {
-		fmt.Printf("An error occurred\n%v", err)
-		os.Exit(1)
-	}
+	utils.CheckIfError(err)
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
-	if err != nil {
-		fmt.Printf("An error occurred\n%v", err)
-		os.Exit(1)
-	}
+	utils.CheckIfError(err)
 
 	versions := fetchHelmChart(username, password)
 
@@ -52,28 +44,20 @@ func SelectWgeVersion() string {
 func fetchHelmChart(username, password string) []string {
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", CHART_URL), nil)
-	if err != nil {
-		log.Fatalf("error creating request: %v", err)
-	}
+	utils.CheckIfError(err)
 
 	req.SetBasicAuth(username, password)
 
 	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatalf("error performing request: %v", err)
-	}
+	utils.CheckIfError(err)
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatalf("error reading response: %v", err)
-	}
+	utils.CheckIfError(err)
 
 	var chart HelmChart
 	err = yaml.Unmarshal(bodyBytes, &chart)
-	if err != nil {
-		log.Fatalf("error parsing yaml: %v", err)
-	}
+	utils.CheckIfError(err)
 
 	entries := chart.Entries["mccp"]
 	var versions []string

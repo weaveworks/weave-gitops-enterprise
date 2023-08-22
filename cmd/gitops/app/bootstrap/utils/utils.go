@@ -7,8 +7,12 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/object"
 	"github.com/manifoldco/promptui"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -156,6 +160,88 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		panic(err.Error())
 	}
+}
+
+const WORKINGDIR = "/tmp/bootstrap-flux"
+
+func CloneRepo() (string, error) {
+
+	CleanupRepo()
+
+	var runner runner.CLIRunner
+	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
+	CheckIfError(err)
+
+	repoUrlParsed := string(repoUrl[1 : len(repoUrl)-1])
+
+	if strings.Contains(repoUrlParsed, "ssh://") {
+		repoUrlParsed = strings.TrimPrefix(repoUrlParsed, "ssh://")
+		repoUrlParsed = strings.Replace(repoUrlParsed, "/", ":", 1)
+	}
+
+	repoBranch, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.ref.branch}\"")
+	CheckIfError(err)
+
+	repoBranchParsed := string(repoBranch[1 : len(repoBranch)-1])
+
+	repoPath, err := runner.Run("kubectl", "get", "kustomization", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.path}\"")
+	CheckIfError(err)
+
+	repoPathParsed := strings.TrimPrefix(string(repoPath[1:len(repoPath)-1]), "./")
+
+	out, err := runner.Run("git", "clone", repoUrlParsed, WORKINGDIR, "--depth", "1", "-b", repoBranchParsed)
+	if err != nil {
+		fmt.Printf("An error occured cloning repo %s\n%v", repoUrlParsed, string(out))
+		os.Exit(1)
+	}
+
+	return repoPathParsed, nil
+}
+
+func CreateFileToRepo(filename string, filecontent string, path string, commitmsg string) error {
+
+	repo, err := git.PlainOpen(WORKINGDIR)
+	CheckIfError(err)
+
+	worktree, err := repo.Worktree()
+	CheckIfError(err)
+
+	filePath := filepath.Join(WORKINGDIR, path, filename)
+
+	file, err := os.Create(filePath)
+	CheckIfError(err)
+
+	defer file.Close()
+	_, err = file.WriteString(filecontent)
+	CheckIfError(err)
+
+	_, err = worktree.Add(filepath.Join(path, filename))
+	CheckIfError(err)
+
+	_, err = worktree.Commit(commitmsg, &git.CommitOptions{
+		Author: &object.Signature{
+			Name:  "Flux Bootstrap CLI",
+			Email: "bootstrap@weave.works",
+			When:  time.Now(),
+		},
+	})
+	CheckIfError(err)
+
+	return nil
+}
+
+func CheckIfError(err error) {
+	if err == nil {
+		return
+	}
+
+	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
+	os.Exit(1)
+}
+
+func CleanupRepo() {
+	err := os.RemoveAll(WORKINGDIR)
+	CheckIfError(err)
 }
 
 // func CreateConfigMap(Name string, Namespace string, Data map[string]string) {
