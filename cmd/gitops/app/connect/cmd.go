@@ -14,6 +14,17 @@ func Command(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 		Example: `
 # Connect remote cluster
 gitops connect cluster`,
+		PreRun: func(cmd *cobra.Command, args []string) {
+			names := []string{
+				"endpoint",
+				"password",
+				"username",
+			}
+			flags := cmd.InheritedFlags()
+			for _, name := range names {
+				flags.SetAnnotation(name, cobra.BashCompOneRequiredFlag, []string{"false"})
+			}
+		},
 	}
 
 	cmd.AddCommand(connect.ConnectCommand(opts, client))
