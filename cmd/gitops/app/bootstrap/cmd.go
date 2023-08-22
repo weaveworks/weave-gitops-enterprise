@@ -6,13 +6,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers"
 )
 
-var extraControllers []string = []string{
-	"None",
-	"policy-agent",
-	"pipeline-controller",
-	"gitopssets-controller",
-}
-
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bootstrap",
@@ -37,6 +30,6 @@ func Bootstrap() error {
 	wgeVersion := commands.SelectWgeVersion()
 	commands.CreateAdminPasswordSecret()
 	commands.InstallWge(wgeVersion)
-	commands.CheckExtraControllers(wgeVersion, extraControllers)
+	commands.CheckExtraControllers(wgeVersion)
 	return nil
 }

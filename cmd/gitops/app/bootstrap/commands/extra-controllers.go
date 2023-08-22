@@ -2,16 +2,20 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
-	"golang.org/x/exp/slices"
 )
 
-func CheckExtraControllers(version string, extraControllers []string) {
+func CheckExtraControllers(version string) {
+
+	var extraControllers []string = []string{
+		"None",
+		"policy-agent",
+		"pipeline-controller",
+		"gitopssets-controller",
+	}
 
 	extraControllerPrompt := utils.PromptContent{
 		ErrorMsg:     "",
@@ -24,54 +28,13 @@ func CheckExtraControllers(version string, extraControllers []string) {
 		return
 	}
 
-	valuesFile, err := os.OpenFile(VALUES_FILES_LOCATION, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		panic(err)
-	}
-
-	defer valuesFile.Close()
-	var values string
-
 	switch controllerName {
 	case "policy-agent":
 		profiles.BootstrapPolicyAgent()
 		return
 	case "pipeline-controller":
-		values = "enablePipelines: true"
+		fmt.Println("not implemented yet!")
 	case "gitopssets-controller":
-		values = `gitopssets-controller:
-  enabled: true
-  controllerManager:
-    manager:
-      args:
-        - --health-probe-bind-address=:8081
-        - --metrics-bind-address=127.0.0.1:8080
-        - --leader-elect
-        # enable the cluster generator which is not enabled by default
-        - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
-`
+		fmt.Println("not implemented yet!")
 	}
-
-	if _, err = valuesFile.WriteString(values); err != nil {
-		utils.CheckIfError(err)
-	}
-
-	var runner runner.CLIRunner
-	fmt.Printf("\nInstalling controller %s on your cluster ...\n", controllerName)
-	out, err := runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
-		"--source", fmt.Sprintf("HelmRepository/%s", HELMREPOSITORY_NAME),
-		"--chart", "mccp",
-		"--chart-version", version,
-		"--interval", "65m",
-		"--crds", "CreateReplace",
-		"--values", VALUES_FILES_LOCATION,
-	)
-	if err != nil {
-		fmt.Printf("An error occurred updating helmrelease\n%v\n", string(out))
-		os.Exit(1)
-	}
-
-	fmt.Printf("\n✔  controller %s is installed on your cluster\n", controllerName)
-	extraControllers = slices.Delete(extraControllers, slices.Index(extraControllers, controllerName), slices.Index(extraControllers, controllerName)+1)
-	CheckExtraControllers(version, extraControllers)
 }
