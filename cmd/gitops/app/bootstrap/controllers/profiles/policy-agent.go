@@ -1,24 +1,33 @@
 package profiles
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8syaml "sigs.k8s.io/yaml"
 )
 
 const (
-	POLICY_AGENT_HELMREPO_NAME    = "policy-agent"
-	POLICY_AGENT_CHART_URL        = "https://weaveworks.github.io/policy-agent/"
-	POLICY_AGENT_HELMRELEASE_NAME = "policy-agent"
-	AGENT_VERSION                 = "2.5.0"
+	POLICY_AGENT_HELMREPO_NAME         = "policy-agent"
+	POLICY_AGENT_CHART_URL             = "https://weaveworks.github.io/policy-agent/"
+	POLICY_AGENT_HELMRELEASE_NAME      = "policy-agent"
+	AGENT_VERSION                      = "2.5.0"
+	DEFAULT_NAMESPACE                  = "flux-system"
+	POLICY_AGENT_TARGET_NAMESPACE      = "policy-system"
+	POLICY_AGENT_HELMREPO_FILENAME     = "policy-agent-helmrepo.yaml"
+	POLICY_AGENT_HELMRELEASE_FILENAME  = "policy-agent-helmrelease.yaml"
+	POLICY_AGENT_HELMREPO_COMMITMSG    = "Add Policy Agent HelmRepository YAML file"
+	POLICY_AGENT_HELMRELEASE_COMMITMSG = "Add Policy Agent HelmRelease YAML file"
 )
-
-var FailurePolicies []string = []string{
-	"Fail", "Ignore",
-}
 
 var PolicyAgentCommand = &cobra.Command{
 	Use:   "policy-agent",
@@ -32,7 +41,7 @@ gitops bootstrap controllers policy-agent`,
 }
 
 func BootstrapPolicyAgent() error {
-
+	var enableAdmission, enableAudit, enableMutate bool
 	fmt.Println("For more information about the configurations please refer to the docs https://github.com/weaveworks/policy-agent/blob/dev/docs/README.md")
 
 	admissionPrompt := promptui.Prompt{
@@ -45,9 +54,9 @@ func BootstrapPolicyAgent() error {
 		return utils.CheckIfError(err)
 	}
 	if strings.Compare(enableAdmissionResult, "y") == 0 {
-		enableAdmissionResult = "true"
+		enableAdmission = true
 	} else {
-		enableAdmissionResult = "false"
+		enableAdmission = false
 	}
 
 	mutationPrompt := promptui.Prompt{
@@ -60,9 +69,9 @@ func BootstrapPolicyAgent() error {
 		return utils.CheckIfError(err)
 	}
 	if strings.Compare(enableMutationResult, "y") == 0 {
-		enableMutationResult = "true"
+		enableMutate = true
 	} else {
-		enableMutationResult = "false"
+		enableMutate = false
 	}
 
 	auditPrompt := promptui.Prompt{
@@ -75,9 +84,9 @@ func BootstrapPolicyAgent() error {
 		return utils.CheckIfError(err)
 	}
 	if strings.Compare(enableAuditResult, "y") == 0 {
-		enableAuditResult = "true"
+		enableAudit = true
 	} else {
-		enableAuditResult = "false"
+		enableAudit = false
 	}
 
 	FailurePolicyPrompt := utils.PromptContent{
@@ -86,7 +95,11 @@ func BootstrapPolicyAgent() error {
 		DefaultValue: "",
 	}
 
-	failurePolicyResult, err := utils.GetPromptSelect(FailurePolicyPrompt, FailurePolicies)
+	failurePolicies := []string{
+		"Fail", "Ignore",
+	}
+
+	failurePolicyResult, err := utils.GetPromptSelect(FailurePolicyPrompt, failurePolicies)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
@@ -105,68 +118,21 @@ func BootstrapPolicyAgent() error {
 		}
 	}()
 
-	policyAgentHelmRepo := fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: %s
-  namespace: flux-system
-spec:
-  interval: 1m0s
-  url: %s
-`, POLICY_AGENT_HELMREPO_NAME, POLICY_AGENT_CHART_URL)
-
-	err = utils.CreateFileToRepo("policy-agent-helmrepo.yaml", policyAgentHelmRepo, pathInRepo, "create policy agent helmrepository")
+	policyAgentHelmRepo, err := constructPolicyAgentHelmRepository()
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
 
-	policyAgentHelmRelease := fmt.Sprintf(`apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: %s
-  namespace: flux-system
-spec:
-  chart:
-    spec:
-      chart: %s
-      sourceRef:
-        apiVersion: source.toolkit.fluxcd.io/v1beta2
-        kind: HelmRepository
-        name: %s
-        namespace: flux-system
-      version: %s
-  interval: 10m0s
-  targetNamespace: policy-system
-  install:
-    createNamespace: true
-  values:
-    caCertificate: ""
-    certificate: ""
-    config:
-      accountId: ""
-      admission:
-        enabled: %s
-        sinks:
-          k8sEventsSink:
-            enabled: true
-        mutate: %s
-      audit:
-        enabled: %s
-        sinks:
-          k8sEventsSink:
-            enabled: true
-      clusterId: ""
-    excludeNamespaces:
-    - kube-system
-    failurePolicy: %s
-    image: weaveworks/policy-agent
-    key: ""
-    persistence:
-      enabled: false
-    useCertManager: true
-`, POLICY_AGENT_HELMRELEASE_NAME, POLICY_AGENT_HELMRELEASE_NAME, POLICY_AGENT_HELMREPO_NAME, AGENT_VERSION, enableAdmissionResult, enableMutationResult, enableAuditResult, failurePolicyResult)
+	err = utils.CreateFileToRepo(POLICY_AGENT_HELMREPO_FILENAME, policyAgentHelmRepo, pathInRepo, POLICY_AGENT_HELMREPO_COMMITMSG)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
-	err = utils.CreateFileToRepo("policy-agent-helmrelease.yaml", policyAgentHelmRelease, pathInRepo, "create policy agent helmrelease")
+	policyAgentHelmRelease, err := constructPolicyAgentHelmRelease(enableAdmission, enableMutate, enableAudit, failurePolicyResult)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+	err = utils.CreateFileToRepo(POLICY_AGENT_HELMRELEASE_FILENAME, policyAgentHelmRelease, pathInRepo, POLICY_AGENT_HELMRELEASE_FILENAME)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
@@ -178,4 +144,109 @@ spec:
 
 	fmt.Println("✔ Policy Agent is installed successfully")
 	return nil
+}
+
+func constructPolicyAgentHelmRepository() (string, error) {
+	agentHelmRepo := sourcev1.HelmRepository{
+		TypeMeta: v1.TypeMeta{
+			APIVersion: sourcev1.GroupVersion.Identifier(),
+			Kind:       sourcev1.HelmRepositoryKind,
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:              POLICY_AGENT_HELMRELEASE_NAME,
+			Namespace:         DEFAULT_NAMESPACE,
+			CreationTimestamp: v1.Now(),
+		},
+		Spec: sourcev1.HelmRepositorySpec{
+			URL: POLICY_AGENT_CHART_URL,
+			Interval: v1.Duration{
+				Duration: time.Minute,
+			},
+		},
+	}
+	agentHelmRepoBytes, err := k8syaml.Marshal(agentHelmRepo)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
+	return string(agentHelmRepoBytes), nil
+}
+
+func constructPolicyAgentHelmRelease(enableAdmission bool, enableMutate bool, enableAudit bool, failurePolicy string) (string, error) {
+
+	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicy)
+
+	valuesBytes, err := json.Marshal(values)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
+
+	policyAgentHelmRelease := helmv2.HelmRelease{
+		TypeMeta: v1.TypeMeta{
+			Kind:       helmv2.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.Identifier(),
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:              POLICY_AGENT_HELMRELEASE_NAME,
+			Namespace:         DEFAULT_NAMESPACE,
+			CreationTimestamp: v1.Now(),
+		}, Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart: POLICY_AGENT_HELMREPO_NAME,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind:       sourcev1.HelmRepositoryKind,
+						Name:       POLICY_AGENT_HELMREPO_NAME,
+						Namespace:  DEFAULT_NAMESPACE,
+						APIVersion: sourcev1.GroupVersion.Identifier(),
+					},
+					Version: AGENT_VERSION,
+				},
+			},
+			Install: &helmv2.Install{
+				CRDs:            helmv2.CreateReplace,
+				CreateNamespace: true,
+			},
+			Interval: v1.Duration{
+				Duration: time.Minute * 10,
+			},
+			TargetNamespace: POLICY_AGENT_TARGET_NAMESPACE,
+			Values:          &apiextensionsv1.JSON{Raw: valuesBytes},
+		},
+	}
+
+	policyAgentHelmReleaseBytes, err := k8syaml.Marshal(policyAgentHelmRelease)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
+	return string(policyAgentHelmReleaseBytes), nil
+}
+
+func constructPolicyAgentValues(enableAdmission bool, enableMutate bool, enableAudit bool, failurePolicy string) map[string]interface{} {
+	values := map[string]interface{}{
+		"config": map[string]interface{}{
+			"admission": map[string]interface{}{
+				"enabled": enableAdmission,
+				"sinks": map[string]interface{}{
+					"k8sEventsSink": map[string]interface{}{
+						"enabled": true,
+					},
+				},
+				"mutate": enableMutate,
+			},
+			"audit": map[string]interface{}{
+				"enabled": enableAudit,
+				"sinks": map[string]interface{}{
+					"k8sEventsSink": map[string]interface{}{
+						"enabled": true,
+					},
+				},
+			},
+		},
+		"excludeNamespaces": []string{
+			"kube-system",
+		},
+		"failurePolicy":  failurePolicy,
+		"useCertManager": true,
+	}
+	return values
 }

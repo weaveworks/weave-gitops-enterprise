@@ -7,14 +7,11 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const ADMIN_SECRET_NAME string = "cluster-user-auth"
-const ADMIN_SECRET_NAMESPACE string = "flux-system"
-
 func GetAdminPasswordSecrets() (string, []byte, error) {
 	AdminUsernamePromptContent := utils.PromptContent{
 		ErrorMsg:     "Admin username can't be empty",
 		Label:        "Please enter your admin username (default: wego-admin)",
-		DefaultValue: "wego-admin",
+		DefaultValue: DEFAULT_ADMIN_USERNAME,
 	}
 	adminUsername, err := utils.GetPromptStringInput(AdminUsernamePromptContent)
 	if err != nil {
@@ -46,7 +43,7 @@ func CreateAdminPasswordSecret() error {
 		"username": []byte(adminUsername),
 		"password": adminPassword,
 	}
-	err = utils.CreateSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE, data)
+	err = utils.CreateSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE, data)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}

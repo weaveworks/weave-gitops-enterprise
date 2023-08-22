@@ -8,11 +8,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-const HELMREPOSITORY_NAME string = "weave-gitops-enterprise-charts"
-const HELMRELEASE_NAME string = "weave-gitops-enterprise"
-const DOMAIN_TYPE_LOCALHOST string = "localhost (Using Portforward)"
-const DOMAIN_TYPE_EXTERNALDNS string = "external DNS"
-
 func InstallWge(version string) error {
 
 	domainTypes := []string{
@@ -58,65 +53,25 @@ func InstallWge(version string) error {
 		}
 	}()
 
-	wgeHelmRepo := fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1beta2
-kind: HelmRepository
-metadata:
-  name: %s
-  namespace: flux-system
-spec:
-  interval: 1m0s
-  secretRef:
-    name: %s
-  url: %s
-`, HELMREPOSITORY_NAME, ENTITLEMENT_SECRET_NAME, CHART_URL)
-
-	err = utils.CreateFileToRepo("wge-hrepo.yaml", wgeHelmRepo, pathInRepo, "create wge helmrepository")
+	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
 
-	wgeHelmRelease := fmt.Sprintf(`apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: %s
-  namespace: flux-system
-spec:
-  chart:
-    spec:
-      chart: mccp
-      reconcileStrategy: ChartVersion
-      sourceRef:
-        kind: HelmRepository
-        name: %s
-      version: %s
-  install:
-    crds: CreateReplace
-  interval: 1h5m0s
-  upgrade:
-    crds: CreateReplace
-  values:
-    ingress:
-      annotations:
-        external-dns.alpha.kubernetes.io/hostname: %s
-        service.beta.kubernetes.io/aws-load-balancer-backend-protocol: http
-        service.beta.kubernetes.io/aws-load-balancer-type: nlb
-      className: public-nginx
-      enabled: true
-      hosts:
-        - host: %s
-          paths:
-          - path: /
-            pathType: ImplementationSpecific
-    tls:
-        enabled: false
-`, HELMRELEASE_NAME, HELMREPOSITORY_NAME, version, userDomain, userDomain)
-
-	err = utils.CreateFileToRepo("wge-hrelease.yaml", wgeHelmRelease, pathInRepo, "create wge helmrelease")
+	err = utils.CreateFileToRepo(WGE_HELMREPO_FILENAME, wgehelmRepo, pathInRepo, WGE_HELMREPO_COMMITMSG)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+	wgeHelmRelease, err := constructWGEhelmRelease(userDomain, version)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, wgeHelmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
 
-	err = utils.ReconcileFlux(HELMRELEASE_NAME)
+	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}

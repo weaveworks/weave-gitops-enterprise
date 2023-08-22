@@ -9,9 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const CHART_URL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
-
-type HelmChart struct {
+type HelmChartResponse struct {
 	ApiVersion string
 	Entries    map[string][]ChartEntry
 	Generated  string
@@ -25,7 +23,7 @@ type ChartEntry struct {
 
 func SelectWgeVersion() (string, error) {
 
-	entitlementSecret, err := utils.GetSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
+	entitlementSecret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
 	if err != nil {
 		return "", utils.CheckIfError(err)
 	}
@@ -50,7 +48,7 @@ func SelectWgeVersion() (string, error) {
 
 func fetchHelmChart(username, password string) ([]string, error) {
 	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", CHART_URL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGE_CHART_URL), nil)
 	if err != nil {
 		return []string{}, utils.CheckIfError(err)
 	}
@@ -68,7 +66,7 @@ func fetchHelmChart(username, password string) ([]string, error) {
 		return []string{}, utils.CheckIfError(err)
 	}
 
-	var chart HelmChart
+	var chart HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
 		return []string{}, utils.CheckIfError(err)
