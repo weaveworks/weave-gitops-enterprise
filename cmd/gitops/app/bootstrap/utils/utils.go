@@ -162,6 +162,21 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 	}
 }
 
+func DeleteSecret(secretName string, secretNamespace string) {
+	// Create a new Kubernetes client using the config.
+	clientset, err := GetKubernetesClient()
+	if err != nil {
+		panic(err.Error())
+	}
+
+	err = clientset.CoreV1().Secrets(secretNamespace).Delete(context.TODO(), secretName, v1.DeleteOptions{
+		TypeMeta: v1.TypeMeta{},
+	})
+	if err != nil {
+		panic(err.Error())
+	}
+}
+
 const WORKINGDIR = "/tmp/bootstrap-flux"
 
 func CloneRepo() (string, error) {

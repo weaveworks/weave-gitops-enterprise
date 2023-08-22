@@ -105,4 +105,23 @@ func CreateOIDCConfig(version string) {
 	utils.CheckIfError(err, string(out))
 
 	fmt.Println("✔ OIDC config created successfully")
+
+	//make a function to ask the user if he want to revet the admin user or keep it
+	checkAdminPassword()
+}
+
+func checkAdminPassword() {
+	adminUserPrompot := promptui.Prompt{
+		Label:     "Do you want to revert the admin user",
+		IsConfirm: true,
+	}
+
+	result, _ := adminUserPrompot.Run()
+
+	if result != "y" {
+		return
+	}
+
+	utils.DeleteSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE)
+	fmt.Println("✔ Admin user reverted successfully")
 }
