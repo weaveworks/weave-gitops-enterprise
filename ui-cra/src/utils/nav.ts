@@ -6,6 +6,10 @@ export function getKindRoute(k: Kind | string): string {
     case 'GitRepository':
       return V2Routes.GitRepo;
 
+    case Kind.OCIRepository:
+    case 'OCIRepository':
+      return V2Routes.OCIRepository;
+
     case Kind.Bucket:
     case 'Bucket':
       return V2Routes.Bucket;
