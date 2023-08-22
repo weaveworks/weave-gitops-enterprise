@@ -98,7 +98,12 @@ func BootstrapPolicyAgent() error {
 		return utils.CheckIfError(err)
 	}
 
-	defer utils.CleanupRepo()
+	defer func() {
+		err = utils.CleanupRepo()
+		if err != nil {
+			fmt.Println("cleanup failed!")
+		}
+	}()
 
 	policyAgentHelmRepo := fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository

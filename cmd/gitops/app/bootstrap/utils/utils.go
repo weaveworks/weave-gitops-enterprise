@@ -277,12 +277,12 @@ func ReconcileFlux(helmReleaseName ...string) error {
 	}
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		CheckIfError(err, string(out))
+		return CheckIfError(err, string(out))
 	}
 	if len(helmReleaseName) > 0 {
 		out, err = runner.Run("flux", "reconcile", "helmrelease", helmReleaseName[0])
 		if err != nil {
-			CheckIfError(err, string(out))
+			return CheckIfError(err, string(out))
 		}
 	}
 	return nil

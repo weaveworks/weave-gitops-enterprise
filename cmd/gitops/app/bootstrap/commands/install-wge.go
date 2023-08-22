@@ -51,7 +51,12 @@ func InstallWge(version string) error {
 		return utils.CheckIfError(err)
 	}
 
-	defer utils.CleanupRepo()
+	defer func() {
+		err = utils.CleanupRepo()
+		if err != nil {
+			fmt.Println("cleanup failed!")
+		}
+	}()
 
 	wgeHelmRepo := fmt.Sprintf(`apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
