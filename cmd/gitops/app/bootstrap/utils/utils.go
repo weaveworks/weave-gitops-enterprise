@@ -227,15 +227,18 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 	})
 	CheckIfError(err)
 
+	err = repo.Push(&git.PushOptions{})
+	CheckIfError(err)
+
 	return nil
 }
 
-func CheckIfError(err error) {
+func CheckIfError(err error, extramsg ...string) {
 	if err == nil {
 		return
 	}
 
-	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s", err))
+	fmt.Printf("\x1b[31;1m%s\x1b[0m\n", fmt.Sprintf("error: %s\n%s", err, extramsg[0]))
 	os.Exit(1)
 }
 
