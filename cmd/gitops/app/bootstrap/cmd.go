@@ -54,6 +54,7 @@ func CheckUIDomain(isExternalDomain bool, uiDomain string, wgeVersion string) {
 	if isExternalDomain {
 		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, uiDomain)
 	} else {
+		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://localhost:8000/\n", wgeVersion)
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 		utils.CheckIfError(err, string(out))
 	}
