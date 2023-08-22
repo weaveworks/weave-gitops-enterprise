@@ -2,7 +2,6 @@ package connect
 
 import (
 	"context"
-	"os"
 
 	"github.com/go-logr/stdr"
 	"github.com/spf13/cobra"
@@ -10,7 +9,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/connector"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/cli-runtime/pkg/printers"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -52,14 +50,6 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 
 func connectClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		err := client.ConfigureClientWithOptions(opts, os.Stdout)
-		if err != nil {
-			return err
-		}
-
-		w := printers.GetNewTabWriter(os.Stdout)
-
-		defer w.Flush()
 		clusterName := args[0]
 
 		options := connector.ClusterConnectionOptions{
