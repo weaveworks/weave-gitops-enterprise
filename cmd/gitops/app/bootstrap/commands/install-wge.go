@@ -10,10 +10,8 @@ import (
 
 const HELMREPOSITORY_NAME string = "weave-gitops-enterprise-charts"
 const HELMRELEASE_NAME string = "weave-gitops-enterprise"
-const VALUES_FILES_LOCATION string = "/tmp/mccp-values.yaml"
 const DOMAIN_TYPE_LOCALHOST string = "localhost (Using Portforward)"
 const DOMAIN_TYPE_EXTERNALDNS string = "external DNS"
-const UI_URL_LOCALHOST string = "localhost:8000"
 
 func InstallWge(version string) {
 

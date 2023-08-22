@@ -57,11 +57,7 @@ func BootstrapFlux() {
 	fmt.Println("Installing flux ...")
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
-	if err != nil {
-		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
-		os.Exit(1)
-	}
-
+	utils.CheckIfError(err, fmt.Sprintf("Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v", string(out)))
 	fmt.Println("✔  flux is bootstrapped successfully")
 
 }
