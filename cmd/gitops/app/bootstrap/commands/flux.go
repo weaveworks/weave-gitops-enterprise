@@ -19,53 +19,52 @@ func BootstrapFlux() {
 
 	result, _ := prompt.Run()
 
-	if result == "y" {
-
-		gitURLPrompt := utils.PromptContent{
-			ErrorMsg:     "Host can't be empty",
-			Label:        "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)",
-			DefaultValue: "",
-		}
-		gitURL := utils.GetPromptStringInput(gitURLPrompt)
-
-		gitBranchPrompt := utils.PromptContent{
-			ErrorMsg:     "Branch can't be empty",
-			Label:        "Please enter your git repository branch (default: main)",
-			DefaultValue: "main",
-		}
-		gitBranch := utils.GetPromptStringInput(gitBranchPrompt)
-
-		gitPathPrompt := utils.PromptContent{
-			ErrorMsg:     "Path can't be empty",
-			Label:        "Please enter your path for your cluster (default: clusters/my-cluster)",
-			DefaultValue: "clusters/my-cluster",
-		}
-		gitPath := utils.GetPromptStringInput(gitPathPrompt)
-
-		home, err := os.UserHomeDir()
-		if err != nil {
-			panic(err)
-		}
-
-		defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
-		privateKeyPathPrompt := utils.PromptContent{
-			ErrorMsg:     "Private key path can't be empty",
-			Label:        fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath),
-			DefaultValue: defaultPrivateKeyPath,
-		}
-		privateKeyPath := utils.GetPromptStringInput(privateKeyPathPrompt)
-		fmt.Println("Installing flux ...")
-		var runner runner.CLIRunner
-		out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
-		if err != nil {
-			fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
-			os.Exit(1)
-		}
-
-		fmt.Println("✔  flux is bootstrapped successfully")
-	} else {
+	if result != "y" {
 		os.Exit(1)
 	}
+
+	gitURLPrompt := utils.PromptContent{
+		ErrorMsg:     "Host can't be empty",
+		Label:        "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)",
+		DefaultValue: "",
+	}
+	gitURL := utils.GetPromptStringInput(gitURLPrompt)
+
+	gitBranchPrompt := utils.PromptContent{
+		ErrorMsg:     "Branch can't be empty",
+		Label:        "Please enter your git repository branch (default: main)",
+		DefaultValue: "main",
+	}
+	gitBranch := utils.GetPromptStringInput(gitBranchPrompt)
+
+	gitPathPrompt := utils.PromptContent{
+		ErrorMsg:     "Path can't be empty",
+		Label:        "Please enter your path for your cluster (default: clusters/my-cluster)",
+		DefaultValue: "clusters/my-cluster",
+	}
+	gitPath := utils.GetPromptStringInput(gitPathPrompt)
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		panic(err)
+	}
+
+	defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
+	privateKeyPathPrompt := utils.PromptContent{
+		ErrorMsg:     "Private key path can't be empty",
+		Label:        fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath),
+		DefaultValue: defaultPrivateKeyPath,
+	}
+	privateKeyPath := utils.GetPromptStringInput(privateKeyPathPrompt)
+	fmt.Println("Installing flux ...")
+	var runner runner.CLIRunner
+	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
+	if err != nil {
+		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
+		os.Exit(1)
+	}
+
+	fmt.Println("✔  flux is bootstrapped successfully")
 
 }
 
