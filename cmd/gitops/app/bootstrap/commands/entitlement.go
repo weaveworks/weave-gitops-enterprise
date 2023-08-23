@@ -12,7 +12,6 @@ const (
 
 // CheckEntitlementFile checks for valid entitlement secret
 func CheckEntitlementFile() error {
-
 	utils.Warning("Checking entitlement file ...")
 
 	secret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
