@@ -14,6 +14,8 @@ func InstallController(controllerValuesName string, controllerValues map[string]
 	switch controllerValuesName {
 	case domain.POLICY_AGENT_VALUES_NAME:
 		values.PolicyAgent = controllerValues
+	case domain.OIDC_VALUES_NAME:
+		values.Config.OIDC = controllerValues
 	}
 
 	version, err := utils.GetCurrentVersionForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
