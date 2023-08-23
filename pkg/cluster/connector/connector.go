@@ -10,6 +10,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 // ClusterConnectionOptions holds the options to create the resources with such as the target names and namespace
@@ -54,38 +55,43 @@ func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *C
 
 }
 
-// ConnectCluster connects a cluster to a remote cluster given its name and context
+// ConnectCluster connects a cluster to a spoke cluster given its name and context
 // Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
-	// Get the context from RemoteClusterContext
+	// Get the context from SpokeClusterContext
 	pathOpts := clientcmd.NewDefaultPathOptions()
 	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
-	remoteClusterConfig, err := ConfigForContext(ctx, pathOpts, options.RemoteClusterContext)
+	spokeClusterConfig, err := ConfigForContext(ctx, pathOpts, options.RemoteClusterContext)
 	if err != nil {
 		return err
 	}
-
-	secretName, err := getSecretNameForConfig(ctx, remoteClusterConfig, options)
+	hubClusterConfig, err := k8sConfig.GetConfig()
+	if err != nil {
+		return err
+	}
+	secretName, err := getSecretNameForConfig(ctx, hubClusterConfig, options)
 	if err != nil {
 		return err
 	}
 
 	// ReconcileServiceAccount to create the ServiceAccount/ClusterRole/ClusterRoleBinding/Secret
-	kubernetesClient, err := kubernetes.NewForConfig(remoteClusterConfig)
+	spokeKubernetesClient, err := kubernetes.NewForConfig(spokeClusterConfig)
 	if err != nil {
 		return err
 	}
-	serviceAccountToken, err := ReconcileServiceAccount(ctx, kubernetesClient, *options)
+	serviceAccountToken, err := ReconcileServiceAccount(ctx, spokeKubernetesClient, *options)
 	if err != nil {
 		return err
 	}
 
 	// Create or update the referenced secret name with the value from the remote cluster ServiceAccount token.
-	newConfig, err := kubeConfigWithToken(ctx, remoteClusterConfig, options.RemoteClusterContext, serviceAccountToken)
+	newConfig, err := kubeConfigWithToken(ctx, spokeClusterConfig, options.RemoteClusterContext, serviceAccountToken)
 	if err != nil {
 		return err
 	}
-	_, err = createOrUpdateGitOpsClusterSecret(ctx, kubernetesClient, secretName, options.GitopsClusterName.Namespace, newConfig)
+
+	hubKubernetesClient, err := kubernetes.NewForConfig(hubClusterConfig)
+	_, err = createOrUpdateGitOpsClusterSecret(ctx, hubKubernetesClient, secretName, options.GitopsClusterName.Namespace, newConfig)
 	if err != nil {
 		return err
 	}
