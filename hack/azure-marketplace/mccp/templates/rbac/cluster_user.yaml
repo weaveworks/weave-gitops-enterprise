@@ -6,4 +6,4 @@ metadata:
 type: Opaque
 data:
   username: d2Vnby1hZG1pbg==
-  password: {{ .Values.config.auth.userAccount.password | quote | bcrypt | b64enc }}
+  password: {{ .Values.config.auth.userAccount.password | bcrypt | b64enc }}
