@@ -58,14 +58,14 @@ func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *C
 // ConnectCluster connects a cluster to a spoke cluster given its name and context
 // Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
+	hubClusterConfig, err := k8sConfig.GetConfig()
+	if err != nil {
+		return err
+	}
 	// Get the context from SpokeClusterContext
 	pathOpts := clientcmd.NewDefaultPathOptions()
 	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
 	spokeClusterConfig, err := ConfigForContext(ctx, pathOpts, options.RemoteClusterContext)
-	if err != nil {
-		return err
-	}
-	hubClusterConfig, err := k8sConfig.GetConfig()
 	if err != nil {
 		return err
 	}
@@ -91,6 +91,9 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	}
 
 	hubKubernetesClient, err := kubernetes.NewForConfig(hubClusterConfig)
+	if err != nil {
+		return err
+	}
 	_, err = createOrUpdateGitOpsClusterSecret(ctx, hubKubernetesClient, secretName, options.GitopsClusterName.Namespace, newConfig)
 	if err != nil {
 		return err
