@@ -35,4 +35,5 @@ const (
 	POLICY_AGENT_VALUES_NAME = "policy-agent"
 	OIDC_VALUES_NAME         = "oidc"
 	CAPI_VALUES_NAME         = "capi"
+	TERRAFORM_VALUES_NAME    = "enableTerraformUI"
 )
