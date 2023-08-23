@@ -1,6 +1,8 @@
 package connect
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 	connect "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/connect/clusters"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
@@ -14,7 +16,7 @@ func Command(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 		Example: `
 # Connect remote cluster
 gitops connect cluster`,
-		PreRun: func(cmd *cobra.Command, args []string) {
+		PreRunE: func(cmd *cobra.Command, args []string) error {
 			names := []string{
 				"endpoint",
 				"password",
@@ -22,8 +24,12 @@ gitops connect cluster`,
 			}
 			flags := cmd.InheritedFlags()
 			for _, name := range names {
-				flags.SetAnnotation(name, cobra.BashCompOneRequiredFlag, []string{"false"})
+				err := flags.SetAnnotation(name, cobra.BashCompOneRequiredFlag, []string{"false"})
+				if err != nil {
+					return errors.New("error setting annotation")
+				}
 			}
+			return nil
 		},
 	}
 
