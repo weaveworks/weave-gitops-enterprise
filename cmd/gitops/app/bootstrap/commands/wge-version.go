@@ -21,8 +21,12 @@ type ChartEntry struct {
 	Version    string
 }
 
-func SelectWgeVersion() (string, error) {
+const (
+	VERSION_MSG = "Please select a version for WGE to be installed"
+)
 
+// SelectWgeVersion ask user to select wge version from the latest 3 versions
+func SelectWgeVersion() (string, error) {
 	entitlementSecret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
 	if err != nil {
 		return "", utils.CheckIfError(err)
@@ -38,23 +42,19 @@ func SelectWgeVersion() (string, error) {
 		return "", utils.CheckIfError(err)
 	}
 
-	versionSelectorPrompt := utils.PromptContent{
-		ErrorMsg:     "",
-		Label:        "Please select a version for WGE to be installed",
-		DefaultValue: "",
-	}
-	return utils.GetPromptSelect(versionSelectorPrompt, versions)
+	return utils.GetSelectInput(VERSION_MSG, versions)
 }
 
+// fetchHelmChart helper method to fetch wge helm chart detauls
 func fetchHelmChart(username, password string) ([]string, error) {
-	client := &http.Client{}
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGE_CHART_URL), nil)
 	if err != nil {
 		return []string{}, utils.CheckIfError(err)
-	}
 
+	}
 	req.SetBasicAuth(username, password)
 
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return []string{}, utils.CheckIfError(err)
@@ -82,5 +82,6 @@ func fetchHelmChart(username, password string) ([]string, error) {
 			}
 		}
 	}
+
 	return versions, nil
 }

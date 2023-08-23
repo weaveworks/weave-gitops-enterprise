@@ -14,9 +14,6 @@ import (
 )
 
 const (
-	ENTITLEMENT_SECRET_NAME   = "weave-gitops-enterprise-credentials"
-	ADMIN_SECRET_NAME         = "cluster-user-auth"
-	DEFAULT_ADMIN_USERNAME    = "wego-admin"
 	WGE_CHART_NAME            = "mccp"
 	WGE_HELMREPOSITORY_NAME   = "weave-gitops-enterprise-charts"
 	WGE_HELMRELEASE_NAME      = "weave-gitops-enterprise"
@@ -31,7 +28,6 @@ const (
 )
 
 func constructWGEhelmRelease(userDomain string, chartVersion string) (string, error) {
-
 	tlsValues := map[string]interface{}{
 		"enabled": false,
 	}

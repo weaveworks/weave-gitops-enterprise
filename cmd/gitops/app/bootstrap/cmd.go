@@ -23,6 +23,7 @@ gitops bootstrap`,
 	return cmd
 }
 
+// Bootstrap initiated by the command runs the WGE bootstrap steps
 func Bootstrap() error {
 	err := commands.CheckEntitlementFile()
 	if err != nil {

@@ -2,8 +2,6 @@ package utils
 
 import (
 	"context"
-	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,89 +9,12 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/manifoldco/promptui"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 )
-
-type PromptContent struct {
-	ErrorMsg     string
-	Label        string
-	DefaultValue string
-}
-
-func GetPromptStringInput(pc PromptContent) (string, error) {
-	validate := func(input string) error {
-		if input == "" {
-			return errors.New(pc.ErrorMsg)
-		}
-		return nil
-	}
-	prompt := promptui.Prompt{
-		Label:    pc.Label,
-		Validate: validate,
-		Default:  pc.DefaultValue,
-	}
-
-	result, err := prompt.Run()
-	if err != nil {
-		return "", CheckIfError(err, "Prompt failed")
-	}
-
-	return result, nil
-}
-
-func GetPromptPasswordInput(pc PromptContent) (string, error) {
-	validate := func(input string) error {
-		if len(input) < 6 {
-			return errors.New("password must have more than 6 characters")
-		}
-		return nil
-	}
-	prompt := promptui.Prompt{
-		Label:    pc.Label,
-		Validate: validate,
-		Mask:     '*',
-	}
-
-	result, err := prompt.Run()
-
-	if err != nil {
-		return "", CheckIfError(err, "Prompt failed")
-	}
-
-	return result, nil
-}
-
-func GetPromptSelect(pc PromptContent, items []string) (string, error) {
-	index := -1
-	var result string
-	var err error
-
-	for index < 0 {
-		prompt := promptui.Select{
-			Label: pc.Label,
-			Items: items,
-		}
-
-		index, result, err = prompt.Run()
-
-		if index == -1 {
-			items = append(items, result)
-		}
-	}
-
-	if err != nil {
-		return "", CheckIfError(err, "Prompt failed")
-	}
-
-	fmt.Printf("Selected: %s\n", result)
-
-	return result, nil
-}
 
 func GetKubernetesClient() (*kubernetes.Clientset, error) {
 	// Path to the kubeconfig file. This is typically located at "~/.kube/config".
@@ -251,16 +172,6 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 	}
 
 	return nil
-}
-
-func CheckIfError(err error, extramsg ...string) error {
-	if err == nil {
-		return nil
-	}
-	if len(extramsg) > 0 {
-		return fmt.Errorf("\x1b[31;1m%s\x1b[0m", fmt.Sprintf("%s\n%s", err.Error(), extramsg[0]))
-	}
-	return fmt.Errorf("\x1b[31;1m%s\x1b[0m", err.Error())
 }
 
 func CleanupRepo() error {

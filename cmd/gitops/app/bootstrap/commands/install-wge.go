@@ -8,38 +8,37 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-func InstallWge(version string) error {
+const (
+	DOMAIN_MSG         = "Please select the domain to be used"
+	CLUSTER_DOMAIN_MSG = "Please enter your cluster domain"
+)
 
+// InstallWge installs weave gitops enterprise chart
+func InstallWge(version string) error {
 	domainTypes := []string{
 		DOMAIN_TYPE_LOCALHOST,
 		DOMAIN_TYPE_EXTERNALDNS,
 	}
 
-	domainSelectorPrompt := utils.PromptContent{
-		ErrorMsg:     "",
-		Label:        "Please select the domain to be used",
-		DefaultValue: "",
-	}
-	domainType, err := utils.GetPromptSelect(domainSelectorPrompt, domainTypes)
+	domainType, err := utils.GetSelectInput(DOMAIN_MSG, domainTypes)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
 
 	userDomain := "localhost"
+
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
-		fmt.Printf("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
-		userDomainPrompt := utils.PromptContent{
-			ErrorMsg:     "Domain can't be empty",
-			Label:        "Please enter your cluster domain",
-			DefaultValue: "",
-		}
-		userDomain, err = utils.GetPromptStringInput(userDomainPrompt)
+
+		utils.Warning("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
+
+		userDomain, err = utils.GetStringInput(CLUSTER_DOMAIN_MSG, "")
 		if err != nil {
 			return utils.CheckIfError(err)
 		}
+
 	}
 
-	fmt.Printf("✔ All set installing WGE v%s, This may take few minutes...\n", version)
+	utils.Info("✔ All set installing WGE v%s, This may take few minutes...\n", version)
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
@@ -62,10 +61,12 @@ func InstallWge(version string) error {
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
+
 	wgeHelmRelease, err := constructWGEhelmRelease(userDomain, version)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
+
 	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, wgeHelmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
 	if err != nil {
 		return utils.CheckIfError(err)
@@ -77,9 +78,9 @@ func InstallWge(version string) error {
 	}
 
 	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
-		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, userDomain)
+		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", version, userDomain)
 	} else {
-		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://%s:8000/\n", version, userDomain)
+		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://%s:8000/\n", version, userDomain)
 		var runner runner.CLIRunner
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 		if err != nil {

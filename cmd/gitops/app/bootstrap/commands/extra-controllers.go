@@ -8,8 +8,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
-func CheckExtraControllers(version string) error {
+const (
+	EXTRA_CONTROLLERS_MSG = "Do you want another controller to be installed on your cluster"
+)
 
+// CheckExtraControllers asks user to install extra controllers
+func CheckExtraControllers(version string) error {
 	var extraControllers []string = []string{
 		"None",
 		"policy-agent",
@@ -17,16 +21,11 @@ func CheckExtraControllers(version string) error {
 		"gitopssets-controller",
 	}
 
-	extraControllerPrompt := utils.PromptContent{
-		ErrorMsg:     "",
-		Label:        "Do you want another controller to be installed on your cluster",
-		DefaultValue: "",
-	}
-
-	controllerName, err := utils.GetPromptSelect(extraControllerPrompt, extraControllers)
+	controllerName, err := utils.GetSelectInput(EXTRA_CONTROLLERS_MSG, extraControllers)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
+
 	if strings.Compare(controllerName, "None") == 0 {
 		return nil
 	}
@@ -39,5 +38,6 @@ func CheckExtraControllers(version string) error {
 	case "gitopssets-controller":
 		fmt.Println("not implemented yet!")
 	}
+
 	return nil
 }

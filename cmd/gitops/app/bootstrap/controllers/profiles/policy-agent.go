@@ -8,7 +8,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/manifoldco/promptui"
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -27,6 +26,10 @@ const (
 	POLICY_AGENT_HELMRELEASE_FILENAME  = "policy-agent-helmrelease.yaml"
 	POLICY_AGENT_HELMREPO_COMMITMSG    = "Add Policy Agent HelmRepository YAML file"
 	POLICY_AGENT_HELMRELEASE_COMMITMSG = "Add Policy Agent HelmRelease YAML file"
+	ADMISSION_MODE_MSG                 = "Do you want to enable admission mode"
+	MUTATION_MSG                       = "Do you want to enable mutation"
+	AUDIT_MSG                          = "Do you want to enable audit mode"
+	FAILURE_POLICY_MSG                 = "Choose your failure policy"
 )
 
 var PolicyAgentCommand = &cobra.Command{
@@ -40,71 +43,54 @@ gitops bootstrap controllers policy-agent`,
 	},
 }
 
+// BootstrapPolicyAgent start installing policy agent helm chart
 func BootstrapPolicyAgent() error {
 	var enableAdmission, enableAudit, enableMutate bool
-	fmt.Println("For more information about the configurations please refer to the docs https://github.com/weaveworks/policy-agent/blob/dev/docs/README.md")
+	utils.Warning("For more information about the configurations please refer to the docs https://github.com/weaveworks/policy-agent/blob/dev/docs/README.md")
 
-	admissionPrompt := promptui.Prompt{
-		Label:     "Do you want to enable admission mode",
-		IsConfirm: true,
-	}
-
-	enableAdmissionResult, err := admissionPrompt.Run()
+	enableAdmissionResult, err := utils.GetConfirmInput(ADMISSION_MODE_MSG)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
+
 	if strings.Compare(enableAdmissionResult, "y") == 0 {
 		enableAdmission = true
 	} else {
 		enableAdmission = false
 	}
 
-	mutationPrompt := promptui.Prompt{
-		Label:     "Do you want to enable mutation",
-		IsConfirm: true,
-	}
-
-	enableMutationResult, err := mutationPrompt.Run()
+	enableMutationResult, err := utils.GetConfirmInput(MUTATION_MSG)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
+
 	if strings.Compare(enableMutationResult, "y") == 0 {
 		enableMutate = true
 	} else {
 		enableMutate = false
 	}
 
-	auditPrompt := promptui.Prompt{
-		Label:     "Do you want to enable audit mode",
-		IsConfirm: true,
-	}
-
-	enableAuditResult, err := auditPrompt.Run()
+	enableAuditResult, err := utils.GetConfirmInput(AUDIT_MSG)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
+
 	if strings.Compare(enableAuditResult, "y") == 0 {
 		enableAudit = true
 	} else {
 		enableAudit = false
 	}
 
-	FailurePolicyPrompt := utils.PromptContent{
-		ErrorMsg:     "",
-		Label:        "Choose your failure policy",
-		DefaultValue: "",
-	}
-
 	failurePolicies := []string{
 		"Fail", "Ignore",
 	}
 
-	failurePolicyResult, err := utils.GetPromptSelect(FailurePolicyPrompt, failurePolicies)
+	failurePolicyResult, err := utils.GetSelectInput(FAILURE_POLICY_MSG, failurePolicies)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
 
-	fmt.Println("Installing policy agent ...")
+	utils.Warning("Installing policy agent ...")
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
@@ -142,7 +128,7 @@ func BootstrapPolicyAgent() error {
 		return utils.CheckIfError(err)
 	}
 
-	fmt.Println("✔ Policy Agent is installed successfully")
+	utils.Info("✔ Policy Agent is installed successfully")
 	return nil
 }
 
@@ -164,15 +150,16 @@ func constructPolicyAgentHelmRepository() (string, error) {
 			},
 		},
 	}
+
 	agentHelmRepoBytes, err := k8syaml.Marshal(agentHelmRepo)
 	if err != nil {
 		return "", utils.CheckIfError(err)
 	}
+
 	return string(agentHelmRepoBytes), nil
 }
 
 func constructPolicyAgentHelmRelease(enableAdmission bool, enableMutate bool, enableAudit bool, failurePolicy string) (string, error) {
-
 	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicy)
 
 	valuesBytes, err := json.Marshal(values)
@@ -218,6 +205,7 @@ func constructPolicyAgentHelmRelease(enableAdmission bool, enableMutate bool, en
 	if err != nil {
 		return "", utils.CheckIfError(err)
 	}
+
 	return string(policyAgentHelmReleaseBytes), nil
 }
 
@@ -248,5 +236,6 @@ func constructPolicyAgentValues(enableAdmission bool, enableMutate bool, enableA
 		"failurePolicy":  failurePolicy,
 		"useCertManager": true,
 	}
+
 	return values
 }
