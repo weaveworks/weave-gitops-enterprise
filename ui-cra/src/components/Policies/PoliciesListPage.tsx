@@ -2,23 +2,30 @@ import {
   PolicyViolationsList,
   RouterTab,
   SubRouterTabs,
+  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { useRouteMatch } from 'react-router-dom';
 import { Page } from '../Layout/App';
-import { PoliciesTab } from './PoliciesListTab';
 import PolicyAuditList from './Audit/PolicyAuditList';
+import WarningMsg from './Audit/WarningMsg';
+import { PoliciesTab } from './PoliciesListTab';
 
 const Policies = () => {
   const { path } = useRouteMatch();
+  const { isFlagEnabled } = useFeatureFlags();
+
+  const isQueryServiceExplorerEnabled = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_EXPLORER',
+  );
 
   return (
     <Page path={[{ label: 'Policies' }]}>
-      <SubRouterTabs rootPath={`${path}/list`}>
+      <SubRouterTabs rootPath={`${path}/list`} clearQuery>
         <RouterTab name="Policies" path={`${path}/list`}>
           <PoliciesTab />
         </RouterTab>
         <RouterTab name="Policy Audit" path={`${path}/audit`}>
-          <PolicyAuditList />
+          {isQueryServiceExplorerEnabled ? <PolicyAuditList /> : <WarningMsg />}
         </RouterTab>
         <RouterTab name="Enforcement Events" path={`${path}/enforcement`}>
           <PolicyViolationsList req={{}} />
