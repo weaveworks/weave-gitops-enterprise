@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
@@ -76,7 +77,7 @@ func InstallPolicyAgent() error {
 	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicyResult)
 
 	utils.Warning("Installing policy agent ...")
-	err = InstallController(POLICY_AGENT_VALUES_NAME, values)
+	err = commands.InstallController(POLICY_AGENT_VALUES_NAME, values)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}

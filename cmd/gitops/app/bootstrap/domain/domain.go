@@ -30,3 +30,7 @@ type ChartEntry struct {
 	Name       string
 	Version    string
 }
+
+const (
+	POLICY_AGENT_VALUES_NAME = "policy-agent"
+)
