@@ -1,15 +1,22 @@
 import {
+  Button,
+  Icon,
+  IconType,
   SourcesTable,
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
+import { Routes } from '../../utils/nav';
+import { ActionsWrapper } from '../Clusters';
+import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -26,6 +33,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
     refetchInterval: 5000,
   });
   const { setNotifications } = useNotifications();
+  const history = useHistory();
 
   useEffect(() => {
     if (error) {
@@ -43,6 +51,15 @@ const WGApplicationsSources: FC = ({ className }: any) => {
       ]}
     >
       <NotificationsWrapper errors={sources?.errors}>
+        <ActionsWrapper>
+          <Button
+            startIcon={<Icon type={IconType.AddIcon} size="base" />}
+            onClick={() => history.push(Routes.AddSource)}
+          >
+            ADD A SOURCE
+          </Button>
+          <OpenedPullRequest />
+        </ActionsWrapper>
         <div className={className}>
           {useQueryServiceBackend ? (
             <Explorer enableBatchSync category="source" />

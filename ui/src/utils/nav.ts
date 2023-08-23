@@ -3,6 +3,8 @@ import { Kind, V2Routes } from '@weaveworks/weave-gitops';
 export enum Routes {
   Applications = '/applications',
   AddApplication = '/applications/create',
+  Sources = '/sources',
+  AddSource = '/sources/create',
   Canaries = '/delivery',
   CanaryDetails = '/canary_details',
   Pipelines = '/pipelines',

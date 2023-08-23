@@ -11,6 +11,7 @@ import { GitProvider } from './api/gitauth/gitauth.pb';
 import error404 from './assets/img/error404.json';
 import WGApplicationsDashboard from './components/Applications';
 import AddApplication from './components/Applications/Add';
+import AddSource from './components/Applications/Add/AddSource';
 import WGApplicationsBucket from './components/Applications/Bucket';
 import WGApplicationsFluxRuntime from './components/Applications/FluxRuntime';
 import WGApplicationsGitRepository from './components/Applications/GitRepository';
@@ -127,6 +128,11 @@ const AppRoutes = () => {
         component={(props: any) => <WGApplicationsSources {...props} />}
         exact
         path={V2Routes.Sources}
+      />
+      <Route
+        component={withSearchParams(AddSource)}
+        exact
+        path={Routes.AddSource}
       />
       <Route
         component={withSearchParams((props: any) => (
