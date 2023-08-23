@@ -38,11 +38,11 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 		RunE:          connectClusterCmdRunE(opts, client),
 	}
 
-	cmd.Flags().StringVar(&connectOptionsCmdFlags.RemoteClusterContext, "context", "", "Context name of the remote cluster")
+	cmd.Flags().StringVar(&connectOptionsCmdFlags.RemoteClusterContext, "connect-context", "", "Context name of the remote cluster")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ConfigPath, "config-path", "", "kubeconfig path of hub cluster")
-	cmd.Flags().StringVar(&connectOptionsCmdFlags.ServiceAccountName, "service-account", "", "Service account name to be created/used")
-	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleName, "cluster-role", "", "Cluster role name to be created/used")
-	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleBindingName, "cluster-role-binding", "", "Cluster role binding name to be created/used")
+	cmd.Flags().StringVar(&connectOptionsCmdFlags.ServiceAccountName, "service-account", "weave-gitops-enterprise", "Service account name to be created/used")
+	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleName, "cluster-role", "weave-gitops-enterprise", "Cluster role name to be created/used")
+	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleBindingName, "cluster-role-binding", "weave-gitops-enterprise", "Cluster role binding name to be created/used")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.Namespace, "namespace", "default", "namespace of remote cluster")
 
 	return cmd
