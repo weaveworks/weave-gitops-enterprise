@@ -5,15 +5,15 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
 const (
-	POLICY_AGENT_VALUES_NAME = "policy-agent"
-	ADMISSION_MODE_MSG       = "Do you want to enable admission mode"
-	MUTATION_MSG             = "Do you want to enable mutation"
-	AUDIT_MSG                = "Do you want to enable audit mode"
-	FAILURE_POLICY_MSG       = "Choose your failure policy"
+	ADMISSION_MODE_MSG = "Do you want to enable admission mode"
+	MUTATION_MSG       = "Do you want to enable mutation"
+	AUDIT_MSG          = "Do you want to enable audit mode"
+	FAILURE_POLICY_MSG = "Choose your failure policy"
 )
 
 var PolicyAgentCommand = &cobra.Command{
@@ -27,7 +27,7 @@ gitops bootstrap controllers policy-agent`,
 	},
 }
 
-// BootstrapPolicyAgent start installing policy agent helm chart
+// InstallPolicyAgent start installing policy agent helm chart
 func InstallPolicyAgent() error {
 	var enableAdmission, enableAudit, enableMutate bool
 	utils.Warning("For more information about the configurations please refer to the docs https://github.com/weaveworks/policy-agent/blob/dev/docs/README.md")
@@ -77,7 +77,7 @@ func InstallPolicyAgent() error {
 	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicyResult)
 
 	utils.Warning("Installing policy agent ...")
-	err = commands.InstallController(POLICY_AGENT_VALUES_NAME, values)
+	err = commands.InstallController(domain.POLICY_AGENT_VALUES_NAME, values)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}

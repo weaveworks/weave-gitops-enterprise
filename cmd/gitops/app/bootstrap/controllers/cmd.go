@@ -14,5 +14,6 @@ func Command() *cobra.Command {
 gitops bootstrap controllers <controller-name>`,
 	}
 	cmd.AddCommand(profiles.PolicyAgentCommand)
+	cmd.AddCommand(profiles.CapiCommand)
 	return cmd
 }
