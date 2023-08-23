@@ -29,29 +29,31 @@ func Bootstrap() error {
 	if err != nil {
 		return err
 	}
+
 	err = commands.CheckFluxIsInstalled()
 	if err != nil {
 		return err
 	}
+
 	err = commands.CheckFluxReconcile()
 	if err != nil {
 		return err
 	}
+
 	wgeVersion, err := commands.SelectWgeVersion()
 	if err != nil {
 		return err
 	}
+
 	err = commands.CreateAdminPasswordSecret()
 	if err != nil {
 		return err
 	}
+
 	err = commands.InstallWge(wgeVersion)
 	if err != nil {
 		return err
 	}
-	err = commands.CheckExtraControllers(wgeVersion)
-	if err != nil {
-		return err
-	}
+
 	return nil
 }

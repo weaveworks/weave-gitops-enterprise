@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
@@ -78,28 +77,5 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
 		return CheckIfError(err)
 	}
-	return nil
-}
-
-// ReconcileFlux reconcile flux defaults
-func ReconcileFlux(helmReleaseName ...string) error {
-	var runner runner.CLIRunner
-	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
-	if err != nil {
-		return CheckIfError(err, string(out))
-	}
-
-	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
-	if err != nil {
-		return CheckIfError(err, string(out))
-	}
-
-	if len(helmReleaseName) > 0 {
-		out, err = runner.Run("flux", "reconcile", "helmrelease", helmReleaseName[0])
-		if err != nil {
-			return CheckIfError(err, string(out))
-		}
-	}
-
 	return nil
 }

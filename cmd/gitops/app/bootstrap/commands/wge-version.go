@@ -5,21 +5,10 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"gopkg.in/yaml.v2"
 )
-
-type HelmChartResponse struct {
-	ApiVersion string
-	Entries    map[string][]ChartEntry
-	Generated  string
-}
-
-type ChartEntry struct {
-	ApiVersion string
-	Name       string
-	Version    string
-}
 
 const (
 	VERSION_MSG = "Please select a version for WGE to be installed"
@@ -66,7 +55,7 @@ func fetchHelmChart(username, password string) ([]string, error) {
 		return []string{}, utils.CheckIfError(err)
 	}
 
-	var chart HelmChartResponse
+	var chart domain.HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
 		return []string{}, utils.CheckIfError(err)
