@@ -1,40 +1,55 @@
 package commands
 
 import (
-	"fmt"
-
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
-const ADMIN_SECRET_NAME string = "cluster-user-auth"
-const ADMIN_SECRET_NAMESPACE string = "flux-system"
+const (
+	ADMIN_USERNAME_MSG     = "Please enter your admin username (default: wego-admin)"
+	ADMIN_PASSWORD_MSG     = "Please enter your admin password"
+	DEFAULT_ADMIN_USERNAME = "wego-admin"
+	ADMIN_SECRET_NAME      = "cluster-user-auth"
+)
 
-func GetAdminPasswordSecrets() (string, []byte) {
-	AdminUsernamePromptContent := utils.PromptContent{
-		ErrorMsg:     "Admin username can't be empty",
-		Label:        "Please enter your admin username (default: wego-admin)",
-		DefaultValue: "wego-admin",
+// getAdminPasswordSecrets asks user about admin username and password
+func getAdminPasswordSecrets() (string, []byte, error) {
+	adminUsername, err := utils.GetStringInput(ADMIN_USERNAME_MSG, DEFAULT_ADMIN_USERNAME)
+	if err != nil {
+		return "", nil, utils.CheckIfError(err)
 	}
-	adminUsername := utils.GetPromptStringInput(AdminUsernamePromptContent)
 
-	AdminPasswordPromptContent := utils.PromptContent{
-		ErrorMsg:     "Admin password can't be empty",
-		Label:        "Please enter your admin password",
-		DefaultValue: "",
+	adminPassword, err := utils.GetPasswordInput(ADMIN_PASSWORD_MSG)
+	if err != nil {
+		return "", nil, utils.CheckIfError(err)
 	}
-	adminPassword := utils.GetPromptPasswordInput(AdminPasswordPromptContent)
+
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
-	utils.CheckIfError(err)
-	return adminUsername, encryptedPassword
+	if err != nil {
+		return "", nil, utils.CheckIfError(err)
+	}
+
+	return adminUsername, encryptedPassword, nil
 }
 
-func CreateAdminPasswordSecret() {
-	adminUsername, adminPassword := GetAdminPasswordSecrets()
+// CreateAdminPasswordSecret creates the secret for admin access with username and password
+func CreateAdminPasswordSecret() error {
+	adminUsername, adminPassword, err := getAdminPasswordSecrets()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
 	data := map[string][]byte{
 		"username": []byte(adminUsername),
 		"password": adminPassword,
 	}
-	utils.CreateSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE, data)
-	fmt.Println("✔ admin secret is created")
+
+	err = utils.CreateSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE, data)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
+	utils.Info("✔ admin secret is created")
+
+	return nil
 }

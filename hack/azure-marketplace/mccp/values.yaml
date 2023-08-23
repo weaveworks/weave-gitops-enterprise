@@ -16,6 +16,7 @@ config:
       enabled: true
     userAccount:
       enabled: true
+      password: ''
   capi:
     baseBranch: main
     clusters:
@@ -82,10 +83,7 @@ gitopssets-controller:
       - --metrics-bind-address=127.0.0.1:8080
       - --leader-elect
       - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
-      image:
-        tag: v0.13.4
   enabled: true
-  fullnameOverride: gitopssets
 global:
   azure:
     images:
@@ -102,7 +100,7 @@ global:
         image: weave-gitops-enterprise-clusters-service
         registry: weaveworksmarketplacepublic.azurecr.io
       gitopssetsController:
-        digest: sha256:47d2981e2328658385ffb90832309d1cb028808f3a38afcc6eb42a770c9be312
+        digest: sha256:a831f4e19b98bf1cb830a8553042d7a8a9d15cc0b3ae41ddcc0682c12d26dedd
         image: gitopssets-controller
         registry: weaveworksmarketplacepublic.azurecr.io
       kubeRbacProxy:
@@ -118,7 +116,7 @@ global:
         image: policy-agent
         registry: weaveworksmarketplacepublic.azurecr.io
       uiServer:
-        digest: sha256:f75f2956889d74b981e211d4464a08e7bdd0eb4c9bdd75b430daea0014d28a17
+        digest: sha256:fed0d6401e62a50698d585380bde1284ec6fd0bc0528f41bf701f5f98d8a88c1
         image: weave-gitops-enterprise-ui-server
         registry: weaveworksmarketplacepublic.azurecr.io
   capiEnabled: true
@@ -126,8 +124,8 @@ global:
 imagePullSecrets: []
 images:
   clusterBootstrapController: weaveworks/cluster-bootstrap-controller:v0.6.0
-  clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.28.0-rc.1
-  uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.28.0-rc.1
+  clustersService: docker.io/weaveworks/weave-gitops-enterprise-clusters-service:v0.29.1
+  uiServer: docker.io/weaveworks/weave-gitops-enterprise-ui-server:v0.29.1
 ingress:
   annotations: {}
   className: ''

@@ -5,86 +5,98 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/manifoldco/promptui"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-func BootstrapFlux() {
+const (
+	FLUX_BOOTSTRAP_MSG    = "Do you want to bootstrap flux with the generic way on your cluster"
+	GIT_REPO_URL_MSG      = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
+	GIT_BRANCH_MSG        = "Please enter your git repository branch (default: main)"
+	DEFAULT_BRANCH        = "main"
+	GIT_REPO_PATH_MSG     = "Please enter your path for your cluster (default: clusters/my-cluster)"
+	DEFAULT_GIT_REPO_PATH = "clusters/my-cluster"
+)
 
-	prompt := promptui.Prompt{
-		Label:     "Do you want to bootstrap flux with the generic way on your cluster",
-		IsConfirm: true,
+// BootstrapFlux get flux values from user and bootstraps it using generic way
+func BootstrapFlux() error {
+	bootstrapFlux, err := utils.GetConfirmInput(FLUX_BOOTSTRAP_MSG)
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
 
-	result, _ := prompt.Run()
-
-	if result != "y" {
+	if bootstrapFlux != "y" {
 		os.Exit(1)
 	}
 
-	gitURLPrompt := utils.PromptContent{
-		ErrorMsg:     "Host can't be empty",
-		Label:        "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)",
-		DefaultValue: "",
+	gitURL, err := utils.GetStringInput(GIT_REPO_URL_MSG, "")
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
-	gitURL := utils.GetPromptStringInput(gitURLPrompt)
 
-	gitBranchPrompt := utils.PromptContent{
-		ErrorMsg:     "Branch can't be empty",
-		Label:        "Please enter your git repository branch (default: main)",
-		DefaultValue: "main",
+	gitBranch, err := utils.GetStringInput(GIT_BRANCH_MSG, DEFAULT_BRANCH)
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
-	gitBranch := utils.GetPromptStringInput(gitBranchPrompt)
 
-	gitPathPrompt := utils.PromptContent{
-		ErrorMsg:     "Path can't be empty",
-		Label:        "Please enter your path for your cluster (default: clusters/my-cluster)",
-		DefaultValue: "clusters/my-cluster",
+	gitPath, err := utils.GetStringInput(GIT_REPO_PATH_MSG, DEFAULT_GIT_REPO_PATH)
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
-	gitPath := utils.GetPromptStringInput(gitPathPrompt)
 
 	home, err := os.UserHomeDir()
-	utils.CheckIfError(err)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
 	defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
-	privateKeyPathPrompt := utils.PromptContent{
-		ErrorMsg:     "Private key path can't be empty",
-		Label:        fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath),
-		DefaultValue: defaultPrivateKeyPath,
+	privateKeyPathMsg := fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath)
+	privateKeyPath, err := utils.GetStringInput(privateKeyPathMsg, defaultPrivateKeyPath)
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
-	privateKeyPath := utils.GetPromptStringInput(privateKeyPathPrompt)
-	fmt.Println("Installing flux ...")
+
+	utils.Warning("Installing flux ...")
+
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
-	utils.CheckIfError(err, fmt.Sprintf("Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v", string(out)))
-	fmt.Println("✔  flux is bootstrapped successfully")
+	if err != nil {
+		errMsg := fmt.Sprintf("Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v", string(out))
+		return utils.CheckIfError(err, errMsg)
+	}
 
+	utils.Info("✔  flux is bootstrapped successfully")
+	return nil
 }
 
-func CheckFluxIsInstalled() {
-	fmt.Println("Checking flux is installed ...")
+// CheckFluxIsInstalled checks for valid flux installation
+func CheckFluxIsInstalled() error {
+	utils.Warning("Checking flux is installed ...")
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		fmt.Printf("%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n", string(out))
-		BootstrapFlux()
-	} else {
-		fmt.Println("✔  flux is installed")
+		utils.Warning("%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n", string(out))
+		return BootstrapFlux()
 	}
 
+	utils.Info("✔  flux is installed")
+
+	return nil
 }
 
-func CheckFluxReconcile() {
-	fmt.Println("Checking flux installation is valid ...")
+// CheckFluxIsInstalled checks if flux installation is valid and can reconcile
+func CheckFluxReconcile() error {
+	utils.Warning("Checking flux installation is valid ...")
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		fmt.Printf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
-		os.Exit(1)
+		errMsg := fmt.Sprintf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
+		return utils.CheckIfError(err, errMsg)
 	}
 
-	fmt.Println("✔  flux is installed properly and can reconcile successfully")
+	utils.Info("✔  flux is installed properly and can reconcile successfully")
+
+	return nil
 }

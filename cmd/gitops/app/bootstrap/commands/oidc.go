@@ -15,7 +15,8 @@ const (
 	OIDC_SECRET_NAMESPACE      = "flux-system"
 )
 
-func GetOIDCSecrets() (string, string, string, string) {
+// getOIDCSecrets ask the user for the OIDC config and verify it
+func getOIDCSecrets() (string, string, string, string) {
 
 	oidcIssuerURLPrompt := utils.PromptContent{
 		ErrorMsg:     "OIDC issuerURL can't be empty",

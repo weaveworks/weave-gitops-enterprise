@@ -94,6 +94,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	"net/http/pprof"
 )
 
 const (
@@ -820,6 +822,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
+
+	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
+		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+	}
 
 	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
 

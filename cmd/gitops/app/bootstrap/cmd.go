@@ -34,15 +34,40 @@ gitops bootstrap`,
 	return cmd
 }
 
+// Bootstrap initiated by the command runs the WGE bootstrap steps
 func Bootstrap() error {
-	commands.CheckEntitlementFile()
-	commands.CheckFluxIsInstalled()
-	commands.CheckFluxReconcile()
-	wgeVersion := commands.SelectWgeVersion()
-	commands.CreateAdminPasswordSecret()
-	isExternalDomain, uiDomain := commands.InstallWge(wgeVersion)
-	commands.CreateOIDCConfig(wgeVersion)
-	commands.CheckExtraControllers(wgeVersion)
+	err := commands.CheckEntitlementFile()
+	if err != nil {
+		return err
+	}
+	err = commands.CheckFluxIsInstalled()
+	if err != nil {
+		return err
+	}
+	err = commands.CheckFluxReconcile()
+	if err != nil {
+		return err
+	}
+	wgeVersion, err := commands.SelectWgeVersion()
+	if err != nil {
+		return err
+	}
+	err = commands.CreateAdminPasswordSecret()
+	if err != nil {
+		return err
+	}
+	err, isExternalDomain, uiDomain := commands.InstallWge(wgeVersion)
+	if err != nil {
+		return err
+	}
+	err = commands.CheckExtraControllers(wgeVersion)
+	if err != nil {
+		return err
+	}
+	err = commands.CreateOIDCConfig(wgeVersion)
+	if err != nil {
+		return err
+	}
 	// check if the UI is running on localhost or external domain
 	CheckUIDomain(isExternalDomain, uiDomain, wgeVersion)
 
@@ -50,11 +75,10 @@ func Bootstrap() error {
 }
 
 func CheckUIDomain(isExternalDomain bool, uiDomain string, wgeVersion string) {
-	var runner runner.CLIRunner
 	if isExternalDomain {
 		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, uiDomain)
 	} else {
-		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://localhost:8000/\n", wgeVersion)
+		var runner runner.CLIRunner
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 		utils.CheckIfError(err, string(out))
 	}

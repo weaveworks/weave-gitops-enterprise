@@ -31,6 +31,8 @@ extraEnvVars:
     value: "bitbucket.yiannis.net"
   - name: DEV_MODE
     value: "true"
+  - name: WEAVE_GITOPS_ENABLE_PROFILING
+    value: "true"
 
 extraEnvVarsSecret: ""
 

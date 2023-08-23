@@ -9,9 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const CHART_URL string = "https://charts.dev.wkp.weave.works/releases/charts-v3"
-
-type HelmChart struct {
+type HelmChartResponse struct {
 	ApiVersion string
 	Entries    map[string][]ChartEntry
 	Generated  string
@@ -23,41 +21,56 @@ type ChartEntry struct {
 	Version    string
 }
 
-func SelectWgeVersion() string {
+const (
+	VERSION_MSG = "Please select a version for WGE to be installed"
+)
 
-	entitlementSecret, err := utils.GetSecret(ENTITLEMENT_SECRET_NAMESPACE, ENTITLEMENT_SECRET_NAME)
-	utils.CheckIfError(err)
+// SelectWgeVersion ask user to select wge version from the latest 3 versions
+func SelectWgeVersion() (string, error) {
+	entitlementSecret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
-	utils.CheckIfError(err)
-
-	versions := fetchHelmChart(username, password)
-
-	versionSelectorPrompt := utils.PromptContent{
-		ErrorMsg:     "",
-		Label:        "Please select a version for WGE to be installed",
-		DefaultValue: "",
+	if err != nil {
+		return "", utils.CheckIfError(err)
 	}
-	return utils.GetPromptSelect(versionSelectorPrompt, versions)
+
+	versions, err := fetchHelmChart(username, password)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
+
+	return utils.GetSelectInput(VERSION_MSG, versions)
 }
 
-func fetchHelmChart(username, password string) []string {
-	client := &http.Client{}
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", CHART_URL), nil)
-	utils.CheckIfError(err)
+// fetchHelmChart helper method to fetch wge helm chart detauls
+func fetchHelmChart(username, password string) ([]string, error) {
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGE_CHART_URL), nil)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
 
+	}
 	req.SetBasicAuth(username, password)
 
+	client := &http.Client{}
 	resp, err := client.Do(req)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 
-	var chart HelmChart
+	var chart HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
-	utils.CheckIfError(err)
+	if err != nil {
+		return []string{}, utils.CheckIfError(err)
+	}
 
 	entries := chart.Entries["mccp"]
 	var versions []string
@@ -69,5 +82,6 @@ func fetchHelmChart(username, password string) []string {
 			}
 		}
 	}
-	return versions
+
+	return versions, nil
 }

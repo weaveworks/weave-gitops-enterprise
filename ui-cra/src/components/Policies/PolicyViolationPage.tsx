@@ -17,7 +17,7 @@ const getPath = (kind?: string, violation?: PolicyValidation): Breadcrumb[] => {
   if (!violation) return [{ label: '' }];
   const { name, entity, namespace, clusterName, policyId } = violation;
   if (!kind) {
-    return [{ label: 'Clusters', url: `${Routes.Clusters}/violations` }];
+    return [{ label: 'Policies', url: `${Routes.Policies}/enforcement` }];
   }
 
   if (kind === Kind.Policy) {
@@ -65,7 +65,6 @@ const PolicyViolationPage = ({ id, name, clusterName, kind }: Props) => {
   const entityObject = new FluxObject({
     payload: violation?.violatingEntity,
   });
-
   return (
     <Page
       loading={isLoading}

@@ -19,11 +19,13 @@ const LoadingWrapper: FC<Props> = ({
   return (
     <Flex wide>
       {loading && (
-        <Box margin={4}>
-          <Flex wide center>
-            <CircularProgress size={'2rem'} />
-          </Flex>
-        </Box>
+        <Flex wide center>
+          <Box margin={4}>
+            <Flex wide center>
+              <CircularProgress size={'2rem'} />
+            </Flex>
+          </Box>
+        </Flex>
       )}
       {(errors?.length || errorMessage) && (
         <AlertListErrors errors={errors || [{ message: errorMessage }]} />
