@@ -204,7 +204,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   resource={data || ({} as GetTerraformObjectResponse)}
                 />
               </Flex>
-              <Flex align>
+              <Flex align gap="4">
                 <LargeInfo
                   title="Applied Revision"
                   info={object?.appliedRevision || '-'}
