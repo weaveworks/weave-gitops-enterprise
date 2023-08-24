@@ -124,6 +124,42 @@ describe('Explorer', () => {
 
     expect(input?.checked).toBeTruthy();
   });
+  it('shows extra columns', async () => {
+    const objects = [
+      {
+        kind: 'Kustomization',
+        name: 'flux-system',
+        namespace: 'flux-system',
+        status: 'Ready',
+      },
+      {
+        kind: 'HelmRelease',
+        name: 'flux-system',
+        namespace: 'flux-system',
+        status: 'Ready',
+      },
+    ];
+
+    api.DoQueryReturns = {
+      objects,
+    };
+
+    const extraCols = [
+      {
+        label: 'My Cool Column',
+        value: (o: any) => `${o.kind}-foo-bar`,
+      },
+    ];
+
+    let result = {} as RenderResult;
+    await act(async () => {
+      const c = wrap(<Explorer extraColumns={extraCols} />);
+      result = await render(c);
+    });
+
+    expect(result.container).toHaveTextContent('My Cool Column');
+    expect(result.container).toHaveTextContent('Kustomization-foo-bar');
+  });
 
   describe('snapshots', () => {
     it('renders', async () => {

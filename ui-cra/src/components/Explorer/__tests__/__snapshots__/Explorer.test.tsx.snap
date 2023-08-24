@@ -866,7 +866,7 @@ exports[`Explorer snapshots renders 1`] = `
                         class="c4"
                       >
                         <div
-                          class="MuiBox-root MuiBox-root-19"
+                          class="MuiBox-root MuiBox-root-27"
                         >
                           <div
                             class="c4 c20"
@@ -912,7 +912,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="c23"
           >
             <div
-              class="MuiBox-root MuiBox-root-17"
+              class="MuiBox-root MuiBox-root-25"
             >
               <div>
                 <h2>
@@ -977,13 +977,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-28 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-23"
+                                class="PrivateSwitchBase-input-31"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1016,13 +1016,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-28 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-23"
+                                class="PrivateSwitchBase-input-31"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1055,13 +1055,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-28 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-23"
+                                class="PrivateSwitchBase-input-31"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1101,7 +1101,7 @@ exports[`Explorer snapshots renders 1`] = `
       class="c27 PaginationControls"
     >
       <div
-        class="MuiBox-root MuiBox-root-18"
+        class="MuiBox-root MuiBox-root-26"
       >
         <button
           class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled"

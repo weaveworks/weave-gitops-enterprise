@@ -2,6 +2,7 @@ import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 // @ts-ignore
 import { IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
@@ -15,16 +16,27 @@ import PaginationControls from './PaginationControls';
 import QueryInput from './QueryInput';
 import QueryStateChips from './QueryStateChips';
 import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
-import { QueryStateProvider, columnHeaderHandler } from './hooks';
+import {
+  QueryStateProvider,
+  columnHeaderHandler,
+  useGetUnstructuredObjects,
+} from './hooks';
 
 type Props = {
   className?: string;
   category?: 'automation' | 'source';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
+  extraColumns?: Field[];
 };
 
-function Explorer({ className, category, enableBatchSync, manager }: Props) {
+function Explorer({
+  className,
+  category,
+  enableBatchSync,
+  manager,
+  extraColumns,
+}: Props) {
   const history = useHistory();
   if (!manager) {
     manager = new URLQueryStateManager(history);
@@ -45,6 +57,12 @@ function Explorer({ className, category, enableBatchSync, manager }: Props) {
     category,
   });
 
+  const unst = useGetUnstructuredObjects(data?.objects || []);
+  const rows = _.map(data?.objects, (o: any) => ({
+    ...o,
+    parsed: unst[o.id],
+  }));
+
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
 
   return (
@@ -60,10 +78,11 @@ function Explorer({ className, category, enableBatchSync, manager }: Props) {
         <Flex wide>
           <ExplorerTable
             queryState={queryState}
-            rows={data?.objects || []}
+            rows={rows}
             onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
             enableBatchSync={enableBatchSync}
             sortField={queryState.orderBy}
+            extraColumns={extraColumns}
           />
 
           <FilterDrawer

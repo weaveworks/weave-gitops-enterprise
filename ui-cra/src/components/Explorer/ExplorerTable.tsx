@@ -23,6 +23,7 @@ type Props = {
   queryState: QueryState;
   enableBatchSync?: boolean;
   sortField?: string;
+  extraColumns?: Field[];
 };
 
 function ExplorerTable({
@@ -31,12 +32,13 @@ function ExplorerTable({
   enableBatchSync,
   sortField,
   onColumnHeaderClick,
+  extraColumns = [],
 }: Props) {
   const r: Object[] = _.map(rows, o => ({
     // Doing some things here to make this work with the DataTable.
     // It handles rendering the sync/pause buttons.
     ...o,
-    uid: `${o.cluster}/${o.apiGroup}/${o.kind}/${o.namespace}/${o.name}`,
+    uid: o.id,
     clusterName: o.cluster,
     type: o.kind,
   }));
@@ -119,6 +121,7 @@ function ExplorerTable({
           value: 'message',
           defaultSort: sortField === 'message',
         },
+        ...(extraColumns as Field[]),
       ]}
       rows={r}
       hideSearchAndFilters
