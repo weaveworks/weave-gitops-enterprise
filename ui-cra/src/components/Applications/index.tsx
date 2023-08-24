@@ -66,6 +66,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
               extraColumns={[
                 {
                   label: 'Source',
+                  index: 4,
                   value: (o: Object & { parsed: any }) => {
                     const sourceAddr =
                       o.kind === 'HelmRelease'

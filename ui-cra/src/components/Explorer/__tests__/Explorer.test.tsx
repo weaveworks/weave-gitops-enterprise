@@ -160,6 +160,96 @@ describe('Explorer', () => {
     expect(result.container).toHaveTextContent('My Cool Column');
     expect(result.container).toHaveTextContent('Kustomization-foo-bar');
   });
+  it("reorders extra columns according to 'index' property", async () => {
+    const objects = [
+      {
+        kind: 'Kustomization',
+        name: 'flux-system',
+        namespace: 'flux-system',
+        status: 'Ready',
+      },
+      {
+        kind: 'HelmRelease',
+        name: 'flux-system',
+        namespace: 'flux-system',
+        status: 'Ready',
+      },
+    ];
+
+    api.DoQueryReturns = {
+      objects,
+    };
+
+    const extraCols = [
+      {
+        label: 'My Cool Column',
+        value: (o: any) => `${o.kind}-foo-bar`,
+        index: 1,
+      },
+      {
+        label: 'My Other Cool Column',
+        value: (o: any) => `${o.kind}-foo-bar`,
+        index: 0,
+      },
+    ];
+
+    let result = {} as RenderResult;
+    await act(async () => {
+      const c = wrap(<Explorer extraColumns={extraCols} />);
+      result = await render(c);
+    });
+
+    const headers = result.container.querySelector('thead tr')
+      ?.children as HTMLCollection;
+
+    console.log(headers.item(1)?.innerHTML);
+
+    expect(headers.item(0)).toHaveTextContent('My Other Cool Column');
+    expect(headers.item(1)).toHaveTextContent('My Cool Column');
+    expect(headers.item(2)).toHaveTextContent('Name');
+  });
+  it('shows extra columns but preserves default column order', async () => {
+    const objects = [
+      {
+        kind: 'Kustomization',
+        name: 'flux-system',
+        namespace: 'flux-system',
+        status: 'Ready',
+      },
+      {
+        kind: 'HelmRelease',
+        name: 'flux-system',
+        namespace: 'flux-system',
+        status: 'Ready',
+      },
+    ];
+
+    api.DoQueryReturns = {
+      objects,
+    };
+
+    const extraCols = [
+      {
+        label: 'My Cool Column',
+        index: 4,
+        value: (o: any) => `${o.kind}-foo-bar`,
+      },
+    ];
+
+    let result = {} as RenderResult;
+    await act(async () => {
+      const c = wrap(<Explorer extraColumns={extraCols} />);
+      result = await render(c);
+    });
+
+    const headers = result.container.querySelectorAll('th');
+
+    expect(headers[0]).toHaveTextContent('Name');
+    expect(headers[1]).toHaveTextContent('Kind');
+    expect(headers[2]).toHaveTextContent('Namespace');
+    expect(headers[3]).toHaveTextContent('Cluster');
+    expect(headers[4]).toHaveTextContent('My Cool Column');
+  });
 
   describe('snapshots', () => {
     it('renders', async () => {

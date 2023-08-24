@@ -2,14 +2,13 @@ import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 // @ts-ignore
 import { IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
-import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
-import ExplorerTable from './ExplorerTable';
+import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
 import FilterDrawer from './FilterDrawer';
 import Filters from './Filters';
 import PaginationControls from './PaginationControls';
@@ -27,7 +26,7 @@ type Props = {
   category?: 'automation' | 'source';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
-  extraColumns?: Field[];
+  extraColumns?: FieldWithIndex[];
 };
 
 function Explorer({
