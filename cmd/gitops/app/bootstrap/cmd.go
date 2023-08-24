@@ -78,6 +78,8 @@ func CheckUIDomain(isExternalDomain bool, userDomain string, wgeVersion string) 
 
 		var runner runner.CLIRunner
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-		utils.CheckIfError(err, string(out))
+		if err != nil {
+			utils.CheckIfError(err, string(out))
+		}
 	}
 }
