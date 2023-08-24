@@ -79,3 +79,20 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 	}
 	return nil
 }
+
+// DeleteSecret delete a kubernetes secret
+func DeleteSecret(secretName string, secretNamespace string) error {
+	// Create a new Kubernetes client using the config.
+	clientset, err := GetKubernetesClient()
+	if err != nil {
+		return CheckIfError(err)
+	}
+
+	err = clientset.CoreV1().Secrets(secretNamespace).Delete(context.TODO(), secretName, v1.DeleteOptions{
+		TypeMeta: v1.TypeMeta{},
+	})
+	if err != nil {
+		return CheckIfError(err)
+	}
+	return nil
+}

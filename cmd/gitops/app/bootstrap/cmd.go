@@ -61,26 +61,28 @@ func Bootstrap() error {
 		return err
 	}
 
-	err, isExternalDomain, uiDomain := commands.InstallWge(wgeVersion)
+	err, isExternalDomain, userDomain := commands.InstallWge(wgeVersion)
 	if err != nil {
 		return err
 	}
 
-	err = commands.CreateOIDCConfig(wgeVersion)
+	err = commands.CreateOIDCConfig(isExternalDomain, userDomain, wgeVersion)
 	if err != nil {
 		return err
 	}
 
 	// check if the UI is running on localhost or external domain
-	CheckUIDomain(isExternalDomain, uiDomain, wgeVersion)
+	CheckUIDomain(isExternalDomain, userDomain, wgeVersion)
 
 	return nil
 }
 
-func CheckUIDomain(isExternalDomain bool, uiDomain string, wgeVersion string) {
+func CheckUIDomain(isExternalDomain bool, userDomain string, wgeVersion string) {
 	if isExternalDomain {
-		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, uiDomain)
+		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, userDomain)
 	} else {
+		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
+
 		var runner runner.CLIRunner
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 		utils.CheckIfError(err, string(out))

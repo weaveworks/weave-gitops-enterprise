@@ -35,3 +35,11 @@ const (
 	POLICY_AGENT_VALUES_NAME = "policy-agent"
 	OIDC_VALUES_NAME         = "oidc"
 )
+
+// OIDCConfig store the OIDC config
+type OIDCConfig struct {
+	IssuerURL    string `json:"issuerURL"`
+	ClientID     string `json:"clientID"`
+	ClientSecret string `json:"clientSecret"`
+	RedirectURL  string `json:"redirectURL"`
+}
