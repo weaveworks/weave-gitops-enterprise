@@ -2,127 +2,135 @@ package commands
 
 import (
 	"fmt"
-	"os"
 
-	"github.com/manifoldco/promptui"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
 const (
+	OIDC_INSTALL_MSG           = "Do you want to add OIDC config to your cluster"
+	ISSUER_URL_MSG             = "Please enter OIDC issuerURL"
+	OIDC_CLIENT_ID_MSG         = "Please enter OIDC clientID"
+	CLIENT_SECRET_MSG          = "Please enter OIDC clientSecret"
+	REDIRECT_URL_MSG           = "Please enter OIDC redirectURL"
 	OIDC_VALUES_FILES_LOCATION = "/tmp/agent-values.yaml"
 	OIDC_SECRET_NAME           = "oidc-auth"
 	OIDC_SECRET_NAMESPACE      = "flux-system"
+	OIDC_VALUES_NAME           = "oidc"
+	ADMIN_USER_REVERT_MSG      = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
 )
 
-// getOIDCSecrets ask the user for the OIDC config and verify it
-func getOIDCSecrets() (string, string, string, string) {
+// getOIDCSecrets ask the user for the OIDC configuraions
+func getOIDCSecrets() (domain.OIDCConfig, error) {
 
-	oidcIssuerURLPrompt := utils.PromptContent{
-		ErrorMsg:     "OIDC issuerURL can't be empty",
-		Label:        "Please enter OIDC issuerURL",
-		DefaultValue: "",
+	configs := domain.OIDCConfig{}
+
+	oidcIssuerURL, err := utils.GetStringInput(ISSUER_URL_MSG, "")
+	if err != nil {
+		return configs, utils.CheckIfError(err)
 	}
-	oidcIssuerURL := utils.GetPromptStringInput(oidcIssuerURLPrompt)
 
-	oidcClientIDPrompt := utils.PromptContent{
-		ErrorMsg:     "OIDC clientID can't be empty",
-		Label:        "Please enter OIDC clientID",
-		DefaultValue: "",
+	oidcClientID, err := utils.GetStringInput(OIDC_CLIENT_ID_MSG, "")
+	if err != nil {
+		return configs, utils.CheckIfError(err)
 	}
-	oidcClientID := utils.GetPromptStringInput(oidcClientIDPrompt)
 
-	oidcClientSecretPrompt := utils.PromptContent{
-		ErrorMsg:     "OIDC clientSecret can't be empty",
-		Label:        "Please enter OIDC clientSecret",
-		DefaultValue: "",
+	oidcClientSecret, err := utils.GetStringInput(CLIENT_SECRET_MSG, "")
+	if err != nil {
+		return configs, utils.CheckIfError(err)
 	}
-	oidcClientSecret := utils.GetPromptStringInput(oidcClientSecretPrompt)
 
-	oidcRedirectURLPrompt := utils.PromptContent{
-		ErrorMsg:     "OIDC redirectURL can't be empty",
-		Label:        "Please enter OIDC redirectURL",
-		DefaultValue: "",
+	oidcRedirectURL, err := utils.GetStringInput(REDIRECT_URL_MSG, "")
+	if err != nil {
+		return configs, utils.CheckIfError(err)
 	}
-	oidcRedirectURL := utils.GetPromptStringInput(oidcRedirectURLPrompt)
 
-	return oidcIssuerURL, oidcClientID, oidcClientSecret, oidcRedirectURL
+	return domain.OIDCConfig{
+		IssuerURL:    oidcIssuerURL,
+		ClientID:     oidcClientID,
+		ClientSecret: oidcClientSecret,
+		RedirectURL:  oidcRedirectURL,
+	}, nil
 }
 
-func CreateOIDCConfig(version string) {
+func CreateOIDCConfig(version string) error {
 
-	oidcConfigPrompt := promptui.Prompt{
-		Label:     "Do you want to add OIDC config to your cluster",
-		IsConfirm: true,
+	oidcConfigPrompt, err := utils.GetConfirmInput(OIDC_INSTALL_MSG)
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
 
-	result, _ := oidcConfigPrompt.Run()
-
-	if result != "y" {
-		return
+	if oidcConfigPrompt != "y" {
+		return nil
 	}
 
-	oidcIssuerURL, oidcClientID, oidcClientSecret, oidcRedirectURL := GetOIDCSecrets()
+	utils.Info("For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration")
+
+	oidcConfig, err := getOIDCSecrets()
 
 	oidcSecretData := map[string][]byte{
-		"issuerURL":    []byte(oidcIssuerURL),
-		"clientID":     []byte(oidcClientID),
-		"clientSecret": []byte(oidcClientSecret),
-		"redirectURL":  []byte(oidcRedirectURL),
+		"issuerURL":    []byte(oidcConfig.IssuerURL),
+		"clientID":     []byte(oidcConfig.ClientID),
+		"clientSecret": []byte(oidcConfig.ClientSecret),
+		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	utils.CreateSecret(OIDC_SECRET_NAME, OIDC_SECRET_NAMESPACE, oidcSecretData)
-
-	valuesFile, err := os.OpenFile(OIDC_VALUES_FILES_LOCATION, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	err = utils.CreateSecret(OIDC_SECRET_NAME, OIDC_SECRET_NAMESPACE, oidcSecretData)
 	if err != nil {
-		panic(err)
-	}
-	defer valuesFile.Close()
-	defer os.Remove(OIDC_VALUES_FILES_LOCATION)
-
-	var values string
-	values = fmt.Sprintf(`config:
-  oidc:
-    enabled: true
-    issuerURL: %s
-    redirectURL: %s
-    clientCredentialsSecret: %s
-`, oidcIssuerURL, oidcRedirectURL, OIDC_SECRET_NAME)
-
-	if _, err = valuesFile.WriteString(values); err != nil {
-		panic(err)
+		return utils.CheckIfError(err)
 	}
 
-	var runner runner.CLIRunner
-	fmt.Println("Installing OIDC ...")
-	out, err := runner.Run("flux", "create", "hr", HELMRELEASE_NAME,
-		"--source", fmt.Sprintf("HelmRepository/%s", HELMREPOSITORY_NAME),
-		"--chart", "mccp",
-		"--chart-version", version,
-		"--interval", "65m",
-		"--crds", "CreateReplace",
-		"--values", OIDC_VALUES_FILES_LOCATION,
-	)
-	utils.CheckIfError(err, string(out))
+	values := constructOIDCValues(oidcConfig)
 
-	fmt.Println("✔ OIDC config created successfully")
+	utils.Warning("Installing policy agent ...")
+	err = InstallController(OIDC_VALUES_NAME, values)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
-	//make a function to ask the user if he want to revet the admin user or keep it
-	checkAdminPassword()
+	utils.Info("✔ OIDC config created successfully")
+
+	// Ask the user if he wants to revert the admin user
+	err = checkAdminPasswordRevet()
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
+	return nil
 }
 
-func checkAdminPassword() {
-	adminUserPrompot := promptui.Prompt{
-		Label:     "Do you want to revert the admin user",
-		IsConfirm: true,
+func checkAdminPasswordRevet() error {
+
+	adminUserRevet, err := utils.GetStringInput(ADMIN_USER_REVERT_MSG, "")
+	if err != nil {
+		return utils.CheckIfError(err)
 	}
 
-	result, _ := adminUserPrompot.Run()
-
-	if result != "y" {
-		return
+	if adminUserRevet != "y" {
+		return nil
 	}
 
-	utils.DeleteSecret(ADMIN_SECRET_NAME, ADMIN_SECRET_NAMESPACE)
+	err = utils.DeleteSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
+
 	fmt.Println("✔ Admin user reverted successfully")
+	return nil
+}
+
+// constructOIDCValues
+func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
+	values := map[string]interface{}{
+		"config": map[string]interface{}{
+			"oidc": map[string]interface{}{
+				"enabled":                 true,
+				"issuerURL":               oidcConfig.IssuerURL,
+				"redirectURL":             oidcConfig.RedirectURL,
+				"clientCredentialsSecret": OIDC_SECRET_NAME,
+			},
+		},
+	}
+
+	return values
 }

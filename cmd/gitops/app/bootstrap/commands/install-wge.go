@@ -1,15 +1,33 @@
 package commands
 
 import (
-	"fmt"
+	"encoding/json"
 	"strings"
+	"time"
 
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
+	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	DOMAIN_MSG         = "Please select the domain to be used"
-	CLUSTER_DOMAIN_MSG = "Please enter your cluster domain"
+	DOMAIN_MSG                = "Please select the domain to be used"
+	CLUSTER_DOMAIN_MSG        = "Please enter your cluster domain"
+	WGE_CHART_NAME            = "mccp"
+	WGE_HELMREPOSITORY_NAME   = "weave-gitops-enterprise-charts"
+	WGE_HELMRELEASE_NAME      = "weave-gitops-enterprise"
+	WGE_DEFAULT_NAMESPACE     = "flux-system"
+	DOMAIN_TYPE_LOCALHOST     = "localhost (Using Portforward)"
+	DOMAIN_TYPE_EXTERNALDNS   = "external DNS"
+	WGE_HELMREPO_FILENAME     = "wge-hrepo.yaml"
+	WGE_HELMRELEASE_FILENAME  = "wge-hrelease.yaml"
+	WGE_HELMREPO_COMMITMSG    = "Add WGE HelmRepository YAML file"
+	WGE_HELMRELEASE_COMMITMSG = "Add WGE HelmRelease YAML file"
+	WGE_CHART_URL             = "https://charts.dev.wkp.weave.works/releases/charts-v3"
 )
 
 // InstallWge installs weave gitops enterprise chart
@@ -47,7 +65,7 @@ func InstallWge(version string) (error, bool, string) {
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			fmt.Println("cleanup failed!")
+			utils.Warning("cleanup failed!")
 		}
 	}()
 
@@ -61,7 +79,14 @@ func InstallWge(version string) (error, bool, string) {
 		return utils.CheckIfError(err), false, ""
 	}
 
-	wgeHelmRelease, err := constructWGEhelmRelease(userDomain, version)
+	values := domain.ValuesFile{
+		Ingress: constructIngressValues(userDomain),
+		TLS: map[string]interface{}{
+			"enabled": false,
+		},
+	}
+
+	wgeHelmRelease, err := ConstructWGEhelmRelease(values, version)
 	if err != nil {
 		return utils.CheckIfError(err), false, ""
 	}
@@ -78,4 +103,87 @@ func InstallWge(version string) (error, bool, string) {
 
 	return nil, strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0, userDomain
 
+}
+
+func constructWgeHelmRepository() (string, error) {
+	wgeHelmRepo := sourcev1.HelmRepository{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      WGE_HELMREPOSITORY_NAME,
+			Namespace: WGE_DEFAULT_NAMESPACE,
+		},
+		Spec: sourcev1.HelmRepositorySpec{
+			URL: WGE_CHART_URL,
+			Interval: v1.Duration{
+				Duration: time.Minute,
+			},
+			SecretRef: &meta.LocalObjectReference{
+				Name: ENTITLEMENT_SECRET_NAME,
+			},
+		},
+	}
+	return utils.CreateHelmRepositoryYamlString(wgeHelmRepo)
+}
+
+func constructIngressValues(userDomain string) map[string]interface{} {
+	ingressValues := map[string]interface{}{
+		"annotations": map[string]string{
+			"external-dns.alpha.kubernetes.io/hostname":                     userDomain,
+			"service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "http",
+			"service.beta.kubernetes.io/aws-load-balancer-type":             "nlb",
+		},
+		"className": "public-nginx",
+		"enabled":   true,
+		"hosts": []map[string]interface{}{
+			{
+				"host": userDomain,
+				"paths": []map[string]string{
+					{
+						"path":     "/",
+						"pathType": "ImplementationSpecific",
+					},
+				},
+			},
+		},
+	}
+
+	return ingressValues
+}
+
+// ConstructWGEhelmRelease create the yaml resource for wge chart
+func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) (string, error) {
+	valuesBytes, err := json.Marshal(valuesFile)
+	if err != nil {
+		return "", utils.CheckIfError(err)
+	}
+
+	wgeHelmRelease := helmv2.HelmRelease{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      WGE_HELMRELEASE_NAME,
+			Namespace: WGE_DEFAULT_NAMESPACE,
+		}, Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart:             WGE_CHART_NAME,
+					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Name:      WGE_HELMREPOSITORY_NAME,
+						Namespace: WGE_DEFAULT_NAMESPACE,
+					},
+					Version: chartVersion,
+				},
+			},
+			Install: &helmv2.Install{
+				CRDs: helmv2.CreateReplace,
+			},
+			Upgrade: &helmv2.Upgrade{
+				CRDs: helmv2.CreateReplace,
+			},
+			Interval: v1.Duration{
+				Duration: time.Hour,
+			},
+			Values: &apiextensionsv1.JSON{Raw: valuesBytes},
+		},
+	}
+
+	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
