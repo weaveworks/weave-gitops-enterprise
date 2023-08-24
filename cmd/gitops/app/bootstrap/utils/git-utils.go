@@ -13,13 +13,8 @@ import (
 
 const WORKINGDIR = "/tmp/bootstrap-flux"
 
-// CloneRepo shallow clones the user repo's branch under temp
-func CloneRepo() (string, error) {
-	err := CleanupRepo()
-	if err != nil {
-		return "", CheckIfError(err)
-	}
-
+// GetRepoUrl get the default repo url for flux installation
+func GetRepoUrl() (string, error) {
 	var runner runner.CLIRunner
 	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
 	if err != nil {
@@ -32,6 +27,12 @@ func CloneRepo() (string, error) {
 		repoUrlParsed = strings.TrimPrefix(repoUrlParsed, "ssh://")
 		repoUrlParsed = strings.Replace(repoUrlParsed, "/", ":", 1)
 	}
+	return repoUrlParsed, nil
+}
+
+// GetRepoBranch get the branch for flux installation
+func GetRepoBranch() (string, error) {
+	var runner runner.CLIRunner
 
 	repoBranch, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.ref.branch}\"")
 	if err != nil {
@@ -40,12 +41,46 @@ func CloneRepo() (string, error) {
 
 	repoBranchParsed := string(repoBranch[1 : len(repoBranch)-1])
 
+	return repoBranchParsed, nil
+}
+
+// GetRepoPath get the path for flux installation
+func GetRepoPath() (string, error) {
+	var runner runner.CLIRunner
+
 	repoPath, err := runner.Run("kubectl", "get", "kustomization", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.path}\"")
 	if err != nil {
 		return "", CheckIfError(err)
 	}
 
 	repoPathParsed := strings.TrimPrefix(string(repoPath[1:len(repoPath)-1]), "./")
+
+	return repoPathParsed, nil
+}
+
+// CloneRepo shallow clones the user repo's branch under temp
+func CloneRepo() (string, error) {
+	err := CleanupRepo()
+	if err != nil {
+		return "", CheckIfError(err)
+	}
+
+	var runner runner.CLIRunner
+
+	repoUrlParsed, err := GetRepoUrl()
+	if err != nil {
+		return "", CheckIfError(err)
+	}
+
+	repoBranchParsed, err := GetRepoBranch()
+	if err != nil {
+		return "", CheckIfError(err)
+	}
+
+	repoPathParsed, err := GetRepoPath()
+	if err != nil {
+		return "", CheckIfError(err)
+	}
 
 	out, err := runner.Run("git", "clone", repoUrlParsed, WORKINGDIR, "--depth", "1", "-b", repoBranchParsed)
 	if err != nil {
