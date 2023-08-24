@@ -14,7 +14,7 @@ func Command(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
 		Use:   "connect",
 		Short: "Connect clusters",
 		Example: `
-# Connect remote cluster
+# Connect a cluster
 gitops connect cluster`,
 		PreRunE: func(cmd *cobra.Command, args []string) error {
 			names := []string{
