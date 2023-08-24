@@ -72,6 +72,7 @@ message Object {
     string message      = 8;
     string category     = 9;
     string unstructured = 10;
+    string id           = 11;
 }
 
 message DebugGetAccessRulesRequest {

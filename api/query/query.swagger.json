@@ -226,6 +226,9 @@
         },
         "unstructured": {
           "type": "string"
+        },
+        "id": {
+          "type": "string"
         }
       }
     },

@@ -29,6 +29,7 @@ export type Object = {
   message?: string
   category?: string
   unstructured?: string
+  id?: string
 }
 
 export type DebugGetAccessRulesRequest = {
