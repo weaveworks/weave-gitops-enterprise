@@ -55,7 +55,7 @@ func getOIDCSecrets(isExternalDomain bool, userDomain string) (domain.OIDCConfig
 	if isExternalDomain {
 		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", userDomain)
 	} else {
-		oidcConfig.RedirectURL = fmt.Sprintf("http://localhost:8000/oauth2/callback")
+		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
 	}
 
 	return oidcConfig, nil
@@ -75,6 +75,9 @@ func CreateOIDCConfig(isExternalDomain bool, userDomain string, version string) 
 	utils.Info("For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration")
 
 	oidcConfig, err := getOIDCSecrets(isExternalDomain, userDomain)
+	if err != nil {
+		return utils.CheckIfError(err)
+	}
 
 	oidcSecretData := map[string][]byte{
 		"issuerURL":    []byte(oidcConfig.IssuerURL),
