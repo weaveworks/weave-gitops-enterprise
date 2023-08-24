@@ -10,13 +10,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-var extraControllers []string = []string{
-	"None",
-	"policy-agent",
-	"pipeline-controller",
-	"gitopssets-controller",
-}
-
 func Command() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "bootstrap",
