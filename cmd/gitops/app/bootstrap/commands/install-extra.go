@@ -8,7 +8,7 @@ import (
 func InstallController(controllerValuesName string, controllerValues map[string]interface{}) error {
 	values, err := utils.GetCurrentValuesForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	switch controllerValuesName {
@@ -24,17 +24,17 @@ func InstallController(controllerValuesName string, controllerValues map[string]
 
 	version, err := utils.GetCurrentVersionForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	helmRelease, err := ConstructWGEhelmRelease(values, version)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	defer func() {
@@ -46,12 +46,12 @@ func InstallController(controllerValuesName string, controllerValues map[string]
 
 	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, helmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	return nil

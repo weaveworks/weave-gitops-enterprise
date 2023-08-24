@@ -26,23 +26,23 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 
 	oidcDiscoveryURL, err := utils.GetStringInput(OIDC_DISCOVERY_URL_MSG, "")
 	if err != nil {
-		return configs, utils.CheckIfError(err)
+		return configs, err
 	}
 
 	utils.Info("Verifying OIDC Discovery URL ...")
 	oidcIssuerURL, err := getIssuer(oidcDiscoveryURL)
 	if err != nil {
-		return configs, utils.CheckIfError(err)
+		return configs, err
 	}
 
 	oidcClientID, err := utils.GetStringInput(OIDC_CLIENT_ID_MSG, "")
 	if err != nil {
-		return configs, utils.CheckIfError(err)
+		return configs, err
 	}
 
 	oidcClientSecret, err := utils.GetStringInput(CLIENT_SECRET_MSG, "")
 	if err != nil {
-		return configs, utils.CheckIfError(err)
+		return configs, err
 	}
 
 	oidcConfig := domain.OIDCConfig{
@@ -65,7 +65,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	oidcConfigPrompt, err := utils.GetConfirmInput(OIDC_INSTALL_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	if oidcConfigPrompt != "y" {
@@ -76,7 +76,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	oidcConfig, err := getOIDCSecrets(userDomain)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	oidcSecretData := map[string][]byte{
@@ -88,7 +88,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	err = utils.CreateSecret(OIDC_SECRET_NAME, WGE_DEFAULT_NAMESPACE, oidcSecretData)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	values := constructOIDCValues(oidcConfig)
@@ -97,7 +97,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	err = InstallController(domain.OIDC_VALUES_NAME, values)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	utils.Info("✔ OIDC config created successfully")
@@ -105,7 +105,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 	// Ask the user if he wants to revert the admin user
 	err = checkAdminPasswordRevert()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	return nil
@@ -115,7 +115,7 @@ func checkAdminPasswordRevert() error {
 
 	adminUserRevert, err := utils.GetConfirmInput(ADMIN_USER_REVERT_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	if adminUserRevert != "y" {
@@ -124,7 +124,7 @@ func checkAdminPasswordRevert() error {
 
 	err = utils.DeleteSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	fmt.Println("✔ Admin user reverted successfully")
@@ -145,22 +145,22 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 func getIssuer(oidcDiscoveryURL string) (string, error) {
 	resp, err := http.Get(oidcDiscoveryURL)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", utils.CheckIfError(fmt.Errorf("OIDC discovery URL returned status %d", resp.StatusCode))
+		return "", fmt.Errorf("OIDC discovery URL returned status %d", resp.StatusCode)
 	}
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	issuer, ok := result["issuer"].(string)
 	if !ok || issuer == "" {
-		return "", utils.CheckIfError(fmt.Errorf("OIDC discovery URL did not return an issuer"))
+		return "", fmt.Errorf("OIDC discovery URL did not return an issuer")
 	}
 
 	return issuer, nil

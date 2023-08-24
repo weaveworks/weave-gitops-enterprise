@@ -22,7 +22,7 @@ const (
 func BootstrapFlux() error {
 	bootstrapFlux, err := utils.GetConfirmInput(FLUX_BOOTSTRAP_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	if bootstrapFlux != "y" {
@@ -31,29 +31,29 @@ func BootstrapFlux() error {
 
 	gitURL, err := utils.GetStringInput(GIT_REPO_URL_MSG, "")
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	gitBranch, err := utils.GetStringInput(GIT_BRANCH_MSG, DEFAULT_BRANCH)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	gitPath, err := utils.GetStringInput(GIT_REPO_PATH_MSG, DEFAULT_GIT_REPO_PATH)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
 	privateKeyPathMsg := fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath)
 	privateKeyPath, err := utils.GetStringInput(privateKeyPathMsg, defaultPrivateKeyPath)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	utils.Warning("Installing flux ...")
@@ -62,7 +62,7 @@ func BootstrapFlux() error {
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
 	if err != nil {
 		errMsg := fmt.Sprintf("Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v", string(out))
-		return utils.CheckIfError(err, errMsg)
+		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
 	utils.Info("✔  flux is bootstrapped successfully")
@@ -93,7 +93,7 @@ func CheckFluxReconcile() error {
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		errMsg := fmt.Sprintf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
-		return utils.CheckIfError(err, errMsg)
+		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
 	utils.Info("✔  flux is installed properly and can reconcile successfully")

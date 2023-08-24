@@ -34,7 +34,7 @@ func InstallPolicyAgent() error {
 
 	enableAdmissionResult, err := utils.GetConfirmInput(ADMISSION_MODE_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	if strings.Compare(enableAdmissionResult, "y") == 0 {
@@ -45,7 +45,7 @@ func InstallPolicyAgent() error {
 
 	enableMutationResult, err := utils.GetConfirmInput(MUTATION_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	if strings.Compare(enableMutationResult, "y") == 0 {
@@ -56,7 +56,7 @@ func InstallPolicyAgent() error {
 
 	enableAuditResult, err := utils.GetConfirmInput(AUDIT_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	if strings.Compare(enableAuditResult, "y") == 0 {
@@ -71,7 +71,7 @@ func InstallPolicyAgent() error {
 
 	failurePolicyResult, err := utils.GetSelectInput(FAILURE_POLICY_MSG, failurePolicies)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicyResult)
@@ -79,7 +79,7 @@ func InstallPolicyAgent() error {
 	utils.Warning("Installing policy agent ...")
 	err = commands.InstallController(domain.POLICY_AGENT_VALUES_NAME, values)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	utils.Info("✔ Policy Agent is installed successfully")

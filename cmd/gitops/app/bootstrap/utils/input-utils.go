@@ -23,7 +23,7 @@ func GetPasswordInput(label string) (string, error) {
 
 	result, err := prompt.Run()
 	if err != nil {
-		return "", CheckIfError(err, "Prompt failed")
+		return "", err
 	}
 
 	return result, nil
@@ -49,7 +49,7 @@ func GetSelectInput(msg string, items []string) (string, error) {
 	}
 
 	if err != nil {
-		return "", CheckIfError(err, "Prompt failed")
+		return "", err
 	}
 
 	Info("Selected: %s\n", result)
@@ -73,7 +73,7 @@ func GetStringInput(msg string, defaultValue string) (string, error) {
 
 	result, err := prompt.Run()
 	if err != nil {
-		return "", CheckIfError(err, "Prompt failed")
+		return "", err
 	}
 
 	return result, nil
@@ -88,7 +88,7 @@ func GetConfirmInput(msg string) (string, error) {
 
 	result, err := prompt.Run()
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	return result, nil
@@ -102,15 +102,4 @@ func Info(format string, args ...interface{}) {
 // Warning should be used to display a warning
 func Warning(format string, args ...interface{}) {
 	fmt.Printf("%s\n", fmt.Sprintf(format, args...))
-}
-
-// CheckIfError dispaly the error or return nil if none
-func CheckIfError(err error, extramsg ...string) error {
-	if err == nil {
-		return nil
-	}
-	if len(extramsg) > 0 {
-		return fmt.Errorf("\x1b[31;1m%s\x1b[0m", fmt.Sprintf("%s\n%s", err.Error(), extramsg[0]))
-	}
-	return fmt.Errorf("\x1b[31;1m%s\x1b[0m", err.Error())
 }

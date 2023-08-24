@@ -32,23 +32,23 @@ func InstallCapi() error {
 
 	templatesNamespace, err := utils.GetStringInput(TEMPLATES_NAMESPACE_MSG, "default")
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	clustersNamespace, err := utils.GetStringInput(CLUSTERS_NAMESPACE_MSG, "default")
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	values, err := constructCAPIValues(templatesNamespace, clustersNamespace)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	utils.Warning("Installing CAPI Controller ...")
 	err = commands.InstallController(domain.CAPI_VALUES_NAME, values)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	utils.Info("✔ CAPI Controller is installed successfully")

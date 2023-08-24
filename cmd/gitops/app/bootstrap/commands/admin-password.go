@@ -16,17 +16,17 @@ const (
 func getAdminPasswordSecrets() (string, []byte, error) {
 	adminUsername, err := utils.GetStringInput(ADMIN_USERNAME_MSG, DEFAULT_ADMIN_USERNAME)
 	if err != nil {
-		return "", nil, utils.CheckIfError(err)
+		return "", nil, err
 	}
 
 	adminPassword, err := utils.GetPasswordInput(ADMIN_PASSWORD_MSG)
 	if err != nil {
-		return "", nil, utils.CheckIfError(err)
+		return "", nil, err
 	}
 
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return "", nil, utils.CheckIfError(err)
+		return "", nil, err
 	}
 
 	return adminUsername, encryptedPassword, nil
@@ -36,7 +36,7 @@ func getAdminPasswordSecrets() (string, []byte, error) {
 func CreateAdminPasswordSecret() error {
 	adminUsername, adminPassword, err := getAdminPasswordSecrets()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	data := map[string][]byte{
@@ -46,7 +46,7 @@ func CreateAdminPasswordSecret() error {
 
 	err = utils.CreateSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE, data)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	utils.Info("✔ admin secret is created")

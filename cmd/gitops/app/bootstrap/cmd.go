@@ -1,6 +1,8 @@
 package bootstrap
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers"
@@ -14,7 +16,11 @@ func Command() *cobra.Command {
 # Bootstrap Weave-gitops-enterprise
 gitops bootstrap`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return Bootstrap()
+			err := Bootstrap()
+			if err != nil {
+				return fmt.Errorf("\x1b[31;1m%s\x1b[0m", err.Error())
+			}
+			return nil
 		},
 	}
 

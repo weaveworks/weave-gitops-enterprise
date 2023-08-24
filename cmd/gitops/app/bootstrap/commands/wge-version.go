@@ -18,17 +18,17 @@ const (
 func SelectWgeVersion() (string, error) {
 	entitlementSecret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	versions, err := fetchHelmChart(username, password)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	return utils.GetSelectInput(VERSION_MSG, versions)
@@ -38,7 +38,7 @@ func SelectWgeVersion() (string, error) {
 func fetchHelmChart(username, password string) ([]string, error) {
 	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGE_CHART_URL), nil)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 
 	}
 	req.SetBasicAuth(username, password)
@@ -46,19 +46,19 @@ func fetchHelmChart(username, password string) ([]string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 	}
 
 	var chart domain.HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 	}
 
 	entries := chart.Entries["mccp"]

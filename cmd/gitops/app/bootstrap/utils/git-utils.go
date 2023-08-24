@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,7 +19,7 @@ func GetRepoUrl() (string, error) {
 	var runner runner.CLIRunner
 	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	repoUrlParsed := string(repoUrl[1 : len(repoUrl)-1])
@@ -36,7 +37,7 @@ func GetRepoBranch() (string, error) {
 
 	repoBranch, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.ref.branch}\"")
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	repoBranchParsed := string(repoBranch[1 : len(repoBranch)-1])
@@ -50,7 +51,7 @@ func GetRepoPath() (string, error) {
 
 	repoPath, err := runner.Run("kubectl", "get", "kustomization", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.path}\"")
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	repoPathParsed := strings.TrimPrefix(string(repoPath[1:len(repoPath)-1]), "./")
@@ -62,29 +63,29 @@ func GetRepoPath() (string, error) {
 func CloneRepo() (string, error) {
 	err := CleanupRepo()
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	var runner runner.CLIRunner
 
 	repoUrlParsed, err := GetRepoUrl()
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	repoBranchParsed, err := GetRepoBranch()
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	repoPathParsed, err := GetRepoPath()
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
 
 	out, err := runner.Run("git", "clone", repoUrlParsed, WORKINGDIR, "--depth", "1", "-b", repoBranchParsed)
 	if err != nil {
-		return "", CheckIfError(err, string(out))
+		return "", fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	return repoPathParsed, nil
@@ -94,30 +95,30 @@ func CloneRepo() (string, error) {
 func CreateFileToRepo(filename string, filecontent string, path string, commitmsg string) error {
 	repo, err := git.PlainOpen(WORKINGDIR)
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	worktree, err := repo.Worktree()
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	filePath := filepath.Join(WORKINGDIR, path, filename)
 
 	file, err := os.Create(filePath)
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	defer file.Close()
 	_, err = file.WriteString(filecontent)
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	_, err = worktree.Add(filepath.Join(path, filename))
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	_, err = worktree.Commit(commitmsg, &git.CommitOptions{
@@ -128,12 +129,12 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 		},
 	})
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	err = repo.Push(&git.PushOptions{})
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	return nil
@@ -142,5 +143,5 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 // CleanupRepo delete the temp repo
 func CleanupRepo() error {
 	err := os.RemoveAll(WORKINGDIR)
-	return CheckIfError(err)
+	return err
 }

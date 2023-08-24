@@ -2,6 +2,7 @@ package commands
 
 import (
 	"encoding/json"
+	"fmt"
 	"strings"
 	"time"
 
@@ -40,7 +41,7 @@ func InstallWge(version string) (string, error) {
 
 	domainType, err := utils.GetSelectInput(DOMAIN_MSG, domainTypes)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	userDomain := "localhost"
@@ -51,7 +52,7 @@ func InstallWge(version string) (string, error) {
 
 		userDomain, err = utils.GetStringInput(CLUSTER_DOMAIN_MSG, "")
 		if err != nil {
-			return "", utils.CheckIfError(err)
+			return "", err
 		}
 
 	}
@@ -60,7 +61,7 @@ func InstallWge(version string) (string, error) {
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	defer func() {
@@ -72,12 +73,12 @@ func InstallWge(version string) (string, error) {
 
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	err = utils.CreateFileToRepo(WGE_HELMREPO_FILENAME, wgehelmRepo, pathInRepo, WGE_HELMREPO_COMMITMSG)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	values := domain.ValuesFile{
@@ -89,17 +90,17 @@ func InstallWge(version string) (string, error) {
 
 	wgeHelmRelease, err := ConstructWGEhelmRelease(values, version)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, wgeHelmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	return userDomain, nil
@@ -154,7 +155,7 @@ func constructIngressValues(userDomain string) map[string]interface{} {
 func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) (string, error) {
 	valuesBytes, err := json.Marshal(valuesFile)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	wgeHelmRelease := helmv2.HelmRelease{
@@ -195,7 +196,7 @@ func CheckUIDomain(userDomain string, wgeVersion string) error {
 		var runner runner.CLIRunner
 		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 		if err != nil {
-			return utils.CheckIfError(err, string(out))
+			return fmt.Errorf("%s%s", err.Error(), string(out))
 		}
 
 	} else {

@@ -18,7 +18,7 @@ func GetKubernetesClient() (*kubernetes.Clientset, error) {
 	// Obtain the user's home directory.
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return nil, CheckIfError(err)
+		return nil, err
 	}
 
 	// Construct the full path to the kubeconfig file.
@@ -26,13 +26,13 @@ func GetKubernetesClient() (*kubernetes.Clientset, error) {
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
-		return nil, CheckIfError(err)
+		return nil, err
 	}
 
 	// Create a new Kubernetes client using the config.
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
-		return nil, CheckIfError(err)
+		return nil, err
 	}
 
 	return clientset, nil
@@ -43,13 +43,13 @@ func GetSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 	// Create a new Kubernetes client using the config.
 	clientset, err := GetKubernetesClient()
 	if err != nil {
-		return nil, CheckIfError(err)
+		return nil, err
 	}
 
 	// Fetch the secret from the Kubernetes cluster.
 	secret, err := clientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(), secretName, v1.GetOptions{})
 	if err != nil {
-		return nil, CheckIfError(err)
+		return nil, err
 	}
 
 	return secret, nil
@@ -60,7 +60,7 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 	// Create a new Kubernetes client using the config.
 	clientset, err := GetKubernetesClient()
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	secret := &corev1.Secret{
@@ -75,7 +75,7 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 		TypeMeta: secret.TypeMeta,
 	})
 	if err != nil && !strings.Contains(err.Error(), "already exists") {
-		return CheckIfError(err)
+		return err
 	}
 	return nil
 }
@@ -85,14 +85,14 @@ func DeleteSecret(secretName string, secretNamespace string) error {
 	// Create a new Kubernetes client using the config.
 	clientset, err := GetKubernetesClient()
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 
 	err = clientset.CoreV1().Secrets(secretNamespace).Delete(context.TODO(), secretName, v1.DeleteOptions{
 		TypeMeta: v1.TypeMeta{},
 	})
 	if err != nil {
-		return CheckIfError(err)
+		return err
 	}
 	return nil
 }

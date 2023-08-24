@@ -35,23 +35,23 @@ func InstallTerraform() error {
 
 	resp, err := http.Get(TF_CONTROLLER_URL)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 	defer resp.Body.Close()
 
 	var bodyBytes []byte
 	if resp.StatusCode != http.StatusOK {
-		return utils.CheckIfError(fmt.Errorf("error getting terraform release %d", resp.StatusCode))
+		return fmt.Errorf("error getting terraform release %d", resp.StatusCode)
 	}
 
 	bodyBytes, err = io.ReadAll(resp.Body)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	defer func() {
@@ -63,7 +63,7 @@ func InstallTerraform() error {
 
 	err = utils.CreateFileToRepo(TF_FILE_NAME, string(bodyBytes), pathInRepo, TF_COMMIT_MSG)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	values := map[string]interface{}{
@@ -71,7 +71,7 @@ func InstallTerraform() error {
 	}
 	err = commands.InstallController(domain.TERRAFORM_VALUES_NAME, values)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 	utils.Info("✔ Terraform Controller is installed successfully")
 	return nil
