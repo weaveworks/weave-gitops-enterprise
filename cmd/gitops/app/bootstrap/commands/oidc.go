@@ -95,7 +95,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	utils.Warning("Installing OIDC config ...")
 
-	err = InstallController(domain.OIDC_VALUES_NAME, values)
+	err = UpdateHelmReleaseValues(domain.OIDC_VALUES_NAME, values)
 	if err != nil {
 		return err
 	}

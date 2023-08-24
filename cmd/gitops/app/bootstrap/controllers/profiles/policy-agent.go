@@ -77,7 +77,7 @@ func InstallPolicyAgent() error {
 	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicyResult)
 
 	utils.Warning("Installing policy agent ...")
-	err = commands.InstallController(domain.POLICY_AGENT_VALUES_NAME, values)
+	err = commands.UpdateHelmReleaseValues(domain.POLICY_AGENT_VALUES_NAME, values)
 	if err != nil {
 		return err
 	}

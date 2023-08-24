@@ -46,7 +46,7 @@ func InstallCapi() error {
 	}
 
 	utils.Warning("Installing CAPI Controller ...")
-	err = commands.InstallController(domain.CAPI_VALUES_NAME, values)
+	err = commands.UpdateHelmReleaseValues(domain.CAPI_VALUES_NAME, values)
 	if err != nil {
 		return err
 	}

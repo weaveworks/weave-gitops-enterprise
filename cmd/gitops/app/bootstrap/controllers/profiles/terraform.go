@@ -69,7 +69,7 @@ func InstallTerraform() error {
 	values := map[string]interface{}{
 		domain.TERRAFORM_VALUES_NAME: true,
 	}
-	err = commands.InstallController(domain.TERRAFORM_VALUES_NAME, values)
+	err = commands.UpdateHelmReleaseValues(domain.TERRAFORM_VALUES_NAME, values)
 	if err != nil {
 		return err
 	}

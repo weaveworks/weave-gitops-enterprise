@@ -5,7 +5,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
-func InstallController(controllerValuesName string, controllerValues map[string]interface{}) error {
+func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
 	values, err := utils.GetCurrentValuesForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
 	if err != nil {
 		return err

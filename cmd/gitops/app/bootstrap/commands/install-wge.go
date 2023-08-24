@@ -191,17 +191,15 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 }
 
 func CheckUIDomain(userDomain string, wgeVersion string) error {
-	if strings.Contains(userDomain, "localhost") {
-
-		var runner runner.CLIRunner
-		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-		if err != nil {
-			return fmt.Errorf("%s%s", err.Error(), string(out))
-		}
-
-	} else {
-		utils.Info("WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
+	if !strings.Contains(userDomain, "localhost") {
+		utils.Info("WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, userDomain)
+		return nil
 	}
 
+	var runner runner.CLIRunner
+	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
+	if err != nil {
+		return fmt.Errorf("%s%s", err.Error(), string(out))
+	}
 	return nil
 }
