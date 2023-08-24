@@ -30,18 +30,15 @@ gitops bootstrap`,
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func Bootstrap() error {
-	err := commands.CheckEntitlementFile()
-	if err != nil {
+	if err := commands.CheckEntitlementFile(); err != nil {
 		return err
 	}
 
-	err = commands.CheckFluxIsInstalled()
-	if err != nil {
+	if err := commands.CheckFluxIsInstalled(); err != nil {
 		return err
 	}
 
-	err = commands.CheckFluxReconcile()
-	if err != nil {
+	if err := commands.CheckFluxReconcile(); err != nil {
 		return err
 	}
 
@@ -50,8 +47,7 @@ func Bootstrap() error {
 		return err
 	}
 
-	err = commands.CreateAdminPasswordSecret()
-	if err != nil {
+	if err := commands.CreateAdminPasswordSecret(); err != nil {
 		return err
 	}
 
@@ -60,14 +56,12 @@ func Bootstrap() error {
 		return err
 	}
 
-	err = commands.CreateOIDCConfig(userDomain, wgeVersion)
-	if err != nil {
+	if err := commands.CreateOIDCConfig(userDomain, wgeVersion); err != nil {
 		return err
 	}
 
 	// check if the UI is running on localhost or external domain
-	err = commands.CheckUIDomain(userDomain, wgeVersion)
-	if err != nil {
+	if err := commands.CheckUIDomain(userDomain, wgeVersion); err != nil {
 		return err
 	}
 

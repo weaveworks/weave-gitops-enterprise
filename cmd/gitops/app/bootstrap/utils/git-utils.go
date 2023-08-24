@@ -61,8 +61,7 @@ func GetRepoPath() (string, error) {
 
 // CloneRepo shallow clones the user repo's branch under temp
 func CloneRepo() (string, error) {
-	err := CleanupRepo()
-	if err != nil {
+	if err := CleanupRepo(); err != nil {
 		return "", err
 	}
 
@@ -142,6 +141,5 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 
 // CleanupRepo delete the temp repo
 func CleanupRepo() error {
-	err := os.RemoveAll(WORKINGDIR)
-	return err
+	return os.RemoveAll(WORKINGDIR)
 }
