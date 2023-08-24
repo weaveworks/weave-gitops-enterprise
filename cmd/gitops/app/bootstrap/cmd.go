@@ -16,8 +16,7 @@ func Command() *cobra.Command {
 # Bootstrap Weave-gitops-enterprise
 gitops bootstrap`,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			err := Bootstrap()
-			if err != nil {
+			if err := Bootstrap(); err != nil {
 				return fmt.Errorf("\x1b[31;1m%s\x1b[0m", err.Error())
 			}
 			return nil
