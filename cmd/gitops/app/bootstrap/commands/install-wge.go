@@ -192,7 +192,8 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 
 func CheckUIDomain(userDomain string, wgeVersion string) error {
 	if !strings.Contains(userDomain, "localhost") {
-		utils.Info("WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, userDomain)
+
+		utils.Info("\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, userDomain)
 		return nil
 	}
 
