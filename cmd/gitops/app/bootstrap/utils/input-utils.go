@@ -80,7 +80,7 @@ func GetStringInput(msg string, defaultValue string) (string, error) {
 }
 
 // GetConfirmInput prompt to get yes or no input
-func GetConfirmInput(msg string) (string, error) {
+func GetConfirmInput(msg string) string {
 	prompt := promptui.Prompt{
 		Label:     msg,
 		IsConfirm: true,
@@ -88,10 +88,10 @@ func GetConfirmInput(msg string) (string, error) {
 
 	result, err := prompt.Run()
 	if err != nil {
-		return "", err
+		return "n"
 	}
 
-	return result, nil
+	return result
 }
 
 // Info should be used to describe the example commands that are about to run.

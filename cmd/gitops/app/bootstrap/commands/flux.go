@@ -20,10 +20,7 @@ const (
 
 // BootstrapFlux get flux values from user and bootstraps it using generic way
 func BootstrapFlux() error {
-	bootstrapFlux, err := utils.GetConfirmInput(FLUX_BOOTSTRAP_MSG)
-	if err != nil {
-		return err
-	}
+	bootstrapFlux := utils.GetConfirmInput(FLUX_BOOTSTRAP_MSG)
 
 	if bootstrapFlux != "y" {
 		os.Exit(1)

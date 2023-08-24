@@ -30,6 +30,7 @@ gitops bootstrap`,
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func Bootstrap() error {
+
 	if err := commands.CheckEntitlementFile(); err != nil {
 		return err
 	}

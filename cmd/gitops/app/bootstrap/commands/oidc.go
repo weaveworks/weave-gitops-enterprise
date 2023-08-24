@@ -63,10 +63,7 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 // CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
 func CreateOIDCConfig(userDomain string, version string) error {
 
-	oidcConfigPrompt, err := utils.GetConfirmInput(OIDC_INSTALL_MSG)
-	if err != nil {
-		return err
-	}
+	oidcConfigPrompt := utils.GetConfirmInput(OIDC_INSTALL_MSG)
 
 	if oidcConfigPrompt != "y" {
 		return nil
@@ -103,8 +100,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 	utils.Info("OIDC config created successfully")
 
 	// Ask the user if he wants to revert the admin user
-	err = checkAdminPasswordRevert()
-	if err != nil {
+	if err := checkAdminPasswordRevert(); err != nil {
 		return err
 	}
 
@@ -113,16 +109,13 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 func checkAdminPasswordRevert() error {
 
-	adminUserRevert, err := utils.GetConfirmInput(ADMIN_USER_REVERT_MSG)
-	if err != nil {
-		return err
-	}
+	adminUserRevert := utils.GetConfirmInput(ADMIN_USER_REVERT_MSG)
 
 	if adminUserRevert != "y" {
 		return nil
 	}
 
-	err = utils.DeleteSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
+	err := utils.DeleteSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
 	if err != nil {
 		return err
 	}

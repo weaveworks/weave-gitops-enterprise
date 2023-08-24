@@ -32,10 +32,7 @@ func InstallPolicyAgent() error {
 	var enableAdmission, enableAudit, enableMutate bool
 	utils.Warning("For more information about the configurations please refer to the docs https://github.com/weaveworks/policy-agent/blob/dev/docs/README.md")
 
-	enableAdmissionResult, err := utils.GetConfirmInput(ADMISSION_MODE_MSG)
-	if err != nil {
-		return err
-	}
+	enableAdmissionResult := utils.GetConfirmInput(ADMISSION_MODE_MSG)
 
 	if strings.Compare(enableAdmissionResult, "y") == 0 {
 		enableAdmission = true
@@ -43,10 +40,7 @@ func InstallPolicyAgent() error {
 		enableAdmission = false
 	}
 
-	enableMutationResult, err := utils.GetConfirmInput(MUTATION_MSG)
-	if err != nil {
-		return err
-	}
+	enableMutationResult := utils.GetConfirmInput(MUTATION_MSG)
 
 	if strings.Compare(enableMutationResult, "y") == 0 {
 		enableMutate = true
@@ -54,10 +48,7 @@ func InstallPolicyAgent() error {
 		enableMutate = false
 	}
 
-	enableAuditResult, err := utils.GetConfirmInput(AUDIT_MSG)
-	if err != nil {
-		return err
-	}
+	enableAuditResult := utils.GetConfirmInput(AUDIT_MSG)
 
 	if strings.Compare(enableAuditResult, "y") == 0 {
 		enableAudit = true
