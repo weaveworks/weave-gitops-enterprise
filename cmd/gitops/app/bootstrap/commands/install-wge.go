@@ -57,7 +57,7 @@ func InstallWge(version string) (string, error) {
 
 	}
 
-	utils.Info("✔ All set installing WGE v%s, This may take few minutes...\n", version)
+	utils.Info("All set installing WGE v%s, This may take few minutes...\n", version)
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
@@ -200,7 +200,7 @@ func CheckUIDomain(userDomain string, wgeVersion string) error {
 		}
 
 	} else {
-		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
+		utils.Info("WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
 	}
 
 	return nil

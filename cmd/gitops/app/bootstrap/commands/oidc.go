@@ -100,7 +100,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 		return err
 	}
 
-	utils.Info("✔ OIDC config created successfully")
+	utils.Info("OIDC config created successfully")
 
 	// Ask the user if he wants to revert the admin user
 	err = checkAdminPasswordRevert()
@@ -127,7 +127,7 @@ func checkAdminPasswordRevert() error {
 		return err
 	}
 
-	fmt.Println("✔ Admin user reverted successfully")
+	utils.Info("Admin user reverted successfully")
 	return nil
 }
 

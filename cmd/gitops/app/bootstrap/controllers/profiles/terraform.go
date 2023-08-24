@@ -73,6 +73,6 @@ func InstallTerraform() error {
 	if err != nil {
 		return err
 	}
-	utils.Info("✔ Terraform Controller is installed successfully")
+	utils.Info("Terraform Controller is installed successfully")
 	return nil
 }

@@ -49,7 +49,7 @@ func CreateAdminPasswordSecret() error {
 		return err
 	}
 
-	utils.Info("✔ admin secret is created")
+	utils.Info("admin secret is created")
 
 	return nil
 }

@@ -82,7 +82,7 @@ func InstallPolicyAgent() error {
 		return err
 	}
 
-	utils.Info("✔ Policy Agent is installed successfully")
+	utils.Info("Policy Agent is installed successfully")
 	return nil
 }
 

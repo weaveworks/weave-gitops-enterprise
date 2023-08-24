@@ -51,7 +51,7 @@ func InstallCapi() error {
 		return err
 	}
 
-	utils.Info("✔ CAPI Controller is installed successfully")
+	utils.Info("CAPI Controller is installed successfully")
 	return nil
 }
 

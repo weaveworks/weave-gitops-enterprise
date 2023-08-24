@@ -20,7 +20,7 @@ func CheckEntitlementFile() error {
 		return fmt.Errorf("%s%s", err.Error(), errorMsg)
 	}
 
-	utils.Info("✔  entitlement file is checked and valid!")
+	utils.Info("entitlement file is checked and valid!")
 
 	return nil
 }

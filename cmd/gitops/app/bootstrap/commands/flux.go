@@ -65,7 +65,7 @@ func BootstrapFlux() error {
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info("✔  flux is bootstrapped successfully")
+	utils.Info("flux is bootstrapped successfully")
 	return nil
 }
 
@@ -80,7 +80,7 @@ func CheckFluxIsInstalled() error {
 		return BootstrapFlux()
 	}
 
-	utils.Info("✔  flux is installed")
+	utils.Info("flux is installed")
 
 	return nil
 }
@@ -96,7 +96,7 @@ func CheckFluxReconcile() error {
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info("✔  flux is installed properly and can reconcile successfully")
+	utils.Info("flux is installed properly and can reconcile successfully")
 
 	return nil
 }
