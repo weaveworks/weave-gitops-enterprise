@@ -1,13 +1,9 @@
 package bootstrap
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
 func Command() *cobra.Command {
@@ -54,36 +50,20 @@ func Bootstrap() error {
 		return err
 	}
 
-	err, isExternalDomain, userDomain := commands.InstallWge(wgeVersion)
+	userDomain, err := commands.InstallWge(wgeVersion)
 	if err != nil {
 		return err
 	}
 
-	err = commands.CreateOIDCConfig(isExternalDomain, userDomain, wgeVersion)
+	err = commands.CreateOIDCConfig(userDomain, wgeVersion)
 	if err != nil {
 		return err
 	}
 
 	// check if the UI is running on localhost or external domain
-	err = CheckUIDomain(isExternalDomain, userDomain, wgeVersion)
+	err = commands.CheckUIDomain(userDomain, wgeVersion)
 	if err != nil {
 		return err
-	}
-
-	return nil
-}
-
-func CheckUIDomain(isExternalDomain bool, userDomain string, wgeVersion string) error {
-	if isExternalDomain {
-		fmt.Printf("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, userDomain)
-	} else {
-		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
-
-		var runner runner.CLIRunner
-		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-		if err != nil {
-			return utils.CheckIfError(err, string(out))
-		}
 	}
 
 	return nil

@@ -4,24 +4,23 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
 const (
-	OIDC_INSTALL_MSG           = "Do you want to add OIDC config to your cluster"
-	OIDC_DISCOVERY_URL_MSG     = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
-	OIDC_CLIENT_ID_MSG         = "Please enter OIDC clientID"
-	CLIENT_SECRET_MSG          = "Please enter OIDC clientSecret"
-	OIDC_VALUES_FILES_LOCATION = "/tmp/agent-values.yaml"
-	OIDC_SECRET_NAME           = "oidc-auth"
-	OIDC_SECRET_NAMESPACE      = "flux-system"
-	ADMIN_USER_REVERT_MSG      = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login? (y/n)"
+	OIDC_INSTALL_MSG       = "Do you want to add OIDC config to your cluster"
+	OIDC_DISCOVERY_URL_MSG = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
+	OIDC_CLIENT_ID_MSG     = "Please enter OIDC clientID"
+	CLIENT_SECRET_MSG      = "Please enter OIDC clientSecret"
+	OIDC_SECRET_NAME       = "oidc-auth"
+	ADMIN_USER_REVERT_MSG  = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
 )
 
 // getOIDCSecrets ask the user for the OIDC configuraions
-func getOIDCSecrets(isExternalDomain bool, userDomain string) (domain.OIDCConfig, error) {
+func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 
 	configs := domain.OIDCConfig{}
 
@@ -52,16 +51,17 @@ func getOIDCSecrets(isExternalDomain bool, userDomain string) (domain.OIDCConfig
 		ClientSecret: oidcClientSecret,
 	}
 
-	if isExternalDomain {
-		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", userDomain)
-	} else {
+	if strings.Contains(userDomain, "localhost") {
 		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
+	} else {
+		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", userDomain)
 	}
 
 	return oidcConfig, nil
 }
 
-func CreateOIDCConfig(isExternalDomain bool, userDomain string, version string) error {
+// CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
+func CreateOIDCConfig(userDomain string, version string) error {
 
 	oidcConfigPrompt, err := utils.GetConfirmInput(OIDC_INSTALL_MSG)
 	if err != nil {
@@ -74,7 +74,7 @@ func CreateOIDCConfig(isExternalDomain bool, userDomain string, version string) 
 
 	utils.Info("For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration")
 
-	oidcConfig, err := getOIDCSecrets(isExternalDomain, userDomain)
+	oidcConfig, err := getOIDCSecrets(userDomain)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
@@ -86,7 +86,7 @@ func CreateOIDCConfig(isExternalDomain bool, userDomain string, version string) 
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	err = utils.CreateSecret(OIDC_SECRET_NAME, OIDC_SECRET_NAMESPACE, oidcSecretData)
+	err = utils.CreateSecret(OIDC_SECRET_NAME, WGE_DEFAULT_NAMESPACE, oidcSecretData)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
@@ -103,7 +103,7 @@ func CreateOIDCConfig(isExternalDomain bool, userDomain string, version string) 
 	utils.Info("✔ OIDC config created successfully")
 
 	// Ask the user if he wants to revert the admin user
-	err = checkAdminPasswordRevet()
+	err = checkAdminPasswordRevert()
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
@@ -111,14 +111,14 @@ func CreateOIDCConfig(isExternalDomain bool, userDomain string, version string) 
 	return nil
 }
 
-func checkAdminPasswordRevet() error {
+func checkAdminPasswordRevert() error {
 
-	adminUserRevet, err := utils.GetStringInput(ADMIN_USER_REVERT_MSG, "")
+	adminUserRevert, err := utils.GetConfirmInput(ADMIN_USER_REVERT_MSG)
 	if err != nil {
 		return utils.CheckIfError(err)
 	}
 
-	if adminUserRevet != "y" {
+	if adminUserRevert != "y" {
 		return nil
 	}
 
@@ -145,22 +145,22 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 func getIssuer(oidcDiscoveryURL string) (string, error) {
 	resp, err := http.Get(oidcDiscoveryURL)
 	if err != nil {
-		return "", fmt.Errorf("failed to fetch OIDC configuration: %v", err)
+		return "", utils.CheckIfError(err)
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("received non-200 response code: %d", resp.StatusCode)
+		return "", utils.CheckIfError(fmt.Errorf("OIDC discovery URL returned status %d", resp.StatusCode))
 	}
 
 	var result map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
-		return "", fmt.Errorf("failed to decode OIDC configuration: %v", err)
+		return "", utils.CheckIfError(err)
 	}
 
 	issuer, ok := result["issuer"].(string)
 	if !ok || issuer == "" {
-		return "", fmt.Errorf("issuer not found or not a string")
+		return "", utils.CheckIfError(fmt.Errorf("OIDC discovery URL did not return an issuer"))
 	}
 
 	return issuer, nil

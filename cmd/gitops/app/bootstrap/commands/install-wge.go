@@ -10,6 +10,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -31,7 +32,7 @@ const (
 )
 
 // InstallWge installs weave gitops enterprise chart
-func InstallWge(version string) (error, bool, string) {
+func InstallWge(version string) (string, error) {
 	domainTypes := []string{
 		DOMAIN_TYPE_LOCALHOST,
 		DOMAIN_TYPE_EXTERNALDNS,
@@ -39,7 +40,7 @@ func InstallWge(version string) (error, bool, string) {
 
 	domainType, err := utils.GetSelectInput(DOMAIN_MSG, domainTypes)
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
 	userDomain := "localhost"
@@ -50,7 +51,7 @@ func InstallWge(version string) (error, bool, string) {
 
 		userDomain, err = utils.GetStringInput(CLUSTER_DOMAIN_MSG, "")
 		if err != nil {
-			return utils.CheckIfError(err), false, ""
+			return "", utils.CheckIfError(err)
 		}
 
 	}
@@ -59,7 +60,7 @@ func InstallWge(version string) (error, bool, string) {
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
 	defer func() {
@@ -71,12 +72,12 @@ func InstallWge(version string) (error, bool, string) {
 
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
 	err = utils.CreateFileToRepo(WGE_HELMREPO_FILENAME, wgehelmRepo, pathInRepo, WGE_HELMREPO_COMMITMSG)
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
 	values := domain.ValuesFile{
@@ -88,20 +89,20 @@ func InstallWge(version string) (error, bool, string) {
 
 	wgeHelmRelease, err := ConstructWGEhelmRelease(values, version)
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
 	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, wgeHelmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
 	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
 	if err != nil {
-		return utils.CheckIfError(err), false, ""
+		return "", utils.CheckIfError(err)
 	}
 
-	return nil, strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0, userDomain
+	return userDomain, nil
 
 }
 
@@ -186,4 +187,20 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 	}
 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
+}
+
+func CheckUIDomain(userDomain string, wgeVersion string) error {
+	if strings.Contains(userDomain, "localhost") {
+
+		var runner runner.CLIRunner
+		out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
+		if err != nil {
+			return utils.CheckIfError(err, string(out))
+		}
+
+	} else {
+		utils.Info("✔ WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
+	}
+
+	return nil
 }
