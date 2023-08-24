@@ -197,6 +197,7 @@ func CheckUIDomain(userDomain string, wgeVersion string) error {
 		return nil
 	}
 
+	utils.Info("\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {
