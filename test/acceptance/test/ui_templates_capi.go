@@ -200,7 +200,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				Namespace:       GITOPS_DEFAULT_NAMESPACE,
 				TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
 				Path:            "apps/postgres-manifest",
-				CreateNamespace: false,
 			}
 			gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 			application := pages.GetAddApplication(webDriver, 1)
@@ -212,7 +211,6 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane GitOpsTemplates for CAPI cl
 				Namespace:       GITOPS_DEFAULT_NAMESPACE,
 				TargetNamespace: GITOPS_DEFAULT_NAMESPACE,
 				Path:            "apps/podinfo-manifest",
-				CreateNamespace: false,
 			}
 			gomega.Expect(createPage.AddApplication.Click()).Should(gomega.Succeed(), "Failed to click 'Add application' button")
 			application = pages.GetAddApplication(webDriver, 2)
