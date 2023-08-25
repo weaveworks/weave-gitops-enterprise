@@ -33,6 +33,7 @@ type Application struct {
 	Values          string
 	Layer           string
 	GitRepository   string
+	CreateNamespace bool
 }
 
 type ApplicationEvent struct {
@@ -76,7 +77,7 @@ func AddKustomizationApp(application *pages.AddApplication, app Application) {
 			gomega.Expect(source).Should(gomega.MatchRegexp(app.Source), "Application source GitRepository is incorrect")
 		}
 
-		if app.TargetNamespace != GITOPS_DEFAULT_NAMESPACE {
+		if app.CreateNamespace {
 			gomega.Eventually(application.CreateTargetNamespace.Check).Should(gomega.Succeed(), "Failed to select 'Create target namespace for kustomization'")
 		}
 	})

@@ -129,6 +129,7 @@ var _ = ginkgo.Describe("Multi-Cluster Control Plane Tenancy", ginkgo.Ordered, g
 				Path:            "./kustomize",
 				SyncInterval:    "10m",
 				Tenant:          "test-team",
+				CreateNamespace: false,
 			}
 
 			appEvent := ApplicationEvent{
