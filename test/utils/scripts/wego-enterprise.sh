@@ -131,7 +131,7 @@ function setup {
   # helmArgs+=( --set-string "extraEnvVars[0].value=5m" )
 
  
-  helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
+  # helm upgrade --install my-mccp wkpv3/mccp --version "${CHART_VERSION}" --namespace flux-system --wait ${helmArgs[@]}
   
    # Wait for cluster to settle
   kubectl wait --for=condition=Ready --timeout=300s -n flux-system --all pod

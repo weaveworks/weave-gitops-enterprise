@@ -25,5 +25,8 @@ export GITOPS_BIN_PATH=`which gitops`
 # export LOGIN_USER_TYPE="cluster-user"
 export LOGIN_USER_TYPE="oidc"
 
+kubectl delete secret -n flux-system flux-system || echo "oh well"
+kubectl delete gitrepo -n flux-system flux-system || echo "oh well"
+
 ginkgo --label-filter='smoke&&tenant' --v --output-dir=/tmp/foot-smoke --timeout=2h ${WORKSPACE_PATH}/test/acceptance/test/
 # ginkgo --label-filter='smoke&&capd' --v --output-dir=/tmp/foot-smoke --timeout=2h ${WORKSPACE_PATH}/test/acceptance/test/

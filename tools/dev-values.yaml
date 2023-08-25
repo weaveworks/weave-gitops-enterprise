@@ -4,10 +4,15 @@ policy-agent:
   failurePolicy: Ignore
   config:
     accountId: "weaveworks"
-    clusterId: "tilt-cluster"
+    clusterId: "management"
 
 config:
   logLevel: debug
+  oidc:
+    enabled: true
+    issuerURL: https://dex-01.wge.dev.weave.works
+    clientCredentialsSecret: client-credentials
+    redirectURL: http://localhost:30080/oauth2/callback
 
 tls:
   enabled: false
@@ -22,6 +27,12 @@ enableTerraformUI: true
 
 useQueryServiceBackend: false
 
+service:
+  type: NodePort
+  ports:
+    https: 8000
+  nodePorts:
+    https: 30080
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
     value: ""
@@ -29,8 +40,8 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
-  - name: DEV_MODE
-    value: "true"
+  # - name: DEV_MODE
+  #   value: "true"
   - name: WEAVE_GITOPS_ENABLE_PROFILING
     value: "true"
 
