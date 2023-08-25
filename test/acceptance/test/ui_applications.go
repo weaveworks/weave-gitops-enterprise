@@ -145,7 +145,11 @@ func verifyAppInformation(applicationsPage *pages.ApplicationsPage, app Applicat
 		gomega.Eventually(applicationInfo.Status, ASSERTION_2MINUTE_TIME_OUT).Should(matchers.MatchText(status), fmt.Sprintf("Failed to have expected %s application status: %s", app.Name, status))
 
 		if app.Tenant != "" {
-			gomega.Eventually(applicationInfo.Tenant).Should(matchers.MatchText(app.Tenant), fmt.Sprintf("Failed to have expected %s tenant", app.Tenant))
+			// namespaces can take 30s to be refreshed
+			// at 30s resolution
+			// UI polling is 10s
+			// So worst case update should be 1m10s
+			gomega.Eventually(applicationInfo.Tenant, ASSERTION_2MINUTE_TIME_OUT).Should(matchers.MatchText(app.Tenant), fmt.Sprintf("Failed to have expected %s tenant", app.Tenant))
 		}
 	})
 }
