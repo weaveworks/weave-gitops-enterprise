@@ -843,10 +843,6 @@ exports[`Applications index test snapshots success 1`] = `
   padding: 8px 12px;
 }
 
-.c19.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
 .c28.MuiButton-root {
   border-radius: 50%;
   min-width: 38px;
@@ -879,6 +875,10 @@ exports[`Applications index test snapshots success 1`] = `
 .c27.MuiButton-outlined {
   margin-right: 0;
   border-radius: 2px 0 0 2px;
+  border-right: none;
+}
+
+.c27.MuiButton-outlined.Mui-disabled {
   border-right: none;
 }
 
@@ -1032,6 +1032,10 @@ exports[`Applications index test snapshots success 1`] = `
   background: #f5f5f5;
   -webkit-transition: background 0.5s ease-in-out;
   transition: background 0.5s ease-in-out;
+}
+
+.c21 .MuiTableCell-root {
+  border-color: #d8d8d8;
 }
 
 .c21 table {
