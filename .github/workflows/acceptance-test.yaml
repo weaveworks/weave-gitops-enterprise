@@ -45,7 +45,7 @@ on:
         required: false
         type: boolean
       management-cluster-kind:
-        description: "Type of management cluster e.g. kind, eks or gke"
+        description: "Type of management cluster e.g. kind or eks"
         required: true
         type: string
       capi_provider:
@@ -168,7 +168,6 @@ env:
   ARTIFACTS_BASE_DIR: "/tmp/acceptance-test-artifact"
   TEST_ARTIFACT_NAME: ${{ inputs.test-artifact-name }}
   EXP_CLUSTER_RESOURCE_SET: ${{ inputs.cluster_resource_set }}
-  USE_GKE_GCLOUD_AUTH_PLUGIN: True
   SELENIUM_DEBUG: true
   CHECKPOINT_DISABLE: 1
   WEAVE_GITOPS_FEATURE_TELEMETRY: "false"
@@ -245,21 +244,6 @@ jobs:
           chmod +x /tmp/kubelogin
           mv /tmp/kubelogin /usr/local/bin/kubectl-oidc_login
           kubectl-oidc_login version
-      - name: Authenticate to Google Cloud
-        if: ${{ inputs.management-cluster-kind == 'gke' }}
-        uses: google-github-actions/auth@v0.8.3
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-      - name: Set up gcloud SDK
-        if: ${{ inputs.management-cluster-kind == 'gke' }}
-        uses: google-github-actions/setup-gcloud@v0.6.2
-        with:
-          project_id: ${{ secrets.GCP_PROJECT_ID }}
-      - name: Install gcloud auth plugin
-        if: ${{ inputs.management-cluster-kind == 'gke' }}
-        run: |
-          gcloud info
-          gcloud components install gke-gcloud-auth-plugin --quiet
       - name: Install docker
         if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
         uses: docker-practice/actions-setup-docker@master
@@ -352,10 +336,6 @@ jobs:
             export CLUSTER_NAME=wego-enterprise-nightly-eks-${{ inputs.os-name }}
             export CLUSTER_REGION=us-east-1
 
-          elif [ ${{ inputs.management-cluster-kind }} = 'gke' ]; then
-            export CLUSTER_NAME=wego-enterprise-nightly-gke-${{ inputs.os-name }}
-            export CLUSTER_REGION=us-central1-a
-
           elif [ ${{ inputs.management-cluster-kind }} = 'kind' ]; then
             export CLUSTER_NAME=management-${{ github.run_id }}-${{ github.run_number}}
           fi
@@ -382,6 +362,6 @@ jobs:
         if: ${{ always() }}
         continue-on-error: true
         run: |
-          if [ ${{ inputs.management-cluster-kind }} = "eks" ] || [ ${{ inputs.management-cluster-kind }} = "gke" ]; then
+          if [ ${{ inputs.management-cluster-kind }} = "eks" ]; then
             ./test/utils/scripts/wego-enterprise.sh reset
           fi
