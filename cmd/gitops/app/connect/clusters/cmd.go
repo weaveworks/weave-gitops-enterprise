@@ -1,11 +1,8 @@
 package connect
 
 import (
-	"context"
-
 	"github.com/go-logr/stdr"
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/connector"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"k8s.io/apimachinery/pkg/types"
@@ -23,7 +20,7 @@ type connectOptionsFlags struct {
 
 var connectOptionsCmdFlags connectOptionsFlags
 
-func ConnectCommand(opts *config.Options, client *adapters.HTTPClient) *cobra.Command {
+func ConnectCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",
 		Aliases: []string{"clusters"},
@@ -35,7 +32,7 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Args:          cobra.MinimumNArgs(1),
-		RunE:          connectClusterCmdRunE(opts, client),
+		RunE:          connectClusterCmdRunE(opts),
 	}
 
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.RemoteClusterContext, "connect-context", "", "Context name of the remote cluster")
@@ -48,7 +45,7 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 	return cmd
 }
 
-func connectClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) func(*cobra.Command, []string) error {
+func connectClusterCmdRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		clusterName := args[0]
 
@@ -62,7 +59,7 @@ func connectClusterCmdRunE(opts *config.Options, client *adapters.HTTPClient) fu
 		}
 
 		logger := stdr.New(nil)
-		ctx := log.IntoContext(context.Background(), logger)
+		ctx := log.IntoContext(cmd.Context(), logger)
 
 		return connector.ConnectCluster(ctx, &options)
 
