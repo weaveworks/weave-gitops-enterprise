@@ -25,7 +25,7 @@
     "@types/styled-components": "^5.1.9",
     "@types/urijs": "^1.19.19",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.30.0-42-g2888e24c",
+    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.30.0-36-g6d5e2d72",
     "classnames": "^2.3.1",
     "d3-scale": "4.0.0",
     "d3-time": "^3.0.0",
