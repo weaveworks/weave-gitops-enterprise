@@ -7,6 +7,7 @@ type ValuesFile struct {
 	TLS                map[string]interface{} `json:"tls,omitempty"`
 	PolicyAgent        map[string]interface{} `json:"policy-agent,omitempty"`
 	PipelineController map[string]interface{} `json:"pipeline-controller,omitempty"`
+	GitOpsSets         map[string]interface{} `json:"gitopssets-controller,omitempty"`
 	EnablePipelines    bool                   `json:"enablePipelines,omitempty"`
 	EnableTerraformUI  bool                   `json:"enableTerraformUI,omitempty"`
 }
@@ -36,6 +37,7 @@ const (
 	OIDC_VALUES_NAME         = "oidc"
 	CAPI_VALUES_NAME         = "capi"
 	TERRAFORM_VALUES_NAME    = "enableTerraformUI"
+	GITOPSSETS_VALUES_NAME   = "gitopssets-controller"
 )
 
 // OIDCConfig store the OIDC config

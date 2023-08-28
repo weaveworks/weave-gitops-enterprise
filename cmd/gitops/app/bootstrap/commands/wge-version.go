@@ -61,10 +61,10 @@ func fetchHelmChart(username, password string) ([]string, error) {
 		return []string{}, err
 	}
 
-	entries := chart.Entries["mccp"]
+	entries := chart.Entries[WGE_CHART_NAME]
 	var versions []string
 	for _, entry := range entries {
-		if entry.Name == "mccp" {
+		if entry.Name == WGE_CHART_NAME {
 			versions = append(versions, entry.Version)
 			if len(versions) == 3 {
 				break
