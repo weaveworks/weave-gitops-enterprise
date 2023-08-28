@@ -16,6 +16,5 @@ gitops bootstrap controllers <controller-name>`,
 	cmd.AddCommand(profiles.PolicyAgentCommand)
 	cmd.AddCommand(profiles.CapiCommand)
 	cmd.AddCommand(profiles.TerraformCommand)
-	cmd.AddCommand(profiles.GitopsSetsCommand)
 	return cmd
 }

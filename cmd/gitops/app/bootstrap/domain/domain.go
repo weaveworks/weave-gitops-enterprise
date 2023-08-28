@@ -67,7 +67,6 @@ const (
 	OIDC_VALUES_NAME         = "oidc"
 	CAPI_VALUES_NAME         = "capi"
 	TERRAFORM_VALUES_NAME    = "enableTerraformUI"
-	GITOPSSETS_VALUES_NAME   = "gitopssets-controller"
 )
 
 // OIDCConfig store the OIDC config
