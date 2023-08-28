@@ -1,0 +1,46 @@
+controller:
+  manager:
+    image:
+      repository: ghcr.io/weaveworks/pipeline-controller
+    resources:
+      limits:
+        cpu: 500m
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 64Mi
+    eventsAddr: http://notification-controller.flux-system.svc.cluster.local./
+  replicas: 1
+kubernetesClusterDomain: cluster.local
+promotion:
+  rateLimit:
+    value: 20
+    interval: 30
+  retry:
+    delay: 2
+    maxDelay: 20
+    threshold: 3
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8082
+    nodePort: ""
+    annotations: {}
+    labels: {}
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    labels: {}
+    hosts: []
+    # - host: chart-example.local
+    #   paths:
+    #     - path: /
+    #       pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+logging:
+  encoding: json
+  level: info

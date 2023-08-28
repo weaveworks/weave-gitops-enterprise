@@ -173,6 +173,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		prevFiles, err = GetFiles(
 			ctx,
 			client,
+			client.RESTMapper(),
 			s.log,
 			s.estimator,
 			s.chartsCache,
@@ -199,6 +200,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	gitFiles, err := GetFiles(
 		ctx,
 		client,
+		client.RESTMapper(),
 		s.log,
 		s.estimator,
 		s.chartsCache,

@@ -419,6 +419,10 @@ exports[`Explorer snapshots renders 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
+.c8 .MuiTableCell-root {
+  border-color: #d8d8d8;
+}
+
 .c8 table {
   margin-top: 12px;
 }

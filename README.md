@@ -8,3 +8,4 @@ Information
 - Workflows guide in [docs/workflows.md](./docs/workflows.md)
 - User docs at https://docs.gitops.weave.works
 - Architecture [docs/architecture/](./docs/architecture/)
+- Swagger API is available [here](./cmd/clusters-service/api/cluster_services.swagger.json).

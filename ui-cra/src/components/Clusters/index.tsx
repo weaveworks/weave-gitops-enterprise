@@ -1,5 +1,4 @@
 import { Checkbox } from '@material-ui/core';
-import Octicon, { Icon as ReactIcon } from '@primer/octicons-react';
 import {
   Button,
   DataTable,
@@ -11,21 +10,26 @@ import {
   Kind,
   KubeStatusIndicator,
   Link,
-  PolicyViolationsList,
-  RouterTab,
-  SubRouterTabs,
   filterByStatusCallback,
   filterConfig,
   statusSortHelper,
-  useListSources,
+  useListSources
 } from '@weaveworks/weave-gitops';
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory, useRouteMatch } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import EKS from '../../assets/img/EKS.svg';
+import GKE from '../../assets/img/GKE.svg';
+import Kubernetes from '../../assets/img/Kubernetes.svg';
+import LiquidMetal from '../../assets/img/LiquidMetal.svg';
+import Openshift from '../../assets/img/Openshift.svg';
+import Rancher from '../../assets/img/Rancher.svg';
+import Vsphere from '../../assets/img/Vsphere.svg';
+import Docker from '../../assets/img/docker.svg';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
 import { useListConfigContext } from '../../contexts/ListConfig';
@@ -37,17 +41,6 @@ import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { useCallbackState } from '../../utils/callback-state';
 import { computeMessage } from '../../utils/conditions';
-import {
-  EKSDefault,
-  GKEDefault,
-  KindIcon,
-  Kubernetes,
-  LiquidMetal,
-  Openshift,
-  OtherOnprem,
-  Rancher,
-  Vsphere,
-} from '../../utils/icons';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Tooltip } from '../Shared';
@@ -75,7 +68,11 @@ export const ActionsWrapper = styled(Flex)<Size>`
 `;
 
 const IconSpan = styled.span`
-  color: ${props => props.theme.colors.neutral30};
+  display: flex;
+  img {
+    height: 32px;
+    width: 32px;
+  }
 `;
 
 export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
@@ -87,10 +84,9 @@ export const ClusterIcon: FC<{ cluster: GitopsClusterEnriched }> = ({
   return (
     <Tooltip title={clusterKind || 'kubernetes'} placement="bottom">
       <IconSpan>
-        <Octicon
-          icon={getClusterTypeIcon(clusterKind)}
-          size="medium"
-          verticalAlign="middle"
+        <img
+          src={getClusterTypeIcon(clusterKind)}
+          alt={clusterKind || 'kubernetes'}
         />
       </IconSpan>
     </Tooltip>
@@ -114,21 +110,21 @@ const ClusterRowCheckbox = ({
   />
 );
 
-const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
+const getClusterTypeIcon = (clusterType?: string) => {
   if (clusterType === 'DockerCluster') {
-    return KindIcon;
+    return Docker;
   } else if (
     clusterType === 'AWSCluster' ||
     clusterType === 'AWSManagedCluster'
   ) {
-    return EKSDefault;
+    return EKS;
   } else if (
     clusterType === 'AzureCluster' ||
     clusterType === 'AzureManagedCluster'
   ) {
     return Kubernetes;
   } else if (clusterType === 'GCPCluster') {
-    return GKEDefault;
+    return GKE;
   } else if (clusterType === 'VSphereCluster') {
     return Vsphere;
   } else if (clusterType === 'MicrovmCluster') {
@@ -137,8 +133,6 @@ const getClusterTypeIcon = (clusterType?: string): ReactIcon => {
     return Rancher;
   } else if (clusterType === 'Openshift') {
     return Openshift;
-  } else if (clusterType === 'OtherOnprem') {
-    return OtherOnprem;
   }
   return Kubernetes;
 };
@@ -177,7 +171,6 @@ export const getHelmRepos = (sources: Source[] | undefined) =>
 const MCCP: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { path } = useRouteMatch();
   const { clusters, isLoading } = useClusters();
   const { setNotifications } = useNotifications();
   const [selectedCluster, setSelectedCluster] =
@@ -403,95 +396,85 @@ const MCCP: FC<{
             )}
             <OpenedPullRequest />
           </ActionsWrapper>
-          <SubRouterTabs rootPath={`${path}/list`}>
-            <RouterTab name="Clusters" path={`${path}/list`}>
-              <LoadingWrapper loading={isLoading}>
-                <DataTable
-                  className="clusters-list"
-                  key={clusters.length}
-                  filters={initialFilterState}
-                  rows={clusters}
-                  fields={[
-                    {
-                      label: 'Select',
-                      value: ({ name, namespace }: GitopsClusterEnriched) => (
-                        <ClusterRowCheckbox
-                          name={name}
-                          namespace={namespace}
-                          onChange={handleIndividualClick}
-                          checked={Boolean(
-                            selectedCluster?.name === name &&
-                              selectedCluster?.namespace === namespace,
-                          )}
-                        />
-                      ),
-                      maxWidth: 25,
-                    },
-                    {
-                      label: 'Name',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.controlPlane === true ? (
-                          <span data-cluster-name={c.name}>{c.name}</span>
-                        ) : (
-                          <Link
-                            to={`/cluster?clusterName=${c.name}&namespace=${c.namespace}`}
-                            data-cluster-name={c.name}
-                          >
-                            {c.name}
-                          </Link>
-                        ),
-                      sortValue: ({ name }) => name,
-                      textSearchable: true,
-                      maxWidth: 275,
-                    },
-                    {
-                      label: 'Dashboards',
-                      value: (c: GitopsClusterEnriched) => (
-                        <DashboardsList cluster={c} />
-                      ),
-                    },
-                    {
-                      label: 'Type',
-                      value: (c: GitopsClusterEnriched) => (
-                        <ClusterIcon cluster={c}></ClusterIcon>
-                      ),
-                    },
-                    {
-                      label: 'Namespace',
-                      value: 'namespace',
-                    },
-                    {
-                      label: 'Status',
-                      value: (c: GitopsClusterEnriched) =>
-                        c.conditions && c.conditions.length > 0 ? (
-                          <KubeStatusIndicator
-                            short
-                            conditions={c.conditions}
-                          />
-                        ) : null,
-                      sortValue: statusSortHelper,
-                    },
-                    {
-                      label: 'Message',
-                      value: (c: GitopsClusterEnriched) =>
-                        (c.conditions && c.conditions[0]?.message) || null,
-                      sortValue: ({ conditions }) => computeMessage(conditions),
-                      maxWidth: 600,
-                    },
-                    {
-                      label: '',
-                      value: (c: GitopsClusterEnriched) => (
-                        <EditButton resource={c} />
-                      ),
-                    },
-                  ]}
-                />
-              </LoadingWrapper>
-            </RouterTab>
-            <RouterTab name="Violations" path={`${path}/violations`}>
-              <PolicyViolationsList req={{}} />
-            </RouterTab>
-          </SubRouterTabs>
+          <LoadingWrapper loading={isLoading}>
+            <DataTable
+              className="clusters-list"
+              key={clusters.length}
+              filters={initialFilterState}
+              rows={clusters}
+              fields={[
+                {
+                  label: 'Select',
+                  value: ({ name, namespace }: GitopsClusterEnriched) => (
+                    <ClusterRowCheckbox
+                      name={name}
+                      namespace={namespace}
+                      onChange={handleIndividualClick}
+                      checked={Boolean(
+                        selectedCluster?.name === name &&
+                          selectedCluster?.namespace === namespace,
+                      )}
+                    />
+                  ),
+                  maxWidth: 25,
+                },
+                {
+                  label: 'Name',
+                  value: (c: GitopsClusterEnriched) =>
+                    c.controlPlane === true ? (
+                      <span data-cluster-name={c.name}>{c.name}</span>
+                    ) : (
+                      <Link
+                        to={`/cluster?clusterName=${c.name}&namespace=${c.namespace}`}
+                        data-cluster-name={c.name}
+                      >
+                        {c.name}
+                      </Link>
+                    ),
+                  sortValue: ({ name }) => name,
+                  textSearchable: true,
+                  maxWidth: 275,
+                },
+                {
+                  label: 'Dashboards',
+                  value: (c: GitopsClusterEnriched) => (
+                    <DashboardsList cluster={c} />
+                  ),
+                },
+                {
+                  label: 'Type',
+                  value: (c: GitopsClusterEnriched) => (
+                    <ClusterIcon cluster={c}></ClusterIcon>
+                  ),
+                },
+                {
+                  label: 'Namespace',
+                  value: 'namespace',
+                },
+                {
+                  label: 'Status',
+                  value: (c: GitopsClusterEnriched) =>
+                    c.conditions && c.conditions.length > 0 ? (
+                      <KubeStatusIndicator short conditions={c.conditions} />
+                    ) : null,
+                  sortValue: statusSortHelper,
+                },
+                {
+                  label: 'Message',
+                  value: (c: GitopsClusterEnriched) =>
+                    (c.conditions && c.conditions[0]?.message) || null,
+                  sortValue: ({ conditions }) => computeMessage(conditions),
+                  maxWidth: 600,
+                },
+                {
+                  label: '',
+                  value: (c: GitopsClusterEnriched) => (
+                    <EditButton resource={c} />
+                  ),
+                },
+              ]}
+            />
+          </LoadingWrapper>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
     </Page>

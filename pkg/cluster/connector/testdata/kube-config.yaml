@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Config
+preferences: {}
+current-context: spoke
+
+clusters:
+  - cluster:
+      certificate-authority-data: Q0FEQVRBMg==
+      server: https://spoke.example.com
+      insecure-skip-tls-verify: true
+    name: spoke-cluster
+
+  - cluster:
+      certificate-authority-data: Q0FEQVRBMg==
+      server: https://hub.example.com
+      insecure-skip-tls-verify: true
+    name: hub-cluster
+
+contexts:
+  - context:
+      cluster: hub-cluster
+      user: user2
+    name: hub
+  - context:
+      cluster: spoke-cluster
+      user: user1
+    name: spoke
+
+users:
+  - name: user1
+    user:
+      client-certificate-data: VVNFUjFfQ0FEQVRB
+      client-key-data: VVNFUjFfQ0tEQVRB
+  - name: user2
+    user:
+      client-certificate-data: VVNFUjJfQ0FEQVRB
+      client-key-data: VVNFUjFfQ0tEQVRB

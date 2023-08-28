@@ -14,7 +14,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 	"k8s.io/client-go/rest"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 func NewWatcher(clusterName string, cfg *rest.Config, kinds []configuration.ObjectKind, objectChannel chan []models.ObjectTransaction, log logr.Logger) (manager.Manager, error) {
@@ -73,7 +72,7 @@ func (t deleteAllTransaction) ClusterName() string {
 	return string(t)
 }
 
-func (t deleteAllTransaction) Object() client.Object {
+func (t deleteAllTransaction) Object() models.NormalizedObject {
 	return nil
 }
 

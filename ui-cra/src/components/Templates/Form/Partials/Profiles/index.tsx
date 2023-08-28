@@ -78,6 +78,7 @@ const Profiles: FC<{
   selectedHelmRepositories,
   setSelectedHelmRepositories,
 }) => {
+  console.log(selectedHelmRepositories);
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -106,9 +107,12 @@ const Profiles: FC<{
   const rowCount = updatedProfilesList.length || 0;
 
   // Showing helm repositories in autocomplete as name:namespace as there could be multiple repositories with same name in different namespaces
-  const nameNamespaceHelmRepos = selectedHelmRepositories?.map(
-    hr => `${hr.name}:${hr.namespace}`,
-  );
+  const nameNamespaceHelmRepos = selectedHelmRepositories?.map(hr => {
+    return {
+      value: `${hr.name}:${hr.namespace}`,
+      selected: hr.selected,
+    };
+  });
 
   const handleHelmRepoSelection = (
     selectedNameNamespaceHelmRepos: string[],
@@ -141,7 +145,7 @@ const Profiles: FC<{
     setSelectedHelmRepositories?.([...newlySelected, ...unselected]);
   };
 
-  // TO DO: Check form in EDIT mode
+  // TO DO: Check form in EDIT mode - need to update annotation to show selected helm repos
 
   return (
     <ProfilesWrapper>
@@ -153,22 +157,33 @@ const Profiles: FC<{
         id="helmrepositories-select"
         options={nameNamespaceHelmRepos.sort()}
         disableCloseOnSelect
-        getOptionLabel={option => option as string}
-        onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
-          handleHelmRepoSelection(selectedNameNamespaceHelmRepos)
+        getOptionLabel={option => option.value as string}
+        onChange={(
+          event,
+          selectedNameNamespaceHelmRepos: {
+            value: string;
+            selected?: boolean;
+          }[],
+        ) =>
+          handleHelmRepoSelection(
+            selectedNameNamespaceHelmRepos.map(option => option.value),
+          )
         }
-        renderOption={(option: string, { selected }) => (
-          <li>
-            <Checkbox
-              color="primary"
-              icon={icon}
-              checkedIcon={checkedIcon}
-              style={{ marginRight: 8 }}
-              checked={selected}
-            />
-            {option}
-          </li>
-        )}
+        renderOption={(option: { value: string; selected?: boolean }) => {
+          console.log(option);
+          return (
+            <li>
+              <Checkbox
+                color="primary"
+                icon={icon}
+                checkedIcon={checkedIcon}
+                style={{ marginRight: 8 }}
+                checked={option.selected}
+              />
+              {option.value}
+            </li>
+          );
+        }}
         renderInput={params => (
           <TextField
             {...params}

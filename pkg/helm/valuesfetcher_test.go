@@ -79,7 +79,7 @@ func MakeTar(t *testing.T, chartName, content string) []byte {
 }
 
 func watchForHelmChartAndUpdateStatus(fakeClient client.Client) error {
-	return wait.PollImmediate(time.Second, 10*time.Second, func() (bool, error) {
+	return wait.PollUntilContextTimeout(context.Background(), time.Second, 10*time.Second, true, func(ctx context.Context) (bool, error) {
 		// List all helm charts in the namespace flux-system
 		helmCharts := &sourcev1.HelmChartList{}
 		err := fakeClient.List(context.Background(), helmCharts, client.InNamespace("flux-system"))

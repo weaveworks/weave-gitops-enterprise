@@ -33,6 +33,8 @@ extraEnvVars:
     value: "true"
   - name: GIT_HOST_TYPES
     value: gitlab.git.dev.weave.works=gitlab
+  - name: WEAVE_GITOPS_ENABLE_PROFILING
+    value: "true"
 
 extraEnvVarsSecret: ""
 
