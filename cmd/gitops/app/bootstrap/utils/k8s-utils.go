@@ -4,7 +4,6 @@ import (
 	"context"
 	"os"
 	"path/filepath"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -74,7 +73,7 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 	_, err = clientset.CoreV1().Secrets(secretNamespace).Create(context.TODO(), secret, v1.CreateOptions{
 		TypeMeta: secret.TypeMeta,
 	})
-	if err != nil && !strings.Contains(err.Error(), "already exists") {
+	if err != nil {
 		return err
 	}
 	return nil

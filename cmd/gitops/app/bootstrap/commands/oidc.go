@@ -71,6 +71,13 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	utils.Info("For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration")
 
+	if _, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, OIDC_SECRET_NAME); err == nil {
+		utils.Info("OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'", OIDC_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
+		return nil
+	} else if err != nil && !strings.Contains(err.Error(), "not found") {
+		return err
+	}
+
 	oidcConfig, err := getOIDCSecrets(userDomain)
 	if err != nil {
 		return err
