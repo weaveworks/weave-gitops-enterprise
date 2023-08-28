@@ -16,7 +16,7 @@ const (
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions
 func SelectWgeVersion() (string, error) {
-	entitlementSecret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
+	entitlementSecret, err := utils.GetSecret(WGEDefaultNamespace, EntitlementSecretName)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +36,7 @@ func SelectWgeVersion() (string, error) {
 
 // fetchHelmChart helper method to fetch wge helm chart detauls
 func fetchHelmChart(username, password string) ([]string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGE_CHART_URL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGEChartUrl), nil)
 	if err != nil {
 		return []string{}, err
 
@@ -61,10 +61,10 @@ func fetchHelmChart(username, password string) ([]string, error) {
 		return []string{}, err
 	}
 
-	entries := chart.Entries[WGE_CHART_NAME]
+	entries := chart.Entries[WGEChartName]
 	var versions []string
 	for _, entry := range entries {
-		if entry.Name == WGE_CHART_NAME {
+		if entry.Name == WGEChartName {
 			versions = append(versions, entry.Version)
 			if len(versions) == 3 {
 				break

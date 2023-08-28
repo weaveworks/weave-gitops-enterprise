@@ -23,17 +23,18 @@ gitops bootstrap controllers terraform`,
 }
 
 const (
-	TF_CONTROLLER_URL = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
-	TF_FILE_NAME      = "tf-controller.yaml"
-	TF_COMMIT_MSG     = "Add terraform controller"
+	TFCommitMsg     = "Add terraform controller"
+	TFGettingSarted = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
+	TFControllerUrl = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
+	TFFileName      = "tf-controller.yaml"
 )
 
 // InstallTerraform start installing policy agent helm chart
 func InstallTerraform() error {
-	utils.Warning("For more information about the configurations please refer to the docs https://weaveworks.github.io/tf-controller/getting_started/")
+	utils.Warning(TFGettingSarted)
 	utils.Warning("Installing Terraform Controller ...")
 
-	resp, err := http.Get(TF_CONTROLLER_URL)
+	resp, err := http.Get(TFControllerUrl)
 	if err != nil {
 		return err
 	}
@@ -61,15 +62,15 @@ func InstallTerraform() error {
 		}
 	}()
 
-	err = utils.CreateFileToRepo(TF_FILE_NAME, string(bodyBytes), pathInRepo, TF_COMMIT_MSG)
+	err = utils.CreateFileToRepo(TFFileName, string(bodyBytes), pathInRepo, TFCommitMsg)
 	if err != nil {
 		return err
 	}
 
 	values := map[string]interface{}{
-		domain.TERRAFORM_VALUES_NAME: true,
+		domain.TerraformValuesName: true,
 	}
-	err = commands.UpdateHelmReleaseValues(domain.TERRAFORM_VALUES_NAME, values)
+	err = commands.UpdateHelmReleaseValues(domain.TerraformValuesName, values)
 	if err != nil {
 		return err
 	}

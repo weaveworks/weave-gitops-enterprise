@@ -10,33 +10,45 @@ import (
 )
 
 const (
-	FLUX_BOOTSTRAP_MSG    = "Do you want to bootstrap flux with the generic way on your cluster"
-	GIT_REPO_URL_MSG      = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
-	GIT_BRANCH_MSG        = "Please enter your git repository branch (default: main)"
-	DEFAULT_BRANCH        = "main"
-	GIT_REPO_PATH_MSG     = "Please enter your path for your cluster (default: clusters/my-cluster)"
-	DEFAULT_GIT_REPO_PATH = "clusters/my-cluster"
+	FluxBootstrapMsg         = "Do you want to bootstrap flux with the generic way on your cluster"
+	GitRepoUrlMsg            = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
+	GitBranchMsg             = "Please enter your git repository branch (default: main)"
+	GitRepoPathMsg           = "Please enter your path for your cluster (default: clusters/my-cluster)"
+	FluxInstallInfoMsg       = "Installing flux ..."
+	FluxBootstrapInfoMsg     = "Bootstrapping flux ..."
+	FluxInstallCheckMsg      = "Checking flux installation ..."
+	FluxInstallValidationMsg = "Checking flux installation is valid ..."
+	FluxInstallConfirmMsg    = "flux is installed"
+	FluxReconcileConfirmMsg  = "flux is installed and can reconcile successfully"
+	FluxNotInstalledMsg      = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
+	FluxInstallationErrorMsg = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
+	FluxDocsReferenceMsg     = "Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v"
+)
+
+const (
+	DefaultBranch      = "main"
+	DefaultGitRepoPath = "clusters/my-cluster"
 )
 
 // BootstrapFlux get flux values from user and bootstraps it using generic way
 func BootstrapFlux() error {
-	bootstrapFlux := utils.GetConfirmInput(FLUX_BOOTSTRAP_MSG)
+	bootstrapFlux := utils.GetConfirmInput(FluxBootstrapMsg)
 
 	if bootstrapFlux != "y" {
 		os.Exit(1)
 	}
 
-	gitURL, err := utils.GetStringInput(GIT_REPO_URL_MSG, "")
+	gitURL, err := utils.GetStringInput(GitRepoUrlMsg, "")
 	if err != nil {
 		return err
 	}
 
-	gitBranch, err := utils.GetStringInput(GIT_BRANCH_MSG, DEFAULT_BRANCH)
+	gitBranch, err := utils.GetStringInput(GitBranchMsg, DefaultBranch)
 	if err != nil {
 		return err
 	}
 
-	gitPath, err := utils.GetStringInput(GIT_REPO_PATH_MSG, DEFAULT_GIT_REPO_PATH)
+	gitPath, err := utils.GetStringInput(GitRepoPathMsg, DefaultGitRepoPath)
 	if err != nil {
 		return err
 	}
@@ -53,48 +65,48 @@ func BootstrapFlux() error {
 		return err
 	}
 
-	utils.Warning("Installing flux ...")
+	utils.Warning(FluxInstallInfoMsg)
 	// TODO: create default repo structure
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
 	if err != nil {
-		errMsg := fmt.Sprintf("Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v", string(out))
+		errMsg := fmt.Sprintf(FluxDocsReferenceMsg, string(out))
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info("flux is bootstrapped successfully")
+	utils.Info(FluxBootstrapInfoMsg)
 	return nil
 }
 
 // CheckFluxIsInstalled checks for valid flux installation
 func CheckFluxIsInstalled() error {
-	utils.Warning("Checking flux is installed ...")
+	utils.Warning(FluxInstallCheckMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		utils.Warning("%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n", string(out))
+		utils.Warning(FluxNotInstalledMsg, string(out))
 		return BootstrapFlux()
 	}
 
-	utils.Info("flux is installed")
+	utils.Info(FluxInstallConfirmMsg)
 
 	return nil
 }
 
 // CheckFluxIsInstalled checks if flux installation is valid and can reconcile
 func CheckFluxReconcile() error {
-	utils.Warning("Checking flux installation is valid ...")
+	utils.Warning(FluxInstallValidationMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		errMsg := fmt.Sprintf("✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n", string(out))
+		errMsg := fmt.Sprintf(FluxInstallationErrorMsg, string(out))
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info("flux is installed properly and can reconcile successfully")
+	utils.Info(FluxReconcileConfirmMsg)
 
 	return nil
 }

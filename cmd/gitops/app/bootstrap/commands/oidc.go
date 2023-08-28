@@ -11,12 +11,16 @@ import (
 )
 
 const (
-	OIDC_INSTALL_MSG       = "Do you want to add OIDC config to your cluster"
-	OIDC_DISCOVERY_URL_MSG = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
-	OIDC_CLIENT_ID_MSG     = "Please enter OIDC clientID"
-	CLIENT_SECRET_MSG      = "Please enter OIDC clientSecret"
-	OIDC_SECRET_NAME       = "oidc-auth"
-	ADMIN_USER_REVERT_MSG  = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
+	OIDCInstallMsg         = "Do you want to add OIDC config to your cluster"
+	OIDCDiscoverUrlMsg     = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
+	OIDCClientIDMsg        = "Please enter OIDC clientID"
+	OIDCClientSecretMsg    = "Please enter OIDC clientSecret"
+	AdminUserRevertMsg     = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
+	OIDCConfigInfoMsg      = "For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
+	OIDCInstallInfoMsg     = "Installing OIDC config ..."
+	OIDCConfirmationMsg    = "OIDC config created successfully"
+	AdminUsernameRevertMsg = "Admin user reverted successfully"
+	OIDCSecretName         = "oidc-auth"
 )
 
 // getOIDCSecrets ask the user for the OIDC configuraions
@@ -24,7 +28,7 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 
 	configs := domain.OIDCConfig{}
 
-	oidcDiscoveryURL, err := utils.GetStringInput(OIDC_DISCOVERY_URL_MSG, "")
+	oidcDiscoveryURL, err := utils.GetStringInput(OIDCDiscoverUrlMsg, "")
 	if err != nil {
 		return configs, err
 	}
@@ -35,12 +39,12 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 		return configs, err
 	}
 
-	oidcClientID, err := utils.GetStringInput(OIDC_CLIENT_ID_MSG, "")
+	oidcClientID, err := utils.GetStringInput(OIDCClientIDMsg, "")
 	if err != nil {
 		return configs, err
 	}
 
-	oidcClientSecret, err := utils.GetStringInput(CLIENT_SECRET_MSG, "")
+	oidcClientSecret, err := utils.GetStringInput(OIDCClientSecretMsg, "")
 	if err != nil {
 		return configs, err
 	}
@@ -63,16 +67,16 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 // CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
 func CreateOIDCConfig(userDomain string, version string) error {
 
-	oidcConfigPrompt := utils.GetConfirmInput(OIDC_INSTALL_MSG)
+	oidcConfigPrompt := utils.GetConfirmInput(OIDCInstallMsg)
 
 	if oidcConfigPrompt != "y" {
 		return nil
 	}
 
-	utils.Info("For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration")
+	utils.Info(OIDCConfigInfoMsg)
 
-	if _, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, OIDC_SECRET_NAME); err == nil {
-		utils.Info("OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'", OIDC_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
+	if _, err := utils.GetSecret(WGEDefaultNamespace, OIDCSecretName); err == nil {
+		utils.Info("OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'", OIDCSecretName, WGEDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return err
@@ -90,21 +94,21 @@ func CreateOIDCConfig(userDomain string, version string) error {
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	err = utils.CreateSecret(OIDC_SECRET_NAME, WGE_DEFAULT_NAMESPACE, oidcSecretData)
+	err = utils.CreateSecret(OIDCSecretName, WGEDefaultNamespace, oidcSecretData)
 	if err != nil {
 		return err
 	}
 
 	values := constructOIDCValues(oidcConfig)
 
-	utils.Warning("Installing OIDC config ...")
+	utils.Warning(OIDCInstallInfoMsg)
 
-	err = UpdateHelmReleaseValues(domain.OIDC_VALUES_NAME, values)
+	err = UpdateHelmReleaseValues(domain.OIDCValuesName, values)
 	if err != nil {
 		return err
 	}
 
-	utils.Info("OIDC config created successfully")
+	utils.Info(OIDCConfirmationMsg)
 
 	// Ask the user if he wants to revert the admin user
 	if err := checkAdminPasswordRevert(); err != nil {
@@ -116,18 +120,18 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 func checkAdminPasswordRevert() error {
 
-	adminUserRevert := utils.GetConfirmInput(ADMIN_USER_REVERT_MSG)
+	adminUserRevert := utils.GetConfirmInput(AdminUserRevertMsg)
 
 	if adminUserRevert != "y" {
 		return nil
 	}
 
-	err := utils.DeleteSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
+	err := utils.DeleteSecret(AdminSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
 
-	utils.Info("Admin user reverted successfully")
+	utils.Info(AdminUsernameRevertMsg)
 	return nil
 }
 
@@ -137,7 +141,7 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 		"enabled":                 true,
 		"issuerURL":               oidcConfig.IssuerURL,
 		"redirectURL":             oidcConfig.RedirectURL,
-		"clientCredentialsSecret": OIDC_SECRET_NAME,
+		"clientCredentialsSecret": OIDCSecretName,
 	}
 	return values
 }

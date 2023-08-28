@@ -8,31 +8,32 @@ import (
 )
 
 const (
-	ADMIN_USERNAME_MSG = "Please enter your admin username (default: wego-admin)"
-	ADMIN_PASSWORD_MSG = "Please enter your admin password"
+	AdminUsernameMsg      = "Please enter your admin username (default: wego-admin)"
+	AdminPasswordMsg      = "Please enter your admin password"
+	SecretConfirmationMsg = "admin secret is created"
 )
 
 const (
-	DEFAULT_ADMIN_USERNAME = "wego-admin"
-	ADMIN_SECRET_NAME      = "cluster-user-auth"
+	DefaultAdminUsername = "wego-admin"
+	AdminSecretName      = "cluster-user-auth"
 )
 
 // getAdminPasswordSecrets asks user about admin username and password
 func getAdminPasswordSecrets() (string, []byte, error) {
 
-	if _, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ADMIN_SECRET_NAME); err == nil {
-		utils.Info("admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'", ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE)
+	if _, err := utils.GetSecret(WGEDefaultNamespace, AdminSecretName); err == nil {
+		utils.Info("admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'", AdminSecretName, WGEDefaultNamespace)
 		return "", nil, nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return "", nil, err
 	}
 
-	adminUsername, err := utils.GetStringInput(ADMIN_USERNAME_MSG, DEFAULT_ADMIN_USERNAME)
+	adminUsername, err := utils.GetStringInput(AdminUsernameMsg, DefaultAdminUsername)
 	if err != nil {
 		return "", nil, err
 	}
 
-	adminPassword, err := utils.GetPasswordInput(ADMIN_PASSWORD_MSG)
+	adminPassword, err := utils.GetPasswordInput(AdminPasswordMsg)
 	if err != nil {
 		return "", nil, err
 	}
@@ -60,11 +61,11 @@ func CreateAdminPasswordSecret() error {
 		"password": adminPassword,
 	}
 
-	if err := utils.CreateSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE, data); err != nil {
+	if err := utils.CreateSecret(AdminSecretName, WGEDefaultNamespace, data); err != nil {
 		return err
 	}
 
-	utils.Info("admin secret is created")
+	utils.Info(SecretConfirmationMsg)
 
 	return nil
 }

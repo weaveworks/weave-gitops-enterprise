@@ -6,24 +6,24 @@ import (
 )
 
 func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := utils.GetCurrentValuesForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
+	values, err := utils.GetCurrentValuesForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
 
 	switch controllerValuesName {
-	case domain.POLICY_AGENT_VALUES_NAME:
+	case domain.PolicyAgentValuesName:
 		values.PolicyAgent = controllerValues
-	case domain.OIDC_VALUES_NAME:
+	case domain.OIDCValuesName:
 		values.Config.OIDC = controllerValues
-	case domain.CAPI_VALUES_NAME:
+	case domain.CAPIValuesName:
 		values.Config.CAPI = controllerValues
 		values.Global.CapiEnabled = true
-	case domain.TERRAFORM_VALUES_NAME:
+	case domain.TerraformValuesName:
 		values.EnableTerraformUI = true
 	}
 
-	version, err := utils.GetCurrentVersionForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
+	version, err := utils.GetCurrentVersionForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -45,12 +45,12 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 		}
 	}()
 
-	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, helmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
+	err = utils.CreateFileToRepo(WGEHelmReleaseFileName, helmRelease, pathInRepo, WGEHelmReleaseCommitMsg)
 	if err != nil {
 		return err
 	}
 
-	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
+	err = utils.ReconcileFlux(WGEHelmReleaseName)
 	if err != nil {
 		return err
 	}

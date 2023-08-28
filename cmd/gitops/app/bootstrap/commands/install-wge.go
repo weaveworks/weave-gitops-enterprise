@@ -17,50 +17,61 @@ import (
 )
 
 const (
-	DOMAIN_MSG                            = "Please select the domain to be used"
-	CLUSTER_DOMAIN_MSG                    = "Please enter your cluster domain"
-	WGE_CHART_NAME                        = "mccp"
-	WGE_HELMREPOSITORY_NAME               = "weave-gitops-enterprise-charts"
-	WGE_HELMRELEASE_NAME                  = "weave-gitops-enterprise"
-	WGE_DEFAULT_NAMESPACE                 = "flux-system"
-	DOMAIN_TYPE_LOCALHOST                 = "localhost (Using Portforward)"
-	DOMAIN_TYPE_EXTERNALDNS               = "external DNS"
-	WGE_HELMREPO_FILENAME                 = "wge-hrepo.yaml"
-	WGE_HELMRELEASE_FILENAME              = "wge-hrelease.yaml"
-	WGE_HELMREPO_COMMITMSG                = "Add WGE HelmRepository YAML file"
-	WGE_HELMRELEASE_COMMITMSG             = "Add WGE HelmRelease YAML file"
-	WGE_CHART_URL                         = "https://charts.dev.wkp.weave.works/releases/charts-v3"
-	CLUSTER_CONTROLLER_FULL_OVERRIDE_NAME = "cluster"
-	CLUSTER_CONTROLLER_IMAGE              = "docker.io/weaveworks/cluster-controller"
-	CLUSTER_CONTROLLER_IMAGE_TAG          = "v1.5.2"
+	DomainMsg               = "Please select the domain to be used"
+	ClusterDomainMsg        = "Please enter your cluster domain"
+	WGEHelmRepoCommitMsg    = "Add WGE HelmRepository YAML file"
+	WGEHelmReleaseCommitMsg = "Add WGE HelmRelease YAML file"
+	ExternalDNSWarningMsg   = `
+	Please make sure to have the external DNS service installed in your cluster, 
+	or you have a domain that points to your cluster.
+	For more information about external DNS, please refer to:
+	https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
+	`
+	WGEInstallMsgFormat          = "All set installing WGE v%s, This may take a few minutes...\n"
+	InstallSuccessMsgFormat      = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
+	LocalInstallSuccessMsgFormat = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
+)
+const (
+	WGEChartName                      = "mccp"
+	WGEHelmRepositoryName             = "weave-gitops-enterprise-charts"
+	WGEHelmReleaseName                = "weave-gitops-enterprise"
+	WGEDefaultNamespace               = "flux-system"
+	DomainTypelocalgost               = "localhost (Using Portforward)"
+	DomainTypeExternalDNS             = "external DNS"
+	WGEHelmrepoFileName               = "wge-hrepo.yaml"
+	WGEHelmReleaseFileName            = "wge-hrelease.yaml"
+	WGEChartUrl                       = "https://charts.dev.wkp.weave.works/releases/charts-v3"
+	ClusterControllerFullOverrideName = "cluster"
+	ClusterControllerImage            = "docker.io/weaveworks/cluster-controller"
+	ClusterControllerImageTag         = "v1.5.2"
 )
 
 // InstallWge installs weave gitops enterprise chart
 func InstallWge(version string) (string, error) {
 	domainTypes := []string{
-		DOMAIN_TYPE_LOCALHOST,
-		DOMAIN_TYPE_EXTERNALDNS,
+		DomainTypelocalgost,
+		DomainTypeExternalDNS,
 	}
 
-	domainType, err := utils.GetSelectInput(DOMAIN_MSG, domainTypes)
+	domainType, err := utils.GetSelectInput(DomainMsg, domainTypes)
 	if err != nil {
 		return "", err
 	}
 
 	userDomain := "localhost"
 
-	if strings.Compare(domainType, DOMAIN_TYPE_EXTERNALDNS) == 0 {
+	if strings.Compare(domainType, DomainTypeExternalDNS) == 0 {
 
-		utils.Warning("\n\nPlease make sure to have the external DNS service is installed in your cluster, or you have a domain points to your cluster\nFor more information about external DNS please refer to https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html\n\n")
+		utils.Warning(ExternalDNSWarningMsg)
 
-		userDomain, err = utils.GetStringInput(CLUSTER_DOMAIN_MSG, "")
+		userDomain, err = utils.GetStringInput(ClusterDomainMsg, "")
 		if err != nil {
 			return "", err
 		}
 
 	}
 
-	utils.Info("All set installing WGE v%s, This may take few minutes...\n", version)
+	utils.Info(WGEInstallMsgFormat, version)
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
@@ -79,7 +90,7 @@ func InstallWge(version string) (string, error) {
 		return "", err
 	}
 
-	err = utils.CreateFileToRepo(WGE_HELMREPO_FILENAME, wgehelmRepo, pathInRepo, WGE_HELMREPO_COMMITMSG)
+	err = utils.CreateFileToRepo(WGEHelmrepoFileName, wgehelmRepo, pathInRepo, WGEHelmRepoCommitMsg)
 	if err != nil {
 		return "", err
 	}
@@ -100,12 +111,12 @@ func InstallWge(version string) (string, error) {
 
 	clusterController := domain.ClusterController{
 		Enabled:          true,
-		FullNameOverride: CLUSTER_CONTROLLER_FULL_OVERRIDE_NAME,
+		FullNameOverride: ClusterControllerFullOverrideName,
 		ControllerManager: domain.ClusterControllerManager{
 			Manager: domain.ClusterControllerManagerManager{
 				Image: domain.ClusterControllerImage{
-					Repository: CLUSTER_CONTROLLER_IMAGE,
-					Tag:        CLUSTER_CONTROLLER_IMAGE_TAG,
+					Repository: ClusterControllerImage,
+					Tag:        ClusterControllerImageTag,
 				},
 			},
 		}}
@@ -125,12 +136,12 @@ func InstallWge(version string) (string, error) {
 		return "", err
 	}
 
-	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, wgeHelmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
+	err = utils.CreateFileToRepo(WGEHelmReleaseFileName, wgeHelmRelease, pathInRepo, WGEHelmReleaseCommitMsg)
 	if err != nil {
 		return "", err
 	}
 
-	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
+	err = utils.ReconcileFlux(WGEHelmReleaseName)
 	if err != nil {
 		return "", err
 	}
@@ -142,16 +153,16 @@ func InstallWge(version string) (string, error) {
 func constructWgeHelmRepository() (string, error) {
 	wgeHelmRepo := sourcev1.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      WGE_HELMREPOSITORY_NAME,
-			Namespace: WGE_DEFAULT_NAMESPACE,
+			Name:      WGEHelmRepositoryName,
+			Namespace: WGEDefaultNamespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
-			URL: WGE_CHART_URL,
+			URL: WGEChartUrl,
 			Interval: v1.Duration{
 				Duration: time.Minute,
 			},
 			SecretRef: &meta.LocalObjectReference{
-				Name: ENTITLEMENT_SECRET_NAME,
+				Name: EntitlementSecretName,
 			},
 		},
 	}
@@ -192,16 +203,16 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 
 	wgeHelmRelease := helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      WGE_HELMRELEASE_NAME,
-			Namespace: WGE_DEFAULT_NAMESPACE,
+			Name:      WGEHelmReleaseName,
+			Namespace: WGEDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart:             WGE_CHART_NAME,
+					Chart:             WGEChartName,
 					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Name:      WGE_HELMREPOSITORY_NAME,
-						Namespace: WGE_DEFAULT_NAMESPACE,
+						Name:      WGEHelmRepositoryName,
+						Namespace: WGEDefaultNamespace,
 					},
 					Version: chartVersion,
 				},
@@ -225,11 +236,11 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 func CheckUIDomain(userDomain string, wgeVersion string) error {
 	if !strings.Contains(userDomain, "localhost") {
 
-		utils.Info("\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n", wgeVersion, userDomain)
+		utils.Info(InstallSuccessMsgFormat, wgeVersion, userDomain)
 		return nil
 	}
 
-	utils.Info("\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n", wgeVersion)
+	utils.Info(LocalInstallSuccessMsgFormat, wgeVersion)
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {
