@@ -23,6 +23,9 @@ const ProfilesWrapper = styled.div`
     max-height: 500px;
     overflow: scroll;
   }
+  #helmrepositories-select-label {
+    font-size: 10px;
+  }
   table {
     thead {
       th:first-of-type {
@@ -153,40 +156,46 @@ const Profiles: FC<{
       <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
       {/* TO DO: Update this as for app creation the helm repo selection is made
               in another section */}
-      <Autocomplete
-        multiple
-        id="helmrepositories-select"
-        options={nameNamespaceHelmRepos.sort()}
-        disableCloseOnSelect
-        getOptionLabel={option => option as string}
-        onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
-          handleHelmRepoSelection(selectedNameNamespaceHelmRepos)
-        }
-        value={nameNamespaceHelmRepos.filter(hr => isPreviouslySelected(hr))}
-        renderOption={(option: string, { selected }) => {
-          return (
-            <li>
-              <Checkbox
-                color="primary"
-                icon={icon}
-                checkedIcon={checkedIcon}
-                style={{ marginRight: 8 }}
-                // For Gitlab: we are searching for the option in selectedHelmRepositories
-                // and seeing if it has already been checked prior to the redirect as the autocomplete state is lost on redirect
-                checked={isPreviouslySelected(option) || selected}
-              />
-              {option}
-            </li>
-          );
-        }}
-        renderInput={params => (
-          <TextField
-            {...params}
-            label="HelmRepositories"
-            placeholder="Helm Repositories"
-          />
-        )}
-      />
+      {context !== 'app' && (
+        <Autocomplete
+          multiple
+          id="helmrepositories-select"
+          options={nameNamespaceHelmRepos.sort()}
+          disableCloseOnSelect
+          getOptionLabel={option => option as string}
+          onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
+            handleHelmRepoSelection(selectedNameNamespaceHelmRepos)
+          }
+          value={nameNamespaceHelmRepos.filter(hr => isPreviouslySelected(hr))}
+          renderOption={(option: string, { selected }) => {
+            return (
+              <li>
+                <Checkbox
+                  color="primary"
+                  icon={icon}
+                  checkedIcon={checkedIcon}
+                  style={{ marginRight: 8 }}
+                  // For Gitlab: we are searching for the option in selectedHelmRepositories
+                  // and seeing if it has already been checked prior to the redirect as the autocomplete state is lost on redirect
+                  checked={isPreviouslySelected(option) || selected}
+                />
+                {option}
+              </li>
+            );
+          }}
+          renderInput={params => (
+            <TextField
+              {...params}
+              label="HELM REPOSITORIES"
+              placeholder="Helm Repositories"
+              InputLabelProps={{
+                shrink: false,
+                ...params.InputLabelProps,
+              }}
+            />
+          )}
+        />
+      )}
       {isLoading && <Loader />}
       {!isLoading && (
         <DataTable
