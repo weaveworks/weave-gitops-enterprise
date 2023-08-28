@@ -54,6 +54,7 @@ func BootstrapFlux() error {
 	}
 
 	utils.Warning("Installing flux ...")
+	// TODO: create default repo structure
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")

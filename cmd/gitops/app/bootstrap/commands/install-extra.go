@@ -18,10 +18,9 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 		values.Config.OIDC = controllerValues
 	case domain.CAPI_VALUES_NAME:
 		values.Config.CAPI = controllerValues
+		values.Global.CapiEnabled = true
 	case domain.TERRAFORM_VALUES_NAME:
 		values.EnableTerraformUI = true
-	case domain.GITOPSSETS_VALUES_NAME:
-		values.GitOpsSets = controllerValues
 	}
 
 	version, err := utils.GetCurrentVersionForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)

@@ -17,19 +17,22 @@ import (
 )
 
 const (
-	DOMAIN_MSG                = "Please select the domain to be used"
-	CLUSTER_DOMAIN_MSG        = "Please enter your cluster domain"
-	WGE_CHART_NAME            = "mccp"
-	WGE_HELMREPOSITORY_NAME   = "weave-gitops-enterprise-charts"
-	WGE_HELMRELEASE_NAME      = "weave-gitops-enterprise"
-	WGE_DEFAULT_NAMESPACE     = "flux-system"
-	DOMAIN_TYPE_LOCALHOST     = "localhost (Using Portforward)"
-	DOMAIN_TYPE_EXTERNALDNS   = "external DNS"
-	WGE_HELMREPO_FILENAME     = "wge-hrepo.yaml"
-	WGE_HELMRELEASE_FILENAME  = "wge-hrelease.yaml"
-	WGE_HELMREPO_COMMITMSG    = "Add WGE HelmRepository YAML file"
-	WGE_HELMRELEASE_COMMITMSG = "Add WGE HelmRelease YAML file"
-	WGE_CHART_URL             = "https://charts.dev.wkp.weave.works/releases/charts-v3"
+	DOMAIN_MSG                            = "Please select the domain to be used"
+	CLUSTER_DOMAIN_MSG                    = "Please enter your cluster domain"
+	WGE_CHART_NAME                        = "mccp"
+	WGE_HELMREPOSITORY_NAME               = "weave-gitops-enterprise-charts"
+	WGE_HELMRELEASE_NAME                  = "weave-gitops-enterprise"
+	WGE_DEFAULT_NAMESPACE                 = "flux-system"
+	DOMAIN_TYPE_LOCALHOST                 = "localhost (Using Portforward)"
+	DOMAIN_TYPE_EXTERNALDNS               = "external DNS"
+	WGE_HELMREPO_FILENAME                 = "wge-hrepo.yaml"
+	WGE_HELMRELEASE_FILENAME              = "wge-hrelease.yaml"
+	WGE_HELMREPO_COMMITMSG                = "Add WGE HelmRepository YAML file"
+	WGE_HELMRELEASE_COMMITMSG             = "Add WGE HelmRelease YAML file"
+	WGE_CHART_URL                         = "https://charts.dev.wkp.weave.works/releases/charts-v3"
+	CLUSTER_CONTROLLER_FULL_OVERRIDE_NAME = "cluster"
+	CLUSTER_CONTROLLER_IMAGE              = "docker.io/weaveworks/cluster-controller"
+	CLUSTER_CONTROLLER_IMAGE_TAG          = "v1.5.2"
 )
 
 // InstallWge installs weave gitops enterprise chart
@@ -81,11 +84,40 @@ func InstallWge(version string) (string, error) {
 		return "", err
 	}
 
+	gitOpsSetsValues := map[string]interface{}{
+		"enabled": true,
+		"controllerManager": map[string]interface{}{
+			"manager": map[string]interface{}{
+				"args": []string{
+					"--health-probe-bind-address=:8081",
+					"--metrics-bind-address=127.0.0.1:8080",
+					"--leader-elect",
+					"--enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config",
+				},
+			},
+		},
+	}
+
+	clusterController := domain.ClusterController{
+		Enabled:          true,
+		FullNameOverride: CLUSTER_CONTROLLER_FULL_OVERRIDE_NAME,
+		ControllerManager: domain.ClusterControllerManager{
+			Manager: domain.ClusterControllerManagerManager{
+				Image: domain.ClusterControllerImage{
+					Repository: CLUSTER_CONTROLLER_IMAGE,
+					Tag:        CLUSTER_CONTROLLER_IMAGE_TAG,
+				},
+			},
+		}}
+
 	values := domain.ValuesFile{
 		Ingress: constructIngressValues(userDomain),
 		TLS: map[string]interface{}{
 			"enabled": false,
 		},
+		GitOpsSets:        gitOpsSetsValues,
+		EnablePipelines:   true,
+		ClusterController: clusterController,
 	}
 
 	wgeHelmRelease, err := ConstructWGEhelmRelease(values, version)

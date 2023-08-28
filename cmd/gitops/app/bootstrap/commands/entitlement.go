@@ -20,6 +20,8 @@ func CheckEntitlementFile() error {
 		return fmt.Errorf("%s%s", err.Error(), errorMsg)
 	}
 
+	// TODO: verify valid entitlement file
+
 	utils.Info("entitlement file is checked and valid!")
 
 	return nil

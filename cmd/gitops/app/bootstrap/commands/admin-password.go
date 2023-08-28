@@ -6,8 +6,11 @@ import (
 )
 
 const (
-	ADMIN_USERNAME_MSG     = "Please enter your admin username (default: wego-admin)"
-	ADMIN_PASSWORD_MSG     = "Please enter your admin password"
+	ADMIN_USERNAME_MSG = "Please enter your admin username (default: wego-admin)"
+	ADMIN_PASSWORD_MSG = "Please enter your admin password"
+)
+
+const (
 	DEFAULT_ADMIN_USERNAME = "wego-admin"
 	ADMIN_SECRET_NAME      = "cluster-user-auth"
 )
