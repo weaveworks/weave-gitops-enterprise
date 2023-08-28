@@ -78,7 +78,6 @@ const Profiles: FC<{
   selectedHelmRepositories,
   setSelectedHelmRepositories,
 }) => {
-  console.log(selectedHelmRepositories);
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
@@ -105,14 +104,11 @@ const Profiles: FC<{
 
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
-
   // Showing helm repositories in autocomplete as name:namespace as there could be multiple repositories with same name in different namespaces
-  const nameNamespaceHelmRepos = selectedHelmRepositories?.map(hr => {
-    return {
-      value: `${hr.name}:${hr.namespace}`,
-      selected: hr.selected,
-    };
-  });
+
+  const nameNamespaceHelmRepos = selectedHelmRepositories?.map(
+    hr => `${hr.name}:${hr.namespace}`,
+  );
 
   const handleHelmRepoSelection = (
     selectedNameNamespaceHelmRepos: string[],
@@ -129,7 +125,6 @@ const Profiles: FC<{
         }) as SelectedHelmRepoRefs;
       },
     );
-
     const unselected = selectedHelmRepositories?.filter(hr => {
       if (
         !newlySelected.find(
@@ -141,11 +136,17 @@ const Profiles: FC<{
       }
       return null;
     });
-
     setSelectedHelmRepositories?.([...newlySelected, ...unselected]);
   };
 
-  // TO DO: Check form in EDIT mode - need to update annotation to show selected helm repos
+  // TO DO: Check form in EDIT mode
+  const isPreviouslySelected = (option: string) => {
+    const [name, namespace] = option.split(':');
+    const hr = selectedHelmRepositories?.find(
+      hr => hr.name === name && hr.namespace === namespace,
+    );
+    return hr?.selected;
+  };
 
   return (
     <ProfilesWrapper>
@@ -157,20 +158,12 @@ const Profiles: FC<{
         id="helmrepositories-select"
         options={nameNamespaceHelmRepos.sort()}
         disableCloseOnSelect
-        getOptionLabel={option => option.value as string}
-        onChange={(
-          event,
-          selectedNameNamespaceHelmRepos: {
-            value: string;
-            selected?: boolean;
-          }[],
-        ) =>
-          handleHelmRepoSelection(
-            selectedNameNamespaceHelmRepos.map(option => option.value),
-          )
+        getOptionLabel={option => option as string}
+        onChange={(event, selectedNameNamespaceHelmRepos: string[]) =>
+          handleHelmRepoSelection(selectedNameNamespaceHelmRepos)
         }
-        renderOption={(option: { value: string; selected?: boolean }) => {
-          console.log(option);
+        value={nameNamespaceHelmRepos.filter(hr => isPreviouslySelected(hr))}
+        renderOption={(option: string, { selected }) => {
           return (
             <li>
               <Checkbox
@@ -178,9 +171,11 @@ const Profiles: FC<{
                 icon={icon}
                 checkedIcon={checkedIcon}
                 style={{ marginRight: 8 }}
-                checked={option.selected}
+                // For Gitlab: we are searching for the option in selectedHelmRepositories
+                // and seeing if it has already been checked prior to the redirect as the autocomplete state is lost on redirect
+                checked={isPreviouslySelected(option) || selected}
               />
-              {option.value}
+              {option}
             </li>
           );
         }}
@@ -283,21 +278,6 @@ const Profiles: FC<{
       )}
     </ProfilesWrapper>
   );
-  // }, [
-  //   isLoading,
-  //   numSelected,
-  //   rowCount,
-  //   updatedProfiles,
-  //   setUpdatedProfiles,
-  //   cluster,
-  //   context,
-  //   selectedHelmRepositories,
-  //   handleHelmRepoSelection,
-  //   handleIndividualClick,
-  //   handleSelectAllClick,
-  //   nameNamespaceHelmRepos,
-  //   updatedProfilesList,
-  // ]);
 };
 
 export default Profiles;
