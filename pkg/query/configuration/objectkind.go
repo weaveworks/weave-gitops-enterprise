@@ -10,6 +10,7 @@ import (
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -220,6 +221,17 @@ var (
 		},
 		Category: CategoryEvent,
 	}
+
+	GitOpsSetsObjectKind = ObjectKind{
+		Gvk: gitopssets.GroupVersion.WithKind("GitOpsSet"),
+		NewClientObjectFunc: func() client.Object {
+			return &gitopssets.GitOpsSet{}
+		},
+		AddToSchemeFunc: gitopssets.AddToScheme,
+		StatusFunc:      defaultFluxObjectStatusFunc,
+		MessageFunc:     defaultFluxObjectMessageFunc,
+		Category:        CategorySource,
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -232,6 +244,7 @@ var SupportedObjectKinds = []ObjectKind{
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
 	PolicyAgentAuditEventObjectKind,
+	GitOpsSetsObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
