@@ -204,6 +204,7 @@ fakes: ## Generate testing fakes
 
 .PHONY: swagger-docs
 swagger-docs:
+	@echo "Swagger docs available at http://localhost:6001"
 	docker run -p 6001:8080 -e SWAGGER_JSON=/swagger/cluster_services.swagger.json -v $(CURRENT_DIR)/cmd/clusters-service/api:/swagger swaggerapi/swagger-ui
 
 FORCE:
