@@ -2,14 +2,14 @@
 
 ## Motivation
 
-This documentation tries to make the Weave GitOps Enterprise architecture visible in a simple way. 
+This documentation tries to make the Weave GitOps Enterprise architecture visible in a simple way.
 
 You would benefit of this documentation if you are in any of the following journeys.
 
 1. I want to understand how Weave GitOps Enterprise looks as a system in a simple way.
-2. I want to understand the high level building blocks or component within Weave GitOps Enterprise in a simple way. 
+2. I want to understand the high level building blocks or component within Weave GitOps Enterprise in a simple way.
 3. I want to understand the different business domains served by Weave GitOps Enterprise in a simple way.
-4. For any of the domains, I want to go deeper in terms of behaviour, api or code in. 
+4. For any of the domains, I want to go deeper in terms of behaviour, api or code in.
 
 ## Assumptions and Limitations
 
@@ -17,11 +17,11 @@ Diagrams aim to be self-explanatory however:
 
 1. They are based on [C4 Model](https://c4model.com/). If you have problems understanding them please take some time
    to get familiar via skimming [abstractions](https://c4model.com/#Abstractions) and [notation](https://c4model.com/#Notation)
-   or  [watch this](https://www.youtube.com/watch?v=x2-rSnhpw0g).
+   or [watch this](https://www.youtube.com/watch?v=x2-rSnhpw0g).
 2. They are using concepts from Domain Driven Design. If it gets difficult to read, please have a look to
    the following [article](https://medium.com/@ruxijitianu/summary-of-the-domain-driven-design-concepts-9dd1a6f90091).
-3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagramming. It currently has support 
-   for [C4](https://mermaid.js.org/syntax/c4c.html) in early stage with limitations on editing experience or features. 
+3. We are using [mermaid](https://mermaid-js.github.io/mermaid/#/) for diagramming. It currently has support
+   for [C4](https://mermaid.js.org/syntax/c4c.html) in early stage with limitations on editing experience or features.
 
 ## Getting Started
 
@@ -29,24 +29,26 @@ It depends on your expected outcome. This section assumes that you are an engine
 to the product within a particular business domain. We suggest you use this documentation as part of the onboarding to get started:
 
 1. Head to [Weave Gitops System](#system) as it provides you a high-level understanding on who are the users and Weave Gitops Dependencies.
-2. Review [Weave Gitops Tiers](#tiers) as it provides with the layering of the application and access to the codebase by tier. 
-3. View the [Weave Gitops Domain](#domains) to provide you a high level overview of the problem spaces that Weave Gitops faces. 
-4. Select the domain that you would be contributing to.  Understand the solution space via 
-   - its diagram and user flows, 
-   - follow the tiers approach UI ->  API -> Backend, 
-   - access the codebase. 
+2. Review [Weave Gitops Tiers](#tiers) as it provides with the layering of the application and access to the codebase by tier.
+3. View the [Weave Gitops Domain](#domains) to provide you a high level overview of the problem spaces that Weave Gitops faces.
+4. Select the domain that you would be contributing to. Understand the solution space via
+   - its diagram and user flows,
+   - follow the tiers approach UI -> API -> Backend,
+   - access the codebase.
 
-This outside-in approach should provide you some structure when you face your first ticket.   
+This outside-in approach should provide you some structure when you face your first ticket.
 
-## Glossary 
+## Glossary
+
 Here there are few definitions that might help you to get along the documentation:
 
 - **Domain:** A domain or business domain defines the problem space that you are interested to address for your users. For example, an infrastructure business domain addresses the problem of providing the infrastructure layer that developers would need for their applications.
-- **Sub-Domain:**  a problem space within a domain. For example, cluster provisioning is a subdomain within the infrastructure domain, so it addresses the problem of providing the infrastructure layer for running containerised apps.
+- **Sub-Domain:** a problem space within a domain. For example, cluster provisioning is a subdomain within the infrastructure domain, so it addresses the problem of providing the infrastructure layer for running containerised apps.
 
 ## Overview
 
 Weave GitOps Enterprise is an enterprise application made of a
+
 - management web application, deployed in a management Kubernetes cluster and
 - a set of Kubernetes controllers and operators for executing different workflows.
 
@@ -54,13 +56,13 @@ Weave GitOps Enterprise is an enterprise application made of a
 
 It is a tiered web application with the following main characteristics:
 
-**Frontend**: [Weave GitOps Enterprise UI](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/ui-cra) is the web interface
+**Frontend**: [Weave GitOps Enterprise UI](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/ui) is the web interface
 that provides the experience layer to the users. It is built in [react](https://react.dev/) and uses [yarn](https://react.dev/) as the package manager.
 
 More info about this tier [here](#frontend-or-experience-layer).
 
-**API**: provides the integration layer for creating applications based in Weave GitOps Enterprise domain capabilities. It is defined mainly as [protobuf](https://protobuf.dev/) 
-and automatically converted to [openapi](https://swagger.io/specification/). It is served as http/json and converted to grpc 
+**API**: provides the integration layer for creating applications based in Weave GitOps Enterprise domain capabilities. It is defined mainly as [protobuf](https://protobuf.dev/)
+and automatically converted to [openapi](https://swagger.io/specification/). It is served as http/json and converted to grpc
 via [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway).
 
 More info about this tier [here](#api).
@@ -70,22 +72,22 @@ using its latest version [1.20](https://tip.golang.org/doc/go1.20).
 
 More info about this tier [here](#application).
 
-**Data and Storage**: Weave GitOps Enterprise uses Git as its primary storage. It uses the Kubernetes API for other resources 
+**Data and Storage**: Weave GitOps Enterprise uses Git as its primary storage. It uses the Kubernetes API for other resources
 like configmaps for Weave GitOps Enterprise application configuration. It also uses caching based on [SQLite](https://sqlite.org/index.html)
 for improving application UX and responsiveness.
 
 More info about this tier [here](#data-and-storage).
 
-**Git Providers**: Weave GitOps Enterprise supports Gitops workflows in the major Git providers: [GitHub](https://github.com/), 
+**Git Providers**: Weave GitOps Enterprise supports Gitops workflows in the major Git providers: [GitHub](https://github.com/),
 [GitLab](https://about.gitlab.com/), [Bitbucket](https://bitbucket.org/product) or [Azure Devops](https://azure.microsoft.com/en-us/products/devops/).
 
 **Authentication**: any user or machine request flowing in Weave GitOps Enterprise is authenticated.
-User authentication is done via [OIDC](https://auth0.com/docs/authenticate/protocols/openid-connect-protocol). 
+User authentication is done via [OIDC](https://auth0.com/docs/authenticate/protocols/openid-connect-protocol).
 [JWT tokens](https://jwt.io/) are then used for auth then used for user authentication in the
-[Weave GitOps Enterprise UI](https://docs.gitops.weave.works/docs/configuration/oidc-access/) and 
+[Weave GitOps Enterprise UI](https://docs.gitops.weave.works/docs/configuration/oidc-access/) and
 in [Kuberentes](https://kubernetes.io/docs/reference/access-authn-authz/authentication/#openid-connect-tokens).
 
-**Authorization**: any user or machine request flowing in Weave GitOps Enterprise is authorised. Weave GitOps Enterprise leverages authorization 
+**Authorization**: any user or machine request flowing in Weave GitOps Enterprise is authorised. Weave GitOps Enterprise leverages authorization
 to [Kubernetes RBAC](https://kubernetes.io/docs/reference/access-authn-authz/rbac/).
 
 More info about authentication and authorization in [IAM](./iam.md)
@@ -123,7 +125,7 @@ More info about each of them could be found within their domain. See [domains vi
 This outer layer provides a look to Weave GitOps Enterprise (wge) in three views:
 
 1. As a [System](#system) including its wider context and external dependencies.
-2. As [Tiers](#tiers) that provides a high level overview of the application tiers. 
+2. As [Tiers](#tiers) that provides a high level overview of the application tiers.
 3. As [Domains](#domains) to provide an overview of the problem spaces that WGE addresses.
 
 ### System
@@ -140,11 +142,11 @@ WGE sits on top or integrate a set of external systems for gitops delivery and r
 
 - [Kubernetes](https://kubernetes.io/) clusters are the core component for running applications.
 - [Flux](https://fluxcd.io/) is the core component for delivery gitops applications.
-- [Flagger](https://flagger.app/) is the component within the Flux Ecosystem for providing advance deployment strategies or progressive delivery.  
-- [GitProviders](https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise) hosts the git repositories 
-that hosts any gitops configuration manifest.Serves as sources of truth. Examples are GitHub or GitLab. 
+- [Flagger](https://flagger.app/) is the component within the Flux Ecosystem for providing advance deployment strategies or progressive delivery.
+- [GitProviders](https://docs.gitops.weave.works/docs/installation/weave-gitops-enterprise) hosts the git repositories
+  that hosts any gitops configuration manifest.Serves as sources of truth. Examples are GitHub or GitLab.
 - [Identity Provider](https://docs.gitops.weave.works/docs/configuration/oidc-access/): provides identity services for Weave GitOps Enterprise to integrate in the context of user authentication and authorization.
-Examples of identity providers could be Google or Okta.
+  Examples of identity providers could be Google or Okta.
 - [External Secrets](https://external-secrets.io/) is the system that provides the capability to integrate external secret stores within WGE.
 - [Terraform Controller](https://docs.gitops.weave.works/docs/terraform/overview/) is the system that provides capabilities to manage terraform infrastructure within WGE.
 
@@ -222,7 +224,7 @@ C4Context
         System_Ext(CloudProvider, "Cloud Provider", "p")
     }
 
-    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")    
+    UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 ```
 
 ### Tiers
@@ -230,37 +232,42 @@ C4Context
 Weave GitOps Enterprise could be also viewed as a three-tier architecture where:
 
 #### Frontend
-[Weave GitOps Enterprise UI](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/ui-cra) is the web interface 
+
+[Weave GitOps Enterprise UI](https://github.com/weaveworks/weave-gitops-enterprise/tree/main/ui) is the web interface
 that provides the experience layer to the users. It is built in [React](https://react.dev/) and uses [yarn](https://react.dev/) as the package manager.
 
-As experience layer is oriented to end user in order to enable Platform Engineers or Developers to achieve their workflows. 
-These workflows are delivered through [components](../../ui-cra/src/components) that mostly falls into the following categories:
-  1. To view and filter a collection of resources that spans multiple Kubernetes clusters. it also aims to have summary single pane 
-  of glass by resources. Example could be [Cluster List](../../ui-cra/src/components/Clusters/ClustersList.tsx)
-  2. Once determined the resource context, to drill down in the resources via its detail view. This details view
-  contains not only the desired state but also its reconciled or runtime state, in addition to general and specific
-  management operations. An example could be [ClusterDetails.tsx](../../ui-cra/src/components/Clusters/ClusterDetails.tsx)
-  3. Add operations for any resource, via gitops flow. For example [Add Application](../../ui-cra/src/components/Applications/Add/index.tsx)
-  4. Other management operations specific for the resource. For example for pipelines, exercise a promotion [PromotePipeline.tsx](../../ui-cra/src/components/Pipelines/PipelineDetails/PromotePipeline.tsx)
+As experience layer is oriented to end user in order to enable Platform Engineers or Developers to achieve their workflows.
+These workflows are delivered through [components](../../ui/src/components) that mostly falls into the following categories:
+
+1. To view and filter a collection of resources that spans multiple Kubernetes clusters. it also aims to have summary single pane
+   of glass by resources. Example could be [Cluster List](../../ui/src/components/Clusters/ClustersList.tsx)
+2. Once determined the resource context, to drill down in the resources via its detail view. This details view
+   contains not only the desired state but also its reconciled or runtime state, in addition to general and specific
+   management operations. An example could be [ClusterDetails.tsx](../../ui/src/components/Clusters/ClusterDetails.tsx)
+3. Add operations for any resource, via gitops flow. For example [Add Application](../../ui/src/components/Applications/Add/index.tsx)
+4. Other management operations specific for the resource. For example for pipelines, exercise a promotion [PromotePipeline.tsx](../../ui/src/components/Pipelines/PipelineDetails/PromotePipeline.tsx)
 
 The pattern to execute those workflows are the same:
-  1. There is a React component modeling the interface to the user for showing data and gathering input. 
-  2. The data is gathered from the backend via  [api clients](../../ui-cra/src/api) automatically generated 
- from their protobuf [definitions](../../api)
+
+1. There is a React component modeling the interface to the user for showing data and gathering input.
+2. The data is gathered from the backend via [api clients](../../ui/src/api) automatically generated
+   from their protobuf [definitions](../../api)
 
 #### Api
-As mentioned in the previous section, the API layer provides the integration layer for creating experience applications 
-on top of Weave GitOps Enterprise domains, as well, as to enable other type of integrations, for example integration with other systems. 
+
+As mentioned in the previous section, the API layer provides the integration layer for creating experience applications
+on top of Weave GitOps Enterprise domains, as well, as to enable other type of integrations, for example integration with other systems.
 
 The primary API definitions are [protobuf](https://github.com/weaveworks/weave-gitops/blob/main/doc/adr/0002-api-definitions-grpc.md) and defined [here](../../api).
 The API it is
+
 - defined as [grpc](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/api/gitopssets/gitopssets.proto)
 - consumed as [rest/json](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/api/gitopssets/gitopssets.swagger.json) from the UI
 - converted http/json to grpc via [grpc-gateway](https://github.com/grpc-ecosystem/grpc-gateway).
 
 #### Application
 
-Weave GitOps Enterprise application layer or backend, it is an api server developed in Go built around its 
+Weave GitOps Enterprise application layer or backend, it is an api server developed in Go built around its
 domain entities and API definition.
 
 Given so, a good way to understand the chain of responsibility is through the flow of an API request:
@@ -269,17 +276,14 @@ Given so, a good way to understand the chain of responsibility is through the fl
 2. the request is being received by the backend server that goes through a set of filter or middleware.
 3. One of those filters is authentication of the request that could be seen in [authentication](iam.md#authentication)
 4. The request is being then handled by the api endpoint handler, in our example [list.go](../../pkg/pipelines/server/list.go)
-that usually: 
-   - Requests the resource to its cluster via Kubernetes API, in this case, a Pipeline resource to the Management cluster, 
+   that usually:
+   - Requests the resource to its cluster via Kubernetes API, in this case, a Pipeline resource to the Management cluster,
    - Aggregates and process the data
-   - Returns the result set to the api client 
+   - Returns the result set to the api client
 
-The backend application is a modular application based on aggregation of domain-specific servers:
-    1. Clusters service [server.go](../../cmd/clusters-service/app/server.go) provides that aggregation layer for 
-    the domain-specific servers (as well as service its specific domain).
-    2. Domain-specific server are self-contained within their package for example [pipelines](../../pkg/pipelines) contains 
-the [pipelines server](../../pkg/pipelines/server/server.go).
-    3. The server integration is controlled via feature flagging like:
+The backend application is a modular application based on aggregation of domain-specific servers: 1. Clusters service [server.go](../../cmd/clusters-service/app/server.go) provides that aggregation layer for
+the domain-specific servers (as well as service its specific domain). 2. Domain-specific server are self-contained within their package for example [pipelines](../../pkg/pipelines) contains
+the [pipelines server](../../pkg/pipelines/server/server.go). 3. The server integration is controlled via feature flagging like:
 
     if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
             if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{}); err != nil {
@@ -288,21 +292,22 @@ the [pipelines server](../../pkg/pipelines/server/server.go).
     }
 
 #### Data and Storage
+
 In terms of data and storage:
 
-- Weave GitOps Enterprise uses Git as its primary storage. 
-- It also uses the Kubernetes API for other resources like configmaps for Weave GitOps Enterprise application configuration. 
+- Weave GitOps Enterprise uses Git as its primary storage.
+- It also uses the Kubernetes API for other resources like configmaps for Weave GitOps Enterprise application configuration.
 - It also uses caching based on [SQLite](https://sqlite.org/index.html) for improving application UX and responsiveness:
   - Search engine [store.go](../../pkg/query/store/store.go)
   - Helm chart [indexer.go](../../pkg/helm/helm_chart_indexer.go)
 
-The previous layers are seen in the following diagram 
+The previous layers are seen in the following diagram
 
 ```mermaid
 C4Container
   title Weave GitOps Enterprise
   Person(PlatformEngineer, "Platform Engineer")
-  Person(developer, "Application Developer")      
+  Person(developer, "Application Developer")
   Rel(PlatformEngineer, WeaveGitopsEnterpriseUi, "Manages Platform")
   UpdateRelStyle(PlatformEngineer, WeaveGitopsEnterpriseUi, "", "", "-115", "-40")
 
@@ -324,20 +329,20 @@ C4Container
       Rel(Flux, Kubernetes, "deploy gitops deployments")
 
   }
-        
+
   Container_Boundary(Data, "Data & Storage") {
       Container(Cache, "Cache","sqlite","caches resources for UX")
       System_Ext(Kubernetes, "Kubernetes", "stores configuration and resources manifests")
       System_Ext(GitProvider, "GitProvider", "stores gitops deployments configuration")
   }
- 
-UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2") 
+
+UpdateLayoutConfig($c4ShapeInRow="3", $c4BoundaryInRow="2")
 ```
 
 ### Domains
 
-There is another high-level architectural view to understand Weave GitOps Enterprise: the problem spaces it faces or 
-business domains and its intersection with GitOps. The following diagram presents them altogether: 
+There is another high-level architectural view to understand Weave GitOps Enterprise: the problem spaces it faces or
+business domains and its intersection with GitOps. The following diagram presents them altogether:
 
 ```mermaid
 C4Container
@@ -374,18 +379,21 @@ C4Container
             Component(Explorer, "Explorer",, "addresses the problem of discovering data across multiple dimensions from a single place")
         }
     }
-    UpdateLayoutConfig($c4ShapeInRow="1", $c4BoundaryInRow="3")               
+    UpdateLayoutConfig($c4ShapeInRow="1", $c4BoundaryInRow="3")
 ```
-To these problems, WGE provides solutions for. The next section goes into each of the domains.  
+
+To these problems, WGE provides solutions for. The next section goes into each of the domains.
 
 #### Infrastructure
 
-Our users require both infrastructure to run applications and the applications itself requires infrastructure services like 
-data stores for example. Infrastructure domain addresses both of the problems: 
-1. Provides a general purpose approach to provision and manage Kuberentes clusters. 
-2. Provides a general infrastructure management solution based on Terraform to allow application temas to self-service their infrastructure needs. 
+Our users require both infrastructure to run applications and the applications itself requires infrastructure services like
+data stores for example. Infrastructure domain addresses both of the problems:
+
+1. Provides a general purpose approach to provision and manage Kuberentes clusters.
+2. Provides a general infrastructure management solution based on Terraform to allow application temas to self-service their infrastructure needs.
 
 Subdomains:
+
 - Cluster Management: to manage Kubernetes clusters within WGE.
 - Terraform: to manage infrastructure via Terraform within WGE.
 
@@ -393,7 +401,7 @@ For a deeper look into the domain [Infrastructure](infrastructure.md)
 
 #### Self-service
 
-Our users want to streamline the process of getting started while reusing organisational knowledge and ensuring 
+Our users want to streamline the process of getting started while reusing organisational knowledge and ensuring
 alignment with organisational standards. Self-service domains focuses in this problem space by the following subdomains:
 
 - GitopsTemplates: how to create reusable components in order to enable best practices or reduce time to value for platform or application teams.
@@ -404,40 +412,46 @@ For a deeper look into the domain [Self Service](self-service.md)
 
 #### Trusted Delivery
 
-While we want to empower developers and DevOps teams to build better software faster through 
-we also want them to be able to do it confidently. Moving fast often means risking quality and security, 
-and counting on humans to spot problems is often error-prone and is not scalable. 
+While we want to empower developers and DevOps teams to build better software faster through
+we also want them to be able to do it confidently. Moving fast often means risking quality and security,
+and counting on humans to spot problems is often error-prone and is not scalable.
 Trusted Delivery covers this part of the value we're trying to deliver to our customers.
 
 Subdomains:
+
 - Policy: policy definition and enforcement for applications.
 - Tenancy: allow multiple tenant to consume platform services while keeping isolation.
 
 For a deeper look into the domain [Trusted Delivery](trusted-delivery.md)
 
-#### Application Delivery 
-Organisations provide value to customer through business capabilities, those business 
+#### Application Delivery
+
+Organisations provide value to customer through business capabilities, those business
 capabilities are created in the form of applications that needs to be managed and delivered to customers.
 
 Subdomains:
+
 - Progressive Delivery: how to release applications to environments protecting application availability.
 - Pipelines: deploying software across a set of stages (a pipeline), each becoming more production-like. This is usually done in an automated fashion, but not exclusively.
 - Flux: how to deploy gitops applications to Kubernetes clusters.
 
 For a deeper look into the domain [Application Delivery](application-delivery.md)
 
-#### Development Experience: 
-Development within gitops represents different challenges to traditional software development. 
+#### Development Experience:
+
+Development within gitops represents different challenges to traditional software development.
 To reduce the adoption barriers is the problem to solve within this domain.
 
 Subdomains:
-- GitopsRun: to remove the complexity for developers so that Platform Engineers can create developer environments easily, 
-and Developers can benefit from GitOps and focus on writing code.
+
+- GitopsRun: to remove the complexity for developers so that Platform Engineers can create developer environments easily,
+  and Developers can benefit from GitOps and focus on writing code.
 - Notifications: to broadcast and ingest events that enables higher-level workflows.
 
 For a deeper look into the domain [Development Experience](devex.md)
 
 #### Identity and Access Management
+
 Users want to use their existing (or new) identities to consume services and to establish access control to them. The following
 subdomains are part of it:
 
@@ -449,9 +463,9 @@ For a deeper look into the domain [IAM](iam.md)
 
 #### Explore
 
-Modern applications and infrastructure presents challenges to discover and aggregate data coming from different sources. 
+Modern applications and infrastructure presents challenges to discover and aggregate data coming from different sources.
 Explore domain addresses this problem space to provide users a single and simple way.
 
-- Explorer: is the capability that allows searching across multiple infrastructure domains in a single place. 
+- Explorer: is the capability that allows searching across multiple infrastructure domains in a single place.
 
 For a deeper look into the domain [Explore](explore.md)

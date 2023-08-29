@@ -13,4 +13,4 @@ plugins:
     out: api
     opt: allow_delete_body=true
   - name: grpc-gateway-ts
-    out: ../../ui-cra/src/cluster-services
+    out: ../../ui/src/cluster-services

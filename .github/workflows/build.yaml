@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       gitops_platforms:
-        description: "Platforms for gitops compilation - JSON string e.g '[\"ubuntu-latest\", \"macOS-latest\"]'"
+        description: 'Platforms for gitops compilation - JSON string e.g ''["ubuntu-latest", "macOS-latest"]'''
         required: false
         default: '["ubuntu-latest"]'
         type: string
@@ -20,7 +20,8 @@ on:
       WGE_S3_AWS_SECRET_ACCESS_KEY: { required: true }
       WGE_HELM_REPO_USERNAME: { required: false }
       WGE_HELM_REPO_PASSWORD: { required: false }
-      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: { required: false }
+      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER:
+        { required: false }
       WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: { required: false }
 
 env:
@@ -95,7 +96,7 @@ jobs:
           TIMESTAMP=$(date +%s)
           TAG=$(git describe --always --match "v*" --abbrev=0)
           HELM_TAG=${TAG}-${TIMESTAMP}-g${SHORT_HASH}
-          
+
           # Publish the MCCP Helm v3 chart to branch helm repo
           BRANCH_NAME=${GITHUB_REF##*/}
           BRANCH_HELM_REPO="dev/branches/${BRANCH_NAME}"
@@ -181,7 +182,7 @@ jobs:
           git fetch --tags -f
       - name: build
         run: |
-          make DOCKER_BUILDKIT=1 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} ui-cra/.uptodate
+          make DOCKER_BUILDKIT=1 GITHUB_BUILD_TOKEN=${GITHUB_BUILD_TOKEN} ui/.uptodate
       - name: Login to Docker Hub
         uses: docker/login-action@v2.1.0
         with:
@@ -198,41 +199,41 @@ jobs:
       matrix:
         os: ${{ fromJSON(inputs.gitops_platforms) }}
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-    - name: Install Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: 1.20.x
-    - name: Configure git for private modules
-      run: |
-        git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-    - name: Install dependencies
-      run: |
-        go mod download
-    - name: Clean
-      run: make clean
-    - id: gitsha
-      run: |
-        gitsha=$(git rev-parse --short ${{ github.sha }})
-        echo "sha=$gitsha" >> $GITHUB_OUTPUT
-    - name: build
-      run: |
-        make cmd/gitops/gitops
-        mv cmd/gitops/gitops cmd/gitops/gitops-${{matrix.os}}
-    - uses: actions/upload-artifact@v3.1.1
-      with:
-        name: gitops
-        path: cmd/gitops/gitops-${{matrix.os}}
-        retention-days: 1
-    - name: Configure AWS Credentials
-      if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
-      uses: aws-actions/configure-aws-credentials@v1-node16
-      with:
-        aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
-        aws-region: eu-central-1
-    - name: Publish gitops binary to s3 
-      if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
-      run: |
-        aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.x
+      - name: Configure git for private modules
+        run: |
+          git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Install dependencies
+        run: |
+          go mod download
+      - name: Clean
+        run: make clean
+      - id: gitsha
+        run: |
+          gitsha=$(git rev-parse --short ${{ github.sha }})
+          echo "sha=$gitsha" >> $GITHUB_OUTPUT
+      - name: build
+        run: |
+          make cmd/gitops/gitops
+          mv cmd/gitops/gitops cmd/gitops/gitops-${{matrix.os}}
+      - uses: actions/upload-artifact@v3.1.1
+        with:
+          name: gitops
+          path: cmd/gitops/gitops-${{matrix.os}}
+          retention-days: 1
+      - name: Configure AWS Credentials
+        if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
+        uses: aws-actions/configure-aws-credentials@v1-node16
+        with:
+          aws-access-key-id: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-central-1
+      - name: Publish gitops binary to s3
+        if: ${{ (github.ref_name == 'main') && (github.event_name == 'schedule') }}
+        run: |
+          aws s3 cp cmd/gitops/gitops-${{matrix.os}} s3://weaveworks-wkp/gitops/gitops-${{matrix.os}}-${{steps.gitsha.outputs.sha}}

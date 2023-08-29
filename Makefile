@@ -59,7 +59,7 @@ cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
 	CGO_ENABLED=0 go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
-ui-cra/.uptodate: ui-cra/*
+ui/.uptodate: ui/*
 	$(SUDO) docker build \
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=revision=$(GIT_REVISION) \
@@ -131,13 +131,9 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 dependencies: ## Install build dependencies
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
 
-.PHONY: ui-cra/build
-ui-cra/build:
-	make build VERSION=$(VERSION) -C ui-cra
-
-ui-audit:
-	# Check js packages for any high or critical vulnerabilities
-	cd ui-cra && yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
+.PHONY: ui/build
+ui/build:
+	make build -C ui
 
 lint:
 	bin/go-lint
@@ -152,8 +148,8 @@ update-weave-gitops:
 	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
 	go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH)
 	go mod tidy
-	$(eval NPM_VERSION := $(shell cd ui-cra && yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | keys | .[] | select(contains("$(SHORTHASH)"))'))
-	cd ui-cra && yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)
+	$(eval NPM_VERSION := $(shell yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | keys | .[] | select(contains("$(SHORTHASH)"))'))
+	yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)
 
 # We select which directory we want to descend into to not execute integration
 # tests here.
@@ -170,7 +166,7 @@ unit-tests: $(GENERATED)
 
 ui-build-for-tests:
 	# Github actions npm is slow sometimes, hence increasing the network-timeout
-	yarn config set network-timeout 300000 && cd ui-cra && yarn install && yarn build
+	yarn config set network-timeout 300000 && yarn install && yarn build
 
 integration-tests:
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/test-dependencies.toml
@@ -184,7 +180,7 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	rm -f $(BINARIES)
 	rm -f $(GENERATED)
-	rm -rf ui-cra/build
+	rm -rf ui/build
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
@@ -198,6 +194,33 @@ proto: ## Generate protobuf files
 
 fakes: ## Generate testing fakes
 	go generate ./...
+
+# --- UI
+
+CALENDAR_VERSION=$(shell date +"%Y-%m")
+
+.PHONY: node_modules
+node_modules: package.json yarn.lock
+	yarn config set network-timeout 300000 && yarn install --prod --frozen-lockfile
+
+ui-build: node_modules $(shell find ui/src -type f)
+	REACT_APP_DISABLE_PROGRESSIVE_DELIVERY="$(REACT_APP_DISABLE_PROGRESSIVE_DELIVERY)" REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
+
+# This job assumes that the weave-gitops repo located next to this repo in the filesystem
+core-ui:
+	cd ../../weave-gitops && \
+	npm run build:lib && \
+	npm run typedefs && \
+	cd ../weave-gitops-enterprise
+
+core-lib:
+	rm -rf node_modules/@weaveworks/weave-gitops/
+	rm -rf .parcel-cache/
+	yarn add ../../weave-gitops/dist
+
+ui-audit:
+	# Check js packages for any high or critical vulnerabilities
+	yarn audit --level high; if [ $$? -gt 7 ]; then echo "Failed yarn audit"; exit 1; fi
 
 # Run make swagger-docs and go to http://localhost:6001 to view the Swagger docs
 # NOTE: Requires a running Docker Server

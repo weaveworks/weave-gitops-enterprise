@@ -103,17 +103,16 @@ elif native_build:
 
    local_resource(
       'ui-native-build',
-      'make build',
+      'make ui-build',
       deps=[
-         './ui-cra/src',
+         './ui/src',
       ],
-      dir='ui-cra',
       labels=['local'],
    )
    docker_build(
       'weaveworks/weave-gitops-enterprise-ui-server',
-      'ui-cra',
-      dockerfile="ui-cra/dev.dockerfile",
+      'ui',
+      dockerfile="ui/dev.dockerfile",
       build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
    )
 
@@ -122,7 +121,7 @@ else:
 
    docker_build(
       'weaveworks/weave-gitops-enterprise-ui-server',
-      'ui-cra',
+      'ui',
       build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
    )
 
@@ -165,7 +164,7 @@ else:
    docker_build(
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
-      ignore=["ui-cra"],
+      ignore=["ui"],
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
       entrypoint= ["/clusters-service", "--log-level=debug"]
