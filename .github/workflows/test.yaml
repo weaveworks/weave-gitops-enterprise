@@ -21,9 +21,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
       - name: Install Go
-        uses: actions/setup-go@v4.0.0
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -39,9 +39,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
       - name: Install Go
-        uses: actions/setup-go@v4.0.0
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -57,9 +57,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
       - name: Install Go
-        uses: actions/setup-go@v4.0.0
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -94,9 +94,9 @@ jobs:
       GIT_PROVIDER_HOSTNAME: gitlab.git.dev.weave.works
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
       - name: Install Go
-        uses: actions/setup-go@v4.0.0
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
       - name: Configure git for private modules
@@ -123,7 +123,7 @@ jobs:
           echo "go-build=$(go env GOCACHE)" >> $GITHUB_OUTPUT
           echo "go-mod=$(go env GOMODCACHE)" >> $GITHUB_OUTPUT
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
       - name: Yarn Cache
         uses: actions/cache@v3.0.11
         with:
