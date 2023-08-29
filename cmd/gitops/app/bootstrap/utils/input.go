@@ -7,11 +7,16 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
+const (
+	passwordErrorMsg  = "password must have more than 6 characters"
+	inputStringErrMsg = "value can't be empty"
+)
+
 // GetPasswordInput prompt to enter password.
 func GetPasswordInput(msg string) (string, error) {
 	validate := func(input string) error {
 		if len(input) < 6 {
-			return errors.New("password must have more than 6 characters")
+			return errors.New(passwordErrorMsg)
 		}
 		return nil
 	}
@@ -61,7 +66,7 @@ func GetSelectInput(msg string, items []string) (string, error) {
 func GetStringInput(msg string, defaultValue string) (string, error) {
 	validate := func(input string) error {
 		if input == "" {
-			return errors.New("value can't be empty")
+			return errors.New(inputStringErrMsg)
 		}
 		return nil
 	}
