@@ -12,12 +12,15 @@ import (
 )
 
 const (
+	tfGettingSarted     = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
+	tfInstallInfoMsg    = "Installing Terraform Controller ..."
+	tfInstallConfirmMsg = "Terraform Controller is installed successfully"
+)
+
+const (
 	tfCommitMsg             = "Add terraform controller"
-	tfGettingSarted         = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
 	tfControllerUrl         = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
 	tfFileName              = "tf-controller.yaml"
-	tfInstallInfoMsg        = "Installing Terraform Controller ..."
-	tfInstallConfirmMsg     = "Terraform Controller is installed successfully"
 	tfReleaseErrorMsgFormat = "error getting terraform release %d"
 )
 
