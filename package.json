@@ -113,9 +113,10 @@
     "parse-url": "~8.1.0"
   },
   "scripts": {
-    "start": "node scripts/start.js",
-    "build": "node scripts/build.js",
-    "test": "node scripts/test.js"
+    "start": "node ui/scripts/start.js",
+    "preview": "node ui/server.js",
+    "build": "node ui/scripts/build.js",
+    "test": "node ui/scripts/test.js"
   },
   "eslintConfig": {
     "extends": [

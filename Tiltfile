@@ -121,7 +121,8 @@ else:
 
    docker_build(
       'weaveworks/weave-gitops-enterprise-ui-server',
-      'ui',
+      '.',
+      dockerfile='ui/Dockerfile',
       build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
    )
 

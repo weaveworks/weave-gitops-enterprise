@@ -67,7 +67,8 @@ ui/.uptodate: ui/*
 		--build-arg=REACT_APP_DISABLE_PROGRESSIVE_DELIVERY=$(REACT_APP_DISABLE_PROGRESSIVE_DELIVERY) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(UI_SERVER) \
-		$(@D)/
+		--file ui/Dockerfile \
+		.
 	$(SUDO) docker tag $(UI_SERVER) $(UI_SERVER):$(IMAGE_TAG)
 	touch $@
 
@@ -131,10 +132,6 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 dependencies: ## Install build dependencies
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
 
-.PHONY: ui/build
-ui/build:
-	make build -C ui
-
 lint:
 	bin/go-lint
 	@go install github.com/yoheimuta/protolint/cmd/protolint@latest
@@ -180,7 +177,7 @@ clean:
 	rm -rf $(UPTODATE_FILES)
 	rm -f $(BINARIES)
 	rm -f $(GENERATED)
-	rm -rf ui/build
+	rm -rf build
 
 push:
 	for IMAGE_NAME in $(IMAGE_NAMES); do \
