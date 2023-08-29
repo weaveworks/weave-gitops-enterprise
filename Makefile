@@ -199,6 +199,13 @@ proto: ## Generate protobuf files
 fakes: ## Generate testing fakes
 	go generate ./...
 
+# Run make swagger-docs and go to http://localhost:6001 to view the Swagger docs
+# NOTE: Requires a running Docker Server
+
+.PHONY: swagger-docs
+swagger-docs:
+	@echo "Swagger docs available at http://localhost:6001"
+	docker run -p 6001:8080 -e SWAGGER_JSON=/swagger/cluster_services.swagger.json -v $(CURRENT_DIR)/cmd/clusters-service/api:/swagger swaggerapi/swagger-ui
 
 FORCE:
 
