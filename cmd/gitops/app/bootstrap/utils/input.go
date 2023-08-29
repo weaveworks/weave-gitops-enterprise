@@ -8,7 +8,7 @@ import (
 )
 
 // GetPasswordInput prompt to enter password.
-func GetPasswordInput(label string) (string, error) {
+func GetPasswordInput(msg string) (string, error) {
 	validate := func(input string) error {
 		if len(input) < 6 {
 			return errors.New("password must have more than 6 characters")
@@ -16,7 +16,7 @@ func GetPasswordInput(label string) (string, error) {
 		return nil
 	}
 	prompt := promptui.Prompt{
-		Label:    label,
+		Label:    msg,
 		Validate: validate,
 		Mask:     '*',
 	}
@@ -96,11 +96,11 @@ func GetConfirmInput(msg string) string {
 }
 
 // Info should be used to describe the example commands that are about to run.
-func Info(format string, args ...interface{}) {
-	fmt.Printf("\x1b[34;1m✔  %s\x1b[0m\n", fmt.Sprintf(format, args...))
+func Info(msg string, args ...interface{}) {
+	fmt.Printf("\x1b[34;1m✔  %s\x1b[0m\n", fmt.Sprintf(msg, args...))
 }
 
 // Warning should be used to display a warning.
-func Warning(format string, args ...interface{}) {
-	fmt.Printf("%s\n", fmt.Sprintf(format, args...))
+func Warning(msg string, args ...interface{}) {
+	fmt.Printf("%s\n", fmt.Sprintf(msg, args...))
 }
