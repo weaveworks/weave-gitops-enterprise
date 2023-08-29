@@ -21,10 +21,13 @@ const (
 	oidcInstallInfoMsg              = "Installing OIDC config ..."
 	oidcConfirmationMsg             = "OIDC config created successfully"
 	adminUsernameRevertMsg          = "Admin user reverted successfully"
-	oidcSecretName                  = "oidc-auth"
 	oidcConfigExistWarningMsgFormat = "OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'"
 	discoveryUrlErrorMsgFormat      = "OIDC discovery URL returned status %d"
 	discoveryUrlNoIssuerMsg         = "OIDC discovery URL returned no issuer"
+)
+
+const (
+	oidcSecretName = "oidc-auth"
 )
 
 // getOIDCSecrets ask the user for the OIDC configuraions.
