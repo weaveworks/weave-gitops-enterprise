@@ -11,9 +11,11 @@ import (
 )
 
 const (
-	TemplatesNamespaceMsg = "Please input the default namespace for templates"
-	ClusterNamespaceMsg   = "Please input the default namespace for clusters"
-	CAPIGettingSartedMsg  = "CAPI Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/capi/"
+	templatesNamespaceMsg = "Please input the default namespace for templates"
+	clusterNamespaceMsg   = "Please input the default namespace for clusters"
+	capiGettingSartedMsg  = "CAPI Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/capi/"
+	capiInstallInfoMsg    = "Installing CAPI Controller ..."
+	capiInstallConfirmMsg = "CAPI Controller is installed successfully"
 )
 
 var CapiCommand = &cobra.Command{
@@ -29,14 +31,14 @@ gitops bootstrap controllers capi`,
 
 // InstallCapi start installing policy agent helm chart
 func InstallCapi() error {
-	utils.Warning(CAPIGettingSartedMsg)
+	utils.Warning(capiGettingSartedMsg)
 
-	templatesNamespace, err := utils.GetStringInput(TemplatesNamespaceMsg, "default")
+	templatesNamespace, err := utils.GetStringInput(templatesNamespaceMsg, "default")
 	if err != nil {
 		return err
 	}
 
-	clustersNamespace, err := utils.GetStringInput(ClusterNamespaceMsg, "default")
+	clustersNamespace, err := utils.GetStringInput(clusterNamespaceMsg, "default")
 	if err != nil {
 		return err
 	}
@@ -46,13 +48,13 @@ func InstallCapi() error {
 		return err
 	}
 
-	utils.Warning("Installing CAPI Controller ...")
+	utils.Warning(capiInstallInfoMsg)
 	err = commands.UpdateHelmReleaseValues(domain.CAPIValuesName, values)
 	if err != nil {
 		return err
 	}
 
-	utils.Info("CAPI Controller is installed successfully")
+	utils.Info(capiInstallConfirmMsg)
 	return nil
 }
 

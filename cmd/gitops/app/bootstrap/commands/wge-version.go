@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	VERSION_MSG = "Please select a version for WGE to be installed"
+	VersionMsg = "Please select a version for WGE to be installed"
 )
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions
@@ -31,7 +31,7 @@ func SelectWgeVersion() (string, error) {
 		return "", err
 	}
 
-	return utils.GetSelectInput(VERSION_MSG, versions)
+	return utils.GetSelectInput(VersionMsg, versions)
 }
 
 // fetchHelmChart helper method to fetch wge helm chart detauls

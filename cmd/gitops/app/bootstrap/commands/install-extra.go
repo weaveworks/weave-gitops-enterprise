@@ -5,6 +5,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
+const RepoCleanupMsg = "Cleaning up repo ..."
+
 func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
 	values, err := utils.GetCurrentValuesForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
@@ -41,7 +43,7 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning("cleanup failed!")
+			utils.Warning(RepoCleanupMsg)
 		}
 	}()
 

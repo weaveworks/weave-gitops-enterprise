@@ -10,45 +10,46 @@ import (
 )
 
 const (
-	FluxBootstrapMsg         = "Do you want to bootstrap flux with the generic way on your cluster"
-	GitRepoUrlMsg            = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
-	GitBranchMsg             = "Please enter your git repository branch (default: main)"
-	GitRepoPathMsg           = "Please enter your path for your cluster (default: clusters/my-cluster)"
-	FluxInstallInfoMsg       = "Installing flux ..."
-	FluxBootstrapInfoMsg     = "Bootstrapping flux ..."
-	FluxInstallCheckMsg      = "Checking flux installation ..."
-	FluxInstallValidationMsg = "Checking flux installation is valid ..."
-	FluxInstallConfirmMsg    = "flux is installed"
-	FluxReconcileConfirmMsg  = "flux is installed and can reconcile successfully"
-	FluxNotInstalledMsg      = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
-	FluxInstallationErrorMsg = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
-	FluxDocsReferenceMsg     = "Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v"
+	fluxBootstrapMsg               = "Do you want to bootstrap flux with the generic way on your cluster"
+	gitRepoUrlMsg                  = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
+	gitBranchMsg                   = "Please enter your git repository branch (default: main)"
+	gitRepoPathMsg                 = "Please enter your path for your cluster (default: clusters/my-cluster)"
+	fluxInstallInfoMsg             = "Installing flux ..."
+	fluxBootstrapInfoMsg           = "Bootstrapping flux ..."
+	fluxInstallCheckMsg            = "Checking flux installation ..."
+	fluxInstallValidationMsg       = "Checking flux installation is valid ..."
+	fluxInstallConfirmMsg          = "flux is installed"
+	fluxReconcileConfirmMsg        = "flux is installed and can reconcile successfully"
+	fluxNotInstalledMsgFormat      = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
+	fluxInstallationErrorMsgFormat = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
+	fluxDocsReferenceMsgFormat     = "Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v"
+	privateKeyPathPromptMsgFormat  = "Please enter your private key path (default: %s)"
 )
 
 const (
-	DefaultBranch      = "main"
-	DefaultGitRepoPath = "clusters/my-cluster"
+	defaultBranch      = "main"
+	defaultGitRepoPath = "clusters/my-cluster"
 )
 
 // BootstrapFlux get flux values from user and bootstraps it using generic way
 func BootstrapFlux() error {
-	bootstrapFlux := utils.GetConfirmInput(FluxBootstrapMsg)
+	bootstrapFlux := utils.GetConfirmInput(fluxBootstrapMsg)
 
 	if bootstrapFlux != "y" {
 		os.Exit(1)
 	}
 
-	gitURL, err := utils.GetStringInput(GitRepoUrlMsg, "")
+	gitURL, err := utils.GetStringInput(gitRepoUrlMsg, "")
 	if err != nil {
 		return err
 	}
 
-	gitBranch, err := utils.GetStringInput(GitBranchMsg, DefaultBranch)
+	gitBranch, err := utils.GetStringInput(gitBranchMsg, defaultBranch)
 	if err != nil {
 		return err
 	}
 
-	gitPath, err := utils.GetStringInput(GitRepoPathMsg, DefaultGitRepoPath)
+	gitPath, err := utils.GetStringInput(gitRepoPathMsg, defaultGitRepoPath)
 	if err != nil {
 		return err
 	}
@@ -59,54 +60,54 @@ func BootstrapFlux() error {
 	}
 
 	defaultPrivateKeyPath := filepath.Join(home, ".ssh", "id_rsa")
-	privateKeyPathMsg := fmt.Sprintf("Please enter your private key path (default: %s)", defaultPrivateKeyPath)
+	privateKeyPathMsg := fmt.Sprintf(privateKeyPathPromptMsgFormat, defaultPrivateKeyPath)
 	privateKeyPath, err := utils.GetStringInput(privateKeyPathMsg, defaultPrivateKeyPath)
 	if err != nil {
 		return err
 	}
 
-	utils.Warning(FluxInstallInfoMsg)
+	utils.Warning(fluxInstallInfoMsg)
 	// TODO: create default repo structure
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
 	if err != nil {
-		errMsg := fmt.Sprintf(FluxDocsReferenceMsg, string(out))
+		errMsg := fmt.Sprintf(fluxDocsReferenceMsgFormat, string(out))
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info(FluxBootstrapInfoMsg)
+	utils.Info(fluxBootstrapInfoMsg)
 	return nil
 }
 
 // CheckFluxIsInstalled checks for valid flux installation
 func CheckFluxIsInstalled() error {
-	utils.Warning(FluxInstallCheckMsg)
+	utils.Warning(fluxInstallCheckMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		utils.Warning(FluxNotInstalledMsg, string(out))
+		utils.Warning(fluxNotInstalledMsgFormat, string(out))
 		return BootstrapFlux()
 	}
 
-	utils.Info(FluxInstallConfirmMsg)
+	utils.Info(fluxInstallConfirmMsg)
 
 	return nil
 }
 
 // CheckFluxIsInstalled checks if flux installation is valid and can reconcile
 func CheckFluxReconcile() error {
-	utils.Warning(FluxInstallValidationMsg)
+	utils.Warning(fluxInstallValidationMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		errMsg := fmt.Sprintf(FluxInstallationErrorMsg, string(out))
+		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info(FluxReconcileConfirmMsg)
+	utils.Info(fluxReconcileConfirmMsg)
 
 	return nil
 }

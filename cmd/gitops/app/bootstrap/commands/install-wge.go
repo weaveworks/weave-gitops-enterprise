@@ -17,61 +17,61 @@ import (
 )
 
 const (
-	DomainMsg               = "Please select the domain to be used"
-	ClusterDomainMsg        = "Please enter your cluster domain"
-	WGEHelmRepoCommitMsg    = "Add WGE HelmRepository YAML file"
+	domainMsg               = "Please select the domain to be used"
+	clusterDomainMsg        = "Please enter your cluster domain"
+	wgeHelmRepoCommitMsg    = "Add WGE HelmRepository YAML file"
 	WGEHelmReleaseCommitMsg = "Add WGE HelmRelease YAML file"
-	ExternalDNSWarningMsg   = `
+	externalDNSWarningMsg   = `
 	Please make sure to have the external DNS service installed in your cluster, 
 	or you have a domain that points to your cluster.
 	For more information about external DNS, please refer to:
 	https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
 	`
-	WGEInstallMsgFormat          = "All set installing WGE v%s, This may take a few minutes...\n"
-	InstallSuccessMsgFormat      = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
-	LocalInstallSuccessMsgFormat = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
+	wgeInstallMsgFormat          = "All set installing WGE v%s, This may take a few minutes...\n"
+	installSuccessMsgFormat      = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
+	localInstallSuccessMsgFormat = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
 )
 const (
 	WGEChartName                      = "mccp"
-	WGEHelmRepositoryName             = "weave-gitops-enterprise-charts"
+	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
 	WGEHelmReleaseName                = "weave-gitops-enterprise"
 	WGEDefaultNamespace               = "flux-system"
-	DomainTypelocalgost               = "localhost (Using Portforward)"
-	DomainTypeExternalDNS             = "external DNS"
-	WGEHelmrepoFileName               = "wge-hrepo.yaml"
+	domainTypelocalgost               = "localhost (Using Portforward)"
+	domainTypeExternalDNS             = "external DNS"
+	wgeHelmrepoFileName               = "wge-hrepo.yaml"
 	WGEHelmReleaseFileName            = "wge-hrelease.yaml"
 	WGEChartUrl                       = "https://charts.dev.wkp.weave.works/releases/charts-v3"
-	ClusterControllerFullOverrideName = "cluster"
-	ClusterControllerImage            = "docker.io/weaveworks/cluster-controller"
-	ClusterControllerImageTag         = "v1.5.2"
+	clusterControllerFullOverrideName = "cluster"
+	clusterControllerImage            = "docker.io/weaveworks/cluster-controller"
+	clusterControllerImageTag         = "v1.5.2"
 )
 
 // InstallWge installs weave gitops enterprise chart
 func InstallWge(version string) (string, error) {
 	domainTypes := []string{
-		DomainTypelocalgost,
-		DomainTypeExternalDNS,
+		domainTypelocalgost,
+		domainTypeExternalDNS,
 	}
 
-	domainType, err := utils.GetSelectInput(DomainMsg, domainTypes)
+	domainType, err := utils.GetSelectInput(domainMsg, domainTypes)
 	if err != nil {
 		return "", err
 	}
 
 	userDomain := "localhost"
 
-	if strings.Compare(domainType, DomainTypeExternalDNS) == 0 {
+	if strings.Compare(domainType, domainTypeExternalDNS) == 0 {
 
-		utils.Warning(ExternalDNSWarningMsg)
+		utils.Warning(externalDNSWarningMsg)
 
-		userDomain, err = utils.GetStringInput(ClusterDomainMsg, "")
+		userDomain, err = utils.GetStringInput(clusterDomainMsg, "")
 		if err != nil {
 			return "", err
 		}
 
 	}
 
-	utils.Info(WGEInstallMsgFormat, version)
+	utils.Info(wgeInstallMsgFormat, version)
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
@@ -81,7 +81,7 @@ func InstallWge(version string) (string, error) {
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning("cleanup failed!")
+			utils.Warning(RepoCleanupMsg)
 		}
 	}()
 
@@ -90,7 +90,7 @@ func InstallWge(version string) (string, error) {
 		return "", err
 	}
 
-	err = utils.CreateFileToRepo(WGEHelmrepoFileName, wgehelmRepo, pathInRepo, WGEHelmRepoCommitMsg)
+	err = utils.CreateFileToRepo(wgeHelmrepoFileName, wgehelmRepo, pathInRepo, wgeHelmRepoCommitMsg)
 	if err != nil {
 		return "", err
 	}
@@ -111,12 +111,12 @@ func InstallWge(version string) (string, error) {
 
 	clusterController := domain.ClusterController{
 		Enabled:          true,
-		FullNameOverride: ClusterControllerFullOverrideName,
+		FullNameOverride: clusterControllerFullOverrideName,
 		ControllerManager: domain.ClusterControllerManager{
 			Manager: domain.ClusterControllerManagerManager{
 				Image: domain.ClusterControllerImage{
-					Repository: ClusterControllerImage,
-					Tag:        ClusterControllerImageTag,
+					Repository: clusterControllerImage,
+					Tag:        clusterControllerImageTag,
 				},
 			},
 		}}
@@ -153,7 +153,7 @@ func InstallWge(version string) (string, error) {
 func constructWgeHelmRepository() (string, error) {
 	wgeHelmRepo := sourcev1.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      WGEHelmRepositoryName,
+			Name:      wgeHelmRepositoryName,
 			Namespace: WGEDefaultNamespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
@@ -211,7 +211,7 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 					Chart:             WGEChartName,
 					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Name:      WGEHelmRepositoryName,
+						Name:      wgeHelmRepositoryName,
 						Namespace: WGEDefaultNamespace,
 					},
 					Version: chartVersion,
@@ -236,11 +236,11 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 func CheckUIDomain(userDomain string, wgeVersion string) error {
 	if !strings.Contains(userDomain, "localhost") {
 
-		utils.Info(InstallSuccessMsgFormat, wgeVersion, userDomain)
+		utils.Info(installSuccessMsgFormat, wgeVersion, userDomain)
 		return nil
 	}
 
-	utils.Info(LocalInstallSuccessMsgFormat, wgeVersion)
+	utils.Info(localInstallSuccessMsgFormat, wgeVersion)
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {

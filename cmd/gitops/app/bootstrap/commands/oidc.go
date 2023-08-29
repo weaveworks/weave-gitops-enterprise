@@ -11,16 +11,20 @@ import (
 )
 
 const (
-	OIDCInstallMsg         = "Do you want to add OIDC config to your cluster"
-	OIDCDiscoverUrlMsg     = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
-	OIDCClientIDMsg        = "Please enter OIDC clientID"
-	OIDCClientSecretMsg    = "Please enter OIDC clientSecret"
-	AdminUserRevertMsg     = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
-	OIDCConfigInfoMsg      = "For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
-	OIDCInstallInfoMsg     = "Installing OIDC config ..."
-	OIDCConfirmationMsg    = "OIDC config created successfully"
-	AdminUsernameRevertMsg = "Admin user reverted successfully"
-	OIDCSecretName         = "oidc-auth"
+	oidcInstallMsg                  = "Do you want to add OIDC config to your cluster"
+	oidcDiscoverUrlMsg              = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
+	discoveryUrlVerifyMsg           = "Verifying OIDC discovery URL ..."
+	oidcClientIDMsg                 = "Please enter OIDC clientID"
+	oidcClientSecretMsg             = "Please enter OIDC clientSecret"
+	adminUserRevertMsg              = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
+	oidcConfigInfoMsg               = "For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
+	oidcInstallInfoMsg              = "Installing OIDC config ..."
+	oidcConfirmationMsg             = "OIDC config created successfully"
+	adminUsernameRevertMsg          = "Admin user reverted successfully"
+	oidcSecretName                  = "oidc-auth"
+	oidcConfigExistWarningMsgFormat = "OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'"
+	discoveryUrlErrorMsgFormat      = "OIDC discovery URL returned status %d"
+	discoveryUrlNoIssuerMsg         = "OIDC discovery URL returned no issuer"
 )
 
 // getOIDCSecrets ask the user for the OIDC configuraions
@@ -28,23 +32,23 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 
 	configs := domain.OIDCConfig{}
 
-	oidcDiscoveryURL, err := utils.GetStringInput(OIDCDiscoverUrlMsg, "")
+	oidcDiscoveryURL, err := utils.GetStringInput(oidcDiscoverUrlMsg, "")
 	if err != nil {
 		return configs, err
 	}
 
-	utils.Info("Verifying OIDC Discovery URL ...")
+	utils.Info(discoveryUrlVerifyMsg)
 	oidcIssuerURL, err := getIssuer(oidcDiscoveryURL)
 	if err != nil {
 		return configs, err
 	}
 
-	oidcClientID, err := utils.GetStringInput(OIDCClientIDMsg, "")
+	oidcClientID, err := utils.GetStringInput(oidcClientIDMsg, "")
 	if err != nil {
 		return configs, err
 	}
 
-	oidcClientSecret, err := utils.GetStringInput(OIDCClientSecretMsg, "")
+	oidcClientSecret, err := utils.GetStringInput(oidcClientSecretMsg, "")
 	if err != nil {
 		return configs, err
 	}
@@ -67,16 +71,16 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 // CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
 func CreateOIDCConfig(userDomain string, version string) error {
 
-	oidcConfigPrompt := utils.GetConfirmInput(OIDCInstallMsg)
+	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
 
 	if oidcConfigPrompt != "y" {
 		return nil
 	}
 
-	utils.Info(OIDCConfigInfoMsg)
+	utils.Info(oidcConfigInfoMsg)
 
-	if _, err := utils.GetSecret(OIDCSecretName, WGEDefaultNamespace); err == nil {
-		utils.Info("OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'", OIDCSecretName, WGEDefaultNamespace)
+	if _, err := utils.GetSecret(oidcSecretName, WGEDefaultNamespace); err == nil {
+		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return err
@@ -94,21 +98,21 @@ func CreateOIDCConfig(userDomain string, version string) error {
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	err = utils.CreateSecret(OIDCSecretName, WGEDefaultNamespace, oidcSecretData)
+	err = utils.CreateSecret(oidcSecretName, WGEDefaultNamespace, oidcSecretData)
 	if err != nil {
 		return err
 	}
 
 	values := constructOIDCValues(oidcConfig)
 
-	utils.Warning(OIDCInstallInfoMsg)
+	utils.Warning(oidcInstallInfoMsg)
 
 	err = UpdateHelmReleaseValues(domain.OIDCValuesName, values)
 	if err != nil {
 		return err
 	}
 
-	utils.Info(OIDCConfirmationMsg)
+	utils.Info(oidcConfirmationMsg)
 
 	// Ask the user if he wants to revert the admin user
 	if err := checkAdminPasswordRevert(); err != nil {
@@ -120,7 +124,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 func checkAdminPasswordRevert() error {
 
-	adminUserRevert := utils.GetConfirmInput(AdminUserRevertMsg)
+	adminUserRevert := utils.GetConfirmInput(adminUserRevertMsg)
 
 	if adminUserRevert != "y" {
 		return nil
@@ -131,7 +135,7 @@ func checkAdminPasswordRevert() error {
 		return err
 	}
 
-	utils.Info(AdminUsernameRevertMsg)
+	utils.Info(adminUsernameRevertMsg)
 	return nil
 }
 
@@ -141,7 +145,7 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 		"enabled":                 true,
 		"issuerURL":               oidcConfig.IssuerURL,
 		"redirectURL":             oidcConfig.RedirectURL,
-		"clientCredentialsSecret": OIDCSecretName,
+		"clientCredentialsSecret": oidcSecretName,
 	}
 	return values
 }
@@ -154,7 +158,7 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("OIDC discovery URL returned status %d", resp.StatusCode)
+		return "", fmt.Errorf(discoveryUrlErrorMsgFormat, resp.StatusCode)
 	}
 
 	var result map[string]interface{}
@@ -164,7 +168,7 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 
 	issuer, ok := result["issuer"].(string)
 	if !ok || issuer == "" {
-		return "", fmt.Errorf("OIDC discovery URL did not return an issuer")
+		return "", fmt.Errorf(discoveryUrlNoIssuerMsg)
 	}
 
 	return issuer, nil

@@ -7,14 +7,15 @@ import (
 )
 
 const (
-	entitlementCheckMsg         = "entitlement file is checked and valid!"
-	EntitlementSecretName       = "weave-gitops-enterprise-credentials"
+	entitlementCheckConfirmMsg  = "entitlement file is checked and valid!"
 	invalidEntitlementMsgFormat = "\n✖️  Invalid entitlement file, Please check secret: '%s' under namespace: '%s' on your cluster\nTo purchase an entitlement to Weave GitOps Enterprise, please contact sales@weave.works.\n"
+	entitlementCheckMsg         = "Checking entitlement file ..."
 )
+const EntitlementSecretName = "weave-gitops-enterprise-credentials"
 
 // CheckEntitlementFile checks for valid entitlement secret
 func CheckEntitlementFile() error {
-	utils.Warning("Checking entitlement file ...")
+	utils.Warning(entitlementCheckMsg)
 
 	secret, err := utils.GetSecret(EntitlementSecretName, WGEDefaultNamespace)
 	if err != nil || secret.Data["entitlement"] == nil {
@@ -24,7 +25,7 @@ func CheckEntitlementFile() error {
 
 	// TODO: verify valid entitlement file
 
-	utils.Info(entitlementCheckMsg)
+	utils.Info(entitlementCheckConfirmMsg)
 
 	return nil
 }

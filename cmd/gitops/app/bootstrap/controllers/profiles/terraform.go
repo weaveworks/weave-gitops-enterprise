@@ -12,10 +12,13 @@ import (
 )
 
 const (
-	TFCommitMsg     = "Add terraform controller"
-	TFGettingSarted = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
-	TFControllerUrl = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
-	TFFileName      = "tf-controller.yaml"
+	tfCommitMsg             = "Add terraform controller"
+	tfGettingSarted         = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
+	tfControllerUrl         = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
+	tfFileName              = "tf-controller.yaml"
+	tfInstallInfoMsg        = "Installing Terraform Controller ..."
+	tfInstallConfirmMsg     = "Terraform Controller is installed successfully"
+	tfReleaseErrorMsgFormat = "error getting terraform release %d"
 )
 
 var TerraformCommand = &cobra.Command{
@@ -31,10 +34,10 @@ gitops bootstrap controllers terraform`,
 
 // InstallTerraform start installing policy agent helm chart
 func InstallTerraform() error {
-	utils.Warning(TFGettingSarted)
-	utils.Warning("Installing Terraform Controller ...")
+	utils.Warning(tfGettingSarted)
+	utils.Warning(tfInstallInfoMsg)
 
-	resp, err := http.Get(TFControllerUrl)
+	resp, err := http.Get(tfControllerUrl)
 	if err != nil {
 		return err
 	}
@@ -42,7 +45,7 @@ func InstallTerraform() error {
 
 	var bodyBytes []byte
 	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("error getting terraform release %d", resp.StatusCode)
+		return fmt.Errorf(tfReleaseErrorMsgFormat, resp.StatusCode)
 	}
 
 	bodyBytes, err = io.ReadAll(resp.Body)
@@ -58,11 +61,11 @@ func InstallTerraform() error {
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning("cleanup failed!")
+			utils.Warning(commands.RepoCleanupMsg)
 		}
 	}()
 
-	err = utils.CreateFileToRepo(TFFileName, string(bodyBytes), pathInRepo, TFCommitMsg)
+	err = utils.CreateFileToRepo(tfFileName, string(bodyBytes), pathInRepo, tfCommitMsg)
 	if err != nil {
 		return err
 	}
@@ -74,6 +77,6 @@ func InstallTerraform() error {
 	if err != nil {
 		return err
 	}
-	utils.Info("Terraform Controller is installed successfully")
+	utils.Info(tfInstallConfirmMsg)
 	return nil
 }
