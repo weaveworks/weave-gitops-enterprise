@@ -10,6 +10,12 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
+const (
+	TemplatesNamespaceMsg = "Please input the default namespace for templates"
+	ClusterNamespaceMsg   = "Please input the default namespace for clusters"
+	CAPIGettingSartedMsg  = "CAPI Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/capi/"
+)
+
 var CapiCommand = &cobra.Command{
 	Use:   "capi",
 	Short: "Bootstraps capi controller",
@@ -20,12 +26,6 @@ gitops bootstrap controllers capi`,
 		return InstallCapi()
 	},
 }
-
-const (
-	TemplatesNamespaceMsg = "Please input the default namespace for templates"
-	ClusterNamespaceMsg   = "Please input the default namespace for clusters"
-	CAPIGettingSartedMsg  = "CAPI Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/capi/"
-)
 
 // InstallCapi start installing policy agent helm chart
 func InstallCapi() error {

@@ -1,5 +1,12 @@
 package domain
 
+const (
+	PolicyAgentValuesName = "policy-agent"
+	OIDCValuesName        = "oidc"
+	CAPIValuesName        = "capi"
+	TerraformValuesName   = "enableTerraformUI"
+)
+
 // ValuesFile store the wge values
 type ValuesFile struct {
 	Config             ValuesWGEConfig        `json:"config,omitempty"`
@@ -61,13 +68,6 @@ type ChartEntry struct {
 	Name       string
 	Version    string
 }
-
-const (
-	PolicyAgentValuesName = "policy-agent"
-	OIDCValuesName        = "oidc"
-	CAPIValuesName        = "capi"
-	TerraformValuesName   = "enableTerraformUI"
-)
 
 // OIDCConfig store the OIDC config
 type OIDCConfig struct {

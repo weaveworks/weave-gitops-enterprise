@@ -11,6 +11,13 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
+const (
+	TFCommitMsg     = "Add terraform controller"
+	TFGettingSarted = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
+	TFControllerUrl = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
+	TFFileName      = "tf-controller.yaml"
+)
+
 var TerraformCommand = &cobra.Command{
 	Use:   "terraform",
 	Short: "Bootstraps Terraform Controller",
@@ -21,13 +28,6 @@ gitops bootstrap controllers terraform`,
 		return InstallTerraform()
 	},
 }
-
-const (
-	TFCommitMsg     = "Add terraform controller"
-	TFGettingSarted = "Terraform Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/terraform/"
-	TFControllerUrl = "https://raw.githubusercontent.com/weaveworks/tf-controller/main/docs/release.yaml"
-	TFFileName      = "tf-controller.yaml"
-)
 
 // InstallTerraform start installing policy agent helm chart
 func InstallTerraform() error {
