@@ -74,7 +74,7 @@ func CreateSecret(name string, namespace string, data map[string][]byte) error {
 	return nil
 }
 
-// DeleteSecret delete a kubernetes secret
+// DeleteSecret delete a kubernetes secret.
 func DeleteSecret(name string, namespace string) error {
 	clientset, err := GetKubernetesClient()
 	if err != nil {
