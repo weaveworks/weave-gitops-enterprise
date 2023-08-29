@@ -2,6 +2,7 @@ package utils
 
 import (
 	"encoding/json"
+	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
@@ -12,6 +13,7 @@ import (
 	k8syaml "sigs.k8s.io/yaml"
 )
 
+// CreateHelmReleaseYamlString create HelmRelease yaml string to add to file.
 func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 	helmRelease := helmv2.HelmRelease{
 		TypeMeta: v1.TypeMeta{
@@ -51,11 +53,13 @@ func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 
 	helmReleaseBytes, err := k8syaml.Marshal(helmRelease)
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
+
 	return string(helmReleaseBytes), nil
 }
 
+// CreateHelmRepositoryYamlString create HelmRepository yaml string to add to file.
 func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, error) {
 	repo := sourcev1.HelmRepository{
 		TypeMeta: v1.TypeMeta{
@@ -77,57 +81,60 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 			},
 		},
 	}
+
 	repoBytes, err := k8syaml.Marshal(repo)
 	if err != nil {
-		return "", CheckIfError(err)
+		return "", err
 	}
+
 	return string(repoBytes), nil
 }
 
-// ReconcileFlux reconcile flux defaults
+// ReconcileFlux reconcile flux default source and kustomization and a selected helmrelease.
 func ReconcileFlux(helmReleaseName ...string) error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
 	if err != nil {
-		return CheckIfError(err, string(out))
+		return fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		return CheckIfError(err, string(out))
+		return fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	if len(helmReleaseName) > 0 {
 		out, err = runner.Run("flux", "reconcile", "helmrelease", helmReleaseName[0])
 		if err != nil {
-			return CheckIfError(err, string(out))
+			return fmt.Errorf("%s%s", err.Error(), string(out))
 		}
 	}
 
 	return nil
 }
 
+// GetCurrentValuesForHelmRelease gets the current values from a specific helmrelease.
 func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.ValuesFile, error) {
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values}\"")
 	if err != nil {
-		return domain.ValuesFile{}, CheckIfError(err, string(out))
+		return domain.ValuesFile{}, fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	values := domain.ValuesFile{}
-	err = json.Unmarshal(out[1:len(out)-1], &values)
-	if err != nil {
-		return domain.ValuesFile{}, CheckIfError(err, string(out))
+	if err := json.Unmarshal(out[1:len(out)-1], &values); err != nil {
+		return domain.ValuesFile{}, fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	return values, nil
 }
 
+// GetCurrentVersionForHelmRelease gets the current version of helmrelease chart from helmrelease
 func GetCurrentVersionForHelmRelease(name string, namespace string) (string, error) {
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.chart.spec.version}\"")
 	if err != nil {
-		return "", CheckIfError(err, string(out))
+		return "", fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	return string(out[1 : len(out)-1]), nil

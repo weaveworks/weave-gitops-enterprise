@@ -1,8 +1,6 @@
 package profiles
 
 import (
-	"strings"
-
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
@@ -10,10 +8,13 @@ import (
 )
 
 const (
-	ADMISSION_MODE_MSG = "Do you want to enable admission mode"
-	MUTATION_MSG       = "Do you want to enable mutation"
-	AUDIT_MSG          = "Do you want to enable audit mode"
-	FAILURE_POLICY_MSG = "Choose your failure policy"
+	admissionModeMsg             = "Do you want to enable admission mode"
+	mutationMsg                  = "Do you want to enable mutation"
+	auditMsg                     = "Do you want to enable audit mode"
+	failurePolicyMsg             = "Choose your failure policy"
+	policyAgentGettingStartedMsg = "Policy Agent is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/policy-agent/"
+	policyAgentInstallInfoMsg    = "Installing Policy agent ..."
+	policyAgentInstallConfirmMsg = "Policy Agent is installed successfully"
 )
 
 var PolicyAgentCommand = &cobra.Command{
@@ -30,36 +31,27 @@ gitops bootstrap controllers policy-agent`,
 // InstallPolicyAgent start installing policy agent helm chart
 func InstallPolicyAgent() error {
 	var enableAdmission, enableAudit, enableMutate bool
-	utils.Warning("For more information about the configurations please refer to the docs https://github.com/weaveworks/policy-agent/blob/dev/docs/README.md")
+	utils.Warning(policyAgentGettingStartedMsg)
 
-	enableAdmissionResult, err := utils.GetConfirmInput(ADMISSION_MODE_MSG)
-	if err != nil {
-		return utils.CheckIfError(err)
-	}
+	enableAdmissionResult := utils.GetConfirmInput(admissionModeMsg)
 
-	if strings.Compare(enableAdmissionResult, "y") == 0 {
+	if enableAdmissionResult == "y" {
 		enableAdmission = true
 	} else {
 		enableAdmission = false
 	}
 
-	enableMutationResult, err := utils.GetConfirmInput(MUTATION_MSG)
-	if err != nil {
-		return utils.CheckIfError(err)
-	}
+	enableMutationResult := utils.GetConfirmInput(mutationMsg)
 
-	if strings.Compare(enableMutationResult, "y") == 0 {
+	if enableMutationResult == "y" {
 		enableMutate = true
 	} else {
 		enableMutate = false
 	}
 
-	enableAuditResult, err := utils.GetConfirmInput(AUDIT_MSG)
-	if err != nil {
-		return utils.CheckIfError(err)
-	}
+	enableAuditResult := utils.GetConfirmInput(auditMsg)
 
-	if strings.Compare(enableAuditResult, "y") == 0 {
+	if enableAuditResult == "y" {
 		enableAudit = true
 	} else {
 		enableAudit = false
@@ -69,20 +61,20 @@ func InstallPolicyAgent() error {
 		"Fail", "Ignore",
 	}
 
-	failurePolicyResult, err := utils.GetSelectInput(FAILURE_POLICY_MSG, failurePolicies)
+	failurePolicyResult, err := utils.GetSelectInput(failurePolicyMsg, failurePolicies)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	values := constructPolicyAgentValues(enableAdmission, enableMutate, enableAudit, failurePolicyResult)
 
-	utils.Warning("Installing policy agent ...")
-	err = commands.InstallController(domain.POLICY_AGENT_VALUES_NAME, values)
+	utils.Warning(policyAgentInstallInfoMsg)
+	err = commands.UpdateHelmReleaseValues(domain.PolicyAgentValuesName, values)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
-	utils.Info("✔ Policy Agent is installed successfully")
+	utils.Info(policyAgentInstallConfirmMsg)
 	return nil
 }
 

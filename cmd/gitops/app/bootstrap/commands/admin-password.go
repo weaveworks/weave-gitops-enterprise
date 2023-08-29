@@ -1,42 +1,60 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
 const (
-	ADMIN_USERNAME_MSG     = "Please enter your admin username (default: wego-admin)"
-	ADMIN_PASSWORD_MSG     = "Please enter your admin password"
-	DEFAULT_ADMIN_USERNAME = "wego-admin"
-	ADMIN_SECRET_NAME      = "cluster-user-auth"
+	adminUsernameMsg           = "Please enter your admin username (default: wego-admin)"
+	adminPasswordMsg           = "Please enter your admin password"
+	secretConfirmationMsg      = "admin secret is created"
+	adminSecretExistsMsgFormat = "admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'"
 )
 
-// getAdminPasswordSecrets asks user about admin username and password
+const (
+	defaultAdminUsername = "wego-admin"
+	adminSecretName      = "cluster-user-auth"
+)
+
+// getAdminPasswordSecrets asks user about admin username and password.
 func getAdminPasswordSecrets() (string, []byte, error) {
-	adminUsername, err := utils.GetStringInput(ADMIN_USERNAME_MSG, DEFAULT_ADMIN_USERNAME)
-	if err != nil {
-		return "", nil, utils.CheckIfError(err)
+	if _, err := utils.GetSecret(wgeDefaultNamespace, adminSecretName); err == nil {
+		utils.Info(adminSecretExistsMsgFormat, adminSecretName, wgeDefaultNamespace)
+		return "", nil, nil
+	} else if err != nil && !strings.Contains(err.Error(), "not found") {
+		return "", nil, err
 	}
 
-	adminPassword, err := utils.GetPasswordInput(ADMIN_PASSWORD_MSG)
+	adminUsername, err := utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
 	if err != nil {
-		return "", nil, utils.CheckIfError(err)
+		return "", nil, err
+	}
+
+	adminPassword, err := utils.GetPasswordInput(adminPasswordMsg)
+	if err != nil {
+		return "", nil, err
 	}
 
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
 	if err != nil {
-		return "", nil, utils.CheckIfError(err)
+		return "", nil, err
 	}
 
 	return adminUsername, encryptedPassword, nil
 }
 
-// CreateAdminPasswordSecret creates the secret for admin access with username and password
+// CreateAdminPasswordSecret creates the secret for admin access with username and password.
 func CreateAdminPasswordSecret() error {
 	adminUsername, adminPassword, err := getAdminPasswordSecrets()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
+	}
+
+	if adminUsername == "" || adminPassword == nil {
+		return nil
 	}
 
 	data := map[string][]byte{
@@ -44,12 +62,11 @@ func CreateAdminPasswordSecret() error {
 		"password": adminPassword,
 	}
 
-	err = utils.CreateSecret(ADMIN_SECRET_NAME, WGE_DEFAULT_NAMESPACE, data)
-	if err != nil {
-		return utils.CheckIfError(err)
+	if err := utils.CreateSecret(adminSecretName, wgeDefaultNamespace, data); err != nil {
+		return err
 	}
 
-	utils.Info("✔ admin secret is created")
+	utils.Info(secretConfirmationMsg)
 
 	return nil
 }

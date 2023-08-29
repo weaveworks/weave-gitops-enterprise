@@ -5,53 +5,53 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
-func InstallController(controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := utils.GetCurrentValuesForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
+// UpdateHelmReleaseValues add the extra HelmRelease values.
+func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
+	values, err := utils.GetCurrentValuesForHelmRelease(wgeHelmReleaseName, wgeDefaultNamespace)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	switch controllerValuesName {
-	case domain.POLICY_AGENT_VALUES_NAME:
+	case domain.PolicyAgentValuesName:
 		values.PolicyAgent = controllerValues
-	case domain.OIDC_VALUES_NAME:
+	case domain.OIDCValuesName:
 		values.Config.OIDC = controllerValues
-	case domain.CAPI_VALUES_NAME:
+	case domain.CAPIValuesName:
 		values.Config.CAPI = controllerValues
-	case domain.TERRAFORM_VALUES_NAME:
+		values.Global.CapiEnabled = true
+	case domain.TerraformValuesName:
 		values.EnableTerraformUI = true
 	}
 
-	version, err := utils.GetCurrentVersionForHelmRelease(WGE_HELMRELEASE_NAME, WGE_DEFAULT_NAMESPACE)
+	version, err := utils.GetCurrentVersionForHelmRelease(wgeHelmReleaseName, wgeDefaultNamespace)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
-	helmRelease, err := ConstructWGEhelmRelease(values, version)
+	helmRelease, err := constructWGEhelmRelease(values, version)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning("cleanup failed!")
+			utils.Warning(utils.RepoCleanupMsg)
 		}
 	}()
 
-	err = utils.CreateFileToRepo(WGE_HELMRELEASE_FILENAME, helmRelease, pathInRepo, WGE_HELMRELEASE_COMMITMSG)
-	if err != nil {
-		return utils.CheckIfError(err)
+	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, helmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
+		return err
 	}
 
-	err = utils.ReconcileFlux(WGE_HELMRELEASE_NAME)
-	if err != nil {
-		return utils.CheckIfError(err)
+	if err := utils.ReconcileFlux(wgeHelmReleaseName); err != nil {
+		return err
 	}
 
 	return nil

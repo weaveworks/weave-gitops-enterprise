@@ -11,34 +11,34 @@ import (
 )
 
 const (
-	VERSION_MSG = "Please select a version for WGE to be installed"
+	versionMsg = "Please select a version for WGE to be installed"
 )
 
-// SelectWgeVersion ask user to select wge version from the latest 3 versions
+// SelectWgeVersion ask user to select wge version from the latest 3 versions.
 func SelectWgeVersion() (string, error) {
-	entitlementSecret, err := utils.GetSecret(WGE_DEFAULT_NAMESPACE, ENTITLEMENT_SECRET_NAME)
+	entitlementSecret, err := utils.GetSecret(entitlementSecretName, wgeDefaultNamespace)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
 	versions, err := fetchHelmChart(username, password)
 	if err != nil {
-		return "", utils.CheckIfError(err)
+		return "", err
 	}
 
-	return utils.GetSelectInput(VERSION_MSG, versions)
+	return utils.GetSelectInput(versionMsg, versions)
 }
 
-// fetchHelmChart helper method to fetch wge helm chart detauls
+// fetchHelmChart helper method to fetch wge helm chart detauls.
 func fetchHelmChart(username, password string) ([]string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGE_CHART_URL), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", wgeChartUrl), nil)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 
 	}
 	req.SetBasicAuth(username, password)
@@ -46,25 +46,25 @@ func fetchHelmChart(username, password string) ([]string, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 	}
 	defer resp.Body.Close()
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 	}
 
 	var chart domain.HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
-		return []string{}, utils.CheckIfError(err)
+		return []string{}, err
 	}
 
-	entries := chart.Entries["mccp"]
+	entries := chart.Entries[wgeChartName]
 	var versions []string
 	for _, entry := range entries {
-		if entry.Name == "mccp" {
+		if entry.Name == wgeChartName {
 			versions = append(versions, entry.Version)
 			if len(versions) == 3 {
 				break

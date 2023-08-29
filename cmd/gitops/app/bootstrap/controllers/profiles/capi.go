@@ -10,6 +10,14 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
+const (
+	templatesNamespaceMsg = "Please input the default namespace for templates"
+	clusterNamespaceMsg   = "Please input the default namespace for clusters"
+	capiGettingSartedMsg  = "CAPI Controller is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/capi/"
+	capiInstallInfoMsg    = "Installing CAPI Controller ..."
+	capiInstallConfirmMsg = "CAPI Controller is installed successfully"
+)
+
 var CapiCommand = &cobra.Command{
 	Use:   "capi",
 	Short: "Bootstraps capi controller",
@@ -21,37 +29,32 @@ gitops bootstrap controllers capi`,
 	},
 }
 
-const (
-	TEMPLATES_NAMESPACE_MSG = "Please input the default namespace for templates"
-	CLUSTERS_NAMESPACE_MSG  = "Please input the default namespace for clusters"
-)
-
 // InstallCapi start installing policy agent helm chart
 func InstallCapi() error {
-	utils.Warning("For more information about the configurations please refer to the docs https://docs.gitops.weave.works/docs/enterprise/getting-started/install-enterprise/#valuesconfigcapirepositoryurl")
+	utils.Warning(capiGettingSartedMsg)
 
-	templatesNamespace, err := utils.GetStringInput(TEMPLATES_NAMESPACE_MSG, "default")
+	templatesNamespace, err := utils.GetStringInput(templatesNamespaceMsg, "default")
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
-	clustersNamespace, err := utils.GetStringInput(CLUSTERS_NAMESPACE_MSG, "default")
+	clustersNamespace, err := utils.GetStringInput(clusterNamespaceMsg, "default")
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
 	values, err := constructCAPIValues(templatesNamespace, clustersNamespace)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
-	utils.Warning("Installing CAPI Controller ...")
-	err = commands.InstallController(domain.CAPI_VALUES_NAME, values)
+	utils.Warning(capiInstallInfoMsg)
+	err = commands.UpdateHelmReleaseValues(domain.CAPIValuesName, values)
 	if err != nil {
-		return utils.CheckIfError(err)
+		return err
 	}
 
-	utils.Info("✔ CAPI Controller is installed successfully")
+	utils.Info(capiInstallConfirmMsg)
 	return nil
 }
 
