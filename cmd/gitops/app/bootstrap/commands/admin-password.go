@@ -8,13 +8,14 @@ import (
 )
 
 const (
-	AdminUsernameMsg      = "Please enter your admin username (default: wego-admin)"
-	AdminPasswordMsg      = "Please enter your admin password"
-	SecretConfirmationMsg = "admin secret is created"
+	adminUsernameMsg           = "Please enter your admin username (default: wego-admin)"
+	adminPasswordMsg           = "Please enter your admin password"
+	secretConfirmationMsg      = "admin secret is created"
+	adminSecretExistsMsgFormat = "admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'"
 )
 
 const (
-	DefaultAdminUsername = "wego-admin"
+	defaultAdminUsername = "wego-admin"
 	AdminSecretName      = "cluster-user-auth"
 )
 
@@ -22,18 +23,18 @@ const (
 func getAdminPasswordSecrets() (string, []byte, error) {
 
 	if _, err := utils.GetSecret(WGEDefaultNamespace, AdminSecretName); err == nil {
-		utils.Info("admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'", AdminSecretName, WGEDefaultNamespace)
+		utils.Info(adminSecretExistsMsgFormat, AdminSecretName, WGEDefaultNamespace)
 		return "", nil, nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return "", nil, err
 	}
 
-	adminUsername, err := utils.GetStringInput(AdminUsernameMsg, DefaultAdminUsername)
+	adminUsername, err := utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
 	if err != nil {
 		return "", nil, err
 	}
 
-	adminPassword, err := utils.GetPasswordInput(AdminPasswordMsg)
+	adminPassword, err := utils.GetPasswordInput(adminPasswordMsg)
 	if err != nil {
 		return "", nil, err
 	}
@@ -65,7 +66,7 @@ func CreateAdminPasswordSecret() error {
 		return err
 	}
 
-	utils.Info(SecretConfirmationMsg)
+	utils.Info(secretConfirmationMsg)
 
 	return nil
 }
