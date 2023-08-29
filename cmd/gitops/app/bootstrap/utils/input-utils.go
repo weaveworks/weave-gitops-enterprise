@@ -7,7 +7,7 @@ import (
 	"github.com/manifoldco/promptui"
 )
 
-// GetPasswordInput prompt to enter password
+// GetPasswordInput prompt to enter password.
 func GetPasswordInput(label string) (string, error) {
 	validate := func(input string) error {
 		if len(input) < 6 {
@@ -29,7 +29,7 @@ func GetPasswordInput(label string) (string, error) {
 	return result, nil
 }
 
-// GetSelectInput get option from multiple choices
+// GetSelectInput get option from multiple choices.
 func GetSelectInput(msg string, items []string) (string, error) {
 	index := -1
 	var result string
@@ -57,7 +57,7 @@ func GetSelectInput(msg string, items []string) (string, error) {
 	return result, nil
 }
 
-// GetStringInput prompt to get string input
+// GetStringInput prompt to get string input.
 func GetStringInput(msg string, defaultValue string) (string, error) {
 	validate := func(input string) error {
 		if input == "" {
@@ -65,6 +65,7 @@ func GetStringInput(msg string, defaultValue string) (string, error) {
 		}
 		return nil
 	}
+
 	prompt := promptui.Prompt{
 		Label:    msg,
 		Validate: validate,
@@ -79,7 +80,7 @@ func GetStringInput(msg string, defaultValue string) (string, error) {
 	return result, nil
 }
 
-// GetConfirmInput prompt to get yes or no input
+// GetConfirmInput prompt to get yes or no input.
 func GetConfirmInput(msg string) string {
 	prompt := promptui.Prompt{
 		Label:     msg,
@@ -99,7 +100,7 @@ func Info(format string, args ...interface{}) {
 	fmt.Printf("\x1b[34;1m✔  %s\x1b[0m\n", fmt.Sprintf(format, args...))
 }
 
-// Warning should be used to display a warning
+// Warning should be used to display a warning.
 func Warning(format string, args ...interface{}) {
 	fmt.Printf("%s\n", fmt.Sprintf(format, args...))
 }

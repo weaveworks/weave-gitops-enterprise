@@ -13,6 +13,7 @@ import (
 	k8syaml "sigs.k8s.io/yaml"
 )
 
+// CreateHelmReleaseYamlString create HelmRelease yaml string to add to file.
 func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 	helmRelease := helmv2.HelmRelease{
 		TypeMeta: v1.TypeMeta{
@@ -54,9 +55,11 @@ func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	return string(helmReleaseBytes), nil
 }
 
+// CreateHelmRepositoryYamlString create HelmRepository yaml string to add to file.
 func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, error) {
 	repo := sourcev1.HelmRepository{
 		TypeMeta: v1.TypeMeta{
@@ -78,14 +81,16 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 			},
 		},
 	}
+
 	repoBytes, err := k8syaml.Marshal(repo)
 	if err != nil {
 		return "", err
 	}
+
 	return string(repoBytes), nil
 }
 
-// ReconcileFlux reconcile flux defaults
+// ReconcileFlux reconcile flux default source and kustomization and a selected helmrelease.
 func ReconcileFlux(helmReleaseName ...string) error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
@@ -108,6 +113,7 @@ func ReconcileFlux(helmReleaseName ...string) error {
 	return nil
 }
 
+// GetCurrentValuesForHelmRelease gets the current values from a specific helmrelease.
 func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.ValuesFile, error) {
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values}\"")
@@ -116,14 +122,14 @@ func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.Value
 	}
 
 	values := domain.ValuesFile{}
-	err = json.Unmarshal(out[1:len(out)-1], &values)
-	if err != nil {
+	if err := json.Unmarshal(out[1:len(out)-1], &values); err != nil {
 		return domain.ValuesFile{}, fmt.Errorf("%s%s", err.Error(), string(out))
 	}
 
 	return values, nil
 }
 
+// GetCurrentVersionForHelmRelease gets the current version of helmrelease chart from helmrelease
 func GetCurrentVersionForHelmRelease(name string, namespace string) (string, error) {
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.chart.spec.version}\"")

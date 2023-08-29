@@ -12,9 +12,13 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-const WORKINGDIR = "/tmp/bootstrap-flux"
+const (
+	workingDir      = "/tmp/bootstrap-flux"
+	fluxGitUserName = "Flux Bootstrap CLI"
+	fluxGitEmail    = "bootstrap@weave.works"
+)
 
-// GetRepoUrl get the default repo url for flux installation
+// GetRepoUrl get the default repo url for flux installation (flux-system) GitRepository.
 func GetRepoUrl() (string, error) {
 	var runner runner.CLIRunner
 	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
@@ -31,7 +35,7 @@ func GetRepoUrl() (string, error) {
 	return repoUrlParsed, nil
 }
 
-// GetRepoBranch get the branch for flux installation
+// GetRepoBranch get the branch for flux installation (flux-system) GitRepository.
 func GetRepoBranch() (string, error) {
 	var runner runner.CLIRunner
 
@@ -45,7 +49,7 @@ func GetRepoBranch() (string, error) {
 	return repoBranchParsed, nil
 }
 
-// GetRepoPath get the path for flux installation
+// GetRepoPath get the path for flux installation (flux-system) Kustomization.
 func GetRepoPath() (string, error) {
 	var runner runner.CLIRunner
 
@@ -59,7 +63,7 @@ func GetRepoPath() (string, error) {
 	return repoPathParsed, nil
 }
 
-// CloneRepo shallow clones the user repo's branch under temp
+// CloneRepo shallow clones the user repo's branch under temp and returns the current path.
 func CloneRepo() (string, error) {
 	if err := CleanupRepo(); err != nil {
 		return "", err
@@ -82,7 +86,7 @@ func CloneRepo() (string, error) {
 		return "", err
 	}
 
-	out, err := runner.Run("git", "clone", repoUrlParsed, WORKINGDIR, "--depth", "1", "-b", repoBranchParsed)
+	out, err := runner.Run("git", "clone", repoUrlParsed, workingDir, "--depth", "1", "-b", repoBranchParsed)
 	if err != nil {
 		return "", fmt.Errorf("%s%s", err.Error(), string(out))
 	}
@@ -90,9 +94,9 @@ func CloneRepo() (string, error) {
 	return repoPathParsed, nil
 }
 
-// CreateFileToRepo create a file and add to the repo
+// CreateFileToRepo create a file and add to the repo.
 func CreateFileToRepo(filename string, filecontent string, path string, commitmsg string) error {
-	repo, err := git.PlainOpen(WORKINGDIR)
+	repo, err := git.PlainOpen(workingDir)
 	if err != nil {
 		return err
 	}
@@ -102,7 +106,7 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 		return err
 	}
 
-	filePath := filepath.Join(WORKINGDIR, path, filename)
+	filePath := filepath.Join(workingDir, path, filename)
 
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -110,36 +114,32 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 	}
 
 	defer file.Close()
-	_, err = file.WriteString(filecontent)
-	if err != nil {
+	if _, err := file.WriteString(filecontent); err != nil {
 		return err
 	}
 
-	_, err = worktree.Add(filepath.Join(path, filename))
-	if err != nil {
+	if _, err := worktree.Add(filepath.Join(path, filename)); err != nil {
 		return err
 	}
 
-	_, err = worktree.Commit(commitmsg, &git.CommitOptions{
+	if _, err := worktree.Commit(commitmsg, &git.CommitOptions{
 		Author: &object.Signature{
-			Name:  "Flux Bootstrap CLI",
-			Email: "bootstrap@weave.works",
+			Name:  fluxGitUserName,
+			Email: fluxGitEmail,
 			When:  time.Now(),
 		},
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
 
-	err = repo.Push(&git.PushOptions{})
-	if err != nil {
+	if err := repo.Push(&git.PushOptions{}); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-// CleanupRepo delete the temp repo
+// CleanupRepo delete the temp repo.
 func CleanupRepo() error {
-	return os.RemoveAll(WORKINGDIR)
+	return os.RemoveAll(workingDir)
 }

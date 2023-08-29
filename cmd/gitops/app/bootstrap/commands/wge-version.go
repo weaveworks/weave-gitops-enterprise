@@ -16,7 +16,7 @@ const (
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions
 func SelectWgeVersion() (string, error) {
-	entitlementSecret, err := utils.GetSecret(WGEDefaultNamespace, EntitlementSecretName)
+	entitlementSecret, err := utils.GetSecret(EntitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return "", err
 	}

@@ -75,7 +75,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	utils.Info(OIDCConfigInfoMsg)
 
-	if _, err := utils.GetSecret(WGEDefaultNamespace, OIDCSecretName); err == nil {
+	if _, err := utils.GetSecret(OIDCSecretName, WGEDefaultNamespace); err == nil {
 		utils.Info("OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'", OIDCSecretName, WGEDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {

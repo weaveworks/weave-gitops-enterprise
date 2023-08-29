@@ -11,10 +11,8 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 )
 
-// GetKubernetesClient creates a kuberentes client from the default kubeconfig
+// GetKubernetesClient creates a kuberentes client from the default kubeconfig.
 func GetKubernetesClient() (*kubernetes.Clientset, error) {
-	// Path to the kubeconfig file. This is typically located at "~/.kube/config".
-	// Obtain the user's home directory.
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return nil, err
@@ -37,16 +35,14 @@ func GetKubernetesClient() (*kubernetes.Clientset, error) {
 	return clientset, nil
 }
 
-// GetSecret get secret values from kubernetes
-func GetSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
-	// Create a new Kubernetes client using the config.
+// GetSecret get secret values from kubernetes.
+func GetSecret(name string, namespace string) (*corev1.Secret, error) {
 	clientset, err := GetKubernetesClient()
 	if err != nil {
 		return nil, err
 	}
 
-	// Fetch the secret from the Kubernetes cluster.
-	secret, err := clientset.CoreV1().Secrets(secretNamespace).Get(context.TODO(), secretName, v1.GetOptions{})
+	secret, err := clientset.CoreV1().Secrets(namespace).Get(context.Background(), name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
@@ -54,9 +50,8 @@ func GetSecret(secretNamespace, secretName string) (*corev1.Secret, error) {
 	return secret, nil
 }
 
-// CreateSecret create a kubernetes secret
-func CreateSecret(secretName string, secretNamespace string, secretData map[string][]byte) error {
-	// Create a new Kubernetes client using the config.
+// CreateSecret create a kubernetes secret.
+func CreateSecret(name string, namespace string, data map[string][]byte) error {
 	clientset, err := GetKubernetesClient()
 	if err != nil {
 		return err
@@ -64,34 +59,33 @@ func CreateSecret(secretName string, secretNamespace string, secretData map[stri
 
 	secret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      secretName,
-			Namespace: secretNamespace,
+			Name:      name,
+			Namespace: namespace,
 		},
-		Data: secretData,
+		Data: data,
 	}
 
-	_, err = clientset.CoreV1().Secrets(secretNamespace).Create(context.TODO(), secret, v1.CreateOptions{
+	if _, err := clientset.CoreV1().Secrets(namespace).Create(context.Background(), secret, v1.CreateOptions{
 		TypeMeta: secret.TypeMeta,
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
+
 	return nil
 }
 
 // DeleteSecret delete a kubernetes secret
-func DeleteSecret(secretName string, secretNamespace string) error {
-	// Create a new Kubernetes client using the config.
+func DeleteSecret(name string, namespace string) error {
 	clientset, err := GetKubernetesClient()
 	if err != nil {
 		return err
 	}
 
-	err = clientset.CoreV1().Secrets(secretNamespace).Delete(context.TODO(), secretName, v1.DeleteOptions{
+	if err := clientset.CoreV1().Secrets(namespace).Delete(context.Background(), name, v1.DeleteOptions{
 		TypeMeta: v1.TypeMeta{},
-	})
-	if err != nil {
+	}); err != nil {
 		return err
 	}
+
 	return nil
 }
