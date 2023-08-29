@@ -61,7 +61,7 @@ func InstallTerraform() error {
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning(commands.RepoCleanupMsg)
+			utils.Warning(utils.RepoCleanupMsg)
 		}
 	}()
 

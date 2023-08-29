@@ -11,12 +11,12 @@ import (
 )
 
 const (
-	VersionMsg = "Please select a version for WGE to be installed"
+	versionMsg = "Please select a version for WGE to be installed"
 )
 
-// SelectWgeVersion ask user to select wge version from the latest 3 versions
+// SelectWgeVersion ask user to select wge version from the latest 3 versions.
 func SelectWgeVersion() (string, error) {
-	entitlementSecret, err := utils.GetSecret(EntitlementSecretName, WGEDefaultNamespace)
+	entitlementSecret, err := utils.GetSecret(entitlementSecretName, wgeDefaultNamespace)
 	if err != nil {
 		return "", err
 	}
@@ -31,12 +31,12 @@ func SelectWgeVersion() (string, error) {
 		return "", err
 	}
 
-	return utils.GetSelectInput(VersionMsg, versions)
+	return utils.GetSelectInput(versionMsg, versions)
 }
 
-// fetchHelmChart helper method to fetch wge helm chart detauls
+// fetchHelmChart helper method to fetch wge helm chart detauls.
 func fetchHelmChart(username, password string) ([]string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", WGEChartUrl), nil)
+	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", wgeChartUrl), nil)
 	if err != nil {
 		return []string{}, err
 
@@ -61,10 +61,10 @@ func fetchHelmChart(username, password string) ([]string, error) {
 		return []string{}, err
 	}
 
-	entries := chart.Entries[WGEChartName]
+	entries := chart.Entries[wgeChartName]
 	var versions []string
 	for _, entry := range entries {
-		if entry.Name == WGEChartName {
+		if entry.Name == wgeChartName {
 			versions = append(versions, entry.Version)
 			if len(versions) == 3 {
 				break

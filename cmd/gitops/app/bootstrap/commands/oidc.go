@@ -27,9 +27,8 @@ const (
 	discoveryUrlNoIssuerMsg         = "OIDC discovery URL returned no issuer"
 )
 
-// getOIDCSecrets ask the user for the OIDC configuraions
+// getOIDCSecrets ask the user for the OIDC configuraions.
 func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
-
 	configs := domain.OIDCConfig{}
 
 	oidcDiscoveryURL, err := utils.GetStringInput(oidcDiscoverUrlMsg, "")
@@ -59,7 +58,7 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 		ClientSecret: oidcClientSecret,
 	}
 
-	if strings.Contains(userDomain, "localhost") {
+	if strings.Contains(userDomain, domainTypelocalhost) {
 		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
 	} else {
 		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", userDomain)
@@ -70,7 +69,6 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 
 // CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
 func CreateOIDCConfig(userDomain string, version string) error {
-
 	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
 
 	if oidcConfigPrompt != "y" {
@@ -79,8 +77,8 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	utils.Info(oidcConfigInfoMsg)
 
-	if _, err := utils.GetSecret(oidcSecretName, WGEDefaultNamespace); err == nil {
-		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace)
+	if _, err := utils.GetSecret(oidcSecretName, wgeDefaultNamespace); err == nil {
+		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, wgeDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return err
@@ -98,8 +96,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	err = utils.CreateSecret(oidcSecretName, WGEDefaultNamespace, oidcSecretData)
-	if err != nil {
+	if err = utils.CreateSecret(oidcSecretName, wgeDefaultNamespace, oidcSecretData); err != nil {
 		return err
 	}
 
@@ -107,8 +104,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 
 	utils.Warning(oidcInstallInfoMsg)
 
-	err = UpdateHelmReleaseValues(domain.OIDCValuesName, values)
-	if err != nil {
+	if err := UpdateHelmReleaseValues(domain.OIDCValuesName, values); err != nil {
 		return err
 	}
 
@@ -123,15 +119,13 @@ func CreateOIDCConfig(userDomain string, version string) error {
 }
 
 func checkAdminPasswordRevert() error {
-
 	adminUserRevert := utils.GetConfirmInput(adminUserRevertMsg)
 
 	if adminUserRevert != "y" {
 		return nil
 	}
 
-	err := utils.DeleteSecret(AdminSecretName, WGEDefaultNamespace)
-	if err != nil {
+	if err := utils.DeleteSecret(adminSecretName, wgeDefaultNamespace); err != nil {
 		return err
 	}
 
@@ -147,6 +141,7 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 		"redirectURL":             oidcConfig.RedirectURL,
 		"clientCredentialsSecret": oidcSecretName,
 	}
+
 	return values
 }
 
@@ -155,6 +150,7 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {

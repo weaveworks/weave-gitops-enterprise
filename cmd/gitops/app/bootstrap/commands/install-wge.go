@@ -17,39 +17,37 @@ import (
 )
 
 const (
-	domainMsg               = "Please select the domain to be used"
-	clusterDomainMsg        = "Please enter your cluster domain"
-	wgeHelmRepoCommitMsg    = "Add WGE HelmRepository YAML file"
-	WGEHelmReleaseCommitMsg = "Add WGE HelmRelease YAML file"
-	externalDNSWarningMsg   = `
-	Please make sure to have the external DNS service installed in your cluster, 
-	or you have a domain that points to your cluster.
-	For more information about external DNS, please refer to:
-	https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
-	`
-	wgeInstallMsgFormat          = "All set installing WGE v%s, This may take a few minutes...\n"
-	installSuccessMsgFormat      = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
-	localInstallSuccessMsgFormat = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
+	domainMsg             = "Please select the domain to be used"
+	clusterDomainMsg      = "Please enter your cluster domain"
+	externalDNSWarningMsg = `Please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.
+For more information about external DNS, please refer to: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
+`
+	wgeInstallMsg          = "All set installing WGE v%s, This may take a few minutes...\n"
+	installSuccessMsg      = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
+	localInstallSuccessMsg = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
 )
+
 const (
-	WGEChartName                      = "mccp"
+	wgeHelmRepoCommitMsg              = "Add WGE HelmRepository YAML file"
+	wgeHelmReleaseCommitMsg           = "Add WGE HelmRelease YAML file"
+	wgeChartName                      = "mccp"
 	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
-	WGEHelmReleaseName                = "weave-gitops-enterprise"
-	WGEDefaultNamespace               = "flux-system"
-	domainTypelocalgost               = "localhost (Using Portforward)"
+	wgeHelmReleaseName                = "weave-gitops-enterprise"
+	wgeDefaultNamespace               = "flux-system"
+	domainTypelocalhost               = "localhost"
 	domainTypeExternalDNS             = "external DNS"
 	wgeHelmrepoFileName               = "wge-hrepo.yaml"
-	WGEHelmReleaseFileName            = "wge-hrelease.yaml"
-	WGEChartUrl                       = "https://charts.dev.wkp.weave.works/releases/charts-v3"
+	wgeHelmReleaseFileName            = "wge-hrelease.yaml"
+	wgeChartUrl                       = "https://charts.dev.wkp.weave.works/releases/charts-v3"
 	clusterControllerFullOverrideName = "cluster"
 	clusterControllerImage            = "docker.io/weaveworks/cluster-controller"
 	clusterControllerImageTag         = "v1.5.2"
 )
 
-// InstallWge installs weave gitops enterprise chart
+// InstallWge installs weave gitops enterprise chart.
 func InstallWge(version string) (string, error) {
 	domainTypes := []string{
-		domainTypelocalgost,
+		domainTypelocalhost,
 		domainTypeExternalDNS,
 	}
 
@@ -58,20 +56,16 @@ func InstallWge(version string) (string, error) {
 		return "", err
 	}
 
-	userDomain := "localhost"
-
-	if strings.Compare(domainType, domainTypeExternalDNS) == 0 {
-
+	userDomain := domainTypelocalhost
+	if domainType == domainTypeExternalDNS {
 		utils.Warning(externalDNSWarningMsg)
-
 		userDomain, err = utils.GetStringInput(clusterDomainMsg, "")
 		if err != nil {
 			return "", err
 		}
-
 	}
 
-	utils.Info(wgeInstallMsgFormat, version)
+	utils.Info(wgeInstallMsg, version)
 
 	pathInRepo, err := utils.CloneRepo()
 	if err != nil {
@@ -81,7 +75,7 @@ func InstallWge(version string) (string, error) {
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning(RepoCleanupMsg)
+			utils.Warning(utils.RepoCleanupMsg)
 		}
 	}()
 
@@ -131,41 +125,39 @@ func InstallWge(version string) (string, error) {
 		ClusterController: clusterController,
 	}
 
-	wgeHelmRelease, err := ConstructWGEhelmRelease(values, version)
+	wgeHelmRelease, err := constructWGEhelmRelease(values, version)
 	if err != nil {
 		return "", err
 	}
 
-	err = utils.CreateFileToRepo(WGEHelmReleaseFileName, wgeHelmRelease, pathInRepo, WGEHelmReleaseCommitMsg)
-	if err != nil {
+	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, wgeHelmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
 		return "", err
 	}
 
-	err = utils.ReconcileFlux(WGEHelmReleaseName)
-	if err != nil {
+	if err := utils.ReconcileFlux(wgeHelmReleaseName); err != nil {
 		return "", err
 	}
 
 	return userDomain, nil
-
 }
 
 func constructWgeHelmRepository() (string, error) {
 	wgeHelmRepo := sourcev1.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      wgeHelmRepositoryName,
-			Namespace: WGEDefaultNamespace,
+			Namespace: wgeDefaultNamespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
-			URL: WGEChartUrl,
+			URL: wgeChartUrl,
 			Interval: v1.Duration{
 				Duration: time.Minute,
 			},
 			SecretRef: &meta.LocalObjectReference{
-				Name: EntitlementSecretName,
+				Name: entitlementSecretName,
 			},
 		},
 	}
+
 	return utils.CreateHelmRepositoryYamlString(wgeHelmRepo)
 }
 
@@ -194,8 +186,7 @@ func constructIngressValues(userDomain string) map[string]interface{} {
 	return ingressValues
 }
 
-// ConstructWGEhelmRelease create the yaml resource for wge chart
-func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) (string, error) {
+func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) (string, error) {
 	valuesBytes, err := json.Marshal(valuesFile)
 	if err != nil {
 		return "", err
@@ -203,16 +194,16 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 
 	wgeHelmRelease := helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      WGEHelmReleaseName,
-			Namespace: WGEDefaultNamespace,
+			Name:      wgeHelmReleaseName,
+			Namespace: wgeDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
-					Chart:             WGEChartName,
+					Chart:             wgeChartName,
 					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      wgeHelmRepositoryName,
-						Namespace: WGEDefaultNamespace,
+						Namespace: wgeDefaultNamespace,
 					},
 					Version: chartVersion,
 				},
@@ -233,18 +224,20 @@ func ConstructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
 
+// CheckUIDomain display the message to be for external dns or localhost.
 func CheckUIDomain(userDomain string, wgeVersion string) error {
-	if !strings.Contains(userDomain, "localhost") {
-
-		utils.Info(installSuccessMsgFormat, wgeVersion, userDomain)
+	if !strings.Contains(userDomain, domainTypelocalhost) {
+		utils.Info(installSuccessMsg, wgeVersion, userDomain)
 		return nil
 	}
 
-	utils.Info(localInstallSuccessMsgFormat, wgeVersion)
+	utils.Info(localInstallSuccessMsg, wgeVersion)
+
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {
 		return fmt.Errorf("%s%s", err.Error(), string(out))
 	}
+
 	return nil
 }

@@ -13,6 +13,10 @@ import (
 )
 
 const (
+	RepoCleanupMsg = "Cleaning up repo ..."
+)
+
+const (
 	workingDir      = "/tmp/bootstrap-flux"
 	fluxGitUserName = "Flux Bootstrap CLI"
 	fluxGitEmail    = "bootstrap@weave.works"

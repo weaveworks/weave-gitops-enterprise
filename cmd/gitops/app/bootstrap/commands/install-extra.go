@@ -5,10 +5,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
-const RepoCleanupMsg = "Cleaning up repo ..."
-
+// UpdateHelmReleaseValues add the extra HelmRelease values.
 func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := utils.GetCurrentValuesForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
+	values, err := utils.GetCurrentValuesForHelmRelease(wgeHelmReleaseName, wgeDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -25,12 +24,12 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 		values.EnableTerraformUI = true
 	}
 
-	version, err := utils.GetCurrentVersionForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
+	version, err := utils.GetCurrentVersionForHelmRelease(wgeHelmReleaseName, wgeDefaultNamespace)
 	if err != nil {
 		return err
 	}
 
-	helmRelease, err := ConstructWGEhelmRelease(values, version)
+	helmRelease, err := constructWGEhelmRelease(values, version)
 	if err != nil {
 		return err
 	}
@@ -43,17 +42,15 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning(RepoCleanupMsg)
+			utils.Warning(utils.RepoCleanupMsg)
 		}
 	}()
 
-	err = utils.CreateFileToRepo(WGEHelmReleaseFileName, helmRelease, pathInRepo, WGEHelmReleaseCommitMsg)
-	if err != nil {
+	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, helmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
 		return err
 	}
 
-	err = utils.ReconcileFlux(WGEHelmReleaseName)
-	if err != nil {
+	if err := utils.ReconcileFlux(wgeHelmReleaseName); err != nil {
 		return err
 	}
 

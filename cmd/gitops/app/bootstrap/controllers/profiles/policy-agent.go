@@ -1,8 +1,6 @@
 package profiles
 
 import (
-	"strings"
-
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
@@ -37,7 +35,7 @@ func InstallPolicyAgent() error {
 
 	enableAdmissionResult := utils.GetConfirmInput(admissionModeMsg)
 
-	if strings.Compare(enableAdmissionResult, "y") == 0 {
+	if enableAdmissionResult == "y" {
 		enableAdmission = true
 	} else {
 		enableAdmission = false
@@ -45,7 +43,7 @@ func InstallPolicyAgent() error {
 
 	enableMutationResult := utils.GetConfirmInput(mutationMsg)
 
-	if strings.Compare(enableMutationResult, "y") == 0 {
+	if enableMutationResult == "y" {
 		enableMutate = true
 	} else {
 		enableMutate = false
@@ -53,7 +51,7 @@ func InstallPolicyAgent() error {
 
 	enableAuditResult := utils.GetConfirmInput(auditMsg)
 
-	if strings.Compare(enableAuditResult, "y") == 0 {
+	if enableAuditResult == "y" {
 		enableAudit = true
 	} else {
 		enableAudit = false

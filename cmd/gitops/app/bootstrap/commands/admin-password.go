@@ -16,14 +16,13 @@ const (
 
 const (
 	defaultAdminUsername = "wego-admin"
-	AdminSecretName      = "cluster-user-auth"
+	adminSecretName      = "cluster-user-auth"
 )
 
-// getAdminPasswordSecrets asks user about admin username and password
+// getAdminPasswordSecrets asks user about admin username and password.
 func getAdminPasswordSecrets() (string, []byte, error) {
-
-	if _, err := utils.GetSecret(WGEDefaultNamespace, AdminSecretName); err == nil {
-		utils.Info(adminSecretExistsMsgFormat, AdminSecretName, WGEDefaultNamespace)
+	if _, err := utils.GetSecret(wgeDefaultNamespace, adminSecretName); err == nil {
+		utils.Info(adminSecretExistsMsgFormat, adminSecretName, wgeDefaultNamespace)
 		return "", nil, nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return "", nil, err
@@ -47,12 +46,13 @@ func getAdminPasswordSecrets() (string, []byte, error) {
 	return adminUsername, encryptedPassword, nil
 }
 
-// CreateAdminPasswordSecret creates the secret for admin access with username and password
+// CreateAdminPasswordSecret creates the secret for admin access with username and password.
 func CreateAdminPasswordSecret() error {
 	adminUsername, adminPassword, err := getAdminPasswordSecrets()
 	if err != nil {
 		return err
 	}
+
 	if adminUsername == "" || adminPassword == nil {
 		return nil
 	}
@@ -62,7 +62,7 @@ func CreateAdminPasswordSecret() error {
 		"password": adminPassword,
 	}
 
-	if err := utils.CreateSecret(AdminSecretName, WGEDefaultNamespace, data); err != nil {
+	if err := utils.CreateSecret(adminSecretName, wgeDefaultNamespace, data); err != nil {
 		return err
 	}
 

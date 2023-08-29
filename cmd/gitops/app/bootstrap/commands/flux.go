@@ -31,7 +31,7 @@ const (
 	defaultGitRepoPath = "clusters/my-cluster"
 )
 
-// BootstrapFlux get flux values from user and bootstraps it using generic way
+// BootstrapFlux get flux values from user and bootstraps it using generic way.
 func BootstrapFlux() error {
 	bootstrapFlux := utils.GetConfirmInput(fluxBootstrapMsg)
 
@@ -80,7 +80,7 @@ func BootstrapFlux() error {
 	return nil
 }
 
-// CheckFluxIsInstalled checks for valid flux installation
+// CheckFluxIsInstalled checks for valid flux installation.
 func CheckFluxIsInstalled() error {
 	utils.Warning(fluxInstallCheckMsg)
 
@@ -96,7 +96,7 @@ func CheckFluxIsInstalled() error {
 	return nil
 }
 
-// CheckFluxIsInstalled checks if flux installation is valid and can reconcile
+// CheckFluxIsInstalled checks if flux installation is valid and can reconcile.
 func CheckFluxReconcile() error {
 	utils.Warning(fluxInstallValidationMsg)
 
