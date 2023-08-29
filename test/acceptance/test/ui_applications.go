@@ -75,10 +75,6 @@ func AddKustomizationApp(application *pages.AddApplication, app Application) {
 		if source, _ := application.Source.Attribute("value"); source != "" {
 			gomega.Expect(source).Should(gomega.MatchRegexp(app.Source), "Application source GitRepository is incorrect")
 		}
-
-		if app.TargetNamespace != GITOPS_DEFAULT_NAMESPACE {
-			gomega.Eventually(application.CreateTargetNamespace.Check).Should(gomega.Succeed(), "Failed to select 'Create target namespace for kustomization'")
-		}
 	})
 }
 
@@ -145,7 +141,11 @@ func verifyAppInformation(applicationsPage *pages.ApplicationsPage, app Applicat
 		gomega.Eventually(applicationInfo.Status, ASSERTION_2MINUTE_TIME_OUT).Should(matchers.MatchText(status), fmt.Sprintf("Failed to have expected %s application status: %s", app.Name, status))
 
 		if app.Tenant != "" {
-			gomega.Eventually(applicationInfo.Tenant).Should(matchers.MatchText(app.Tenant), fmt.Sprintf("Failed to have expected %s tenant", app.Tenant))
+			// namespaces can take 30s to be refreshed
+			// at 30s resolution
+			// UI polling is 10s
+			// So worst case update should be 1m10s
+			gomega.Eventually(applicationInfo.Tenant, ASSERTION_2MINUTE_TIME_OUT).Should(matchers.MatchText(app.Tenant), fmt.Sprintf("Failed to have expected %s tenant", app.Tenant))
 		}
 	})
 }

@@ -11,16 +11,15 @@ type AddApplicationPage struct {
 }
 
 type AddApplication struct {
-	Name                  *agouti.Selection
-	Namespace             *agouti.Selection
-	TargetNamespace       *agouti.Selection
-	Path                  *agouti.Selection
-	Source                *agouti.Selection
-	Cluster               *agouti.Selection
-	RemoveApplication     *agouti.Selection
-	SourceHref            *agouti.Selection
-	CreateTargetNamespace *agouti.Selection
-	GitRepository         *agouti.Selection
+	Name              *agouti.Selection
+	Namespace         *agouti.Selection
+	TargetNamespace   *agouti.Selection
+	Path              *agouti.Selection
+	Source            *agouti.Selection
+	Cluster           *agouti.Selection
+	RemoveApplication *agouti.Selection
+	SourceHref        *agouti.Selection
+	GitRepository     *agouti.Selection
 }
 
 type GitOps struct {
@@ -53,16 +52,15 @@ func GetAddApplication(webDriver *agouti.Page, appNo ...int) *AddApplication {
 	}
 
 	return &AddApplication{
-		Name:                  app.Find(`[id="KUSTOMIZATION NAME-input"]`),
-		Namespace:             app.Find(`[id="KUSTOMIZATION NAMESPACE-input"]`),
-		TargetNamespace:       app.Find(`[id="TARGET NAMESPACE-input"]`),
-		Path:                  app.Find(`[id="SELECT PATH-input"]`),
-		Source:                app.Find(`[id="SELECT SOURCE-input"]`),
-		Cluster:               app.Find(`[id="SELECT CLUSTER-input"]`),
-		RemoveApplication:     app.Find(`button#remove-application`),
-		CreateTargetNamespace: app.First(`input[type="checkbox"]`),
-		SourceHref:            app.Find(`div[class*=selected-source] a[href^="https"]`),
-		GitRepository:         app.Find(`[id="SELECT_GIT_REPO-input"]`),
+		Name:              app.Find(`[id="KUSTOMIZATION NAME-input"]`),
+		Namespace:         app.Find(`[id="KUSTOMIZATION NAMESPACE-input"]`),
+		TargetNamespace:   app.Find(`[id="TARGET NAMESPACE-input"]`),
+		Path:              app.Find(`[id="SELECT PATH-input"]`),
+		Source:            app.Find(`[id="SELECT SOURCE-input"]`),
+		Cluster:           app.Find(`[id="SELECT CLUSTER-input"]`),
+		RemoveApplication: app.Find(`button#remove-application`),
+		SourceHref:        app.Find(`div[class*=selected-source] a[href^="https"]`),
+		GitRepository:     app.Find(`[id="SELECT_GIT_REPO-input"]`),
 	}
 }
 
