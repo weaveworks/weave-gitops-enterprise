@@ -10,7 +10,6 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
-	k8sConfig "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
 // ClusterConnectionOptions holds the options to create the resources with such as the target names and namespace
@@ -58,10 +57,13 @@ func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *C
 // ConnectCluster connects a cluster to a spoke cluster given its name and context
 // Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
-	hubClusterConfig, err := k8sConfig.GetConfig()
+	// load hub kubeconfig
+	kubeconfigPath := options.ConfigPath
+	hubClusterConfig, err := loadConfig(kubeconfigPath)
 	if err != nil {
 		return err
 	}
+
 	// Get the context from SpokeClusterContext
 	pathOpts := clientcmd.NewDefaultPathOptions()
 	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath

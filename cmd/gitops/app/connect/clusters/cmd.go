@@ -11,7 +11,6 @@ import (
 
 type connectOptionsFlags struct {
 	RemoteClusterContext   string
-	ConfigPath             string
 	ServiceAccountName     string
 	ClusterRoleName        string
 	ClusterRoleBindingName string
@@ -36,7 +35,6 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 	}
 
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.RemoteClusterContext, "connect-context", "", "Context name of the remote cluster")
-	cmd.Flags().StringVar(&connectOptionsCmdFlags.ConfigPath, "config-path", "", "kubeconfig path of hub cluster")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ServiceAccountName, "service-account", "weave-gitops-enterprise", "Service account name to be created/used")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleName, "cluster-role", "weave-gitops-enterprise", "Cluster role name to be created/used")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleBindingName, "cluster-role-binding", "weave-gitops-enterprise", "Cluster role binding name to be created/used")
@@ -55,7 +53,7 @@ func connectClusterCmdRunE(opts *config.Options) func(*cobra.Command, []string) 
 			ClusterRoleBindingName: connectOptionsCmdFlags.ClusterRoleBindingName,
 			GitopsClusterName:      types.NamespacedName{Name: clusterName, Namespace: connectOptionsCmdFlags.Namespace},
 			RemoteClusterContext:   connectOptionsCmdFlags.RemoteClusterContext,
-			ConfigPath:             connectOptionsCmdFlags.ConfigPath,
+			ConfigPath:             opts.Kubeconfig,
 		}
 
 		logger := stdr.New(nil)

@@ -3,6 +3,9 @@ package connector
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/user"
+	"path/filepath"
 
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
@@ -57,4 +60,47 @@ func kubeConfigWithToken(ctx context.Context, config *rest.Config, context strin
 	logger.Info("kubeconfig with token generated successfully")
 
 	return cfg, nil
+}
+
+// Load kubeconfig from provided path or load in-cluster config or using default recommended locations
+func loadConfig(kubeconfigPath string) (*rest.Config, error) {
+
+	// If a kubeconfig flag is specified with the config location, use that
+	if len(kubeconfigPath) > 0 {
+		loader := &clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfigPath}
+		deferedClientConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loader, nil)
+		config, err := deferedClientConfig.ClientConfig()
+		if err != nil {
+			return nil, err
+		}
+		return config, nil
+	}
+
+	// If the recommended kubeconfig env variable is not specified,
+	// try the in-cluster config.
+	kubeconfigPath = os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
+	if len(kubeconfigPath) == 0 {
+		config, err := rest.InClusterConfig()
+		if err == nil && config != nil {
+			return config, nil
+		}
+	}
+
+	// If kubeconfig env variable is set, or there is no in-cluster config,
+	// try the default recommended locations.
+	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
+	if _, ok := os.LookupEnv("HOME"); !ok {
+		u, err := user.Current()
+		if err != nil {
+			return nil, fmt.Errorf("could not get current user: %w", err)
+		}
+		loadingRules.Precedence = append(loadingRules.Precedence, filepath.Join(u.HomeDir, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName))
+	}
+
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, nil).ClientConfig()
+	if err != nil {
+		return nil, err
+	}
+	return config, nil
+
 }
