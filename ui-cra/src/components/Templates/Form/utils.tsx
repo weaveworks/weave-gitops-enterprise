@@ -155,8 +155,7 @@ export const FormWrapper = styled.form`
   width: 80%;
   .preview-cta,
   .create-cta {
-    padding: ${({ theme }) => theme.spacing.small}
-      ${({ theme }) => theme.spacing.base};
+    padding: ${({ theme }) => theme.spacing.small};
     button {
       width: 200px;
     }
@@ -165,7 +164,6 @@ export const FormWrapper = styled.form`
   .create-loading {
     padding: ${({ theme }) => theme.spacing.base};
   }
-
   div[class*='MuiInput-root'] {
     border: 1px solid ${props => props.theme.colors.neutral20};
     border-bottom: none;
