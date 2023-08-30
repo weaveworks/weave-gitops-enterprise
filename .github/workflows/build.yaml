@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Grab all tags from git
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Grab all tags from git
@@ -173,7 +173,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3.5.0
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Grab all tags from git
@@ -199,9 +199,9 @@ jobs:
         os: ${{ fromJSON(inputs.gitops_platforms) }}
     steps:
     - name: Checkout code
-      uses: actions/checkout@v3.5.0
+      uses: actions/checkout@v3
     - name: Install Go
-      uses: actions/setup-go@v4.0.0
+      uses: actions/setup-go@v4
       with:
         go-version: 1.20.x
     - name: Configure git for private modules
