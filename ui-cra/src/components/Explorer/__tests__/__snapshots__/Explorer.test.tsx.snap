@@ -572,6 +572,9 @@ exports[`Explorer snapshots renders 1`] = `
         class="c7 c8 c9 ExplorerTable"
       >
         <div
+          class=""
+        />
+        <div
           class="c1 c10"
         />
         <div

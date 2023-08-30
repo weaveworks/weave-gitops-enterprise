@@ -15,13 +15,13 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.30.0
+	github.com/weaveworks/weave-gitops v0.31.2
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3
-	k8s.io/cli-runtime v0.26.3
+	k8s.io/cli-runtime v0.26.8
 	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.15.0
 )
@@ -97,6 +97,7 @@ require (
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect
 	github.com/RoaringBitmap/roaring v0.9.4 // indirect
+	github.com/alexedwards/scs/v2 v2.5.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/blevesearch/bleve_index_api v1.0.5 // indirect
 	github.com/blevesearch/geo v0.1.17 // indirect
@@ -403,7 +404,7 @@ require (
 	k8s.io/component-base v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/kubectl v0.26.3
+	k8s.io/kubectl v0.26.8
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106
 	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
