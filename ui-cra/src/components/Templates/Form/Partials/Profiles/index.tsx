@@ -154,8 +154,6 @@ const Profiles: FC<{
   return (
     <ProfilesWrapper>
       <h2>{context === 'app' ? 'Helm Releases' : 'Profiles'}</h2>
-      {/* TO DO: Update this as for app creation the helm repo selection is made
-              in another section */}
       {context !== 'app' && (
         <Autocomplete
           multiple

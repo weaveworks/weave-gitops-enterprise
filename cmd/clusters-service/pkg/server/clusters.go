@@ -168,6 +168,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 
 	// Get list of previous files to be added as deleted files in the commit,
 	// Update the  previous values to be nil to skip including it in the updated create-request annotation
+
 	prevFiles := &GetFilesReturn{}
 	if msg.PreviousValues != nil {
 		prevFiles, err = GetFiles(
@@ -178,7 +179,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			s.estimator,
 			s.chartsCache,
 			types.NamespacedName{Name: s.cluster},
-			s.profileHelmRepository,
+			s.profileHelmRepository, // replace with getHelmRepositoriesReferences(msg.PreviousValues.Values)
 			tmpl,
 			GetFilesRequest{
 				ClusterNamespace: clusterNamespace,
@@ -205,7 +206,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		s.estimator,
 		s.chartsCache,
 		types.NamespacedName{Name: s.cluster},
-		s.profileHelmRepository,
+		s.profileHelmRepository, // replace with getHelmRepositoriesReferences(msg.PreviousValues.Values)
 		tmpl,
 		GetFilesRequest{
 			ClusterNamespace: clusterNamespace,
@@ -651,6 +652,24 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvid
 		Token:     token,
 		Hostname:  repoHostname,
 	}, nil
+}
+
+func getHelmRepositoriesReferences(values []*capiv1_proto.ProfileValues) []*capiv1_proto.HelmRepositoryRef {
+	helmRepositories := []*capiv1_proto.HelmRepositoryRef{}
+
+	for _, value := range values {
+		if len(helmRepositories) == 0 {
+			helmRepositories = append(helmRepositories, value.HelmRepository)
+		} else {
+			for _, hr := range helmRepositories {
+				if (hr.Name != value.HelmRepository.Name) && (hr.Namespace != value.HelmRepository.Namespace) {
+					helmRepositories = append(helmRepositories, value.HelmRepository)
+				}
+			}
+		}
+	}
+
+	return helmRepositories
 }
 
 // createProfileYAML creates a map of file paths to YAML bytes for a profile
