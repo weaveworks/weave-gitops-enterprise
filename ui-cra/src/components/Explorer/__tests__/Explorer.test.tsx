@@ -202,8 +202,6 @@ describe('Explorer', () => {
     const headers = result.container.querySelector('thead tr')
       ?.children as HTMLCollection;
 
-    console.log(headers.item(1)?.innerHTML);
-
     expect(headers.item(0)).toHaveTextContent('My Other Cool Column');
     expect(headers.item(1)).toHaveTextContent('My Cool Column');
     expect(headers.item(2)).toHaveTextContent('Name');

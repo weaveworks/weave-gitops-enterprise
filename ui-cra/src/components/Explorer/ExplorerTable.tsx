@@ -84,6 +84,11 @@ function ExplorerTable({
       defaultSort: sortField === 'clusterName',
     },
     {
+      label: 'Tenant',
+      value: 'tenant',
+      defaultSort: sortField === 'tenant',
+    },
+    {
       label: 'Status',
       sortValue: () => 'status',
       defaultSort: sortField === 'status',

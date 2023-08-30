@@ -229,6 +229,9 @@
         },
         "id": {
           "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },

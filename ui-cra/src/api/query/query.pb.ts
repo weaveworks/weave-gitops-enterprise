@@ -30,6 +30,7 @@ export type Object = {
   category?: string
   unstructured?: string
   id?: string
+  tenant?: string
 }
 
 export type DebugGetAccessRulesRequest = {

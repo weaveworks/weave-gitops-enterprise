@@ -754,6 +754,39 @@ exports[`Explorer snapshots renders 1`] = `
                           <h2
                             class=""
                           >
+                            Tenant
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        class="c14"
+                      />
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c12"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c13 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
                             Status
                           </h2>
                         </span>
@@ -845,6 +878,15 @@ exports[`Explorer snapshots renders 1`] = `
                       class="c16 c17"
                     >
                       flux-system
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c16 c17"
+                    >
+                      -
                     </span>
                   </td>
                   <td

@@ -281,6 +281,7 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 			Category:     string(o.Category),
 			Unstructured: string(o.Unstructured),
 			Id:           o.GetID(),
+			Tenant:       o.Tenant,
 		})
 	}
 
