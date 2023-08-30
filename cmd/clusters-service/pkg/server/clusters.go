@@ -654,7 +654,8 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvid
 	}, nil
 }
 
-func getHelmRepositoriesReferences(values []*capiv1_proto.ProfileValues) []*capiv1_proto.HelmRepositoryRef {
+// cannot use profilesIndex (variable of type map[string]*cluster_services.ProfileValues) as []*cluster_services.ProfileValues value in argument to getHelmRepositoriesReferencesc
+func getHelmRepositoriesReferences(values map[string]*capiv1_proto.ProfileValues) []*capiv1_proto.HelmRepositoryRef {
 	helmRepositories := []*capiv1_proto.HelmRepositoryRef{}
 
 	for _, value := range values {
@@ -674,7 +675,8 @@ func getHelmRepositoriesReferences(values []*capiv1_proto.ProfileValues) []*capi
 
 // createProfileYAML creates a map of file paths to YAML bytes for a profile
 // takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
-func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
+// []*cluster_services.HelmRepositoryRef
+func createProfileYAML(helmRepositories []*capiv1_proto.HelmRepositoryRef, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
 	profileObjects := make(map[string][][]byte)
 
 	// Helm repository template
@@ -682,6 +684,7 @@ func createProfileYAML(helmRepo *sourcev1.HelmRepository, helmReleases []*helmv2
 	if template.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
 		helmRepoPath = template.GetSpec().Charts.HelmRepositoryTemplate.Path
 	}
+	// We now have to deal with several helmRepositories here
 	b, err := yaml.Marshal(helmRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
@@ -803,8 +806,8 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 				Chart:   v.Name,
 				Version: v.Version,
 				SourceRef: helmv2.CrossNamespaceObjectReference{
-					Name:      helmRepo.GetName(),
-					Namespace: helmRepo.GetNamespace(),
+					Name:      v.HelmRepository.Name,
+					Namespace: v.HelmRepository.Namespace,
 					Kind:      "HelmRepository",
 				},
 			},
@@ -821,7 +824,9 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	}
 
 	// profilesBytes is a map of {path: []byte} where []byte is the content of the profile.
-	profilesByPath, err := createProfileYAML(helmRepo, helmReleases, tmpl, getClusterProfilesPath(cluster))
+	// need to pass all helmRepositories to createProfileYAML instead of just helmRepo
+	helmRepositories := getHelmRepositoriesReferences(profilesIndex)
+	profilesByPath, err := createProfileYAML(helmRepositories, helmReleases, tmpl, getClusterProfilesPath(cluster))
 	if err != nil {
 		return nil, err
 	}
