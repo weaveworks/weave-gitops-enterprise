@@ -57,17 +57,17 @@ func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *C
 // ConnectCluster connects a cluster to a spoke cluster given its name and context
 // Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
+	pathOpts := clientcmd.NewDefaultPathOptions()
+	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
+
 	// load hub kubeconfig
-	kubeconfigPath := options.ConfigPath
-	hubClusterConfig, err := loadConfig(kubeconfigPath)
+	hubClusterConfig, err := configForContext(ctx, pathOpts, "")
 	if err != nil {
 		return err
 	}
 
 	// Get the context from SpokeClusterContext
-	pathOpts := clientcmd.NewDefaultPathOptions()
-	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
-	spokeClusterConfig, err := ConfigForContext(ctx, pathOpts, options.RemoteClusterContext)
+	spokeClusterConfig, err := configForContext(ctx, pathOpts, options.RemoteClusterContext)
 	if err != nil {
 		return err
 	}
