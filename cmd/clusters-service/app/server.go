@@ -33,7 +33,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
 	flaggerv1beta1 "github.com/fluxcd/flagger/pkg/apis/flagger/v1beta1"
-	"github.com/fluxcd/pkg/runtime/logger"
+	flux_logger "github.com/fluxcd/pkg/runtime/logger"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -71,6 +71,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/cluster"
 	core_fetcher "github.com/weaveworks/weave-gitops/core/clustersmngr/fetcher"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"github.com/weaveworks/weave-gitops/core/nsaccess"
 	core_core "github.com/weaveworks/weave-gitops/core/server"
 	core_core_proto "github.com/weaveworks/weave-gitops/pkg/api/core"
@@ -146,7 +147,6 @@ type Params struct {
 	TLSCert                           string                    `mapstructure:"tls-cert"`
 	TLSKey                            string                    `mapstructure:"tls-key"`
 	NoTLS                             bool                      `mapstructure:"no-tls"`
-	DevMode                           bool                      `mapstructure:"dev-mode"`
 	Cluster                           string                    `mapstructure:"cluster-name"`
 	UseK8sCachedClients               bool                      `mapstructure:"use-k8s-cached-clients"`
 	UIConfig                          string                    `mapstructure:"ui-config"`
@@ -162,6 +162,7 @@ type Params struct {
 	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
 	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
+	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -179,7 +180,7 @@ type OIDCAuthenticationOptions struct {
 
 func NewAPIServerCommand() *cobra.Command {
 	p := &Params{}
-	var logOptions logger.Options
+	var logOptions flux_logger.Options
 
 	cmd := &cobra.Command{
 		Use:          "capi-server",
@@ -247,7 +248,8 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("oidc-username-prefix", "", "If provided, all usernames will be prefixed with this value to prevent conflicts with other authentication strategies")
 	cmdFlags.String("oidc-groups-prefix", "", "If provided, all groups will be prefixed with this value to prevent conflicts with other authentication strategies")
 
-	cmdFlags.Bool("dev-mode", false, "starts the server in development mode")
+	cmdFlags.String("insecure-no-authentication-user", "", "A kubernetes user to impersonate for all requests, no authentication will be performed")
+
 	cmdFlags.Bool("use-k8s-cached-clients", true, "Enables the use of cached clients")
 	cmdFlags.String("ui-config", "", "UI configuration, JSON encoded")
 	cmdFlags.String("pipeline-controller-address", pipelines.DefaultPipelineControllerAddress, "Pipeline controller address")
@@ -344,8 +346,8 @@ func initializeConfig(cmd *cobra.Command) error {
 	return nil
 }
 
-func StartServer(ctx context.Context, p Params, logOptions logger.Options) error {
-	log := logger.NewLogger(logOptions)
+func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) error {
+	log := flux_logger.NewLogger(logOptions)
 
 	log.Info("Starting server", "log-options", logOptions)
 
@@ -553,11 +555,10 @@ func StartServer(ctx context.Context, p Params, logOptions logger.Options) error
 		WithCAPIClustersNamespace(p.CAPIClustersNamespace),
 		WithHtmlRootPath(p.HtmlRootPath),
 		WithClientGetter(clientGetter),
-		WithAuthConfig(authMethods, p.OIDC),
+		WithAuthConfig(authMethods, p.OIDC, p.NoAuthUser),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
-		WithDevMode(p.DevMode),
 		WithClustersManager(clustersManager),
 		WithChartsCache(chartsCache),
 		WithKubernetesClientSet(kubernetesClientSet),
@@ -742,18 +743,24 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("could not create HMAC token signer: %w", err)
 	}
 
+	authMethods := args.AuthMethods
+	if args.NoAuthUser != "" {
+		args.Log.V(logger.LogLevelWarn).Info("Anonymous mode enabled", "noAuthUser", args.NoAuthUser)
+		authMethods = map[auth.AuthMethod]bool{auth.Anonymous: true}
+	}
+
+	if len(authMethods) == 0 {
+		return errors.New("no authentication methods set")
+	}
+
 	// FIXME: Slightly awkward bit of logging..
 	authMethodsStrings := []string{}
-	for authMethod, enabled := range args.AuthMethods {
+	for authMethod, enabled := range authMethods {
 		if enabled {
 			authMethodsStrings = append(authMethodsStrings, authMethod.String())
 		}
 	}
 	args.Log.Info("setting enabled auth methods", "enabled", authMethodsStrings)
-
-	if args.DevMode {
-		tsv.SetDevMode(args.DevMode)
-	}
 
 	if len(args.OIDC.CustomScopes) != 0 {
 		args.Log.Info("setting custom OIDC scopes", "scopes", args.OIDC.CustomScopes)
@@ -778,7 +785,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.KubernetesClient,
 		tsv,
 		args.RuntimeNamespace,
-		args.AuthMethods,
+		authMethods,
+		args.NoAuthUser,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)
