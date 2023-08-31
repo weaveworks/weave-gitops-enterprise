@@ -15,13 +15,13 @@ require (
 	github.com/sirupsen/logrus v1.9.0
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.2
-	github.com/weaveworks/weave-gitops v0.30.0
+	github.com/weaveworks/weave-gitops v0.31.2
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/api v0.27.3
 	k8s.io/apimachinery v0.27.3
-	k8s.io/cli-runtime v0.26.3
+	k8s.io/cli-runtime v0.26.8
 	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.15.0
 )
@@ -34,6 +34,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/ProtonMail/gopenpgp/v2 v2.6.0
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
+	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
@@ -403,7 +404,7 @@ require (
 	k8s.io/component-base v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
-	k8s.io/kubectl v0.26.3
+	k8s.io/kubectl v0.26.8
 	k8s.io/utils v0.0.0-20230505201702-9f6742963106
 	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
