@@ -3,18 +3,23 @@ import {
   Button,
   Icon,
   IconType,
+  Link,
+  V2Routes,
+  formatURL,
   useFeatureFlags,
   useListAutomations,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { Object } from '../../api/query/query.pb';
 import { Routes } from '../../utils/nav';
+import { ActionsWrapper } from '../Clusters';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
-import { ActionsWrapper } from '../Clusters';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
@@ -55,7 +60,40 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
         </ActionsWrapper>
         <div className={className}>
           {useQueryServiceBackend ? (
-            <Explorer category="automation" enableBatchSync />
+            <Explorer
+              category="automation"
+              enableBatchSync
+              extraColumns={[
+                {
+                  label: 'Source',
+                  index: 4,
+                  value: (o: Object & { parsed: any }) => {
+                    const sourceAddr =
+                      o.kind === 'HelmRelease'
+                        ? 'spec.chart.spec.sourceRef.name'
+                        : 'spec.sourceRef.name';
+
+                    const url = formatURL(V2Routes.Sources, {
+                      name: o.name,
+                      namespace: o.namespace,
+                      clusterName: o.cluster,
+                    });
+
+                    const sourceName = _.get(o.parsed, sourceAddr);
+
+                    if (!sourceName) {
+                      return '-';
+                    }
+
+                    return (
+                      <Link to={url}>
+                        {o.namespace}/{sourceName}
+                      </Link>
+                    );
+                  },
+                },
+              ]}
+            />
           ) : (
             <AutomationsTable automations={automations?.result} />
           )}

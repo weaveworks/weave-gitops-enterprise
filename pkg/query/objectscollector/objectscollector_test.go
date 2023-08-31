@@ -7,6 +7,8 @@ import (
 	"github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -18,8 +20,6 @@ import (
 func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
 	log := testr.New(t)
-	fakeStore := &storefakes.FakeStore{}
-	fakeIndex := &storefakes.FakeIndexWriter{}
 
 	//setup data
 	clusterName := "anyCluster"
@@ -28,6 +28,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 		name                  string
 		objectRecords         []models.ObjectTransaction
 		expectedStoreNumCalls map[models.TransactionType]int
+		expectedObject        []models.Object
 		errPattern            string
 	}{
 		{
@@ -61,9 +62,37 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 			},
 			errPattern: "",
 		},
+		{
+			name: "gets an object tenant",
+			objectRecords: []models.ObjectTransaction{
+				testutils.NewObjectTransaction("anyCluster", testutils.NewHelmRelease("createdOrUpdatedHelmRelease", "default", func(hr *v2beta1.HelmRelease) {
+					hr.Labels = map[string]string{
+						tenantLabel: "my-tenant",
+					}
+				}), models.TransactionTypeUpsert),
+			},
+			expectedStoreNumCalls: map[models.TransactionType]int{
+				models.TransactionTypeDelete:    0,
+				models.TransactionTypeUpsert:    1,
+				models.TransactionTypeDeleteAll: 0,
+			},
+			expectedObject: []models.Object{{
+				Cluster:    "anyCluster",
+				Name:       "createdOrUpdatedHelmRelease",
+				Namespace:  "default",
+				APIGroup:   "",
+				APIVersion: "v2beta1",
+				Kind:       "HelmRelease",
+				Tenant:     "my-tenant",
+				Status:     "Failed",
+			}},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			fakeStore := &storefakes.FakeStore{}
+			fakeIndex := &storefakes.FakeIndexWriter{}
+
 			err := processRecords(tt.objectRecords, fakeStore, fakeIndex, log)
 			if tt.errPattern != "" {
 				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
@@ -73,6 +102,18 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 			g.Expect(fakeStore.StoreObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeUpsert]))
 			g.Expect(fakeStore.DeleteObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeDelete]))
 			g.Expect(fakeStore.DeleteAllObjectsCallCount()).To(Equal(tt.expectedStoreNumCalls[models.TransactionTypeDeleteAll]))
+
+			if tt.expectedObject != nil {
+				opt := cmpopts.IgnoreFields(models.Object{}, "ID", "CreatedAt", "UpdatedAt", "DeletedAt", "Category", "Unstructured")
+				_, storeResult := fakeStore.StoreObjectsArgsForCall(0)
+
+				diff := cmp.Diff(tt.expectedObject[0], storeResult[0], opt)
+
+				if diff != "" {
+					t.Errorf("unexpected result (-want +got):\n%s", diff)
+				}
+
+			}
 		})
 	}
 }

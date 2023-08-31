@@ -16,6 +16,8 @@ import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { QueryState } from './hooks';
 
+export type FieldWithIndex = Field & { index?: number };
+
 type Props = {
   className?: string;
   onColumnHeaderClick?: (field: Field) => void;
@@ -23,6 +25,7 @@ type Props = {
   queryState: QueryState;
   enableBatchSync?: boolean;
   sortField?: string;
+  extraColumns?: FieldWithIndex[];
 };
 
 function ExplorerTable({
@@ -31,95 +34,112 @@ function ExplorerTable({
   enableBatchSync,
   sortField,
   onColumnHeaderClick,
+  extraColumns = [],
 }: Props) {
   const r: Object[] = _.map(rows, o => ({
     // Doing some things here to make this work with the DataTable.
     // It handles rendering the sync/pause buttons.
     ...o,
-    uid: `${o.cluster}/${o.apiGroup}/${o.kind}/${o.namespace}/${o.name}`,
+    uid: o.id,
     clusterName: o.cluster,
     type: o.kind,
   }));
 
+  const fields: FieldWithIndex[] = [
+    {
+      label: 'Name',
+      value: (o: Object) => {
+        const page = getKindRoute(o?.kind as string);
+
+        let url: string;
+        if (page === V2Routes.NotImplemented) {
+          url = formatURL(Routes.ExplorerView, {
+            kind: o.kind,
+            name: o.name,
+            namespace: o.namespace,
+            clusterName: o.cluster,
+          });
+        } else {
+          url = formatURL(page, {
+            name: o.name,
+            namespace: o.namespace,
+            clusterName: o.cluster,
+          });
+        }
+
+        return <Link to={url}>{o.name}</Link>;
+      },
+      sortValue: () => 'name',
+      defaultSort: sortField === 'name',
+    },
+    { label: 'Kind', value: 'kind', defaultSort: sortField === 'kind' },
+    {
+      label: 'Namespace',
+      value: 'namespace',
+      defaultSort: sortField === 'namespace',
+    },
+    {
+      label: 'Cluster',
+      value: 'clusterName',
+      defaultSort: sortField === 'clusterName',
+    },
+    {
+      label: 'Tenant',
+      value: 'tenant',
+      defaultSort: sortField === 'tenant',
+    },
+    {
+      label: 'Status',
+      sortValue: () => 'status',
+      defaultSort: sortField === 'status',
+      value: (o: Object) => {
+        if (o.status === '-') {
+          return '-';
+        }
+
+        return (
+          <Flex align>
+            <Box marginRight={1}>
+              <Icon
+                size={24}
+                color={
+                  o?.status === 'Success' ? 'successOriginal' : 'alertOriginal'
+                }
+                type={
+                  o?.status === 'Success'
+                    ? IconType.SuccessIcon
+                    : IconType.ErrorIcon
+                }
+              />
+            </Box>
+
+            {o?.status}
+          </Flex>
+        );
+      },
+    },
+    {
+      label: 'Message',
+      value: 'message',
+      defaultSort: sortField === 'message',
+    },
+  ];
+
+  // Allows for columns to be added anywhere in the table.
+  // We sort them here because if we mutate fields out of order,
+  // the column order won't be accurate. See test case for example.
+  for (const extra of _.sortBy(extraColumns, 'index')) {
+    if (typeof extra.index !== 'undefined') {
+      fields.splice(extra.index, 0, extra);
+    } else {
+      fields.push(extra);
+    }
+  }
+
   return (
     <DataTable
       className={className}
-      fields={[
-        {
-          label: 'Name',
-          value: (o: Object) => {
-            const page = getKindRoute(o?.kind as string);
-
-            let url: string;
-            if (page === V2Routes.NotImplemented) {
-              url = formatURL(Routes.ExplorerView, {
-                kind: o.kind,
-                name: o.name,
-                namespace: o.namespace,
-                clusterName: o.cluster,
-              });
-            } else {
-              url = formatURL(page, {
-                name: o.name,
-                namespace: o.namespace,
-                clusterName: o.cluster,
-              });
-            }
-
-            return <Link to={url}>{o.name}</Link>;
-          },
-          sortValue: () => 'name',
-          defaultSort: sortField === 'name',
-        },
-        { label: 'Kind', value: 'kind', defaultSort: sortField === 'kind' },
-        {
-          label: 'Namespace',
-          value: 'namespace',
-          defaultSort: sortField === 'namespace',
-        },
-        {
-          label: 'Cluster',
-          value: 'clusterName',
-          defaultSort: sortField === 'clusterName',
-        },
-        {
-          label: 'Status',
-          sortValue: () => 'status',
-          defaultSort: sortField === 'status',
-          value: (o: Object) => {
-            if (o.status === '-') {
-              return '-';
-            }
-
-            return (
-              <Flex align>
-                <Box marginRight={1}>
-                  <Icon
-                    size={24}
-                    color={
-                      o?.status === 'Success'
-                        ? 'successOriginal'
-                        : 'alertOriginal'
-                    }
-                    type={
-                      o?.status === 'Success'
-                        ? IconType.SuccessIcon
-                        : IconType.ErrorIcon
-                    }
-                  />
-                </Box>
-
-                {o?.status}
-              </Flex>
-            );
-          },
-        },
-        {
-          label: 'Message',
-          value: 'message',
-          defaultSort: sortField === 'message',
-        },
-      ]}
+      fields={fields}
       rows={r}
       hideSearchAndFilters
       onColumnHeaderClick={onColumnHeaderClick}
