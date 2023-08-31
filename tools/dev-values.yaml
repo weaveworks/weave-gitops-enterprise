@@ -8,10 +8,10 @@ policy-agent:
 
 config:
   logLevel: debug
-  # comment out to re-enable auth
-  auth:
-    noAuthentication:
-      user: "wego-admin"
+  # un-comment to disable auth
+  # auth:
+  #   noAuthentication:
+  #     user: "wego-admin"
 
 tls:
   enabled: false
