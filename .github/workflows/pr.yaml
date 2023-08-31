@@ -10,11 +10,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v4.0.0
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
       - name: Check out enterprise
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: "weaveworks/weave-gitops-enterprise"
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -71,7 +71,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Go
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
       - name: Check out enterprise

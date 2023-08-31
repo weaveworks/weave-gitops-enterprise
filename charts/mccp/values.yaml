@@ -71,6 +71,8 @@ config:
     # customScopes: "groups,email,profile"
     customScopes: ""
   auth:
+    noAuthentication:
+      user: ""
     userAccount:
       enabled: true
     tokenPassthrough:
