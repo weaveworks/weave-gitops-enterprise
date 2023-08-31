@@ -2056,7 +2056,6 @@ func TestGenerateProfileFiles(t *testing.T) {
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepositoryCluster: types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
 			profileValues: []*capiv1_protos.ProfileValues{
@@ -2135,9 +2134,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
 		),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
-			// helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
