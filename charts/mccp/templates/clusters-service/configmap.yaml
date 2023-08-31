@@ -31,6 +31,7 @@ data:
   {{- if .Values.config.auth.tokenPassthrough.enabled -}}{{- $authMethods = append $authMethods "token-passthrough" -}}{{- end }}
   {{- if .Values.config.oidc.enabled -}}{{- $authMethods = append $authMethods "oidc"  -}}{{- end }}
   AUTH_METHODS: {{ join "," $authMethods | quote }}
+  INSECURE_NO_AUTHENTICATION_USER: {{ .Values.config.auth.noAuthentication.user | quote }}
   CAPI_ENABLED: {{ .Values.global.capiEnabled | quote }}
   {{- if not .Values.config.checkpoint.enabled }}
   CHECKPOINT_DISABLE: 1

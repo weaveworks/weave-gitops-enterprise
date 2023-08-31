@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
@@ -41,11 +42,12 @@ type Options struct {
 	HtmlRootPath              string
 	ClientGetter              kube.ClientGetter
 	AuthMethods               map[auth.AuthMethod]bool
+	NoAuthUser                string
+	SessionManager            auth.SessionManager
 	OIDC                      OIDCAuthenticationOptions
 	TLSCert                   string
 	TLSKey                    string
 	NoTLS                     bool
-	DevMode                   bool
 	ClustersManager           clustersmngr.ClustersManager
 	ChartsCache               *helm.HelmChartIndexer
 	KubernetesClientSet       kubernetes.Interface
@@ -174,10 +176,12 @@ func WithClientGetter(clientGetter kube.ClientGetter) Option {
 }
 
 // WithAuthConfig is used to set the auth configuration including OIDC
-func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions) Option {
+func WithAuthConfig(authMethods map[auth.AuthMethod]bool, oidc OIDCAuthenticationOptions, noAuthUser string, sessionManager *scs.SessionManager) Option {
 	return func(o *Options) {
 		o.AuthMethods = authMethods
 		o.OIDC = oidc
+		o.NoAuthUser = noAuthUser
+		o.SessionManager = sessionManager
 	}
 }
 
@@ -196,13 +200,6 @@ func WithTLSConfig(tlsCert, tlsKey string, noTLS bool) Option {
 func WithCAPIEnabled(capiEnabled bool) Option {
 	return func(o *Options) {
 		o.CAPIEnabled = capiEnabled
-	}
-}
-
-// WithDevMode starts the server in development mode
-func WithDevMode(devMode bool) Option {
-	return func(o *Options) {
-		o.DevMode = devMode
 	}
 }
 
