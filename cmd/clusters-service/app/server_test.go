@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -211,6 +212,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 				map[server_auth.AuthMethod]bool{server_auth.UserAccount: true},
 				app.OIDCAuthenticationOptions{TokenDuration: time.Hour},
 				"",
+				scs.New(),
 			),
 			app.WithKubernetesClientSet(clientSet),
 			app.WithClustersManager(grpctesting.MakeClustersManager(k)),

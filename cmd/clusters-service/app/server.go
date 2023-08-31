@@ -22,6 +22,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/alexedwards/scs/v2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
@@ -533,6 +534,10 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		return err
 	}
 
+	sessionManager := scs.New()
+	// TODO: Make this configurable
+	sessionManager.Lifetime = 24 * time.Hour
+
 	return RunInProcessGateway(ctx, "0.0.0.0:8000",
 		WithLog(log),
 		WithProfileHelmRepository(types.NamespacedName{Name: p.HelmRepoName, Namespace: p.HelmRepoNamespace}),
@@ -555,7 +560,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithCAPIClustersNamespace(p.CAPIClustersNamespace),
 		WithHtmlRootPath(p.HtmlRootPath),
 		WithClientGetter(clientGetter),
-		WithAuthConfig(authMethods, p.OIDC, p.NoAuthUser),
+		WithAuthConfig(authMethods, p.OIDC, p.NoAuthUser, sessionManager),
 		WithTLSConfig(p.TLSCert, p.TLSKey, p.NoTLS),
 		WithCAPIEnabled(p.CAPIEnabled),
 		WithRuntimeNamespace(p.RuntimeNamespace),
@@ -598,6 +603,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 	if args.CoreServerConfig.ClustersManager == nil {
 		return errors.New("clusters manager is not set")
+	}
+	if args.SessionManager == nil {
+		return errors.New("session manager is not set")
 	}
 	// TokenDuration at least should be set
 	if args.OIDC.TokenDuration == 0 {
@@ -787,6 +795,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		args.RuntimeNamespace,
 		authMethods,
 		args.NoAuthUser,
+		args.SessionManager,
 	)
 	if err != nil {
 		return fmt.Errorf("could not create auth server: %w", err)
@@ -805,7 +814,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	// Secure `/v1` and `/gitops/api` API routes
-	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes())
+	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
 	var metricsServer *http.Server
 
@@ -839,9 +848,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	mux.Handle("/", staticAssetsWithGz)
 
+	handler := http.Handler(mux)
+	handler = args.SessionManager.LoadAndSave(handler)
+
 	s := &http.Server{
 		Addr:    addr,
-		Handler: mux,
+		Handler: handler,
 	}
 
 	factoryStopCh := make(chan struct{})

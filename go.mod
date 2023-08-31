@@ -34,6 +34,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/ProtonMail/gopenpgp/v2 v2.6.0
 	github.com/alecthomas/assert v0.0.0-20170929043011-405dbfeb8e38
+	github.com/alexedwards/scs/v2 v2.5.1
 	github.com/aws/aws-sdk-go-v2 v1.16.16
 	github.com/aws/aws-sdk-go-v2/config v1.17.8
 	github.com/aws/aws-sdk-go-v2/service/pricing v1.17.1
@@ -97,7 +98,6 @@ require (
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect
 	github.com/RoaringBitmap/roaring v0.9.4 // indirect
-	github.com/alexedwards/scs/v2 v2.5.1 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/blevesearch/bleve_index_api v1.0.5 // indirect
 	github.com/blevesearch/geo v0.1.17 // indirect
