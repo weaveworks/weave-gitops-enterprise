@@ -38,7 +38,7 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ServiceAccountName, "service-account", "weave-gitops-enterprise", "Service account name to be created/used")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleName, "cluster-role", "weave-gitops-enterprise", "Cluster role name to be created/used")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleBindingName, "cluster-role-binding", "weave-gitops-enterprise", "Cluster role binding name to be created/used")
-	cmd.Flags().StringVar(&connectOptionsCmdFlags.Namespace, "namespace", "default", "namespace of remote cluster")
+	cmd.Flags().StringVarP(&connectOptionsCmdFlags.Namespace, "namespace", "n", "default", "namespace of remote cluster")
 
 	return cmd
 }
