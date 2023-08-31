@@ -17,7 +17,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/imdario/mergo"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
@@ -65,7 +64,6 @@ var (
 
 type generateProfileFilesParams struct {
 	helmRepositoryCluster types.NamespacedName
-	helmRepository        types.NamespacedName
 	chartsCache           helm.ProfilesGeneratorCache
 	profileValues         []*capiv1_proto.ProfileValues
 	parameterValues       map[string]string
@@ -179,7 +177,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 			s.estimator,
 			s.chartsCache,
 			types.NamespacedName{Name: s.cluster},
-			s.profileHelmRepository, // replace with getHelmRepositoriesReferences(msg.PreviousValues.Values)
 			tmpl,
 			GetFilesRequest{
 				ClusterNamespace: clusterNamespace,
@@ -206,7 +203,6 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 		s.estimator,
 		s.chartsCache,
 		types.NamespacedName{Name: s.cluster},
-		s.profileHelmRepository, // replace with getHelmRepositoriesReferences(msg.PreviousValues.Values)
 		tmpl,
 		GetFilesRequest{
 			ClusterNamespace: clusterNamespace,
@@ -654,7 +650,7 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvid
 	}, nil
 }
 
-// cannot use profilesIndex (variable of type map[string]*cluster_services.ProfileValues) as []*cluster_services.ProfileValues value in argument to getHelmRepositoriesReferencesc
+// Scan all the incoming profiles and build up a list of unique  { name, namespace }  helmrepo refs
 func getHelmRepositoriesReferences(values map[string]*capiv1_proto.ProfileValues) []*capiv1_proto.HelmRepositoryRef {
 	helmRepositories := []*capiv1_proto.HelmRepositoryRef{}
 
@@ -675,7 +671,6 @@ func getHelmRepositoriesReferences(values map[string]*capiv1_proto.ProfileValues
 
 // createProfileYAML creates a map of file paths to YAML bytes for a profile
 // takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
-// []*cluster_services.HelmRepositoryRef
 func createProfileYAML(helmRepositories []*capiv1_proto.HelmRepositoryRef, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
 	profileObjects := make(map[string][][]byte)
 
@@ -684,12 +679,16 @@ func createProfileYAML(helmRepositories []*capiv1_proto.HelmRepositoryRef, helmR
 	if template.GetSpec().Charts.HelmRepositoryTemplate.Path != "" {
 		helmRepoPath = template.GetSpec().Charts.HelmRepositoryTemplate.Path
 	}
-	// We now have to deal with several helmRepositories here
-	b, err := yaml.Marshal(helmRepo)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+
+	for _, helmRepo := range helmRepositories {
+		b, err := yaml.Marshal(helmRepo)
+			if err != nil {
+				return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+			}
+		profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
 	}
-	profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
+
+	fmt.Println("profielOjects", profileObjects)
 
 	// Helm release templates
 	for _, v := range helmReleases {
@@ -715,11 +714,19 @@ func createProfileYAML(helmRepositories []*capiv1_proto.HelmRepositoryRef, helmR
 
 }
 
+func toNamespacedName(helmRepositoryRef *capiv1_proto.HelmRepositoryRef) types.NamespacedName {
+	return types.NamespacedName{
+		Name:      helmRepositoryRef.Name,
+		Namespace: helmRepositoryRef.Namespace,
+	}
+}
+
 // generateProfileFiles to create a HelmRelease object with the profile and values.
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepo *sourcev1.HelmRepository, args generateProfileFilesParams) ([]git.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, 
+	args generateProfileFilesParams) ([]git.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err
@@ -773,7 +780,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	for _, v := range profilesIndex {
 		// Check the version and if empty read the latest version from cache.
 		if v.Version == "" {
-			v.Version, err = args.chartsCache.GetLatestVersion(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name)
+			v.Version, err = args.chartsCache.GetLatestVersion(ctx, args.helmRepositoryCluster, toNamespacedName(v.HelmRepository), v.Name)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve latest version of profile: %w", err)
 			}
@@ -781,7 +788,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 		// Check the version and if empty read the layer from cache.
 		if v.Layer == "" {
-			v.Layer, err = args.chartsCache.GetLayer(ctx, args.helmRepositoryCluster, args.helmRepository, v.Name, v.Version)
+			v.Layer, err = args.chartsCache.GetLayer(ctx, args.helmRepositoryCluster, toNamespacedName(v.HelmRepository), v.Name, v.Version)
 			if err != nil {
 				return nil, fmt.Errorf("cannot retrieve layer of profile: %w", err)
 			}

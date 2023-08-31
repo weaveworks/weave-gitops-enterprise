@@ -2059,12 +2059,15 @@ func TestGenerateProfileFiles(t *testing.T) {
 		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
 			helmRepositoryCluster: types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
-			helmRepository:        nsn("testing", "test-ns"),
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepository{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: map[string]string{},
@@ -2134,13 +2137,17 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 		nsn("cluster-foo", "ns-foo"),
 		makeTestHelmRepositoryTemplate("base"),
 		generateProfileFilesParams{
-			helmRepository:        nsn("testing", "test-ns"),
+			// helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepository{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: map[string]string{},
