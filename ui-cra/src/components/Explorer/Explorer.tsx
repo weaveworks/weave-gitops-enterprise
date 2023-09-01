@@ -8,23 +8,34 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
-import ExplorerTable from './ExplorerTable';
+import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
 import FilterDrawer from './FilterDrawer';
 import Filters from './Filters';
 import PaginationControls from './PaginationControls';
 import QueryInput from './QueryInput';
 import QueryStateChips from './QueryStateChips';
 import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
-import { QueryStateProvider, columnHeaderHandler } from './hooks';
+import {
+  QueryStateProvider,
+  columnHeaderHandler,
+  useGetUnstructuredObjects,
+} from './hooks';
 
 type Props = {
   className?: string;
   category?: 'automation' | 'source';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
+  extraColumns?: FieldWithIndex[];
 };
 
-function Explorer({ className, category, enableBatchSync, manager }: Props) {
+function Explorer({
+  className,
+  category,
+  enableBatchSync,
+  manager,
+  extraColumns,
+}: Props) {
   const history = useHistory();
   if (!manager) {
     manager = new URLQueryStateManager(history);
@@ -45,6 +56,12 @@ function Explorer({ className, category, enableBatchSync, manager }: Props) {
     category,
   });
 
+  const unst = useGetUnstructuredObjects(data?.objects || []);
+  const rows = _.map(data?.objects, (o: any) => ({
+    ...o,
+    parsed: unst[o.id],
+  }));
+
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
 
   return (
@@ -60,10 +77,11 @@ function Explorer({ className, category, enableBatchSync, manager }: Props) {
         <Flex wide>
           <ExplorerTable
             queryState={queryState}
-            rows={data?.objects || []}
+            rows={rows}
             onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
             enableBatchSync={enableBatchSync}
             sortField={queryState.orderBy}
+            extraColumns={extraColumns}
           />
 
           <FilterDrawer
