@@ -1630,7 +1630,6 @@ status: {}
 		testEstimator,
 		fakeChartCache,
 		types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
-		types.NamespacedName{Name: "weaveworks-charts", Namespace: "flux-system"},
 		makeTestTemplateWithProfileAnnotation(
 			templatesv1.RenderTypeEnvsubst,
 			"capi.weave.works/profile-0",
