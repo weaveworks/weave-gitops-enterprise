@@ -21,6 +21,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -265,6 +266,16 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
+func toMapString(values []*capiv1_proto.ProfileValues) map[string]*capiv1_proto.ProfileValues {
+	profileValues := map[string]*capiv1_proto.ProfileValues{}
+
+	for _, value := range values {
+		profileValues[value.Name] = value
+	}
+
+	return profileValues
+}
+
 func GetFiles(
 	ctx context.Context,
 	client client.Client,
@@ -389,10 +400,26 @@ func GetFiles(
 			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
 		}
 
+		helmRepositories := getHelmRepositoriesReferences(toMapString(msg.Profiles))
+		helmRepositoryCopies := []*sourcev1.HelmRepository{}
+		if client == nil {
+			return nil, errors.New("client is nil, cannot get Helm repository")
+		}
+
+		// Loop through all helm repository references and make a copy of each that we can then save to git.
+		for _, helmRepository := range helmRepositories {
+			helmRepositoryCopy, err := copyHelmRepository(ctx, client, toNamespacedName(helmRepository))
+			if err != nil {
+				return nil, fmt.Errorf("failed to copy Helm repository: %w", err)
+			}
+			helmRepositoryCopies = append(helmRepositoryCopies, helmRepositoryCopy)
+		}
+
 		profilesFiles, err := generateProfileFiles(
 			ctx,
 			tmpl,
 			cluster,
+			helmRepositoryCopies,
 			generateProfileFilesParams{
 				helmRepositoryCluster: profileHelmRepositoryCluster,
 				chartsCache:           chartsCache,
@@ -434,6 +461,28 @@ func GetFiles(
 	}
 
 	return &GetFilesReturn{RenderedTemplate: files, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: costEstimate, ExternalSecretsFiles: externalSecretFiles}, err
+}
+
+// Make a copy of the Helm repository that we can save to git.
+// Copy is just the name/namespace/spec.
+// We don't need the status, annotations or labels etc.
+func copyHelmRepository(ctx context.Context, client client.Client, profileHelmRepository types.NamespacedName) (*sourcev1.HelmRepository, error) {
+	existingHelmRepo := &sourcev1.HelmRepository{}
+	err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
+	if err != nil {
+		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", profileHelmRepository.Name, profileHelmRepository.Namespace, err)
+	}
+	return &sourcev1.HelmRepository{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       sourcev1.HelmRepositoryKind,
+			APIVersion: sourcev1.GroupVersion.Identifier(),
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      profileHelmRepository.Name,
+			Namespace: profileHelmRepository.Namespace,
+		},
+		Spec: existingHelmRepo.Spec,
+	}, nil
 }
 
 func getCluster(namespace string, msg GetFilesRequest) (types.NamespacedName, error) {

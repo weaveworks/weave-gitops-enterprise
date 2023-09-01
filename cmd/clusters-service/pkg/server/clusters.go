@@ -17,6 +17,7 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	"github.com/fluxcd/pkg/apis/meta"
+	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/imdario/mergo"
 	"github.com/mkmik/multierror"
 	"github.com/spf13/viper"
@@ -671,7 +672,7 @@ func getHelmRepositoriesReferences(values map[string]*capiv1_proto.ProfileValues
 
 // createProfileYAML creates a map of file paths to YAML bytes for a profile
 // takes into consideration the template spec.charts.HelmRepositoryTemplate.Path and list of spec.charts.items[].HelmReleaseTemplate.Path
-func createProfileYAML(helmRepositories []*capiv1_proto.HelmRepositoryRef, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
+func createProfileYAML(helmRepositoryCopies []*sourcev1.HelmRepository, helmReleases []*helmv2.HelmRelease, template templatesv1.Template, defaultPath string) (map[string][][]byte, error) {
 	profileObjects := make(map[string][][]byte)
 
 	// Helm repository template
@@ -680,15 +681,13 @@ func createProfileYAML(helmRepositories []*capiv1_proto.HelmRepositoryRef, helmR
 		helmRepoPath = template.GetSpec().Charts.HelmRepositoryTemplate.Path
 	}
 
-	for _, helmRepo := range helmRepositories {
+	for _, helmRepo := range helmRepositoryCopies {
 		b, err := yaml.Marshal(helmRepo)
-			if err != nil {
-				return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
-			}
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal HelmRepository object to YAML: %w", err)
+		}
 		profileObjects[helmRepoPath] = append(profileObjects[helmRepoPath], b)
 	}
-
-	fmt.Println("profielOjects", profileObjects)
 
 	// Helm release templates
 	for _, v := range helmReleases {
@@ -725,7 +724,8 @@ func toNamespacedName(helmRepositoryRef *capiv1_proto.HelmRepositoryRef) types.N
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, 
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName,
+	helmRepositoryCopies []*sourcev1.HelmRepository,
 	args generateProfileFilesParams) ([]git.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
@@ -808,13 +808,21 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 			}
 		}
 
+		helmRepositoryCopy := &sourcev1.HelmRepository{}
+
+		for _, hr := range helmRepositoryCopies {
+			if hr.Name == v.HelmRepository.Name && hr.Namespace == v.HelmRepository.Namespace {
+				helmRepositoryCopy = hr
+			}
+		}
+
 		installs = append(installs, charts.ChartInstall{
 			Ref: charts.ChartReference{
 				Chart:   v.Name,
 				Version: v.Version,
 				SourceRef: helmv2.CrossNamespaceObjectReference{
-					Name:      v.HelmRepository.Name,
-					Namespace: v.HelmRepository.Namespace,
+					Name:      helmRepositoryCopy.Name,
+					Namespace: helmRepositoryCopy.Namespace,
 					Kind:      "HelmRepository",
 				},
 			},
@@ -831,9 +839,7 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 	}
 
 	// profilesBytes is a map of {path: []byte} where []byte is the content of the profile.
-	// need to pass all helmRepositories to createProfileYAML instead of just helmRepo
-	helmRepositories := getHelmRepositoriesReferences(profilesIndex)
-	profilesByPath, err := createProfileYAML(helmRepositories, helmReleases, tmpl, getClusterProfilesPath(cluster))
+	profilesByPath, err := createProfileYAML(helmRepositoryCopies, helmReleases, tmpl, getClusterProfilesPath(cluster))
 	if err != nil {
 		return nil, err
 	}
