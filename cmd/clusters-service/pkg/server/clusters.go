@@ -724,9 +724,7 @@ func toNamespacedName(helmRepositoryRef *capiv1_proto.HelmRepositoryRef) types.N
 // profileValues is what the client will provide to the API.
 // It may have > 1 and its values parameter may be empty.
 // Assumption: each profile should have a values.yaml that we can treat as the default.
-func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName,
-	helmRepositoryCopies []*sourcev1.HelmRepository,
-	args generateProfileFilesParams) ([]git.CommitFile, error) {
+func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluster types.NamespacedName, helmRepositoryCopies []*sourcev1.HelmRepository, args generateProfileFilesParams) ([]git.CommitFile, error) {
 	tmplProcessor, err := templates.NewProcessorForTemplate(tmpl)
 	if err != nil {
 		return nil, err

@@ -2052,10 +2052,12 @@ func TestGenerateProfileFiles(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
 			helmRepositoryCluster: types.NamespacedName{Name: "cluster-foo", Namespace: "ns-foo"},
 			profileValues: []*capiv1_protos.ProfileValues{
@@ -2063,7 +2065,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
-					HelmRepository: &capiv1_protos.HelmRepository{
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
 						Name:      "testing",
 						Namespace: "test-ns",
 					},
@@ -2126,6 +2128,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
@@ -2134,6 +2137,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\" }",
 		),
 		nsn("cluster-foo", "ns-foo"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
@@ -2141,7 +2145,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
-					HelmRepository: &capiv1_protos.HelmRepository{
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
 						Name:      "testing",
 						Namespace: "test-ns",
 					},
@@ -2203,6 +2207,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
@@ -2211,15 +2216,18 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			"{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"foo: defaultFoo\", \"editable\": true }",
 		),
 		nsn("management", ""),
-		makeTestHelmRepositoryTemplate("base"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
-			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: map[string]string{},
@@ -2282,20 +2290,23 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		"CLUSTER_NAME": "test-cluster-name",
 		"NAMESPACE":    "default",
 	}
-
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
-			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: ${CLUSTER_NAME}")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: params,
@@ -2354,25 +2365,33 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
-			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 				{
 					Name:    "bar",
 					Version: "0.0.1",
 					Layer:   "testing",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: map[string]string{},
@@ -2465,20 +2484,23 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		"NAMESPACE":    "default",
 		"TEST_PARAM":   "this-is-a-test",
 	}
-
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeTemplating),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
-			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: '{{ .params.TEST_PARAM }}'")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: params,
@@ -2537,6 +2559,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
+	bases := []string{"base", "test"}
 	values := []byte("foo: defaultFoo")
 	profile := fmt.Sprintf("{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	files, err := generateProfileFiles(
@@ -2547,9 +2570,8 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			profile,
 		),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
-			helmRepository: nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{
 				Name: "management",
 			},
@@ -2616,25 +2638,33 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 				Layer:   "layer-1",
 			},
 		})
+	bases := []string{"base", "test"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
 		nsn("cluster-foo", "ns-foo"),
-		makeTestHelmRepositoryTemplate("base"),
+		makeTestHelmRepositoryTemplate(bases),
 		generateProfileFilesParams{
-			helmRepository:        nsn("testing", "test-ns"),
 			helmRepositoryCluster: types.NamespacedName{Name: "management"},
 			profileValues: []*capiv1_protos.ProfileValues{
 				{
 					Name:    "foo",
 					Version: "0.0.1",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 				{
 					Name:    "bar",
 					Version: "0.0.1",
 					Layer:   "layer-0",
 					Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+					HelmRepository: &capiv1_protos.HelmRepositoryRef{
+						Name:      "testing",
+						Namespace: "test-ns",
+					},
 				},
 			},
 			parameterValues: map[string]string{},
@@ -2730,7 +2760,7 @@ func TestGenerateProfilePaths(t *testing.T) {
 				Layer:   "layer-1",
 			},
 		})
-
+	bases := []string{"base", "test"}
 	expectedHelmRelease := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
@@ -2885,21 +2915,28 @@ status: {}
 				context.TODO(),
 				tt.template,
 				nsn("cluster-foo", "ns-foo"),
-				makeTestHelmRepositoryTemplate("base"),
+				makeTestHelmRepositoryTemplate(bases),
 				generateProfileFilesParams{
-					helmRepository:        nsn("testing", "test-ns"),
 					helmRepositoryCluster: types.NamespacedName{Name: "management"},
 					profileValues: []*capiv1_protos.ProfileValues{
 						{
 							Name:    "foo",
 							Version: "0.0.1",
 							Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+							HelmRepository: &capiv1_protos.HelmRepositoryRef{
+								Name:      "testing",
+								Namespace: "test-ns",
+							},
 						},
 						{
 							Name:    "bar",
 							Version: "0.0.1",
 							Layer:   "layer-0",
 							Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
+							HelmRepository: &capiv1_protos.HelmRepositoryRef{
+								Name:      "testing",
+								Namespace: "test-ns",
+							},
 						},
 					},
 					parameterValues: tt.params,
@@ -2918,10 +2955,16 @@ func concatYaml(yamls ...string) string {
 
 // generateProfiles takes in a HelmRepo that we are going to write to git,
 // it shouldn't have Status etc set
-func makeTestHelmRepositoryTemplate(base string) *sourcev1.HelmRepository {
-	return makeTestHelmRepository(base, func(hr *sourcev1.HelmRepository) {
-		hr.Status = sourcev1.HelmRepositoryStatus{}
-	})
+func makeTestHelmRepositoryTemplate(bases []string) []*sourcev1.HelmRepository {
+	testHelmRepositoryTemplates := []*sourcev1.HelmRepository{}
+
+	for _, base := range bases {
+		testHelmRepositoryTemplates = append(testHelmRepositoryTemplates, makeTestHelmRepository(base, func(hr *sourcev1.HelmRepository) {
+			hr.Status = sourcev1.HelmRepositoryStatus{}
+		}))
+	}
+
+	return testHelmRepositoryTemplates
 }
 
 func makeCommitFile(path, content string) git.CommitFile {
