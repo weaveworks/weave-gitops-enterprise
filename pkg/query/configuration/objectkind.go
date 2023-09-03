@@ -310,6 +310,8 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *sourcev1beta2.OCIRepository:
 		return t, nil
+	case *gitopssets.GitOpsSet:
+		return t, nil
 	case *corev1.Event:
 		e, ok := obj.(*corev1.Event)
 		if !ok {
