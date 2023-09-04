@@ -10,20 +10,29 @@ import (
 )
 
 const (
+	// TODO: @mostafa rephrase next 2 msgs.
+	fluxNotInstalledMsgFormat      = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
 	fluxBootstrapMsg               = "Do you want to bootstrap flux with the generic way on your cluster"
+	
 	gitRepoUrlMsg                  = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
 	gitBranchMsg                   = "Please enter your git repository branch (default: main)"
 	gitRepoPathMsg                 = "Please enter your path for your cluster (default: clusters/my-cluster)"
-	fluxInstallInfoMsg             = "Installing flux ..."
-	fluxBootstrapInfoMsg           = "Bootstrapping flux ..."
-	fluxInstallCheckMsg            = "Checking flux installation ..."
-	fluxInstallValidationMsg       = "Checking flux installation is valid ..."
-	fluxInstallConfirmMsg          = "Flux is installed!"
+	privateKeyPathPromptMsgFormat  = "Please enter your private key path (default: %s)"
+	
+	//TODO: @waleed to rename Install to bootstrap & boostrap info to bootstrapConfirm
+	fluxInstallInfoMsg             = "Bootstrapping flux ..."
+	fluxBootstrapInfoMsg           = "Flux has been boostrapped successfully!"
+
+	fluxInstallCheckMsg            = "Checking flux installation exists ..."
+	fluxInstallConfirmMsg          = "Flux is already installed!"
+	
+	fluxInstallValidationMsg       = "Verifying flux installation is valid ..."
 	fluxReconcileConfirmMsg        = "Flux is installed and can reconcile successfully!"
-	fluxNotInstalledMsgFormat      = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
+
+	//TODO: @waleed to verify msg usage and remove duplicates if needed.
 	fluxInstallationErrorMsgFormat = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
 	fluxDocsReferenceMsgFormat     = "Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v"
-	privateKeyPathPromptMsgFormat  = "Please enter your private key path (default: %s)"
+	
 )
 
 const (
