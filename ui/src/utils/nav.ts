@@ -81,8 +81,8 @@ export function getKindRoute(k: Kind | string): string {
     case 'HelmRelease':
       return V2Routes.HelmRelease;
 
-    case 'GitOpsSets':
-      return Routes.GitOpsSets;
+    case 'GitOpsSet':
+      return Routes.GitOpsSetDetail;
 
     default:
       return V2Routes.NotImplemented;

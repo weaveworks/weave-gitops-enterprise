@@ -16,13 +16,13 @@ import (
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 )
 
 var (
@@ -195,9 +195,9 @@ func TestQueryServer(t *testing.T) {
 						},
 						Templates: []templatesv1.GitOpsSetTemplate{},
 					},
-				}
+				},
 			},
-			query:              "kind:GitOpsSets",
+			query:              "kind:GitOpsSet",
 			expectedNumObjects: 1,
 		},
 	}
