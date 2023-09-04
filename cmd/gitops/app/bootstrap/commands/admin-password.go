@@ -8,12 +8,12 @@ import (
 )
 
 const (
-	adminUsernameMsg           = "Please enter your admin username (default: wego-admin)"
-	adminPasswordMsg           = "Please enter your admin password"
-	secretConfirmationMsg      = "admin secret is created"
-	adminSecretExistsMsgFormat = "admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'"
-)
+	adminUsernameMsg           = "Please enter WeaveGitOps dashboard admin username (default: wego-admin):"
+	adminPasswordMsg           = "Please enter admin password:"
+	secretConfirmationMsg      = "Admin user & secret has been created successfully!"
+	adminSecretExistsMsgFormat = "Admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'"
 
+)
 const (
 	defaultAdminUsername = "wego-admin"
 	adminSecretName      = "cluster-user-auth"

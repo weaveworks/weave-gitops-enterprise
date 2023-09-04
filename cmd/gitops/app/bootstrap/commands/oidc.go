@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	oidcInstallMsg                  = "Do you want to add OIDC config to your cluster"
+	oidcInstallMsg                  = "Do you want to setup OIDC to access Weave GitOps Dashboards?"
 	oidcDiscoverUrlMsg              = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
 	discoveryUrlVerifyMsg           = "Verifying OIDC discovery URL ..."
 	oidcClientIDMsg                 = "Please enter OIDC clientID"
@@ -19,8 +19,8 @@ const (
 	adminUserRevertMsg              = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
 	oidcConfigInfoMsg               = "For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
 	oidcInstallInfoMsg              = "Installing OIDC config ..."
-	oidcConfirmationMsg             = "OIDC config created successfully"
-	adminUsernameRevertMsg          = "Admin user reverted successfully"
+	oidcConfirmationMsg             = "OIDC config created successfully!"
+	adminUsernameRevertMsg          = "Admin user reverted successfully!"
 	oidcConfigExistWarningMsgFormat = "OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'"
 	discoveryUrlErrorMsgFormat      = "OIDC discovery URL returned status %d"
 	discoveryUrlNoIssuerMsg         = "OIDC discovery URL returned no issuer"
