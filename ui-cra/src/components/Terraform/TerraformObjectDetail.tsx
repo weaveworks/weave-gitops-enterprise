@@ -172,7 +172,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
           </Box>
           <Box paddingBottom={3}>
             <Flex wide wrap between gap="8">
-              <Flex gap="4">
+              <Flex gap="12">
                 <Button
                   loading={syncing}
                   variant="outlined"

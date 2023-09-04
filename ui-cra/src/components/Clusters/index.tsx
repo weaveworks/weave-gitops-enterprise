@@ -60,10 +60,6 @@ interface Size {
 
 export const ActionsWrapper = styled(Flex)<Size>`
   margin-bottom: ${({ theme }) => theme.spacing.medium};
-  & > .actionButton.btn {
-    margin-right: ${({ theme }) => theme.spacing.small};
-    margin-bottom: ${({ theme }) => theme.spacing.small};
-  }
 `;
 
 const IconSpan = styled.span`
@@ -323,7 +319,7 @@ const MCCP: FC<{
         }}
       >
         <NotificationsWrapper>
-          <ActionsWrapper>
+          <ActionsWrapper gap="12">
             <Button
               id="create-cluster"
               startIcon={<Icon type={IconType.AddIcon} size="base" />}

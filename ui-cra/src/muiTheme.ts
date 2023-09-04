@@ -15,7 +15,6 @@ export const muiTheme = (colors: any, mode: ThemeTypes) => {
         root: {
           ...theme.overrides?.MuiButton?.root,
           minWidth: 52,
-          marginRight: baseTheme.spacing.small,
         },
       },
       MuiDialog: {

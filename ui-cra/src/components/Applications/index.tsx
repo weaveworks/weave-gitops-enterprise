@@ -47,7 +47,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
       ]}
     >
       <NotificationsWrapper errors={automations?.errors}>
-        <ActionsWrapper>
+        <ActionsWrapper gap="12">
           <Button
             id="add-application"
             className="actionButton btn"

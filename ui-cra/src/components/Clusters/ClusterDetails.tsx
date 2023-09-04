@@ -66,7 +66,7 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
       <NotificationsWrapper>
         {currentCluster && (
           <div style={{ overflowX: 'auto' }}>
-            <ActionsWrapper>
+            <ActionsWrapper gap="12">
               <WeaveButton
                 id="cluster-application"
                 startIcon={<Icon type={IconType.FilterIcon} size="base" />}
