@@ -9,8 +9,6 @@ import {
   GetPolicyValidationResponse,
   ListPoliciesRequest,
   ListPoliciesResponse,
-  ListPolicyValidationsRequest,
-  ListPolicyValidationsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';

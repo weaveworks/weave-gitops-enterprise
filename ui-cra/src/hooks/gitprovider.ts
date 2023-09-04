@@ -1,15 +1,5 @@
-import { poller } from '@weaveworks/weave-gitops';
 import { useState, useContext, useEffect, useCallback } from 'react';
-import {
-  GetGithubAuthStatusResponse,
-  GetGithubDeviceCodeResponse,
-  GitProvider,
-} from '../api/gitauth/gitauth.pb';
-import {
-  getProviderToken,
-  GrpcErrorCodes,
-  storeProviderToken,
-} from '../components/GitAuth/utils';
+import { GitProvider } from '../api/gitauth/gitauth.pb';
 import { GitAuth } from '../contexts/GitAuth';
 import { NotificationData } from './../contexts/Notifications';
 
