@@ -172,7 +172,7 @@ func TestQueryServer(t *testing.T) {
 		},
 		{
 			name:   "should support gitopssets",
-			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
+			access: allowGitOpsSetsAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				&gitopssets.GitOpsSet{
 					ObjectMeta: metav1.ObjectMeta{
