@@ -159,6 +159,12 @@ jobs:
       WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
       WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
 
+  smoke-tests-playwright:
+    needs: [build, coverage]
+    uses: ./.github/workflows/acceptance-test-playwright.yaml
+    with:
+      ZZZ
+
   smoke-test-results:
     if: ${{ always() }}
     needs:
