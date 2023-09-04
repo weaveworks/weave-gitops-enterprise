@@ -58,8 +58,8 @@ func TestListChartsForRepository(t *testing.T) {
 					), []helm.Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "postgres", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
-					{Name: "postgres", Versions: []string{"1.0.2"}},
-					{Name: "redis", Versions: []string{"1.0.1"}},
+					{Name: "postgres", Versions: []string{"1.0.2"}, RepoName: "bitnami-charts", RepoNamespace: "demo"},
+					{Name: "redis", Versions: []string{"1.0.1"}, RepoName: "bitnami-charts", RepoNamespace: "demo"},
 				},
 			},
 		},
@@ -85,7 +85,7 @@ func TestListChartsForRepository(t *testing.T) {
 					), []helm.Chart{{Name: "redis", Version: "1.0.1", Kind: "chart"}, {Name: "redis", Version: "1.0.2", Kind: "chart"}})),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
-					{Name: "redis", Versions: []string{"1.0.2", "1.0.1"}},
+					{Name: "redis", Versions: []string{"1.0.2", "1.0.1"}, RepoName: "bitnami-charts", RepoNamespace: "demo"},
 				},
 			},
 		},
@@ -141,7 +141,7 @@ func TestListChartsForRepository(t *testing.T) {
 			),
 			want: &protos.ListChartsForRepositoryResponse{
 				Charts: []*protos.RepositoryChart{
-					{Name: "weaveworks-profile", Versions: []string{"1.0.1"}},
+					{Name: "weaveworks-profile", Versions: []string{"1.0.1"}, RepoName: "bitnami-charts", RepoNamespace: "demo"},
 				},
 			},
 		},
