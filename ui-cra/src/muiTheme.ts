@@ -1,5 +1,5 @@
 import { createTheme } from '@material-ui/core/styles';
-import { baseTheme, muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
+import { muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
 import { ThemeTypes } from '@weaveworks/weave-gitops/ui/contexts/AppContext';
 
 const defaultTheme = createTheme();
