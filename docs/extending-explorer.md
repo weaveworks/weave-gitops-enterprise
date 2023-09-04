@@ -22,6 +22,7 @@ for [Status and Message](https://github.com/weaveworks/weave-gitops-enterprise/b
 If you would like to use default Explorer view with your Kind:
 
 1. Add your Kind details Route to [`getKindRoute`](https://github.com/weaveworks/weave-gitops-enterprise/blob/f36d549b6010afbd3c086c4955637586629ec589/ui-cra/src/utils/nav.ts#L3)
+2. Add a test case for your kind in the [integration test](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/pkg/query/server/server_integration_test.go#L44)  
 
 ## Using the Explorer UI component
 
