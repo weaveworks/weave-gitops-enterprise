@@ -22,6 +22,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 )
 
 var (
@@ -168,6 +169,36 @@ func TestQueryServer(t *testing.T) {
 			},
 			query:              fmt.Sprintf("kind:%s", sourcev1beta2.BucketKind),
 			expectedNumObjects: 1, // should allow only on default namespace,
+		},
+		{
+			name:   "should support gitopssets",
+			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&gitopssets.GitOpsSet{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gitopsset-list",
+						Namespace: defaultNamespace,
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       gitopssets.GitOpsSetKind,
+						APIVersion: gitopssets.GroupVersion.String(),
+					},
+					Spec: gitopssets.GitOpsSetSpec{
+						Generators: []templatesv1.GitOpsSetGenerator{
+							{
+								List: &templatesv1.ListGenerator{
+									Elements: []apiextensionsv1.JSON{
+										{Raw: []byte(`{"cluster": "engineering-dev"}`)},
+									},
+								},
+							},
+						},
+						Templates: []templatesv1.GitOpsSetTemplate{},
+					},
+				}
+			},
+			query:              "kind:GitOpsSets",
+			expectedNumObjects: 1,
 		},
 	}
 	for _, tt := range tests {
@@ -360,6 +391,29 @@ func allowSourcesAnyOnDefaultNamespace(username string) []client.Object {
 				},
 			}),
 	)
+}
+
+func allowGitOpsSetsAnyOnDefaultNamespace(username string) []client.Object {
+	roleName := "gitopssets-admin"
+	roleBindingName := "wego-admin-gitopssets-release-admin"
+
+	return append(createCollectorSecurityContext(),
+		newRole(roleName, "default",
+			[]rbacv1.PolicyRule{{
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
+				Verbs:     []string{"*"},
+			}}),
+		newRoleBinding(roleBindingName,
+			"default",
+			"Role",
+			roleName,
+			[]rbacv1.Subject{
+				{
+					Kind: "User",
+					Name: username,
+				},
+			}))
 }
 
 func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject) *rbacv1.RoleBinding {
