@@ -57,7 +57,7 @@ func configForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, cont
 		return nil, err
 	}
 	if contextName != "" {
-		logger.Info("context for config retrieved", "context", contextName)
+		logger.Info("kubeconfig context loaded", "name", contextName)
 	} else {
 		logger.Info("kubeconfig retrieved")
 	}
