@@ -281,15 +281,20 @@ Given so, a good way to understand the chain of responsibility is through the fl
    - Aggregates and process the data
    - Returns the result set to the api client
 
-The backend application is a modular application based on aggregation of domain-specific servers: 1. Clusters service [server.go](../../cmd/clusters-service/app/server.go) provides that aggregation layer for
-the domain-specific servers (as well as service its specific domain). 2. Domain-specific server are self-contained within their package for example [pipelines](../../pkg/pipelines) contains
-the [pipelines server](../../pkg/pipelines/server/server.go). 3. The server integration is controlled via feature flagging like:
+The backend application is a modular application based on aggregation of domain-specific servers:
 
-    if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
-            if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{}); err != nil {
-                return fmt.Errorf("hydrating pipelines server: %w", err)
-            }
-    }
+1. Clusters service [server.go](../../cmd/clusters-service/app/server.go) provides that aggregation layer for
+   the domain-specific servers (as well as service its specific domain).
+2. Domain-specific server are self-contained within their package for example [pipelines](../../pkg/pipelines) contains
+   the [pipelines server](../../pkg/pipelines/server/server.go).
+3. The server integration is controlled via feature flagging like:
+   ```go
+   if featureflags.Get("WEAVE_GITOPS_FEATURE_PIPELINES") != "" {
+       if err := pipelines.Hydrate(ctx, grpcMux, pipelines.ServerOpts{}); err != nil {
+           return fmt.Errorf("hydrating pipelines server: %w", err)
+       }
+   }
+   ```
 
 #### Data and Storage
 
