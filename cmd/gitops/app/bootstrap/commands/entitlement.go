@@ -12,6 +12,7 @@ const (
 	// 1. Non-existing entitlement secret file : "Entitlement File is not found. To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster."
 	// 2. Invalid entitlement secret: "Entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*."
 	invalidEntitlementMsgFormat = "\n✖️  Invalid entitlement file, Please check secret: '%s' under namespace: '%s' on your cluster\nTo purchase an entitlement to Weave GitOps Enterprise, please contact sales@weave.works.\n"
+	
 	entitlementCheckMsg         = "Verifying Weave GitOps Entitlement File ..."
 )
 
