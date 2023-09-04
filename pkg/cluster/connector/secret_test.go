@@ -43,7 +43,7 @@ func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(context.TODO(), opts, "spoke")
+	restCfg, err := configForContext(context.TODO(), opts, "spoke")
 	assert.NoError(t, err)
 	config, err := kubeConfigWithToken(context.TODO(), restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)

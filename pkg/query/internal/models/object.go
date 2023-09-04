@@ -26,6 +26,7 @@ type Object struct {
 	Category            configuration.ObjectCategory `json:"category" gorm:"type:text"`
 	KubernetesDeletedAt time.Time                    `json:"kubernetesDeletedAt"`
 	Unstructured        json.RawMessage              `json:"unstructured" gorm:"type:blob"`
+	Tenant              string                       `json:"tenant" gorm:"type:text"`
 }
 
 func (o Object) Validate() error {

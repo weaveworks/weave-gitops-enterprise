@@ -29,6 +29,8 @@ export type Object = {
   message?: string
   category?: string
   unstructured?: string
+  id?: string
+  tenant?: string
 }
 
 export type DebugGetAccessRulesRequest = {
