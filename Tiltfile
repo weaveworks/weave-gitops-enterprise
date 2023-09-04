@@ -111,7 +111,7 @@ elif native_build:
    )
    docker_build(
       'weaveworks/weave-gitops-enterprise-ui-server',
-      'ui',
+      '.',
       dockerfile="ui/dev.dockerfile",
       build_args={'GITHUB_TOKEN': os.getenv('GITHUB_TOKEN')},
    )
