@@ -2,14 +2,14 @@ import {
   GetCanaryResponse,
   ListCanariesResponse,
   ListCanaryObjectsResponse,
-  ProgressiveDeliveryService
+  ProgressiveDeliveryService,
 } from '@weaveworks/progressive-delivery';
 import _ from 'lodash';
 import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
 import {
   ListEventsRequest,
-  ListEventsResponse
+  ListEventsResponse,
 } from '../../cluster-services/cluster_services.pb';
 import { formatError } from '../../utils/formatters';
 import { EnterpriseClientContext } from '../EnterpriseClient';
@@ -77,7 +77,7 @@ export const useGetCanaryDetails = (params: CanaryParams) => {
     [PD_QUERY_KEY, GET_CANARY_KEY, params],
     () => pd.GetCanary(params),
     {
-      refetchInterval: 10000,
+      refetchInterval: data => (data ? false : 10000),
       retry: false,
       onError,
     },

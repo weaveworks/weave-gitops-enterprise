@@ -1,10 +1,5 @@
 import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import {
-  AppContext,
-  DataTable,
-  FluxObject,
-  Text,
-} from '@weaveworks/weave-gitops';
+import { AppContext, DataTable, Text } from '@weaveworks/weave-gitops';
 import { useContext } from 'react';
 import { TableWrapper } from '../../../Shared';
 
@@ -14,7 +9,6 @@ export const CanaryMetricsTable = ({
   metrics: CanaryMetric[];
 }) => {
   const { setDetailModal } = useContext(AppContext);
-
   return (
     <TableWrapper id="canary-analysis-metrics">
       <DataTable
@@ -29,11 +23,15 @@ export const CanaryMetricsTable = ({
             value: (c: CanaryMetric) =>
               c.metricTemplate ? (
                 <Text
-                  onClick={() =>
+                  onClick={() => {
+                    const metricObj: any = {
+                      ...c.metricTemplate,
+                      type: 'MetricTemplate',
+                    };
                     setDetailModal({
-                      object: c.metricTemplate as FluxObject,
-                    })
-                  }
+                      object: metricObj,
+                    });
+                  }}
                   color="primary10"
                   pointer
                 >
