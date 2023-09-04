@@ -230,7 +230,7 @@ var (
 		AddToSchemeFunc: gitopssets.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		Category:        CategorySource,
+		Category:        CategoryAutomation,
 	}
 )
 
