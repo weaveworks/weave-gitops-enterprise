@@ -10,11 +10,12 @@ import {
   ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import {
   ClusterAutomation,
+  CreateAutomationsPullRequestRequest,
   PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -28,7 +29,6 @@ import { useCallbackState } from '../../../utils/callback-state';
 import { Input, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
-import { createDeploymentObjects } from '../../Applications/utils';
 import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { Page } from '../../Layout/App';
@@ -42,6 +42,7 @@ import {
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { PreviewPRModal } from './PreviewPRModal';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
@@ -244,8 +245,10 @@ const CreatePolicyConfig = () => {
     token,
   );
 
+  const { api } = useContext(EnterpriseClientContext);
+
   const handleCreatePolicyConfig = useCallback(() => {
-    const payload = {
+    const payload: CreateAutomationsPullRequestRequest = {
       headBranch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
@@ -257,7 +260,14 @@ const CreatePolicyConfig = () => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        createDeploymentObjects(payload, getProviderToken(formData.provider))
+        api
+          .CreateAutomationsPullRequest(payload, {
+            headers: new Headers({
+              'Git-Provider-Token': `token ${getProviderToken(
+                formData.provider,
+              )}`,
+            }),
+          })
           .then(response => {
             history.push(Routes.PolicyConfigs);
             setNotifications([
@@ -291,6 +301,7 @@ const CreatePolicyConfig = () => {
       })
       .finally(() => setLoading(false));
   }, [
+    api,
     formData,
     getClusterAutomations,
     history,

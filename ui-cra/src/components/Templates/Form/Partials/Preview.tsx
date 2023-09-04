@@ -14,15 +14,9 @@ import { darcula } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import styled from 'styled-components';
 import {
   CommitFile,
+  RenderAutomationResponse,
   RenderTemplateResponse,
 } from '../../../../cluster-services/cluster_services.pb';
-import {
-  AppPRPreview,
-  ClusterPRPreview,
-  PolicyConfigPRPreview,
-  SOPSSecretPRPreview,
-  SecretPRPreview,
-} from '../../../../types/custom';
 import { MuiDialogTitle, Tooltip } from '../../../Shared';
 
 const DialogWrapper = styled(Dialog)`
@@ -77,10 +71,10 @@ const saveAs = (content: Blob, fileName: string) => {
 const Preview: FC<{
   openPreview: boolean;
   setOpenPreview: Dispatch<React.SetStateAction<boolean>>;
-  PRPreview: RenderTemplateResponse;
+  prPreview: RenderTemplateResponse;
   sourceType?: string;
   context?: string;
-}> = ({ PRPreview, openPreview, setOpenPreview, sourceType, context }) => {
+}> = ({ prPreview, openPreview, setOpenPreview, sourceType, context }) => {
   const initialIndex =
     context === 'app' && sourceType === 'HelmRepository' ? 1 : 0;
 
@@ -95,47 +89,47 @@ const Preview: FC<{
         return [
           {
             tabName: 'Kustomizations',
-            files: PRPreview.kustomizationFiles,
+            files: prPreview.kustomizationFiles,
           },
           {
             tabName: 'Helm Releases',
-            files: (PRPreview as AppPRPreview).helmReleaseFiles,
+            files: (prPreview as RenderAutomationResponse).helmReleaseFiles,
           },
         ];
       case 'secret':
         return [
           {
             tabName: 'External Secret',
-            files: (PRPreview as SecretPRPreview).externalSecretsFiles,
+            files: (prPreview as RenderAutomationResponse).externalSecretsFiles,
           },
         ];
       case 'sops':
         return [
           {
             tabName: 'SOPS Secret',
-            files: (PRPreview as SOPSSecretPRPreview).sopsSecertFiles,
+            files: (prPreview as RenderAutomationResponse).sopsSecertFiles,
           },
         ];
       case 'policyconfig':
         return [
           {
             tabName: 'PolicyConfigs',
-            files: (PRPreview as PolicyConfigPRPreview).policyConfigFiles,
+            files: (prPreview as RenderAutomationResponse).policyConfigFiles,
           },
         ];
       default:
         return [
           {
             tabName: 'Resource Definition',
-            files: (PRPreview as ClusterPRPreview).renderedTemplate,
+            files: (prPreview as RenderTemplateResponse).renderedTemplates,
           },
           {
             tabName: 'Profiles',
-            files: (PRPreview as ClusterPRPreview).profileFiles,
+            files: (prPreview as RenderTemplateResponse).profileFiles,
           },
           {
             tabName: 'Kustomizations',
-            files: PRPreview.kustomizationFiles,
+            files: prPreview.kustomizationFiles,
           },
         ];
     }

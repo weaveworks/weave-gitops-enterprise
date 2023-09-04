@@ -39,13 +39,6 @@ import { Page } from '../Layout/App';
 
 const YAML = require('yaml');
 
-export interface routeTab {
-  name: string;
-  path: string;
-  visible?: boolean;
-  component: (param?: any) => any;
-}
-
 type Props = {
   className?: string;
   name: string;

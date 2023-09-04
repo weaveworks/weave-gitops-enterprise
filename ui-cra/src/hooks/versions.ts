@@ -4,12 +4,15 @@ import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { useRequest } from '../contexts/Request';
 import { GitAuth } from '../contexts/GitAuth';
+import { GetVersionResponse } from '@weaveworks/progressive-delivery';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();
-  return useQuery<{ data: any; entitlement: string | null }, Error>(
-    'version',
-    () => requestWithEntitlementHeader('GET', '/v1/enterprise/version'),
+  return useQuery<
+    { data: GetVersionResponse; entitlement: string | null },
+    Error
+  >('version', () =>
+    requestWithEntitlementHeader('GET', '/v1/enterprise/version'),
   );
 }
 export interface ListConfigResponse extends GetConfigResponse {

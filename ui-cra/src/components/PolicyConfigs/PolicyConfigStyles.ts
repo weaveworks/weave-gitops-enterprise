@@ -16,17 +16,6 @@ export const TargetItemKind = styled(Text)`
 export const TotalPolicies = styled(Flex)`
   width: 100px;
 `;
-export const usePolicyConfigStyle = makeStyles(() =>
-  createStyles({
-    capitlize: {
-      textTransform: 'capitalize',
-    },
-    upperCase: {
-      textTransform: 'uppercase',
-    },
-  }),
-);
-
 export const WarningIcon = styled(ReportProblem)`
   color: ${props => props.theme.colors.feedbackOriginal};
 `;
@@ -140,15 +129,6 @@ export const PolicyDetailsCardWrapper = styled.ul`
   }
 `;
 
-export const SelectPoliciesWithSearch = styled(Autocomplete)`
-  div[class*='MuiOutlinedInput-root'] {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-  }
-  input {
-    border: 0 !important;
-  }
-`;
 export const CheckList = styled.ul`
   display:flex;
   min-width: 100vh;  

@@ -45,20 +45,6 @@ export function useGetPolicyDetails(req: GetPolicyRequest) {
   );
 }
 
-const LIST_POLICY_VIOLATION_QUERY_KEY = 'list-policy-violations';
-
-export function useListPolicyValidations(req: ListPolicyValidationsRequest) {
-  const { api } = useCoreClientContext();
-  const { setNotifications } = useNotifications();
-  const onError = (error: Error) => setNotifications(formatError(error));
-
-  return useQuery<ListPolicyValidationsResponse, Error>(
-    [LIST_POLICY_VIOLATION_QUERY_KEY, req],
-    () => api.ListPolicyValidations(req),
-    { onError },
-  );
-}
-
 const GET_POLICY_VIOLATION_QUERY_KEY = 'get-policy-violation-details';
 
 export function useGetPolicyValidationDetails(req: GetPolicyValidationRequest) {
