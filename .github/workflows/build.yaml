@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       gitops_platforms:
-        description: 'Platforms for gitops compilation - JSON string e.g ''["ubuntu-latest", "macOS-latest"]'''
+        description: Platforms for gitops compilation - JSON string e.g '["ubuntu-latest", "macOS-latest"]'
         required: false
         default: '["ubuntu-latest"]'
         type: string
