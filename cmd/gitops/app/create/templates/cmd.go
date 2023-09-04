@@ -246,7 +246,6 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 	}
 
 	var helmRepo *sourcev1.HelmRepository
-	var helmRepoRef types.NamespacedName
 	var chartsCache helm.ProfilesGeneratorCache = helm.NilProfilesGeneratorCache{}
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
@@ -259,7 +258,6 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 			)
 		}
 		helmRepo = fluxHelmRepo(entry)
-		helmRepoRef = types.NamespacedName{Name: helmRepo.Name, Namespace: helmRepo.Namespace}
 		chartsCache = helm.NewHelmIndexFileReader(index)
 	}
 
@@ -271,7 +269,6 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		estimation.NilEstimator(),
 		chartsCache,
 		types.NamespacedName{Name: DefaultCluster},
-		helmRepoRef,
 		tmpl,
 		server.GetFilesRequest{
 			ParameterValues: params,
