@@ -399,7 +399,6 @@ func GetFiles(
 			return nil, errors.New("client is nil, cannot get Helm repository")
 		}
 
-		fmt.Printf("helmRepositories: %v\n", helmRepositories)
 		// Loop through all helm repository references and make a copy of each that we can then save to git.
 		for _, helmRepository := range helmRepositories {
 			helmRepositoryCopy, err := copyHelmRepository(ctx, client, toNamespacedName(helmRepository))

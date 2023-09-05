@@ -2060,7 +2060,7 @@ func TestGenerateProfileFiles(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
@@ -2136,7 +2136,7 @@ func TestGenerateProfileFiles_without_editable_flag(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
@@ -2215,7 +2215,7 @@ func TestGenerateProfileFiles_with_editable_flag(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplateWithProfileAnnotation(
@@ -2298,7 +2298,7 @@ func TestGenerateProfileFiles_with_templates(t *testing.T) {
 		"CLUSTER_NAME": "test-cluster-name",
 		"NAMESPACE":    "default",
 	}
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
@@ -2373,7 +2373,7 @@ func TestGenerateProfileFilesWithLayers(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
@@ -2492,7 +2492,7 @@ func TestGenerateProfileFiles_with_text_templates(t *testing.T) {
 		"NAMESPACE":    "default",
 		"TEST_PARAM":   "this-is-a-test",
 	}
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeTemplating),
@@ -2567,7 +2567,7 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			Namespace: "test-ns",
 		},
 		[]helm.Chart{})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	values := []byte("foo: defaultFoo")
 	profile := fmt.Sprintf("{\"name\": \"foo\", \"version\": \"0.0.1\", \"values\": \"%s\" }", values)
 	files, err := generateProfileFiles(
@@ -2646,7 +2646,7 @@ func TestGenerateProfileFiles_reading_layer_from_cache(t *testing.T) {
 				Layer:   "layer-1",
 			},
 		})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	files, err := generateProfileFiles(
 		context.TODO(),
 		makeTestTemplate(templatesv1.RenderTypeEnvsubst),
@@ -2768,7 +2768,7 @@ func TestGenerateProfilePaths(t *testing.T) {
 				Layer:   "layer-1",
 			},
 		})
-	bases := []string{"base", "test"}
+	bases := []string{"base"}
 	expectedHelmRelease := `apiVersion: source.toolkit.fluxcd.io/v1beta2
 kind: HelmRepository
 metadata:
