@@ -652,22 +652,27 @@ func getGitProvider(ctx context.Context, repositoryURL string) (*csgit.GitProvid
 }
 
 // Scan all the incoming profiles and build up a list of unique  { name, namespace }  helmrepo refs
-func getHelmRepositoriesReferences(values map[string]*capiv1_proto.ProfileValues) []*capiv1_proto.HelmRepositoryRef {
+func getHelmRepositoriesReferences(values []*capiv1_proto.ProfileValues) ([]*capiv1_proto.HelmRepositoryRef, error) {
 	helmRepositories := []*capiv1_proto.HelmRepositoryRef{}
 
 	for _, value := range values {
-		if len(helmRepositories) == 0 {
-			helmRepositories = append(helmRepositories, value.HelmRepository)
-		} else {
-			for _, hr := range helmRepositories {
-				if (hr.Name != value.HelmRepository.Name) && (hr.Namespace != value.HelmRepository.Namespace) {
-					helmRepositories = append(helmRepositories, value.HelmRepository)
-				}
+		if value.HelmRepository == nil || value.HelmRepository.Name == "" || value.HelmRepository.Namespace == "" {
+			return nil, fmt.Errorf("helm repository name and namespace must be specified")
+		}
+
+		found := false
+		for _, hr := range helmRepositories {
+			if hr.Name == value.HelmRepository.Name && hr.Namespace == value.HelmRepository.Namespace {
+				found = true
+				break
 			}
+		}
+		if !found {
+			helmRepositories = append(helmRepositories, value.HelmRepository)
 		}
 	}
 
-	return helmRepositories
+	return helmRepositories, nil
 }
 
 // createProfileYAML creates a map of file paths to YAML bytes for a profile

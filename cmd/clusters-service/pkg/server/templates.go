@@ -266,16 +266,6 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
-func toMapString(values []*capiv1_proto.ProfileValues) map[string]*capiv1_proto.ProfileValues {
-	profileValues := map[string]*capiv1_proto.ProfileValues{}
-
-	for _, value := range values {
-		profileValues[value.Name] = value
-	}
-
-	return profileValues
-}
-
 func GetFiles(
 	ctx context.Context,
 	client client.Client,
@@ -400,12 +390,16 @@ func GetFiles(
 			return nil, fmt.Errorf("failed to get cluster for %s: %s", msg.ParameterValues, err)
 		}
 
-		helmRepositories := getHelmRepositoriesReferences(toMapString(msg.Profiles))
+		helmRepositories, err := getHelmRepositoriesReferences(msg.Profiles)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get Helm repositories references: %w", err)
+		}
 		helmRepositoryCopies := []*sourcev1.HelmRepository{}
 		if client == nil {
 			return nil, errors.New("client is nil, cannot get Helm repository")
 		}
 
+		fmt.Printf("helmRepositories: %v\n", helmRepositories)
 		// Loop through all helm repository references and make a copy of each that we can then save to git.
 		for _, helmRepository := range helmRepositories {
 			helmRepositoryCopy, err := copyHelmRepository(ctx, client, toNamespacedName(helmRepository))

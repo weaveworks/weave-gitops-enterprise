@@ -679,6 +679,10 @@ spec:
 						Name:    "demo-profile",
 						Version: "0.0.1",
 						Values:  base64.StdEncoding.EncodeToString([]byte(``)),
+						HelmRepository: &capiv1_protos.HelmRepositoryRef{
+							Name:      "weaveworks-charts",
+							Namespace: "default",
+						},
 					},
 				},
 			},
@@ -691,7 +695,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\"}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"default\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\",\"helm_repository\":{\"name\":\"weaveworks-charts\",\"namespace\":\"default\"}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
     templates.weave.works/created-files: "{\"files\":[\"clusters/my-cluster/clusters/default/dev.yaml\"]}"
   labels:
     templates.weave.works/template-name: cluster-template-1
@@ -845,6 +849,10 @@ status: {}
 						Version:   "0.0.1",
 						Values:    base64.StdEncoding.EncodeToString([]byte(``)),
 						Namespace: "test-system",
+						HelmRepository: &capiv1_protos.HelmRepositoryRef{
+							Name:      "weaveworks-charts",
+							Namespace: "default",
+						},
 					},
 				},
 			},
@@ -857,7 +865,7 @@ metadata:
   annotations:
     capi.weave.works/display-name: ClusterName
     kustomize.toolkit.fluxcd.io/prune: disabled
-    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\",\"namespace\":\"test-system\"}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
+    templates.weave.works/create-request: "{\"repository_url\":\"https://github.com/org/repo.git\",\"head_branch\":\"feature-01\",\"base_branch\":\"main\",\"title\":\"New Cluster\",\"description\":\"Creates a cluster through a CAPI template\",\"template_name\":\"cluster-template-1\",\"parameter_values\":{\"CLUSTER_NAME\":\"dev\",\"NAMESPACE\":\"clusters-namespace\"},\"commit_message\":\"Add cluster manifest\",\"values\":[{\"name\":\"demo-profile\",\"version\":\"0.0.1\",\"namespace\":\"test-system\",\"helm_repository\":{\"name\":\"weaveworks-charts\",\"namespace\":\"default\"}}],\"template_namespace\":\"default\",\"template_kind\":\"CAPITemplate\"}"
     templates.weave.works/created-files: "{\"files\":[\"clusters/my-cluster/clusters/clusters-namespace/dev.yaml\"]}"
   labels:
     templates.weave.works/template-name: cluster-template-1
