@@ -263,7 +263,7 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	kustomizationFiles := toCommitFileProtos(files.KustomizationFiles)
 	renderedTemplateFiles := toCommitFileProtos(files.RenderedTemplate)
 	externalSecretFiles := toCommitFileProtos(files.ExternalSecretsFiles)
-	return &capiv1_proto.RenderTemplateResponse{RenderedTemplate: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
+	return &capiv1_proto.RenderTemplateResponse{RenderedTemplates: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
 func GetFiles(

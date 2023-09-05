@@ -11,6 +11,3 @@ export const asSeconds = (duration: Duration) => {
   }
   return result.asSeconds();
 };
-
-export const asMilliseconds = (duration: Duration) =>
-  asSeconds(duration) * 1000;

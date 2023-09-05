@@ -9,8 +9,6 @@ import {
   GetPolicyValidationResponse,
   ListPoliciesRequest,
   ListPoliciesResponse,
-  ListPolicyValidationsRequest,
-  ListPolicyValidationsResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';
@@ -41,20 +39,6 @@ export function useGetPolicyDetails(req: GetPolicyRequest) {
   return useQuery<GetPolicyResponse, RequestError>(
     [GET_POLICY_QUERY_KEY, req],
     () => api.GetPolicy(req),
-    { onError },
-  );
-}
-
-const LIST_POLICY_VIOLATION_QUERY_KEY = 'list-policy-violations';
-
-export function useListPolicyValidations(req: ListPolicyValidationsRequest) {
-  const { api } = useCoreClientContext();
-  const { setNotifications } = useNotifications();
-  const onError = (error: Error) => setNotifications(formatError(error));
-
-  return useQuery<ListPolicyValidationsResponse, Error>(
-    [LIST_POLICY_VIOLATION_QUERY_KEY, req],
-    () => api.ListPolicyValidations(req),
     { onError },
   );
 }

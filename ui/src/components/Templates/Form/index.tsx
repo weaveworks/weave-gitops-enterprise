@@ -348,7 +348,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     ? editLink
     : `/templates/create?name=${template.name}&namespace=${template.namespace}`;
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
+  const [prPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
     null,
   );
   const [loading, setLoading] = useState<boolean>(false);
@@ -629,11 +629,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               </Button>
             </Flex>
           )}
-          {openPreview && PRPreview ? (
+          {openPreview && prPreview ? (
             <Preview
               openPreview={openPreview}
               setOpenPreview={setOpenPreview}
-              PRPreview={PRPreview}
+              prPreview={prPreview}
             />
           ) : null}
           {isCostEstimationEnabled ? (
@@ -682,7 +682,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     infraCredential,
     classes,
     openPreview,
-    PRPreview,
+    prPreview,
     profilesIsLoading,
     isLargeScreen,
     showAuthDialog,

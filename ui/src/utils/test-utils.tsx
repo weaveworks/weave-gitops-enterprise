@@ -87,17 +87,6 @@ export type RequestError = Error & {
   code?: number;
 };
 
-export function withTheme(element: any, mode: ThemeTypes = ThemeTypes.Light) {
-  const appliedTheme = theme(mode);
-  return (
-    <ThemeProvider theme={appliedTheme}>
-      <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
-        {element}
-      </MuiThemeProvider>
-    </ThemeProvider>
-  );
-}
-
 export const withContext = (contexts: any[]) => {
   return (component: React.ReactElement) => {
     const tree = _.reduce(

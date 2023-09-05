@@ -9,9 +9,20 @@ import {
 import { Box } from '@material-ui/core';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { useHistory } from 'react-router-dom';
-import { ClusterAutomation } from '../../../cluster-services/cluster_services.pb';
+import {
+  ClusterAutomation,
+  CreateAutomationsPullRequestRequest,
+  RenderAutomationResponse,
+  RepositoryRef,
+} from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -19,11 +30,7 @@ import {
   useIsAuthenticated,
 } from '../../../hooks/gitprovider';
 import useProfiles from '../../../hooks/profiles';
-import {
-  AppPRPreview,
-  ClusterPRPreview,
-  ProfilesIndex,
-} from '../../../types/custom';
+import { ProfilesIndex } from '../../../types/custom';
 import { useCallbackState } from '../../../utils/callback-state';
 import { validateFormData } from '../../../utils/form';
 import { getGitRepoHTTPSURL } from '../../../utils/formatters';
@@ -41,9 +48,9 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
-import { createDeploymentObjects, renderKustomization } from '../utils';
 import AppFields from './form/Partials/AppFields';
 import { SelectedHelmRepoRefs } from '../../Templates/Form';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 interface FormData {
   repo: GitRepository | null;
@@ -124,6 +131,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const history = useHistory();
   const authRedirectPage = `/applications/create`;
   const [formError, setFormError] = useState<string>('');
+  const { api } = useContext(EnterpriseClientContext);
 
   const optionUrl = (url?: string, branch?: string) => {
     const linkText = branch ? (
@@ -176,9 +184,9 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<
-    ClusterPRPreview | AppPRPreview | null
-  >(null);
+  const [prPreview, setPRPreview] = useState<RenderAutomationResponse | null>(
+    null,
+  );
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -297,9 +305,10 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
 
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
-    return renderKustomization({
-      clusterAutomations: getKustomizations(),
-    })
+    return api
+      .RenderAutomation({
+        clusterAutomations: getKustomizations(),
+      })
       .then(data => {
         setOpenPreview(true);
         setPRPreview(data);
@@ -314,7 +323,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         ]),
       )
       .finally(() => setPreviewLoading(false));
-  }, [setOpenPreview, getKustomizations, setNotifications]);
+  }, [api, setOpenPreview, getKustomizations, setNotifications]);
 
   const token = getProviderToken(formData.provider);
 
@@ -324,11 +333,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
   );
 
   const handleAddApplication = useCallback(() => {
-    const payload = {
-      head_branch: formData.branchName,
+    const payload: CreateAutomationsPullRequestRequest = {
+      headBranch: formData.branchName,
       title: formData.pullRequestTitle,
       description: formData.pullRequestDescription,
-      commit_message: formData.commitMessage,
+      commitMessage: formData.commitMessage,
       clusterAutomations: getKustomizations(),
       repositoryUrl: getRepositoryUrl(formData.repo),
       baseBranch: formData.repo.obj.spec.ref.branch,
@@ -336,7 +345,14 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     setLoading(true);
     return validateToken()
       .then(() =>
-        createDeploymentObjects(payload, getProviderToken(formData.provider))
+        api
+          .CreateAutomationsPullRequest(payload, {
+            headers: new Headers({
+              'Git-Provider-Token': `token ${getProviderToken(
+                formData.provider,
+              )}`,
+            }),
+          })
           .then(response => {
             setPRPreview(null);
             history.push(Routes.Applications);
@@ -370,7 +386,14 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, history, getKustomizations, setNotifications, validateToken]);
+  }, [
+    api,
+    formData,
+    history,
+    getKustomizations,
+    setNotifications,
+    validateToken,
+  ]);
 
   const [submitType, setSubmitType] = useState<string>('');
 
@@ -427,12 +450,12 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   );
                 },
               )}
-              {openPreview && PRPreview ? (
+              {openPreview && prPreview ? (
                 <Preview
                   context="app"
                   openPreview={openPreview}
                   setOpenPreview={setOpenPreview}
-                  PRPreview={PRPreview}
+                  prPreview={prPreview}
                   sourceType={formData.source_type}
                 />
               ) : null}
@@ -501,7 +524,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
-    PRPreview,
+    prPreview,
     openPreview,
     handlePRPreview,
     previewLoading,

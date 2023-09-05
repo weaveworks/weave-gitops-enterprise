@@ -1,6 +1,11 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { FormWrapper } from '../../Templates/Form/utils';
+import {
+  ClusterAutomation,
+  ClusterNamespacedName,
+  EncryptSopsSecretRequest,
+} from '../../../cluster-services/cluster_services.pb';
 
 export interface ExternalSecret {
   defaultSecretNamespace: string;
@@ -132,7 +137,12 @@ export const handleError = (err: any, setNotifications: any) => {
   scrollToAlertSection();
 };
 
-export const getFormattedPayload = (formData: SOPS) => {
+export const getFormattedPayload = (
+  formData: SOPS,
+): {
+  encryptionPayload: EncryptSopsSecretRequest;
+  cluster: ClusterNamespacedName;
+} => {
   const { clusterName, secretName, secretNamespace, kustomization, data } =
     formData;
   const [k_name, k_namespace] = kustomization.split('/');
@@ -152,14 +162,16 @@ export const getFormattedPayload = (formData: SOPS) => {
       clusterName,
       name: secretName,
       namespace: secretNamespace,
-      kustomization_name: k_name,
-      kustomization_namespace: k_namespace,
+      kustomizationName: k_name,
+      kustomizationNamespace: k_namespace,
       data: convertToObject(data),
     },
     cluster,
   };
 };
-export const getESFormattedPayload = (formData: ExternalSecret) => {
+export const getESFormattedPayload = (
+  formData: ExternalSecret,
+): ClusterAutomation => {
   const {
     clusterName,
     secretName,

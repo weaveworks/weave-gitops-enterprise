@@ -18,7 +18,7 @@
   "paths": {
     "/v1/charts/jobs/{jobId}": {
       "get": {
-        "summary": "GetChartsJob gets the default Values.yaml for the provided Chart\nreference.",
+        "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
         "operationId": "ClustersService_GetChartsJob",
         "responses": {
           "200": {
@@ -49,7 +49,7 @@
     },
     "/v1/charts/list": {
       "get": {
-        "summary": "ListChartsForRepository lists the discovered Helm charts in the provided\nrepository.",
+        "summary": "Lists the discovered Helm charts in the provided\nrepository.",
         "operationId": "ClustersService_ListChartsForRepository",
         "responses": {
           "200": {
@@ -110,7 +110,7 @@
     },
     "/v1/charts/values": {
       "post": {
-        "summary": "GetValuesForChart gets the default Values.yaml for the provided Chart\nreference.",
+        "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
         "operationId": "ClustersService_GetValuesForChart",
         "responses": {
           "200": {
@@ -143,6 +143,7 @@
     },
     "/v1/clusters": {
       "get": {
+        "summary": "List available GitOps clusters.",
         "operationId": "ClustersService_ListGitopsClusters",
         "responses": {
           "200": {
@@ -253,7 +254,7 @@
     },
     "/v1/clusters/{clusterName}/kubeconfig": {
       "get": {
-        "summary": "GetKubeconfig returns the Kubeconfig for the given\nworkload cluster.",
+        "summary": "Returns the Kubeconfig for the given\nworkload cluster.",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -313,6 +314,7 @@
     },
     "/v1/credentials": {
       "get": {
+        "summary": "List available credentials.",
         "operationId": "ClustersService_ListCredentials",
         "responses": {
           "200": {
@@ -335,7 +337,7 @@
     },
     "/v1/encrypt-sops-secret": {
       "post": {
-        "summary": "EncryptSopsSecret encrypts a sops secret",
+        "summary": "Encrypts a sops secret",
         "operationId": "ClustersService_EncryptSopsSecret",
         "responses": {
           "200": {
@@ -401,6 +403,7 @@
     },
     "/v1/enterprise/automations/render": {
       "post": {
+        "summary": "Render an automation template using given cluster automations.",
         "operationId": "ClustersService_RenderAutomation",
         "responses": {
           "200": {
@@ -433,7 +436,7 @@
     },
     "/v1/enterprise/events": {
       "get": {
-        "summary": "ListEvents returns the k8s events for a given object",
+        "summary": "Returns the k8s events for a given object",
         "operationId": "ClustersService_ListEvents",
         "responses": {
           "200": {
@@ -482,7 +485,7 @@
     },
     "/v1/enterprise/version": {
       "get": {
-        "summary": "GetEnterpriseVersion returns the WeGO Enterprise version",
+        "summary": "Returns the WeGO Enterprise version",
         "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {
@@ -505,7 +508,7 @@
     },
     "/v1/external-secrets": {
       "get": {
-        "summary": "ListExternalSecrets list external secrets available on all clusters",
+        "summary": "List external secrets available on all clusters",
         "operationId": "ClustersService_ListExternalSecrets",
         "responses": {
           "200": {
@@ -528,7 +531,7 @@
     },
     "/v1/external-secrets-stores": {
       "get": {
-        "summary": "ListExternalSecretStores list external secrets stores",
+        "summary": "List external secrets stores",
         "operationId": "ClustersService_ListExternalSecretStores",
         "responses": {
           "200": {
@@ -559,7 +562,7 @@
     },
     "/v1/external-secrets/sync": {
       "post": {
-        "summary": "SyncExternalSecrets sync externalSecret Operator secrets",
+        "summary": "Sync externalSecret Operator secrets",
         "operationId": "ClustersService_SyncExternalSecrets",
         "responses": {
           "200": {
@@ -592,7 +595,7 @@
     },
     "/v1/external-secrets/{externalSecretName}": {
       "get": {
-        "summary": "GetExternalSecret get secret details",
+        "summary": "Get secret details",
         "operationId": "ClustersService_GetExternalSecret",
         "responses": {
           "200": {
@@ -635,7 +638,7 @@
     },
     "/v1/policy-configs": {
       "get": {
-        "summary": "ListPolicyConfigs list policy configs",
+        "summary": "List policy configs",
         "operationId": "ClustersService_ListPolicyConfigs",
         "responses": {
           "200": {
@@ -658,7 +661,7 @@
     },
     "/v1/policy-configs/{name}": {
       "get": {
-        "summary": "GetPolicyConfig get policy config details",
+        "summary": "Get policy config details",
         "operationId": "ClustersService_GetPolicyConfig",
         "responses": {
           "200": {
@@ -695,7 +698,7 @@
     },
     "/v1/sops-kustomizations": {
       "get": {
-        "summary": "ListSopsKustomizations list Sops kustomizations",
+        "summary": "List Sops kustomizations",
         "operationId": "ClustersService_ListSopsKustomizations",
         "responses": {
           "200": {
@@ -726,6 +729,7 @@
     },
     "/v1/templates": {
       "get": {
+        "summary": "Returns a list of templates.",
         "operationId": "ClustersService_ListTemplates",
         "responses": {
           "200": {
@@ -762,6 +766,7 @@
     },
     "/v1/templates/{templateName}": {
       "get": {
+        "summary": "Get details of a specific template.",
         "operationId": "ClustersService_GetTemplate",
         "responses": {
           "200": {
@@ -890,6 +895,7 @@
     },
     "/v1/templates/{templateName}/render": {
       "post": {
+        "summary": "Render a template using given values.",
         "operationId": "ClustersService_RenderTemplate",
         "responses": {
           "200": {
@@ -999,7 +1005,7 @@
     },
     "/v1/workspaces": {
       "get": {
-        "summary": "ListWorkspaces list workspaces available on all clusters",
+        "summary": "List workspaces available on all clusters",
         "operationId": "ClustersService_ListWorkspaces",
         "responses": {
           "200": {
@@ -1037,7 +1043,7 @@
     },
     "/v1/workspaces/{workspaceName}": {
       "get": {
-        "summary": "GetWorkspace get workspace details",
+        "summary": "Get workspace details",
         "operationId": "ClustersService_GetWorkspace",
         "responses": {
           "200": {
@@ -1074,7 +1080,7 @@
     },
     "/v1/workspaces/{workspaceName}/policies": {
       "get": {
-        "summary": "GetWorkspacePolicies list workspace service accounts",
+        "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspacePolicies",
         "responses": {
           "200": {
@@ -1111,7 +1117,7 @@
     },
     "/v1/workspaces/{workspaceName}/rolebindings": {
       "get": {
-        "summary": "GetWorkspaceRoleBindings list workspace role bindings",
+        "summary": "List workspace role bindings",
         "operationId": "ClustersService_GetWorkspaceRoleBindings",
         "responses": {
           "200": {
@@ -1148,7 +1154,7 @@
     },
     "/v1/workspaces/{workspaceName}/roles": {
       "get": {
-        "summary": "GetWorkspaceRoles list workspace roles",
+        "summary": "List workspace roles",
         "operationId": "ClustersService_GetWorkspaceRoles",
         "responses": {
           "200": {
@@ -1185,7 +1191,7 @@
     },
     "/v1/workspaces/{workspaceName}/serviceaccounts": {
       "get": {
-        "summary": "GetWorkspaceServiceAccounts list workspace service accounts",
+        "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspaceServiceAccounts",
         "responses": {
           "200": {
@@ -1999,7 +2005,7 @@
     "v1GetConfigResponse": {
       "type": "object",
       "properties": {
-        "repositoryURL": {
+        "repositoryUrl": {
           "type": "string"
         },
         "managementClusterName": {
@@ -2885,7 +2891,7 @@
     "v1RenderTemplateResponse": {
       "type": "object",
       "properties": {
-        "renderedTemplate": {
+        "renderedTemplates": {
           "type": "array",
           "items": {
             "$ref": "#/definitions/v1CommitFile"

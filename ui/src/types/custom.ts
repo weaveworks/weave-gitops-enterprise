@@ -26,11 +26,6 @@ export type Credential = {
   namespace?: string;
 };
 
-export type ListCredentialsResponse = {
-  credentials?: Credential[];
-  total?: number;
-};
-
 export type Maintainer = {
   name?: string;
   email?: string;
@@ -85,11 +80,6 @@ export type Profile = {
   layer?: string;
 };
 
-export type ListProfilesResponse = {
-  profiles?: Profile[];
-  code?: number;
-};
-
 export type UpdatedProfile = {
   name: Profile['name'];
   editable?: boolean;
@@ -100,17 +90,6 @@ export type UpdatedProfile = {
   selected?: boolean;
   repoName?: string;
   repoNamespace?: string;
-};
-
-export type ListProfileValuesResponse = {
-  message: string;
-  success: boolean;
-};
-
-export type ChildrenOccurrences = {
-  name: string;
-  groupVisible: boolean;
-  count: number;
 };
 
 export interface CAPICluster {
@@ -124,10 +103,6 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   updatedAt: string;
 }
 
-export type TemplateType = {
-  templateType: string;
-};
-
 export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'>;
 
 export type DeleteClustersPRRequestEnriched = WithRequired<
@@ -135,46 +110,14 @@ export type DeleteClustersPRRequestEnriched = WithRequired<
   'headBranch' | 'title' | 'commitMessage' | 'description'
 >;
 
-export type ListGitopsClustersResponseEnriched = {
-  gitopsClusters: GitopsClusterEnriched[];
-  total: number;
-};
-
 export type PRDefaults = {
   branchName: string;
   pullRequestTitle: string;
   commitMessage: string;
 };
 
-export type ClusterAutomation = {
-  name?: string;
-  namespace?: string;
-  path?: string;
-};
-
 export type ProfilesIndex = { [name: string]: UpdatedProfile };
-
-export interface ClusterPRPreview {
-  renderedTemplate: { path: string; content: string }[];
-  kustomizationFiles: { path: string; content: string }[];
-  profileFiles: { path: string; content: string }[];
-}
-
-export interface AppPRPreview {
-  kustomizationFiles: { path: string; content: string }[];
-  helmReleaseFiles: { path: string; content: string }[];
-}
 
 export type RequestError = Error & {
   code?: number;
 };
-
-export interface SecretPRPreview {
-  externalSecretsFiles: { path: string; content: string }[];
-}
-export interface SOPSSecretPRPreview {
-  sopsSecertFiles: { path: string; content: string }[];
-}
-export interface PolicyConfigPRPreview {
-  policyConfigFiles: { path: string; content: string }[];
-}
