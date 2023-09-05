@@ -6,7 +6,7 @@ import {
   Link,
   LoadingPage,
 } from '@weaveworks/weave-gitops';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
@@ -14,10 +14,6 @@ import { useCallbackState } from '../../../utils/callback-state';
 import { InputDebounced, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
-import {
-  createDeploymentObjects,
-  encryptSopsSecret,
-} from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
@@ -39,6 +35,7 @@ import {
 } from '../../../hooks/gitprovider';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { Page } from '../../Layout/App';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();
@@ -63,6 +60,8 @@ const CreateSOPS = () => {
     token,
   );
 
+  const { api } = useContext(EnterpriseClientContext);
+
   const handleCreateSecret = useCallback(() => {
     setLoading(true);
 
@@ -70,10 +69,10 @@ const CreateSOPS = () => {
       .then(async () => {
         try {
           const { encryptionPayload, cluster } = getFormattedPayload(formData);
-          const encrypted = await encryptSopsSecret(encryptionPayload);
-          const response = await createDeploymentObjects(
+          const encrypted = await api.EncryptSopsSecret(encryptionPayload);
+          const response = await api.CreateAutomationsPullRequest(
             {
-              head_branch: formData.branchName,
+              headBranch: formData.branchName,
               title: formData.pullRequestTitle,
               description: formData.pullRequestDescription,
               commitMessage: formData.commitMessage,
@@ -82,14 +81,16 @@ const CreateSOPS = () => {
                 {
                   cluster,
                   isControlPlane: cluster.namespace ? true : false,
-                  sops_secret: {
+                  sopsSecret: {
                     ...encrypted.encryptedSecret,
                   },
-                  file_path: encrypted.path,
+                  filePath: encrypted.path,
                 },
               ],
             },
-            token,
+            {
+              headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+            },
           );
           setNotifications([
             {
@@ -118,7 +119,7 @@ const CreateSOPS = () => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, setNotifications, token, validateToken]);
+  }, [api, formData, setNotifications, token, validateToken]);
 
   const authRedirectPage = Routes.CreateSopsSecret;
 

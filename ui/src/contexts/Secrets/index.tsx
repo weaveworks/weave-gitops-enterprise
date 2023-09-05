@@ -39,19 +39,6 @@ export function useGetSecretDetails(req: GetExternalSecretRequest) {
   );
 }
 
-const GET_SECRET_STORE_QUERY_KEY = 'secret-store-details';
-
-export function useGetSecretStoreDetails(req: ListExternalSecretStoresRequest) {
-  const { api } = useContext(EnterpriseClientContext);
-  const { setNotifications } = useNotifications();
-  const onError = (error: Error) => setNotifications(formatError(error));
-  return useQuery<ListExternalSecretStoresResponse, Error>(
-    [GET_SECRET_STORE_QUERY_KEY, req],
-    () => api.ListExternalSecretStores(req),
-    { onError },
-  );
-}
-
 const List_SECRET_STORE_QUERY_KEY = 'list-secret-store';
 
 export function useListExternalSecretStores(

@@ -6,7 +6,7 @@ import {
   LoadingPage,
   Page,
 } from '@weaveworks/weave-gitops';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
@@ -18,7 +18,6 @@ import { useCallbackState } from '../../../utils/callback-state';
 import { InputDebounced, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
-import { createDeploymentObjects } from '../../Applications/utils';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
@@ -35,6 +34,7 @@ import {
 import ListSecretsStore from './ListSecretsStore';
 import { SecretProperty } from './SecretProperty';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const CreateExternalSecret = () => {
   const callbackState = useCallbackState();
@@ -49,6 +49,7 @@ const CreateExternalSecret = () => {
   const handleFormData = (value: any, key: string) => {
     setFormData(f => ({ ...f, [key]: value }));
   };
+  const { api } = useContext(EnterpriseClientContext);
 
   const handleSecretStoreChange = (value: string) => {
     const [secretStoreRef, secretStoreKind, secretNamespace, secretStoreType] =
@@ -81,16 +82,18 @@ const CreateExternalSecret = () => {
       .then(async () => {
         try {
           const payload = getESFormattedPayload(formData);
-          const response = await createDeploymentObjects(
+          const response = await api.CreateAutomationsPullRequest(
             {
-              head_branch: formData.branchName,
+              headBranch: formData.branchName,
               title: formData.pullRequestTitle,
               description: formData.pullRequestDescription,
               commitMessage: formData.commitMessage,
               repositoryUrl: getRepositoryUrl(formData.repo as GitRepository),
               clusterAutomations: [payload],
             },
-            token,
+            {
+              headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+            },
           );
           setNotifications([
             {
@@ -119,7 +122,7 @@ const CreateExternalSecret = () => {
         setNotifications([expiredTokenNotification]);
       })
       .finally(() => setLoading(false));
-  }, [formData, setNotifications, token, validateToken]);
+  }, [api, formData, setNotifications, token, validateToken]);
 
   const authRedirectPage = Routes.CreateSecret;
 
