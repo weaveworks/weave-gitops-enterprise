@@ -18,16 +18,11 @@ export const processResponse = (res: Response) => {
     .catch(() => res.text().then(message => ({ success: true, message })));
 };
 
-export const processCountHeader = (res: Response) => {
-  const headersContent = res.headers.get('Content-Range')?.split('/');
-  return headersContent?.[1];
-};
-
 export const processEntitlementHeaders = (res: Response) => {
   return res.headers?.get('Entitlement-Expired-Message');
 };
 
-export const request = (
+export const rawRequest = (
   method: RequestMethod,
   query: RequestInfo,
   options: RequestInit = {},
@@ -35,21 +30,6 @@ export const request = (
 ) => {
   const f = fetchArg || window.fetch;
   return f(query, { ...options, method }).then(res => processResponse(res));
-};
-
-export const requestWithCountHeader = (
-  method: RequestMethod,
-  query: RequestInfo,
-  options: RequestInit = {},
-  fetchArg?: typeof window.fetch,
-) => {
-  const f = fetchArg || window.fetch;
-  return f(query, { ...options, method }).then(res =>
-    processResponse(res).then(body => ({
-      data: body,
-      total: Number(processCountHeader(res)),
-    })),
-  );
 };
 
 export const requestWithEntitlementHeader = (
@@ -65,14 +45,6 @@ export const requestWithEntitlementHeader = (
       entitlement: processEntitlementHeaders(res),
     })),
   );
-};
-
-export enum GrpcErrorCodes {
-  Unauthenticated = 16,
-}
-
-export const isUnauthenticated = (code: number): boolean => {
-  return code === GrpcErrorCodes.Unauthenticated;
 };
 
 export const removeToken = (provider: string) =>

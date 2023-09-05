@@ -52,7 +52,7 @@ describe('CanaryMetricsTable', () => {
     await act(async () => {
       const c = wrap(
         <CanaryMetricsTable
-          metrics={api.GetCanaryReturns.canary?.analysis?.metrics}
+          metrics={api.GetCanaryReturns.canary?.analysis?.metrics || []}
         />,
       );
       render(c);
@@ -62,10 +62,18 @@ describe('CanaryMetricsTable', () => {
     const tbl = document.querySelector('#canary-analysis-metrics table');
     const rows = tbl?.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(1);
+
+    expect(tbl).not.toBeNull();
+    expect(rows).not.toBeNull();
+    // return early as a type guard
+    if (!tbl || !rows) {
+      return;
+    }
+
     assertCanaryMetric(
       tbl,
       rows.item(0),
-      api.GetCanaryReturns.canary?.analysis?.metrics[0],
+      api.GetCanaryReturns.canary?.analysis?.metrics?.[0] || {},
     );
   });
   it('renders metrics table for a canary with metrics with metric templates', async () => {
@@ -108,7 +116,7 @@ describe('CanaryMetricsTable', () => {
     await act(async () => {
       const c = wrap(
         <CanaryMetricsTable
-          metrics={api.GetCanaryReturns.canary?.analysis?.metrics}
+          metrics={api.GetCanaryReturns.canary?.analysis?.metrics || []}
         />,
       );
       render(c);
@@ -118,10 +126,18 @@ describe('CanaryMetricsTable', () => {
     const tbl = document.querySelector('#canary-analysis-metrics table');
     const rows = tbl?.querySelectorAll('tbody tr');
     expect(rows).toHaveLength(1);
+
+    expect(tbl).not.toBeNull();
+    expect(rows).not.toBeNull();
+    // type guard
+    if (!tbl || !rows) {
+      return;
+    }
+
     assertCanaryMetric(
       tbl,
       rows.item(0),
-      api.GetCanaryReturns.canary?.analysis?.metrics[0],
+      api.GetCanaryReturns.canary?.analysis?.metrics?.[0] || {},
     );
   });
 });

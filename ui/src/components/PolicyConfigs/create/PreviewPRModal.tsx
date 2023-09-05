@@ -1,20 +1,31 @@
 import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
-import { PolicyConfigPRPreview } from '../../../types/custom';
-import { renderKustomization } from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
+import {
+  ClusterAutomation,
+  RenderAutomationResponse,
+} from '../../../cluster-services/cluster_services.pb';
 
-export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
+export const PreviewPRModal = ({
+  formData,
+  getClusterAutomations,
+}: {
+  formData: any;
+  getClusterAutomations: () => ClusterAutomation[];
+}) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<PolicyConfigPRPreview | null>(
+  const [prPreview, setPRPreview] = useState<RenderAutomationResponse | null>(
     null,
   );
   const { setNotifications } = useNotifications();
+  const { api } = useContext(EnterpriseClientContext);
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
-    return renderKustomization({ clusterAutomations: getClusterAutomations() })
+    return api
+      .RenderAutomation({ clusterAutomations: getClusterAutomations() })
       .then(data => {
         setOpenPreview(true);
         setPRPreview(data);
@@ -30,6 +41,7 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
       })
       .finally(() => setPreviewLoading(false));
   }, [
+    api,
     getClusterAutomations,
     setOpenPreview,
     setPRPreview,
@@ -46,12 +58,12 @@ export const PreviewPRModal = ({ formData, getClusterAutomations }: any) => {
           <Button onClick={() => handlePRPreview()}>PREVIEW PR</Button>
         </Flex>
       )}
-      {openPreview && PRPreview ? (
+      {openPreview && prPreview ? (
         <Preview
           context="policyconfig"
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
-          PRPreview={PRPreview}
+          prPreview={prPreview}
           sourceType={formData.source_type}
         />
       ) : null}

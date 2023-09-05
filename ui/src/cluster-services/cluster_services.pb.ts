@@ -90,7 +90,7 @@ export type CostEstimate = {
 }
 
 export type RenderTemplateResponse = {
-  renderedTemplate?: CommitFile[]
+  renderedTemplates?: CommitFile[]
   profileFiles?: CommitFile[]
   kustomizationFiles?: CommitFile[]
   costEstimate?: CostEstimate
@@ -480,14 +480,14 @@ export type GetConfigRequest = {
 }
 
 export type GetConfigResponse = {
-  repositoryURL?: string
+  repositoryUrl?: string
   managementClusterName?: string
   uiConfig?: string
   gitHostTypes?: {[key: string]: string}
 }
 
 export type PolicyParamRepeatedString = {
-  value?: string[]
+  values?: string[]
 }
 
 export type ObjectRef = {

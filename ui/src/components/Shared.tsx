@@ -30,16 +30,6 @@ export const Tooltip: FC<TooltipProps & { disabled?: boolean }> = ({
   );
 };
 
-export const ColumnHeaderTooltip: FC<TooltipProps> = ({
-  title,
-  children,
-  ...props
-}) => (
-  <Tooltip title={title} placement="top" {...props}>
-    {children}
-  </Tooltip>
-);
-
 export const TableWrapper = styled.div`
   width: 100%;
   div[class*='FilterDialog'] {
@@ -57,13 +47,6 @@ export const TableWrapper = styled.div`
   div.expanded {
     overflow: unset;
   }
-`;
-
-export const Title = styled.h4`
-  font-size: ${({ theme }) => theme.fontSizes.large};
-  font-weight: 600;
-  color: ${({ theme }) => theme.colors.neutral30};
-  margin-bottom: ${({ theme }) => theme.spacing.small};
 `;
 
 export const LinkTag = styled(Link)`

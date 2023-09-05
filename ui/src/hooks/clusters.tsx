@@ -1,6 +1,5 @@
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { request } from '../utils/request';
 import useNotifications from '../contexts/Notifications';
 import fileDownload from 'js-file-download';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
@@ -10,6 +9,7 @@ import {
   DeleteClustersPRRequestEnriched,
 } from '../types/custom';
 import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
+import { rawRequest } from '../utils/request';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 
@@ -77,17 +77,18 @@ const useClusters = () => {
   const deleteCreatedClusters = useCallback(
     (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
-      return request('DELETE', '/v1/clusters', {
-        body: JSON.stringify(data),
-        headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-      }).finally(() => setLoading(false));
+      return api
+        .DeleteClustersPullRequest(data, {
+          headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+        })
+        .finally(() => setLoading(false));
     },
-    [],
+    [api],
   );
 
   const getKubeconfig = useCallback(
     (clusterName: string, clusterNamespace: string, filename: string) => {
-      return request(
+      return rawRequest(
         'GET',
         `/v1/clusters/${clusterName}/kubeconfig?cluster_namespace=${clusterNamespace}`,
         {

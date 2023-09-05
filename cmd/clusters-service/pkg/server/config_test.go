@@ -52,7 +52,7 @@ func TestGetConfig(t *testing.T) {
 
 			res, _ := s.GetConfig(context.Background(), &capiv1_protos.GetConfigRequest{})
 
-			if diff := cmp.Diff(tt.repoUrl, res.RepositoryURL, protocmp.Transform()); diff != "" {
+			if diff := cmp.Diff(tt.repoUrl, res.RepositoryUrl, protocmp.Transform()); diff != "" {
 				t.Fatalf("repository URL didn't match expected:\n%s", diff)
 			}
 

@@ -1,9 +1,5 @@
 import React, { useContext } from 'react';
-import {
-  request,
-  requestWithCountHeader,
-  requestWithEntitlementHeader,
-} from '../../utils/request';
+import { requestWithEntitlementHeader } from '../../utils/request';
 
 interface RequestContextType {
   fetch: typeof window.fetch;
@@ -27,19 +23,6 @@ export const useRequest = () => {
   const { fetch } = useContext(RequestContext);
 
   return {
-    request: (...args: Parameters<typeof request>) => {
-      const next: Parameters<typeof request> = injectFetchArg(fetch, args);
-      return request(...next);
-    },
-    requestWithCountHeader: (
-      ...args: Parameters<typeof requestWithCountHeader>
-    ) => {
-      const next: Parameters<typeof requestWithCountHeader> = injectFetchArg(
-        fetch,
-        args,
-      );
-      return requestWithCountHeader(...next);
-    },
     requestWithEntitlementHeader: (
       ...args: Parameters<typeof requestWithEntitlementHeader>
     ) => {

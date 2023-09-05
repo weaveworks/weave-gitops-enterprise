@@ -133,12 +133,6 @@ export const Divider: any = withStyles((theme: Theme) => ({
   },
 }))(MuiDivider);
 
-export const DividerWrapper: FC = ({ children }) => (
-  <div style={{ display: 'flex', alignItems: 'center', minHeight: 35 }}>
-    {children}
-  </div>
-);
-
 export interface SelectProps extends MuiSelectProps {
   label: string;
   items?: string[];
