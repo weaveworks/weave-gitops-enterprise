@@ -2,7 +2,7 @@ version: 2
 updates:
   # Maintain dependencies for frontend
   - package-ecosystem: "npm"
-    directory: "/ui-cra"
+    directory: "/"
     schedule:
       interval: "daily"
     reviewers:
