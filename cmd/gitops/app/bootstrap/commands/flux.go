@@ -41,7 +41,7 @@ func BootstrapFlux() error {
 	bootstrapFlux := utils.GetConfirmInput(fluxBootstrapMsg)
 
 	if bootstrapFlux != "y" {
-		os.Exit(1)
+		os.Exit(0)
 	}
 
 	gitURL, err := utils.GetStringInput(gitRepoUrlMsg, "")
