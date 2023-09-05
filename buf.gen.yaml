@@ -16,6 +16,6 @@ plugins:
     opt:
       - allow_delete_body=true
   - name: grpc-gateway-ts
-    out: ./ui-cra/src
+    out: ./ui/src
     opt: []
     strategy: all

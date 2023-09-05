@@ -194,7 +194,6 @@ can be annoying. To spin up a local development frontend against your
 development cluster, run:
 
 ```
-cd ui-cra
 yarn
 PROXY_HOST=http://localhost:8000 yarn start
 ```
@@ -475,7 +474,6 @@ We usually develop the UI against the test server and by default the UI dev
 server will use that.
 
 ```bash
-cd ui-cra
 yarn
 yarn start
 ```
@@ -487,7 +485,6 @@ Open up http://localhost:3000. Changes to code will be hot-reloaded.
 To start the `jest` test runner CLI dialog:
 
 ```
-$ cd ui-cra
 $ yarn test
 
 PASS  src/components/Applications/__tests__/index.test.tsx
@@ -573,7 +570,6 @@ For another method that has fewer caveats, look at "How to update
 One magical command to "reload" core (assumes the project directories are located in the same directory):
 
 ```bash
-# In the weave-gitops-enterprise repo, navigate to ./ui-cra.
 # Note, this assumes you have core and EE at the same level in the file system
 make core-ui && make core-lib
 ```
@@ -590,7 +586,7 @@ go get -d github.com/weaveworks/weave-gitops@$WG_VERSION
 go mod tidy
 
 # 2. Update the frontend typescript/javascript code
-cd ui-cra && yarn add @weaveworks/weave-gitops@$WG_VERSION
+yarn add @weaveworks/weave-gitops@$WG_VERSION
 ```
 
 ## How to update `weave-gitops` to a non-released version during development

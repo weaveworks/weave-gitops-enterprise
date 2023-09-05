@@ -10,15 +10,16 @@ COPY --chown=node:node tsconfig.json /home/node
 
 ARG REACT_APP_DISABLE_PROGRESSIVE_DELIVERY
 ARG GITHUB_TOKEN
-RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make node_modules
+RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make node_modules GITHUB_TOKEN=${GITHUB_TOKEN}
 
-COPY --chown=node:node . /home/node/
+COPY --chown=node:node ui /home/node/ui
+COPY --chown=node:node tools /home/node/tools
 ARG version
 # When set to true, Create React App treats warnings as failures in the build.
 # It also makes the test runner non-watching. Most CIs set this flag by default.
 # https://create-react-app.dev/docs/advanced-configuration
 ENV CI=true
-RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make build VERSION=${version}
+RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make ui-build VERSION=${version}
 
 FROM alpine:3.18
 
