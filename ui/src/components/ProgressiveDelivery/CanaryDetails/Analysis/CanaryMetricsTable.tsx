@@ -44,43 +44,43 @@ export const CanaryMetricsTable = ({
   const [openMetricTemplate, setOpenMetricTemplate] = useState(false);
 
   return (
-      <TableWrapper id="canary-analysis-metrics">
-        <DataTable
-          rows={metrics}
-          fields={[
-            {
-              label: 'Name',
-              value: 'name',
-            },
-            {
-              label: 'Metric Template',
-              value: (c: CanaryMetric) =>
-                c.metricTemplate ? (
-                  <MetricTemplateModalWrapper
-                    metricTemplate={c.metricTemplate}
-                    openMetricTemplate={openMetricTemplate}
-                    setOpenMetricTemplate={setOpenMetricTemplate}
-                  />
-                ) : (
-                  '-'
-                ),
-            },
-            {
-              label: 'Threshold Min',
-              value: (c: CanaryMetric) =>
-                c.thresholdRange?.min ? '' + c.thresholdRange?.min : '-',
-            },
-            {
-              label: 'Threshold Max',
-              value: (c: CanaryMetric) =>
-                c.thresholdRange?.max ? '' + c.thresholdRange?.max : '-',
-            },
-            {
-              label: 'Interval',
-              value: 'interval',
-            },
-          ]}
-        />
-      </TableWrapper>
+    <TableWrapper id="canary-analysis-metrics">
+      <DataTable
+        rows={metrics}
+        fields={[
+          {
+            label: 'Name',
+            value: 'name',
+          },
+          {
+            label: 'Metric Template',
+            value: (c: CanaryMetric) =>
+              c.metricTemplate ? (
+                <MetricTemplateModalWrapper
+                  metricTemplate={c.metricTemplate}
+                  openMetricTemplate={openMetricTemplate}
+                  setOpenMetricTemplate={setOpenMetricTemplate}
+                />
+              ) : (
+                '-'
+              ),
+          },
+          {
+            label: 'Threshold Min',
+            value: (c: CanaryMetric) =>
+              c.thresholdRange?.min ? '' + c.thresholdRange?.min : '-',
+          },
+          {
+            label: 'Threshold Max',
+            value: (c: CanaryMetric) =>
+              c.thresholdRange?.max ? '' + c.thresholdRange?.max : '-',
+          },
+          {
+            label: 'Interval',
+            value: 'interval',
+          },
+        ]}
+      />
+    </TableWrapper>
   );
 };

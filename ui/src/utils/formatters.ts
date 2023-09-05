@@ -1,26 +1,9 @@
 import GitUrlParse from 'git-url-parse';
 import { CostEstimate } from '../cluster-services/cluster_services.pb';
 import { NotificationData } from '../contexts/Notifications';
-import { URL } from '../types/global';
 import { Routes } from './nav';
 import { GitOpsSet } from '../api/gitopssets/types.pb';
 import { TerraformObject } from '../api/terraform/types.pb';
-
-export const toPercent = (value: number, precision = 0) =>
-  `${(100 * value).toFixed(precision)}%`;
-
-export const trimTrailingForwardSlash = (url: URL) =>
-  url.endsWith('/') ? url.slice(0, -1) : url;
-
-export const intersperse = <T>(arr: T[], separator: (n: number) => T): T[] =>
-  arr.reduce<T[]>((acc, currentElement, currentIndex) => {
-    const isLast = currentIndex === arr.length - 1;
-    return [
-      ...acc,
-      currentElement,
-      ...(isLast ? [] : [separator(currentIndex)]),
-    ];
-  }, []);
 
 export const getGitRepoHTTPSURL = (
   repoUrl?: string,

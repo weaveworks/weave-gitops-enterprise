@@ -1,11 +1,6 @@
 import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
-import { useCallback, useState } from 'react';
+import { useCallback, useContext, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
-import { SecretPRPreview } from '../../../types/custom';
-import {
-  encryptSopsSecret,
-  renderKustomization,
-} from '../../Applications/utils';
 import Preview from '../../Templates/Form/Partials/Preview';
 import {
   ExternalSecret,
@@ -14,12 +9,18 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
+import {
+  ClustersService,
+  RenderAutomationResponse,
+} from '../../../cluster-services/cluster_services.pb';
 
 export enum SecretType {
   SOPS,
   ES,
 }
 const getRender = async (
+  api: typeof ClustersService,
   secretType: SecretType,
   formData: SOPS | ExternalSecret,
 ) => {
@@ -27,22 +28,22 @@ const getRender = async (
     const { encryptionPayload, cluster } = getFormattedPayload(
       formData as SOPS,
     );
-    const encrypted = await encryptSopsSecret(encryptionPayload);
-    return await renderKustomization({
+    const encrypted = await api.EncryptSopsSecret(encryptionPayload);
+    return await api.RenderAutomation({
       clusterAutomations: [
         {
           cluster,
           isControlPlane: cluster.namespace ? true : false,
-          sops_secret: {
+          sopsSecret: {
             ...encrypted.encryptedSecret,
           },
-          file_path: encrypted.path,
+          filePath: encrypted.path,
         },
       ],
     });
   } else {
     const payload = getESFormattedPayload(formData as ExternalSecret);
-    return await renderKustomization({
+    return await api.RenderAutomation({
       clusterAutomations: [payload],
     });
   }
@@ -57,13 +58,16 @@ export const PreviewModal = ({
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [PRPreview, setPRPreview] = useState<SecretPRPreview | null>(null);
+  const [prPreview, setPRPreview] = useState<RenderAutomationResponse | null>(
+    null,
+  );
   const { setNotifications } = useNotifications();
+  const { api } = useContext(EnterpriseClientContext);
 
   const handlePRPreview = useCallback(async () => {
     setPreviewLoading(true);
     try {
-      const render = getRender(secretType, formData);
+      const render = getRender(api, secretType, formData);
       setOpenPreview(true);
       setPRPreview(await render);
     } catch (err: any) {
@@ -71,7 +75,7 @@ export const PreviewModal = ({
     } finally {
       setPreviewLoading(false);
     }
-  }, [formData, secretType, setNotifications]);
+  }, [api, formData, secretType, setNotifications]);
 
   return (
     <>
@@ -84,12 +88,12 @@ export const PreviewModal = ({
           </Button>
         </Flex>
       )}
-      {!previewLoading && openPreview && PRPreview ? (
+      {!previewLoading && openPreview && prPreview ? (
         <Preview
           context={secretType === SecretType.ES ? 'secret' : 'sops'}
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
-          PRPreview={PRPreview}
+          prPreview={prPreview}
         />
       ) : null}
     </>

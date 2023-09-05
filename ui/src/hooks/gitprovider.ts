@@ -1,15 +1,5 @@
-import { poller } from '@weaveworks/weave-gitops';
 import { useState, useContext, useEffect, useCallback } from 'react';
-import {
-  GetGithubAuthStatusResponse,
-  GetGithubDeviceCodeResponse,
-  GitProvider,
-} from '../api/gitauth/gitauth.pb';
-import {
-  getProviderToken,
-  GrpcErrorCodes,
-  storeProviderToken,
-} from '../components/GitAuth/utils';
+import { GitProvider } from '../api/gitauth/gitauth.pb';
 import { GitAuth } from '../contexts/GitAuth';
 import { NotificationData } from './../contexts/Notifications';
 
@@ -60,50 +50,5 @@ export function useIsAuthenticated(
     validateToken,
     isAuthenticated,
     loading,
-  };
-}
-
-export default function useAuth() {
-  const [loading, setLoading] = useState(true);
-  const { gitAuthClient } = useContext(GitAuth);
-
-  const getGithubDeviceCode = () => {
-    setLoading(true);
-    return gitAuthClient
-      .GetGithubDeviceCode({})
-      .finally(() => setLoading(false));
-  };
-
-  const getGithubAuthStatus = (codeRes: GetGithubDeviceCodeResponse) => {
-    let poll: any;
-    return {
-      cancel: () => clearInterval(poll),
-      promise: new Promise<GetGithubAuthStatusResponse>((accept, reject) => {
-        poll = poller(() => {
-          gitAuthClient
-            .GetGithubAuthStatus(codeRes)
-            .then(res => {
-              clearInterval(poll);
-              accept(res);
-            })
-            .catch(({ code, message }) => {
-              // Unauthenticated means we can keep polling.
-              //  On anything else, stop polling and report.
-              if (code !== GrpcErrorCodes.Unauthenticated) {
-                clearInterval(poll);
-                reject({ message });
-              }
-            });
-        }, codeRes?.interval && (codeRes?.interval + 1) * 1000);
-      }),
-    };
-  };
-
-  return {
-    loading,
-    getGithubDeviceCode,
-    getGithubAuthStatus,
-    getProviderToken,
-    storeProviderToken,
   };
 }
