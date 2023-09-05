@@ -21,7 +21,6 @@ import {
   ClusterAutomation,
   CreateAutomationsPullRequestRequest,
   RenderAutomationResponse,
-  RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
