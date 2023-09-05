@@ -28,6 +28,7 @@ const (
 	CategoryAutomation ObjectCategory = "automation"
 	CategorySource     ObjectCategory = "source"
 	CategoryEvent      ObjectCategory = "event"
+	CategoryGitopsSet  ObjectCategory = "gitopsset"
 )
 
 type ObjectKind struct {
@@ -230,7 +231,7 @@ var (
 		AddToSchemeFunc: gitopssets.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		Category:        CategoryAutomation,
+		Category:        CategoryGitopsSet,
 	}
 )
 
