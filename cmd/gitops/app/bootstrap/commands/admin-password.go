@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"os"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
@@ -12,11 +13,8 @@ const (
 	adminPasswordMsg           = "Please enter admin password"
 	secretConfirmationMsg      = "Admin login credentials has been created successfully!"
 	adminSecretExistsMsgFormat = "Admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again."
-
-	//Do you want to continue using existing credentials? 
-	// @Yes --> no message, continue as previous flow
-	// @No --> 
-		// If you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap...
+	existingCredsMsg           = "Do you want to continue using existing credentials"
+	existingCredsExitMsg       = "If you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap..."
 )
 const (
 	defaultAdminUsername = "wego-admin"
@@ -25,13 +23,18 @@ const (
 
 // getAdminPasswordSecrets asks user about admin username and password.
 func getAdminPasswordSecrets() (string, []byte, error) {
-	if _, err := utils.GetSecret(wgeDefaultNamespace, adminSecretName); err == nil {
-		utils.Info(adminSecretExistsMsgFormat, adminSecretName, wgeDefaultNamespace)
-		return "", nil, nil
-	} else if err != nil && !strings.Contains(err.Error(), "not found") {
+	if _, err := utils.GetSecret(adminSecretName, wgeDefaultNamespace); err != nil && !strings.Contains(err.Error(), "not found") {
 		return "", nil, err
+	} else if err == nil {
+		utils.Warning(adminSecretExistsMsgFormat, adminSecretName, wgeDefaultNamespace)
+		existingCreds := utils.GetConfirmInput(existingCredsMsg)
+		if existingCreds == "y" {
+			return "", nil, nil
+		} else {
+			utils.Warning(existingCredsExitMsg, adminSecretName, wgeDefaultNamespace)
+			os.Exit(0)
+		}
 	}
-
 	adminUsername, err := utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
 	if err != nil {
 		return "", nil, err
