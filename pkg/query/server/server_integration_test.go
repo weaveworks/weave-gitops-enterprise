@@ -12,6 +12,8 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	gitopssetstemplatesv1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
@@ -180,20 +182,20 @@ func TestQueryServer(t *testing.T) {
 						Namespace: defaultNamespace,
 					},
 					TypeMeta: metav1.TypeMeta{
-						Kind:       gitopssets.GitOpsSetKind,
+						Kind:       "GitOpsSet",
 						APIVersion: gitopssets.GroupVersion.String(),
 					},
 					Spec: gitopssets.GitOpsSetSpec{
-						Generators: []templatesv1.GitOpsSetGenerator{
+						Generators: []gitopssetstemplatesv1.GitOpsSetGenerator{
 							{
-								List: &templatesv1.ListGenerator{
+								List: &gitopssetstemplatesv1.ListGenerator{
 									Elements: []apiextensionsv1.JSON{
 										{Raw: []byte(`{"cluster": "engineering-dev"}`)},
 									},
 								},
 							},
 						},
-						Templates: []templatesv1.GitOpsSetTemplate{},
+						Templates: []gitopssetstemplatesv1.GitOpsSetTemplate{},
 					},
 				},
 			},
