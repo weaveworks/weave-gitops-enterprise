@@ -17,7 +17,7 @@ import AuthButton from './AuthButton';
 
 const GitAuthForm = styled(Flex)`
   #SELECT_GIT_REPO-group {
-    width: 75%;
+    flex-grow: 1;
     padding-top: ${({ theme }) => theme.spacing.xs};
   }
 `;
@@ -94,7 +94,7 @@ export function RepoInputWithAuth({
   };
 
   return (
-    <GitAuthForm className={props.className} align start between>
+    <GitAuthForm className={props.className} align between>
       <Select
         error={
           !!parsedValue?.value && gitRepos.length > 0 && !!err?.message
