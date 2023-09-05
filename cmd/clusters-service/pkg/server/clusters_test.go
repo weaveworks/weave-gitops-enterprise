@@ -52,11 +52,6 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
-var defaultHelmRepository = types.NamespacedName{
-	Name:      "weaveworks-charts",
-	Namespace: "flux-system",
-}
-
 func TestListGitopsClusters(t *testing.T) {
 	testCases := []struct {
 		name         string

@@ -173,6 +173,10 @@ func TestGenerateFilesLocallyWithCharts(t *testing.T) {
 			Name:    "test-profile",
 			Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			Version: "0.0.7",
+			HelmRepository: &capiv1_proto.HelmRepositoryRef{
+				Name:      "weaveworks-charts",
+				Namespace: "default",
+			},
 		},
 	}
 
