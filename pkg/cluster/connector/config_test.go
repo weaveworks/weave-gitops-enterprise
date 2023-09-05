@@ -14,7 +14,7 @@ func TestConfigForContext_missing_context(t *testing.T) {
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/nonexisting-kube-config.yaml"
 
-	_, err := ConfigForContext(context.TODO(), opts, "hub")
+	_, err := configForContext(context.TODO(), opts, "hub")
 	assert.Error(t, err, "failed to get context hub")
 
 }
@@ -23,7 +23,7 @@ func TestConfigForContext(t *testing.T) {
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(context.TODO(), opts, "hub")
+	restCfg, err := configForContext(context.TODO(), opts, "hub")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -46,7 +46,7 @@ func TestKubeConfigWithToken(t *testing.T) {
 	opts := clientcmd.NewDefaultPathOptions()
 	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
 
-	restCfg, err := ConfigForContext(context.TODO(), opts, "spoke")
+	restCfg, err := configForContext(context.TODO(), opts, "spoke")
 	assert.NoError(t, err)
 	config, err := kubeConfigWithToken(context.TODO(), restCfg, "spoke", []byte("testing-token"))
 	assert.NoError(t, err)

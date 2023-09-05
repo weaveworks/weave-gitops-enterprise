@@ -419,6 +419,10 @@ exports[`Explorer snapshots renders 1`] = `
   transition: background 0.5s ease-in-out;
 }
 
+.c8 .MuiTableCell-root {
+  border-color: #d8d8d8;
+}
+
 .c8 table {
   margin-top: 12px;
 }
@@ -567,6 +571,9 @@ exports[`Explorer snapshots renders 1`] = `
       <div
         class="c7 c8 c9 ExplorerTable"
       >
+        <div
+          class=""
+        />
         <div
           class="c1 c10"
         />
@@ -747,6 +754,39 @@ exports[`Explorer snapshots renders 1`] = `
                           <h2
                             class=""
                           >
+                            Tenant
+                          </h2>
+                        </span>
+                        <span
+                          class="MuiTouchRipple-root"
+                        />
+                      </button>
+                      <div
+                        class="c14"
+                      />
+                      <div
+                        style="width: 16px;"
+                      />
+                    </div>
+                  </th>
+                  <th
+                    class="MuiTableCell-root MuiTableCell-head"
+                    scope="col"
+                  >
+                    <div
+                      class="c12"
+                    >
+                      <button
+                        class="MuiButtonBase-root MuiButton-root MuiButton-text c13 MuiButton-colorInherit"
+                        tabindex="0"
+                        type="button"
+                      >
+                        <span
+                          class="MuiButton-label"
+                        >
+                          <h2
+                            class=""
+                          >
                             Status
                           </h2>
                         </span>
@@ -855,11 +895,20 @@ exports[`Explorer snapshots renders 1`] = `
                     <span
                       class="c16 c17"
                     >
+                      -
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root MuiTableCell-body"
+                  >
+                    <span
+                      class="c16 c17"
+                    >
                       <div
                         class="c4"
                       >
                         <div
-                          class="MuiBox-root MuiBox-root-19"
+                          class="MuiBox-root MuiBox-root-31"
                         >
                           <div
                             class="c4 c20"
@@ -905,7 +954,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="c23"
           >
             <div
-              class="MuiBox-root MuiBox-root-17"
+              class="MuiBox-root MuiBox-root-29"
             >
               <div>
                 <h2>
@@ -970,13 +1019,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-23"
+                                class="PrivateSwitchBase-input-35"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1009,13 +1058,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-23"
+                                class="PrivateSwitchBase-input-35"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1048,13 +1097,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-23"
+                                class="PrivateSwitchBase-input-35"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1094,7 +1143,7 @@ exports[`Explorer snapshots renders 1`] = `
       class="c27 PaginationControls"
     >
       <div
-        class="MuiBox-root MuiBox-root-18"
+        class="MuiBox-root MuiBox-root-30"
       >
         <button
           class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled"

@@ -473,10 +473,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   padding: 8px 12px;
 }
 
-.c25.MuiButton-outlinedPrimary {
-  border-color: #d8d8d8;
-}
-
 .c27.active-tab {
   background: #00b3ec19;
 }

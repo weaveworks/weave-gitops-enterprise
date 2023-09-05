@@ -102,14 +102,14 @@ func checkClusterService(endpointURL string) {
 			),
 			ASSERTION_1MINUTE_TIME_OUT,
 		)
-		g.Expect(stdOut).To(gomega.MatchRegexp(`id_token\s*(.*)`), "Failed to fetch cookie/Cluster Service is not healthy")
+		g.Expect(stdOut).To(gomega.MatchRegexp(`session\s*(.*)`), "Failed to fetch cookie/Cluster Service is not healthy")
 
-		re := regexp.MustCompile(`id_token\s*(.*)`)
+		re := regexp.MustCompile(`session\s*(.*)`)
 		match := re.FindAllStringSubmatch(stdOut, -1)
 		cookie := match[0][1]
 		stdOut, stdErr := runCommandAndReturnStringOutput(
 			fmt.Sprintf(
-				`curl --insecure --silent --cookie "id_token=%s" -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
+				`curl --insecure --silent --cookie "session=%s" -v --output /dev/null --write-out %%{http_code} %s/v1/templates`,
 				cookie, endpointURL,
 			),
 			ASSERTION_1MINUTE_TIME_OUT,

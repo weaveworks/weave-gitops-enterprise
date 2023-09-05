@@ -171,8 +171,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             />
           </Box>
           <Box paddingBottom={3}>
-            <Flex wide>
-              <Flex gap={4}>
+            <Flex wide wrap between gap="8">
+              <Flex gap="4">
                 <Button
                   loading={syncing}
                   variant="outlined"
@@ -204,7 +204,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                   resource={data || ({} as GetTerraformObjectResponse)}
                 />
               </Flex>
-              <Flex wide end align>
+              <Flex align gap="4">
                 <LargeInfo
                   title="Applied Revision"
                   info={object?.appliedRevision || '-'}
