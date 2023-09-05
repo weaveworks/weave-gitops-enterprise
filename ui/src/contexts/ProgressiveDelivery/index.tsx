@@ -77,7 +77,7 @@ export const useGetCanaryDetails = (params: CanaryParams) => {
     [PD_QUERY_KEY, GET_CANARY_KEY, params],
     () => pd.GetCanary(params),
     {
-      refetchInterval: 10000,
+      refetchInterval: data => (data ? false : 10000),
       retry: false,
       onError,
     },
