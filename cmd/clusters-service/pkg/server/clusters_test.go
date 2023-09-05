@@ -52,6 +52,11 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 )
 
+var defaultHelmRepository = types.NamespacedName{
+	Name:      "weaveworks-charts",
+	Namespace: "flux-system",
+}
+
 func TestListGitopsClusters(t *testing.T) {
 	testCases := []struct {
 		name         string
@@ -2586,6 +2591,10 @@ func TestGenerateProfileFiles_with_required_profiles_only(t *testing.T) {
 			profileValues:   []*capiv1_protos.ProfileValues{},
 			parameterValues: map[string]string{},
 			chartsCache:     fakeCache,
+			defaultHelmRepository: types.NamespacedName{
+				Name:      "testing",
+				Namespace: "test-ns",
+			},
 		},
 	)
 	require.NoError(t, err)

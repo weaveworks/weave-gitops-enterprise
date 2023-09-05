@@ -1230,6 +1230,10 @@ status: {}
 						Version:   "0.0.1",
 						Values:    base64.StdEncoding.EncodeToString([]byte(``)),
 						Namespace: "test-system",
+						HelmRepository: &capiv1_protos.HelmRepositoryRef{
+							Name:      "weaveworks-charts",
+							Namespace: "default",
+						},
 					},
 				},
 			},

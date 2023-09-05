@@ -278,6 +278,12 @@ func GetFiles(
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 
+	// FIXME: pipe this through from server config etc to each migration
+	defaultHelmRepository := types.NamespacedName{
+		Name:      "weaveworks-charts",
+		Namespace: "flux-system",
+	}
+
 	resourcesNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 
 	renderedTemplates, err := renderTemplateWithValues(tmpl, msg.TemplateName, resourcesNamespace, msg.ParameterValues, mapper)
@@ -394,12 +400,29 @@ func GetFiles(
 		if err != nil {
 			return nil, fmt.Errorf("failed to get Helm repositories references: %w", err)
 		}
-		helmRepositoryCopies := []*sourcev1.HelmRepository{}
+
+		// add the default repo if there are any required profiles
+		if templateHasRequiredProfiles {
+			found := false
+			for _, hr := range helmRepositories {
+				if hr.Name == defaultHelmRepository.Name && hr.Namespace == defaultHelmRepository.Namespace {
+					found = true
+				}
+			}
+			if !found {
+				helmRepositories = append(helmRepositories, &capiv1_proto.HelmRepositoryRef{
+					Name:      defaultHelmRepository.Name,
+					Namespace: defaultHelmRepository.Namespace,
+				})
+			}
+		}
+
 		if client == nil {
 			return nil, errors.New("client is nil, cannot get Helm repository")
 		}
 
 		// Loop through all helm repository references and make a copy of each that we can then save to git.
+		helmRepositoryCopies := []*sourcev1.HelmRepository{}
 		for _, helmRepository := range helmRepositories {
 			helmRepositoryCopy, err := copyHelmRepository(ctx, client, toNamespacedName(helmRepository))
 			if err != nil {
@@ -418,6 +441,7 @@ func GetFiles(
 				chartsCache:           chartsCache,
 				profileValues:         msg.Profiles,
 				parameterValues:       msg.ParameterValues,
+				defaultHelmRepository: defaultHelmRepository,
 			},
 		)
 		if err != nil {

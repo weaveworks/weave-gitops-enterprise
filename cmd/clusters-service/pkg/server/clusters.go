@@ -68,6 +68,7 @@ type generateProfileFilesParams struct {
 	chartsCache           helm.ProfilesGeneratorCache
 	profileValues         []*capiv1_proto.ProfileValues
 	parameterValues       map[string]string
+	defaultHelmRepository types.NamespacedName
 }
 
 func (s *server) ListGitopsClusters(ctx context.Context, msg *capiv1_proto.ListGitopsClustersRequest) (*capiv1_proto.ListGitopsClustersResponse, error) {
@@ -776,6 +777,10 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 				Values:    base64.StdEncoding.EncodeToString([]byte(requiredProfile.Values)),
 				Namespace: requiredProfile.Namespace,
 				Layer:     requiredProfile.Layer,
+				HelmRepository: &capiv1_proto.HelmRepositoryRef{
+					Name:      args.defaultHelmRepository.Name,
+					Namespace: args.defaultHelmRepository.Namespace,
+				},
 			}
 		}
 	}
