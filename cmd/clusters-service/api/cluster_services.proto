@@ -25,34 +25,34 @@ service ClustersService {
     };
   }
 
-  // Get details of a specific template.
+  // Gets details of a specific template.
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
-      get : "/v1/templates/{template_name}"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{template_cluster}"
+            "/namespaces/{template_namespace}/templates/{template_name}"
     };
   }
 
   
-   // Get the Values.yaml for a template if one exists.
+   // Gets the Values.yaml for a template if one exists.
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
-      get : "/v1/templates/{template_name}/params"
+      get : "/v1/namespaces/{template_namespace}" 
+            "/templates/{template_name}/params"
     };
   }
 
-  // Returns a list of profiles within that template
-  // `gitops get <template-name> --list-profiles`
-  // The template annotations appear in the following form
-  // capi.weave.works/profile-<n> where n is a number
+  // Returns a list of profiles within that template.
   rpc ListTemplateProfiles(ListTemplateProfilesRequest)
       returns (ListTemplateProfilesResponse) {
     option (google.api.http) = {
-      get : "/v1/templates/{template_name}/profiles"
+      get : "/v1/namespaces/{template_namespace}"
+            "/templates/{template_name}/profiles"
     };
   }
 
-  // Render a template using given values.
+  // Renders a template using given values.
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
       post : "/v1/templates/{template_name}/render"
@@ -60,7 +60,7 @@ service ClustersService {
     };
   }
 
-  // Render an automation template using given cluster automations.
+  // Renders an automation template using given cluster automations.
   rpc RenderAutomation(RenderAutomationRequest)
     returns (RenderAutomationResponse) {
     option (google.api.http) = {
@@ -69,7 +69,7 @@ service ClustersService {
     };
   }
 
-  // List available GitOps clusters.
+  // Lists available GitOps clusters.
   rpc ListGitopsClusters(ListGitopsClustersRequest)
       returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
@@ -101,6 +101,8 @@ service ClustersService {
     };
   }
 
+  // Creates a pull request for the given list of clusters 
+  // to be deleted.
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
     option (google.api.http) = {
@@ -121,7 +123,8 @@ service ClustersService {
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
     option (google.api.http) = {
-      get : "/v1/clusters/{cluster_name}/kubeconfig"
+      get : "/v1/namespaces/{cluster_namespace}"
+            "/clusters/{cluster_name}/kubeconfig"
     };
   }
 
@@ -195,7 +198,8 @@ service ClustersService {
    // Get workspace details
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}"
+      get : "/v1/namespaces/{cluster_namespace}"
+            "/clusters/{cluster_name}/workspaces/{workspace_name}"
     };
   }
 
@@ -203,7 +207,8 @@ service ClustersService {
    rpc GetWorkspaceRoles(GetWorkspaceRequest)
     returns (GetWorkspaceRolesResponse) {
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/roles"
+      get : "/v1/namespaces/{cluster_namespace}"
+            "/clusters/{cluster_name}/workspaces/{workspace_name}/roles"
     };
   }
 
@@ -211,7 +216,8 @@ service ClustersService {
    rpc GetWorkspaceRoleBindings(GetWorkspaceRequest)
     returns (GetWorkspaceRoleBindingsResponse) {
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/rolebindings"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/workspaces/{workspace_name}/rolebindings"
     };
   }
 
@@ -219,7 +225,8 @@ service ClustersService {
    rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest)
     returns (GetWorkspaceServiceAccountsResponse) {
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/serviceaccounts"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/workspaces/{workspace_name}/serviceaccounts"
     };
   }
 
@@ -227,7 +234,8 @@ service ClustersService {
   rpc GetWorkspacePolicies(GetWorkspaceRequest)
     returns (GetWorkspacePoliciesResponse) {
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/policies"
+      get : "/v1/namespaces/{cluster_namespace}"
+            "/clusters/{cluster_name}/workspaces/{workspace_name}/policies"
     };
   }
 
@@ -243,7 +251,8 @@ service ClustersService {
   rpc GetExternalSecret(GetExternalSecretRequest)
     returns (GetExternalSecretResponse) {
     option (google.api.http) = {
-      get : "/v1/external-secrets/{external_secret_name}"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/namespaces/{namespace}/external-secrets/{external_secret_name}"
     };
   }
 
@@ -276,7 +285,8 @@ service ClustersService {
   rpc GetPolicyConfig(GetPolicyConfigRequest)
     returns (GetPolicyConfigResponse) {
     option (google.api.http) = {
-      get : "/v1/policy-configs/{name}"
+      get : "/v1/namespaces/{cluster_namespace}"
+            "/clusters/{cluster_name}/policy-configs/{name}"
     };
   }
 
@@ -324,6 +334,8 @@ message GetTemplateRequest {
   string template_name = 1;
   string template_kind = 2;
   string template_namespace = 3;
+  string template_cluster = 4;
+  string cluster_namespace = 5;
 }
 message GetTemplateResponse { Template template = 1; }
 
@@ -956,6 +968,7 @@ message WorkspacePolicy {
 message GetWorkspaceRequest{
   string cluster_name = 1;
   string workspace_name = 2;
+  string cluster_namespace = 3;
 }
 
 message GetWorkspaceResponse{
@@ -1010,6 +1023,7 @@ message GetExternalSecretRequest{
   string cluster_name = 1;
   string namespace = 2;
   string external_secret_name = 3;
+  string cluster_namespace = 4;
 }
 
 message GetExternalSecretResponse{
@@ -1072,6 +1086,7 @@ message ListPolicyConfigsResponse{
 message GetPolicyConfigRequest{
   string cluster_name = 1;
   string name = 2;
+  string cluster_namespace = 3;
 }
 
 message GetPolicyConfigResponse{
