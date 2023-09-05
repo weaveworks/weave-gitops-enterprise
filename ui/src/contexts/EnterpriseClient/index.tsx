@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext } from 'react';
 import { ClustersService } from '../../cluster-services/cluster_services.pb';
 
 export type EnterpriseClientContextType = {
@@ -7,6 +7,3 @@ export type EnterpriseClientContextType = {
 
 export const EnterpriseClientContext =
   createContext<EnterpriseClientContextType>({ api: ClustersService });
-
-export default () =>
-  useContext(EnterpriseClientContext) as EnterpriseClientContextType;

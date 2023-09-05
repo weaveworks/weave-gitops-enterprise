@@ -4,8 +4,6 @@ import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useReadQueryState, useSetQueryState } from './hooks';
 
-export type FilterChangeHander = (vals: { [key: string]: boolean }) => void;
-
 type Props = {
   className?: string;
 

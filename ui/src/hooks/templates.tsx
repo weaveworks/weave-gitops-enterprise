@@ -1,8 +1,10 @@
 import { useCallback, useContext, useState } from 'react';
 import { useQuery } from 'react-query';
-import { ListTemplatesResponse } from '../cluster-services/cluster_services.pb';
+import {
+  CreatePullRequestRequest,
+  ListTemplatesResponse,
+} from '../cluster-services/cluster_services.pb';
 import { TemplateEnriched } from '../types/custom';
-import { request } from '../utils/request';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 
@@ -29,13 +31,17 @@ const useTemplates = () => {
 
   const renderTemplate = api.RenderTemplate;
 
-  const addResource = useCallback(({ ...data }, token: string | null) => {
-    setLoading(true);
-    return request('POST', '/v1/clusters', {
-      body: JSON.stringify(data),
-      headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
-    }).finally(() => setLoading(false));
-  }, []);
+  const addResource = useCallback(
+    ({ ...data }: CreatePullRequestRequest, token: string | null) => {
+      setLoading(true);
+      return api
+        .CreatePullRequest(data, {
+          headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
+        })
+        .finally(() => setLoading(false));
+    },
+    [api],
+  );
 
   return {
     isLoading,

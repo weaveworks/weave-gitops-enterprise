@@ -985,7 +985,7 @@ metadata:
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate[0].Content, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplates[0].Content, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}
@@ -1149,7 +1149,7 @@ func TestRenderTemplateWithAppsAndProfiles(t *testing.T) {
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: []*capiv1_protos.CommitFile{
+				RenderedTemplates: []*capiv1_protos.CommitFile{
 					{
 						Content: `apiVersion: fooversion
 kind: fookind
@@ -1234,7 +1234,7 @@ status: {}
 				},
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: []*capiv1_protos.CommitFile{
+				RenderedTemplates: []*capiv1_protos.CommitFile{
 					{
 						Content: `apiVersion: fooversion
 kind: fookind
@@ -1332,7 +1332,7 @@ status: {}
 				TemplateNamespace: "default",
 			},
 			expected: &capiv1_protos.RenderTemplateResponse{
-				RenderedTemplate: []*capiv1_protos.CommitFile{
+				RenderedTemplates: []*capiv1_protos.CommitFile{
 					{
 						Content: `apiVersion: fooversion
 kind: fookind
@@ -1396,7 +1396,7 @@ metadata:
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected.RenderedTemplate, renderTemplateResponse.RenderedTemplate, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected.RenderedTemplates, renderTemplateResponse.RenderedTemplates, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 
@@ -1522,7 +1522,7 @@ metadata:
 					t.Fatalf("got the wrong error:\n%s", diff)
 				}
 			} else {
-				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplate[0].Content, protocmp.Transform()); diff != "" {
+				if diff := cmp.Diff(tt.expected, renderTemplateResponse.RenderedTemplates[0].Content, protocmp.Transform()); diff != "" {
 					t.Fatalf("templates didn't match expected:\n%s", diff)
 				}
 			}

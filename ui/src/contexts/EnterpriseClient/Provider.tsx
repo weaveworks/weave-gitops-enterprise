@@ -7,13 +7,6 @@ type Props = {
   children: any;
 };
 
-export enum AuthRoutes {
-  USER_INFO = '/oauth2/userinfo',
-  SIGN_IN = '/oauth2/sign_in',
-  LOG_OUT = '/oauth2/logout',
-  AUTH_PATH_SIGNIN = '/sign_in',
-}
-
 const EnterpriseClientProvider = ({ api, children }: Props) => {
   return (
     <EnterpriseClientContext.Provider value={{ api }}>
