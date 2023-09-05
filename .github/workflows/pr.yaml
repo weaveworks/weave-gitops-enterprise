@@ -37,7 +37,6 @@ jobs:
           export GOPRIVATE=github.com/weaveworks
           go get -u github.com/weaveworks/weave-gitops@$latest_tag
           go mod tidy
-          cd ui-cra
           yarn add @weaveworks/weave-gitops@$latest_tag
           # This is a convience to help auto-update snapshots if core components have changed.
           # However it can still fail if larger changes have been made, breaking the PR creation.
@@ -77,7 +76,7 @@ jobs:
       - name: Check out enterprise
         uses: actions/checkout@v3
         with:
-          repository: 'weaveworks/weave-gitops-enterprise'
+          repository: "weaveworks/weave-gitops-enterprise"
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: main
           fetch-depth: 0
@@ -103,7 +102,6 @@ jobs:
           echo $remote_main
           go get -u github.com/weaveworks/weave-gitops@$remote_main
           go mod tidy
-          cd ui-cra
           npm_version=$(yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | keys | .[] | select(contains("$(remote_main)"))')
           yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$npm_version
           # This is a convience to help auto-update snapshots if core components have changed.
@@ -125,9 +123,9 @@ jobs:
           title: "Bump weave-gitops to latest"
           body: |
             Update weave-gitops to unstable commit ${{ needs.ci-publish-js-lib.outputs.js-version }}
-# Uncomment this when you want to involve the author:
-#
-#            cc @${{ github.event.sender.login }}
+          # Uncomment this when you want to involve the author:
+          #
+          #            cc @${{ github.event.sender.login }}
           commit-message: "Bump version of weave-gitops to latest"
           token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
           delete-branch: true
