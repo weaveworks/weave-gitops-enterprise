@@ -10,6 +10,7 @@ import (
 	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -27,6 +28,7 @@ const (
 	CategoryAutomation ObjectCategory = "automation"
 	CategorySource     ObjectCategory = "source"
 	CategoryEvent      ObjectCategory = "event"
+	CategoryGitopsSet  ObjectCategory = "gitopsset"
 )
 
 type ObjectKind struct {
@@ -220,6 +222,17 @@ var (
 		},
 		Category: CategoryEvent,
 	}
+
+	GitOpsSetsObjectKind = ObjectKind{
+		Gvk: gitopssets.GroupVersion.WithKind("GitOpsSet"),
+		NewClientObjectFunc: func() client.Object {
+			return &gitopssets.GitOpsSet{}
+		},
+		AddToSchemeFunc: gitopssets.AddToScheme,
+		StatusFunc:      defaultFluxObjectStatusFunc,
+		MessageFunc:     defaultFluxObjectMessageFunc,
+		Category:        CategoryGitopsSet,
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -232,6 +245,7 @@ var SupportedObjectKinds = []ObjectKind{
 	OCIRepositoryObjectKind,
 	BucketObjectKind,
 	PolicyAgentAuditEventObjectKind,
+	GitOpsSetsObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
@@ -296,6 +310,8 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 	case *sourcev1.GitRepository:
 		return t, nil
 	case *sourcev1beta2.OCIRepository:
+		return t, nil
+	case *gitopssets.GitOpsSet:
 		return t, nil
 	case *corev1.Event:
 		e, ok := obj.(*corev1.Event)
