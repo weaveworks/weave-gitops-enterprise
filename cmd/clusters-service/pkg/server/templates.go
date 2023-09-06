@@ -248,13 +248,14 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		types.NamespacedName{Name: s.cluster},
 		tm,
 		GetFilesRequest{
-			ClusterNamespace: msg.ClusterNamespace,
-			TemplateName:     msg.TemplateName,
-			ParameterValues:  msg.Values,
-			Credentials:      msg.Credentials,
-			Profiles:         msg.Profiles,
-			Kustomizations:   msg.Kustomizations,
-			ExternalSecrets:  msg.ExternalSecrets,
+			ClusterNamespace:      msg.ClusterNamespace,
+			TemplateName:          msg.TemplateName,
+			ParameterValues:       msg.Values,
+			Credentials:           msg.Credentials,
+			Profiles:              msg.Profiles,
+			Kustomizations:        msg.Kustomizations,
+			ExternalSecrets:       msg.ExternalSecrets,
+			DefaultHelmRepository: s.profileHelmRepository,
 		},
 		nil,
 	)
@@ -301,14 +302,7 @@ func GetFiles(
 	msg GetFilesRequest,
 	createRequestMessage *capiv1_proto.CreatePullRequestRequest) (*GetFilesReturn, error) {
 
-	// FIXME: pipe this through from server config etc to each migration
-	defaultHelmRepository := types.NamespacedName{
-		Name:      "weaveworks-charts",
-		Namespace: "flux-system",
-	}
-	if msg.DefaultHelmRepository.Name != "" && msg.DefaultHelmRepository.Namespace != "" {
-		defaultHelmRepository = msg.DefaultHelmRepository
-	}
+	defaultHelmRepository := msg.DefaultHelmRepository
 
 	resourcesNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
 

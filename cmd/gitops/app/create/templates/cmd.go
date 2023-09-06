@@ -284,12 +284,6 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 
 	helmRepoFetcher := &localHelmRepoFetcher{helmRepo: helmRepo}
 
-	defaultHelmRepo := types.NamespacedName{
-		Name:      helmRepoName,
-		Namespace: DefaultHelmRepoNamespace,
-	}
-	fmt.Printf("default helm repo: %v\n", defaultHelmRepo)
-
 	templateResources, err := server.GetFiles(
 		context.Background(),
 		nil, // no need for a kube client as we're providing the helm repo no
@@ -301,10 +295,13 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		types.NamespacedName{Name: DefaultCluster},
 		tmpl,
 		server.GetFilesRequest{
-			ParameterValues:       params,
-			TemplateName:          tmpl.Name,
-			Profiles:              profiles,
-			DefaultHelmRepository: defaultHelmRepo,
+			ParameterValues: params,
+			TemplateName:    tmpl.Name,
+			Profiles:        profiles,
+			DefaultHelmRepository: types.NamespacedName{
+				Name:      helmRepoName,
+				Namespace: DefaultHelmRepoNamespace,
+			},
 		},
 		nil, // FIXME: no create message request, generated resources won't be "editable" in the UI
 	)

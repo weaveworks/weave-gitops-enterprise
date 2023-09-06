@@ -1560,6 +1560,10 @@ func TestGetFiles_required_profiles(t *testing.T) {
 		},
 		Profiles:       []*capiv1_protos.ProfileValues{},
 		Kustomizations: []*capiv1_protos.Kustomization{},
+		DefaultHelmRepository: types.NamespacedName{
+			Name:      "weaveworks-charts",
+			Namespace: "flux-system",
+		},
 	}
 
 	expectedPath := "ns-foo/cluster-foo/profiles.yaml"
