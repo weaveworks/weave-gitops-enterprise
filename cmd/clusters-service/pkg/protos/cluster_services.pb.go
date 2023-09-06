@@ -4913,10 +4913,11 @@ type GetConfigResponse struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	RepositoryUrl         string            `protobuf:"bytes,1,opt,name=repository_url,json=repositoryUrl,proto3" json:"repository_url,omitempty"`
-	ManagementClusterName string            `protobuf:"bytes,2,opt,name=management_cluster_name,json=managementClusterName,proto3" json:"management_cluster_name,omitempty"`
-	UiConfig              string            `protobuf:"bytes,3,opt,name=ui_config,json=uiConfig,proto3" json:"ui_config,omitempty"`
-	GitHostTypes          map[string]string `protobuf:"bytes,4,rep,name=git_host_types,json=gitHostTypes,proto3" json:"git_host_types,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	RepositoryUrl         string             `protobuf:"bytes,1,opt,name=repository_url,json=repositoryUrl,proto3" json:"repository_url,omitempty"`
+	ManagementClusterName string             `protobuf:"bytes,2,opt,name=management_cluster_name,json=managementClusterName,proto3" json:"management_cluster_name,omitempty"`
+	UiConfig              string             `protobuf:"bytes,3,opt,name=ui_config,json=uiConfig,proto3" json:"ui_config,omitempty"`
+	GitHostTypes          map[string]string  `protobuf:"bytes,4,rep,name=git_host_types,json=gitHostTypes,proto3" json:"git_host_types,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	DefaultHelmRepository *HelmRepositoryRef `protobuf:"bytes,5,opt,name=default_helm_repository,json=defaultHelmRepository,proto3" json:"default_helm_repository,omitempty"`
 }
 
 func (x *GetConfigResponse) Reset() {
@@ -4975,6 +4976,13 @@ func (x *GetConfigResponse) GetUiConfig() string {
 func (x *GetConfigResponse) GetGitHostTypes() map[string]string {
 	if x != nil {
 		return x.GitHostTypes
+	}
+	return nil
+}
+
+func (x *GetConfigResponse) GetDefaultHelmRepository() *HelmRepositoryRef {
+	if x != nil {
+		return x.DefaultHelmRepository
 	}
 	return nil
 }
@@ -9752,7 +9760,7 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x2e, 0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f,
 	0x72, 0x79, 0x52, 0x65, 0x66, 0x52, 0x0e, 0x68, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73,
 	0x69, 0x74, 0x6f, 0x72, 0x79, 0x22, 0x12, 0x0a, 0x10, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e, 0x66,
-	0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0xb0, 0x02, 0x0a, 0x11, 0x47, 0x65,
+	0x69, 0x67, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x22, 0x90, 0x03, 0x0a, 0x11, 0x47, 0x65,
 	0x74, 0x43, 0x6f, 0x6e, 0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x12,
 	0x25, 0x0a, 0x0e, 0x72, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x5f, 0x75, 0x72,
 	0x6c, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x0d, 0x72, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74,
@@ -9767,7 +9775,13 @@ var file_cluster_services_proto_rawDesc = []byte{
 	0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2e, 0x76, 0x31, 0x2e, 0x47, 0x65, 0x74, 0x43, 0x6f, 0x6e,
 	0x66, 0x69, 0x67, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x2e, 0x47, 0x69, 0x74, 0x48,
 	0x6f, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79, 0x52, 0x0c, 0x67,
-	0x69, 0x74, 0x48, 0x6f, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65, 0x73, 0x1a, 0x3f, 0x0a, 0x11, 0x47,
+	0x69, 0x74, 0x48, 0x6f, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65, 0x73, 0x12, 0x5e, 0x0a, 0x17, 0x64,
+	0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x5f, 0x68, 0x65, 0x6c, 0x6d, 0x5f, 0x72, 0x65, 0x70, 0x6f,
+	0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x26, 0x2e, 0x63,
+	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x5f, 0x73, 0x65, 0x72, 0x76, 0x69, 0x63, 0x65, 0x73, 0x2e,
+	0x76, 0x31, 0x2e, 0x48, 0x65, 0x6c, 0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72,
+	0x79, 0x52, 0x65, 0x66, 0x52, 0x15, 0x64, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x48, 0x65, 0x6c,
+	0x6d, 0x52, 0x65, 0x70, 0x6f, 0x73, 0x69, 0x74, 0x6f, 0x72, 0x79, 0x1a, 0x3f, 0x0a, 0x11, 0x47,
 	0x69, 0x74, 0x48, 0x6f, 0x73, 0x74, 0x54, 0x79, 0x70, 0x65, 0x73, 0x45, 0x6e, 0x74, 0x72, 0x79,
 	0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x6b,
 	0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28,
@@ -10948,122 +10962,123 @@ var file_cluster_services_proto_depIdxs = []int32{
 	65,  // 91: cluster_services.v1.Profile.helm_repository:type_name -> cluster_services.v1.HelmRepository
 	67,  // 92: cluster_services.v1.ProfileValues.helm_repository:type_name -> cluster_services.v1.HelmRepositoryRef
 	142, // 93: cluster_services.v1.GetConfigResponse.git_host_types:type_name -> cluster_services.v1.GetConfigResponse.GitHostTypesEntry
-	72,  // 94: cluster_services.v1.ListEventsRequest.involved_object:type_name -> cluster_services.v1.ObjectRef
-	73,  // 95: cluster_services.v1.ListEventsResponse.events:type_name -> cluster_services.v1.Event
-	23,  // 96: cluster_services.v1.RepositoryRef.cluster:type_name -> cluster_services.v1.ClusterNamespacedName
-	76,  // 97: cluster_services.v1.ListChartsForRepositoryRequest.repository:type_name -> cluster_services.v1.RepositoryRef
-	78,  // 98: cluster_services.v1.ListChartsForRepositoryResponse.charts:type_name -> cluster_services.v1.RepositoryChart
-	76,  // 99: cluster_services.v1.GetValuesForChartRequest.repository:type_name -> cluster_services.v1.RepositoryRef
-	1,   // 100: cluster_services.v1.ListWorkspacesRequest.pagination:type_name -> cluster_services.v1.Pagination
-	84,  // 101: cluster_services.v1.ListWorkspacesResponse.workspaces:type_name -> cluster_services.v1.Workspace
-	2,   // 102: cluster_services.v1.ListWorkspacesResponse.errors:type_name -> cluster_services.v1.ListError
-	87,  // 103: cluster_services.v1.WorkspaceRole.rules:type_name -> cluster_services.v1.WorkspaceRoleRule
-	89,  // 104: cluster_services.v1.WorkspaceRoleBinding.role:type_name -> cluster_services.v1.WorkspaceRoleBindingRoleRef
-	90,  // 105: cluster_services.v1.WorkspaceRoleBinding.subjects:type_name -> cluster_services.v1.WorkspaceRoleBindingSubject
-	88,  // 106: cluster_services.v1.GetWorkspaceRolesResponse.objects:type_name -> cluster_services.v1.WorkspaceRole
-	91,  // 107: cluster_services.v1.GetWorkspaceRoleBindingsResponse.objects:type_name -> cluster_services.v1.WorkspaceRoleBinding
-	92,  // 108: cluster_services.v1.GetWorkspaceServiceAccountsResponse.objects:type_name -> cluster_services.v1.WorkspaceServiceAccount
-	93,  // 109: cluster_services.v1.GetWorkspacePoliciesResponse.objects:type_name -> cluster_services.v1.WorkspacePolicy
-	100, // 110: cluster_services.v1.ListExternalSecretsResponse.secrets:type_name -> cluster_services.v1.ExternalSecretItem
-	2,   // 111: cluster_services.v1.ListExternalSecretsResponse.errors:type_name -> cluster_services.v1.ListError
-	143, // 112: cluster_services.v1.GetExternalSecretResponse.properties:type_name -> cluster_services.v1.GetExternalSecretResponse.PropertiesEntry
-	105, // 113: cluster_services.v1.ListExternalSecretStoresResponse.stores:type_name -> cluster_services.v1.ExternalSecretStore
-	110, // 114: cluster_services.v1.ListPolicyConfigsResponse.policy_configs:type_name -> cluster_services.v1.PolicyConfigListItem
-	2,   // 115: cluster_services.v1.ListPolicyConfigsResponse.errors:type_name -> cluster_services.v1.ListError
-	117, // 116: cluster_services.v1.GetPolicyConfigResponse.match:type_name -> cluster_services.v1.PolicyConfigMatch
-	118, // 117: cluster_services.v1.GetPolicyConfigResponse.policies:type_name -> cluster_services.v1.PolicyConfigPolicy
-	115, // 118: cluster_services.v1.PolicyConfigMatch.apps:type_name -> cluster_services.v1.PolicyConfigApplicationMatch
-	116, // 119: cluster_services.v1.PolicyConfigMatch.resources:type_name -> cluster_services.v1.PolicyConfigResourceMatch
-	144, // 120: cluster_services.v1.PolicyConfigPolicy.parameters:type_name -> cluster_services.v1.PolicyConfigPolicy.ParametersEntry
-	145, // 121: cluster_services.v1.PolicyConfigConf.parameters:type_name -> cluster_services.v1.PolicyConfigConf.ParametersEntry
-	117, // 122: cluster_services.v1.PolicyConfigObjectSpec.match:type_name -> cluster_services.v1.PolicyConfigMatch
-	146, // 123: cluster_services.v1.PolicyConfigObjectSpec.config:type_name -> cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry
-	61,  // 124: cluster_services.v1.PolicyConfigObject.metadata:type_name -> cluster_services.v1.Metadata
-	120, // 125: cluster_services.v1.PolicyConfigObject.spec:type_name -> cluster_services.v1.PolicyConfigObjectSpec
-	147, // 126: cluster_services.v1.EncryptSopsSecretRequest.labels:type_name -> cluster_services.v1.EncryptSopsSecretRequest.LabelsEntry
-	148, // 127: cluster_services.v1.EncryptSopsSecretRequest.data:type_name -> cluster_services.v1.EncryptSopsSecretRequest.DataEntry
-	149, // 128: cluster_services.v1.EncryptSopsSecretRequest.string_data:type_name -> cluster_services.v1.EncryptSopsSecretRequest.StringDataEntry
-	153, // 129: cluster_services.v1.EncryptSopsSecretResponse.encrypted_secret:type_name -> google.protobuf.Value
-	126, // 130: cluster_services.v1.ListSopsKustomizationsResponse.kustomizations:type_name -> cluster_services.v1.SopsKustomizations
-	150, // 131: cluster_services.v1.SopsSecretMetadata.labels:type_name -> cluster_services.v1.SopsSecretMetadata.LabelsEntry
-	127, // 132: cluster_services.v1.SopsSecret.metadata:type_name -> cluster_services.v1.SopsSecretMetadata
-	151, // 133: cluster_services.v1.SopsSecret.data:type_name -> cluster_services.v1.SopsSecret.DataEntry
-	152, // 134: cluster_services.v1.SopsSecret.string_data:type_name -> cluster_services.v1.SopsSecret.StringDataEntry
-	153, // 135: cluster_services.v1.SopsSecret.sops:type_name -> google.protobuf.Value
-	153, // 136: cluster_services.v1.PolicyConfigPolicy.ParametersEntry.value:type_name -> google.protobuf.Value
-	153, // 137: cluster_services.v1.PolicyConfigConf.ParametersEntry.value:type_name -> google.protobuf.Value
-	119, // 138: cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry.value:type_name -> cluster_services.v1.PolicyConfigConf
-	0,   // 139: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
-	4,   // 140: cluster_services.v1.ClustersService.GetTemplate:input_type -> cluster_services.v1.GetTemplateRequest
-	6,   // 141: cluster_services.v1.ClustersService.ListTemplateParams:input_type -> cluster_services.v1.ListTemplateParamsRequest
-	8,   // 142: cluster_services.v1.ClustersService.ListTemplateProfiles:input_type -> cluster_services.v1.ListTemplateProfilesRequest
-	10,  // 143: cluster_services.v1.ClustersService.RenderTemplate:input_type -> cluster_services.v1.RenderTemplateRequest
-	14,  // 144: cluster_services.v1.ClustersService.RenderAutomation:input_type -> cluster_services.v1.RenderAutomationRequest
-	16,  // 145: cluster_services.v1.ClustersService.ListGitopsClusters:input_type -> cluster_services.v1.ListGitopsClustersRequest
-	18,  // 146: cluster_services.v1.ClustersService.CreatePullRequest:input_type -> cluster_services.v1.CreatePullRequestRequest
-	21,  // 147: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:input_type -> cluster_services.v1.CreateTfControllerPullRequestRequest
-	24,  // 148: cluster_services.v1.ClustersService.DeleteClustersPullRequest:input_type -> cluster_services.v1.DeleteClustersPullRequestRequest
-	26,  // 149: cluster_services.v1.ClustersService.ListCredentials:input_type -> cluster_services.v1.ListCredentialsRequest
-	28,  // 150: cluster_services.v1.ClustersService.GetKubeconfig:input_type -> cluster_services.v1.GetKubeconfigRequest
-	41,  // 151: cluster_services.v1.ClustersService.GetEnterpriseVersion:input_type -> cluster_services.v1.GetEnterpriseVersionRequest
-	43,  // 152: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:input_type -> cluster_services.v1.CreateAutomationsPullRequestRequest
-	69,  // 153: cluster_services.v1.ClustersService.GetConfig:input_type -> cluster_services.v1.GetConfigRequest
-	74,  // 154: cluster_services.v1.ClustersService.ListEvents:input_type -> cluster_services.v1.ListEventsRequest
-	77,  // 155: cluster_services.v1.ClustersService.ListChartsForRepository:input_type -> cluster_services.v1.ListChartsForRepositoryRequest
-	80,  // 156: cluster_services.v1.ClustersService.GetValuesForChart:input_type -> cluster_services.v1.GetValuesForChartRequest
-	82,  // 157: cluster_services.v1.ClustersService.GetChartsJob:input_type -> cluster_services.v1.GetChartsJobRequest
-	85,  // 158: cluster_services.v1.ClustersService.ListWorkspaces:input_type -> cluster_services.v1.ListWorkspacesRequest
-	94,  // 159: cluster_services.v1.ClustersService.GetWorkspace:input_type -> cluster_services.v1.GetWorkspaceRequest
-	94,  // 160: cluster_services.v1.ClustersService.GetWorkspaceRoles:input_type -> cluster_services.v1.GetWorkspaceRequest
-	94,  // 161: cluster_services.v1.ClustersService.GetWorkspaceRoleBindings:input_type -> cluster_services.v1.GetWorkspaceRequest
-	94,  // 162: cluster_services.v1.ClustersService.GetWorkspaceServiceAccounts:input_type -> cluster_services.v1.GetWorkspaceRequest
-	94,  // 163: cluster_services.v1.ClustersService.GetWorkspacePolicies:input_type -> cluster_services.v1.GetWorkspaceRequest
-	101, // 164: cluster_services.v1.ClustersService.ListExternalSecrets:input_type -> cluster_services.v1.ListExternalSecretsRequest
-	103, // 165: cluster_services.v1.ClustersService.GetExternalSecret:input_type -> cluster_services.v1.GetExternalSecretRequest
-	106, // 166: cluster_services.v1.ClustersService.ListExternalSecretStores:input_type -> cluster_services.v1.ListExternalSecretStoresRequest
-	108, // 167: cluster_services.v1.ClustersService.SyncExternalSecrets:input_type -> cluster_services.v1.SyncExternalSecretsRequest
-	111, // 168: cluster_services.v1.ClustersService.ListPolicyConfigs:input_type -> cluster_services.v1.ListPolicyConfigsRequest
-	113, // 169: cluster_services.v1.ClustersService.GetPolicyConfig:input_type -> cluster_services.v1.GetPolicyConfigRequest
-	122, // 170: cluster_services.v1.ClustersService.EncryptSopsSecret:input_type -> cluster_services.v1.EncryptSopsSecretRequest
-	124, // 171: cluster_services.v1.ClustersService.ListSopsKustomizations:input_type -> cluster_services.v1.ListSopsKustomizationsRequest
-	3,   // 172: cluster_services.v1.ClustersService.ListTemplates:output_type -> cluster_services.v1.ListTemplatesResponse
-	5,   // 173: cluster_services.v1.ClustersService.GetTemplate:output_type -> cluster_services.v1.GetTemplateResponse
-	7,   // 174: cluster_services.v1.ClustersService.ListTemplateParams:output_type -> cluster_services.v1.ListTemplateParamsResponse
-	9,   // 175: cluster_services.v1.ClustersService.ListTemplateProfiles:output_type -> cluster_services.v1.ListTemplateProfilesResponse
-	13,  // 176: cluster_services.v1.ClustersService.RenderTemplate:output_type -> cluster_services.v1.RenderTemplateResponse
-	15,  // 177: cluster_services.v1.ClustersService.RenderAutomation:output_type -> cluster_services.v1.RenderAutomationResponse
-	17,  // 178: cluster_services.v1.ClustersService.ListGitopsClusters:output_type -> cluster_services.v1.ListGitopsClustersResponse
-	20,  // 179: cluster_services.v1.ClustersService.CreatePullRequest:output_type -> cluster_services.v1.CreatePullRequestResponse
-	22,  // 180: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:output_type -> cluster_services.v1.CreateTfControllerPullRequestResponse
-	25,  // 181: cluster_services.v1.ClustersService.DeleteClustersPullRequest:output_type -> cluster_services.v1.DeleteClustersPullRequestResponse
-	27,  // 182: cluster_services.v1.ClustersService.ListCredentials:output_type -> cluster_services.v1.ListCredentialsResponse
-	154, // 183: cluster_services.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
-	42,  // 184: cluster_services.v1.ClustersService.GetEnterpriseVersion:output_type -> cluster_services.v1.GetEnterpriseVersionResponse
-	63,  // 185: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:output_type -> cluster_services.v1.CreateAutomationsPullRequestResponse
-	70,  // 186: cluster_services.v1.ClustersService.GetConfig:output_type -> cluster_services.v1.GetConfigResponse
-	75,  // 187: cluster_services.v1.ClustersService.ListEvents:output_type -> cluster_services.v1.ListEventsResponse
-	79,  // 188: cluster_services.v1.ClustersService.ListChartsForRepository:output_type -> cluster_services.v1.ListChartsForRepositoryResponse
-	81,  // 189: cluster_services.v1.ClustersService.GetValuesForChart:output_type -> cluster_services.v1.GetValuesForChartResponse
-	83,  // 190: cluster_services.v1.ClustersService.GetChartsJob:output_type -> cluster_services.v1.GetChartsJobResponse
-	86,  // 191: cluster_services.v1.ClustersService.ListWorkspaces:output_type -> cluster_services.v1.ListWorkspacesResponse
-	95,  // 192: cluster_services.v1.ClustersService.GetWorkspace:output_type -> cluster_services.v1.GetWorkspaceResponse
-	96,  // 193: cluster_services.v1.ClustersService.GetWorkspaceRoles:output_type -> cluster_services.v1.GetWorkspaceRolesResponse
-	97,  // 194: cluster_services.v1.ClustersService.GetWorkspaceRoleBindings:output_type -> cluster_services.v1.GetWorkspaceRoleBindingsResponse
-	98,  // 195: cluster_services.v1.ClustersService.GetWorkspaceServiceAccounts:output_type -> cluster_services.v1.GetWorkspaceServiceAccountsResponse
-	99,  // 196: cluster_services.v1.ClustersService.GetWorkspacePolicies:output_type -> cluster_services.v1.GetWorkspacePoliciesResponse
-	102, // 197: cluster_services.v1.ClustersService.ListExternalSecrets:output_type -> cluster_services.v1.ListExternalSecretsResponse
-	104, // 198: cluster_services.v1.ClustersService.GetExternalSecret:output_type -> cluster_services.v1.GetExternalSecretResponse
-	107, // 199: cluster_services.v1.ClustersService.ListExternalSecretStores:output_type -> cluster_services.v1.ListExternalSecretStoresResponse
-	109, // 200: cluster_services.v1.ClustersService.SyncExternalSecrets:output_type -> cluster_services.v1.SyncExternalSecretsResponse
-	112, // 201: cluster_services.v1.ClustersService.ListPolicyConfigs:output_type -> cluster_services.v1.ListPolicyConfigsResponse
-	114, // 202: cluster_services.v1.ClustersService.GetPolicyConfig:output_type -> cluster_services.v1.GetPolicyConfigResponse
-	123, // 203: cluster_services.v1.ClustersService.EncryptSopsSecret:output_type -> cluster_services.v1.EncryptSopsSecretResponse
-	125, // 204: cluster_services.v1.ClustersService.ListSopsKustomizations:output_type -> cluster_services.v1.ListSopsKustomizationsResponse
-	172, // [172:205] is the sub-list for method output_type
-	139, // [139:172] is the sub-list for method input_type
-	139, // [139:139] is the sub-list for extension type_name
-	139, // [139:139] is the sub-list for extension extendee
-	0,   // [0:139] is the sub-list for field type_name
+	67,  // 94: cluster_services.v1.GetConfigResponse.default_helm_repository:type_name -> cluster_services.v1.HelmRepositoryRef
+	72,  // 95: cluster_services.v1.ListEventsRequest.involved_object:type_name -> cluster_services.v1.ObjectRef
+	73,  // 96: cluster_services.v1.ListEventsResponse.events:type_name -> cluster_services.v1.Event
+	23,  // 97: cluster_services.v1.RepositoryRef.cluster:type_name -> cluster_services.v1.ClusterNamespacedName
+	76,  // 98: cluster_services.v1.ListChartsForRepositoryRequest.repository:type_name -> cluster_services.v1.RepositoryRef
+	78,  // 99: cluster_services.v1.ListChartsForRepositoryResponse.charts:type_name -> cluster_services.v1.RepositoryChart
+	76,  // 100: cluster_services.v1.GetValuesForChartRequest.repository:type_name -> cluster_services.v1.RepositoryRef
+	1,   // 101: cluster_services.v1.ListWorkspacesRequest.pagination:type_name -> cluster_services.v1.Pagination
+	84,  // 102: cluster_services.v1.ListWorkspacesResponse.workspaces:type_name -> cluster_services.v1.Workspace
+	2,   // 103: cluster_services.v1.ListWorkspacesResponse.errors:type_name -> cluster_services.v1.ListError
+	87,  // 104: cluster_services.v1.WorkspaceRole.rules:type_name -> cluster_services.v1.WorkspaceRoleRule
+	89,  // 105: cluster_services.v1.WorkspaceRoleBinding.role:type_name -> cluster_services.v1.WorkspaceRoleBindingRoleRef
+	90,  // 106: cluster_services.v1.WorkspaceRoleBinding.subjects:type_name -> cluster_services.v1.WorkspaceRoleBindingSubject
+	88,  // 107: cluster_services.v1.GetWorkspaceRolesResponse.objects:type_name -> cluster_services.v1.WorkspaceRole
+	91,  // 108: cluster_services.v1.GetWorkspaceRoleBindingsResponse.objects:type_name -> cluster_services.v1.WorkspaceRoleBinding
+	92,  // 109: cluster_services.v1.GetWorkspaceServiceAccountsResponse.objects:type_name -> cluster_services.v1.WorkspaceServiceAccount
+	93,  // 110: cluster_services.v1.GetWorkspacePoliciesResponse.objects:type_name -> cluster_services.v1.WorkspacePolicy
+	100, // 111: cluster_services.v1.ListExternalSecretsResponse.secrets:type_name -> cluster_services.v1.ExternalSecretItem
+	2,   // 112: cluster_services.v1.ListExternalSecretsResponse.errors:type_name -> cluster_services.v1.ListError
+	143, // 113: cluster_services.v1.GetExternalSecretResponse.properties:type_name -> cluster_services.v1.GetExternalSecretResponse.PropertiesEntry
+	105, // 114: cluster_services.v1.ListExternalSecretStoresResponse.stores:type_name -> cluster_services.v1.ExternalSecretStore
+	110, // 115: cluster_services.v1.ListPolicyConfigsResponse.policy_configs:type_name -> cluster_services.v1.PolicyConfigListItem
+	2,   // 116: cluster_services.v1.ListPolicyConfigsResponse.errors:type_name -> cluster_services.v1.ListError
+	117, // 117: cluster_services.v1.GetPolicyConfigResponse.match:type_name -> cluster_services.v1.PolicyConfigMatch
+	118, // 118: cluster_services.v1.GetPolicyConfigResponse.policies:type_name -> cluster_services.v1.PolicyConfigPolicy
+	115, // 119: cluster_services.v1.PolicyConfigMatch.apps:type_name -> cluster_services.v1.PolicyConfigApplicationMatch
+	116, // 120: cluster_services.v1.PolicyConfigMatch.resources:type_name -> cluster_services.v1.PolicyConfigResourceMatch
+	144, // 121: cluster_services.v1.PolicyConfigPolicy.parameters:type_name -> cluster_services.v1.PolicyConfigPolicy.ParametersEntry
+	145, // 122: cluster_services.v1.PolicyConfigConf.parameters:type_name -> cluster_services.v1.PolicyConfigConf.ParametersEntry
+	117, // 123: cluster_services.v1.PolicyConfigObjectSpec.match:type_name -> cluster_services.v1.PolicyConfigMatch
+	146, // 124: cluster_services.v1.PolicyConfigObjectSpec.config:type_name -> cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry
+	61,  // 125: cluster_services.v1.PolicyConfigObject.metadata:type_name -> cluster_services.v1.Metadata
+	120, // 126: cluster_services.v1.PolicyConfigObject.spec:type_name -> cluster_services.v1.PolicyConfigObjectSpec
+	147, // 127: cluster_services.v1.EncryptSopsSecretRequest.labels:type_name -> cluster_services.v1.EncryptSopsSecretRequest.LabelsEntry
+	148, // 128: cluster_services.v1.EncryptSopsSecretRequest.data:type_name -> cluster_services.v1.EncryptSopsSecretRequest.DataEntry
+	149, // 129: cluster_services.v1.EncryptSopsSecretRequest.string_data:type_name -> cluster_services.v1.EncryptSopsSecretRequest.StringDataEntry
+	153, // 130: cluster_services.v1.EncryptSopsSecretResponse.encrypted_secret:type_name -> google.protobuf.Value
+	126, // 131: cluster_services.v1.ListSopsKustomizationsResponse.kustomizations:type_name -> cluster_services.v1.SopsKustomizations
+	150, // 132: cluster_services.v1.SopsSecretMetadata.labels:type_name -> cluster_services.v1.SopsSecretMetadata.LabelsEntry
+	127, // 133: cluster_services.v1.SopsSecret.metadata:type_name -> cluster_services.v1.SopsSecretMetadata
+	151, // 134: cluster_services.v1.SopsSecret.data:type_name -> cluster_services.v1.SopsSecret.DataEntry
+	152, // 135: cluster_services.v1.SopsSecret.string_data:type_name -> cluster_services.v1.SopsSecret.StringDataEntry
+	153, // 136: cluster_services.v1.SopsSecret.sops:type_name -> google.protobuf.Value
+	153, // 137: cluster_services.v1.PolicyConfigPolicy.ParametersEntry.value:type_name -> google.protobuf.Value
+	153, // 138: cluster_services.v1.PolicyConfigConf.ParametersEntry.value:type_name -> google.protobuf.Value
+	119, // 139: cluster_services.v1.PolicyConfigObjectSpec.ConfigEntry.value:type_name -> cluster_services.v1.PolicyConfigConf
+	0,   // 140: cluster_services.v1.ClustersService.ListTemplates:input_type -> cluster_services.v1.ListTemplatesRequest
+	4,   // 141: cluster_services.v1.ClustersService.GetTemplate:input_type -> cluster_services.v1.GetTemplateRequest
+	6,   // 142: cluster_services.v1.ClustersService.ListTemplateParams:input_type -> cluster_services.v1.ListTemplateParamsRequest
+	8,   // 143: cluster_services.v1.ClustersService.ListTemplateProfiles:input_type -> cluster_services.v1.ListTemplateProfilesRequest
+	10,  // 144: cluster_services.v1.ClustersService.RenderTemplate:input_type -> cluster_services.v1.RenderTemplateRequest
+	14,  // 145: cluster_services.v1.ClustersService.RenderAutomation:input_type -> cluster_services.v1.RenderAutomationRequest
+	16,  // 146: cluster_services.v1.ClustersService.ListGitopsClusters:input_type -> cluster_services.v1.ListGitopsClustersRequest
+	18,  // 147: cluster_services.v1.ClustersService.CreatePullRequest:input_type -> cluster_services.v1.CreatePullRequestRequest
+	21,  // 148: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:input_type -> cluster_services.v1.CreateTfControllerPullRequestRequest
+	24,  // 149: cluster_services.v1.ClustersService.DeleteClustersPullRequest:input_type -> cluster_services.v1.DeleteClustersPullRequestRequest
+	26,  // 150: cluster_services.v1.ClustersService.ListCredentials:input_type -> cluster_services.v1.ListCredentialsRequest
+	28,  // 151: cluster_services.v1.ClustersService.GetKubeconfig:input_type -> cluster_services.v1.GetKubeconfigRequest
+	41,  // 152: cluster_services.v1.ClustersService.GetEnterpriseVersion:input_type -> cluster_services.v1.GetEnterpriseVersionRequest
+	43,  // 153: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:input_type -> cluster_services.v1.CreateAutomationsPullRequestRequest
+	69,  // 154: cluster_services.v1.ClustersService.GetConfig:input_type -> cluster_services.v1.GetConfigRequest
+	74,  // 155: cluster_services.v1.ClustersService.ListEvents:input_type -> cluster_services.v1.ListEventsRequest
+	77,  // 156: cluster_services.v1.ClustersService.ListChartsForRepository:input_type -> cluster_services.v1.ListChartsForRepositoryRequest
+	80,  // 157: cluster_services.v1.ClustersService.GetValuesForChart:input_type -> cluster_services.v1.GetValuesForChartRequest
+	82,  // 158: cluster_services.v1.ClustersService.GetChartsJob:input_type -> cluster_services.v1.GetChartsJobRequest
+	85,  // 159: cluster_services.v1.ClustersService.ListWorkspaces:input_type -> cluster_services.v1.ListWorkspacesRequest
+	94,  // 160: cluster_services.v1.ClustersService.GetWorkspace:input_type -> cluster_services.v1.GetWorkspaceRequest
+	94,  // 161: cluster_services.v1.ClustersService.GetWorkspaceRoles:input_type -> cluster_services.v1.GetWorkspaceRequest
+	94,  // 162: cluster_services.v1.ClustersService.GetWorkspaceRoleBindings:input_type -> cluster_services.v1.GetWorkspaceRequest
+	94,  // 163: cluster_services.v1.ClustersService.GetWorkspaceServiceAccounts:input_type -> cluster_services.v1.GetWorkspaceRequest
+	94,  // 164: cluster_services.v1.ClustersService.GetWorkspacePolicies:input_type -> cluster_services.v1.GetWorkspaceRequest
+	101, // 165: cluster_services.v1.ClustersService.ListExternalSecrets:input_type -> cluster_services.v1.ListExternalSecretsRequest
+	103, // 166: cluster_services.v1.ClustersService.GetExternalSecret:input_type -> cluster_services.v1.GetExternalSecretRequest
+	106, // 167: cluster_services.v1.ClustersService.ListExternalSecretStores:input_type -> cluster_services.v1.ListExternalSecretStoresRequest
+	108, // 168: cluster_services.v1.ClustersService.SyncExternalSecrets:input_type -> cluster_services.v1.SyncExternalSecretsRequest
+	111, // 169: cluster_services.v1.ClustersService.ListPolicyConfigs:input_type -> cluster_services.v1.ListPolicyConfigsRequest
+	113, // 170: cluster_services.v1.ClustersService.GetPolicyConfig:input_type -> cluster_services.v1.GetPolicyConfigRequest
+	122, // 171: cluster_services.v1.ClustersService.EncryptSopsSecret:input_type -> cluster_services.v1.EncryptSopsSecretRequest
+	124, // 172: cluster_services.v1.ClustersService.ListSopsKustomizations:input_type -> cluster_services.v1.ListSopsKustomizationsRequest
+	3,   // 173: cluster_services.v1.ClustersService.ListTemplates:output_type -> cluster_services.v1.ListTemplatesResponse
+	5,   // 174: cluster_services.v1.ClustersService.GetTemplate:output_type -> cluster_services.v1.GetTemplateResponse
+	7,   // 175: cluster_services.v1.ClustersService.ListTemplateParams:output_type -> cluster_services.v1.ListTemplateParamsResponse
+	9,   // 176: cluster_services.v1.ClustersService.ListTemplateProfiles:output_type -> cluster_services.v1.ListTemplateProfilesResponse
+	13,  // 177: cluster_services.v1.ClustersService.RenderTemplate:output_type -> cluster_services.v1.RenderTemplateResponse
+	15,  // 178: cluster_services.v1.ClustersService.RenderAutomation:output_type -> cluster_services.v1.RenderAutomationResponse
+	17,  // 179: cluster_services.v1.ClustersService.ListGitopsClusters:output_type -> cluster_services.v1.ListGitopsClustersResponse
+	20,  // 180: cluster_services.v1.ClustersService.CreatePullRequest:output_type -> cluster_services.v1.CreatePullRequestResponse
+	22,  // 181: cluster_services.v1.ClustersService.CreateTfControllerPullRequest:output_type -> cluster_services.v1.CreateTfControllerPullRequestResponse
+	25,  // 182: cluster_services.v1.ClustersService.DeleteClustersPullRequest:output_type -> cluster_services.v1.DeleteClustersPullRequestResponse
+	27,  // 183: cluster_services.v1.ClustersService.ListCredentials:output_type -> cluster_services.v1.ListCredentialsResponse
+	154, // 184: cluster_services.v1.ClustersService.GetKubeconfig:output_type -> google.api.HttpBody
+	42,  // 185: cluster_services.v1.ClustersService.GetEnterpriseVersion:output_type -> cluster_services.v1.GetEnterpriseVersionResponse
+	63,  // 186: cluster_services.v1.ClustersService.CreateAutomationsPullRequest:output_type -> cluster_services.v1.CreateAutomationsPullRequestResponse
+	70,  // 187: cluster_services.v1.ClustersService.GetConfig:output_type -> cluster_services.v1.GetConfigResponse
+	75,  // 188: cluster_services.v1.ClustersService.ListEvents:output_type -> cluster_services.v1.ListEventsResponse
+	79,  // 189: cluster_services.v1.ClustersService.ListChartsForRepository:output_type -> cluster_services.v1.ListChartsForRepositoryResponse
+	81,  // 190: cluster_services.v1.ClustersService.GetValuesForChart:output_type -> cluster_services.v1.GetValuesForChartResponse
+	83,  // 191: cluster_services.v1.ClustersService.GetChartsJob:output_type -> cluster_services.v1.GetChartsJobResponse
+	86,  // 192: cluster_services.v1.ClustersService.ListWorkspaces:output_type -> cluster_services.v1.ListWorkspacesResponse
+	95,  // 193: cluster_services.v1.ClustersService.GetWorkspace:output_type -> cluster_services.v1.GetWorkspaceResponse
+	96,  // 194: cluster_services.v1.ClustersService.GetWorkspaceRoles:output_type -> cluster_services.v1.GetWorkspaceRolesResponse
+	97,  // 195: cluster_services.v1.ClustersService.GetWorkspaceRoleBindings:output_type -> cluster_services.v1.GetWorkspaceRoleBindingsResponse
+	98,  // 196: cluster_services.v1.ClustersService.GetWorkspaceServiceAccounts:output_type -> cluster_services.v1.GetWorkspaceServiceAccountsResponse
+	99,  // 197: cluster_services.v1.ClustersService.GetWorkspacePolicies:output_type -> cluster_services.v1.GetWorkspacePoliciesResponse
+	102, // 198: cluster_services.v1.ClustersService.ListExternalSecrets:output_type -> cluster_services.v1.ListExternalSecretsResponse
+	104, // 199: cluster_services.v1.ClustersService.GetExternalSecret:output_type -> cluster_services.v1.GetExternalSecretResponse
+	107, // 200: cluster_services.v1.ClustersService.ListExternalSecretStores:output_type -> cluster_services.v1.ListExternalSecretStoresResponse
+	109, // 201: cluster_services.v1.ClustersService.SyncExternalSecrets:output_type -> cluster_services.v1.SyncExternalSecretsResponse
+	112, // 202: cluster_services.v1.ClustersService.ListPolicyConfigs:output_type -> cluster_services.v1.ListPolicyConfigsResponse
+	114, // 203: cluster_services.v1.ClustersService.GetPolicyConfig:output_type -> cluster_services.v1.GetPolicyConfigResponse
+	123, // 204: cluster_services.v1.ClustersService.EncryptSopsSecret:output_type -> cluster_services.v1.EncryptSopsSecretResponse
+	125, // 205: cluster_services.v1.ClustersService.ListSopsKustomizations:output_type -> cluster_services.v1.ListSopsKustomizationsResponse
+	173, // [173:206] is the sub-list for method output_type
+	140, // [140:173] is the sub-list for method input_type
+	140, // [140:140] is the sub-list for extension type_name
+	140, // [140:140] is the sub-list for extension extendee
+	0,   // [0:140] is the sub-list for field type_name
 }
 
 func init() { file_cluster_services_proto_init() }

@@ -2019,6 +2019,9 @@
           "additionalProperties": {
             "type": "string"
           }
+        },
+        "defaultHelmRepository": {
+          "$ref": "#/definitions/v1HelmRepositoryRef"
         }
       }
     },

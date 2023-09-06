@@ -816,6 +816,7 @@ message GetConfigResponse {
   string management_cluster_name = 2;
   string ui_config = 3;
   map<string, string> git_host_types = 4;
+  HelmRepositoryRef default_helm_repository = 5;
 }
 
 message PolicyParamRepeatedString { repeated string values = 1; }

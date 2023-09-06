@@ -490,6 +490,7 @@ export type GetConfigResponse = {
   managementClusterName?: string
   uiConfig?: string
   gitHostTypes?: {[key: string]: string}
+  defaultHelmRepository?: HelmRepositoryRef
 }
 
 export type PolicyParamRepeatedString = {

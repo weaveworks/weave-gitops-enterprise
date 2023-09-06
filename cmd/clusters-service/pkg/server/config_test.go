@@ -17,6 +17,7 @@ func TestGetConfig(t *testing.T) {
 		repoUrl              string
 		gitHostTypesEnv      string
 		expectedGitHostTypes map[string]string
+		defaultHelmRepository *capiv1_protos.HelmRepositoryRef
 	}{
 		{
 			name:            "value set",
@@ -29,6 +30,10 @@ func TestGetConfig(t *testing.T) {
 				"gitlab.com":        "gitlab",
 				"ssh.dev.azure.com": "azure-devops",
 			},
+			defaultHelmRepository: &capiv1_protos.HelmRepositoryRef{
+				Name:      "weaveworks-charts",
+				Namespace: "flux-system",
+			},
 		},
 		{
 			name:    " not set",
@@ -38,6 +43,10 @@ func TestGetConfig(t *testing.T) {
 				"github.com":        "github",
 				"gitlab.com":        "gitlab",
 				"ssh.dev.azure.com": "azure-devops",
+			},
+			defaultHelmRepository: &capiv1_protos.HelmRepositoryRef{
+				Name:      "weaveworks-charts",
+				Namespace: "flux-system",
 			},
 		},
 	}
@@ -58,6 +67,10 @@ func TestGetConfig(t *testing.T) {
 
 			if diff := cmp.Diff(tt.expectedGitHostTypes, res.GitHostTypes, protocmp.Transform()); diff != "" {
 				t.Fatalf("githosttypes didn't match expected:\n%s", diff)
+			}
+
+			if diff := cmp.Diff(tt.defaultHelmRepository, res.DefaultHelmRepository, protocmp.Transform()); diff != "" {
+				t.Fatalf("default helm repository didn't match expected:\n%s", diff)
 			}
 		})
 	}

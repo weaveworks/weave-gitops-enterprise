@@ -4,6 +4,7 @@ import { useDeepCompareMemo } from 'use-deep-compare';
 import { useQueries, useQuery } from 'react-query';
 import {
   GetConfigResponse,
+  HelmRepositoryRef,
   ListChartsForRepositoryResponse,
   RepositoryChart,
   RepositoryRef,
@@ -63,7 +64,10 @@ const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
   return defaultProfiles;
 };
 
-const toUpdatedProfiles = (profiles?: RepositoryChart[]): UpdatedProfile[] => {
+const toUpdatedProfiles = (
+  profiles?: RepositoryChart[],
+  defaultHelmRepository?: HelmRepositoryRef,
+): UpdatedProfile[] => {
   const accumulator: UpdatedProfile[] = [];
   profiles?.flatMap(profile =>
     profile.versions?.forEach(version => {
@@ -81,8 +85,9 @@ const toUpdatedProfiles = (profiles?: RepositoryChart[]): UpdatedProfile[] => {
           values: [value],
           required: false,
           layer: profile.layer,
-          repoName: profile.repoName,
-          repoNamespace: profile.repoNamespace,
+          repoName: profile.repoName || defaultHelmRepository?.name,
+          repoNamespace:
+            profile.repoNamespace || defaultHelmRepository?.namespace,
         });
       }
     }),
@@ -166,8 +171,11 @@ const mergeClusterAndTemplate = (
   data: ListChartsForRepositoryResponse[],
   template: TemplateEnriched | undefined,
   clusterData: AnnotationData,
+  defaultHelmRepository?: HelmRepositoryRef,
 ) => {
-  let profiles = data?.flatMap(d => toUpdatedProfiles(d?.charts));
+  let profiles = data?.flatMap(d =>
+    toUpdatedProfiles(d?.charts, defaultHelmRepository),
+  );
   if (template) {
     profiles = setVersionAndValuesFromTemplate(profiles, template);
   }
@@ -193,6 +201,8 @@ const useProfiles = (
   const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
+
+  const defaultHelmRepository = getConfigResponse?.data?.defaultHelmRepository;
 
   const hrQueries = helmReposRefs.map(helmRepo => {
     return {
@@ -234,6 +244,7 @@ const useProfiles = (
         data,
         template,
         maybeParseJSON(clusterData || ''),
+        defaultHelmRepository,
       ),
     [isLoading, data, template, clusterData],
   );
