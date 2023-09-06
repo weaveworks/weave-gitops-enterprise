@@ -1,48 +1,14 @@
-import {
-  CanaryMetric,
-  CanaryMetricTemplate,
-} from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Dispatch, FC, SetStateAction, useState } from 'react';
-import { MetricTemplateModal } from './MetricTemplateModal';
-import { DataTable } from '@weaveworks/weave-gitops';
+import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { AppContext, DataTable, Text } from '@weaveworks/weave-gitops';
+import React, { useContext } from 'react';
 import { TableWrapper } from '../../../Shared';
-
-type Props = {
-  metricTemplate: CanaryMetricTemplate;
-  openMetricTemplate: boolean;
-  setOpenMetricTemplate: Dispatch<SetStateAction<any>>;
-};
-
-const MetricTemplateModalWrapper: FC<Props> = ({
-  metricTemplate,
-  openMetricTemplate,
-  setOpenMetricTemplate,
-}) => {
-  return (
-    <div>
-      <a
-        target="_self"
-        href="#metric-template-dialog"
-        onClick={() => setOpenMetricTemplate(true)}
-      >
-        {metricTemplate.name}
-      </a>
-      <MetricTemplateModal
-        open={openMetricTemplate}
-        metricTemplate={metricTemplate}
-        setOpenMetricTemplate={setOpenMetricTemplate}
-      />
-    </div>
-  );
-};
 
 export const CanaryMetricsTable = ({
   metrics,
 }: {
   metrics: CanaryMetric[];
 }) => {
-  const [openMetricTemplate, setOpenMetricTemplate] = useState(false);
-
+  const { setDetailModal } = useContext(AppContext);
   return (
     <TableWrapper id="canary-analysis-metrics">
       <DataTable
@@ -56,13 +22,23 @@ export const CanaryMetricsTable = ({
             label: 'Metric Template',
             value: (c: CanaryMetric) =>
               c.metricTemplate ? (
-                <MetricTemplateModalWrapper
-                  metricTemplate={c.metricTemplate}
-                  openMetricTemplate={openMetricTemplate}
-                  setOpenMetricTemplate={setOpenMetricTemplate}
-                />
+                <Text
+                  onClick={() => {
+                    const metricObj: any = {
+                      ...c.metricTemplate,
+                      type: 'MetricTemplate',
+                    };
+                    setDetailModal({
+                      object: metricObj,
+                    });
+                  }}
+                  color="primary10"
+                  pointer
+                >
+                  {c.metricTemplate?.name}
+                </Text>
               ) : (
-                '-'
+                ''
               ),
           },
           {
