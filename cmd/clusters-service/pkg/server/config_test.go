@@ -13,10 +13,10 @@ import (
 
 func TestGetConfig(t *testing.T) {
 	testCases := []struct {
-		name                 string
-		repoUrl              string
-		gitHostTypesEnv      string
-		expectedGitHostTypes map[string]string
+		name                  string
+		repoUrl               string
+		gitHostTypesEnv       string
+		expectedGitHostTypes  map[string]string
 		defaultHelmRepository *capiv1_protos.HelmRepositoryRef
 	}{
 		{

@@ -608,7 +608,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               isLoading={profilesIsLoading}
               updatedProfiles={updatedProfiles}
               setUpdatedProfiles={setUpdatedProfiles}
-              // helmRepos={helmReposRefs}
               selectedHelmRepositories={selectedHelmRepositories}
               setSelectedHelmRepositories={setSelectedHelmRepositories}
             />
