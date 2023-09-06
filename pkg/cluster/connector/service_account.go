@@ -27,13 +27,7 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 		return nil, err
 	}
 
-	// verify cluster role exists
 	clusterRoleName := "cluster-admin"
-	_, err = client.RbacV1().ClusterRoles().Get(ctx, clusterRoleName, metav1.GetOptions{})
-	if err != nil {
-		return nil, err
-	}
-
 	err = createClusterRoleBinding(ctx, client, clusterRoleName, clusterConnectionOpts)
 	if err != nil {
 		return nil, err
