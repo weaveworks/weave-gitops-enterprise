@@ -46,6 +46,7 @@ var config Config
 var configPath string
 
 var DefaultCluster = "default"
+var DefaultHelmRepoNamespace = "flux-system"
 
 var CreateCommand = &cobra.Command{
 	Use:   "template",
@@ -151,6 +152,10 @@ func templatesCmdRunE() func(*cobra.Command, []string) error {
 				Namespace: profile.Namespace,
 				Version:   profile.Version,
 				Values:    profile.Values,
+				HelmRepository: &capiv1_proto.HelmRepositoryRef{
+					Name:      config.HelmRepoName,
+					Namespace: DefaultHelmRepoNamespace,
+				},
 			})
 		}
 
@@ -239,14 +244,30 @@ func export(template string, out io.Writer) error {
 	return nil
 }
 
+// implement another helmrepofetcher
+
+// implement a HelmRepoFetcher that fetches from the cluster
+type localHelmRepoFetcher struct {
+	helmRepo *sourcev1.HelmRepository
+}
+
+func (c *localHelmRepoFetcher) GetHelmRepository(ctx context.Context, helmRepo types.NamespacedName) (*sourcev1.HelmRepository, error) {
+	// throw error if you request a helmrepo that is not the default
+	if helmRepo.Name != c.helmRepo.Name {
+		return nil, fmt.Errorf("helm repo %s not found, only single helm repo supported: %s", helmRepo.Name, c.helmRepo.Name)
+	}
+
+	return c.helmRepo, nil
+}
+
 func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]git.CommitFile, error) {
 	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}
 
-	var helmRepo *sourcev1.HelmRepository
 	var chartsCache helm.ProfilesGeneratorCache = helm.NilProfilesGeneratorCache{}
+	var helmRepo *sourcev1.HelmRepository
 	if len(profiles) > 0 || templateHasRequiredProfiles {
 		entry, index, err := localHelmRepo(helmRepoName, settings)
 		if err != nil {
@@ -261,9 +282,18 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		chartsCache = helm.NewHelmIndexFileReader(index)
 	}
 
+	helmRepoFetcher := &localHelmRepoFetcher{helmRepo: helmRepo}
+
+	defaultHelmRepo := types.NamespacedName{
+		Name:      helmRepoName,
+		Namespace: DefaultHelmRepoNamespace,
+	}
+	fmt.Printf("default helm repo: %v\n", defaultHelmRepo)
+
 	templateResources, err := server.GetFiles(
 		context.Background(),
 		nil, // no need for a kube client as we're providing the helm repo no
+		helmRepoFetcher,
 		nil,
 		log,
 		estimation.NilEstimator(),
@@ -271,10 +301,10 @@ func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string,
 		types.NamespacedName{Name: DefaultCluster},
 		tmpl,
 		server.GetFilesRequest{
-			ParameterValues: params,
-			TemplateName:    tmpl.Name,
-			HelmRepository:  helmRepo,
-			Profiles:        profiles,
+			ParameterValues:       params,
+			TemplateName:          tmpl.Name,
+			Profiles:              profiles,
+			DefaultHelmRepository: defaultHelmRepo,
 		},
 		nil, // FIXME: no create message request, generated resources won't be "editable" in the UI
 	)
@@ -321,7 +351,7 @@ func fluxHelmRepo(r *repo.Entry) *sourcev1.HelmRepository {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      r.Name,
-			Namespace: "flux-system",
+			Namespace: DefaultHelmRepoNamespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
 			Interval: metav1.Duration{Duration: 10 * time.Minute},

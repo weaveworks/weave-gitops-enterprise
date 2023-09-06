@@ -1626,9 +1626,11 @@ status: {}
 		[]helm.Chart{})
 	values := []byte("foo: bar")
 	profile := fmt.Sprintf(`{"name": "demo-profile", "version": "0.0.1", "values": "%s" }`, values)
+	helmRepoFetcher := &clusterHelmRepoFetcher{client: c}
 	files, err := GetFiles(
 		context.TODO(),
 		c,
+		helmRepoFetcher,
 		c.RESTMapper(),
 		log,
 		testEstimator,

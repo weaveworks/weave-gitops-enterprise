@@ -169,11 +169,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	// Get list of previous files to be added as deleted files in the commit,
 	// Update the  previous values to be nil to skip including it in the updated create-request annotation
 
+	helmRepoFetcher := &clusterHelmRepoFetcher{client: client}
+
 	prevFiles := &GetFilesReturn{}
 	if msg.PreviousValues != nil {
 		prevFiles, err = GetFiles(
 			ctx,
 			client,
+			helmRepoFetcher,
 			client.RESTMapper(),
 			s.log,
 			s.estimator,
@@ -200,6 +203,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	gitFiles, err := GetFiles(
 		ctx,
 		client,
+		helmRepoFetcher,
 		client.RESTMapper(),
 		s.log,
 		s.estimator,

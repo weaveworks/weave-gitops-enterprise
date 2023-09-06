@@ -27,14 +27,14 @@ import (
 )
 
 type GetFilesRequest struct {
-	ClusterNamespace string
-	TemplateName     string
-	ParameterValues  map[string]string
-	Credentials      *capiv1_proto.Credential
-	Profiles         []*capiv1_proto.ProfileValues
-	Kustomizations   []*capiv1_proto.Kustomization
-	ExternalSecrets  []*capiv1_proto.ExternalSecret
-	HelmRepository   *sourcev1.HelmRepository
+	ClusterNamespace      string
+	TemplateName          string
+	ParameterValues       map[string]string
+	Credentials           *capiv1_proto.Credential
+	Profiles              []*capiv1_proto.ProfileValues
+	Kustomizations        []*capiv1_proto.Kustomization
+	ExternalSecrets       []*capiv1_proto.ExternalSecret
+	DefaultHelmRepository types.NamespacedName
 }
 
 type GetFilesReturn struct {
@@ -235,9 +235,12 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 		return nil, fmt.Errorf("error getting client: %v", err)
 	}
 
+	helmRepoFetcher := &clusterHelmRepoFetcher{client: client}
+
 	files, err := GetFiles(
 		ctx,
 		client,
+		helmRepoFetcher,
 		client.RESTMapper(),
 		s.log,
 		s.estimator,
@@ -266,9 +269,29 @@ func (s *server) RenderTemplate(ctx context.Context, msg *capiv1_proto.RenderTem
 	return &capiv1_proto.RenderTemplateResponse{RenderedTemplates: renderedTemplateFiles, ProfileFiles: profileFiles, KustomizationFiles: kustomizationFiles, CostEstimate: files.CostEstimate, ExternalSecretsFiles: externalSecretFiles}, err
 }
 
+type HelmRepoFetcher interface {
+	GetHelmRepository(ctx context.Context, helmRepo types.NamespacedName) (*sourcev1.HelmRepository, error)
+}
+
+// implement a HelmRepoFetcher that fetches from the cluster
+type clusterHelmRepoFetcher struct {
+	client client.Client
+}
+
+func (c *clusterHelmRepoFetcher) GetHelmRepository(ctx context.Context, helmRepo types.NamespacedName) (*sourcev1.HelmRepository, error) {
+	helmRepoObj := &sourcev1.HelmRepository{}
+	err := c.client.Get(ctx, helmRepo, helmRepoObj)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get HelmRepository: %w", err)
+	}
+
+	return helmRepoObj, nil
+}
+
 func GetFiles(
 	ctx context.Context,
 	client client.Client,
+	helmRepoFetcher HelmRepoFetcher,
 	mapper meta.RESTMapper,
 	log logr.Logger,
 	estimator estimation.Estimator,
@@ -282,6 +305,9 @@ func GetFiles(
 	defaultHelmRepository := types.NamespacedName{
 		Name:      "weaveworks-charts",
 		Namespace: "flux-system",
+	}
+	if msg.DefaultHelmRepository.Name != "" && msg.DefaultHelmRepository.Namespace != "" {
+		defaultHelmRepository = msg.DefaultHelmRepository
 	}
 
 	resourcesNamespace := getClusterNamespace(msg.ParameterValues["NAMESPACE"])
@@ -417,14 +443,10 @@ func GetFiles(
 			}
 		}
 
-		if client == nil {
-			return nil, errors.New("client is nil, cannot get Helm repository")
-		}
-
 		// Loop through all helm repository references and make a copy of each that we can then save to git.
 		helmRepositoryCopies := []*sourcev1.HelmRepository{}
 		for _, helmRepository := range helmRepositories {
-			helmRepositoryCopy, err := copyHelmRepository(ctx, client, toNamespacedName(helmRepository))
+			helmRepositoryCopy, err := copyHelmRepository(ctx, helmRepoFetcher, toNamespacedName(helmRepository))
 			if err != nil {
 				return nil, fmt.Errorf("failed to copy Helm repository: %w", err)
 			}
@@ -483,9 +505,10 @@ func GetFiles(
 // Make a copy of the Helm repository that we can save to git.
 // Copy is just the name/namespace/spec.
 // We don't need the status, annotations or labels etc.
-func copyHelmRepository(ctx context.Context, client client.Client, profileHelmRepository types.NamespacedName) (*sourcev1.HelmRepository, error) {
-	existingHelmRepo := &sourcev1.HelmRepository{}
-	err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
+func copyHelmRepository(ctx context.Context, helmRepoFetcher HelmRepoFetcher, profileHelmRepository types.NamespacedName) (*sourcev1.HelmRepository, error) {
+	// // existingHelmRepo := &sourcev1.HelmRepository{}
+	// err := client.Get(ctx, profileHelmRepository, existingHelmRepo)
+	existingHelmRepo, err := helmRepoFetcher.GetHelmRepository(ctx, profileHelmRepository)
 	if err != nil {
 		return nil, fmt.Errorf("cannot find Helm repository %s/%s: %w", profileHelmRepository.Name, profileHelmRepository.Namespace, err)
 	}

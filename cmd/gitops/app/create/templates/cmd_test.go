@@ -13,6 +13,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
@@ -174,14 +175,14 @@ func TestGenerateFilesLocallyWithCharts(t *testing.T) {
 			Values:  base64.StdEncoding.EncodeToString([]byte("foo: bar")),
 			Version: "0.0.7",
 			HelmRepository: &capiv1_proto.HelmRepositoryRef{
-				Name:      "weaveworks-charts",
+				Name:      "test-repo",
 				Namespace: "default",
 			},
 		},
 	}
 
 	files, err := generateFilesLocally(tmpl, defaultParams, "test-repo", profiles, testSettings, logr.Discard())
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	expectedFiles := []string{
 		"clusters/out.yaml",
