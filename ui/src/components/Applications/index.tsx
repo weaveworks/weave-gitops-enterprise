@@ -11,7 +11,7 @@ import {
   useListAutomations,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { FC } from 'react';
+import React, { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Object } from '../../api/query/query.pb';
