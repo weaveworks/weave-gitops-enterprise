@@ -3,7 +3,6 @@ package connector
 import (
 	"context"
 	"fmt"
-	"reflect"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -28,12 +27,14 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 		return nil, err
 	}
 
-	err = createClusterRole(ctx, client, clusterConnectionOpts)
+	// verify cluster role exists
+	clusterRoleName := "cluster-admin"
+	_, err = client.RbacV1().ClusterRoles().Get(ctx, clusterRoleName, metav1.GetOptions{})
 	if err != nil {
 		return nil, err
 	}
 
-	err = createClusterRoleBinding(ctx, client, clusterConnectionOpts)
+	err = createClusterRoleBinding(ctx, client, clusterRoleName, clusterConnectionOpts)
 	if err != nil {
 		return nil, err
 	}
@@ -147,43 +148,9 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 
 }
 
-func createClusterRole(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
-	logger := log.FromContext(ctx)
-	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
-	clusterRoleName := clusterConnectionOpts.ClusterRoleName
-
-	clusterAccessRules := []rbacv1.PolicyRule{
-		{
-			APIGroups: []string{"*"},
-			Resources: []string{"*"},
-			Verbs:     []string{"*"},
-		},
-	}
-	clusterRoleObj := newClusterRole(clusterRoleName, namespace, clusterAccessRules)
-
-	_, err := client.RbacV1().ClusterRoles().Create(ctx, clusterRoleObj, metav1.CreateOptions{})
-	if err != nil {
-		if !apierrors.IsAlreadyExists(err) {
-			return err
-		} else {
-			clusterRole, err := client.RbacV1().ClusterRoles().Get(ctx, clusterRoleName, metav1.GetOptions{})
-			if err != nil {
-				return err
-			}
-			if !reflect.DeepEqual(clusterRole.Rules, clusterRoleObj.Rules) {
-				logger.Info("cluster role already exists with a different set of rules", "clusterRole", clusterRole.Name)
-			}
-		}
-	} else {
-		logger.Info("cluster role created successfully!", "clusterrole", clusterRoleName)
-	}
-	return nil
-}
-
-func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
+func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, clusterRoleName string, clusterConnectionOpts ClusterConnectionOptions) error {
 	logger := log.FromContext(ctx)
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
-	clusterRoleName := clusterConnectionOpts.ClusterRoleName
 	clusterRoleBindingName := clusterConnectionOpts.ClusterRoleBindingName
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
