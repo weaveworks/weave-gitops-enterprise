@@ -427,7 +427,7 @@ replace (
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 
 	// un-comment for local dev
-	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.31.3-0.20230901162433-34f63f94e8ef
+	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.31.3-0.20230906064613-4d4623e9e2f3
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
