@@ -222,6 +222,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                 <InfoList
                   data-testid="info-list"
                   items={[
+                    ['Namespace', object?.namespace],
                     ['Source', object?.sourceRef?.name],
                     ['Cluster', object?.clusterName],
                     ['Path', object?.path],
