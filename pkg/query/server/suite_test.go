@@ -20,6 +20,7 @@ import (
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	clusterctrlv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
@@ -92,6 +93,11 @@ func TestMain(m *testing.M) {
 	err = clusterctrlv1alpha1.AddToScheme(scheme.Scheme)
 	if err != nil {
 		log.Fatalf("add GitopsCluster to schema failed: %s", err)
+	}
+
+	err = gitopssets.AddToScheme(scheme.Scheme)
+	if err != nil {
+		log.Fatalf("add GitopsSet to schema failed: %s", err)
 	}
 	_, cancel := context.WithCancel(context.Background())
 
