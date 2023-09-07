@@ -189,7 +189,9 @@
         "tags": [
           "ClustersService"
         ]
-      },
+      }
+    },
+    "/v1/clusters/pull-request": {
       "delete": {
         "operationId": "ClustersService_DeleteClustersPullRequest",
         "responses": {
@@ -213,37 +215,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1DeleteClustersPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      },
-      "post": {
-        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
-        "operationId": "ClustersService_CreatePullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestRequest"
             }
           }
         ],
@@ -368,7 +339,7 @@
         ]
       }
     },
-    "/v1/enterprise/automations": {
+    "/v1/enterprise/automations/pull-request": {
       "post": {
         "summary": "Creates a pull request for the given list of Kustomizations.",
         "operationId": "ClustersService_CreateAutomationsPullRequest",
@@ -764,6 +735,39 @@
         ]
       }
     },
+    "/v1/templates/pull-request": {
+      "post": {
+        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates/{templateName}": {
       "get": {
         "summary": "Get details of a specific template.",
@@ -970,7 +974,7 @@
         ]
       }
     },
-    "/v1/tfcontrollers": {
+    "/v1/tfcontrollers/pull-request": {
       "post": {
         "summary": "Creates a pull request for a tfcontroller template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
         "operationId": "ClustersService_CreateTfControllerPullRequest",

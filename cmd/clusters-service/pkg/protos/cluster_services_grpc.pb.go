@@ -32,15 +32,15 @@ type ClustersServiceClient interface {
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
 	// Render a template using given values.
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
-	// Render an automation template using given cluster automations.
-	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
-	// List available GitOps clusters.
-	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
+	// Render an automation template using given cluster automations.
+	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
+	// List available GitOps clusters.
+	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a tfcontroller template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
@@ -151,6 +151,15 @@ func (c *clustersServiceClient) RenderTemplate(ctx context.Context, in *RenderTe
 	return out, nil
 }
 
+func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error) {
+	out := new(CreatePullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreatePullRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clustersServiceClient) RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error) {
 	out := new(RenderAutomationResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderAutomation", in, out, opts...)
@@ -163,15 +172,6 @@ func (c *clustersServiceClient) RenderAutomation(ctx context.Context, in *Render
 func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error) {
 	out := new(ListGitopsClustersResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListGitopsClusters", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error) {
-	out := new(CreatePullRequestResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreatePullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -420,15 +420,15 @@ type ClustersServiceServer interface {
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
 	// Render a template using given values.
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
-	// Render an automation template using given cluster automations.
-	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
-	// List available GitOps clusters.
-	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
+	// Render an automation template using given cluster automations.
+	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
+	// List available GitOps clusters.
+	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a tfcontroller template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
@@ -506,14 +506,14 @@ func (UnimplementedClustersServiceServer) ListTemplateProfiles(context.Context, 
 func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderTemplate not implemented")
 }
+func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
+}
 func (UnimplementedClustersServiceServer) RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderAutomation not implemented")
 }
 func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
-}
-func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTfControllerPullRequest not implemented")
@@ -693,6 +693,24 @@ func _ClustersService_RenderTemplate_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreatePullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreatePullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/CreatePullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreatePullRequest(ctx, req.(*CreatePullRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ClustersService_RenderAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RenderAutomationRequest)
 	if err := dec(in); err != nil {
@@ -725,24 +743,6 @@ func _ClustersService_ListGitopsClusters_Handler(srv interface{}, ctx context.Co
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, req.(*ListGitopsClustersRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreatePullRequestRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).CreatePullRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/CreatePullRequest",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).CreatePullRequest(ctx, req.(*CreatePullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1225,16 +1225,16 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_RenderTemplate_Handler,
 		},
 		{
+			MethodName: "CreatePullRequest",
+			Handler:    _ClustersService_CreatePullRequest_Handler,
+		},
+		{
 			MethodName: "RenderAutomation",
 			Handler:    _ClustersService_RenderAutomation_Handler,
 		},
 		{
 			MethodName: "ListGitopsClusters",
 			Handler:    _ClustersService_ListGitopsClusters_Handler,
-		},
-		{
-			MethodName: "CreatePullRequest",
-			Handler:    _ClustersService_CreatePullRequest_Handler,
 		},
 		{
 			MethodName: "CreateTfControllerPullRequest",

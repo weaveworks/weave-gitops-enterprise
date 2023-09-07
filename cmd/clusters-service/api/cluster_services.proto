@@ -60,6 +60,18 @@ service ClustersService {
     };
   }
 
+  // Creates a pull request for a cluster template.
+  // The template name and values will be used to
+  // create a new branch for which a new pull request
+  // will be created.
+  rpc CreatePullRequest(CreatePullRequestRequest)
+      returns (CreatePullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/templates/pull-request"
+      body : "*"
+    };
+  }
+
   // Render an automation template using given cluster automations.
   rpc RenderAutomation(RenderAutomationRequest)
     returns (RenderAutomationResponse) {
@@ -77,18 +89,6 @@ service ClustersService {
     };
   }
 
-  // Creates a pull request for a cluster template.
-  // The template name and values will be used to
-  // create a new branch for which a new pull request
-  // will be created.
-  rpc CreatePullRequest(CreatePullRequestRequest)
-      returns (CreatePullRequestResponse) {
-    option (google.api.http) = {
-      post : "/v1/clusters"
-      body : "*"
-    };
-  }
-
   // Creates a pull request for a tfcontroller template.
   // The template name and values will be used to
   // create a new branch for which a new pull request
@@ -96,7 +96,7 @@ service ClustersService {
   rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest)
       returns (CreateTfControllerPullRequestResponse) {
     option (google.api.http) = {
-      post : "/v1/tfcontrollers"
+      post : "/v1/tfcontrollers/pull-request"
       body : "*"
     };
   }
@@ -104,7 +104,7 @@ service ClustersService {
   rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
       returns (DeleteClustersPullRequestResponse) {
     option (google.api.http) = {
-      delete : "/v1/clusters"
+      delete : "/v1/clusters/pull-request"
       body : "*"
     };
   }
@@ -137,7 +137,7 @@ service ClustersService {
   rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
       returns (CreateAutomationsPullRequestResponse) {
     option (google.api.http) = {
-      post : "/v1/enterprise/automations"
+      post : "/v1/enterprise/automations/pull-request"
       body : "*"
     };
   }
