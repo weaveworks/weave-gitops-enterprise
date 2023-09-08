@@ -1,5 +1,5 @@
 import { createTheme } from '@material-ui/core/styles';
-import { baseTheme, muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
+import { muiTheme as coreMuiTheme } from '@weaveworks/weave-gitops';
 import { ThemeTypes } from '@weaveworks/weave-gitops/ui/contexts/AppContext';
 
 const defaultTheme = createTheme();
@@ -15,7 +15,6 @@ export const muiTheme = (colors: any, mode: ThemeTypes) => {
         root: {
           ...theme.overrides?.MuiButton?.root,
           minWidth: 52,
-          marginRight: baseTheme.spacing.small,
         },
       },
       MuiDialog: {

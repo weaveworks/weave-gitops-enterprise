@@ -76,11 +76,11 @@ export const Editor = styled(ReactMarkdown)`
   & a {
     color: ${props => props.theme.colors.primary};
   }
-  ,
+
   & > *:first-child {
     margin-top: ${props => props.theme.spacing.none};
   }
-  ,
+
   & > *:last-child {
     margin-bottom: ${props => props.theme.spacing.none};
   }

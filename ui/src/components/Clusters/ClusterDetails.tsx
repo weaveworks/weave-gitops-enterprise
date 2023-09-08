@@ -11,7 +11,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { useEffect, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import styled from 'styled-components';
 import useClusters from '../../hooks/clusters';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
@@ -31,9 +30,6 @@ type Props = {
   clusterName: string;
 };
 
-const ActionsWrapper = styled(Flex)`
-  margin-bottom: ${props => props.theme.spacing.xs};
-`;
 
 const ClusterDetails = ({ clusterName, namespace }: Props) => {
   const { path } = useRouteMatch();
@@ -65,8 +61,8 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
     >
       <NotificationsWrapper>
         {currentCluster && (
-          <div style={{ overflowX: 'auto' }}>
-            <ActionsWrapper>
+          <Flex column gap="8" style={{ overflowX: 'auto' }}>
+            <Flex gap="12">
               <WeaveButton
                 id="cluster-application"
                 startIcon={<Icon type={IconType.FilterIcon} size="base" />}
@@ -118,7 +114,7 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
                   </div>
                 </Tooltip>
               )}
-            </ActionsWrapper>
+            </Flex>
             <SubRouterTabs rootPath={`${path}/details`}>
               <RouterTab name="Details" path={`${path}/details`}>
                 <ClusterDashboard
@@ -128,7 +124,7 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
                 />
               </RouterTab>
             </SubRouterTabs>
-          </div>
+          </Flex>
         )}
       </NotificationsWrapper>
     </Page>

@@ -205,7 +205,7 @@ ui-build: node_modules $(shell find ui/src -type f)
 
 # This job assumes that the weave-gitops repo located next to this repo in the filesystem
 core-ui:
-	cd ../../weave-gitops && \
+	cd ../weave-gitops && \
 	npm run build:lib && \
 	npm run typedefs && \
 	cd ../weave-gitops-enterprise
@@ -213,7 +213,7 @@ core-ui:
 core-lib:
 	rm -rf node_modules/@weaveworks/weave-gitops/
 	rm -rf .parcel-cache/
-	yarn add ../../weave-gitops/dist
+	yarn add ../weave-gitops/dist
 
 ui-audit:
 	# Check js packages for any high or critical vulnerabilities
