@@ -64,7 +64,7 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
-	if err := commands.CreateAdminPasswordSecret(*opts); err != nil {
+	if err := commands.AskAdminCredsSecret(*opts); err != nil {
 		return err
 	}
 
