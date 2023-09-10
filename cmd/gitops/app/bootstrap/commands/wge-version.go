@@ -7,6 +7,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"gopkg.in/yaml.v2"
 )
 
@@ -15,8 +16,12 @@ const (
 )
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions.
-func SelectWgeVersion() (string, error) {
-	entitlementSecret, err := utils.GetSecret(entitlementSecretName, wgeDefaultNamespace)
+func SelectWgeVersion(opts config.Options) (string, error) {
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		return "", err
+	}
+	entitlementSecret, err := utils.GetSecret(entitlementSecretName, wgeDefaultNamespace, kubernetesClient)
 	if err != nil {
 		return "", err
 	}

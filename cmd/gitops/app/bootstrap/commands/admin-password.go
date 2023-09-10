@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -20,8 +21,12 @@ const (
 )
 
 // getAdminPasswordSecrets asks user about admin username and password.
-func getAdminPasswordSecrets() (string, []byte, error) {
-	if _, err := utils.GetSecret(wgeDefaultNamespace, adminSecretName); err == nil {
+func getAdminPasswordSecrets(opts config.Options) (string, []byte, error) {
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		return "", nil, err
+	}
+	if _, err := utils.GetSecret(adminSecretName, wgeDefaultNamespace, kubernetesClient); err == nil {
 		utils.Info(adminSecretExistsMsgFormat, adminSecretName, wgeDefaultNamespace)
 		return "", nil, nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
@@ -47,8 +52,8 @@ func getAdminPasswordSecrets() (string, []byte, error) {
 }
 
 // CreateAdminPasswordSecret creates the secret for admin access with username and password.
-func CreateAdminPasswordSecret() error {
-	adminUsername, adminPassword, err := getAdminPasswordSecrets()
+func CreateAdminPasswordSecret(opts config.Options) error {
+	adminUsername, adminPassword, err := getAdminPasswordSecrets(opts)
 	if err != nil {
 		return err
 	}
@@ -61,8 +66,11 @@ func CreateAdminPasswordSecret() error {
 		"username": []byte(adminUsername),
 		"password": adminPassword,
 	}
-
-	if err := utils.CreateSecret(adminSecretName, wgeDefaultNamespace, data); err != nil {
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		return err
+	}
+	if err := utils.CreateSecret(adminSecretName, wgeDefaultNamespace, data, kubernetesClient); err != nil {
 		return err
 	}
 

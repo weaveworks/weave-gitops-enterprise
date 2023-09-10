@@ -11,6 +11,7 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -45,7 +46,7 @@ const (
 )
 
 // InstallWge installs weave gitops enterprise chart.
-func InstallWge(version string) (string, error) {
+func InstallWge(opts config.Options, version string) (string, error) {
 	domainTypes := []string{
 		domainTypelocalhost,
 		domainTypeExternalDNS,
@@ -225,7 +226,7 @@ func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 }
 
 // CheckUIDomain display the message to be for external dns or localhost.
-func CheckUIDomain(userDomain string, wgeVersion string) error {
+func CheckUIDomain(opts config.Options, userDomain string, wgeVersion string) error {
 	if !strings.Contains(userDomain, domainTypelocalhost) {
 		utils.Info(installSuccessMsg, wgeVersion, userDomain)
 		return nil

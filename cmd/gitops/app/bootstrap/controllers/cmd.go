@@ -3,9 +3,10 @@ package controllers
 import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers/profiles"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
-func Command() *cobra.Command {
+func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "controllers",
 		Short: "Bootstraps Weave gitops controllers",

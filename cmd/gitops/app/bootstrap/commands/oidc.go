@@ -8,6 +8,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 const (
@@ -71,7 +72,7 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 }
 
 // CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
-func CreateOIDCConfig(userDomain string, version string) error {
+func CreateOIDCConfig(opts config.Options, userDomain string, version string) error {
 	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
 
 	if oidcConfigPrompt != "y" {
@@ -79,8 +80,11 @@ func CreateOIDCConfig(userDomain string, version string) error {
 	}
 
 	utils.Info(oidcConfigInfoMsg)
-
-	if _, err := utils.GetSecret(oidcSecretName, wgeDefaultNamespace); err == nil {
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		return err
+	}
+	if _, err := utils.GetSecret(oidcSecretName, wgeDefaultNamespace, kubernetesClient); err == nil {
 		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, wgeDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
@@ -99,7 +103,7 @@ func CreateOIDCConfig(userDomain string, version string) error {
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	if err = utils.CreateSecret(oidcSecretName, wgeDefaultNamespace, oidcSecretData); err != nil {
+	if err = utils.CreateSecret(oidcSecretName, wgeDefaultNamespace, oidcSecretData, kubernetesClient); err != nil {
 		return err
 	}
 
@@ -114,21 +118,24 @@ func CreateOIDCConfig(userDomain string, version string) error {
 	utils.Info(oidcConfirmationMsg)
 
 	// Ask the user if he wants to revert the admin user
-	if err := checkAdminPasswordRevert(); err != nil {
+	if err := checkAdminPasswordRevert(opts); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func checkAdminPasswordRevert() error {
+func checkAdminPasswordRevert(opts config.Options) error {
 	adminUserRevert := utils.GetConfirmInput(adminUserRevertMsg)
 
 	if adminUserRevert != "y" {
 		return nil
 	}
-
-	if err := utils.DeleteSecret(adminSecretName, wgeDefaultNamespace); err != nil {
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		return err
+	}
+	if err := utils.DeleteSecret(adminSecretName, wgeDefaultNamespace, kubernetesClient); err != nil {
 		return err
 	}
 

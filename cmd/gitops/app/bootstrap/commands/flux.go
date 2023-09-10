@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -81,7 +82,7 @@ func BootstrapFlux() error {
 }
 
 // CheckFluxIsInstalled checks for valid flux installation.
-func CheckFluxIsInstalled() error {
+func CheckFluxIsInstalled(opts config.Options) error {
 	utils.Warning(fluxInstallCheckMsg)
 
 	var runner runner.CLIRunner
@@ -97,7 +98,7 @@ func CheckFluxIsInstalled() error {
 }
 
 // CheckFluxIsInstalled checks if flux installation is valid and can reconcile.
-func CheckFluxReconcile() error {
+func CheckFluxReconcile(opts config.Options) error {
 	utils.Warning(fluxInstallValidationMsg)
 
 	var runner runner.CLIRunner

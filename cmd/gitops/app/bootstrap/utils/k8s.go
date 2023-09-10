@@ -12,21 +12,20 @@ import (
 )
 
 // GetKubernetesClient creates a kuberentes client from the default kubeconfig.
-func GetKubernetesClient() (*kubernetes.Clientset, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return nil, err
+func GetKubernetesClient(kubeconfig string) (*kubernetes.Clientset, error) {
+	if kubeconfig == "" {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return nil, err
+		}
+		kubeconfig = filepath.Join(home, ".kube", "config")
 	}
-
-	// Construct the full path to the kubeconfig file.
-	kubeconfig := filepath.Join(home, ".kube", "config")
 
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
 	}
 
-	// Create a new Kubernetes client using the config.
 	clientset, err := kubernetes.NewForConfig(config)
 	if err != nil {
 		return nil, err
@@ -36,12 +35,7 @@ func GetKubernetesClient() (*kubernetes.Clientset, error) {
 }
 
 // GetSecret get secret values from kubernetes.
-func GetSecret(name string, namespace string) (*corev1.Secret, error) {
-	clientset, err := GetKubernetesClient()
-	if err != nil {
-		return nil, err
-	}
-
+func GetSecret(name string, namespace string, clientset kubernetes.Interface) (*corev1.Secret, error) {
 	secret, err := clientset.CoreV1().Secrets(namespace).Get(context.Background(), name, v1.GetOptions{})
 	if err != nil {
 		return nil, err
@@ -51,12 +45,7 @@ func GetSecret(name string, namespace string) (*corev1.Secret, error) {
 }
 
 // CreateSecret create a kubernetes secret.
-func CreateSecret(name string, namespace string, data map[string][]byte) error {
-	clientset, err := GetKubernetesClient()
-	if err != nil {
-		return err
-	}
-
+func CreateSecret(name string, namespace string, data map[string][]byte, clientset kubernetes.Interface) error {
 	secret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
@@ -75,12 +64,7 @@ func CreateSecret(name string, namespace string, data map[string][]byte) error {
 }
 
 // DeleteSecret delete a kubernetes secret.
-func DeleteSecret(name string, namespace string) error {
-	clientset, err := GetKubernetesClient()
-	if err != nil {
-		return err
-	}
-
+func DeleteSecret(name string, namespace string, clientset kubernetes.Interface) error {
 	if err := clientset.CoreV1().Secrets(namespace).Delete(context.Background(), name, v1.DeleteOptions{
 		TypeMeta: v1.TypeMeta{},
 	}); err != nil {
