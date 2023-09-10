@@ -21,9 +21,8 @@ func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 			APIVersion: helmv2.GroupVersion.Identifier(),
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:              hr.Name,
-			Namespace:         hr.Namespace,
-			CreationTimestamp: v1.Now(),
+			Name:      hr.Name,
+			Namespace: hr.Namespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
@@ -67,9 +66,8 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 			Kind:       sourcev1.HelmRepositoryKind,
 		},
 		ObjectMeta: v1.ObjectMeta{
-			Name:              helmRepo.Name,
-			Namespace:         helmRepo.Namespace,
-			CreationTimestamp: v1.Now(),
+			Name:      helmRepo.Name,
+			Namespace: helmRepo.Namespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
 			URL: helmRepo.Spec.URL,
