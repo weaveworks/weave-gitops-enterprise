@@ -39,16 +39,10 @@ export const SelectedPolicies = ({
 }: SelectSecretStoreProps) => {
   const { data } = useListPolicies({});
 
-  let policiesList =
-    data?.policies?.filter(p =>
-      formData.isControlPlane
-        ? p.clusterName === cluster
-        : p.clusterName === `${formData.clusterNamespace}/${cluster}`,
-    ) || [];
-
-  const selected: PolicyObj[] = policiesList.filter((p: PolicyObj) =>
-    Object.keys(formData.policies).includes(p.id!),
-  );
+  let policiesList = data?.policies || [];
+  const keys = Object.keys(formData.policies);
+  let selected: PolicyObj[] =
+    policiesList.filter(({ id }) => id && keys.includes(id)) || [];
 
   const [selectedPolicies, setSelectedPolicies] =
     useState<PolicyObj[]>(selected);
