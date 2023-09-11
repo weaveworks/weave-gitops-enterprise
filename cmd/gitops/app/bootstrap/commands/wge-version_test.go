@@ -10,7 +10,6 @@ import (
 )
 
 func TestFetchHelmChart(t *testing.T) {
-
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		username, password, ok := r.BasicAuth()
 		if !ok || username != "testuser" || password != "testpassword" {
