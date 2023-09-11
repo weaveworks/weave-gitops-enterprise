@@ -31,7 +31,8 @@ func SelectWgeVersion(opts config.Options) (string, error) {
 		return "", err
 	}
 
-	versions, err := fetchHelmChart(username, password)
+	chartUrl := fmt.Sprintf("%s/index.yaml", wgeChartUrl)
+	versions, err := fetchHelmChart(chartUrl, username, password)
 	if err != nil {
 		return "", err
 	}
@@ -40,8 +41,8 @@ func SelectWgeVersion(opts config.Options) (string, error) {
 }
 
 // fetchHelmChart helper method to fetch wge helm chart detauls.
-func fetchHelmChart(username, password string) ([]string, error) {
-	req, err := http.NewRequest("GET", fmt.Sprintf("%s/index.yaml", wgeChartUrl), nil)
+func fetchHelmChart(chartUrl, username, password string) ([]string, error) {
+	req, err := http.NewRequest("GET", chartUrl, nil)
 	if err != nil {
 		return []string{}, err
 
@@ -59,13 +60,11 @@ func fetchHelmChart(username, password string) ([]string, error) {
 	if err != nil {
 		return []string{}, err
 	}
-
 	var chart domain.HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
 		return []string{}, err
 	}
-
 	entries := chart.Entries[wgeChartName]
 	var versions []string
 	for _, entry := range entries {
