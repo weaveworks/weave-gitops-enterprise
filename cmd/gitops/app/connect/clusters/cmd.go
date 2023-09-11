@@ -1,10 +1,12 @@
 package connect
 
 import (
-	"github.com/go-logr/stdr"
+	// "github.com/go-logr/stdr"
+
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/connector"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
@@ -14,7 +16,7 @@ type connectOptionsFlags struct {
 	ServiceAccountName     string
 	ClusterRoleBindingName string
 	Namespace              string
-	Verbose                int16
+	Debug                  string
 }
 
 var connectOptionsCmdFlags connectOptionsFlags
@@ -38,7 +40,7 @@ gitops connect cluster [PARAMS] <CLUSTER_NAME>
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ServiceAccountName, "service-account", "weave-gitops-enterprise", "Service account name to be created/used")
 	cmd.Flags().StringVar(&connectOptionsCmdFlags.ClusterRoleBindingName, "cluster-role-binding", "weave-gitops-enterprise", "Cluster role binding name to be created/used")
 	cmd.Flags().StringVarP(&connectOptionsCmdFlags.Namespace, "namespace", "n", "default", "Namespace of remote cluster")
-	cmd.Flags().Int16VarP(&connectOptionsCmdFlags.Verbose, "verbose", "v", 10, "Verbose level of logs")
+	cmd.Flags().StringVarP(&connectOptionsCmdFlags.Debug, "debug", "d", "INFO", "Verbose level of logs")
 
 	return cmd
 }
@@ -55,8 +57,8 @@ func connectClusterCmdRunE(opts *config.Options) func(*cobra.Command, []string) 
 			ConfigPath:             opts.Kubeconfig,
 		}
 
-		logger := stdr.New(nil)
-		ctx := log.IntoContext(cmd.Context(), logger.V(int(connectOptionsCmdFlags.Verbose)))
+		newLogger, _ := logger.New(connectOptionsCmdFlags.Debug, false)
+		ctx := log.IntoContext(cmd.Context(), newLogger)
 
 		return connector.ConnectCluster(ctx, &options)
 
