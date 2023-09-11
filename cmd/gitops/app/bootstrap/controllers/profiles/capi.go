@@ -29,7 +29,7 @@ gitops bootstrap controllers capi`,
 	},
 }
 
-// InstallCapi start installing policy agent helm chart
+// InstallCapi start installing CAPI controller
 func InstallCapi() error {
 	utils.Warning(capiGettingSartedMsg)
 

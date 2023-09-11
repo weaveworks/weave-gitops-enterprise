@@ -22,8 +22,9 @@ const (
 	fluxGitEmail    = "bootstrap@weave.works"
 )
 
-// GetRepoUrl get the default repo url for flux installation (flux-system) GitRepository.
-func GetRepoUrl() (string, error) {
+// GetRepoUrlFunc get the default repo url for flux installation (flux-system) GitRepository.
+// GetRepoUrlFunc is the function variable for GetRepoUrl
+var GetRepoUrlFunc = func() (string, error) {
 	var runner runner.CLIRunner
 	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
 	if err != nil {
@@ -39,8 +40,14 @@ func GetRepoUrl() (string, error) {
 	return repoUrlParsed, nil
 }
 
-// GetRepoBranch get the branch for flux installation (flux-system) GitRepository.
-func GetRepoBranch() (string, error) {
+// GetRepoUrl is the interface to the actual function (or mock during testing)
+func GetRepoUrl() (string, error) {
+	return GetRepoUrlFunc()
+}
+
+// GetRepoBranchFunc get the branch for flux installation (flux-system) GitRepository.
+// GetRepoBranchFunc is the function variable for GetRepoBranch
+var GetRepoBranchFunc = func() (string, error) {
 	var runner runner.CLIRunner
 
 	repoBranch, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.ref.branch}\"")
@@ -53,8 +60,13 @@ func GetRepoBranch() (string, error) {
 	return repoBranchParsed, nil
 }
 
+// GetRepoBranch is the interface to the actual function (or mock during testing)
+func GetRepoBranch() (string, error) {
+	return GetRepoBranchFunc()
+}
+
 // GetRepoPath get the path for flux installation (flux-system) Kustomization.
-func GetRepoPath() (string, error) {
+var GetRepoPathFunc = func() (string, error) {
 	var runner runner.CLIRunner
 
 	repoPath, err := runner.Run("kubectl", "get", "kustomization", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.path}\"")
@@ -65,6 +77,11 @@ func GetRepoPath() (string, error) {
 	repoPathParsed := strings.TrimPrefix(string(repoPath[1:len(repoPath)-1]), "./")
 
 	return repoPathParsed, nil
+}
+
+// GetRepoPath is the interface to the actual function (or mock during testing)
+func GetRepoPath() (string, error) {
+	return GetRepoPathFunc()
 }
 
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
