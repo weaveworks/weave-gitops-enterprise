@@ -226,6 +226,12 @@
         },
         "unstructured": {
           "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "tenant": {
+          "type": "string"
         }
       }
     },

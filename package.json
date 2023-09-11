@@ -1,0 +1,212 @@
+{
+  "name": "weave-gitops-enterprise",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@babel/core": "^7.16.0",
+    "@fortawesome/fontawesome-free": "^5.15.3",
+    "@fortawesome/fontawesome-svg-core": "^1.2.35",
+    "@fortawesome/free-solid-svg-icons": "^5.15.3",
+    "@fortawesome/react-fontawesome": "^0.1.14",
+    "@material-ui/core": "^4.12.4",
+    "@material-ui/icons": "^4.11.2",
+    "@material-ui/lab": "^4.0.0-alpha.58",
+    "@material-ui/styles": "^4.11.4",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
+    "@svgr/webpack": "^5.5.0",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@types/classnames": "^2.3.1",
+    "@types/d3-scale": "^3.2.2",
+    "@types/git-url-parse": "^9.0.1",
+    "@types/lodash": "^4.14.169",
+    "@types/query-string": "^6.3.0",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
+    "@types/react-router-dom": "^5.1.7",
+    "@types/react-syntax-highlighter": "^13.5.2",
+    "@types/styled-components": "^5.1.9",
+    "@types/urijs": "^1.19.19",
+    "@weaveworks/progressive-delivery": "0.0.0-rc13",
+    "@weaveworks/weave-gitops": "0.31.2",
+    "babel-jest": "^27.4.2",
+    "babel-loader": "^8.2.3",
+    "babel-plugin-named-asset-import": "^0.3.8",
+    "babel-preset-react-app": "^10.0.1",
+    "bfj": "^7.0.2",
+    "browserslist": "^4.18.1",
+    "camelcase": "^6.2.1",
+    "case-sensitive-paths-webpack-plugin": "^2.4.0",
+    "classnames": "^2.3.1",
+    "css-loader": "^6.5.1",
+    "css-minimizer-webpack-plugin": "^3.2.0",
+    "d3-scale": "4.0.0",
+    "d3-time": "^3.0.0",
+    "dotenv": "^10.0.0",
+    "dotenv-expand": "^5.1.0",
+    "eslint": "^8.3.0",
+    "eslint-config-react-app": "^7.0.1",
+    "eslint-webpack-plugin": "^3.1.1",
+    "file-loader": "^6.2.0",
+    "fs-extra": "^10.0.0",
+    "git-url-parse": "13.1.0",
+    "html-webpack-plugin": "^5.5.0",
+    "http-proxy-middleware": "^2.0.0",
+    "identity-obj-proxy": "^3.0.0",
+    "jest": "^27.4.3",
+    "jest-resolve": "^27.4.2",
+    "jest-watch-typeahead": "^1.0.0",
+    "js-file-download": "^0.4.12",
+    "js-yaml": "^4.1.0",
+    "json-schema": "0.4.0",
+    "jszip": "^3.10.1",
+    "lodash": "^4.17.21",
+    "mini-css-extract-plugin": "^2.4.5",
+    "mnemonic-browser": "^0.0.1",
+    "moment": "2.29.4",
+    "polished": "3.6.3",
+    "postcss": "^8.4.4",
+    "postcss-flexbugs-fixes": "^5.0.2",
+    "postcss-loader": "^6.2.1",
+    "postcss-normalize": "^10.0.1",
+    "postcss-preset-env": "^7.0.1",
+    "prompts": "^2.4.2",
+    "query-string": "^7.0.1",
+    "react": "^17.0.2",
+    "react-app-polyfill": "^3.0.0",
+    "react-dev-utils": "^12.0.1",
+    "react-dom": "^17.0.2",
+    "react-lottie-player": "^1.3.3",
+    "react-markdown": "^8.0.3",
+    "react-query": "^3.34.7",
+    "react-refresh": "^0.11.0",
+    "react-router-dom": "^5.2.0",
+    "react-syntax-highlighter": "^15.5.0",
+    "react-toastify": "^8.0.2",
+    "react-use": "^17.1.1",
+    "remark-gfm": "^3.0.1",
+    "resolve": "^1.20.0",
+    "resolve-url-loader": "^4.0.0",
+    "sass-loader": "^12.3.0",
+    "semver": "^7.3.5",
+    "source-map-loader": "^3.0.0",
+    "style-loader": "^3.3.1",
+    "styled-components": "^5.3.0",
+    "tailwindcss": "^3.0.2",
+    "terser-webpack-plugin": "^5.2.5",
+    "typescript": "^4.1.2",
+    "urijs": "^1.19.11",
+    "web-vitals": "^1.0.1",
+    "webpack": "^5.64.4",
+    "webpack-dev-server": "^4.6.0",
+    "webpack-manifest-plugin": "^4.0.2",
+    "workbox-webpack-plugin": "^6.4.1",
+    "yaml": "^2.2.2"
+  },
+  "resolutions": {
+    "**/react": "^17.0.2",
+    "**/react-dom": "^17.0.2",
+    "**/react-query": "^3.34.7",
+    "@weaveworks/weave-gitops/react-router-dom": "^5.2.0",
+    "mini-css-extract-plugin": "~2.4.5",
+    "parse-path": "~5.0.0",
+    "parse-url": "~8.1.0"
+  },
+  "scripts": {
+    "start": "node ui/scripts/start.js",
+    "preview": "node ui/server.js",
+    "build": "node ui/scripts/build.js",
+    "test": "node ui/scripts/test.js"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "**/*.ts?(x)"
+        ],
+        "rules": {
+          "import/no-anonymous-default-export": "off"
+        }
+      }
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@testing-library/react": "^12.1.5",
+    "@types/react-syntax-highlighter": "^13.5.2",
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^2.0.0",
+    "jest-styled-components": "^7.0.8",
+    "prettier": "^2.3.0"
+  },
+  "jest": {
+    "roots": [
+      "<rootDir>/ui/src"
+    ],
+    "collectCoverageFrom": [
+      "ui/src/**/*.{js,jsx,ts,tsx}",
+      "!ui/src/**/*.d.ts"
+    ],
+    "setupFiles": [
+      "react-app-polyfill/jsdom"
+    ],
+    "setupFilesAfterEnv": [
+      "<rootDir>/ui/src/setupTests.ts"
+    ],
+    "testMatch": [
+      "<rootDir>/ui/src/**/__tests__/**/*.{js,jsx,ts,tsx}",
+      "<rootDir>/ui/src/**/*.{spec,test}.{js,jsx,ts,tsx}"
+    ],
+    "testEnvironment": "jsdom",
+    "transform": {
+      "^.+\\.(js|jsx|mjs|cjs|ts|tsx)$": "<rootDir>/ui/config/jest/babelTransform.js",
+      "^.+\\.css$": "<rootDir>/ui/config/jest/cssTransform.js",
+      "^(?!.*\\.(js|jsx|mjs|cjs|ts|tsx|css|json)$)": "<rootDir>/ui/config/jest/fileTransform.js"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!coy)/"
+    ],
+    "modulePaths": [],
+    "moduleNameMapper": {
+      "^react-native$": "react-native-web",
+      "^.+\\.module\\.(css|sass|scss)$": "identity-obj-proxy"
+    },
+    "moduleFileExtensions": [
+      "web.js",
+      "js",
+      "web.ts",
+      "ts",
+      "web.tsx",
+      "tsx",
+      "json",
+      "web.jsx",
+      "jsx",
+      "node"
+    ],
+    "watchPlugins": [
+      "jest-watch-typeahead/filename",
+      "jest-watch-typeahead/testname"
+    ],
+    "resetMocks": true
+  },
+  "babel": {
+    "presets": [
+      "react-app"
+    ]
+  }
+}

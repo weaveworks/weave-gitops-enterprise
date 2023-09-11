@@ -132,6 +132,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
       - name: Install modules
-        run: cd ui-cra && yarn --pure-lockfile
+        run: yarn --pure-lockfile
       - name: Run Front-end Unit Tests
-        run: cd ui-cra && ./node_modules/.bin/react-scripts test
+        run: yarn test

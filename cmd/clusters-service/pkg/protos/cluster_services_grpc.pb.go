@@ -19,7 +19,9 @@ const _ = grpc.SupportPackageIsVersion7
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ClustersServiceClient interface {
+	// Returns a list of templates.
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
+	// Get details of a specific template.
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
@@ -28,8 +30,11 @@ type ClustersServiceClient interface {
 	// The template annotations appear in the following form
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
+	// Render a template using given values.
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
+	// Render an automation template using given cluster automations.
 	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
+	// List available GitOps clusters.
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -42,53 +47,54 @@ type ClustersServiceClient interface {
 	// will be created.
 	CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error)
 	DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error)
+	// List available credentials.
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
-	// GetKubeconfig returns the Kubeconfig for the given
+	// Returns the Kubeconfig for the given
 	// workload cluster.
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
-	// GetEnterpriseVersion returns the WeGO Enterprise version
+	// Returns the WeGO Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
 	// Creates a pull request for the given list of Kustomizations.
 	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
-	// ListEvents returns the k8s events for a given object
+	// Returns the k8s events for a given object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
-	// ListChartsForRepository lists the discovered Helm charts in the provided
+	// Lists the discovered Helm charts in the provided
 	// repository.
 	ListChartsForRepository(ctx context.Context, in *ListChartsForRepositoryRequest, opts ...grpc.CallOption) (*ListChartsForRepositoryResponse, error)
-	// GetValuesForChart gets the default Values.yaml for the provided Chart
+	// Gets the default Values.yaml for the provided Chart
 	// reference.
 	GetValuesForChart(ctx context.Context, in *GetValuesForChartRequest, opts ...grpc.CallOption) (*GetValuesForChartResponse, error)
-	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// Gets the default Values.yaml for the provided Chart
 	// reference.
 	GetChartsJob(ctx context.Context, in *GetChartsJobRequest, opts ...grpc.CallOption) (*GetChartsJobResponse, error)
-	// ListWorkspaces list workspaces available on all clusters
+	// List workspaces available on all clusters
 	ListWorkspaces(ctx context.Context, in *ListWorkspacesRequest, opts ...grpc.CallOption) (*ListWorkspacesResponse, error)
-	// GetWorkspace get workspace details
+	// Get workspace details
 	GetWorkspace(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceResponse, error)
-	// GetWorkspaceRoles list workspace roles
+	// List workspace roles
 	GetWorkspaceRoles(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRolesResponse, error)
-	// GetWorkspaceRoleBindings list workspace role bindings
+	// List workspace role bindings
 	GetWorkspaceRoleBindings(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceRoleBindingsResponse, error)
-	// GetWorkspaceServiceAccounts list workspace service accounts
+	// List workspace service accounts
 	GetWorkspaceServiceAccounts(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspaceServiceAccountsResponse, error)
-	// GetWorkspacePolicies list workspace service accounts
+	// List workspace service accounts
 	GetWorkspacePolicies(ctx context.Context, in *GetWorkspaceRequest, opts ...grpc.CallOption) (*GetWorkspacePoliciesResponse, error)
-	// ListExternalSecrets list external secrets available on all clusters
+	// List external secrets available on all clusters
 	ListExternalSecrets(ctx context.Context, in *ListExternalSecretsRequest, opts ...grpc.CallOption) (*ListExternalSecretsResponse, error)
-	// GetExternalSecret get secret details
+	// Get secret details
 	GetExternalSecret(ctx context.Context, in *GetExternalSecretRequest, opts ...grpc.CallOption) (*GetExternalSecretResponse, error)
-	// ListExternalSecretStores list external secrets stores
+	// List external secrets stores
 	ListExternalSecretStores(ctx context.Context, in *ListExternalSecretStoresRequest, opts ...grpc.CallOption) (*ListExternalSecretStoresResponse, error)
-	// SyncExternalSecrets sync externalSecret Operator secrets
+	// Sync externalSecret Operator secrets
 	SyncExternalSecrets(ctx context.Context, in *SyncExternalSecretsRequest, opts ...grpc.CallOption) (*SyncExternalSecretsResponse, error)
-	// ListPolicyConfigs list policy configs
+	// List policy configs
 	ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error)
-	// GetPolicyConfig get policy config details
+	// Get policy config details
 	GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error)
-	// EncryptSopsSecret encrypts a sops secret
+	// Encrypts a sops secret
 	EncryptSopsSecret(ctx context.Context, in *EncryptSopsSecretRequest, opts ...grpc.CallOption) (*EncryptSopsSecretResponse, error)
-	// ListSopsKustomizations list Sops kustomizations
+	// List Sops kustomizations
 	ListSopsKustomizations(ctx context.Context, in *ListSopsKustomizationsRequest, opts ...grpc.CallOption) (*ListSopsKustomizationsResponse, error)
 }
 
@@ -401,7 +407,9 @@ func (c *clustersServiceClient) ListSopsKustomizations(ctx context.Context, in *
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
 type ClustersServiceServer interface {
+	// Returns a list of templates.
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
+	// Get details of a specific template.
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
 	// Get the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
@@ -410,8 +418,11 @@ type ClustersServiceServer interface {
 	// The template annotations appear in the following form
 	// capi.weave.works/profile-<n> where n is a number
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
+	// Render a template using given values.
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
+	// Render an automation template using given cluster automations.
 	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
+	// List available GitOps clusters.
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -424,53 +435,54 @@ type ClustersServiceServer interface {
 	// will be created.
 	CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error)
 	DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error)
+	// List available credentials.
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
-	// GetKubeconfig returns the Kubeconfig for the given
+	// Returns the Kubeconfig for the given
 	// workload cluster.
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
-	// GetEnterpriseVersion returns the WeGO Enterprise version
+	// Returns the WeGO Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
 	// Creates a pull request for the given list of Kustomizations.
 	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
-	// ListEvents returns the k8s events for a given object
+	// Returns the k8s events for a given object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
-	// ListChartsForRepository lists the discovered Helm charts in the provided
+	// Lists the discovered Helm charts in the provided
 	// repository.
 	ListChartsForRepository(context.Context, *ListChartsForRepositoryRequest) (*ListChartsForRepositoryResponse, error)
-	// GetValuesForChart gets the default Values.yaml for the provided Chart
+	// Gets the default Values.yaml for the provided Chart
 	// reference.
 	GetValuesForChart(context.Context, *GetValuesForChartRequest) (*GetValuesForChartResponse, error)
-	// GetChartsJob gets the default Values.yaml for the provided Chart
+	// Gets the default Values.yaml for the provided Chart
 	// reference.
 	GetChartsJob(context.Context, *GetChartsJobRequest) (*GetChartsJobResponse, error)
-	// ListWorkspaces list workspaces available on all clusters
+	// List workspaces available on all clusters
 	ListWorkspaces(context.Context, *ListWorkspacesRequest) (*ListWorkspacesResponse, error)
-	// GetWorkspace get workspace details
+	// Get workspace details
 	GetWorkspace(context.Context, *GetWorkspaceRequest) (*GetWorkspaceResponse, error)
-	// GetWorkspaceRoles list workspace roles
+	// List workspace roles
 	GetWorkspaceRoles(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRolesResponse, error)
-	// GetWorkspaceRoleBindings list workspace role bindings
+	// List workspace role bindings
 	GetWorkspaceRoleBindings(context.Context, *GetWorkspaceRequest) (*GetWorkspaceRoleBindingsResponse, error)
-	// GetWorkspaceServiceAccounts list workspace service accounts
+	// List workspace service accounts
 	GetWorkspaceServiceAccounts(context.Context, *GetWorkspaceRequest) (*GetWorkspaceServiceAccountsResponse, error)
-	// GetWorkspacePolicies list workspace service accounts
+	// List workspace service accounts
 	GetWorkspacePolicies(context.Context, *GetWorkspaceRequest) (*GetWorkspacePoliciesResponse, error)
-	// ListExternalSecrets list external secrets available on all clusters
+	// List external secrets available on all clusters
 	ListExternalSecrets(context.Context, *ListExternalSecretsRequest) (*ListExternalSecretsResponse, error)
-	// GetExternalSecret get secret details
+	// Get secret details
 	GetExternalSecret(context.Context, *GetExternalSecretRequest) (*GetExternalSecretResponse, error)
-	// ListExternalSecretStores list external secrets stores
+	// List external secrets stores
 	ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error)
-	// SyncExternalSecrets sync externalSecret Operator secrets
+	// Sync externalSecret Operator secrets
 	SyncExternalSecrets(context.Context, *SyncExternalSecretsRequest) (*SyncExternalSecretsResponse, error)
-	// ListPolicyConfigs list policy configs
+	// List policy configs
 	ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error)
-	// GetPolicyConfig get policy config details
+	// Get policy config details
 	GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error)
-	// EncryptSopsSecret encrypts a sops secret
+	// Encrypts a sops secret
 	EncryptSopsSecret(context.Context, *EncryptSopsSecretRequest) (*EncryptSopsSecretResponse, error)
-	// ListSopsKustomizations list Sops kustomizations
+	// List Sops kustomizations
 	ListSopsKustomizations(context.Context, *ListSopsKustomizationsRequest) (*ListSopsKustomizationsResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }

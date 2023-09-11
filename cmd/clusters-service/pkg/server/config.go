@@ -15,7 +15,7 @@ func (s *server) GetConfig(ctx context.Context, msg *capiv1_proto.GetConfigReque
 	gitHostTypes := gitproviders.GitHostTypes(gitproviders.ViperGetStringMapString("git-host-types"))
 
 	return &capiv1_proto.GetConfigResponse{
-		RepositoryURL:         repositoryURL,
+		RepositoryUrl:         repositoryURL,
 		UiConfig:              s.uiConfig,
 		ManagementClusterName: mngtClusterName,
 		GitHostTypes:          gitHostTypes,

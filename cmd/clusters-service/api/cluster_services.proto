@@ -18,27 +18,29 @@ option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-
  * Weave GitOps Enterprise ClustersService service definition
  */
 service ClustersService {
+  // Returns a list of templates.
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
     option (google.api.http) = {
       get : "/v1/templates"
     };
   }
 
+  // Get details of a specific template.
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}"
     };
   }
 
-  /*
-   * Get the Values.yaml for a template if one exists.
-   */
+  
+   // Get the Values.yaml for a template if one exists.
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
       get : "/v1/templates/{template_name}/params"
     };
   }
+
   // Returns a list of profiles within that template
   // `gitops get <template-name> --list-profiles`
   // The template annotations appear in the following form
@@ -49,12 +51,16 @@ service ClustersService {
       get : "/v1/templates/{template_name}/profiles"
     };
   }
+
+  // Render a template using given values.
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
       post : "/v1/templates/{template_name}/render"
       body : "*"
     };
   }
+
+  // Render an automation template using given cluster automations.
   rpc RenderAutomation(RenderAutomationRequest)
     returns (RenderAutomationResponse) {
     option (google.api.http) = {
@@ -62,12 +68,15 @@ service ClustersService {
       body : "*"
     };
   }
+
+  // List available GitOps clusters.
   rpc ListGitopsClusters(ListGitopsClustersRequest)
       returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
       get : "/v1/clusters"
     };
   }
+
   // Creates a pull request for a cluster template.
   // The template name and values will be used to
   // create a new branch for which a new pull request
@@ -79,6 +88,7 @@ service ClustersService {
       body : "*"
     };
   }
+
   // Creates a pull request for a tfcontroller template.
   // The template name and values will be used to
   // create a new branch for which a new pull request
@@ -98,20 +108,24 @@ service ClustersService {
       body : "*"
     };
   }
+
+  // List available credentials.
   rpc ListCredentials(ListCredentialsRequest)
       returns (ListCredentialsResponse) {
     option (google.api.http) = {
       get : "/v1/credentials"
     };
   }
-  // GetKubeconfig returns the Kubeconfig for the given
+
+  // Returns the Kubeconfig for the given
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
     option (google.api.http) = {
       get : "/v1/clusters/{cluster_name}/kubeconfig"
     };
   }
-  // GetEnterpriseVersion returns the WeGO Enterprise version
+
+  // Returns the WeGO Enterprise version
   rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
       returns (GetEnterpriseVersionResponse) {
     option (google.api.http) = {
@@ -127,24 +141,23 @@ service ClustersService {
       body : "*"
     };
   }
-
+  
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
       get : "/v1/config"
     };
   }
 
-  // ListEvents returns the k8s events for a given object
+  // Returns the k8s events for a given object
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
     option (google.api.http) = {
       get : "/v1/enterprise/events"
     };
   }
 
-  /*
-   * ListChartsForRepository lists the discovered Helm charts in the provided
-   * repository.
-   */
+
+  // Lists the discovered Helm charts in the provided
+  // repository.
   rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns
     (ListChartsForRepositoryResponse) {
      option (google.api.http) = {
@@ -152,7 +165,7 @@ service ClustersService {
       };
     }
 
-  // GetValuesForChart gets the default Values.yaml for the provided Chart
+  // Gets the default Values.yaml for the provided Chart
   // reference.
   rpc GetValuesForChart(GetValuesForChartRequest) returns
     (GetValuesForChartResponse) {
@@ -162,7 +175,7 @@ service ClustersService {
       };
     }
 
-  // GetChartsJob gets the default Values.yaml for the provided Chart
+  // Gets the default Values.yaml for the provided Chart
   // reference.
   rpc GetChartsJob(GetChartsJobRequest) returns
     (GetChartsJobResponse) {
@@ -172,69 +185,77 @@ service ClustersService {
     }
 
 
-    // ListWorkspaces list workspaces available on all clusters
+    // List workspaces available on all clusters
   rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
     option (google.api.http) = {
       get : "/v1/workspaces"
     };
   }
-   // GetWorkspace get workspace details
+
+   // Get workspace details
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspaceName}"
-    };
-  }
-   // GetWorkspaceRoles list workspace roles
-   rpc GetWorkspaceRoles(GetWorkspaceRequest)
-    returns (GetWorkspaceRolesResponse) {
-    option (google.api.http) = {
-      get : "/v1/workspaces/{workspaceName}/roles"
-    };
-  }
-   // GetWorkspaceRoleBindings list workspace role bindings
-   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest)
-    returns (GetWorkspaceRoleBindingsResponse) {
-    option (google.api.http) = {
-      get : "/v1/workspaces/{workspaceName}/rolebindings"
-    };
-  }
-   // GetWorkspaceServiceAccounts list workspace service accounts
-   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest)
-    returns (GetWorkspaceServiceAccountsResponse) {
-    option (google.api.http) = {
-      get : "/v1/workspaces/{workspaceName}/serviceaccounts"
-    };
-  }
-  // GetWorkspacePolicies list workspace service accounts
-  rpc GetWorkspacePolicies(GetWorkspaceRequest)
-    returns (GetWorkspacePoliciesResponse) {
-    option (google.api.http) = {
-      get : "/v1/workspaces/{workspaceName}/policies"
+      get : "/v1/workspaces/{workspace_name}"
     };
   }
 
-  // ListExternalSecrets list external secrets available on all clusters
+   // List workspace roles
+   rpc GetWorkspaceRoles(GetWorkspaceRequest)
+    returns (GetWorkspaceRolesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspace_name}/roles"
+    };
+  }
+
+   // List workspace role bindings
+   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest)
+    returns (GetWorkspaceRoleBindingsResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspace_name}/rolebindings"
+    };
+  }
+
+   // List workspace service accounts
+   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest)
+    returns (GetWorkspaceServiceAccountsResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspace_name}/serviceaccounts"
+    };
+  }
+
+  // List workspace service accounts
+  rpc GetWorkspacePolicies(GetWorkspaceRequest)
+    returns (GetWorkspacePoliciesResponse) {
+    option (google.api.http) = {
+      get : "/v1/workspaces/{workspace_name}/policies"
+    };
+  }
+
+  // List external secrets available on all clusters
   rpc ListExternalSecrets(ListExternalSecretsRequest)
     returns (ListExternalSecretsResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets"
     };
   }
-  // GetExternalSecret get secret details
+
+  // Get secret details
   rpc GetExternalSecret(GetExternalSecretRequest)
     returns (GetExternalSecretResponse) {
     option (google.api.http) = {
-      get : "/v1/external-secrets/{externalSecretName}"
+      get : "/v1/external-secrets/{external_secret_name}"
     };
   }
-  // ListExternalSecretStores list external secrets stores
+
+  // List external secrets stores
   rpc ListExternalSecretStores(ListExternalSecretStoresRequest)
     returns (ListExternalSecretStoresResponse) {
     option (google.api.http) = {
       get : "/v1/external-secrets-stores"
     };
   }
-  // SyncExternalSecrets sync externalSecret Operator secrets
+
+  // Sync externalSecret Operator secrets
   rpc SyncExternalSecrets(SyncExternalSecretsRequest)
     returns (SyncExternalSecretsResponse) {
     option (google.api.http) = {
@@ -243,14 +264,15 @@ service ClustersService {
     };
   }
 
-  // ListPolicyConfigs list policy configs
+  // List policy configs
   rpc ListPolicyConfigs(ListPolicyConfigsRequest)
     returns (ListPolicyConfigsResponse) {
     option (google.api.http) = {
       get : "/v1/policy-configs"
     };
   }
-  // GetPolicyConfig get policy config details
+
+  // Get policy config details
   rpc GetPolicyConfig(GetPolicyConfigRequest)
     returns (GetPolicyConfigResponse) {
     option (google.api.http) = {
@@ -258,7 +280,7 @@ service ClustersService {
     };
   }
 
-  // EncryptSopsSecret encrypts a sops secret
+  // Encrypts a sops secret
   rpc EncryptSopsSecret(EncryptSopsSecretRequest)
     returns (EncryptSopsSecretResponse) {
     option (google.api.http) = {
@@ -267,7 +289,7 @@ service ClustersService {
     };
   }
 
-  // ListSopsKustomizations list Sops kustomizations
+  // List Sops kustomizations
   rpc ListSopsKustomizations(ListSopsKustomizationsRequest)
     returns (ListSopsKustomizationsResponse) {
     option (google.api.http) = {
@@ -287,7 +309,7 @@ message Pagination {
 }
 
 message ListError {
-    string clusterName = 1;
+    string cluster_name = 1;
     string namespace = 2;
     string message = 3;
 }
@@ -353,7 +375,7 @@ message CostEstimate{
 }
 
 message RenderTemplateResponse {
-  repeated CommitFile rendered_template = 1;
+  repeated CommitFile rendered_templates = 1;
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
   CostEstimate costEstimate = 4;
@@ -540,20 +562,20 @@ message CapiCluster {
   map<string, string> annotations = 3;
   map<string, string> labels = 4;
   CapiClusterStatus status = 5;
-  CapiClusterInfrastructureRef infrastructureRef = 6;
+  CapiClusterInfrastructureRef infrastructure_ref = 6;
 }
 
 message CapiClusterStatus {
   string phase = 1;
-  bool infrastructureReady = 2;
-  bool controlPlaneInitialized = 3;
-  bool controlPlaneReady = 4;
+  bool infrastructure_ready = 2;
+  bool control_plane_initialized = 3;
+  bool control_plane_ready = 4;
   repeated Condition conditions = 5;
-  int64 observedGeneration = 6;
+  int64 observed_generation = 6;
 }
 
 message CapiClusterInfrastructureRef {
-  string apiVersion = 1;
+  string api_version = 1;
   string kind = 2;
   string name = 3;
 }
@@ -599,7 +621,7 @@ message TemplateProfile {
   string values = 4;
   string namespace = 5;
   bool required = 6;
-  string profileTemplate = 7;
+  string profile_template = 7;
   string layer = 8;
 }
 
@@ -784,13 +806,13 @@ message ProfileValues {
 message GetConfigRequest {}
 
 message GetConfigResponse {
-  string repositoryURL = 1;
-  string managementClusterName = 2;
+  string repository_url = 1;
+  string management_cluster_name = 2;
   string ui_config = 3;
   map<string, string> git_host_types = 4;
 }
 
-message PolicyParamRepeatedString { repeated string value = 1; }
+message PolicyParamRepeatedString { repeated string values = 1; }
 
 message ObjectRef {
   string kind      = 1;
@@ -809,7 +831,7 @@ message Event {
 }
 
 message ListEventsRequest {
-  ObjectRef involvedObject = 1;
+  ObjectRef involved_object = 1;
   string    clusterName    = 2;
 }
 
@@ -873,7 +895,7 @@ message ListWorkspacesRequest{
 message ListWorkspacesResponse{
   repeated Workspace workspaces = 1;
   int32 total = 2;
-  string nextPageToken = 3;
+  string next_page_token = 3;
   repeated ListError errors = 4;
 }
 
@@ -893,13 +915,13 @@ message WorkspaceRole {
 }
 
 message WorkspaceRoleBindingRoleRef {
-  string apiGroup = 1;
+  string api_group = 1;
   string kind = 2;
   string name = 3;
 }
 
 message WorkspaceRoleBindingSubject {
-  string apiGroup = 1;
+  string api_group = 1;
   string kind = 2;
   string name = 3;
   string namespace = 4;
@@ -932,46 +954,46 @@ message WorkspacePolicy {
 }
 
 message GetWorkspaceRequest{
-  string clusterName = 1;
-  string workspaceName = 2;
+  string cluster_name = 1;
+  string workspace_name = 2;
 }
 
 message GetWorkspaceResponse{
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated string namespaces = 3;
 }
 
 message GetWorkspaceRolesResponse{
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated WorkspaceRole objects = 3;
 }
 
 message GetWorkspaceRoleBindingsResponse{
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated WorkspaceRoleBinding objects = 3;
 }
 
 message GetWorkspaceServiceAccountsResponse{
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated WorkspaceServiceAccount objects = 3;
 }
 
 message GetWorkspacePoliciesResponse{
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated WorkspacePolicy objects = 3;
 }
 
 message ExternalSecretItem {
-  string secretName = 1;
-  string externalSecretName = 2;
+  string secret_name = 1;
+  string external_secret_name = 2;
   string namespace = 3;
-  string clusterName = 4;
-  string secretStore = 5;
+  string cluster_name = 4;
+  string secret_store = 5;
   string status = 6;
   string timestamp = 7;
 }
@@ -985,19 +1007,19 @@ message ListExternalSecretsResponse {
 }
 
 message GetExternalSecretRequest{
-  string clusterName = 1;
+  string cluster_name = 1;
   string namespace = 2;
-  string externalSecretName = 3;
+  string external_secret_name = 3;
 }
 
 message GetExternalSecretResponse{
-  string secretName = 1;
-  string externalSecretName = 2;
-  string clusterName = 3;
+  string secret_name = 1;
+  string external_secret_name = 2;
+  string cluster_name = 3;
   string namespace = 4;
-  string secretStore = 5;
-  string secretStoreType = 6;
-  string secretPath = 7;
+  string secret_store = 5;
+  string secret_store_type = 6;
+  string secret_path = 7;
   map <string,string> properties = 8;
   string version = 9;
   string status = 10;
@@ -1013,7 +1035,7 @@ message ExternalSecretStore {
 }
 
 message ListExternalSecretStoresRequest{
-  string clusterName = 1;
+  string cluster_name = 1;
 }
 
 message ListExternalSecretStoresResponse{
@@ -1022,9 +1044,9 @@ message ListExternalSecretStoresResponse{
 }
 
 message SyncExternalSecretsRequest{
-  string clusterName = 1;
+  string cluster_name = 1;
   string namespace = 2;
-  string externalSecretName = 3;
+  string external_secret_name = 3;
 }
 
 message SyncExternalSecretsResponse{
@@ -1032,8 +1054,8 @@ message SyncExternalSecretsResponse{
 
 message PolicyConfigListItem {
   string name = 1;
-  string clusterName = 2;
-  int32 totalPolicies = 3;
+  string cluster_name = 2;
+  int32 total_policies = 3;
   string match = 4;
   string status = 5;
   string age = 6;
@@ -1042,25 +1064,25 @@ message PolicyConfigListItem {
 message ListPolicyConfigsRequest {}
 
 message ListPolicyConfigsResponse{
-  repeated PolicyConfigListItem policyConfigs = 1;
+  repeated PolicyConfigListItem policy_configs = 1;
   repeated ListError errors = 2;
   int32 total = 3;
 }
 
 message GetPolicyConfigRequest{
-  string clusterName = 1;
+  string cluster_name = 1;
   string name = 2;
 }
 
 message GetPolicyConfigResponse{
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   string age = 3;
   string status = 4;
-  string matchType = 5;
+  string match_type = 5;
   PolicyConfigMatch match = 6;
   repeated PolicyConfigPolicy policies = 7;
-  int32 totalPolicies = 8;
+  int32 total_policies = 8;
 }
 
 message PolicyConfigApplicationMatch {
@@ -1111,10 +1133,10 @@ message EncryptSopsSecretRequest {
   string type = 4;
   bool immutable = 5;
   map<string, string> data = 6;
-  map<string, string> stringData = 7;
+  map<string, string> string_data = 7;
   string kustomization_name = 8;
   string kustomization_namespace = 9;
-  string clusterName = 10;
+  string cluster_name = 10;
 }
 
 message EncryptSopsSecretResponse {
@@ -1123,7 +1145,7 @@ message EncryptSopsSecretResponse {
 }
 
 message ListSopsKustomizationsRequest {
-  string clusterName = 1;
+  string cluster_name = 1;
 }
 
 message ListSopsKustomizationsResponse {
@@ -1147,7 +1169,7 @@ message SopsSecret {
   string kind = 2;
   SopsSecretMetadata metadata = 3;
   map<string,string> data = 4;
-  map<string,string> stringData = 5;
+  map<string,string> string_data = 5;
   string type = 6;
   bool immutable = 7;
   google.protobuf.Value sops = 8;
