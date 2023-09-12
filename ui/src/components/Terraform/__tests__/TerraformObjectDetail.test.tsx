@@ -103,9 +103,7 @@ describe('TerraformObjectDetail', () => {
 
     const info = await screen.findByText('Suspended:');
 
-    const suspendedValue = info?.parentNode?.nextSibling?.textContent;
-
-    expect(suspendedValue).toEqual('False');
+    expect(info?.parentNode).toHaveTextContent('Suspended:False');
 
     const button = await screen.findByText('Suspend');
 

@@ -355,7 +355,6 @@ export class TerraformClientMock implements Terraform {
 
   GetTerraformObjectReturns: GetTerraformObjectResponse = {};
   GetTerraformObject() {
-    console.log('GetTerraformObject', this.GetTerraformObjectReturns);
     return promisify(this.GetTerraformObjectReturns);
   }
 
