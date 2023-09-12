@@ -307,6 +307,7 @@ export type TemplateProfile = {
   required?: boolean
   profileTemplate?: string
   layer?: string
+  sourceRef?: SourceRef
 }
 
 export type TemplateObject = {

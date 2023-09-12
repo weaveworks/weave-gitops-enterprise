@@ -51,6 +51,10 @@ func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 			Layer:     v.Layer,
 			Required:  v.Required,
 			Editable:  v.Editable,
+			SourceRef: &capiv1_proto.SourceRef{
+				Name:      v.SourceRef.Name,
+				Namespace: v.SourceRef.Namespace,
+			},
 		}
 
 		if v.Values != nil {

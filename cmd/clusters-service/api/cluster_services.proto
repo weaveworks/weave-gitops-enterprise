@@ -623,6 +623,7 @@ message TemplateProfile {
   bool required = 6;
   string profile_template = 7;
   string layer = 8;
+  SourceRef source_ref = 9;
 }
 
 message TemplateObject {

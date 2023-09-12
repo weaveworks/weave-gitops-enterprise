@@ -3180,6 +3180,9 @@
         },
         "layer": {
           "type": "string"
+        },
+        "sourceRef": {
+          "$ref": "#/definitions/v1SourceRef"
         }
       }
     },
