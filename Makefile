@@ -17,11 +17,6 @@ GOOS := $(shell go env GOOS)
 TIER=enterprise
 BRANCH?=main
 
-# we should align cmd
-LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
-				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
-				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_REVISION) \
-				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
 
 ifeq ($(GOOS),linux)
 	cgo_ldflags=-linkmode external -w -extldflags "-static"
@@ -146,8 +141,14 @@ lint:
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
 
+
+CMD_GITOPS_LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_REVISION) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
+
 cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
-	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -gcflags='all=-N -l' -o $@  ./cmd/gitops
+	CGO_ENABLED=0 go build -ldflags "$(CMD_GITOPS_LDFLAGS)" -gcflags='all=-N -l' -o $@  ./cmd/gitops
 
 update-weave-gitops:
 	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
