@@ -15,6 +15,14 @@ CURRENT_DIR := $(shell pwd)
 UPTODATE := .uptodate
 GOOS := $(shell go env GOOS)
 TIER=enterprise
+BRANCH?=main
+
+# we should align cmd
+LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Branch=$(BRANCH) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.BuildTime=$(BUILD_TIME) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.GitCommit=$(GIT_REVISION) \
+				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
+
 ifeq ($(GOOS),linux)
 	cgo_ldflags=-linkmode external -w -extldflags "-static"
 else
@@ -55,8 +63,6 @@ cmd/clusters-service/$(UPTODATE): cmd/clusters-service/Dockerfile cmd/clusters-s
 	touch $@
 
 
-cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
-	CGO_ENABLED=0 go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@ $(GO_BUILD_OPTS) $<
 
 UI_SERVER := docker.io/weaveworks/weave-gitops-enterprise-ui-server
 ui/.uptodate: ui/*
@@ -140,7 +146,9 @@ lint:
 cmd/clusters-service/clusters-service: $(cmd find cmd/clusters-service -name '*.go') common/** pkg/**
 	CGO_ENABLED=1 go build -ldflags "-X github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/version.Version=$(WEAVE_GITOPS_VERSION) -X github.com/weaveworks/weave-gitops-enterprise/pkg/version.ImageTag=$(IMAGE_TAG) $(cgo_ldflags)" -tags netgo -o $@ ./cmd/clusters-service
 
-BRANCH?=main
+cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
+	CGO_ENABLED=0 go build -ldflags "$(LDFLAGS)" -gcflags='all=-N -l' -o $@  ./cmd/gitops
+
 update-weave-gitops:
 	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
 	go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH)
@@ -229,14 +237,13 @@ swagger-docs:
 
 FORCE:
 
-
-tools/core-files/Makefile.$(CORE_REVISION):
-	@mkdir -p tools/core-files
-	@curl --silent -o tools/core-files/Makefile.core https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/Makefile
-
-tools/core-files/charts/gitops-server/Chart.yaml: tools/core-files/Makefile.$(CORE_REVISION)
-	@mkdir -p tools/core-files/charts/gitops-server
-	@curl --silent -o tools/core-files/charts/gitops-server/Chart.yaml https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/charts/gitops-server/Chart.yaml
-
-echo-ldflags: tools/core-files/charts/gitops-server/Chart.yaml tools/core-files/Makefile.$(CORE_REVISION)
-	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)" TIER="$(TIER)"
+#tools/core-files/Makefile.$(CORE_REVISION):
+#	@mkdir -p tools/core-files
+#	@curl --silent -o tools/core-files/Makefile.core https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/Makefile
+#
+#tools/core-files/charts/gitops-server/Chart.yaml: tools/core-files/Makefile.$(CORE_REVISION)
+#	@mkdir -p tools/core-files/charts/gitops-server
+#	@curl --silent -o tools/core-files/charts/gitops-server/Chart.yaml https://raw.githubusercontent.com/weaveworks/weave-gitops/$(CORE_REVISION)/charts/gitops-server/Chart.yaml
+#
+#echo-ldflags: tools/core-files/charts/gitops-server/Chart.yaml tools/core-files/Makefile.$(CORE_REVISION)
+#	@make --no-print-directory -f Makefile.core -C tools/core-files echo-ldflags VERSION="$(VERSION)-Enterprise-Edition-$(CORE_REVISION)" TIER="$(TIER)"
