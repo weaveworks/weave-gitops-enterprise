@@ -14,7 +14,7 @@ import {
   PolicyObj,
   PolicyParam,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import { Dispatch, useEffect, useMemo, useState } from 'react';
+import { Dispatch, useState } from 'react';
 import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
@@ -37,36 +37,15 @@ export const SelectedPolicies = ({
   setFormData,
   formError,
 }: SelectSecretStoreProps) => {
-  const [selectedPolicies, setSelectedPolicies] = useState<PolicyObj[]>([]);
   const { data } = useListPolicies({});
 
-  const policiesList = useMemo(
-    () =>
-      data?.policies?.filter(p =>
-        formData.isControlPlane
-          ? p.clusterName === cluster
-          : p.clusterName === `${formData.clusterNamespace}/${cluster}`,
-      ) || [],
-    [data?.policies, cluster, formData],
-  );
+  let policiesList = data?.policies || [];
+  const keys = Object.keys(formData.policies);
+  let selected: PolicyObj[] =
+    policiesList.filter(({ id }) => id && keys.includes(id)) || [];
 
-  useEffect(() => {
-    if (
-      formData.policies &&
-      data?.policies?.length &&
-      selectedPolicies.length === 0
-    ) {
-      const selected: PolicyObj[] = policiesList.filter((p: PolicyObj) =>
-        Object.keys(formData.policies).includes(p.id!),
-      );
-      setSelectedPolicies(selected);
-    }
-  }, [
-    data?.policies,
-    policiesList,
-    formData.policies,
-    selectedPolicies.length,
-  ]);
+  const [selectedPolicies, setSelectedPolicies] =
+    useState<PolicyObj[]>(selected);
 
   const handlePolicyParams = (val: any, id: string, param: PolicyParam) => {
     const { name, type } = param;
