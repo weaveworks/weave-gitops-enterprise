@@ -2,7 +2,7 @@ package controllers
 
 import (
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/controllers/profiles"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/controllers/profiles"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 

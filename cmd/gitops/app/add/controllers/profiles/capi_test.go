@@ -4,35 +4,35 @@ import (
 	"testing"
 
 	"github.com/alecthomas/assert"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
 
 func TestConstructCAPIValues(t *testing.T) {
 
 	// Mocked values for our utilities
-	mockBranch := "main"
-	mockUrl := "https://github.com/test-repo"
-	mockPath := "test-repo"
 
-	// Set up the mocked functions
-	utils.GetRepoBranchFunc = func() (string, error) {
-		return mockBranch, nil
-	}
+	// mockBranch := "main"
+	// mockUrl := "https://github.com/test-repo"
+	// mockPath := "test-repo"
 
-	utils.GetRepoUrlFunc = func() (string, error) {
-		return mockUrl, nil
-	}
+	// // Set up the mocked functions
+	// utils.GetRepoBranchFunc = func() (string, error) {
+	// 	return mockBranch, nil
+	// }
 
-	utils.GetRepoPathFunc = func() (string, error) {
-		return mockPath, nil
-	}
+	// utils.GetRepoUrlFunc = func() (string, error) {
+	// 	return mockUrl, nil
+	// }
 
-	// Reset functions to original versions after test
-	defer func() {
-		utils.GetRepoBranchFunc = utils.GetRepoBranch
-		utils.GetRepoUrlFunc = utils.GetRepoUrl
-		utils.GetRepoPathFunc = utils.GetRepoPath
-	}()
+	// utils.GetRepoPathFunc = func() (string, error) {
+	// 	return mockPath, nil
+	// }
+
+	// // Reset functions to original versions after test
+	// defer func() {
+	// 	utils.GetRepoBranchFunc = utils.GetRepoBranch
+	// 	utils.GetRepoUrlFunc = utils.GetRepoUrl
+	// 	utils.GetRepoPathFunc = utils.GetRepoPath
+	// }()
 
 	templatesNamespace := "default"
 	clustersNamespace := "default"
