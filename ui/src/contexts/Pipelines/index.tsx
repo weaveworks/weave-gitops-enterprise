@@ -5,28 +5,18 @@ import {
   GetPipelineResponse,
   ListPipelinesResponse,
   ListPullRequestsResponse,
-  Pipelines,
 } from '../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../api/pipelines/types.pb';
 import { formatError } from '../../utils/formatters';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
+import { useAPI } from '../API';
 
-interface Props {
-  api: typeof Pipelines;
-  children: any;
-}
-
-export const PipelinesContext = React.createContext<typeof Pipelines>(
-  null as any,
-);
-
-export const PipelinesProvider = ({ api, children }: Props) => (
-  <PipelinesContext.Provider value={api}>{children}</PipelinesContext.Provider>
-);
-
-export const usePipelines = () => React.useContext(PipelinesContext);
+export const usePipelines = () => {
+  const { pipelines } = useAPI();
+  return pipelines;
+};
 
 type SetNotificationsType = React.Dispatch<
   React.SetStateAction<NotificationData[] | []>

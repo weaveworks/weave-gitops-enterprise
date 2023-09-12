@@ -4,13 +4,13 @@ import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../../api/pipelines/types.pb';
-import { PipelinesProvider } from '../../../../contexts/Pipelines';
 import {
   CoreClientMock,
   defaultContexts,
   PipelinesClientMock,
   withContext,
 } from '../../../../utils/test-utils';
+import { APIContext, APIProvider } from '../../../../contexts/API';
 const fs = require('fs');
 
 const res: GetPipelineResponse = {
@@ -244,7 +244,7 @@ describe('PipelineDetails', () => {
     core = new CoreClientMock();
     wrap = withContext([
       ...defaultContexts(),
-      [PipelinesProvider, { api }],
+      [APIContext.Provider, { value: { pipelines: api } }],
       [CoreClientContextProvider, { api: core }],
     ]);
   });

@@ -1,12 +1,12 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { ToggleSuspendTerraformObjectsResponse } from '../../../api/terraform/terraform.pb';
-import { TerraformProvider } from '../../../contexts/Terraform';
 import {
   TerraformClientMock,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
 import TerraformObjectDetail from '../TerraformObjectDetail';
+import { APIContext } from '../../../contexts/API';
 
 const res = {
   object: {
@@ -38,7 +38,10 @@ describe('TerraformObjectDetail', () => {
 
   beforeEach(() => {
     api = new TerraformClientMock();
-    wrap = withContext([...defaultContexts(), [TerraformProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [APIContext.Provider, { value: { terraform: api } }],
+    ]);
   });
 
   it('syncs a terraform object', async () => {

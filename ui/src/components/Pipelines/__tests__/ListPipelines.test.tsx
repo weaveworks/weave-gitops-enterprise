@@ -1,7 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import { Router } from 'react-router-dom';
 import Pipelines from '..';
-import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
   defaultContexts,
   PipelinesClientMock,
@@ -9,6 +8,7 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import { createMemoryHistory } from 'history';
+import { APIContext } from '../../../contexts/API';
 
 const pipelines = {
   pipelines: [
@@ -80,7 +80,10 @@ describe('ListPipelines', () => {
 
   beforeEach(() => {
     api = new PipelinesClientMock();
-    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [APIContext.Provider, { value: { pipelines: api } }],
+    ]);
   });
   it('renders a list of pipelines', async () => {
     const filterTable = new TestFilterableTable('pipelines-list', fireEvent);
@@ -151,7 +154,10 @@ describe('Auth redirect', () => {
   let api: PipelinesClientMock;
   beforeEach(() => {
     api = new PipelinesClientMock();
-    wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [APIContext.Provider, { value: { pipelines: api } }],
+    ]);
   });
   const mockResponse = jest.fn();
   Object.defineProperty(window, 'location', {

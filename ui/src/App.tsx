@@ -1,6 +1,5 @@
 import '@fortawesome/fontawesome-free/css/all.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
-import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
 import {
   AppContext,
   AppContextProvider,
@@ -25,9 +24,7 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
-import { Terraform } from './api/terraform/terraform.pb';
 import bgDark from './assets/img/bg-dark.png';
 import bg from './assets/img/bg.svg';
 import { ClustersService } from './cluster-services/cluster_services.pb';
@@ -37,16 +34,14 @@ import Compose from './components/ProvidersCompose';
 import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
 import NotificationsProvider from './contexts/Notifications/Provider';
-import { PipelinesProvider } from './contexts/Pipelines';
-import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import QueryServiceProvider from './contexts/QueryService';
 import RequestContextProvider from './contexts/Request';
-import { TerraformProvider } from './contexts/Terraform';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
 import { addTFSupport } from './utils/request';
+import { APIProvider } from './contexts/API';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */
@@ -183,7 +178,7 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-//adds Terraform Sync and Suspend support to the OSS Sync and Suspend funcs. This is necessary in order to not have to make drastic modifications to DataTable, as CheckboxActions is deeply embedded. When DataTable gets broken up, we can pass down Sync and Suspend functions to it.
+// adds Terraform Sync and Suspend support to the OSS Sync and Suspend funcs. This is necessary in order to not have to make drastic modifications to DataTable, as CheckboxActions is deeply embedded. When DataTable gets broken up, we can pass down Sync and Suspend functions to it.
 addTFSupport(coreClient);
 
 const AppContainer = () => {
@@ -191,53 +186,49 @@ const AppContainer = () => {
     <RequestContextProvider fetch={window.fetch}>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter basename={process.env.PUBLIC_URL}>
-          <ProgressiveDeliveryProvider api={ProgressiveDeliveryService}>
-            <PipelinesProvider api={Pipelines}>
-              <GitAuthProvider>
-                <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
-                  <StylesProvider>
-                    <AuthContextProvider>
-                      <EnterpriseClientProvider api={ClustersService}>
-                        <CoreClientContextProvider api={coreClient}>
-                          <TerraformProvider api={Terraform}>
-                            <LinkResolverProvider resolver={resolver}>
-                              <Pendo
-                                defaultTelemetryFlag="true"
-                                tier="enterprise"
-                                version={process.env.REACT_APP_VERSION}
+          <APIProvider>
+            <GitAuthProvider>
+              <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
+                <StylesProvider>
+                  <AuthContextProvider>
+                    <EnterpriseClientProvider api={ClustersService}>
+                      <CoreClientContextProvider api={coreClient}>
+                        <LinkResolverProvider resolver={resolver}>
+                          <Pendo
+                            defaultTelemetryFlag="true"
+                            tier="enterprise"
+                            version={process.env.REACT_APP_VERSION}
+                          />
+                          <QueryServiceProvider api={Query}>
+                            <Compose components={[NotificationsProvider]}>
+                              <Switch>
+                                <Route
+                                  component={() => <SignIn />}
+                                  exact={true}
+                                  path="/sign_in"
+                                />
+                                <Route path="*">
+                                  {/* Check we've got a logged in user otherwise redirect back to signin */}
+                                  <AuthCheck>
+                                    <App />
+                                  </AuthCheck>
+                                </Route>
+                              </Switch>
+                              <ToastContainer
+                                position="top-center"
+                                autoClose={5000}
+                                newestOnTop={false}
                               />
-                              <QueryServiceProvider api={Query}>
-                                <Compose components={[NotificationsProvider]}>
-                                  <Switch>
-                                    <Route
-                                      component={() => <SignIn />}
-                                      exact={true}
-                                      path="/sign_in"
-                                    />
-                                    <Route path="*">
-                                      {/* Check we've got a logged in user otherwise redirect back to signin */}
-                                      <AuthCheck>
-                                        <App />
-                                      </AuthCheck>
-                                    </Route>
-                                  </Switch>
-                                  <ToastContainer
-                                    position="top-center"
-                                    autoClose={5000}
-                                    newestOnTop={false}
-                                  />
-                                </Compose>
-                              </QueryServiceProvider>
-                            </LinkResolverProvider>
-                          </TerraformProvider>
-                        </CoreClientContextProvider>
-                      </EnterpriseClientProvider>
-                    </AuthContextProvider>
-                  </StylesProvider>
-                </AppContextProvider>
-              </GitAuthProvider>
-            </PipelinesProvider>
-          </ProgressiveDeliveryProvider>
+                            </Compose>
+                          </QueryServiceProvider>
+                        </LinkResolverProvider>
+                      </CoreClientContextProvider>
+                    </EnterpriseClientProvider>
+                  </AuthContextProvider>
+                </StylesProvider>
+              </AppContextProvider>
+            </GitAuthProvider>
+          </APIProvider>
         </BrowserRouter>
       </QueryClientProvider>
     </RequestContextProvider>
