@@ -47,7 +47,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
       ]}
     >
       <NotificationsWrapper errors={automations?.errors}>
-        <Flex column gap="24">
+        <Flex column alignItems="stretch" gap="24">
           <Flex gap="12">
             <Button
               id="add-application"
