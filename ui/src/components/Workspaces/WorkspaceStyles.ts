@@ -6,15 +6,6 @@ export const CustomSubRouterTabs = styled(SubRouterTabs)(props => ({
   '.MuiTabs-root': {
     marginTop: props.theme.spacing.medium,
     width: '100%',
-    '.MuiTab-root': {
-      minWidth: 'fit-content',
-    },
-    '.MuiTabs-indicator': {
-      display: 'none !important',
-    },
-  },
-  '.Mui-selected': {
-    borderBottom: `3px solid ${props.theme.colors.primary}`,
   },
 }));
 

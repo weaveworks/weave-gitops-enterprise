@@ -10,6 +10,7 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   return (
     <Flex column gap="16">
       <Button
+        startIcon={<Icon type={IconType.FilterIcon} size="base" />}
         onClick={() => {
           const filtersValues = toFilterQueryString([
             { key: 'tenant', value: name || '' },
@@ -18,7 +19,6 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
           history.push(`/applications?filters=${filtersValues}`);
         }}
       >
-        <Icon type={IconType.FilterIcon} color="primary10" size="small" />
         GO TO TENANT APPLICATIONS
       </Button>
       <Flex column gap="8">
