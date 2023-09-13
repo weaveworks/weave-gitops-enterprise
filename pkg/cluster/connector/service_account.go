@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/weaveworks/weave-gitops/core/logger"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
@@ -40,14 +41,14 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 
 	// wait for token to be populated in secret
 	err = wait.PollUntilContextTimeout(ctx, time.Second, 10*time.Second, true, func(ctx context.Context) (done bool, err error) {
-		logger := log.FromContext(ctx)
-		logger.Info("waiting for service account secret token to be populated...")
+		lgr := log.FromContext(ctx)
+		lgr.V(logger.LogLevelDebug).Info("waiting for service account secret token to be populated...")
 		secret, err := client.CoreV1().Secrets(namespace).Get(ctx, secret.Name, metav1.GetOptions{})
 		if err != nil {
 			return false, err
 		}
 		if secret.Data != nil && secret.Data["token"] != nil {
-			logger.Info("service account secret token populated", "secret", secret.Name)
+			lgr.V(logger.LogLevelDebug).Info("service account secret token populated", "secret", secret.Name)
 			return true, nil
 		}
 		return false, nil
@@ -115,7 +116,7 @@ func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *c
 }
 
 func createServiceAccount(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
@@ -134,16 +135,16 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 		if err != nil {
 			return err
 		}
-		logger.Info("service account already exists", "serviceaccount", serviceAccountName)
+		lgr.V(logger.LogLevelDebug).Info("service account already exists", "serviceaccount", serviceAccountName)
 	} else {
-		logger.Info("service account created successfully!", "serviceaccount", serviceAccountName)
+		lgr.V(logger.LogLevelDebug).Info("service account created successfully!", "serviceaccount", serviceAccountName)
 	}
 	return nil
 
 }
 
 func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, clusterRoleName string, clusterConnectionOpts ClusterConnectionOptions) error {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	clusterRoleBindingName := clusterConnectionOpts.ClusterRoleBindingName
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
@@ -158,16 +159,16 @@ func createClusterRoleBinding(ctx context.Context, client kubernetes.Interface, 
 			if err != nil {
 				return err
 			}
-			logger.Info("cluster role binding already exists", "clusterRoleBinding", clusterRoleBinding.Name)
+			lgr.V(logger.LogLevelDebug).Info("cluster role binding already exists", "clusterRoleBinding", clusterRoleBinding.Name)
 		}
 	} else {
-		logger.Info("cluster role binding created successfully!", "clusterrolebinding", clusterRoleBindingName)
+		lgr.V(logger.LogLevelDebug).Info("cluster role binding created successfully!", "clusterrolebinding", clusterRoleBindingName)
 	}
 	return nil
 }
 
 func createSecret(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) (*corev1.Secret, error) {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
@@ -177,7 +178,7 @@ func createSecret(ctx context.Context, client kubernetes.Interface, clusterConne
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("service account secret created successfully!")
+	lgr.V(logger.LogLevelDebug).Info("service account secret created successfully!")
 
 	return secret, nil
 

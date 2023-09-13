@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -21,13 +22,13 @@ import (
 // getSecretNameFromCluster gets the secret name from the secretref of a
 // GitopsCluster given its name and namespace if found.
 func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, scheme *runtime.Scheme, clusterName types.NamespacedName) (string, error) {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	resource := gitopsv1alpha1.GroupVersion.WithResource("gitopsclusters")
 	u, err := client.Resource(resource).Namespace(clusterName.Namespace).Get(ctx, clusterName.Name, metav1.GetOptions{})
 	if err != nil {
 		return "", fmt.Errorf("failed to get GitopsCluster %s: %w", clusterName, err)
 	}
-	logger.Info("remote gitopscluster found", "gitopscluster", clusterName.Name)
+	lgr.V(logger.LogLevelDebug).Info("remote gitopscluster found", "gitopscluster", clusterName.Name)
 
 	gitopsCluster, err := unstructuredToGitopsCluster(scheme, u)
 	if err != nil {
@@ -38,14 +39,14 @@ func getSecretNameFromCluster(ctx context.Context, client dynamic.Interface, sch
 	if secretName == "" {
 		return "", fmt.Errorf("failed to find referenced secret in gitopscluster %s", clusterName)
 	}
-	logger.Info("referenced secret name found in gitops cluster", "gitopscluster", clusterName, "secret", secretName)
+	lgr.V(logger.LogLevelDebug).Info("referenced secret name found in gitops cluster", "gitopscluster", clusterName, "secret", secretName)
 
 	return secretName, nil
 }
 
 // createOrUpdateGitOpsClusterSecret updates/creates the secret with the kubeconfig data given the secret name and namespace of the secret
 func createOrUpdateGitOpsClusterSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string, config *clientcmdapi.Config) (*v1.Secret, error) {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	configBytes, err := clientcmd.Write(*config)
 	if err != nil {
 		return nil, err
@@ -69,7 +70,7 @@ func createOrUpdateGitOpsClusterSecret(ctx context.Context, client kubernetes.In
 		if err != nil {
 			return nil, err
 		}
-		logger.Info("new secret with kubeconfig data created", "secret", secretName)
+		lgr.V(logger.LogLevelDebug).Info("new secret with kubeconfig data created", "secret", secretName)
 
 	}
 
@@ -78,7 +79,7 @@ func createOrUpdateGitOpsClusterSecret(ctx context.Context, client kubernetes.In
 	if err != nil {
 		return nil, err
 	}
-	logger.Info("secret updated with kubeconfig data successfully")
+	lgr.V(logger.LogLevelDebug).Info("secret updated with kubeconfig data successfully")
 
 	return updatedSecret, nil
 
