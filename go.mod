@@ -426,6 +426,8 @@ replace (
 	// xref: https://github.com/opencontainers/go-digest/pull/66
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 
+	github.com/weaveworks/progressive-delivery => github.com/enekofb/progressive-delivery v0.0.0-20230913204819-84c8e92a8088
+
 	// un-comment for local dev
 	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.31.3-0.20230912081556-d18dc14ffa82
 

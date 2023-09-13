@@ -386,6 +386,8 @@ github.com/emicklei/go-restful/v3 v3.10.2 h1:hIovbnmBTLjHXkqEBUz3HGpXZdM7ZrE9fJI
 github.com/emicklei/go-restful/v3 v3.10.2/go.mod h1:6n3XBCmQQb25CM2LCACGz8ukIrRry+4bhvbpWn3mrbc=
 github.com/emirpasic/gods v1.18.1 h1:FXtiHYKDGKCW2KzwZKx0iC0PQmdlorYgdFG9jPXJ1Bc=
 github.com/emirpasic/gods v1.18.1/go.mod h1:8tpGGwCnJ5H4r6BWwaV6OrWmMoPhUl5jm/FMNAnJvWQ=
+github.com/enekofb/progressive-delivery v0.0.0-20230913204819-84c8e92a8088 h1:8MSS8y8KUcOrSdmL/OP+ZSynWlUCnmBrFsF3F/mtgOQ=
+github.com/enekofb/progressive-delivery v0.0.0-20230913204819-84c8e92a8088/go.mod h1:O92otYUoj/4gz4GUuHFbl7lZDygqF34fgi5aScdoMuw=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.4/go.mod h1:6rpuAdCZL397s3pYoYcLgu1mIlRU8Am5FuJP05cCM98=
@@ -1269,8 +1271,6 @@ github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d
 github.com/weaveworks/pipeline-controller/api v0.0.0-20230228164807-3af8aa2ecc3d/go.mod h1:EMw4dkvNuR0GBKVbDFjZMUIma1sZhyS6heAZXM59s0Y=
 github.com/weaveworks/policy-agent/api v1.0.5 h1:4pqzzta8xPUsE9h9YhGJVg5XQ2NuAU/CDoU7zdCw5A0=
 github.com/weaveworks/policy-agent/api v1.0.5/go.mod h1:LlhTiipsV5GSHkL/q7Wa7qrJPZGR9Xtoq2npXTWp9bI=
-github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac h1:7IZG2hhFqO89rMvuPhyUafdy5ISv/Yx+Guz6EtOUqys=
-github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac/go.mod h1:O92otYUoj/4gz4GUuHFbl7lZDygqF34fgi5aScdoMuw=
 github.com/weaveworks/templates-controller v0.2.0 h1:7pWLCoHasLyk1qgDH6N9XVgozZvY91inuAoG9NHGlF8=
 github.com/weaveworks/templates-controller v0.2.0/go.mod h1:qO/4Eeqas5kjLCacboFKcisszFMjCjIUMxhtqxYlMUw=
 github.com/weaveworks/tf-controller/api v0.0.0-20230416092146-4a7dfa5b6cc4 h1:+IkLtnXzCkhJzojbadPd+UxwaTa6K/Eb2grY6LcYfeo=
