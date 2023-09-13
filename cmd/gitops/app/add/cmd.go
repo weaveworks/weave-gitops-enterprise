@@ -3,6 +3,7 @@ package add
 import (
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/controllers"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/terraform"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
@@ -21,6 +22,6 @@ gitops add cluster`,
 	cmd.AddCommand(clusters.AddCommand(opts, client))
 	cmd.AddCommand(profiles.AddCommand(opts, client))
 	cmd.AddCommand(terraform.AddCommand(opts, client))
-
+	cmd.AddCommand(controllers.Command(opts))
 	return cmd
 }
