@@ -1,13 +1,5 @@
 import { Dialog } from '@material-ui/core';
-import { SubRouterTabs } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-
-export const CustomSubRouterTabs = styled(SubRouterTabs)(props => ({
-  '.MuiTabs-root': {
-    marginTop: props.theme.spacing.medium,
-    width: '100%',
-  },
-}));
 
 export const DialogWrapper = styled(Dialog)`
   .MuiDialog-paper {

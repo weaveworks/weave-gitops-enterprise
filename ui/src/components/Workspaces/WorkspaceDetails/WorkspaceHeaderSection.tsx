@@ -3,6 +3,11 @@ import { useHistory } from 'react-router-dom';
 import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
 import RowHeader from '../../RowHeader';
+import styled from 'styled-components';
+
+const Header = styled(Flex)`
+  margin-bottom: ${props => props.theme.spacing.medium};
+`;
 
 function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
   const history = useHistory();
@@ -21,10 +26,10 @@ function WorkspaceHeaderSection({ name, namespaces, clusterName }: Workspace) {
       >
         GO TO TENANT APPLICATIONS
       </Button>
-      <Flex column gap="8">
+      <Header column gap="8">
         <RowHeader rowkey="Workspace Name" value={name} />
         <RowHeader rowkey="Namespaces" value={namespaces?.join(', ')} />
-      </Flex>
+      </Header>
     </Flex>
   );
 }
