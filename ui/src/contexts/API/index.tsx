@@ -11,7 +11,7 @@ import { Query } from '../../api/query/query.pb';
 
 interface APIs {
   terraform: typeof Terraform;
-  clustersService: ClustersService;
+  enterprise: typeof ClustersService;
   progressiveDeliveryService: typeof ProgressiveDeliveryService;
   pipelines: typeof Pipelines;
   query: typeof Query;
@@ -33,7 +33,7 @@ export const useAPI = () => React.useContext(APIContext);
 export function APIProvider({ children }: Props) {
   const api: APIs = {
     terraform: wrap(Terraform),
-    clustersService: wrap(ClustersService),
+    enterprise: wrap(ClustersService),
     progressiveDeliveryService: wrap(ProgressiveDeliveryService),
     pipelines: wrap(Pipelines),
     query: wrap(Query),

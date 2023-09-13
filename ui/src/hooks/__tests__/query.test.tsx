@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
-import QueryServiceProvider from '../../contexts/QueryService';
 
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MockQueryService } from '../../utils/test-utils';
 import { formatFilters, useQueryService } from '../query';
+import { APIContext } from '../../contexts/API';
 
 describe('useQueryService', () => {
   let mock: MockQueryService;
@@ -15,7 +15,9 @@ describe('useQueryService', () => {
     wrapper = ({ children }: any) => (
       <QueryClientProvider client={new QueryClient()}>
         {/* @ts-ignore */}
-        <QueryServiceProvider api={mock}>{children}</QueryServiceProvider>
+        <APIContext.Provider value={{ query: mock }}>
+          {children}
+        </APIContext.Provider>
       </QueryClientProvider>
     );
   });

@@ -4,13 +4,13 @@ import {
   queryByLabelText,
   render,
 } from '@testing-library/react';
-import QueryServiceProvider from '../../../contexts/QueryService';
 import {
   MockQueryService,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
+import { APIContext } from '../../../contexts/API';
 
 describe('Explorer', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -18,7 +18,10 @@ describe('Explorer', () => {
 
   beforeEach(() => {
     api = new MockQueryService();
-    wrap = withContext([...defaultContexts(), [QueryServiceProvider, { api }]]);
+    wrap = withContext([
+      ...defaultContexts(),
+      [APIContext.Provider, { value: { query: api } }],
+    ]);
   });
 
   it('renders rows', async () => {

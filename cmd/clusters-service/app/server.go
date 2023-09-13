@@ -164,6 +164,7 @@ type Params struct {
 	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
+	RoutePrefix                       string                    `mapstructure:"route-prefix"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -236,6 +237,7 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("tls-private-key", "", "filename for the TLS key, in-memory generated if omitted")
 	cmdFlags.Bool("no-tls", false, "do not attempt to read TLS certificates")
 	cmdFlags.String("cluster-name", "management", "name of the management cluster")
+	cmdFlags.String("route-prefix", "", "Route prefix")
 
 	cmdFlags.StringSlice("auth-methods", []string{"oidc", "token-passthrough", "user-account"}, "Which auth methods to use, valid values are 'oidc', 'token-pass-through' and 'user-account'")
 	cmdFlags.String("oidc-issuer-url", "", "The URL of the OpenID Connect issuer")
@@ -730,10 +732,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
 
-	// UI
-	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
-	staticAssets := http.StripPrefix("/", http.FileServer(&spaFileSystem{http.Dir(args.HtmlRootPath)}))
-
 	mux := http.NewServeMux()
 
 	_, err = url.Parse(args.OIDC.IssuerURL)
@@ -844,9 +842,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
 	}
 
-	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
-
-	mux.Handle("/", staticAssetsWithGz)
+	// UI
+	args.Log.Info("Attaching FileServer", "HtmlRootPath", args.HtmlRootPath)
+	assetFS := os.DirFS(args.HtmlRootPath)
+	assertFSHandler := http.FileServer(http.FS(assetFS))
+	redirectHandler := core.IndexHTMLHandler(assetFS, args.Log, "/")
+	assetHandler := core.AssetHandler(assertFSHandler, redirectHandler)
+	mux.Handle("/", gziphandler.GzipHandler(assetHandler))
 
 	handler := http.Handler(mux)
 	handler = args.SessionManager.LoadAndSave(handler)

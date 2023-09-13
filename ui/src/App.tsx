@@ -24,17 +24,14 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import { Query } from './api/query/query.pb';
 import bgDark from './assets/img/bg-dark.png';
 import bg from './assets/img/bg.svg';
-import { ClustersService } from './cluster-services/cluster_services.pb';
 import App from './components/Layout/App';
 import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
 import Compose from './components/ProvidersCompose';
 import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from './contexts/GitAuth/index';
 import NotificationsProvider from './contexts/Notifications/Provider';
-import QueryServiceProvider from './contexts/QueryService';
 import RequestContextProvider from './contexts/Request';
 import ProximaNova from './fonts/proximanova-regular.woff';
 import RobotoMono from './fonts/roboto-mono-regular.woff';
@@ -191,7 +188,7 @@ const AppContainer = () => {
               <AppContextProvider footer={<MemoizedHelpLinkWrapper />}>
                 <StylesProvider>
                   <AuthContextProvider>
-                    <EnterpriseClientProvider api={ClustersService}>
+                    <EnterpriseClientProvider>
                       <CoreClientContextProvider api={coreClient}>
                         <LinkResolverProvider resolver={resolver}>
                           <Pendo
@@ -199,28 +196,26 @@ const AppContainer = () => {
                             tier="enterprise"
                             version={process.env.REACT_APP_VERSION}
                           />
-                          <QueryServiceProvider api={Query}>
-                            <Compose components={[NotificationsProvider]}>
-                              <Switch>
-                                <Route
-                                  component={() => <SignIn />}
-                                  exact={true}
-                                  path="/sign_in"
-                                />
-                                <Route path="*">
-                                  {/* Check we've got a logged in user otherwise redirect back to signin */}
-                                  <AuthCheck>
-                                    <App />
-                                  </AuthCheck>
-                                </Route>
-                              </Switch>
-                              <ToastContainer
-                                position="top-center"
-                                autoClose={5000}
-                                newestOnTop={false}
+                          <Compose components={[NotificationsProvider]}>
+                            <Switch>
+                              <Route
+                                component={() => <SignIn />}
+                                exact={true}
+                                path="/sign_in"
                               />
-                            </Compose>
-                          </QueryServiceProvider>
+                              <Route path="*">
+                                {/* Check we've got a logged in user otherwise redirect back to signin */}
+                                <AuthCheck>
+                                  <App />
+                                </AuthCheck>
+                              </Route>
+                            </Switch>
+                            <ToastContainer
+                              position="top-center"
+                              autoClose={5000}
+                              newestOnTop={false}
+                            />
+                          </Compose>
                         </LinkResolverProvider>
                       </CoreClientContextProvider>
                     </EnterpriseClientProvider>
