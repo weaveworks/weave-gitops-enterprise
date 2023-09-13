@@ -13,7 +13,7 @@ import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
+  const usingQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
   const {
@@ -21,7 +21,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
     isLoading,
     error,
   } = useListSources('', '', {
-    enabled: !useQueryServiceBackend,
+    enabled: !usingQueryServiceBackend,
     retry: false,
     refetchInterval: 5000,
   });
@@ -35,7 +35,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
 
   return (
     <Page
-      loading={isLoading}
+      loading={!usingQueryServiceBackend && isLoading}
       path={[
         {
           label: 'Sources',
@@ -44,7 +44,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
     >
       <NotificationsWrapper errors={sources?.errors}>
         <div className={className}>
-          {useQueryServiceBackend ? (
+          {usingQueryServiceBackend ? (
             <Explorer enableBatchSync category="source" />
           ) : (
             <SourcesTable sources={sources?.result} />

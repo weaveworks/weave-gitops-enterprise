@@ -23,12 +23,12 @@ import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
+  const usingQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
 
   const { data: automations, isLoading } = useListAutomations('', {
-    enabled: !useQueryServiceBackend,
+    enabled: !usingQueryServiceBackend,
     retry: false,
     refetchInterval: 5000,
   });
@@ -39,7 +39,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
 
   return (
     <Page
-      loading={isLoading}
+      loading={!usingQueryServiceBackend && isLoading}
       path={[
         {
           label: 'Applications',
@@ -60,7 +60,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
             <OpenedPullRequest />
           </Flex>
           <div className={className}>
-            {useQueryServiceBackend ? (
+            {usingQueryServiceBackend ? (
               <Explorer
                 category="automation"
                 enableBatchSync

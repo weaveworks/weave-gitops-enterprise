@@ -69,36 +69,40 @@ describe('CanaryDetails', () => {
     });
 
     // Details
-    expect(screen.getByTestId('Cluster')).toHaveTextContent('my-cluster');
-    expect(screen.getByTestId('Namespace')).toHaveTextContent('some-namespace');
-    expect(screen.getByTestId('Target')).toHaveTextContent(
+    expect(await screen.getByTestId('Cluster')).toHaveTextContent('my-cluster');
+    expect(await screen.getByTestId('Namespace')).toHaveTextContent(
+      'some-namespace',
+    );
+    expect(await screen.getByTestId('Target')).toHaveTextContent(
       'Deployment/cool-dep',
     );
-    expect(screen.getByTestId('Application')).toHaveTextContent(
+    expect(await screen.getByTestId('Application')).toHaveTextContent(
       'Kustomization/cool-dep-kustomization',
     );
-    expect(screen.getByTestId('Deployment Strategy')).toHaveTextContent(
+    expect(await screen.getByTestId('Deployment Strategy')).toHaveTextContent(
       'canary',
     );
-    expect(screen.getByTestId('Provider')).toHaveTextContent('my-provider');
+    expect(await screen.getByTestId('Provider')).toHaveTextContent(
+      'my-provider',
+    );
 
     // Status
-    expect(screen.getByTestId('phase')).toHaveTextContent('Succeeded');
-    expect(screen.getByTestId('failedChecks')).toHaveTextContent('0');
-    expect(screen.getByTestId('canaryWeight')).toHaveTextContent('10');
-    expect(screen.getByTestId('iterations')).toHaveTextContent('1');
-    expect(screen.getByTestId('lastTransitionTime')).toHaveTextContent(
+    expect(await screen.getByTestId('phase')).toHaveTextContent('Succeeded');
+    expect(await screen.getByTestId('failedChecks')).toHaveTextContent('0');
+    expect(await screen.getByTestId('canaryWeight')).toHaveTextContent('10');
+    expect(await screen.getByTestId('iterations')).toHaveTextContent('1');
+    expect(await screen.getByTestId('lastTransitionTime')).toHaveTextContent(
       '2022-07-18T17:25:00Z',
     );
 
     // Conditions
-    expect(screen.getByTestId('type')).toHaveTextContent('Promoted');
-    expect(screen.getByTestId('status')).toHaveTextContent('True');
-    expect(screen.getByTestId('lastUpdateTime')).toHaveTextContent(
+    expect(await screen.getByTestId('type')).toHaveTextContent('Promoted');
+    expect(await screen.getByTestId('status')).toHaveTextContent('True');
+    expect(await screen.getByTestId('lastUpdateTime')).toHaveTextContent(
       '2022-07-18T17:30:00Z',
     );
-    expect(screen.getByTestId('reason')).toHaveTextContent('Succeeded');
-    expect(screen.getByTestId('message')).toHaveTextContent(
+    expect(await screen.getByTestId('reason')).toHaveTextContent('Succeeded');
+    expect(await screen.getByTestId('message')).toHaveTextContent(
       'some canary status message',
     );
   });
@@ -128,13 +132,17 @@ describe('CanaryDetails', () => {
     });
 
     // Details
-    expect(screen.getByTestId('Cluster')).toHaveTextContent('my-cluster');
-    expect(screen.getByTestId('Namespace')).toHaveTextContent('some-namespace');
-    expect(screen.getByTestId('Target')).toHaveTextContent(
+    expect(await screen.getByTestId('Cluster')).toHaveTextContent('my-cluster');
+    expect(await screen.getByTestId('Namespace')).toHaveTextContent(
+      'some-namespace',
+    );
+    expect(await screen.getByTestId('Target')).toHaveTextContent(
       'Deployment/cool-dep',
     );
-    expect(screen.getByTestId('Application')).toHaveTextContent('--');
-    expect(screen.getByTestId('Deployment Strategy')).toHaveTextContent('--');
-    expect(screen.getByTestId('Provider')).toHaveTextContent('--');
+    expect(await screen.getByTestId('Application')).toHaveTextContent('--');
+    expect(await screen.getByTestId('Deployment Strategy')).toHaveTextContent(
+      '--',
+    );
+    expect(await screen.getByTestId('Provider')).toHaveTextContent('--');
   });
 });
