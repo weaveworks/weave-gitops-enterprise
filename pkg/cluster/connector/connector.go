@@ -4,12 +4,14 @@ import (
 	"context"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 // ClusterConnectionOptions holds the options to create the resources with such as the target names and namespace
@@ -57,6 +59,7 @@ func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *C
 // ConnectCluster connects a cluster to a spoke cluster given its name and context
 // Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
+	lgr := log.FromContext(ctx)
 	pathOpts := clientcmd.NewDefaultPathOptions()
 	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
 
@@ -100,6 +103,8 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	if err != nil {
 		return err
 	}
+
+	lgr.V(logger.LogLevelInfo).Info("Successfully connected cluster", "cluster", options.GitopsClusterName)
 
 	return nil
 }
