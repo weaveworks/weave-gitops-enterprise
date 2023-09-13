@@ -11,6 +11,8 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,6 +31,7 @@ const (
 	CategorySource     ObjectCategory = "source"
 	CategoryEvent      ObjectCategory = "event"
 	CategoryGitopsSet  ObjectCategory = "gitopsset"
+	CategoryTemplate   ObjectCategory = "template"
 )
 
 type ObjectKind struct {
@@ -233,6 +236,28 @@ var (
 		MessageFunc:     defaultFluxObjectMessageFunc,
 		Category:        CategoryGitopsSet,
 	}
+
+	GitopsTemplateObjectKind = ObjectKind{
+		Gvk: gapiv1.GroupVersion.WithKind(gapiv1.Kind),
+		NewClientObjectFunc: func() client.Object {
+			return &gapiv1.GitOpsTemplate{}
+		},
+		AddToSchemeFunc: gapiv1.AddToScheme,
+		StatusFunc:      defaultFluxObjectStatusFunc,
+		MessageFunc:     defaultFluxObjectMessageFunc,
+		Category:        CategoryTemplate,
+	}
+
+	CapiTemplateObjectKind = ObjectKind{
+		Gvk: capiv1.GroupVersion.WithKind(capiv1.Kind),
+		NewClientObjectFunc: func() client.Object {
+			return &capiv1.CAPITemplate{}
+		},
+		AddToSchemeFunc: capiv1.AddToScheme,
+		StatusFunc:      defaultFluxObjectStatusFunc,
+		MessageFunc:     defaultFluxObjectMessageFunc,
+		Category:        CategoryTemplate,
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -246,6 +271,8 @@ var SupportedObjectKinds = []ObjectKind{
 	BucketObjectKind,
 	PolicyAgentAuditEventObjectKind,
 	GitOpsSetsObjectKind,
+	GitopsTemplateObjectKind,
+	CapiTemplateObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
