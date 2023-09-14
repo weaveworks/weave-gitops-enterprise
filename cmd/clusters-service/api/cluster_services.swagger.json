@@ -16,6 +16,72 @@
     "application/json"
   ],
   "paths": {
+    "/v1/automations": {
+      "post": {
+        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "operationId": "ClustersService_CreateAutomationsPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/automations/render": {
+      "post": {
+        "summary": "Renders an automation template using given cluster automations.",
+        "operationId": "ClustersService_RenderAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/charts/jobs/{jobId}": {
       "get": {
         "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
@@ -323,72 +389,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1EncryptSopsSecretRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/enterprise/automations": {
-      "post": {
-        "summary": "Creates a pull request for the given list of Kustomizations.",
-        "operationId": "ClustersService_CreateAutomationsPullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateAutomationsPullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/enterprise/automations/render": {
-      "post": {
-        "summary": "Renders an automation template using given cluster automations.",
-        "operationId": "ClustersService_RenderAutomation",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RenderAutomationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1RenderAutomationRequest"
             }
           }
         ],
@@ -901,7 +901,7 @@
         ]
       }
     },
-    "/v1/namespaces/{clusterNamespace}/clusters/{templateCluster}/namespaces/{templateNamespace}/templates/{templateName}": {
+    "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
       "get": {
         "summary": "Gets details of a specific template.",
         "operationId": "ClustersService_GetTemplate",
@@ -921,18 +921,6 @@
         },
         "parameters": [
           {
-            "name": "clusterNamespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateCluster",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "templateNamespace",
             "in": "path",
             "required": true,
@@ -946,6 +934,18 @@
           },
           {
             "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "templateCluster",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterNamespace",
             "in": "query",
             "required": false,
             "type": "string"
@@ -1042,6 +1042,86 @@
         ]
       }
     },
+    "/v1/namespaces/{templateNamespace}/templates/{templateName}/render": {
+      "post": {
+        "summary": "Renders a template using given values.",
+        "operationId": "ClustersService_RenderTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential"
+                },
+                "templateKind": {
+                  "type": "string"
+                },
+                "clusterNamespace": {
+                  "type": "string"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  }
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/policy-configs": {
       "get": {
         "summary": "List policy configs",
@@ -1126,83 +1206,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/render": {
-      "post": {
-        "summary": "Renders a template using given values.",
-        "operationId": "ClustersService_RenderTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RenderTemplateResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "values": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                },
-                "credentials": {
-                  "$ref": "#/definitions/v1Credential"
-                },
-                "templateKind": {
-                  "type": "string"
-                },
-                "clusterNamespace": {
-                  "type": "string"
-                },
-                "profiles": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1ProfileValues"
-                  }
-                },
-                "kustomizations": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1Kustomization"
-                  }
-                },
-                "templateNamespace": {
-                  "type": "string"
-                },
-                "externalSecrets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1ExternalSecret"
-                  }
-                }
-              }
-            }
           }
         ],
         "tags": [

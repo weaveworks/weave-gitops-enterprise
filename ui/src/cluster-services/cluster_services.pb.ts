@@ -861,7 +861,7 @@ export class ClustersService {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
-    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["templateCluster"]}/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "templateCluster", "templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
   }
   static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
     return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
@@ -870,10 +870,10 @@ export class ClustersService {
     return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/profiles?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
-    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static RenderAutomation(req: RenderAutomationRequest, initReq?: fm.InitReq): Promise<RenderAutomationResponse> {
-    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/enterprise/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -897,7 +897,7 @@ export class ClustersService {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
-    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/enterprise/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

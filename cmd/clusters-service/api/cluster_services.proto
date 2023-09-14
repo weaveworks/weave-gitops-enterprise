@@ -28,8 +28,7 @@ service ClustersService {
   // Gets details of a specific template.
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{template_cluster}"
-            "/namespaces/{template_namespace}/templates/{template_name}"
+      get : "/v1/namespaces/{template_namespace}/templates/{template_name}"
     };
   }
 
@@ -38,8 +37,7 @@ service ClustersService {
   rpc ListTemplateParams(ListTemplateParamsRequest)
       returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}" 
-            "/templates/{template_name}/params"
+      get : "/v1/namespaces/{template_namespace}/templates/{template_name}/params"
     };
   }
 
@@ -47,15 +45,14 @@ service ClustersService {
   rpc ListTemplateProfiles(ListTemplateProfilesRequest)
       returns (ListTemplateProfilesResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}"
-            "/templates/{template_name}/profiles"
+      get : "/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"
     };
   }
 
   // Renders a template using given values.
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (google.api.http) = {
-      post : "/v1/templates/{template_name}/render"
+      post : "/v1/namespaces/{template_namespace}/templates/{template_name}/render"
       body : "*"
     };
   }
@@ -64,7 +61,7 @@ service ClustersService {
   rpc RenderAutomation(RenderAutomationRequest)
     returns (RenderAutomationResponse) {
     option (google.api.http) = {
-      post : "/v1/enterprise/automations/render"
+      post : "/v1/automations/render"
       body : "*"
     };
   }
@@ -123,8 +120,7 @@ service ClustersService {
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}"
-            "/clusters/{cluster_name}/kubeconfig"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/kubeconfig"
     };
   }
 
@@ -132,6 +128,7 @@ service ClustersService {
   rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
       returns (GetEnterpriseVersionResponse) {
     option (google.api.http) = {
+      // Namespaced under /enterprise/ so as not to conflict with the OSS endpoint
       get : "/v1/enterprise/version"
     };
   }
@@ -140,7 +137,7 @@ service ClustersService {
   rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
       returns (CreateAutomationsPullRequestResponse) {
     option (google.api.http) = {
-      post : "/v1/enterprise/automations"
+      post : "/v1/automations"
       body : "*"
     };
   }
@@ -154,6 +151,7 @@ service ClustersService {
   // Returns the k8s events for a given object
   rpc ListEvents(ListEventsRequest) returns (ListEventsResponse) {
     option (google.api.http) = {
+      // namespaced under /enterprise/ so as not to conflict with the OSS endpoint
       get : "/v1/enterprise/events"
     };
   }
@@ -198,8 +196,8 @@ service ClustersService {
    // Get workspace details
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}"
-            "/clusters/{cluster_name}/workspaces/{workspace_name}"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/workspaces/{workspace_name}"
     };
   }
 
@@ -207,8 +205,8 @@ service ClustersService {
    rpc GetWorkspaceRoles(GetWorkspaceRequest)
     returns (GetWorkspaceRolesResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}"
-            "/clusters/{cluster_name}/workspaces/{workspace_name}/roles"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/workspaces/{workspace_name}/roles"
     };
   }
 
@@ -234,8 +232,8 @@ service ClustersService {
   rpc GetWorkspacePolicies(GetWorkspaceRequest)
     returns (GetWorkspacePoliciesResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}"
-            "/clusters/{cluster_name}/workspaces/{workspace_name}/policies"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/workspaces/{workspace_name}/policies"
     };
   }
 
@@ -285,8 +283,8 @@ service ClustersService {
   rpc GetPolicyConfig(GetPolicyConfigRequest)
     returns (GetPolicyConfigResponse) {
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}"
-            "/clusters/{cluster_name}/policy-configs/{name}"
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
+            "/policy-configs/{name}"
     };
   }
 
