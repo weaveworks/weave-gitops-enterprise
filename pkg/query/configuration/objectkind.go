@@ -290,6 +290,9 @@ func defaultFluxObjectStatusFunc(obj client.Object) ObjectStatus {
 	if err != nil {
 		return Failed
 	}
+	if fo == nil {
+		return NoStatus
+	}
 
 	for _, c := range fo.GetConditions() {
 		if ObjectStatus(c.Type) == NoStatus {
@@ -340,6 +343,16 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *gitopssets.GitOpsSet:
 		return t, nil
+	case *gapiv1.GitOpsTemplate:
+		return nil, nil
+	case *capiv1.CAPITemplate:
+		return nil, nil
+	case *corev1.Event:
+		e, ok := obj.(*corev1.Event)
+		if !ok {
+			return nil, fmt.Errorf("failed to cast object to event")
+		}
+		return &eventAdapter{e}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)
