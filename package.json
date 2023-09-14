@@ -12,6 +12,9 @@
     "@material-ui/icons": "^4.11.2",
     "@material-ui/lab": "^4.0.0-alpha.58",
     "@material-ui/styles": "^4.11.4",
+    "@parcel/packager-raw-url": "2.9.3",
+    "@parcel/transformer-typescript-tsc": "^2.9.3",
+    "@parcel/transformer-webmanifest": "^2.9.3",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.3",
     "@svgr/webpack": "^5.5.0",
     "@testing-library/jest-dom": "^5.11.4",
@@ -64,6 +67,7 @@
     "mini-css-extract-plugin": "^2.4.5",
     "mnemonic-browser": "^0.0.1",
     "moment": "2.29.4",
+    "parcel": "^2.9.3",
     "polished": "3.6.3",
     "postcss": "^8.4.4",
     "postcss-flexbugs-fixes": "^5.0.2",
@@ -113,9 +117,8 @@
     "parse-url": "~8.1.0"
   },
   "scripts": {
-    "start": "node ui/scripts/start.js",
-    "preview": "node ui/server.js",
-    "build": "node ui/scripts/build.js",
+    "start": "parcel serve ui/index.html --port 3000 --dist-dir build",
+    "build": "parcel build ui/index.html --dist-dir build",
     "test": "node ui/scripts/test.js"
   },
   "eslintConfig": {
@@ -149,10 +152,12 @@
   "devDependencies": {
     "@testing-library/react": "^12.1.5",
     "@types/react-syntax-highlighter": "^13.5.2",
+    "buffer": "^5.5.0||^6.0.0",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.0",
     "jest-styled-components": "^7.0.8",
-    "prettier": "^2.3.0"
+    "prettier": "^2.3.0",
+    "process": "^0.11.10"
   },
   "jest": {
     "roots": [

@@ -206,7 +206,7 @@ CALENDAR_VERSION=$(shell date +"%Y-%m")
 
 .PHONY: node_modules
 node_modules: package.json yarn.lock
-	yarn config set network-timeout 300000 && yarn install --prod --frozen-lockfile
+	yarn config set network-timeout 300000 && yarn install --frozen-lockfile
 
 ui-build: node_modules $(shell find ui/src -type f)
 	REACT_APP_DISABLE_PROGRESSIVE_DELIVERY="$(REACT_APP_DISABLE_PROGRESSIVE_DELIVERY)" REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
