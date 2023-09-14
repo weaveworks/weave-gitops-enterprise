@@ -4,8 +4,15 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
+	profile "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/controllers/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"golang.org/x/exp/slices"
+)
+
+const (
+	installControllerMsg = "Do you want to install extra controllers on your cluster"
 )
 
 const (
@@ -24,6 +31,19 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 - Set the admin password for WGE Dashboard.
 - Easy steps to make OIDC flow
 `
+	optionNone        = "None"
+	optionCapi        = "capi"
+	optionPolicyAgent = "policy-agent"
+	optionTerraform   = "terraform"
+)
+
+var (
+	controllers = []string{
+		optionNone,
+		optionCapi,
+		optionPolicyAgent,
+		optionTerraform,
+	}
 )
 
 func Command(opts *config.Options) *cobra.Command {
@@ -77,10 +97,42 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
+	if err = InstallControllers(wgeVersion, controllers); err != nil {
+		return err
+	}
+
 	// check if the UI is running on localhost or external domain
 	if err = commands.CheckUIDomain(*opts, userDomain, wgeVersion); err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func InstallControllers(version string, controllers []string) error {
+	controllerName, err := utils.GetSelectInput(installControllerMsg, controllers)
+	if err != nil {
+		return err
+	}
+
+	switch controllerName {
+	case "None":
+		return nil
+	case optionCapi:
+		if err = profile.InstallPolicyAgent(); err != nil {
+			return err
+		}
+	case optionPolicyAgent:
+		if err = profile.InstallCapi(); err != nil {
+			return err
+		}
+	case optionTerraform:
+		if err = profile.InstallTerraform(); err != nil {
+			return err
+		}
+	}
+
+	controllers = slices.Delete(controllers, slices.Index(controllers, controllerName), slices.Index(controllers, controllerName)+1)
+
+	return InstallControllers(version, controllers)
 }
