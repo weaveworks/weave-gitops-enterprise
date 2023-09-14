@@ -148,7 +148,7 @@ CMD_GITOPS_LDFLAGS?=-X github.com/weaveworks/weave-gitops/cmd/gitops/version.Bra
 				 -X github.com/weaveworks/weave-gitops/cmd/gitops/version.Version=$(VERSION)
 
 cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
-	CGO_ENABLED=0 go build -ldflags "$(CMD_GITOPS_LDFLAGS)" -gcflags='all=-N -l' -o $@  ./cmd/gitops
+	CGO_ENABLED=0 go build -ldflags "$(shell make echo-ldflags)" -gcflags='all=-N -l' -o $@  ./cmd/gitops
 
 update-weave-gitops:
 	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
@@ -237,3 +237,5 @@ swagger-docs:
 
 FORCE:
 
+echo-ldflags:
+	@echo "$(CMD_GITOPS_LDFLAGS)"
