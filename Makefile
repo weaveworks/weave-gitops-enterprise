@@ -152,8 +152,7 @@ cmd/gitops/gitops: cmd/gitops/main.go $(shell find cmd/gitops -name "*.go")
 
 update-weave-gitops:
 	$(eval SHORTHASH := $(shell curl -q 'https://api.github.com/repos/weaveworks/weave-gitops/branches/$(BRANCH)' | jq -r '.commit.sha[:8]'))
-	go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH)
-	go mod tidy
+	GOPRIVATE=github.com/weaveworks go get -d github.com/weaveworks/weave-gitops@$(SHORTHASH) && go mod tidy
 	$(eval NPM_VERSION := $(shell yarn info @weaveworks/weave-gitops-main time --json | jq -r '.data | keys | .[] | select(contains("$(SHORTHASH)"))'))
 	yarn add @weaveworks/weave-gitops@npm:@weaveworks/weave-gitops-main@$(NPM_VERSION)
 
