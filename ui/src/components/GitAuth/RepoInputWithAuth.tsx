@@ -46,6 +46,7 @@ export function RepoInputWithAuth({
   loading,
   ...props
 }: Props) {
+  console.log('value sent', value);
   const parsedValue = value && JSON.parse(value);
   const { data: res, error: err } = useParseRepoUrl(parsedValue?.value);
   const { data } = useListSources('', '', { retry: false });
@@ -114,11 +115,14 @@ export function RepoInputWithAuth({
             value: getRepositoryUrl(gitRepo),
             key: gitRepo.obj.spec.url,
           }))
-          .map((option, index: number) => (
-            <MenuItem key={index} value={JSON.stringify(option)}>
-              {option.key}
-            </MenuItem>
-          ))}
+          .map((option, index: number) => {
+            console.log('dropdown option', option.key, option.value);
+            return (
+              <MenuItem key={index} value={JSON.stringify(option)}>
+                {option.key}
+              </MenuItem>
+            );
+          })}
       </Select>
       <div className="auth-message">
         {isAuthenticated && (
