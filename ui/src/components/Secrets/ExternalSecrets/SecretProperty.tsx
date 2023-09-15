@@ -91,6 +91,7 @@ export const SecretProperty = ({
               />
               {formData.data.length > 1 && (
                 <RemoveCircleOutlineIcon
+                  style={{ marginRight: '-30px' }}
                   className="remove-icon"
                   onClick={() => handleRemoveProp(obj.id)}
                 />
