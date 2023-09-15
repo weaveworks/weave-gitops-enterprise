@@ -237,3 +237,5 @@ swagger-docs:
 
 FORCE:
 
+echo-ldflags:
+	@echo "$(CMD_GITOPS_LDFLAGS)"
