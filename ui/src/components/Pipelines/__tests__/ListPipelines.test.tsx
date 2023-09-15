@@ -152,6 +152,7 @@ describe('Auth redirect', () => {
   beforeEach(() => {
     api = new PipelinesClientMock();
     wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
+    jest.spyOn(console, 'error').mockImplementationOnce(() => {});
   });
   const mockResponse = jest.fn();
   Object.defineProperty(window, 'location', {
