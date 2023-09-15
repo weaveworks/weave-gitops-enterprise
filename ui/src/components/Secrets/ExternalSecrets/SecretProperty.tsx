@@ -7,8 +7,8 @@ import { ExternalSecret } from '../Shared/utils';
 import styled from 'styled-components';
 
 const PropertiesSwitch = styled(Switch)`
-  &.MuiSwitch-track {
-    background-color: ${props => props.theme.colors.primary30};
+  .MuiSwitch-track {
+    background-color: ${({ theme }) => theme.colors.primary30};
   }
 `;
 
