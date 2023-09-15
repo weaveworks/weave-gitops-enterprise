@@ -1,6 +1,6 @@
 const fs = require('fs');
 const express = require('express');
-const setupProxy = require('./src/setupProxy');
+const setupProxy = require('../.proxyrc.js');
 
 const app = express();
 
