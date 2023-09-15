@@ -28,7 +28,7 @@
     "@types/styled-components": "^5.1.9",
     "@types/urijs": "^1.19.19",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "0.31.2",
+    "@weaveworks/weave-gitops": "0.32.0",
     "babel-jest": "^27.4.2",
     "babel-loader": "^8.2.3",
     "babel-plugin-named-asset-import": "^0.3.8",
