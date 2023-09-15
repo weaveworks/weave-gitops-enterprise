@@ -937,18 +937,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          },
-          {
-            "name": "templateCluster",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "clusterNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [

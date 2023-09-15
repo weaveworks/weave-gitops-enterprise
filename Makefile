@@ -234,7 +234,19 @@ ui-audit:
 .PHONY: swagger-docs
 swagger-docs:
 	@echo "Swagger docs available at http://localhost:6001"
-	docker run -p 6001:8080 -e SWAGGER_JSON=/swagger/cluster_services.swagger.json -v $(CURRENT_DIR)/cmd/clusters-service/api:/swagger swaggerapi/swagger-ui
+	docker run -p 6001:8080 \
+	-e URLS="[ \
+	{ name: \"clusters-service\", url: \"/clusters-service-api/cluster_services.swagger.json\"}, \
+	{ name: \"gitopssets\", url: \"/api/gitopssets/gitopssets.swagger.json\"}, \
+	{ name: \"terraform\", url: \"/api/terraform/terraform.swagger.json\"}, \
+	{ name: \"gitauth\", url: \"/api/gitauth/gitauth.swagger.json\"}, \
+	{ name: \"pipeline\", url: \"/api/pipelines/pipelines.swagger.json\"}, \
+	{ name: \"query\", url: \"/api/query/query.swagger.json\"}, \
+	]" \
+	-v $(CURRENT_DIR)/cmd/clusters-service/api:/usr/share/nginx/html/clusters-service-api \
+	-v $(CURRENT_DIR)/api:/usr/share/nginx/html/api \
+	swaggerapi/swagger-ui
+
 
 FORCE:
 

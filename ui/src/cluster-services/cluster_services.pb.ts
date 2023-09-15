@@ -33,8 +33,6 @@ export type GetTemplateRequest = {
   templateName?: string
   templateKind?: string
   templateNamespace?: string
-  templateCluster?: string
-  clusterNamespace?: string
 }
 
 export type GetTemplateResponse = {

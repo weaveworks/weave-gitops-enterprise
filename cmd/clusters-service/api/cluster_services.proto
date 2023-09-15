@@ -11,7 +11,6 @@ import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
 
-// protolint:disable:next MAX_LINE_LENGTH
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
 
 /**
@@ -34,16 +33,14 @@ service ClustersService {
 
   
    // Gets the Values.yaml for a template if one exists.
-  rpc ListTemplateParams(ListTemplateParamsRequest)
-      returns (ListTemplateParamsResponse) {
+  rpc ListTemplateParams(ListTemplateParamsRequest) returns (ListTemplateParamsResponse) {
     option (google.api.http) = {
       get : "/v1/namespaces/{template_namespace}/templates/{template_name}/params"
     };
   }
 
   // Returns a list of profiles within that template.
-  rpc ListTemplateProfiles(ListTemplateProfilesRequest)
-      returns (ListTemplateProfilesResponse) {
+  rpc ListTemplateProfiles(ListTemplateProfilesRequest) returns (ListTemplateProfilesResponse) {
     option (google.api.http) = {
       get : "/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"
     };
@@ -58,8 +55,7 @@ service ClustersService {
   }
 
   // Renders an automation template using given cluster automations.
-  rpc RenderAutomation(RenderAutomationRequest)
-    returns (RenderAutomationResponse) {
+  rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
     option (google.api.http) = {
       post : "/v1/automations/render"
       body : "*"
@@ -67,8 +63,7 @@ service ClustersService {
   }
 
   // Lists available GitOps clusters.
-  rpc ListGitopsClusters(ListGitopsClustersRequest)
-      returns (ListGitopsClustersResponse) {
+  rpc ListGitopsClusters(ListGitopsClustersRequest) returns (ListGitopsClustersResponse) {
     option (google.api.http) = {
       get : "/v1/clusters"
     };
@@ -78,8 +73,7 @@ service ClustersService {
   // The template name and values will be used to
   // create a new branch for which a new pull request
   // will be created.
-  rpc CreatePullRequest(CreatePullRequestRequest)
-      returns (CreatePullRequestResponse) {
+  rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
     option (google.api.http) = {
       post : "/v1/clusters"
       body : "*"
@@ -332,9 +326,8 @@ message GetTemplateRequest {
   string template_name = 1;
   string template_kind = 2;
   string template_namespace = 3;
-  string template_cluster = 4;
-  string cluster_namespace = 5;
 }
+
 message GetTemplateResponse { Template template = 1; }
 
 message ListTemplateParamsRequest {
