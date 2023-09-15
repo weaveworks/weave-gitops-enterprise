@@ -21,20 +21,17 @@ const _ = grpc.SupportPackageIsVersion7
 type ClustersServiceClient interface {
 	// Returns a list of templates.
 	ListTemplates(ctx context.Context, in *ListTemplatesRequest, opts ...grpc.CallOption) (*ListTemplatesResponse, error)
-	// Get details of a specific template.
+	// Gets details of a specific template.
 	GetTemplate(ctx context.Context, in *GetTemplateRequest, opts ...grpc.CallOption) (*GetTemplateResponse, error)
-	// Get the Values.yaml for a template if one exists.
+	// Gets the Values.yaml for a template if one exists.
 	ListTemplateParams(ctx context.Context, in *ListTemplateParamsRequest, opts ...grpc.CallOption) (*ListTemplateParamsResponse, error)
-	// Returns a list of profiles within that template
-	// `gitops get <template-name> --list-profiles`
-	// The template annotations appear in the following form
-	// capi.weave.works/profile-<n> where n is a number
+	// Returns a list of profiles within that template.
 	ListTemplateProfiles(ctx context.Context, in *ListTemplateProfilesRequest, opts ...grpc.CallOption) (*ListTemplateProfilesResponse, error)
-	// Render a template using given values.
+	// Renders a template using given values.
 	RenderTemplate(ctx context.Context, in *RenderTemplateRequest, opts ...grpc.CallOption) (*RenderTemplateResponse, error)
-	// Render an automation template using given cluster automations.
+	// Renders an automation template using given cluster automations.
 	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
-	// List available GitOps clusters.
+	// Lists available GitOps clusters.
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -46,6 +43,8 @@ type ClustersServiceClient interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error)
+	// Creates a pull request for the given list of clusters
+	// to be deleted.
 	DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error)
 	// List available credentials.
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
@@ -409,20 +408,17 @@ func (c *clustersServiceClient) ListSopsKustomizations(ctx context.Context, in *
 type ClustersServiceServer interface {
 	// Returns a list of templates.
 	ListTemplates(context.Context, *ListTemplatesRequest) (*ListTemplatesResponse, error)
-	// Get details of a specific template.
+	// Gets details of a specific template.
 	GetTemplate(context.Context, *GetTemplateRequest) (*GetTemplateResponse, error)
-	// Get the Values.yaml for a template if one exists.
+	// Gets the Values.yaml for a template if one exists.
 	ListTemplateParams(context.Context, *ListTemplateParamsRequest) (*ListTemplateParamsResponse, error)
-	// Returns a list of profiles within that template
-	// `gitops get <template-name> --list-profiles`
-	// The template annotations appear in the following form
-	// capi.weave.works/profile-<n> where n is a number
+	// Returns a list of profiles within that template.
 	ListTemplateProfiles(context.Context, *ListTemplateProfilesRequest) (*ListTemplateProfilesResponse, error)
-	// Render a template using given values.
+	// Renders a template using given values.
 	RenderTemplate(context.Context, *RenderTemplateRequest) (*RenderTemplateResponse, error)
-	// Render an automation template using given cluster automations.
+	// Renders an automation template using given cluster automations.
 	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
-	// List available GitOps clusters.
+	// Lists available GitOps clusters.
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Creates a pull request for a cluster template.
 	// The template name and values will be used to
@@ -434,6 +430,8 @@ type ClustersServiceServer interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error)
+	// Creates a pull request for the given list of clusters
+	// to be deleted.
 	DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error)
 	// List available credentials.
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)

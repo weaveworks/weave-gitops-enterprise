@@ -6,11 +6,13 @@ import { gitlabOAuthRedirectURI } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import {
   ApplicationsClientMock,
+  CoreClientMock,
   defaultContexts,
   promisify,
   withContext,
 } from '../../../utils/test-utils';
 import { RepoInputWithAuth } from '../RepoInputWithAuth';
+import { CoreClientContextProvider, Kind } from '@weaveworks/weave-gitops';
 
 Object.assign(navigator, {
   clipboard: {
@@ -21,9 +23,11 @@ Object.assign(navigator, {
 describe('Gitlab Authenticate', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: ApplicationsClientMock;
+  let coreApi: CoreClientMock;
 
   const gitRepoUrl = JSON.stringify({
     value: 'https://gitlab.git.dev.weave.works/test',
+    key: 'https://gitlab.git.dev.weave.works/test',
   });
 
   const onProviderChange = jest.fn();
@@ -44,7 +48,32 @@ describe('Gitlab Authenticate', () => {
     });
 
     api = new ApplicationsClientMock();
-    wrap = withContext([...defaultContexts(), [GitAuthProvider, { api }]]);
+    coreApi = new CoreClientMock();
+
+    wrap = withContext([
+      ...defaultContexts(),
+      [GitAuthProvider, { api }],
+      [CoreClientContextProvider, { api: coreApi }],
+    ]);
+
+    coreApi.ListObjectsReturns = {
+      [Kind.GitRepository]: {
+        objects: [
+          {
+            payload: JSON.stringify({
+              kind: 'GitRepository',
+              metadata: {
+                name: 'test',
+              },
+              spec: {
+                url: 'https://gitlab.git.dev.weave.works/test',
+                ref: 'master',
+              },
+            }),
+          },
+        ],
+      },
+    };
   });
 
   it('renders', async () => {
