@@ -46,13 +46,6 @@ const GitAuth: FC<{
     }
   }, [formData.provider]);
 
-  // console.log(
-  //   'initial',
-  //   JSON.stringify({
-  //     value: getRepositoryUrl(formData?.repo),
-  //     key: formData?.repo?.obj?.spec?.url,
-  //   }),
-  // );
   return (
     <>
       <RepoInputWithAuthWrapper
