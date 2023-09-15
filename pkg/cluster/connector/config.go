@@ -7,6 +7,7 @@ import (
 	"os/user"
 	"path/filepath"
 
+	"github.com/weaveworks/weave-gitops/core/logger"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
@@ -17,7 +18,7 @@ import (
 // it is retrieved from provided path or load in-cluster config or using default recommended locations
 // empty context is provided if current context is to be used
 func configForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, contextName string) (*rest.Config, error) {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	kubeconfigPath := pathOpts.LoadingRules.ExplicitPath
 	// If a kubeconfig flag is specified with the config location, use that
 	if len(kubeconfigPath) > 0 {
@@ -36,7 +37,7 @@ func configForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, cont
 	if len(kubeconfigPath) == 0 {
 		config, err := rest.InClusterConfig()
 		if err == nil && config != nil {
-			logger.Info("in-cluster kubeconfig used")
+			lgr.V(logger.LogLevelDebug).Info("in-cluster kubeconfig used")
 			return config, nil
 		}
 	}
@@ -57,9 +58,9 @@ func configForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, cont
 		return nil, err
 	}
 	if contextName != "" {
-		logger.Info("kubeconfig context loaded", "name", contextName)
+		lgr.V(logger.LogLevelDebug).Info("kubeconfig context loaded", "name", contextName)
 	} else {
-		logger.Info("kubeconfig for default context loaded")
+		lgr.V(logger.LogLevelDebug).Info("kubeconfig for default context loaded")
 	}
 	return config, nil
 
@@ -68,7 +69,7 @@ func configForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, cont
 // kubeConfigWithToken takes a rest.Config and generates a KubeConfig with the
 // named context and configured user credentials from the provided token.
 func kubeConfigWithToken(ctx context.Context, config *rest.Config, context string, token []byte) (*clientcmdapi.Config, error) {
-	logger := log.FromContext(ctx)
+	lgr := log.FromContext(ctx)
 	clusterName := context + "-cluster"
 	username := clusterName + "-user"
 
@@ -88,7 +89,7 @@ func kubeConfigWithToken(ctx context.Context, config *rest.Config, context strin
 		AuthInfo: username,
 	}
 	cfg.CurrentContext = context
-	logger.Info("kubeconfig with token generated successfully")
+	lgr.V(logger.LogLevelDebug).Info("kubeconfig with token generated successfully")
 
 	return cfg, nil
 }

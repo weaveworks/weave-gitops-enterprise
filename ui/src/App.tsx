@@ -6,13 +6,13 @@ import {
   AppContextProvider,
   AuthCheck,
   AuthContextProvider,
+  coreClient,
   CoreClientContextProvider,
   LinkResolverProvider,
   Pendo,
   SignIn,
-  ThemeTypes,
-  coreClient,
   theme,
+  ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import React, { ReactNode } from 'react';
 import {
@@ -24,7 +24,7 @@ import {
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { ThemeProvider, createGlobalStyle } from 'styled-components';
+import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';

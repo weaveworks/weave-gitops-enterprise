@@ -1,24 +1,24 @@
 import {
   Canary,
   CanaryAnalysis,
-  CanaryTargetDeployment,
   CanaryStatus as Status,
+  CanaryTargetDeployment,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import {
   DataTable,
-  Link,
   filterConfig,
   formatURL,
+  Link,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
+import styled from 'styled-components';
 import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
 import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
 import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
 import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
 import { Routes } from '../../../../utils/nav';
-import { usePolicyStyle } from '../../../Policies/PolicyStyles';
 import { TableWrapper } from '../../../Shared';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {
@@ -103,8 +103,6 @@ function formatPromoted(target?: CanaryTargetDeployment): any {
 }
 
 export const CanaryTable: FC<Props> = ({ canaries }) => {
-  const classes = usePolicyStyle();
-
   const initialFilterState = {
     ...filterConfig(canaries, 'namespace'),
     ...filterConfig(canaries, 'clusterName'),
@@ -119,13 +117,12 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
           {
             label: 'Name',
             value: (c: Canary) => (
-              <Link
+              <CanaryLink
                 to={formatURL(Routes.CanaryDetails, {
                   clusterName: c.clusterName,
                   namespace: c.namespace,
                   name: c.name,
                 })}
-                className={classes.canaryLink}
               >
                 {c.name}
                 <span
@@ -135,7 +132,7 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
                 >
                   {getDeploymentStrategyIcon(c.deploymentStrategy || '')}
                 </span>
-              </Link>
+              </CanaryLink>
             ),
           },
           {
@@ -169,7 +166,9 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
           {
             label: 'Message',
             value: (c: Canary) =>
-              (c.status?.conditions && c.status?.conditions[0].message) || '--',
+              (c.status?.conditions &&
+                _.get(c, ['status', 'conditions', 0, 'message'])) ||
+              '--',
           },
           {
             label: 'Promoted',
@@ -179,14 +178,16 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
             label: 'Last Updated',
             value: (c: Canary) =>
               (c.status?.conditions &&
-                moment(c.status?.conditions[0].lastUpdateTime).fromNow()) ||
+                moment(
+                  _.get(c, ['status', 'conditions', 0, 'lastUpdateTime']),
+                ).fromNow()) ||
               '--',
             defaultSort: true,
             sortValue: (c: Canary) => {
               const t =
                 c.status?.conditions &&
                 new Date(
-                  c.status?.conditions[0].lastUpdateTime || '',
+                  _.get(c, ['status', 'conditions', 0, 'lastUpdateTime']) || '',
                 ).getTime();
               return Number(t) * -1;
             },
@@ -196,3 +197,11 @@ export const CanaryTable: FC<Props> = ({ canaries }) => {
     </TableWrapper>
   );
 };
+
+const CanaryLink = styled(Link)`
+  color: #00b3ec;
+  font-weight: 600;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+`;

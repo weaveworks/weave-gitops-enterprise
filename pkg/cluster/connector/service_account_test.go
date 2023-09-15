@@ -28,7 +28,16 @@ func TestReconcileServiceAccount(t *testing.T) {
 	}{
 		{
 			"create new service account",
-			nil,
+			[]runtime.Object{
+				newClusterRole("cluster-admin", corev1.NamespaceDefault, []rbacv1.PolicyRule{
+
+					{
+						APIGroups: []string{"*"},
+						Resources: []string{"*"},
+						Verbs:     []string{"*"},
+					},
+				}),
+			},
 			"test-service-account",
 			v1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
@@ -43,15 +52,8 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Namespace: corev1.NamespaceDefault,
 					},
 				},
-				"ClusterRole": newClusterRole("test-service-account-cluster-role", corev1.NamespaceDefault, []rbacv1.PolicyRule{
 
-					{
-						APIGroups: []string{"*"},
-						Resources: []string{"*"},
-						Verbs:     []string{"*"},
-					},
-				}),
-				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
+				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
 			},
 		},
 		{
@@ -63,45 +65,14 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Namespace: corev1.NamespaceDefault,
 					},
 				},
-			},
-			"test-service-account",
-			v1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-service-account",
-					Namespace: corev1.NamespaceDefault,
-				},
-			},
-			map[string]runtime.Object{
-				"ServiceAccount": &v1.ServiceAccount{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "test-service-account",
-						Namespace: corev1.NamespaceDefault,
-					},
-				},
-				"ClusterRole": newClusterRole("test-service-account-cluster-role", corev1.NamespaceDefault, []rbacv1.PolicyRule{
+				newClusterRole("cluster-admin", corev1.NamespaceDefault, []rbacv1.PolicyRule{
+
 					{
 						APIGroups: []string{"*"},
 						Resources: []string{"*"},
 						Verbs:     []string{"*"},
 					},
 				}),
-				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
-			},
-		},
-		{
-			"existing cluster role with different rules than expected",
-			[]runtime.Object{
-				&rbacv1.ClusterRole{
-					TypeMeta: metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "test-service-account-cluster-role",
-					},
-					Rules: []rbacv1.PolicyRule{
-						{
-							APIGroups: []string{"*"},
-						},
-					},
-				},
 			},
 			"test-service-account",
 			v1.ServiceAccount{
@@ -117,52 +88,21 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Namespace: corev1.NamespaceDefault,
 					},
 				},
-				"ClusterRole": newClusterRole("test-service-account-cluster-role", corev1.NamespaceDefault, []rbacv1.PolicyRule{
-					{
-						APIGroups: []string{"*"},
-					},
-				}),
-				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
+				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
 			},
 		},
 		{
 			"existing cluster role binding",
 			[]runtime.Object{
-				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "existing-cluster-role", "test-service-account"),
-			},
-			"test-service-account",
-			v1.ServiceAccount{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      "test-service-account",
-					Namespace: corev1.NamespaceDefault,
-				},
-			},
-			map[string]runtime.Object{
-				"ServiceAccount": &v1.ServiceAccount{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "test-service-account",
-						Namespace: corev1.NamespaceDefault,
-					},
-				},
-				"ClusterRole": newClusterRole("test-service-account-cluster-role", corev1.NamespaceDefault, []rbacv1.PolicyRule{
+				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+				newClusterRole("cluster-admin", corev1.NamespaceDefault, []rbacv1.PolicyRule{
+
 					{
 						APIGroups: []string{"*"},
 						Resources: []string{"*"},
 						Verbs:     []string{"*"},
 					},
 				}),
-				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "existing-cluster-role", "test-service-account"),
-			},
-		},
-		{
-			"existing cluster role and cluster role binding",
-			[]runtime.Object{
-				newClusterRole("test-service-account-cluster-role", corev1.NamespaceDefault, []rbacv1.PolicyRule{
-					{
-						APIGroups: []string{"*"},
-					},
-				}),
-				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
 			},
 			"test-service-account",
 			v1.ServiceAccount{
@@ -178,12 +118,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Namespace: corev1.NamespaceDefault,
 					},
 				},
-				"ClusterRole": newClusterRole("test-service-account-cluster-role", corev1.NamespaceDefault, []rbacv1.PolicyRule{
-					{
-						APIGroups: []string{"*"},
-					},
-				}),
-				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "test-service-account-cluster-role", "test-service-account"),
+				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
 			},
 		},
 	}
@@ -213,12 +148,6 @@ func TestReconcileServiceAccount(t *testing.T) {
 			assert.NoError(t, err)
 			expectedServiceAccount := tt.expectedResources["ServiceAccount"].(*v1.ServiceAccount)
 			assert.Equal(t, expectedServiceAccount, serviceAccount, "service account found doesn't match expected")
-
-			// Verify ClusterRole created/exists
-			expectedClusterRole := tt.expectedResources["ClusterRole"].(*rbacv1.ClusterRole)
-			clusterRole, err := remoteClientSet.RbacV1().ClusterRoles().Get(context.Background(), tt.serviceAccountName+"-cluster-role", metav1.GetOptions{})
-			assert.NoError(t, err)
-			assert.Equal(t, expectedClusterRole, clusterRole, "cluster role found doesn't match expected")
 
 			// Verify ClusterRoleBinding created/exists
 			expectedClusterRoleBinding := tt.expectedResources["ClusterRoleBinding"].(*rbacv1.ClusterRoleBinding)

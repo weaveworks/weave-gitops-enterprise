@@ -16,6 +16,72 @@
     "application/json"
   ],
   "paths": {
+    "/v1/automations/pull-request": {
+      "post": {
+        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "operationId": "ClustersService_CreateAutomationsPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/automations/render": {
+      "post": {
+        "summary": "Renders an automation template using given cluster automations.",
+        "operationId": "ClustersService_RenderAutomation",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1RenderAutomationRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/charts/jobs/{jobId}": {
       "get": {
         "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
@@ -143,7 +209,7 @@
     },
     "/v1/clusters": {
       "get": {
-        "summary": "List available GitOps clusters.",
+        "summary": "Lists available GitOps clusters.",
         "operationId": "ClustersService_ListGitopsClusters",
         "responses": {
           "200": {
@@ -193,6 +259,7 @@
     },
     "/v1/clusters/pull-request": {
       "delete": {
+        "summary": "Creates a pull request for the given list of clusters \nto be deleted.",
         "operationId": "ClustersService_DeleteClustersPullRequest",
         "responses": {
           "200": {
@@ -216,44 +283,6 @@
             "schema": {
               "$ref": "#/definitions/v1DeleteClustersPullRequestRequest"
             }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/clusters/{clusterName}/kubeconfig": {
-      "get": {
-        "summary": "Returns the Kubeconfig for the given\nworkload cluster.",
-        "operationId": "ClustersService_GetKubeconfig",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/apiHttpBody"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "clusterName",
-            "description": "The name of the workload cluster.",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -331,72 +360,6 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1EncryptSopsSecretRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/enterprise/automations/pull-request": {
-      "post": {
-        "summary": "Creates a pull request for the given list of Kustomizations.",
-        "operationId": "ClustersService_CreateAutomationsPullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreateAutomationsPullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreateAutomationsPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/enterprise/automations/render": {
-      "post": {
-        "summary": "Render an automation template using given cluster automations.",
-        "operationId": "ClustersService_RenderAutomation",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RenderAutomationResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1RenderAutomationRequest"
             }
           }
         ],
@@ -564,7 +527,45 @@
         ]
       }
     },
-    "/v1/external-secrets/{externalSecretName}": {
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/kubeconfig": {
+      "get": {
+        "summary": "Returns the Kubeconfig for the given\nworkload cluster.",
+        "operationId": "ClustersService_GetKubeconfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/apiHttpBody"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "description": "The name of the workload cluster.",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/external-secrets/{externalSecretName}": {
       "get": {
         "summary": "Get secret details",
         "operationId": "ClustersService_GetExternalSecret",
@@ -584,22 +585,495 @@
         },
         "parameters": [
           {
-            "name": "externalSecretName",
+            "name": "clusterNamespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "clusterName",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           },
           {
             "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "externalSecretName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/policy-configs/{name}": {
+      "get": {
+        "summary": "Get policy config details",
+        "operationId": "ClustersService_GetPolicyConfig",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetPolicyConfigResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/workspaces/{workspaceName}": {
+      "get": {
+        "summary": "Get workspace details",
+        "operationId": "ClustersService_GetWorkspace",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/workspaces/{workspaceName}/policies": {
+      "get": {
+        "summary": "List workspace service accounts",
+        "operationId": "ClustersService_GetWorkspacePolicies",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspacePoliciesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/workspaces/{workspaceName}/rolebindings": {
+      "get": {
+        "summary": "List workspace role bindings",
+        "operationId": "ClustersService_GetWorkspaceRoleBindings",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRoleBindingsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/workspaces/{workspaceName}/roles": {
+      "get": {
+        "summary": "List workspace roles",
+        "operationId": "ClustersService_GetWorkspaceRoles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceRolesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/workspaces/{workspaceName}/serviceaccounts": {
+      "get": {
+        "summary": "List workspace service accounts",
+        "operationId": "ClustersService_GetWorkspaceServiceAccounts",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetWorkspaceServiceAccountsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "workspaceName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
+      "get": {
+        "summary": "Gets details of a specific template.",
+        "operationId": "ClustersService_GetTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{templateNamespace}/templates/{templateName}/params": {
+      "get": {
+        "summary": "Gets the Values.yaml for a template if one exists.",
+        "operationId": "ClustersService_ListTemplateParams",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateParamsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{templateNamespace}/templates/{templateName}/profiles": {
+      "get": {
+        "summary": "Returns a list of profiles within that template.",
+        "operationId": "ClustersService_ListTemplateProfiles",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateKind",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
+    "/v1/namespaces/{templateNamespace}/templates/{templateName}/render": {
+      "post": {
+        "summary": "Renders a template using given values.",
+        "operationId": "ClustersService_RenderTemplate",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1RenderTemplateResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "templateNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "templateName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "values": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  }
+                },
+                "credentials": {
+                  "$ref": "#/definitions/v1Credential"
+                },
+                "templateKind": {
+                  "type": "string"
+                },
+                "clusterNamespace": {
+                  "type": "string"
+                },
+                "profiles": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ProfileValues"
+                  }
+                },
+                "kustomizations": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1Kustomization"
+                  }
+                },
+                "externalSecrets": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1ExternalSecret"
+                  }
+                }
+              }
+            }
           }
         ],
         "tags": [
@@ -625,43 +1099,6 @@
             }
           }
         },
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/policy-configs/{name}": {
-      "get": {
-        "summary": "Get policy config details",
-        "operationId": "ClustersService_GetPolicyConfig",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetPolicyConfigResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
         "tags": [
           "ClustersService"
         ]
@@ -768,212 +1205,6 @@
         ]
       }
     },
-    "/v1/templates/{templateName}": {
-      "get": {
-        "summary": "Get details of a specific template.",
-        "operationId": "ClustersService_GetTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetTemplateResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "templateNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/params": {
-      "get": {
-        "summary": "Get the Values.yaml for a template if one exists.",
-        "operationId": "ClustersService_ListTemplateParams",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateParamsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "templateNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/profiles": {
-      "get": {
-        "summary": "Returns a list of profiles within that template\n`gitops get \u003ctemplate-name\u003e --list-profiles`\nThe template annotations appear in the following form\ncapi.weave.works/profile-\u003cn\u003e where n is a number",
-        "operationId": "ClustersService_ListTemplateProfiles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ListTemplateProfilesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "templateKind",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "templateNamespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/templates/{templateName}/render": {
-      "post": {
-        "summary": "Render a template using given values.",
-        "operationId": "ClustersService_RenderTemplate",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1RenderTemplateResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "templateName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "values": {
-                  "type": "object",
-                  "additionalProperties": {
-                    "type": "string"
-                  }
-                },
-                "credentials": {
-                  "$ref": "#/definitions/v1Credential"
-                },
-                "templateKind": {
-                  "type": "string"
-                },
-                "clusterNamespace": {
-                  "type": "string"
-                },
-                "profiles": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1ProfileValues"
-                  }
-                },
-                "kustomizations": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1Kustomization"
-                  }
-                },
-                "templateNamespace": {
-                  "type": "string"
-                },
-                "externalSecrets": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/definitions/v1ExternalSecret"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
     "/v1/tfcontrollers/pull-request": {
       "post": {
         "summary": "Creates a pull request for a tfcontroller template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
@@ -1035,191 +1266,6 @@
           },
           {
             "name": "pagination.pageToken",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/workspaces/{workspaceName}": {
-      "get": {
-        "summary": "Get workspace details",
-        "operationId": "ClustersService_GetWorkspace",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetWorkspaceResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "workspaceName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/workspaces/{workspaceName}/policies": {
-      "get": {
-        "summary": "List workspace service accounts",
-        "operationId": "ClustersService_GetWorkspacePolicies",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetWorkspacePoliciesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "workspaceName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/workspaces/{workspaceName}/rolebindings": {
-      "get": {
-        "summary": "List workspace role bindings",
-        "operationId": "ClustersService_GetWorkspaceRoleBindings",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetWorkspaceRoleBindingsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "workspaceName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/workspaces/{workspaceName}/roles": {
-      "get": {
-        "summary": "List workspace roles",
-        "operationId": "ClustersService_GetWorkspaceRoles",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetWorkspaceRolesResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "workspaceName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
-    "/v1/workspaces/{workspaceName}/serviceaccounts": {
-      "get": {
-        "summary": "List workspace service accounts",
-        "operationId": "ClustersService_GetWorkspaceServiceAccounts",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetWorkspaceServiceAccountsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "workspaceName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
