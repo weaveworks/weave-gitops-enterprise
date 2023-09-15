@@ -4,6 +4,13 @@ import { Button, Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
 import { InputDebounced } from '../../../utils/form';
 import { ExternalSecret } from '../Shared/utils';
+import styled from 'styled-components';
+
+const PropertiesSwitch = styled(Switch)`
+  &.MuiSwitch-track {
+    background-color: ${props => props.theme.colors.primary30};
+  }
+`;
 
 export const SecretProperty = ({
   formData,
@@ -19,7 +26,7 @@ export const SecretProperty = ({
       ...f,
       data: f.data.map(p => {
         if (p.id !== id) return p;
-        
+
         if (isKey) p.key = value;
         else p.value = value;
 
@@ -50,7 +57,7 @@ export const SecretProperty = ({
   return (
     <Flex gap="16" column wide>
       <Text size="medium" semiBold>
-        <Switch
+        <PropertiesSwitch
           color="primary"
           value={formData.includeAllProps}
           onChange={(evt, checked) =>
