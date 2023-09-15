@@ -58,13 +58,22 @@ service ClustersService {
   // The template name and values will be used to
   // create a new branch for which a new pull request
   // will be created.
-  rpc CreatePullRequest(CreatePullRequestRequest)
-      returns (CreatePullRequestResponse) {
+  rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
     option (google.api.http) = {
       post : "/v1/templates/pull-request"
       body : "*"
     };
   }
+
+  // Creates a pull request for the given list of clusters
+  // to be deleted.
+  rpc CreateDeletionPullRequest(CreateDeletionPullRequestRequest) returns (CreateDeletionPullRequestResponse) {
+    option (google.api.http) = {
+      post : "/v1/templates/deletion-pull-request"
+      body : "*"
+    };
+  }
+
 
   // Renders an automation template using given cluster automations.
   rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
@@ -74,13 +83,15 @@ service ClustersService {
     };
   }
 
-  // Lists available GitOps clusters.
-  rpc ListGitopsClusters(ListGitopsClustersRequest) returns (ListGitopsClustersResponse) {
+  // Creates a pull request for the given list of Kustomizations.
+  rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
+      returns (CreateAutomationsPullRequestResponse) {
     option (google.api.http) = {
-      get : "/v1/clusters"
+      post : "/v1/automations/pull-request"
+      body : "*"
     };
   }
-
+  
   // Creates a pull request for a tfcontroller template.
   // The template name and values will be used to
   // create a new branch for which a new pull request
@@ -93,16 +104,6 @@ service ClustersService {
     };
   }
 
-  // Creates a pull request for the given list of clusters 
-  // to be deleted.
-  rpc DeleteClustersPullRequest(DeleteClustersPullRequestRequest)
-      returns (DeleteClustersPullRequestResponse) {
-    option (google.api.http) = {
-      delete : "/v1/clusters/pull-request"
-      body : "*"
-    };
-  }
-
   // List available credentials.
   rpc ListCredentials(ListCredentialsRequest)
       returns (ListCredentialsResponse) {
@@ -110,6 +111,14 @@ service ClustersService {
       get : "/v1/credentials"
     };
   }
+
+  // Lists available GitOps clusters.
+  rpc ListGitopsClusters(ListGitopsClustersRequest) returns (ListGitopsClustersResponse) {
+    option (google.api.http) = {
+      get : "/v1/clusters"
+    };
+  }
+
 
   // Returns the Kubeconfig for the given
   // workload cluster.
@@ -128,15 +137,6 @@ service ClustersService {
     };
   }
 
-  // Creates a pull request for the given list of Kustomizations.
-  rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
-      returns (CreateAutomationsPullRequestResponse) {
-    option (google.api.http) = {
-      post : "/v1/automations/pull-request"
-      body : "*"
-    };
-  }
-  
   rpc GetConfig(GetConfigRequest) returns (GetConfigResponse) {
     option (google.api.http) = {
       get : "/v1/config"
@@ -150,7 +150,6 @@ service ClustersService {
       get : "/v1/enterprise/events"
     };
   }
-
 
   // Lists the discovered Helm charts in the provided
   // repository.
@@ -495,7 +494,7 @@ message ClusterNamespacedName {
   string name = 2;
 }
 
-message DeleteClustersPullRequestRequest {
+message CreateDeletionPullRequestRequest {
   // The repository to use.
   string repository_url = 1;
   // The new branch that will be created.
@@ -516,7 +515,7 @@ message DeleteClustersPullRequestRequest {
   string repository_api_url = 9;
   repeated ClusterNamespacedName cluster_namespaced_names = 10;
 }
-message DeleteClustersPullRequestResponse {
+message CreateDeletionPullRequestResponse {
   // The url of the new pull request.
   string web_url = 1;
 }

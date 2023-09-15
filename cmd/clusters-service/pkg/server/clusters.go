@@ -278,7 +278,7 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}, nil
 }
 
-func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_proto.DeleteClustersPullRequestRequest) (*capiv1_proto.DeleteClustersPullRequestResponse, error) {
+func (s *server) CreateDeletionPullRequest(ctx context.Context, msg *capiv1_proto.CreateDeletionPullRequestRequest) (*capiv1_proto.CreateDeletionPullRequestResponse, error) {
 	gp, err := getGitProvider(ctx, msg.RepositoryUrl)
 	if err != nil {
 		return nil, grpcStatus.Errorf(codes.Unauthenticated, "error creating pull request: %s", err.Error())
@@ -395,7 +395,7 @@ func (s *server) DeleteClustersPullRequest(ctx context.Context, msg *capiv1_prot
 		return nil, err
 	}
 
-	return &capiv1_proto.DeleteClustersPullRequestResponse{
+	return &capiv1_proto.CreateDeletionPullRequestResponse{
 		WebUrl: res.WebURL,
 	}, nil
 }
@@ -880,7 +880,7 @@ func validateCreateClusterPR(msg *capiv1_proto.CreatePullRequestRequest) error {
 	return err
 }
 
-func validateDeleteClustersPR(msg *capiv1_proto.DeleteClustersPullRequestRequest) error {
+func validateDeleteClustersPR(msg *capiv1_proto.CreateDeletionPullRequestRequest) error {
 	var err error
 
 	if len(msg.ClusterNamespacedNames) == 0 && len(msg.ClusterNames) == 0 {

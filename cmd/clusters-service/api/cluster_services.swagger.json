@@ -257,39 +257,6 @@
         ]
       }
     },
-    "/v1/clusters/pull-request": {
-      "delete": {
-        "summary": "Creates a pull request for the given list of clusters \nto be deleted.",
-        "operationId": "ClustersService_DeleteClustersPullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1DeleteClustersPullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1DeleteClustersPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      }
-    },
     "/v1/config": {
       "get": {
         "operationId": "ClustersService_GetConfig",
@@ -1172,6 +1139,39 @@
         ]
       }
     },
+    "/v1/templates/deletion-pull-request": {
+      "post": {
+        "summary": "Creates a pull request for the given list of clusters\nto be deleted.",
+        "operationId": "ClustersService_CreateDeletionPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateDeletionPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateDeletionPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "ClustersService"
+        ]
+      }
+    },
     "/v1/templates/pull-request": {
       "post": {
         "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
@@ -1578,6 +1578,65 @@
         }
       }
     },
+    "v1CreateDeletionPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "clusterNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The name of the clusters to be delete via a PR."
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential",
+          "title": "Credentials"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
+        },
+        "clusterNamespacedNames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterNamespacedName"
+          }
+        }
+      }
+    },
+    "v1CreateDeletionPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
     "v1CreatePullRequestRequest": {
       "type": "object",
       "properties": {
@@ -1762,65 +1821,6 @@
         },
         "secretRef": {
           "$ref": "#/definitions/v1SecretRef"
-        }
-      }
-    },
-    "v1DeleteClustersPullRequestRequest": {
-      "type": "object",
-      "properties": {
-        "repositoryUrl": {
-          "type": "string",
-          "description": "The repository to use."
-        },
-        "headBranch": {
-          "type": "string",
-          "description": "The new branch that will be created."
-        },
-        "baseBranch": {
-          "type": "string",
-          "description": "The target branch."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the pull request."
-        },
-        "description": {
-          "type": "string",
-          "title": "The description of the pull request"
-        },
-        "clusterNames": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "The name of the clusters to be delete via a PR."
-        },
-        "commitMessage": {
-          "type": "string",
-          "title": "The commit message"
-        },
-        "credentials": {
-          "$ref": "#/definitions/v1Credential",
-          "title": "Credentials"
-        },
-        "repositoryApiUrl": {
-          "type": "string",
-          "description": "The repo api url."
-        },
-        "clusterNamespacedNames": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ClusterNamespacedName"
-          }
-        }
-      }
-    },
-    "v1DeleteClustersPullRequestResponse": {
-      "type": "object",
-      "properties": {
-        "webUrl": {
-          "type": "string",
-          "description": "The url of the new pull request."
         }
       }
     },

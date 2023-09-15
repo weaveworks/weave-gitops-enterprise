@@ -34,27 +34,27 @@ type ClustersServiceClient interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
+	// Creates a pull request for the given list of clusters
+	// to be deleted.
+	CreateDeletionPullRequest(ctx context.Context, in *CreateDeletionPullRequestRequest, opts ...grpc.CallOption) (*CreateDeletionPullRequestResponse, error)
 	// Renders an automation template using given cluster automations.
 	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
-	// Lists available GitOps clusters.
-	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
+	// Creates a pull request for the given list of Kustomizations.
+	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	// Creates a pull request for a tfcontroller template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
 	// will be created.
 	CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error)
-	// Creates a pull request for the given list of clusters
-	// to be deleted.
-	DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error)
 	// List available credentials.
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
+	// Lists available GitOps clusters.
+	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Returns the Kubeconfig for the given
 	// workload cluster.
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// Returns the WeGO Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
-	// Creates a pull request for the given list of Kustomizations.
-	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(ctx context.Context, in *GetConfigRequest, opts ...grpc.CallOption) (*GetConfigResponse, error)
 	// Returns the k8s events for a given object
 	ListEvents(ctx context.Context, in *ListEventsRequest, opts ...grpc.CallOption) (*ListEventsResponse, error)
@@ -159,6 +159,15 @@ func (c *clustersServiceClient) CreatePullRequest(ctx context.Context, in *Creat
 	return out, nil
 }
 
+func (c *clustersServiceClient) CreateDeletionPullRequest(ctx context.Context, in *CreateDeletionPullRequestRequest, opts ...grpc.CallOption) (*CreateDeletionPullRequestResponse, error) {
+	out := new(CreateDeletionPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateDeletionPullRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *clustersServiceClient) RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error) {
 	out := new(RenderAutomationResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/RenderAutomation", in, out, opts...)
@@ -168,9 +177,9 @@ func (c *clustersServiceClient) RenderAutomation(ctx context.Context, in *Render
 	return out, nil
 }
 
-func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error) {
-	out := new(ListGitopsClustersResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListGitopsClusters", in, out, opts...)
+func (c *clustersServiceClient) CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error) {
+	out := new(CreateAutomationsPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -186,18 +195,18 @@ func (c *clustersServiceClient) CreateTfControllerPullRequest(ctx context.Contex
 	return out, nil
 }
 
-func (c *clustersServiceClient) DeleteClustersPullRequest(ctx context.Context, in *DeleteClustersPullRequestRequest, opts ...grpc.CallOption) (*DeleteClustersPullRequestResponse, error) {
-	out := new(DeleteClustersPullRequestResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/DeleteClustersPullRequest", in, out, opts...)
+func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
+	out := new(ListCredentialsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListCredentials", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
-	out := new(ListCredentialsResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListCredentials", in, out, opts...)
+func (c *clustersServiceClient) ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error) {
+	out := new(ListGitopsClustersResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListGitopsClusters", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -216,15 +225,6 @@ func (c *clustersServiceClient) GetKubeconfig(ctx context.Context, in *GetKubeco
 func (c *clustersServiceClient) GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error) {
 	out := new(GetEnterpriseVersionResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetEnterpriseVersion", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error) {
-	out := new(CreateAutomationsPullRequestResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -421,27 +421,27 @@ type ClustersServiceServer interface {
 	// create a new branch for which a new pull request
 	// will be created.
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
+	// Creates a pull request for the given list of clusters
+	// to be deleted.
+	CreateDeletionPullRequest(context.Context, *CreateDeletionPullRequestRequest) (*CreateDeletionPullRequestResponse, error)
 	// Renders an automation template using given cluster automations.
 	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
-	// Lists available GitOps clusters.
-	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
+	// Creates a pull request for the given list of Kustomizations.
+	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	// Creates a pull request for a tfcontroller template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
 	// will be created.
 	CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error)
-	// Creates a pull request for the given list of clusters
-	// to be deleted.
-	DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error)
 	// List available credentials.
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
+	// Lists available GitOps clusters.
+	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Returns the Kubeconfig for the given
 	// workload cluster.
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	// Returns the WeGO Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
-	// Creates a pull request for the given list of Kustomizations.
-	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
 	GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error)
 	// Returns the k8s events for a given object
 	ListEvents(context.Context, *ListEventsRequest) (*ListEventsResponse, error)
@@ -507,29 +507,29 @@ func (UnimplementedClustersServiceServer) RenderTemplate(context.Context, *Rende
 func (UnimplementedClustersServiceServer) CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreatePullRequest not implemented")
 }
+func (UnimplementedClustersServiceServer) CreateDeletionPullRequest(context.Context, *CreateDeletionPullRequestRequest) (*CreateDeletionPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateDeletionPullRequest not implemented")
+}
 func (UnimplementedClustersServiceServer) RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method RenderAutomation not implemented")
 }
-func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
+func (UnimplementedClustersServiceServer) CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateAutomationsPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateTfControllerPullRequest not implemented")
 }
-func (UnimplementedClustersServiceServer) DeleteClustersPullRequest(context.Context, *DeleteClustersPullRequestRequest) (*DeleteClustersPullRequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method DeleteClustersPullRequest not implemented")
-}
 func (UnimplementedClustersServiceServer) ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCredentials not implemented")
+}
+func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
 }
 func (UnimplementedClustersServiceServer) GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetKubeconfig not implemented")
 }
 func (UnimplementedClustersServiceServer) GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetEnterpriseVersion not implemented")
-}
-func (UnimplementedClustersServiceServer) CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateAutomationsPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) GetConfig(context.Context, *GetConfigRequest) (*GetConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfig not implemented")
@@ -709,6 +709,24 @@ func _ClustersService_CreatePullRequest_Handler(srv interface{}, ctx context.Con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_CreateDeletionPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateDeletionPullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreateDeletionPullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/CreateDeletionPullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreateDeletionPullRequest(ctx, req.(*CreateDeletionPullRequestRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ClustersService_RenderAutomation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(RenderAutomationRequest)
 	if err := dec(in); err != nil {
@@ -727,20 +745,20 @@ func _ClustersService_RenderAutomation_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_ListGitopsClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListGitopsClustersRequest)
+func _ClustersService_CreateAutomationsPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateAutomationsPullRequestRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, in)
+		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/ListGitopsClusters",
+		FullMethod: "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, req.(*ListGitopsClustersRequest))
+		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, req.(*CreateAutomationsPullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -763,24 +781,6 @@ func _ClustersService_CreateTfControllerPullRequest_Handler(srv interface{}, ctx
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_DeleteClustersPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(DeleteClustersPullRequestRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).DeleteClustersPullRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/DeleteClustersPullRequest",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).DeleteClustersPullRequest(ctx, req.(*DeleteClustersPullRequestRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCredentialsRequest)
 	if err := dec(in); err != nil {
@@ -795,6 +795,24 @@ func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListCredentials(ctx, req.(*ListCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListGitopsClusters_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListGitopsClustersRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListGitopsClusters",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListGitopsClusters(ctx, req.(*ListGitopsClustersRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -831,24 +849,6 @@ func _ClustersService_GetEnterpriseVersion_Handler(srv interface{}, ctx context.
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).GetEnterpriseVersion(ctx, req.(*GetEnterpriseVersionRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_CreateAutomationsPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateAutomationsPullRequestRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/CreateAutomationsPullRequest",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).CreateAutomationsPullRequest(ctx, req.(*CreateAutomationsPullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1227,24 +1227,28 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_CreatePullRequest_Handler,
 		},
 		{
+			MethodName: "CreateDeletionPullRequest",
+			Handler:    _ClustersService_CreateDeletionPullRequest_Handler,
+		},
+		{
 			MethodName: "RenderAutomation",
 			Handler:    _ClustersService_RenderAutomation_Handler,
 		},
 		{
-			MethodName: "ListGitopsClusters",
-			Handler:    _ClustersService_ListGitopsClusters_Handler,
+			MethodName: "CreateAutomationsPullRequest",
+			Handler:    _ClustersService_CreateAutomationsPullRequest_Handler,
 		},
 		{
 			MethodName: "CreateTfControllerPullRequest",
 			Handler:    _ClustersService_CreateTfControllerPullRequest_Handler,
 		},
 		{
-			MethodName: "DeleteClustersPullRequest",
-			Handler:    _ClustersService_DeleteClustersPullRequest_Handler,
-		},
-		{
 			MethodName: "ListCredentials",
 			Handler:    _ClustersService_ListCredentials_Handler,
+		},
+		{
+			MethodName: "ListGitopsClusters",
+			Handler:    _ClustersService_ListGitopsClusters_Handler,
 		},
 		{
 			MethodName: "GetKubeconfig",
@@ -1253,10 +1257,6 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetEnterpriseVersion",
 			Handler:    _ClustersService_GetEnterpriseVersion_Handler,
-		},
-		{
-			MethodName: "CreateAutomationsPullRequest",
-			Handler:    _ClustersService_CreateAutomationsPullRequest_Handler,
 		},
 		{
 			MethodName: "GetConfig",

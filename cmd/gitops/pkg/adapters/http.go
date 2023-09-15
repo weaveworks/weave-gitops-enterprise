@@ -663,7 +663,7 @@ func toQueryParams(req profiles.GetOptions) (map[string]string, error) {
 
 // DeleteClusters deletes CAPI cluster using its name
 func (c *HTTPClient) DeleteClusters(params clusters.DeleteClustersParams) (string, error) {
-	endpoint := "v1/clusters"
+	endpoint := "v1/templates/deletion-pull-request"
 
 	type DeleteClustersPullRequestRequest struct {
 		RepositoryUrl string                `json:"repositoryUrl"`
