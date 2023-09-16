@@ -1,8 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "cluster_services.proto",
-    "version": "version not set"
+    "title": "Weave GitOps GitOpsSets API",
+    "description": "The API handles operations for Weave GitOps GitopsSets",
+    "version": "0.1"
   },
   "tags": [
     {
@@ -45,7 +46,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "automations"
         ]
       }
     },
@@ -78,7 +79,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "automations"
         ]
       }
     },
@@ -109,7 +110,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "charts"
         ]
       }
     },
@@ -170,7 +171,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "charts"
         ]
       }
     },
@@ -203,7 +204,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "charts"
         ]
       }
     },
@@ -253,7 +254,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "clusters"
         ]
       }
     },
@@ -298,7 +299,7 @@
           }
         },
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -331,7 +332,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -426,7 +427,7 @@
           }
         },
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -457,7 +458,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -490,7 +491,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -528,7 +529,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "clusters"
         ]
       }
     },
@@ -577,7 +578,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -620,7 +621,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "policies"
         ]
       }
     },
@@ -663,7 +664,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -706,7 +707,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -749,7 +750,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -792,7 +793,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -835,7 +836,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -878,7 +879,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -921,7 +922,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -964,7 +965,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1044,7 +1045,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1067,7 +1068,7 @@
           }
         },
         "tags": [
-          "ClustersService"
+          "policies"
         ]
       }
     },
@@ -1098,7 +1099,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -1135,7 +1136,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1168,7 +1169,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1201,7 +1202,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1234,7 +1235,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1272,7 +1273,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     }

@@ -41,13 +41,13 @@ type ClustersServiceClient interface {
 	RenderAutomation(ctx context.Context, in *RenderAutomationRequest, opts ...grpc.CallOption) (*RenderAutomationResponse, error)
 	// Creates a pull request for the given list of Kustomizations.
 	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
+	// List available credentials.
+	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// Creates a pull request for a tfcontroller template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
 	// will be created.
 	CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error)
-	// List available credentials.
-	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// Lists available GitOps clusters.
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Returns the Kubeconfig for the given
@@ -87,14 +87,14 @@ type ClustersServiceClient interface {
 	ListExternalSecretStores(ctx context.Context, in *ListExternalSecretStoresRequest, opts ...grpc.CallOption) (*ListExternalSecretStoresResponse, error)
 	// Sync externalSecret Operator secrets
 	SyncExternalSecrets(ctx context.Context, in *SyncExternalSecretsRequest, opts ...grpc.CallOption) (*SyncExternalSecretsResponse, error)
-	// List policy configs
-	ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error)
-	// Get policy config details
-	GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error)
 	// Encrypts a sops secret
 	EncryptSopsSecret(ctx context.Context, in *EncryptSopsSecretRequest, opts ...grpc.CallOption) (*EncryptSopsSecretResponse, error)
 	// List Sops kustomizations
 	ListSopsKustomizations(ctx context.Context, in *ListSopsKustomizationsRequest, opts ...grpc.CallOption) (*ListSopsKustomizationsResponse, error)
+	// List policy configs
+	ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error)
+	// Get policy config details
+	GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -186,18 +186,18 @@ func (c *clustersServiceClient) CreateAutomationsPullRequest(ctx context.Context
 	return out, nil
 }
 
-func (c *clustersServiceClient) CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error) {
-	out := new(CreateTfControllerPullRequestResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateTfControllerPullRequest", in, out, opts...)
+func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
+	out := new(ListCredentialsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListCredentials", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *clustersServiceClient) ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error) {
-	out := new(ListCredentialsResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListCredentials", in, out, opts...)
+func (c *clustersServiceClient) CreateTfControllerPullRequest(ctx context.Context, in *CreateTfControllerPullRequestRequest, opts ...grpc.CallOption) (*CreateTfControllerPullRequestResponse, error) {
+	out := new(CreateTfControllerPullRequestResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/CreateTfControllerPullRequest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -366,24 +366,6 @@ func (c *clustersServiceClient) SyncExternalSecrets(ctx context.Context, in *Syn
 	return out, nil
 }
 
-func (c *clustersServiceClient) ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error) {
-	out := new(ListPolicyConfigsResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListPolicyConfigs", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-func (c *clustersServiceClient) GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error) {
-	out := new(GetPolicyConfigResponse)
-	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetPolicyConfig", in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
 func (c *clustersServiceClient) EncryptSopsSecret(ctx context.Context, in *EncryptSopsSecretRequest, opts ...grpc.CallOption) (*EncryptSopsSecretResponse, error) {
 	out := new(EncryptSopsSecretResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/EncryptSopsSecret", in, out, opts...)
@@ -396,6 +378,24 @@ func (c *clustersServiceClient) EncryptSopsSecret(ctx context.Context, in *Encry
 func (c *clustersServiceClient) ListSopsKustomizations(ctx context.Context, in *ListSopsKustomizationsRequest, opts ...grpc.CallOption) (*ListSopsKustomizationsResponse, error) {
 	out := new(ListSopsKustomizationsResponse)
 	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListSopsKustomizations", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error) {
+	out := new(ListPolicyConfigsResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/ListPolicyConfigs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *clustersServiceClient) GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error) {
+	out := new(GetPolicyConfigResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/GetPolicyConfig", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -428,13 +428,13 @@ type ClustersServiceServer interface {
 	RenderAutomation(context.Context, *RenderAutomationRequest) (*RenderAutomationResponse, error)
 	// Creates a pull request for the given list of Kustomizations.
 	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
+	// List available credentials.
+	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// Creates a pull request for a tfcontroller template.
 	// The template name and values will be used to
 	// create a new branch for which a new pull request
 	// will be created.
 	CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error)
-	// List available credentials.
-	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// Lists available GitOps clusters.
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Returns the Kubeconfig for the given
@@ -474,14 +474,14 @@ type ClustersServiceServer interface {
 	ListExternalSecretStores(context.Context, *ListExternalSecretStoresRequest) (*ListExternalSecretStoresResponse, error)
 	// Sync externalSecret Operator secrets
 	SyncExternalSecrets(context.Context, *SyncExternalSecretsRequest) (*SyncExternalSecretsResponse, error)
-	// List policy configs
-	ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error)
-	// Get policy config details
-	GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error)
 	// Encrypts a sops secret
 	EncryptSopsSecret(context.Context, *EncryptSopsSecretRequest) (*EncryptSopsSecretResponse, error)
 	// List Sops kustomizations
 	ListSopsKustomizations(context.Context, *ListSopsKustomizationsRequest) (*ListSopsKustomizationsResponse, error)
+	// List policy configs
+	ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error)
+	// Get policy config details
+	GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -516,11 +516,11 @@ func (UnimplementedClustersServiceServer) RenderAutomation(context.Context, *Ren
 func (UnimplementedClustersServiceServer) CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateAutomationsPullRequest not implemented")
 }
-func (UnimplementedClustersServiceServer) CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method CreateTfControllerPullRequest not implemented")
-}
 func (UnimplementedClustersServiceServer) ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListCredentials not implemented")
+}
+func (UnimplementedClustersServiceServer) CreateTfControllerPullRequest(context.Context, *CreateTfControllerPullRequestRequest) (*CreateTfControllerPullRequestResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateTfControllerPullRequest not implemented")
 }
 func (UnimplementedClustersServiceServer) ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGitopsClusters not implemented")
@@ -576,17 +576,17 @@ func (UnimplementedClustersServiceServer) ListExternalSecretStores(context.Conte
 func (UnimplementedClustersServiceServer) SyncExternalSecrets(context.Context, *SyncExternalSecretsRequest) (*SyncExternalSecretsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SyncExternalSecrets not implemented")
 }
-func (UnimplementedClustersServiceServer) ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyConfigs not implemented")
-}
-func (UnimplementedClustersServiceServer) GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyConfig not implemented")
-}
 func (UnimplementedClustersServiceServer) EncryptSopsSecret(context.Context, *EncryptSopsSecretRequest) (*EncryptSopsSecretResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EncryptSopsSecret not implemented")
 }
 func (UnimplementedClustersServiceServer) ListSopsKustomizations(context.Context, *ListSopsKustomizationsRequest) (*ListSopsKustomizationsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListSopsKustomizations not implemented")
+}
+func (UnimplementedClustersServiceServer) ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListPolicyConfigs not implemented")
+}
+func (UnimplementedClustersServiceServer) GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyConfig not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -763,24 +763,6 @@ func _ClustersService_CreateAutomationsPullRequest_Handler(srv interface{}, ctx 
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_CreateTfControllerPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(CreateTfControllerPullRequestRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).CreateTfControllerPullRequest(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/CreateTfControllerPullRequest",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).CreateTfControllerPullRequest(ctx, req.(*CreateTfControllerPullRequestRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(ListCredentialsRequest)
 	if err := dec(in); err != nil {
@@ -795,6 +777,24 @@ func _ClustersService_ListCredentials_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListCredentials(ctx, req.(*ListCredentialsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_CreateTfControllerPullRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateTfControllerPullRequestRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).CreateTfControllerPullRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/CreateTfControllerPullRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).CreateTfControllerPullRequest(ctx, req.(*CreateTfControllerPullRequestRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1123,42 +1123,6 @@ func _ClustersService_SyncExternalSecrets_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ClustersService_ListPolicyConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ListPolicyConfigsRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).ListPolicyConfigs(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/ListPolicyConfigs",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).ListPolicyConfigs(ctx, req.(*ListPolicyConfigsRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _ClustersService_GetPolicyConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetPolicyConfigRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(ClustersServiceServer).GetPolicyConfig(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: "/cluster_services.v1.ClustersService/GetPolicyConfig",
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ClustersServiceServer).GetPolicyConfig(ctx, req.(*GetPolicyConfigRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
 func _ClustersService_EncryptSopsSecret_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EncryptSopsSecretRequest)
 	if err := dec(in); err != nil {
@@ -1191,6 +1155,42 @@ func _ClustersService_ListSopsKustomizations_Handler(srv interface{}, ctx contex
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ClustersServiceServer).ListSopsKustomizations(ctx, req.(*ListSopsKustomizationsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_ListPolicyConfigs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListPolicyConfigsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).ListPolicyConfigs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/ListPolicyConfigs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).ListPolicyConfigs(ctx, req.(*ListPolicyConfigsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ClustersService_GetPolicyConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetPolicyConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).GetPolicyConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/GetPolicyConfig",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).GetPolicyConfig(ctx, req.(*GetPolicyConfigRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1239,12 +1239,12 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_CreateAutomationsPullRequest_Handler,
 		},
 		{
-			MethodName: "CreateTfControllerPullRequest",
-			Handler:    _ClustersService_CreateTfControllerPullRequest_Handler,
-		},
-		{
 			MethodName: "ListCredentials",
 			Handler:    _ClustersService_ListCredentials_Handler,
+		},
+		{
+			MethodName: "CreateTfControllerPullRequest",
+			Handler:    _ClustersService_CreateTfControllerPullRequest_Handler,
 		},
 		{
 			MethodName: "ListGitopsClusters",
@@ -1319,20 +1319,20 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ClustersService_SyncExternalSecrets_Handler,
 		},
 		{
-			MethodName: "ListPolicyConfigs",
-			Handler:    _ClustersService_ListPolicyConfigs_Handler,
-		},
-		{
-			MethodName: "GetPolicyConfig",
-			Handler:    _ClustersService_GetPolicyConfig_Handler,
-		},
-		{
 			MethodName: "EncryptSopsSecret",
 			Handler:    _ClustersService_EncryptSopsSecret_Handler,
 		},
 		{
 			MethodName: "ListSopsKustomizations",
 			Handler:    _ClustersService_ListSopsKustomizations_Handler,
+		},
+		{
+			MethodName: "ListPolicyConfigs",
+			Handler:    _ClustersService_ListPolicyConfigs_Handler,
+		},
+		{
+			MethodName: "GetPolicyConfig",
+			Handler:    _ClustersService_GetPolicyConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

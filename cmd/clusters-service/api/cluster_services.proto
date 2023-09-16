@@ -10,15 +10,28 @@ import "google/api/annotations.proto";
 import "google/api/httpbody.proto";
 import "google/protobuf/any.proto";
 import "google/protobuf/struct.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
 
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/proto/cluster_services";
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+    info: {
+      title: "Weave GitOps Enterprise API",
+      version: "0.1";
+      description: "The API handles operations for Weave GitOps Enterprise";
+    };
+    consumes: "application/json";
+    produces: "application/json";
+};
+
 
 /**
  * Weave GitOps Enterprise ClustersService service definition
  */
 service ClustersService {
+
   // Returns a list of templates.
   rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       get : "/v1/templates"
     };
@@ -26,6 +39,7 @@ service ClustersService {
 
   // Gets details of a specific template.
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{template_namespace}/templates/{template_name}"
     };
@@ -34,6 +48,7 @@ service ClustersService {
   
    // Gets the Values.yaml for a template if one exists.
   rpc ListTemplateParams(ListTemplateParamsRequest) returns (ListTemplateParamsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{template_namespace}/templates/{template_name}/params"
     };
@@ -41,6 +56,7 @@ service ClustersService {
 
   // Returns a list of profiles within that template.
   rpc ListTemplateProfiles(ListTemplateProfilesRequest) returns (ListTemplateProfilesResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"
     };
@@ -48,6 +64,7 @@ service ClustersService {
 
   // Renders a template using given values.
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       post : "/v1/namespaces/{template_namespace}/templates/{template_name}/render"
       body : "*"
@@ -59,6 +76,7 @@ service ClustersService {
   // create a new branch for which a new pull request
   // will be created.
   rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       post : "/v1/templates/pull-request"
       body : "*"
@@ -68,6 +86,7 @@ service ClustersService {
   // Creates a pull request for the given list of clusters
   // to be deleted.
   rpc CreateDeletionPullRequest(CreateDeletionPullRequestRequest) returns (CreateDeletionPullRequestResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       post : "/v1/templates/deletion-pull-request"
       body : "*"
@@ -77,6 +96,7 @@ service ClustersService {
 
   // Renders an automation template using given cluster automations.
   rpc RenderAutomation(RenderAutomationRequest) returns (RenderAutomationResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["automations"]; };
     option (google.api.http) = {
       post : "/v1/automations/render"
       body : "*"
@@ -84,53 +104,53 @@ service ClustersService {
   }
 
   // Creates a pull request for the given list of Kustomizations.
-  rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest)
-      returns (CreateAutomationsPullRequestResponse) {
+  rpc CreateAutomationsPullRequest(CreateAutomationsPullRequestRequest) returns (CreateAutomationsPullRequestResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["automations"]; };
     option (google.api.http) = {
       post : "/v1/automations/pull-request"
       body : "*"
     };
   }
-  
+
+  // List available credentials.
+  rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
+    option (google.api.http) = {
+      get : "/v1/credentials"
+    };
+  }
+
   // Creates a pull request for a tfcontroller template.
   // The template name and values will be used to
   // create a new branch for which a new pull request
   // will be created.
-  rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest)
-      returns (CreateTfControllerPullRequestResponse) {
+  rpc CreateTfControllerPullRequest(CreateTfControllerPullRequestRequest) returns (CreateTfControllerPullRequestResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
       post : "/v1/tfcontrollers/pull-request"
       body : "*"
     };
   }
 
-  // List available credentials.
-  rpc ListCredentials(ListCredentialsRequest)
-      returns (ListCredentialsResponse) {
-    option (google.api.http) = {
-      get : "/v1/credentials"
-    };
-  }
-
   // Lists available GitOps clusters.
   rpc ListGitopsClusters(ListGitopsClustersRequest) returns (ListGitopsClustersResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["clusters"]; };
     option (google.api.http) = {
       get : "/v1/clusters"
     };
   }
 
-
   // Returns the Kubeconfig for the given
   // workload cluster.
   rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["clusters"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/kubeconfig"
     };
   }
 
   // Returns the WeGO Enterprise version
-  rpc GetEnterpriseVersion(GetEnterpriseVersionRequest)
-      returns (GetEnterpriseVersionResponse) {
+  rpc GetEnterpriseVersion(GetEnterpriseVersionRequest) returns (GetEnterpriseVersionResponse) {
     option (google.api.http) = {
       // Namespaced under /enterprise/ so as not to conflict with the OSS endpoint
       get : "/v1/enterprise/version"
@@ -153,8 +173,8 @@ service ClustersService {
 
   // Lists the discovered Helm charts in the provided
   // repository.
-  rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns
-    (ListChartsForRepositoryResponse) {
+  rpc ListChartsForRepository(ListChartsForRepositoryRequest) returns (ListChartsForRepositoryResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["charts"]; };
      option (google.api.http) = {
         get : "/v1/charts/list",
       };
@@ -162,8 +182,8 @@ service ClustersService {
 
   // Gets the default Values.yaml for the provided Chart
   // reference.
-  rpc GetValuesForChart(GetValuesForChartRequest) returns
-    (GetValuesForChartResponse) {
+  rpc GetValuesForChart(GetValuesForChartRequest) returns (GetValuesForChartResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["charts"]; };
      option (google.api.http) = {
         post : "/v1/charts/values"
         body : "*"
@@ -172,8 +192,8 @@ service ClustersService {
 
   // Gets the default Values.yaml for the provided Chart
   // reference.
-  rpc GetChartsJob(GetChartsJobRequest) returns
-    (GetChartsJobResponse) {
+  rpc GetChartsJob(GetChartsJobRequest) returns (GetChartsJobResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["charts"]; };
      option (google.api.http) = {
         get : "/v1/charts/jobs/{job_id}",
       };
@@ -182,6 +202,7 @@ service ClustersService {
 
     // List workspaces available on all clusters
   rpc ListWorkspaces(ListWorkspacesRequest) returns (ListWorkspacesResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
       get : "/v1/workspaces"
     };
@@ -189,6 +210,7 @@ service ClustersService {
 
    // Get workspace details
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
             "/workspaces/{workspace_name}"
@@ -196,8 +218,8 @@ service ClustersService {
   }
 
    // List workspace roles
-   rpc GetWorkspaceRoles(GetWorkspaceRequest)
-    returns (GetWorkspaceRolesResponse) {
+   rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
             "/workspaces/{workspace_name}/roles"
@@ -205,8 +227,8 @@ service ClustersService {
   }
 
    // List workspace role bindings
-   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest)
-    returns (GetWorkspaceRoleBindingsResponse) {
+   rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
             "/workspaces/{workspace_name}/rolebindings"
@@ -214,8 +236,8 @@ service ClustersService {
   }
 
    // List workspace service accounts
-   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest)
-    returns (GetWorkspaceServiceAccountsResponse) {
+   rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
             "/workspaces/{workspace_name}/serviceaccounts"
@@ -223,8 +245,8 @@ service ClustersService {
   }
 
   // List workspace service accounts
-  rpc GetWorkspacePolicies(GetWorkspaceRequest)
-    returns (GetWorkspacePoliciesResponse) {
+  rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
             "/workspaces/{workspace_name}/policies"
@@ -232,16 +254,16 @@ service ClustersService {
   }
 
   // List external secrets available on all clusters
-  rpc ListExternalSecrets(ListExternalSecretsRequest)
-    returns (ListExternalSecretsResponse) {
+  rpc ListExternalSecrets(ListExternalSecretsRequest) returns (ListExternalSecretsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
       get : "/v1/external-secrets"
     };
   }
 
   // Get secret details
-  rpc GetExternalSecret(GetExternalSecretRequest)
-    returns (GetExternalSecretResponse) {
+  rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
       get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
             "/namespaces/{namespace}/external-secrets/{external_secret_name}"
@@ -249,42 +271,25 @@ service ClustersService {
   }
 
   // List external secrets stores
-  rpc ListExternalSecretStores(ListExternalSecretStoresRequest)
-    returns (ListExternalSecretStoresResponse) {
+  rpc ListExternalSecretStores(ListExternalSecretStoresRequest) returns (ListExternalSecretStoresResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
       get : "/v1/external-secrets-stores"
     };
   }
 
   // Sync externalSecret Operator secrets
-  rpc SyncExternalSecrets(SyncExternalSecretsRequest)
-    returns (SyncExternalSecretsResponse) {
+  rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
       post : "/v1/external-secrets/sync"
       body : "*"
     };
   }
 
-  // List policy configs
-  rpc ListPolicyConfigs(ListPolicyConfigsRequest)
-    returns (ListPolicyConfigsResponse) {
-    option (google.api.http) = {
-      get : "/v1/policy-configs"
-    };
-  }
-
-  // Get policy config details
-  rpc GetPolicyConfig(GetPolicyConfigRequest)
-    returns (GetPolicyConfigResponse) {
-    option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/policy-configs/{name}"
-    };
-  }
-
   // Encrypts a sops secret
-  rpc EncryptSopsSecret(EncryptSopsSecretRequest)
-    returns (EncryptSopsSecretResponse) {
+  rpc EncryptSopsSecret(EncryptSopsSecretRequest) returns (EncryptSopsSecretResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
       post : "/v1/encrypt-sops-secret",
       body : "*"
@@ -292,12 +297,29 @@ service ClustersService {
   }
 
   // List Sops kustomizations
-  rpc ListSopsKustomizations(ListSopsKustomizationsRequest)
-    returns (ListSopsKustomizationsResponse) {
+  rpc ListSopsKustomizations(ListSopsKustomizationsRequest) returns (ListSopsKustomizationsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
       get : "/v1/sops-kustomizations"
     };
   }
+
+  // List policy configs
+  rpc ListPolicyConfigs(ListPolicyConfigsRequest) returns (ListPolicyConfigsResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policies"]; };
+    option (google.api.http) = {
+      get : "/v1/policy-configs"
+    };
+  }
+
+  // Get policy config details
+  rpc GetPolicyConfig(GetPolicyConfigRequest) returns (GetPolicyConfigResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policies"]; };
+    option (google.api.http) = {
+      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/policy-configs/{name}"
+    };
+  }
+
 }
 
 message ListTemplatesRequest {
