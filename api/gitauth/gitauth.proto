@@ -46,7 +46,7 @@ service GitAuth {
     rpc GetGithubDeviceCode(GetGithubDeviceCodeRequest)
         returns (GetGithubDeviceCodeResponse) {
         option (google.api.http) = {
-            get : "/v1/gitauth/auth_providers/github"
+            get : "/v1/gitauth/auth-providers/github"
         };
     }
 
@@ -61,7 +61,7 @@ service GitAuth {
     rpc GetGithubAuthStatus(GetGithubAuthStatusRequest)
         returns (GetGithubAuthStatusResponse) {
         option (google.api.http) = {
-            post : "/v1/gitauth/auth_providers/github/status"
+            post : "/v1/gitauth/auth-providers/github/status"
             body: "*"
         };
     }
@@ -76,7 +76,7 @@ service GitAuth {
     rpc GetGitlabAuthURL(GetGitlabAuthURLRequest)
         returns (GetGitlabAuthURLResponse) {
         option (google.api.http) = {
-            get : "/v1/gitauth/auth_providers/gitlab"
+            get : "/v1/gitauth/auth-providers/gitlab"
         };
     }
 
@@ -85,7 +85,7 @@ service GitAuth {
     rpc GetBitbucketServerAuthURL(GetBitbucketServerAuthURLRequest)
         returns (GetBitbucketServerAuthURLResponse) {
         option (google.api.http) = {
-            get : "/v1/gitauth/auth_providers/bitbucketserver"
+            get : "/v1/gitauth/auth-providers/bitbucketserver"
         };
     }
 
@@ -94,7 +94,7 @@ service GitAuth {
     rpc AuthorizeBitbucketServer (AuthorizeBitbucketServerRequest)
         returns (AuthorizeBitbucketServerResponse) {
         option (google.api.http) = {
-            post : "/v1/gitauth/auth_providers/bitbucketserver/authorize"
+            post : "/v1/gitauth/auth-providers/bitbucketserver/authorize"
             body: "*"
         };
     }
@@ -109,7 +109,7 @@ service GitAuth {
     rpc AuthorizeGitlab(AuthorizeGitlabRequest)
         returns (AuthorizeGitlabResponse) {
         option (google.api.http) = {
-            post : "/v1/gitauth/auth_providers/gitlab/authorize"
+            post : "/v1/gitauth/auth-providers/gitlab/authorize"
             body: "*"
         };
     }
@@ -121,7 +121,7 @@ service GitAuth {
     rpc GetAzureDevOpsAuthURL(GetAzureDevOpsAuthURLRequest)
         returns (GetAzureDevOpsAuthURLResponse) {
         option (google.api.http) = {
-            get : "/v1/gitauth/auth_providers/azuredevops"
+            get : "/v1/gitauth/auth-providers/azuredevops"
         };
     }
 
@@ -133,7 +133,7 @@ service GitAuth {
     rpc AuthorizeAzureDevOps (AuthorizeAzureDevOpsRequest)
         returns (AuthorizeAzureDevOpsResponse) {
         option (google.api.http) = {
-            post : "/v1/gitauth/auth_providers/azuredevops/authorize"
+            post : "/v1/gitauth/auth-providers/azuredevops/authorize"
             body: "*"
         };
     }
@@ -143,7 +143,7 @@ service GitAuth {
     */
     rpc ParseRepoURL(ParseRepoURLRequest) returns(ParseRepoURLResponse) {
         option (google.api.http) = {
-            get : "/v1/gitauth/parse_repo_url"
+            get : "/v1/gitauth/parse-repo-url"
         };
     }
 
@@ -154,7 +154,7 @@ service GitAuth {
     rpc ValidateProviderToken(ValidateProviderTokenRequest)
         returns (ValidateProviderTokenResponse) {
         option (google.api.http) = {
-            post : "/v1/gitauth/validate_token"
+            post : "/v1/gitauth/validate-token"
             body: "*"
         };
     }

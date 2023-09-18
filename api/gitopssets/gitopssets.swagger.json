@@ -17,39 +17,6 @@
     "application/json"
   ],
   "paths": {
-    "/v1/gitops_reconciled_objects": {
-      "post": {
-        "summary": "GetReconciledObjects returns a list of objects\nthat were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization\nor HelmRelease specified in the request body.",
-        "operationId": "GitOpsSets_GetReconciledObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
     "/v1/gitopssets": {
       "get": {
         "operationId": "GitOpsSets_ListGitOpsSets",
@@ -73,38 +40,6 @@
             "in": "query",
             "required": false,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
-    "/v1/gitopssets/suspend": {
-      "post": {
-        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetRequest"
-            }
           }
         ],
         "tags": [
@@ -144,7 +79,130 @@
         ]
       }
     },
-    "/v1/gitopssets/{name}": {
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/gitops-reconciled-objects": {
+      "post": {
+        "summary": "GetReconciledObjects returns a list of objects\nthat were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization\nor HelmRelease specified in the request body.",
+        "operationId": "GitOpsSets_GetReconciledObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "automationKind": {
+                  "type": "string"
+                },
+                "kinds": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/v1GroupVersionKind"
+                  }
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/gitopssets/suspend": {
+      "post": {
+        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "suspend": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/gitopssets/{name}": {
       "get": {
         "operationId": "GitOpsSets_GetGitOpsSet",
         "responses": {
@@ -163,21 +221,27 @@
         },
         "parameters": [
           {
-            "name": "name",
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "namespace",
-            "in": "query",
-            "required": false,
+            "in": "path",
+            "required": true,
             "type": "string"
           },
           {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
+            "name": "name",
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],
@@ -210,7 +274,6 @@
         "details": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -244,37 +307,12 @@
         }
       }
     },
-    "v1GetReconciledObjectsRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "automationKind": {
-          "type": "string"
-        },
-        "kinds": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1GroupVersionKind"
-          }
-        },
-        "clusterName": {
-          "type": "string"
-        }
-      }
-    },
     "v1GetReconciledObjectsResponse": {
       "type": "object",
       "properties": {
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }
@@ -292,14 +330,12 @@
         "inventory": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ResourceRef"
           }
         },
         "conditions": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -371,14 +407,12 @@
         "gitopssets": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1GitOpsSet"
           }
         },
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1GitOpsSetListError"
           }
         }
@@ -402,7 +436,6 @@
         "inventory": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1GroupVersionKind"
           }
         }
@@ -454,23 +487,6 @@
       "type": "object",
       "properties": {
         "success": {
-          "type": "boolean"
-        }
-      }
-    },
-    "v1ToggleSuspendGitOpsSetRequest": {
-      "type": "object",
-      "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "suspend": {
           "type": "boolean"
         }
       }

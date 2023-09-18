@@ -17,7 +17,103 @@
     "application/json"
   ],
   "paths": {
-    "/v1/terraform_objects": {
+    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/terraform-objects/{name}": {
+      "get": {
+        "operationId": "Terraform_GetTerraformObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTerraformObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterNamespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
+    "/v1/namespaces/{clusterName}/clusters/{clusterName}/namespaces/{namespace}/terraform-objects/plan": {
+      "get": {
+        "operationId": "Terraform_GetTerraformObjectPlan",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetTerraformObjectPlanResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
+    "/v1/terraform-objects": {
       "get": {
         "operationId": "Terraform_ListTerraformObjects",
         "responses": {
@@ -66,49 +162,7 @@
         ]
       }
     },
-    "/v1/terraform_objects/plan": {
-      "get": {
-        "operationId": "Terraform_GetTerraformObjectPlan",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetTerraformObjectPlanResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Terraform"
-        ]
-      }
-    },
-    "/v1/terraform_objects/replan": {
+    "/v1/terraform-objects/replan": {
       "post": {
         "operationId": "Terraform_ReplanTerraformObject",
         "responses": {
@@ -140,7 +194,7 @@
         ]
       }
     },
-    "/v1/terraform_objects/suspend": {
+    "/v1/terraform-objects/suspend": {
       "post": {
         "operationId": "Terraform_ToggleSuspendTerraformObjects",
         "responses": {
@@ -172,7 +226,7 @@
         ]
       }
     },
-    "/v1/terraform_objects/sync": {
+    "/v1/terraform-objects/sync": {
       "post": {
         "operationId": "Terraform_SyncTerraformObjects",
         "responses": {
@@ -197,48 +251,6 @@
             "schema": {
               "$ref": "#/definitions/v1SyncTerraformObjectsRequest"
             }
-          }
-        ],
-        "tags": [
-          "Terraform"
-        ]
-      }
-    },
-    "/v1/terraform_objects/{name}": {
-      "get": {
-        "operationId": "Terraform_GetTerraformObject",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetTerraformObjectResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "query",
-            "required": false,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
-            "type": "string"
           }
         ],
         "tags": [
@@ -270,7 +282,6 @@
         "details": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -347,14 +358,12 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TerraformObject"
           }
         },
         "errors": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1TerraformListError"
           }
         }
@@ -459,7 +468,6 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         }
@@ -526,14 +534,12 @@
         "inventory": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ResourceRef"
           }
         },
         "conditions": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -552,7 +558,6 @@
         "dependsOn": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1NamespacedObjectReference"
           }
         },
@@ -567,7 +572,6 @@
         "objects": {
           "type": "array",
           "items": {
-            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         },
