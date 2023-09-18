@@ -244,24 +244,10 @@ var (
 		},
 		AddToSchemeFunc: gapiv1.AddToScheme,
 		StatusFunc: func(obj client.Object) ObjectStatus {
-			e, ok := obj.(*corev1.Event)
-			if !ok {
-				return NoStatus
-			}
-
-			if e.Type == "Normal" {
-				return Success
-			}
-
-			return Failed
+			return NoStatus
 		},
 		MessageFunc: func(obj client.Object) string {
-			e, ok := obj.(*corev1.Event)
-			if !ok {
-				return ""
-			}
-
-			return e.Message
+			return ""
 		},
 		Category: CategoryTemplate,
 	}
@@ -273,24 +259,10 @@ var (
 		},
 		AddToSchemeFunc: capiv1.AddToScheme,
 		StatusFunc: func(obj client.Object) ObjectStatus {
-			e, ok := obj.(*corev1.Event)
-			if !ok {
-				return NoStatus
-			}
-
-			if e.Type == "Normal" {
-				return Success
-			}
-
-			return Failed
+			return NoStatus
 		},
 		MessageFunc: func(obj client.Object) string {
-			e, ok := obj.(*corev1.Event)
-			if !ok {
-				return ""
-			}
-
-			return e.Message
+			return ""
 		},
 		Category: CategoryTemplate,
 	}
