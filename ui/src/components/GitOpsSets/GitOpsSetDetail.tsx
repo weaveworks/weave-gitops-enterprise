@@ -20,6 +20,10 @@ import {
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
+// Importing this solves a problem with the YAML library not being found.
+// @ts-ignore
+import * as YAML from 'yaml/browser/dist/index.js';
+import { getInventory } from '.';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
@@ -28,16 +32,13 @@ import {
   useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
-import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
+import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
-import { getInventory } from '.';
-import { Page } from '../Layout/App';
-
-const YAML = require('yaml');
 
 type Props = {
   className?: string;
