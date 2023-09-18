@@ -118,11 +118,11 @@ func InstallControllers(version string, controllers []string) error {
 	switch controllerName {
 	case "None":
 		return nil
-	case optionCapi:
+	case optionPolicyAgent:
 		if err = profile.InstallPolicyAgent(); err != nil {
 			return err
 		}
-	case optionPolicyAgent:
+	case optionCapi:
 		if err = profile.InstallCapi(); err != nil {
 			return err
 		}
