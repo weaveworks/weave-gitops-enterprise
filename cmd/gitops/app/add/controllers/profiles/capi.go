@@ -46,7 +46,7 @@ func InstallCapi(opts *config.Options) error {
 		return err
 	}
 
-	values, err := constructCAPIValues(templatesNamespace, clustersNamespace)
+	values, err := constructCAPIValues(opts, templatesNamespace, clustersNamespace)
 	if err != nil {
 		return err
 	}
@@ -61,21 +61,21 @@ func InstallCapi(opts *config.Options) error {
 	return nil
 }
 
-func constructCAPIValues(templatesNamespace string, clustersNamespace string) (map[string]interface{}, error) {
+func constructCAPIValues(opts *config.Options, templatesNamespace string, clustersNamespace string) (map[string]interface{}, error) {
 
-	branch, err := utils.GetRepoBranch()
+	branch, err := utils.GetRepoBranch(*opts)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
 
-	url, err := utils.GetRepoUrl()
+	url, err := utils.GetRepoUrl(*opts)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
 	url = strings.Replace(url, ":", "/", 1)
 	url = strings.Replace(url, "git@", "https://", 1)
 
-	path, err := utils.GetRepoPath()
+	path, err := utils.GetRepoPath(*opts)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
