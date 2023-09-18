@@ -19,7 +19,8 @@
   "paths": {
     "/v1/automations/pull-request": {
       "post": {
-        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "summary": "Creates a pull request to add automations to a cluster",
+        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets",
         "operationId": "ClustersService_CreateAutomationsPullRequest",
         "responses": {
           "200": {
@@ -52,7 +53,8 @@
     },
     "/v1/automations/render": {
       "post": {
-        "summary": "Renders an automation template using given cluster automations.",
+        "summary": "Preview adding automations to a cluster",
+        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets",
         "operationId": "ClustersService_RenderAutomation",
         "responses": {
           "200": {
@@ -85,7 +87,7 @@
     },
     "/v1/charts/jobs/{jobId}": {
       "get": {
-        "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
+        "summary": "Retrieve the results of a /v1/charts/values job",
         "operationId": "ClustersService_GetChartsJob",
         "responses": {
           "200": {
@@ -116,7 +118,7 @@
     },
     "/v1/charts/list": {
       "get": {
-        "summary": "Lists the discovered Helm charts in the provided\nrepository.",
+        "summary": "Lists charts in a HelmRepository",
         "operationId": "ClustersService_ListChartsForRepository",
         "responses": {
           "200": {
@@ -177,7 +179,8 @@
     },
     "/v1/charts/values": {
       "post": {
-        "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
+        "summary": "Get the values.yaml for a chart",
+        "description": "Creates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
         "operationId": "ClustersService_GetValuesForChart",
         "responses": {
           "200": {
@@ -210,7 +213,7 @@
     },
     "/v1/clusters": {
       "get": {
-        "summary": "Lists available GitOps clusters.",
+        "summary": "List GitOpsClusters",
         "operationId": "ClustersService_ListGitopsClusters",
         "responses": {
           "200": {
@@ -260,6 +263,7 @@
     },
     "/v1/config": {
       "get": {
+        "summary": "Get the Weave Gitops Enterprise configuration",
         "operationId": "ClustersService_GetConfig",
         "responses": {
           "200": {
@@ -282,7 +286,8 @@
     },
     "/v1/credentials": {
       "get": {
-        "summary": "List available credentials.",
+        "summary": "List available credentials",
+        "description": "These templates can be used when renderer certain templates",
         "operationId": "ClustersService_ListCredentials",
         "responses": {
           "200": {
@@ -338,7 +343,7 @@
     },
     "/v1/enterprise/events": {
       "get": {
-        "summary": "Returns the k8s events for a given object",
+        "summary": "List the kubernetes events for a resource",
         "operationId": "ClustersService_ListEvents",
         "responses": {
           "200": {
@@ -387,7 +392,7 @@
     },
     "/v1/enterprise/version": {
       "get": {
-        "summary": "Returns the WeGO Enterprise version",
+        "summary": "Get the Weave Gitops Enterprise version",
         "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {
@@ -410,7 +415,7 @@
     },
     "/v1/external-secrets": {
       "get": {
-        "summary": "List external secrets available on all clusters",
+        "summary": "List external secrets",
         "operationId": "ClustersService_ListExternalSecrets",
         "responses": {
           "200": {
@@ -497,7 +502,7 @@
     },
     "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/kubeconfig": {
       "get": {
-        "summary": "Returns the Kubeconfig for the given\nworkload cluster.",
+        "summary": "Get the kubeconfig for a GitOpsCluster",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -842,7 +847,7 @@
     },
     "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
       "get": {
-        "summary": "Gets details of a specific template.",
+        "summary": "Get template details",
         "operationId": "ClustersService_GetTemplate",
         "responses": {
           "200": {
@@ -885,7 +890,7 @@
     },
     "/v1/namespaces/{templateNamespace}/templates/{templateName}/params": {
       "get": {
-        "summary": "Gets the Values.yaml for a template if one exists.",
+        "summary": "List the params of a template",
         "operationId": "ClustersService_ListTemplateParams",
         "responses": {
           "200": {
@@ -928,7 +933,8 @@
     },
     "/v1/namespaces/{templateNamespace}/templates/{templateName}/profiles": {
       "get": {
-        "summary": "Returns a list of profiles within that template.",
+        "summary": "List the profiles of a template",
+        "description": "Includes default and required profiles specified by the template",
         "operationId": "ClustersService_ListTemplateProfiles",
         "responses": {
           "200": {
@@ -1105,7 +1111,7 @@
     },
     "/v1/templates": {
       "get": {
-        "summary": "Returns a list of templates.",
+        "summary": "List templates",
         "operationId": "ClustersService_ListTemplates",
         "responses": {
           "200": {
@@ -1142,7 +1148,8 @@
     },
     "/v1/templates/deletion-pull-request": {
       "post": {
-        "summary": "Creates a pull request for the given list of clusters\nto be deleted.",
+        "summary": "Create a pull request to delete templated resources",
+        "description": "In the request include one of the resources originally generated by the template.\nThen a pull request will be created to delete all resources generated by the template.",
         "operationId": "ClustersService_CreateDeletionPullRequest",
         "responses": {
           "200": {
@@ -1175,7 +1182,7 @@
     },
     "/v1/templates/pull-request": {
       "post": {
-        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
+        "summary": "Create a pull request from a rendered template",
         "operationId": "ClustersService_CreatePullRequest",
         "responses": {
           "200": {
@@ -1208,7 +1215,8 @@
     },
     "/v1/tfcontrollers/pull-request": {
       "post": {
-        "summary": "Creates a pull request for a tfcontroller template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
+        "summary": "Creates a pull request from a tfcontroller template.",
+        "description": "Use CreatePullRequest instead",
         "operationId": "ClustersService_CreateTfControllerPullRequest",
         "responses": {
           "200": {
@@ -1236,12 +1244,13 @@
         ],
         "tags": [
           "templates"
-        ]
+        ],
+        "deprecated": true
       }
     },
     "/v1/workspaces": {
       "get": {
-        "summary": "List workspaces available on all clusters",
+        "summary": "List workspaces",
         "operationId": "ClustersService_ListWorkspaces",
         "responses": {
           "200": {
