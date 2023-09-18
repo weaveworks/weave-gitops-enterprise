@@ -298,9 +298,6 @@ func defaultFluxObjectStatusFunc(obj client.Object) ObjectStatus {
 	if err != nil {
 		return Failed
 	}
-	if fo == nil {
-		return NoStatus
-	}
 
 	for _, c := range fo.GetConditions() {
 		if ObjectStatus(c.Type) == NoStatus {
