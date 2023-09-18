@@ -153,7 +153,7 @@ func TestGitProviderToken(t *testing.T) {
 
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/clusters",
+		"http://localhost:8000/v1/templates",
 		func(r *http.Request) (*http.Response, error) {
 			h, ok := r.Header["Git-Provider-Token"]
 			assert.True(t, ok)
@@ -226,7 +226,7 @@ func TestParseProfiles_ValidRequest(t *testing.T) {
 
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/clusters",
+		"http://localhost:8000/v1/templates/pull-request",
 		func(r *http.Request) (*http.Response, error) {
 			h, ok := r.Header["Git-Provider-Token"]
 			assert.True(t, ok)
@@ -263,7 +263,7 @@ func TestParseProfiles_InvalidKey(t *testing.T) {
 
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/clusters",
+		"http://localhost:8000/v1/templates/pull-request",
 		func(r *http.Request) (*http.Response, error) {
 			h, ok := r.Header["Git-Provider-Token"]
 			assert.True(t, ok)
@@ -300,7 +300,7 @@ func TestParseProfiles_InvalidValue(t *testing.T) {
 
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/clusters",
+		"http://localhost:8000/v1/templates/pull-request",
 		func(r *http.Request) (*http.Response, error) {
 			h, ok := r.Header["Git-Provider-Token"]
 			assert.True(t, ok)

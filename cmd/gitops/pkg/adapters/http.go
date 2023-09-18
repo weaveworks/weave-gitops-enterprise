@@ -434,7 +434,7 @@ func (c *HTTPClient) CreatePullRequestFromTemplate(params templates.CreatePullRe
 		serviceErr *ServiceError
 	)
 
-	endpoint = "v1/clusters"
+	endpoint = "v1/templates/pull-request"
 	if params.TemplateKind == templates.GitOpsTemplateKind.String() {
 		endpoint = "v1/tfcontrollers"
 	}
@@ -585,7 +585,7 @@ func (c *HTTPClient) RetrieveClusters() ([]clusters.Cluster, error) {
 }
 
 func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
-	endpoint := "v1/clusters/{name}/kubeconfig"
+	endpoint := "v1/namespaces/{namespace}/clusters/{name}/kubeconfig"
 
 	type GetKubeconfigResponse struct {
 		Kubeconfig string
@@ -595,7 +595,8 @@ func (c *HTTPClient) GetClusterKubeconfig(name string) (string, error) {
 	res, err := c.client.R().
 		SetHeader("Accept", "application/json").
 		SetPathParams(map[string]string{
-			"name": name,
+			"name":      name,
+			"namespace": "default",
 		}).
 		SetResult(&result).
 		Get(endpoint)
