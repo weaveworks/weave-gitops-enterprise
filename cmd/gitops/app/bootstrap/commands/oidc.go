@@ -9,21 +9,34 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 )
+gitops-ee add oidc
 
 const (
-	oidcInstallMsg                  = "Do you want to setup OIDC to access Weave GitOps Dashboards?"
+	//TODO: make sure we skip the following message if we are coming from the oidc cmd directly. 
+	oidcInstallMsg                  = "Do you want to setup OIDC to access Weave GitOps Dashboards?" 
+	//TODO: review the URL after updating the docs.
+	oidcConfigInfoMsg               = "Setting up OIDC require configurations provided by your OIDC provider. To learn more about these OIDC configurations, checkout https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
+	
 	oidcDiscoverUrlMsg              = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
 	discoveryUrlVerifyMsg           = "Verifying OIDC discovery URL ..."
+	//TODO: mmegahid - clarify that this is a failed 
+	discoveryUrlErrorMsgFormat      = "Error: OIDC discovery URL returned status %d"
+	discoveryUrlNoIssuerMsg         = "Error: OIDC discovery URL returned no issuer"
+	//TODO: prompt the user to enter the URL again, using the oidcDiscoverUrlMsg. 
+
+	
 	oidcClientIDMsg                 = "Please enter OIDC clientID"
 	oidcClientSecretMsg             = "Please enter OIDC clientSecret"
-	adminUserRevertMsg              = "Do you want to revert the admin user, this will delete the admin user and OIDC will be the only way to login"
-	oidcConfigInfoMsg               = "For more information about the OIDC config please refer to https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
-	oidcInstallInfoMsg              = "Installing OIDC config ..."
-	oidcConfirmationMsg             = "OIDC config created successfully!"
-	adminUsernameRevertMsg          = "Admin user reverted successfully!"
-	oidcConfigExistWarningMsgFormat = "OIDC already configured on the cluster, to reset please remove secret '%s' in namespace '%s'"
-	discoveryUrlErrorMsgFormat      = "OIDC discovery URL returned status %d"
-	discoveryUrlNoIssuerMsg         = "OIDC discovery URL returned no issuer"
+
+	oidcInstallInfoMsg              = "Configuring OIDC ..."
+	oidcConfirmationMsg             = "OIDC has been configured successfully!"
+	
+	//TODO: replace (cmd) with the command to run again
+	oidcConfigExistWarningMsgFormat = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'cmd' command again."
+
+	adminUserRevertMsg              = "Do you want to revoke admin user login, and only use OIDC for dashboard access?"
+	adminUsernameRevertMsg          = "Admin user login has been revoked!"
+	
 )
 
 const (
