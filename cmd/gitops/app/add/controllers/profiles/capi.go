@@ -62,6 +62,7 @@ func InstallCapi(opts *config.Options) error {
 }
 
 func constructCAPIValues(templatesNamespace string, clustersNamespace string) (map[string]interface{}, error) {
+
 	branch, err := utils.GetRepoBranch()
 	if err != nil {
 		return map[string]interface{}{}, nil

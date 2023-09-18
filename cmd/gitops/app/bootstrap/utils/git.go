@@ -1,15 +1,21 @@
 package utils
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
+	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	"github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -22,45 +28,82 @@ const (
 	fluxGitEmail    = "bootstrap@weave.works"
 )
 
+func getGitRepository(opts config.Options) (*v1beta2.GitRepository, error) {
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return nil, err
+	}
+
+	ctx := context.Background()
+
+	// Get the GitRepository custom resource
+	gitRepo := &v1beta2.GitRepository{}
+	if err := cl.Get(ctx, client.ObjectKey{
+		Namespace: "flux-system",
+		Name:      "flux-system",
+	}, gitRepo); err != nil {
+		return nil, err
+	}
+
+	return gitRepo, nil
+}
+
 // GetRepoUrl get the default repo url for flux installation (flux-system) GitRepository.
-func GetRepoUrl() (string, error) {
-	var runner runner.CLIRunner
-	repoUrl, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.url}\"")
+func GetRepoUrl(opts config.Options) (string, error) {
+	gitRepo, err := getGitRepository(opts)
 	if err != nil {
 		return "", err
 	}
 
-	repoUrlParsed := string(repoUrl[1 : len(repoUrl)-1])
-
+	// Parse the URL
+	repoUrlParsed := gitRepo.Spec.URL
 	if strings.Contains(repoUrlParsed, "ssh://") {
 		repoUrlParsed = strings.TrimPrefix(repoUrlParsed, "ssh://")
 		repoUrlParsed = strings.Replace(repoUrlParsed, "/", ":", 1)
 	}
+
 	return repoUrlParsed, nil
 }
 
 // GetRepoBranch get the branch for flux installation (flux-system) GitRepository.
-func GetRepoBranch() (string, error) {
-	var runner runner.CLIRunner
-
-	repoBranch, err := runner.Run("kubectl", "get", "gitrepository", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.ref.branch}\"")
+func GetRepoBranch(opts config.Options) (string, error) {
+	gitRepo, err := getGitRepository(opts)
 	if err != nil {
 		return "", err
 	}
 
-	repoBranchParsed := string(repoBranch[1 : len(repoBranch)-1])
-
-	return repoBranchParsed, nil
+	// Extract the branch
+	return gitRepo.Spec.Reference.Branch, nil
 }
 
 // GetRepoPath get the path for flux installation (flux-system) Kustomization.
-func GetRepoPath() (string, error) {
-	var runner runner.CLIRunner
+func GetRepoPath(opts config.Options) (string, error) {
 
-	repoPath, err := runner.Run("kubectl", "get", "kustomization", "flux-system", "-n", "flux-system", "-o", "jsonpath=\"{.spec.path}\"")
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
 	if err != nil {
 		return "", err
 	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return "", err
+	}
+
+	ctx := context.Background()
+
+	kustomization := &kustomizev1.Kustomization{}
+
+	if err := cl.Get(ctx, client.ObjectKey{
+		Namespace: "flux-system",
+		Name:      "flux-system",
+	}, kustomization); err != nil {
+		return "", err
+	}
+
+	repoPath := kustomization.Spec.Path
 
 	repoPathParsed := strings.TrimPrefix(string(repoPath[1:len(repoPath)-1]), "./")
 
@@ -75,17 +118,17 @@ func CloneRepo() (string, error) {
 
 	var runner runner.CLIRunner
 
-	repoUrlParsed, err := GetRepoUrl()
+	repoUrlParsed, err := GetRepoUrl(config.Options{})
 	if err != nil {
 		return "", err
 	}
 
-	repoBranchParsed, err := GetRepoBranch()
+	repoBranchParsed, err := GetRepoBranch(config.Options{})
 	if err != nil {
 		return "", err
 	}
 
-	repoPathParsed, err := GetRepoPath()
+	repoPathParsed, err := GetRepoPath(config.Options{})
 	if err != nil {
 		return "", err
 	}
