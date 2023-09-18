@@ -1,8 +1,8 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Weave GitOps GitOpsSets API",
-    "description": "The API handles operations for Weave GitOps GitopsSets",
+    "title": "Weave GitOps Enterprise API",
+    "description": "The API handles operations for Weave GitOps Enterprise",
     "version": "0.1"
   },
   "tags": [
