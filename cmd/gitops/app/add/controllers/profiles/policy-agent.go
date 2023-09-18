@@ -5,6 +5,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 const (
@@ -12,24 +13,26 @@ const (
 	mutationMsg                  = "Do you want to enable mutation"
 	auditMsg                     = "Do you want to enable audit mode"
 	failurePolicyMsg             = "Choose your failure policy"
-	policyAgentGettingStartedMsg = "Policy Agent is installed successfully, please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/policy-agent/"
+	policyAgentGettingStartedMsg = "please follow the getting started guide to continue: https://docs.gitops.weave.works/enterprise/getting-started/policy-agent/"
 	policyAgentInstallInfoMsg    = "Installing Policy agent ..."
 	policyAgentInstallConfirmMsg = "Policy Agent is installed successfully"
 )
 
-var PolicyAgentCommand = &cobra.Command{
-	Use:   "policy-agent",
-	Short: "Add Weave Policy Agent",
-	Example: `
-# Add Weave Policy Agent
-gitops add controllers policy-agent`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return InstallPolicyAgent()
-	},
+func PolicyAgentCommand(opts *config.Options) *cobra.Command {
+	return &cobra.Command{
+		Use:   "policy-agent",
+		Short: "Add Weave Policy Agent",
+		Example: `
+	# Add Weave Policy Agent
+	gitops add controllers policy-agent`,
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return InstallPolicyAgent(opts)
+		},
+	}
 }
 
 // InstallPolicyAgent start installing policy agent helm chart
-func InstallPolicyAgent() error {
+func InstallPolicyAgent(opts *config.Options) error {
 	var enableAdmission, enableAudit, enableMutate bool
 	utils.Warning(policyAgentGettingStartedMsg)
 

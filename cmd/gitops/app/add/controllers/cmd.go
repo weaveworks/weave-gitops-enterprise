@@ -14,8 +14,8 @@ func Command(opts *config.Options) *cobra.Command {
 # Add controllers
 gitops add controllers <controller-name>`,
 	}
-	cmd.AddCommand(profiles.PolicyAgentCommand)
-	cmd.AddCommand(profiles.CapiCommand)
-	cmd.AddCommand(profiles.TerraformCommand)
+	cmd.AddCommand(profiles.PolicyAgentCommand(opts))
+	cmd.AddCommand(profiles.CapiCommand(opts))
+	cmd.AddCommand(profiles.TerraformCommand(opts))
 	return cmd
 }

@@ -97,7 +97,7 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
-	if err = InstallControllers(wgeVersion, controllers); err != nil {
+	if err = InstallControllers(*opts, wgeVersion, controllers); err != nil {
 		return err
 	}
 
@@ -109,7 +109,7 @@ func bootstrap(opts *config.Options) error {
 	return nil
 }
 
-func InstallControllers(version string, controllers []string) error {
+func InstallControllers(opts config.Options, version string, controllers []string) error {
 	controllerName, err := utils.GetSelectInput(installControllerMsg, controllers)
 	if err != nil {
 		return err
@@ -119,20 +119,20 @@ func InstallControllers(version string, controllers []string) error {
 	case "None":
 		return nil
 	case optionPolicyAgent:
-		if err = profile.InstallPolicyAgent(); err != nil {
+		if err = profile.InstallPolicyAgent(&opts); err != nil {
 			return err
 		}
 	case optionCapi:
-		if err = profile.InstallCapi(); err != nil {
+		if err = profile.InstallCapi(&opts); err != nil {
 			return err
 		}
 	case optionTerraform:
-		if err = profile.InstallTerraform(); err != nil {
+		if err = profile.InstallTerraform(&opts); err != nil {
 			return err
 		}
 	}
 
 	controllers = slices.Delete(controllers, slices.Index(controllers, controllerName), slices.Index(controllers, controllerName)+1)
 
-	return InstallControllers(version, controllers)
+	return InstallControllers(opts, version, controllers)
 }

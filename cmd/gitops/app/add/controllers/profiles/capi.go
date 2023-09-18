@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 const (
@@ -18,19 +19,21 @@ const (
 	capiInstallConfirmMsg = "CAPI Controller is installed successfully"
 )
 
-var CapiCommand = &cobra.Command{
-	Use:   "capi",
-	Short: "Add capi controller",
-	Example: `
+func CapiCommand(opts *config.Options) *cobra.Command {
+	return &cobra.Command{
+		Use:   "capi",
+		Short: "Add capi controller",
+		Example: `
 # Add Weave Policy Agent
 gitops add controllers capi`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return InstallCapi()
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return InstallCapi(opts)
+		},
+	}
 }
 
 // InstallCapi start installing CAPI controller
-func InstallCapi() error {
+func InstallCapi(opts *config.Options) error {
 	utils.Warning(capiGettingSartedMsg)
 
 	templatesNamespace, err := utils.GetStringInput(templatesNamespaceMsg, "default")

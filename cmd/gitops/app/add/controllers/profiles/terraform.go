@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
 const (
@@ -24,19 +25,21 @@ const (
 	tfReleaseErrorMsgFormat = "error getting terraform release %d"
 )
 
-var TerraformCommand = &cobra.Command{
-	Use:   "terraform",
-	Short: "Add Terraform Controller",
-	Example: `
+func TerraformCommand(opts *config.Options) *cobra.Command {
+	return &cobra.Command{
+		Use:   "terraform",
+		Short: "Add Terraform Controller",
+		Example: `
 # Add Terraform Controller
 gitops add controllers terraform`,
-	RunE: func(cmd *cobra.Command, args []string) error {
-		return InstallTerraform()
-	},
+		RunE: func(cmd *cobra.Command, args []string) error {
+			return InstallTerraform(opts)
+		},
+	}
 }
 
 // InstallTerraform start installing policy agent helm chart
-func InstallTerraform() error {
+func InstallTerraform(opts *config.Options) error {
 	utils.Warning(tfGettingSarted)
 	utils.Warning(tfInstallInfoMsg)
 
