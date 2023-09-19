@@ -247,9 +247,9 @@ var (
 			return NoStatus
 		},
 		MessageFunc: func(obj client.Object) string {
-			e, ok := obj.(*gapiv1.GitOpsTemplate)
+			e, ok := obj.(*gitOpsTemplateAdapter)
 			if !ok {
-				return "error"
+				return ""
 			}
 
 			return e.Spec.Description
@@ -267,9 +267,9 @@ var (
 			return NoStatus
 		},
 		MessageFunc: func(obj client.Object) string {
-			e, ok := obj.(*capiv1.CAPITemplate)
+			e, ok := obj.(*capiTemplateAdapter)
 			if !ok {
-				return "error"
+				return ""
 			}
 
 			return e.Spec.Description
