@@ -153,7 +153,7 @@ func TestGitProviderToken(t *testing.T) {
 
 	httpmock.RegisterResponder(
 		http.MethodPost,
-		"http://localhost:8000/v1/templates",
+		"http://localhost:8000/v1/templates/pull-request",
 		func(r *http.Request) (*http.Response, error) {
 			h, ok := r.Header["Git-Provider-Token"]
 			assert.True(t, ok)
