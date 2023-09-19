@@ -11,10 +11,10 @@ import (
 )
 
 const (
-	adminUsernameMsg           = "Please enter your admin username (default: wego-admin)"
-	adminPasswordMsg           = "Please enter your admin password"
-	secretConfirmationMsg      = "admin secret is created"
-	adminSecretExistsMsgFormat = "admin secret already existed on the cluster, to reset please remove secret '%s' in namespace '%s'"
+	adminUsernameMsg           = "Please enter WeaveGitOps dashboard admin username (default: wego-admin)"
+	adminPasswordMsg           = "Please enter admin password"
+	secretConfirmationMsg      = "Admin login credentials has been created successfully!"
+	adminSecretExistsMsgFormat = "Admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again."
 	existingCredsMsg           = "Do you want to continue using existing credentials"
 	existingCredsExitMsg       = "If you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap..."
 )

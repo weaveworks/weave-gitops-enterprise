@@ -11,20 +11,24 @@ import (
 )
 
 const (
-	fluxBootstrapMsg               = "Do you want to bootstrap flux with the generic way on your cluster"
-	gitRepoUrlMsg                  = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
-	gitBranchMsg                   = "Please enter your git repository branch (default: main)"
-	gitRepoPathMsg                 = "Please enter your path for your cluster (default: clusters/my-cluster)"
-	fluxInstallInfoMsg             = "Installing flux ..."
-	fluxBootstrapInfoMsg           = "Bootstrapping flux ..."
-	fluxInstallCheckMsg            = "Checking flux installation ..."
-	fluxInstallValidationMsg       = "Checking flux installation is valid ..."
-	fluxInstallConfirmMsg          = "flux is installed"
-	fluxReconcileConfirmMsg        = "flux is installed and can reconcile successfully"
-	fluxNotInstalledMsgFormat      = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
+	fluxNotInstalledMsgFormat = "%v\n\n✖️  Flux is not installed on your cluster. Continue in the next step to bootstrap flux with the generic method. \nIf you wish for more information or advanced scenarios please refer to flux docs https://fluxcd.io/flux/installation/.\n\n"
+	fluxBootstrapMsg          = "Do you want to bootstrap flux with the generic way on your cluster"
+
+	gitRepoUrlMsg                 = "Please enter your git repository url (example: ssh://git@github.com/my-org-name/my-repo-name)"
+	gitBranchMsg                  = "Please enter your git repository branch (default: main)"
+	gitRepoPathMsg                = "Please enter your path for your cluster (default: clusters/my-cluster)"
+	privateKeyPathPromptMsgFormat = "Please enter your private key path (default: %s)"
+
+	fluxBootstrapInfoMsg    = "Bootstrapping flux ..."
+	fluxBootstrapConfirmMsg = "Flux has been boostrapped successfully!"
+
+	fluxBoostrapCheckMsg     = "Checking flux is bootstrapped ..."
+	fluxExistingBootstrapMsg = "Flux is already bootstrapped!"
+
+	fluxSetupValidationMsg  = "Verifying flux setup is valid ..."
+	fluxReconcileConfirmMsg = "Flux is bootstrapped and can reconcile successfully!"
+
 	fluxInstallationErrorMsgFormat = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
-	fluxDocsReferenceMsgFormat     = "Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v"
-	privateKeyPathPromptMsgFormat  = "Please enter your private key path (default: %s)"
 )
 
 const (
@@ -67,22 +71,22 @@ func BootstrapFlux() error {
 		return err
 	}
 
-	utils.Warning(fluxInstallInfoMsg)
+	utils.Warning(fluxBootstrapInfoMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "bootstrap", "git", "--url", gitURL, "--branch", gitBranch, "--path", gitPath, "--private-key-file", privateKeyPath, "-s")
 	if err != nil {
-		errMsg := fmt.Sprintf(fluxDocsReferenceMsgFormat, string(out))
+		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
 		return fmt.Errorf("%s%s", err.Error(), errMsg)
 	}
 
-	utils.Info(fluxBootstrapInfoMsg)
+	utils.Info(fluxBootstrapConfirmMsg)
 	return nil
 }
 
 // CheckFluxIsInstalled checks for valid flux installation.
 func CheckFluxIsInstalled(opts config.Options) error {
-	utils.Warning(fluxInstallCheckMsg)
+	utils.Warning(fluxBoostrapCheckMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "check")
@@ -91,14 +95,14 @@ func CheckFluxIsInstalled(opts config.Options) error {
 		return BootstrapFlux()
 	}
 
-	utils.Info(fluxInstallConfirmMsg)
+	utils.Info(fluxExistingBootstrapMsg)
 
 	return nil
 }
 
 // CheckFluxIsInstalled checks if flux installation is valid and can reconcile.
 func CheckFluxReconcile(opts config.Options) error {
-	utils.Warning(fluxInstallValidationMsg)
+	utils.Warning(fluxSetupValidationMsg)
 
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
