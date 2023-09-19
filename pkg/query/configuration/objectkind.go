@@ -247,7 +247,12 @@ var (
 			return NoStatus
 		},
 		MessageFunc: func(obj client.Object) string {
-			return ""
+			e, ok := obj.(*gapiv1.GitOpsTemplate)
+			if !ok {
+				return "error"
+			}
+
+			return e.Spec.Description
 		},
 		Category: CategoryTemplate,
 	}
@@ -262,7 +267,12 @@ var (
 			return NoStatus
 		},
 		MessageFunc: func(obj client.Object) string {
-			return ""
+			e, ok := obj.(*capiv1.CAPITemplate)
+			if !ok {
+				return "error"
+			}
+
+			return e.Spec.Description
 		},
 		Category: CategoryTemplate,
 	}
@@ -348,16 +358,6 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *gitopssets.GitOpsSet:
 		return t, nil
-	case *gapiv1.GitOpsTemplate:
-		return nil, nil
-	case *capiv1.CAPITemplate:
-		return nil, nil
-	case *corev1.Event:
-		e, ok := obj.(*corev1.Event)
-		if !ok {
-			return nil, fmt.Errorf("failed to cast object to event")
-		}
-		return &eventAdapter{e}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)
