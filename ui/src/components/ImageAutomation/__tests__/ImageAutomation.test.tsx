@@ -1,6 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
   CoreClientContextProvider,
+  ImageAutomationUpdatesTable,
+  ImagePoliciesTable,
   ImagePolicy,
   ImageRepository,
   ImageUpdateAutomation,
@@ -15,8 +17,6 @@ import {
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import ImagePoliciesTable from '../policies/ImagePoliciesTable';
-import ImageAutomationUpdatesTable from '../updates/ImageAutomationUpdatesTable';
 
 const IsCRDAvailableReturn = {
   clusters: {
