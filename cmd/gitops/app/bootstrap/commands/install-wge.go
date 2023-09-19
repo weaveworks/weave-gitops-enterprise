@@ -24,8 +24,8 @@ const (
 For more information about external DNS, please refer to: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
 `
 	wgeInstallMsg          = "All set installing WGE v%s, This may take a few minutes...\n"
-	installSuccessMsg      = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
-	localInstallSuccessMsg = "\nWGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
+	installSuccessMsg      = "WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
+	localInstallSuccessMsg = "WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
 )
 
 const (

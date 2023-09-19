@@ -4,15 +4,8 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	profile "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add/controllers/profiles"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"golang.org/x/exp/slices"
-)
-
-const (
-	installControllerMsg = "Do you want to install extra controllers on your cluster"
 )
 
 const (
@@ -35,15 +28,6 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 	optionCapi        = "capi"
 	optionPolicyAgent = "policy-agent"
 	optionTerraform   = "terraform"
-)
-
-var (
-	controllers = []string{
-		optionNone,
-		optionCapi,
-		optionPolicyAgent,
-		optionTerraform,
-	}
 )
 
 func Command(opts *config.Options) *cobra.Command {
@@ -97,42 +81,10 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
-	if err = InstallControllers(*opts, wgeVersion, controllers); err != nil {
-		return err
-	}
-
 	// check if the UI is running on localhost or external domain
 	if err = commands.CheckUIDomain(*opts, userDomain, wgeVersion); err != nil {
 		return err
 	}
 
 	return nil
-}
-
-func InstallControllers(opts config.Options, version string, controllers []string) error {
-	controllerName, err := utils.GetSelectInput(installControllerMsg, controllers)
-	if err != nil {
-		return err
-	}
-
-	switch controllerName {
-	case "None":
-		return nil
-	case optionPolicyAgent:
-		if err = profile.InstallPolicyAgent(&opts); err != nil {
-			return err
-		}
-	case optionCapi:
-		if err = profile.InstallCapi(&opts); err != nil {
-			return err
-		}
-	case optionTerraform:
-		if err = profile.InstallTerraform(&opts); err != nil {
-			return err
-		}
-	}
-
-	controllers = slices.Delete(controllers, slices.Index(controllers, controllerName), slices.Index(controllers, controllerName)+1)
-
-	return InstallControllers(opts, version, controllers)
 }
