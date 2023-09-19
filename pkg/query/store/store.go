@@ -87,6 +87,8 @@ type Iterator interface {
 	Row() (models.Object, error)
 	// All returns all rows of the iterator
 	All() ([]models.Object, error)
+	// Page returns a specified number of rows of the iterator with a specified offset
+	Page(count int, offset int) ([]models.Object, error)
 
 	// Close closes the iterator
 	Close() error

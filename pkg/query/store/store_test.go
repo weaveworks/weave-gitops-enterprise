@@ -40,11 +40,109 @@ func TestGetObjects(t *testing.T) {
 
 	g.Expect(len(objects) > 0).To(BeTrue())
 	g.Expect(objects[0].Name).To(Equal(obj.Name))
+}
 
+func TestGetObjectsWithPagination(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	store, db := createStore(t)
+
+	testObjects := []models.Object{
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-1",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-2",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-3",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-4",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-5",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-6",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+		{
+			Cluster:   "test-cluster",
+			Name:      "someName-7",
+			Namespace: "namespace",
+			Kind:      "ValidKind",
+		},
+	}
+
+	g.Expect(SeedObjects(db, testObjects)).To(Succeed())
+
+	iter, err := store.GetObjects(context.Background(), nil, nil)
+	g.Expect(err).To(BeNil())
+
+	objects, err := iter.All()
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(len(testObjects)))
+	g.Expect(objects[0].Name).To(Equal(testObjects[0].Name))
+	g.Expect(objects[3].Name).To(Equal(testObjects[3].Name))
+
+	// With pagination and without an offset.
+	iter, err = store.GetObjects(context.Background(), nil, nil)
+	g.Expect(err).To(BeNil())
+
+	objects, err = iter.Page(3, 0)
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(3))
+	g.Expect(objects[0].Name).To(Equal(testObjects[0].Name))
+
+	objects, err = iter.Page(3, 0)
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(3))
+	g.Expect(objects[0].Name).To(Equal(testObjects[3].Name))
+
+	objects, err = iter.Page(3, 0)
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(1))
+	g.Expect(objects[0].Name).To(Equal(testObjects[6].Name))
+
+	// With pagination and with an initial offset.
+	iter, err = store.GetObjects(context.Background(), nil, nil)
+	g.Expect(err).To(BeNil())
+
+	objects, err = iter.Page(2, 2)
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(2))
+	g.Expect(objects[0].Name).To(Equal(testObjects[2].Name))
+
+	objects, err = iter.Page(2, 0)
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(2))
+	g.Expect(objects[0].Name).To(Equal(testObjects[4].Name))
+
+	objects, err = iter.Page(2, 0)
+	g.Expect(err).To(BeNil())
+	g.Expect(len(objects)).To(Equal(1))
+	g.Expect(objects[0].Name).To(Equal(testObjects[6].Name))
 }
 
 func TestDeleteObjects(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		seed     []models.Object
