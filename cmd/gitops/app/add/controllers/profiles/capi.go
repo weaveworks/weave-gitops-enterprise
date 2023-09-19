@@ -63,19 +63,19 @@ func InstallCapi(opts *config.Options) error {
 
 func constructCAPIValues(opts *config.Options, templatesNamespace string, clustersNamespace string) (map[string]interface{}, error) {
 
-	branch, err := utils.GetRepoBranch(*opts)
+	branch, err := utils.GetRepoBranch(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace, *opts)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
 
-	url, err := utils.GetRepoUrl(*opts)
+	url, err := utils.GetRepoUrl(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace, *opts)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
 	url = strings.Replace(url, ":", "/", 1)
 	url = strings.Replace(url, "git@", "https://", 1)
 
-	path, err := utils.GetRepoPath(*opts)
+	path, err := utils.GetRepoPath(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace, *opts)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}

@@ -28,7 +28,7 @@ const (
 	fluxGitEmail    = "bootstrap@weave.works"
 )
 
-func getGitRepository(opts config.Options) (*v1beta2.GitRepository, error) {
+func getGitRepository(repoName string, namespace string, opts config.Options) (*v1beta2.GitRepository, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
 	if err != nil {
 		return nil, err
@@ -43,8 +43,8 @@ func getGitRepository(opts config.Options) (*v1beta2.GitRepository, error) {
 	// Get the GitRepository custom resource
 	gitRepo := &v1beta2.GitRepository{}
 	if err := cl.Get(ctx, client.ObjectKey{
-		Namespace: "flux-system",
-		Name:      "flux-system",
+		Namespace: namespace,
+		Name:      repoName,
 	}, gitRepo); err != nil {
 		return nil, err
 	}
@@ -53,8 +53,8 @@ func getGitRepository(opts config.Options) (*v1beta2.GitRepository, error) {
 }
 
 // GetRepoUrl get the default repo url for flux installation (flux-system) GitRepository.
-func GetRepoUrl(opts config.Options) (string, error) {
-	gitRepo, err := getGitRepository(opts)
+func GetRepoUrl(repoName string, namespace string, opts config.Options) (string, error) {
+	gitRepo, err := getGitRepository(repoName, namespace, opts)
 	if err != nil {
 		return "", err
 	}
@@ -70,8 +70,8 @@ func GetRepoUrl(opts config.Options) (string, error) {
 }
 
 // GetRepoBranch get the branch for flux installation (flux-system) GitRepository.
-func GetRepoBranch(opts config.Options) (string, error) {
-	gitRepo, err := getGitRepository(opts)
+func GetRepoBranch(repoName string, namespace string, opts config.Options) (string, error) {
+	gitRepo, err := getGitRepository(repoName, namespace, opts)
 	if err != nil {
 		return "", err
 	}
@@ -81,7 +81,7 @@ func GetRepoBranch(opts config.Options) (string, error) {
 }
 
 // GetRepoPath get the path for flux installation (flux-system) Kustomization.
-func GetRepoPath(opts config.Options) (string, error) {
+func GetRepoPath(repoName string, namespace string, opts config.Options) (string, error) {
 
 	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
 	if err != nil {
@@ -97,8 +97,8 @@ func GetRepoPath(opts config.Options) (string, error) {
 	kustomization := &kustomizev1.Kustomization{}
 
 	if err := cl.Get(ctx, client.ObjectKey{
-		Namespace: "flux-system",
-		Name:      "flux-system",
+		Namespace: namespace,
+		Name:      repoName,
 	}, kustomization); err != nil {
 		return "", err
 	}
@@ -111,24 +111,24 @@ func GetRepoPath(opts config.Options) (string, error) {
 }
 
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
-func CloneRepo() (string, error) {
+func CloneRepo(repoName string, namespace string) (string, error) {
 	if err := CleanupRepo(); err != nil {
 		return "", err
 	}
 
 	var runner runner.CLIRunner
 
-	repoUrlParsed, err := GetRepoUrl(config.Options{})
+	repoUrlParsed, err := GetRepoUrl(repoName, namespace, config.Options{})
 	if err != nil {
 		return "", err
 	}
 
-	repoBranchParsed, err := GetRepoBranch(config.Options{})
+	repoBranchParsed, err := GetRepoBranch(repoName, namespace, config.Options{})
 	if err != nil {
 		return "", err
 	}
 
-	repoPathParsed, err := GetRepoPath(config.Options{})
+	repoPathParsed, err := GetRepoPath(repoName, namespace, config.Options{})
 	if err != nil {
 		return "", err
 	}

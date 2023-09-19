@@ -26,7 +26,7 @@ const (
 
 // isAdminCredsAvailable if exists return not found error otherwise return nil
 func isAdminCredsAvailable(kubernetesClient kubernetes.Interface) (bool, error) {
-	if _, err := utils.GetSecret(adminSecretName, wgeDefaultNamespace, kubernetesClient); err == nil {
+	if _, err := utils.GetSecret(adminSecretName, WGEDefaultNamespace, kubernetesClient); err == nil {
 		return true, nil
 	} else if err != nil && strings.Contains(err.Error(), "not found") {
 		return false, nil
@@ -48,12 +48,12 @@ func AskAdminCredsSecret(opts config.Options) error {
 	}
 
 	if available {
-		utils.Info(adminSecretExistsMsgFormat, adminSecretName, wgeDefaultNamespace)
+		utils.Info(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace)
 		existingCreds := utils.GetConfirmInput(existingCredsMsg)
 		if existingCreds == "y" {
 			return nil
 		} else {
-			utils.Warning(existingCredsExitMsg, adminSecretName, wgeDefaultNamespace)
+			utils.Warning(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
 			os.Exit(0)
 		}
 		return nil
@@ -79,7 +79,7 @@ func AskAdminCredsSecret(opts config.Options) error {
 		"password": encryptedPassword,
 	}
 
-	if err := utils.CreateSecret(adminSecretName, wgeDefaultNamespace, data, kubernetesClient); err != nil {
+	if err := utils.CreateSecret(adminSecretName, WGEDefaultNamespace, data, kubernetesClient); err != nil {
 		return err
 	}
 

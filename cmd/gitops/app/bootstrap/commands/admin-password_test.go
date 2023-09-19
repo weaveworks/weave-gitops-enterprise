@@ -25,7 +25,7 @@ func TestIsAdminCredsAvailable(t *testing.T) {
 		{
 			name: "secret exist",
 			secret: &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: wgeDefaultNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
 					"username": []byte("test-username"),
@@ -38,7 +38,7 @@ func TestIsAdminCredsAvailable(t *testing.T) {
 		{
 			name: "failed to get secret",
 			secret: &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: "@s", Namespace: wgeDefaultNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: "@s", Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
 					"username": []byte("test-username"),

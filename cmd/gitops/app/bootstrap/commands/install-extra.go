@@ -7,7 +7,7 @@ import (
 
 // UpdateHelmReleaseValues add the extra HelmRelease values.
 func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := utils.GetCurrentValuesForHelmRelease(wgeHelmReleaseName, wgeDefaultNamespace)
+	values, err := utils.GetCurrentValuesForHelmRelease(wgeHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -24,7 +24,7 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 		values.EnableTerraformUI = true
 	}
 
-	version, err := utils.GetCurrentVersionForHelmRelease(wgeHelmReleaseName, wgeDefaultNamespace)
+	version, err := utils.GetCurrentVersionForHelmRelease(wgeHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -34,7 +34,7 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 		return err
 	}
 
-	pathInRepo, err := utils.CloneRepo()
+	pathInRepo, err := utils.CloneRepo(WGEDefaultRepoName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}

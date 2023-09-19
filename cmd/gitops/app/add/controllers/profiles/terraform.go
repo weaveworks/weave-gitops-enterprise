@@ -59,7 +59,7 @@ func InstallTerraform(opts *config.Options) error {
 		return err
 	}
 
-	pathInRepo, err := utils.CloneRepo()
+	pathInRepo, err := utils.CloneRepo(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}

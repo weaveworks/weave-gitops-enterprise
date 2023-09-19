@@ -84,8 +84,8 @@ func CreateOIDCConfig(opts config.Options, userDomain string, version string) er
 	if err != nil {
 		return err
 	}
-	if _, err := utils.GetSecret(oidcSecretName, wgeDefaultNamespace, kubernetesClient); err == nil {
-		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, wgeDefaultNamespace)
+	if _, err := utils.GetSecret(oidcSecretName, WGEDefaultNamespace, kubernetesClient); err == nil {
+		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return err
@@ -103,7 +103,7 @@ func CreateOIDCConfig(opts config.Options, userDomain string, version string) er
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	if err = utils.CreateSecret(oidcSecretName, wgeDefaultNamespace, oidcSecretData, kubernetesClient); err != nil {
+	if err = utils.CreateSecret(oidcSecretName, WGEDefaultNamespace, oidcSecretData, kubernetesClient); err != nil {
 		return err
 	}
 
@@ -135,7 +135,7 @@ func checkAdminPasswordRevert(opts config.Options) error {
 	if err != nil {
 		return err
 	}
-	if err := utils.DeleteSecret(adminSecretName, wgeDefaultNamespace, kubernetesClient); err != nil {
+	if err := utils.DeleteSecret(adminSecretName, WGEDefaultNamespace, kubernetesClient); err != nil {
 		return err
 	}
 
