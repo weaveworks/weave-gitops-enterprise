@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-import { Button, Flex, Link } from '@weaveworks/weave-gitops';
+import { Button, Flex, Link, Text } from '@weaveworks/weave-gitops';
 import {
   ApprovePromotionRequest,
   Pipelines,
@@ -47,22 +47,19 @@ const PromotePipeline = ({
           {error}
         </Alert>
       )}
-
-      <Flex align center>
-        {!url ? (
-          <Button
-            startIcon={<ShowChartIcon />}
-            onClick={() => approvePromotion()}
-            disabled={loading}
-          >
-            Promote {promoteVersion}
-            {loading && (
-              <CircularProgress size={20} style={{ marginLeft: '8px' }} />
-            )}
-          </Button>
-        ) : (
-          <Link href={url}>Pull Request</Link>
-        )}
+      <Flex column gap="4">
+        <Button
+          startIcon={<ShowChartIcon />}
+          onClick={() => approvePromotion()}
+          disabled={loading || !promoteVersion}
+          loading={loading}
+        >
+          Approve Promotion
+        </Button>
+        <Text color="primary20">
+          PR:
+          {url ? <Link href={url}>Pull Request</Link> : 'Waiting for approval'}
+        </Text>
       </Flex>
     </>
   );

@@ -93,6 +93,7 @@ function Workloads({
   const classes = usePipelineStyles();
   const environments = pipeline?.environments || [];
   const targetsStatuses = pipeline?.status?.environments || {};
+  const manual = pipeline?.promotion?.manual || false;
 
   return (
     <Grid
@@ -119,11 +120,7 @@ function Workloads({
                 {getTargetsCount(status || [])} Targets
               </div>
             </div>
-            {status.map((target, indx) => (
-              <TargetStatus target={target} classes={classes} key={indx} />
-            ))}
-
-            {promoteVersion && (
+            {true && (
               <PromotePipeline
                 req={{
                   name: pipeline.name,
@@ -134,6 +131,9 @@ function Workloads({
                 promoteVersion={promoteVersion || ''}
               />
             )}
+            {status.map((target, indx) => (
+              <TargetStatus target={target} classes={classes} key={indx} />
+            ))}
           </Grid>
         );
       })}
