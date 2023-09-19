@@ -120,7 +120,7 @@ function Workloads({
                 {getTargetsCount(status || [])} Targets
               </div>
             </div>
-            {true && (
+            {manual && (
               <PromotePipeline
                 req={{
                   name: pipeline.name,
