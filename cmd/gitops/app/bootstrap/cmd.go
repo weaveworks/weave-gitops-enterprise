@@ -24,10 +24,6 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 - Set the admin password for WGE Dashboard.
 - Easy steps to make OIDC flow
 `
-	optionNone        = "None"
-	optionCapi        = "capi"
-	optionPolicyAgent = "policy-agent"
-	optionTerraform   = "terraform"
 )
 
 func Command(opts *config.Options) *cobra.Command {

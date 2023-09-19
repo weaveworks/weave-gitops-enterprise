@@ -21,5 +21,6 @@ gitops add cluster`,
 	cmd.AddCommand(clusters.AddCommand(opts, client))
 	cmd.AddCommand(profiles.AddCommand(opts, client))
 	cmd.AddCommand(terraform.AddCommand(opts, client))
+
 	return cmd
 }
