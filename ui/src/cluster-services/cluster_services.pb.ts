@@ -183,7 +183,7 @@ export type ClusterNamespacedName = {
   name?: string
 }
 
-export type DeleteClustersPullRequestRequest = {
+export type CreateDeletionPullRequestRequest = {
   repositoryUrl?: string
   headBranch?: string
   baseBranch?: string
@@ -196,7 +196,7 @@ export type DeleteClustersPullRequestRequest = {
   clusterNamespacedNames?: ClusterNamespacedName[]
 }
 
-export type DeleteClustersPullRequestResponse = {
+export type CreateDeletionPullRequestResponse = {
   webUrl?: string
 }
 
@@ -870,32 +870,32 @@ export class ClustersService {
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
     return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
+  static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/templates/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static CreateDeletionPullRequest(req: CreateDeletionPullRequestRequest, initReq?: fm.InitReq): Promise<CreateDeletionPullRequestResponse> {
+    return fm.fetchReq<CreateDeletionPullRequestRequest, CreateDeletionPullRequestResponse>(`/v1/templates/deletion-pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
   static RenderAutomation(req: RenderAutomationRequest, initReq?: fm.InitReq): Promise<RenderAutomationResponse> {
     return fm.fetchReq<RenderAutomationRequest, RenderAutomationResponse>(`/v1/automations/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
-    return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
-    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/clusters`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static CreateTfControllerPullRequest(req: CreateTfControllerPullRequestRequest, initReq?: fm.InitReq): Promise<CreateTfControllerPullRequestResponse> {
-    return fm.fetchReq<CreateTfControllerPullRequestRequest, CreateTfControllerPullRequestResponse>(`/v1/tfcontrollers`, {...initReq, method: "POST", body: JSON.stringify(req)})
-  }
-  static DeleteClustersPullRequest(req: DeleteClustersPullRequestRequest, initReq?: fm.InitReq): Promise<DeleteClustersPullRequestResponse> {
-    return fm.fetchReq<DeleteClustersPullRequestRequest, DeleteClustersPullRequestResponse>(`/v1/clusters`, {...initReq, method: "DELETE", body: JSON.stringify(req)})
+  static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
+    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/automations/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListCredentials(req: ListCredentialsRequest, initReq?: fm.InitReq): Promise<ListCredentialsResponse> {
     return fm.fetchReq<ListCredentialsRequest, ListCredentialsResponse>(`/v1/credentials?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static CreateTfControllerPullRequest(req: CreateTfControllerPullRequestRequest, initReq?: fm.InitReq): Promise<CreateTfControllerPullRequestResponse> {
+    return fm.fetchReq<CreateTfControllerPullRequestRequest, CreateTfControllerPullRequestResponse>(`/v1/tfcontrollers/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
+  }
+  static ListGitopsClusters(req: ListGitopsClustersRequest, initReq?: fm.InitReq): Promise<ListGitopsClustersResponse> {
+    return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetKubeconfig(req: GetKubeconfigRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
     return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/kubeconfig?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName"])}`, {...initReq, method: "GET"})
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static CreateAutomationsPullRequest(req: CreateAutomationsPullRequestRequest, initReq?: fm.InitReq): Promise<CreateAutomationsPullRequestResponse> {
-    return fm.fetchReq<CreateAutomationsPullRequestRequest, CreateAutomationsPullRequestResponse>(`/v1/automations`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static GetConfig(req: GetConfigRequest, initReq?: fm.InitReq): Promise<GetConfigResponse> {
     return fm.fetchReq<GetConfigRequest, GetConfigResponse>(`/v1/config?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -942,16 +942,16 @@ export class ClustersService {
   static SyncExternalSecrets(req: SyncExternalSecretsRequest, initReq?: fm.InitReq): Promise<SyncExternalSecretsResponse> {
     return fm.fetchReq<SyncExternalSecretsRequest, SyncExternalSecretsResponse>(`/v1/external-secrets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
-  static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
-    return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
-  }
-  static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
-    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "name"])}`, {...initReq, method: "GET"})
-  }
   static EncryptSopsSecret(req: EncryptSopsSecretRequest, initReq?: fm.InitReq): Promise<EncryptSopsSecretResponse> {
     return fm.fetchReq<EncryptSopsSecretRequest, EncryptSopsSecretResponse>(`/v1/encrypt-sops-secret`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static ListSopsKustomizations(req: ListSopsKustomizationsRequest, initReq?: fm.InitReq): Promise<ListSopsKustomizationsResponse> {
     return fm.fetchReq<ListSopsKustomizationsRequest, ListSopsKustomizationsResponse>(`/v1/sops-kustomizations?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListPolicyConfigs(req: ListPolicyConfigsRequest, initReq?: fm.InitReq): Promise<ListPolicyConfigsResponse> {
+    return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
+    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "name"])}`, {...initReq, method: "GET"})
   }
 }

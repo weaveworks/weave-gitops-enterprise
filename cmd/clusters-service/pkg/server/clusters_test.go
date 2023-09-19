@@ -1823,21 +1823,21 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 	testCases := []struct {
 		name           string
 		provider       csgit.Provider
-		req            *capiv1_protos.DeleteClustersPullRequestRequest
+		req            *capiv1_protos.CreateDeletionPullRequestRequest
 		CommittedFiles []*capiv1_protos.CommitFile
 		expected       string
 		err            error
 	}{
 		{
 			name: "validation errors",
-			req:  &capiv1_protos.DeleteClustersPullRequestRequest{},
+			req:  &capiv1_protos.CreateDeletionPullRequestRequest{},
 			err:  errors.New(deleteClustersRequiredErr),
 		},
 
 		{
 			name:     "create delete pull request",
 			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
-			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+			req: &capiv1_protos.CreateDeletionPullRequestRequest{
 				ClusterNames:  []string{"foo", "bar"},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-02",
@@ -1854,7 +1854,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				"clusters/default/foo/kustomization.yaml",
 				"clusters/management/clusters/default/foo.yaml",
 			}, nil),
-			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+			req: &capiv1_protos.CreateDeletionPullRequestRequest{
 				ClusterNames:  []string{"foo"},
 				RepositoryUrl: "https://github.com/org/repo.git",
 				HeadBranch:    "feature-02",
@@ -1868,7 +1868,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 		{
 			name:     "create delete pull request with namespaced cluster names",
 			provider: gitfakes.NewFakeGitProvider("https://github.com/org/repo/pull/1", nil, nil, nil, nil),
-			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+			req: &capiv1_protos.CreateDeletionPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
 					testNewClusterNamespacedName(t, "foo", "ns-foo"),
 					testNewClusterNamespacedName(t, "bar", "ns-bar"),
@@ -1888,7 +1888,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 				"clusters/ns-foo/foo/kustomization.yaml",
 				"clusters/management/clusters/ns-foo/foo.yaml",
 			}, nil),
-			req: &capiv1_protos.DeleteClustersPullRequestRequest{
+			req: &capiv1_protos.CreateDeletionPullRequestRequest{
 				ClusterNamespacedNames: []*capiv1_protos.ClusterNamespacedName{
 					{
 						Name:      "foo",
@@ -1915,7 +1915,7 @@ func TestDeleteClustersPullRequest(t *testing.T) {
 			})
 
 			// delete request
-			deletePullRequestResponse, err := s.DeleteClustersPullRequest(context.Background(), tt.req)
+			deletePullRequestResponse, err := s.CreateDeletionPullRequest(context.Background(), tt.req)
 
 			// Check the response looks good
 			if err != nil {
