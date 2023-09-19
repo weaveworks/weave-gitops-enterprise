@@ -25,6 +25,7 @@ If you would like to use default Explorer view with your Kind:
 2. Add a test case for your kind in the [integration test](https://github.com/weaveworks/weave-gitops-enterprise/blob/main/pkg/query/server/server_integration_test.go#L44)
    - Add any CRDs to [testdata/crds](../pkg/query/server/testdata/crds)
    - Add the GV to [`AddToScheme`](../pkg/query/server/suite_test.go) to register the GVK.
+3. Add the Kind or Resource to the [user documentation](https://docs.gitops.weave.works/docs/explorer/configuration/#kinds).  
    
 ## Using the Explorer UI component
 
