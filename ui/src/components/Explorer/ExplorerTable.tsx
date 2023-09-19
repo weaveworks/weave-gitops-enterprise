@@ -59,6 +59,11 @@ function ExplorerTable({
             namespace: o.namespace,
             clusterName: o.cluster,
           });
+        } else if (page == Routes.Templates){
+          url = formatURL(page, {
+            name: o.name,
+            namespace: o.namespace,
+          });
         } else {
           url = formatURL(page, {
             name: o.name,
