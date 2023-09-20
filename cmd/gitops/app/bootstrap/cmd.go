@@ -10,7 +10,7 @@ import (
 
 const (
 	cmdName             = "bootstrap"
-	cmdShortDescription = "Bootstraps Weave gitops enterprise"
+	cmdShortDescription = "Bootstraps Weave GitOps Enterprise"
 	cmdLongDescription  = `
 # Bootstrap Weave-gitops-enterprise
 
