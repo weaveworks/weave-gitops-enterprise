@@ -429,7 +429,7 @@ replace (
 	github.com/weaveworks/progressive-delivery => github.com/enekofb/progressive-delivery v0.0.0-20230913204819-84c8e92a8088
 
 	// un-comment for local dev
-	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.31.3-0.20230919071803-ef8b25ccce27
+	github.com/weaveworks/weave-gitops => github.com/weaveworks/weave-gitops v0.31.3-0.20230920094410-d97c50158192
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
