@@ -2,7 +2,7 @@
 name: Bug report
 about: Use this issue when something is not working as expected.
 title: ''
-labels: ["bug"]
+labels: ["bug","severity_medium"]
 assignees: ["weaveworks/timber-wolf","weaveworks/pesto","weaveworks/wild-watermelon","weaveworks/tangerine" ]
 
 ---
@@ -20,13 +20,6 @@ assignees: ["weaveworks/timber-wolf","weaveworks/pesto","weaveworks/wild-waterme
 
 **Expected behaviour**
 <!-- A clear and concise description of what you expected to happen. -->
-
-
-**Severity**
-- [ ] low 
-- [x] medium
-- [ ] high
-- [ ] critical
 
 
 **Additional context**
