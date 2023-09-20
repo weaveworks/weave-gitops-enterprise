@@ -24,7 +24,7 @@ const PromotePipeline = ({
       >
         Approve Promotion
       </Button>
-      <Text color="primary20">
+      {/* <Text color="primary20">
         PR:
         {data ? (
           <Link href={data.pullRequestURL} newTab>
@@ -33,7 +33,7 @@ const PromotePipeline = ({
         ) : (
           ' Waiting For Approval'
         )}
-      </Text>
+      </Text> */}
     </Flex>
   );
 };
