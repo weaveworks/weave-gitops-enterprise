@@ -48,6 +48,13 @@ const (
 	clusterControllerImageTag         = "v1.5.2"
 )
 
+var (
+	domainTypes = []string{
+		domainTypelocalhost,
+		domainTypeExternalDNS,
+	}
+)
+
 // InstallWge installs weave gitops enterprise chart.
 func InstallWge(opts config.Options, version string) (string, error) {
 
@@ -58,11 +65,6 @@ func InstallWge(opts config.Options, version string) (string, error) {
 	cl, err := client.New(config, client.Options{})
 	if err != nil {
 		return "", err
-	}
-
-	domainTypes := []string{
-		domainTypelocalhost,
-		domainTypeExternalDNS,
 	}
 
 	domainType, err := utils.GetSelectInput(domainMsg, domainTypes)
@@ -250,7 +252,7 @@ func CheckUIDomain(opts config.Options, userDomain string, wgeVersion string) er
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {
-		return fmt.Errorf("%s%s", err.Error(), string(out))
+		return fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	return nil

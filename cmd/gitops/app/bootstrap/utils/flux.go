@@ -93,18 +93,18 @@ func ReconcileFlux(helmReleaseName ...string) error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
 	if err != nil {
-		return fmt.Errorf("%s%s", err.Error(), string(out))
+		return fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		return fmt.Errorf("%s%s", err.Error(), string(out))
+		return fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	if len(helmReleaseName) > 0 {
 		out, err = runner.Run("flux", "reconcile", "helmrelease", helmReleaseName[0])
 		if err != nil {
-			return fmt.Errorf("%s%s", err.Error(), string(out))
+			return fmt.Errorf("%s: %w", string(out), err)
 		}
 	}
 
@@ -116,12 +116,12 @@ func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.Value
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values}\"")
 	if err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s%s", err.Error(), string(out))
+		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	values := domain.ValuesFile{}
 	if err := json.Unmarshal(out[1:len(out)-1], &values); err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s%s", err.Error(), string(out))
+		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	return values, nil
@@ -132,7 +132,7 @@ func GetCurrentVersionForHelmRelease(name string, namespace string) (string, err
 	var runner runner.CLIRunner
 	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.chart.spec.version}\"")
 	if err != nil {
-		return "", fmt.Errorf("%s%s", err.Error(), string(out))
+		return "", fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	return string(out[1 : len(out)-1]), nil

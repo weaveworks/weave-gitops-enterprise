@@ -116,7 +116,7 @@ func CloneRepo(cl client.Client, repoName string, namespace string) (string, err
 
 	out, err := runner.Run("git", "clone", repoUrlParsed, workingDir, "--depth", "1", "-b", repoBranchParsed)
 	if err != nil {
-		return "", fmt.Errorf("%s%s", err.Error(), string(out))
+		return "", fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	return repoPathParsed, nil

@@ -24,6 +24,7 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 - Set the admin password for WGE Dashboard.
 - Easy steps to make OIDC flow
 `
+	redColor = "\x1b[31;1m%w\x1b[0m"
 )
 
 func Command(opts *config.Options) *cobra.Command {
@@ -39,7 +40,7 @@ func Command(opts *config.Options) *cobra.Command {
 func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if err := bootstrap(opts); err != nil {
-			return fmt.Errorf("\x1b[31;1m%s\x1b[0m", err.Error())
+			return fmt.Errorf(redColor, err)
 		}
 		return nil
 	}
@@ -51,11 +52,7 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
-	if err := commands.CheckFluxIsInstalled(*opts); err != nil {
-		return err
-	}
-
-	if err := commands.CheckFluxReconcile(*opts); err != nil {
+	if err := commands.VerifyFluxInstallation(*opts); err != nil {
 		return err
 	}
 
@@ -73,7 +70,6 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
-	// check if the UI is running on localhost or external domain
 	if err = commands.CheckUIDomain(*opts, userDomain, wgeVersion); err != nil {
 		return err
 	}

@@ -12,14 +12,11 @@ const (
 	fluxBoostrapCheckMsg     = "Checking flux is bootstrapped ..."
 	fluxExistingBootstrapMsg = "Flux is already bootstrapped!"
 
-	fluxSetupValidationMsg  = "Verifying flux setup is valid ..."
-	fluxReconcileConfirmMsg = "Flux is bootstrapped and can reconcile successfully!"
-
 	fluxInstallationErrorMsgFormat = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
 )
 
-// CheckFluxIsInstalled checks for valid flux installation.
-func CheckFluxIsInstalled(opts config.Options) error {
+// VerifyFluxInstallation checks for valid flux installation.
+func VerifyFluxInstallation(opts config.Options) error {
 	utils.Warning(fluxBoostrapCheckMsg)
 
 	var runner runner.CLIRunner
@@ -28,23 +25,13 @@ func CheckFluxIsInstalled(opts config.Options) error {
 		return err
 	}
 
-	utils.Info(fluxExistingBootstrapMsg)
-
-	return nil
-}
-
-// CheckFluxIsInstalled checks if flux installation is valid and can reconcile.
-func CheckFluxReconcile(opts config.Options) error {
-	utils.Warning(fluxSetupValidationMsg)
-
-	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
-		return fmt.Errorf("%s%s", err.Error(), errMsg)
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	utils.Info(fluxReconcileConfirmMsg)
+	utils.Info(fluxExistingBootstrapMsg)
 
 	return nil
 }

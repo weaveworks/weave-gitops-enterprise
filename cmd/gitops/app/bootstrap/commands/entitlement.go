@@ -49,12 +49,12 @@ func CheckEntitlementFile(opts config.Options) error {
 func verifyEntitlementFile(kubernetesClient kubernetes.Interface) error {
 	secret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, kubernetesClient)
 	if err != nil || secret.Data["entitlement"] == nil {
-		return fmt.Errorf("%s%s", err.Error(), nonExistingEntitlementSecretMsg)
+		return fmt.Errorf("%s: %w", nonExistingEntitlementSecretMsg, err)
 	}
 
 	ent, err := entitlement.VerifyEntitlement(strings.NewReader(string(publicKey)), string(secret.Data["entitlement"]))
 	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
-		return fmt.Errorf("%s%s", err.Error(), invalidEntitlementSecretMsg)
+		return fmt.Errorf("%s: %w", invalidEntitlementSecretMsg, err)
 	}
 
 	return nil

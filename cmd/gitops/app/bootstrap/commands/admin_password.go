@@ -22,6 +22,7 @@ const (
 const (
 	defaultAdminUsername = "wego-admin"
 	adminSecretName      = "cluster-user-auth"
+	confirmYes           = "y"
 )
 
 // isAdminCredsAvailable if exists return not found error otherwise return nil
@@ -50,7 +51,7 @@ func AskAdminCredsSecret(opts config.Options) error {
 	if available {
 		utils.Info(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace)
 		existingCreds := utils.GetConfirmInput(existingCredsMsg)
-		if existingCreds == "y" {
+		if existingCreds == confirmYes {
 			return nil
 		} else {
 			utils.Warning(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
