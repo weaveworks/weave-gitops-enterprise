@@ -25,3 +25,6 @@ assignees: []
 **Additional context**
 <!-- Add any other context about the problem here. For example whether it was found in a release or during testing.-->
 
+- Weave GitOps version:
+- Kubernetes version:
+
