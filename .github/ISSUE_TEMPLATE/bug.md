@@ -1,9 +1,9 @@
 ---
 name: Bug report
-about: Use this issue when something is not working as expected for 
+about: Use this issue when something is not working as expected.
 title: ''
 labels: ["bug"]
-assignees: 'weaveworks/timber-wolf'
+assignees: ["weaveworks/timber-wolf","weaveworks/pesto","weaveworks/wild-watermelon","weaveworks/tangerine" ]
 
 ---
 **Describe the bug**
@@ -23,10 +23,10 @@ assignees: 'weaveworks/timber-wolf'
 
 
 **Severity**
-- [] low 
+- [ ] low 
 - [x] medium
-- [] high
-- [] critical
+- [ ] high
+- [ ] critical
 
 
 **Additional context**
