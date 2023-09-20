@@ -27,7 +27,7 @@ const ProfilesListItem: FC<{
   const [version, setVersion] = useState<string>('');
   const [yaml, setYaml] = useState<string>('');
   const [openYamlPreview, setOpenYamlPreview] = useState<boolean>(false);
-  const [namespace, setNamespace] = useState<string>();
+  const [namespace, setNamespace] = useState<string>('');
   const [isNamespaceValid, setNamespaceValidation] = useState<boolean>(true);
 
   const profileVersions = (profile: UpdatedProfile) => [
