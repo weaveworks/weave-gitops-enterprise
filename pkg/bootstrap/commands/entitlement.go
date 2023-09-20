@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"k8s.io/client-go/kubernetes"
 )

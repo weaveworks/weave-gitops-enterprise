@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )

@@ -5,8 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"gopkg.in/yaml.v2"
 )

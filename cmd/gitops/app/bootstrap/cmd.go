@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
