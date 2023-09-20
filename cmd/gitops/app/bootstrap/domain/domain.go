@@ -1,12 +1,5 @@
 package domain
 
-const (
-	PolicyAgentValuesName = "policy-agent"
-	OIDCValuesName        = "oidc"
-	CAPIValuesName        = "capi"
-	TerraformValuesName   = "enableTerraformUI"
-)
-
 // ValuesFile store the wge values
 type ValuesFile struct {
 	Config             ValuesWGEConfig        `json:"config,omitempty"`

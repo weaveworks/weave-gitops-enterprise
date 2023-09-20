@@ -73,11 +73,6 @@ func bootstrap(opts *config.Options) error {
 		return err
 	}
 
-	// TODO: restore when oidc merged
-	// if err = commands.CreateOIDCConfig(*opts, userDomain, wgeVersion); err != nil {
-	// 	return err
-	// }
-
 	// check if the UI is running on localhost or external domain
 	if err = commands.CheckUIDomain(*opts, userDomain, wgeVersion); err != nil {
 		return err
