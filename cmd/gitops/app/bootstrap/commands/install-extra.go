@@ -3,10 +3,11 @@ package commands
 import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 // UpdateHelmReleaseValues add the extra HelmRelease values.
-func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[string]interface{}) error {
+func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, controllerValues map[string]interface{}) error {
 	values, err := utils.GetCurrentValuesForHelmRelease(wgeHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
@@ -34,7 +35,7 @@ func UpdateHelmReleaseValues(controllerValuesName string, controllerValues map[s
 		return err
 	}
 
-	pathInRepo, err := utils.CloneRepo(WGEDefaultRepoName, WGEDefaultNamespace)
+	pathInRepo, err := utils.CloneRepo(cl, WGEDefaultRepoName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}

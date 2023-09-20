@@ -9,6 +9,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -111,7 +113,16 @@ func CreateOIDCConfig(opts config.Options, userDomain string, version string) er
 
 	utils.Warning(oidcInstallInfoMsg)
 
-	if err := UpdateHelmReleaseValues(domain.OIDCValuesName, values); err != nil {
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
+	if err != nil {
+		return err
+	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return err
+	}
+
+	if err := UpdateHelmReleaseValues(cl, domain.OIDCValuesName, values); err != nil {
 		return err
 	}
 

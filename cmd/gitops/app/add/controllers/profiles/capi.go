@@ -9,6 +9,8 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -52,7 +54,17 @@ func InstallCapi(opts *config.Options) error {
 	}
 
 	utils.Warning(capiInstallInfoMsg)
-	err = commands.UpdateHelmReleaseValues(domain.CAPIValuesName, values)
+
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
+	if err != nil {
+		return err
+	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return err
+	}
+
+	err = commands.UpdateHelmReleaseValues(cl, domain.CAPIValuesName, values)
 	if err != nil {
 		return err
 	}
@@ -63,19 +75,28 @@ func InstallCapi(opts *config.Options) error {
 
 func constructCAPIValues(opts *config.Options, templatesNamespace string, clustersNamespace string) (map[string]interface{}, error) {
 
-	branch, err := utils.GetRepoBranch(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace, *opts)
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
+	if err != nil {
+		return nil, err
+	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return nil, err
+	}
+
+	branch, err := utils.GetRepoBranch(cl, commands.WGEDefaultRepoName, commands.WGEDefaultNamespace)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
 
-	url, err := utils.GetRepoUrl(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace, *opts)
+	url, err := utils.GetRepoUrl(cl, commands.WGEDefaultRepoName, commands.WGEDefaultNamespace)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}
 	url = strings.Replace(url, ":", "/", 1)
 	url = strings.Replace(url, "git@", "https://", 1)
 
-	path, err := utils.GetRepoPath(commands.WGEDefaultRepoName, commands.WGEDefaultNamespace, *opts)
+	path, err := utils.GetRepoPath(cl, commands.WGEDefaultRepoName, commands.WGEDefaultNamespace)
 	if err != nil {
 		return map[string]interface{}{}, nil
 	}

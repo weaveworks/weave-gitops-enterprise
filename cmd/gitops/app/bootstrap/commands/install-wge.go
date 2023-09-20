@@ -15,6 +15,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -48,6 +50,16 @@ const (
 
 // InstallWge installs weave gitops enterprise chart.
 func InstallWge(opts config.Options, version string) (string, error) {
+
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
+	if err != nil {
+		return "", err
+	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return "", err
+	}
+
 	domainTypes := []string{
 		domainTypelocalhost,
 		domainTypeExternalDNS,
@@ -69,7 +81,7 @@ func InstallWge(opts config.Options, version string) (string, error) {
 
 	utils.Info(wgeInstallMsg, version)
 
-	pathInRepo, err := utils.CloneRepo(WGEDefaultRepoName, WGEDefaultNamespace)
+	pathInRepo, err := utils.CloneRepo(cl, WGEDefaultRepoName, WGEDefaultNamespace)
 	if err != nil {
 		return "", err
 	}
