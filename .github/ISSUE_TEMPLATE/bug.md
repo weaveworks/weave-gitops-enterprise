@@ -2,8 +2,8 @@
 name: Bug report
 about: Use this issue when something is not working as expected.
 title: ''
-labels: ["bug","severity_medium"]
-assignees: ["weaveworks/timber-wolf","weaveworks/pesto","weaveworks/wild-watermelon","weaveworks/tangerine" ]
+labels: ["bug","severity_medium", "team/timber-wolf","team/pesto","team/wild-watermelon","team/tangerine"]
+assignees: []
 
 ---
 **Describe the bug**
