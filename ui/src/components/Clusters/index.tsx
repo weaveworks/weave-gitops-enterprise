@@ -1,3 +1,38 @@
+import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import Docker from '../../assets/img/docker.svg';
+import EKS from '../../assets/img/EKS.svg';
+import GKE from '../../assets/img/GKE.svg';
+import Kubernetes from '../../assets/img/Kubernetes.svg';
+import LiquidMetal from '../../assets/img/LiquidMetal.svg';
+import Openshift from '../../assets/img/Openshift.svg';
+import Rancher from '../../assets/img/Rancher.svg';
+import Vsphere from '../../assets/img/Vsphere.svg';
+import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
+import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
+import { useListConfigContext } from '../../contexts/ListConfig';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
+import useClusters from '../../hooks/clusters';
+import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
+import { useCallbackState } from '../../utils/callback-state';
+import { computeMessage } from '../../utils/conditions';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Tooltip } from '../Shared';
+import { EditButton } from '../Templates/Edit/EditButton';
+import {
+  getCreateRequestAnnotation,
+  useGetInitialGitRepo,
+} from '../Templates/Form/utils';
+import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { ConnectClusterDialog } from './ConnectInfoBox';
+import { DashboardsList } from './DashboardsList';
+import { DeleteClusterDialog } from './Delete';
+import OpenedPullRequest from './OpenedPullRequest';
 import { Checkbox } from '@material-ui/core';
 import {
   Button,
@@ -14,45 +49,10 @@ import {
   statusSortHelper,
   useListSources
 } from '@weaveworks/weave-gitops';
-import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { GitProvider } from '../../api/gitauth/gitauth.pb';
-import EKS from '../../assets/img/EKS.svg';
-import GKE from '../../assets/img/GKE.svg';
-import Kubernetes from '../../assets/img/Kubernetes.svg';
-import LiquidMetal from '../../assets/img/LiquidMetal.svg';
-import Openshift from '../../assets/img/Openshift.svg';
-import Rancher from '../../assets/img/Rancher.svg';
-import Vsphere from '../../assets/img/Vsphere.svg';
-import Docker from '../../assets/img/docker.svg';
-import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
-import CallbackStateContextProvider from '../../contexts/GitAuth/CallbackStateContext';
-import { useListConfigContext } from '../../contexts/ListConfig';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
-import useClusters from '../../hooks/clusters';
-import { GitopsClusterEnriched, PRDefaults } from '../../types/custom';
-import { toFilterQueryString } from '../../utils/FilterQueryString';
-import { useCallbackState } from '../../utils/callback-state';
-import { computeMessage } from '../../utils/conditions';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Tooltip } from '../Shared';
-import { EditButton } from '../Templates/Edit/EditButton';
-import {
-  getCreateRequestAnnotation,
-  useGetInitialGitRepo,
-} from '../Templates/Form/utils';
-import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
-import { ConnectClusterDialog } from './ConnectInfoBox';
-import { DashboardsList } from './DashboardsList';
-import { DeleteClusterDialog } from './Delete';
-import OpenedPullRequest from './OpenedPullRequest';
 
 const IconSpan = styled.span`
   display: flex;

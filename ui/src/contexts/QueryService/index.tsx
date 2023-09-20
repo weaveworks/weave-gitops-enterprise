@@ -1,5 +1,5 @@
-import { createContext } from 'react';
 import { Query } from '../../api/query/query.pb';
+import { createContext } from 'react';
 
 export const QueryServiceContext = createContext<typeof Query>(null as any);
 

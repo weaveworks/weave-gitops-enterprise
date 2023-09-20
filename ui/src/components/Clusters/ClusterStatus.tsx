@@ -1,3 +1,6 @@
+import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
+import { CAPICluster } from '../../types/custom';
+import { sectionTitle } from './ClusterDashboard';
 import {
   Box,
   Table,
@@ -12,9 +15,6 @@ import { fromPairs, sortBy } from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
-import { CAPICluster } from '../../types/custom';
-import { sectionTitle } from './ClusterDashboard';
 
 // styles
 

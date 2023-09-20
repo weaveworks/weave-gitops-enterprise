@@ -1,3 +1,4 @@
+import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
 import {
   Button,
   CopyToClipboard,
@@ -6,7 +7,6 @@ import {
   IconType,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
 
 const Pad = styled(Flex)`
   padding: 8px 0;
@@ -14,7 +14,7 @@ const Pad = styled(Flex)`
 
 const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
   const { data } = useGetGithubAuthStatus(codeRes);
-  if (!!data) {
+  if (data) {
     onSuccess(data.accessToken);
   }
   return (

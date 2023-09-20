@@ -1,8 +1,8 @@
-import { MenuItem } from '@material-ui/core';
-import { RequestStateHandler } from '@weaveworks/weave-gitops';
 import { useListExternalSecretStores } from '../../../contexts/Secrets';
 import { RequestError } from '../../../types/custom';
 import { Select } from '../../../utils/form';
+import { MenuItem } from '@material-ui/core';
+import { RequestStateHandler } from '@weaveworks/weave-gitops';
 
 const ListSecretsStore = ({
   value,
@@ -28,7 +28,7 @@ const ListSecretsStore = ({
         value={value}
         error={validateForm && !value}
       >
-        {!!data?.stores?.length ? (
+        {data?.stores?.length ? (
           data?.stores?.map((s, index: number) => {
             return (
               <MenuItem

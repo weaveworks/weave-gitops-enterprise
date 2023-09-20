@@ -1,3 +1,10 @@
+import {
+  ClusterNamespacedName,
+  RepositoryRef,
+} from '../../../../cluster-services/cluster_services.pb';
+import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
+import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
+import ChartValuesDialog from './ChartValuesDialog';
 import { Box, FormControl, Input, MenuItem, Select } from '@material-ui/core';
 import { Button, Flex } from '@weaveworks/weave-gitops';
 import React, {
@@ -8,13 +15,6 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import {
-  ClusterNamespacedName,
-  RepositoryRef,
-} from '../../../../cluster-services/cluster_services.pb';
-import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
-import { DEFAULT_PROFILE_NAMESPACE } from '../../../../utils/config';
-import ChartValuesDialog from './ChartValuesDialog';
 
 const ProfilesListItem: FC<{
   className?: string;

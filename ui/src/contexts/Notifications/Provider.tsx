@@ -1,6 +1,6 @@
+import { Notification, NotificationData } from './index';
 import { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Notification, NotificationData } from './index';
 
 const NotificationsProvider: FC = ({ children }) => {
   const [notifications, setNotifications] = useState<NotificationData[] | []>(

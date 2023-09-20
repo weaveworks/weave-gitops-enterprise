@@ -1,3 +1,6 @@
+import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import { useGetLogs } from '../../../hooks/gitopsrun';
+import { Select } from '../../../utils/form';
 import {
   IconButton,
   MenuItem,
@@ -14,12 +17,9 @@ import {
   IconType,
   formatLogTimestamp,
 } from '@weaveworks/weave-gitops';
-import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { sortBy, sortedUniqBy, uniq } from 'lodash';
 import React, { SetStateAction } from 'react';
 import styled from 'styled-components';
-import { useGetLogs } from '../../../hooks/gitopsrun';
-import { Select } from '../../../utils/form';
 
 type Props = {
   className?: string;
@@ -110,7 +110,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
     const tempLogs = logs.length ? [...data.logs, ...logs] : data.logs;
     //sort and filter
     const sorted = sortBy(tempLogs, e => e.sortingKey);
-    let filtered = sortedUniqBy(sorted, 'sortingKey');
+    const filtered = sortedUniqBy(sorted, 'sortingKey');
     setLogs(reverseSort ? filtered.reverse() : filtered);
     setToken(data.nextToken);
     setLogSources(uniq([...(data?.logSources || []), ...logSources]));

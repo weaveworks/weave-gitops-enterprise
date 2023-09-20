@@ -1,4 +1,8 @@
 import {
+  PolicyObj,
+  PolicyParam,
+} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import {
   Card,
   CardContent,
   FormControl,
@@ -10,10 +14,6 @@ import {
 } from '@material-ui/core';
 import { Autocomplete } from '@material-ui/lab';
 import { Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
-import {
-  PolicyObj,
-  PolicyParam,
-} from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { Dispatch, useState } from 'react';
 import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
@@ -39,9 +39,9 @@ export const SelectedPolicies = ({
 }: SelectSecretStoreProps) => {
   const { data } = useListPolicies({});
 
-  let policiesList = data?.policies || [];
+  const policiesList = data?.policies || [];
   const keys = Object.keys(formData.policies);
-  let selected: PolicyObj[] =
+  const selected: PolicyObj[] =
     policiesList.filter(({ id }) => id && keys.includes(id)) || [];
 
   const [selectedPolicies, setSelectedPolicies] =
@@ -91,7 +91,7 @@ export const SelectedPolicies = ({
     const item = formData.policies || {};
     if (Object.keys(item).length !== 0) delete item[id];
 
-    let updateSelected = selectedPolicies?.filter(p => p.id !== id);
+    const updateSelected = selectedPolicies?.filter(p => p.id !== id);
     setSelectedPolicies(updateSelected);
   };
   const getValue = (id: string, param: PolicyParam) => {

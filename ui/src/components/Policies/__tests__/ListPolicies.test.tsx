@@ -1,20 +1,13 @@
-import {
-  act,
-  fireEvent,
-  getByTestId,
-  render,
-  screen,
-} from '@testing-library/react';
-import moment from 'moment';
-import Policies from '../PoliciesListPage';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
   defaultContexts,
   CoreClientMock,
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
+import Policies from '../PoliciesListPage';
 import { PoliciesTab } from '../PoliciesListTab';
+import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 
 const listPoliciesResponse = {
   policies: [
@@ -44,18 +37,7 @@ const listPoliciesResponse = {
   total: 2,
   errors: [],
 };
-const mappedPolicies = (policies: any[]) => {
-  return policies.map(e => [
-    e.name,
-    e.category,
-    e.audit || '-',
-    e.enforce || '-',
-    e.tenant || '-',
-    e.severity,
-    e.clusterName,
-    moment(e.createdAt).fromNow(),
-  ]);
-};
+
 describe('ListPolicies', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: CoreClientMock;
@@ -123,10 +105,8 @@ describe('ListPolicies', () => {
       render(c);
     });
 
-    const tabs = await screen.getAllByRole('tab');
-    expect(await screen.getByTestId('text-Policies')).toHaveTextContent(
-      'Policies',
-    );
+    const tabs = screen.getAllByRole('tab');
+    expect(screen.getByTestId('text-Policies')).toHaveTextContent('Policies');
     expect(tabs).toHaveLength(3);
     expect(tabs[0]).toHaveTextContent('Policies');
     expect(tabs[1]).toHaveTextContent('Policy Audit');

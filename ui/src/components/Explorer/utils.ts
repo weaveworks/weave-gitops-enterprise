@@ -1,5 +1,5 @@
-import qs from 'query-string';
 import { QueryState } from './hooks';
+import qs from 'query-string';
 
 export function linkToExplorer(path: string, q: QueryState): string {
   const { filters, ...rest } = q;

@@ -1,7 +1,7 @@
-import { WorkspacesTable } from './Table';
 import { useListWorkspaces } from '../../contexts/Workspaces';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { WorkspacesTable } from './Table';
 
 const WorkspacesList = () => {
   const { data, isLoading } = useListWorkspaces({});

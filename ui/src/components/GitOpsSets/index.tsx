@@ -1,3 +1,9 @@
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
+import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
+import { useListGitOpsSets } from '../../hooks/gitopssets';
+import { Condition, computeMessage } from '../../utils/conditions';
+import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   DataTable,
@@ -9,15 +15,9 @@ import {
   statusSortHelper,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
-import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
-import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
-import { useListGitOpsSets } from '../../hooks/gitopssets';
-import { Condition, computeMessage } from '../../utils/conditions';
-import { Routes } from '../../utils/nav';
-import { Page } from '../Layout/App';
 import Explorer from '../Explorer/Explorer';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
@@ -46,7 +46,7 @@ const GitOpsSets: FC = () => {
 
   const gitopssets = data?.gitopssets;
 
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(gitopssets, 'status', filterByStatusCallback),
     ...filterConfig(gitopssets, 'type'),
     ...filterConfig(gitopssets, 'namespace'),
@@ -54,7 +54,7 @@ const GitOpsSets: FC = () => {
     ...filterConfig(gitopssets, 'clusterName'),
   };
 
-  let fields: Field[] = [
+  const fields: Field[] = [
     {
       label: 'Name',
       value: ({ name, namespace, clusterName }: GitOpsSet) => (

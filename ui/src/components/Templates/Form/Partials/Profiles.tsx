@@ -1,8 +1,3 @@
-import { Checkbox } from '@material-ui/core';
-import { DataTable, Flex } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
-import React, { Dispatch, FC } from 'react';
-import styled from 'styled-components';
 import {
   ClusterNamespacedName,
   RepositoryRef,
@@ -10,6 +5,11 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../types/custom';
 import { Loader } from '../../../Loader';
 import ProfilesListItem from './ProfileListItem';
+import { Checkbox } from '@material-ui/core';
+import { DataTable, Flex } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import React, { Dispatch, FC } from 'react';
+import styled from 'styled-components';
 
 const ProfilesWrapper = styled.div`
   padding-bottom: ${({ theme }) => theme.spacing.xl};

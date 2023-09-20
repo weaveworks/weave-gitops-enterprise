@@ -9,14 +9,12 @@ import {
   ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 import {
   ClusterAutomation,
   CreateAutomationsPullRequestRequest,
   PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
@@ -38,10 +36,12 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
-import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
+import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { PreviewPRModal } from './PreviewPRModal';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
@@ -96,7 +96,7 @@ function getInitialData(
   callbackState: { state: { formData: FormData } } | null,
   random: string,
 ) {
-  let defaultFormData = {
+  const defaultFormData = {
     repo: null,
     provider: '',
     branchName: `add-policyConfig-branch-${random}`,
@@ -123,7 +123,7 @@ function getInitialData(
 const CreatePolicyConfig = () => {
   const history = useHistory();
 
-  let { data: allClusters } = useGetClustersList({});
+  const { data: allClusters } = useGetClustersList({});
   const clusters = allClusters?.gitopsClusters
     ?.filter(s => s.conditions![0].status === 'True')
     .sort();
@@ -207,7 +207,7 @@ const CreatePolicyConfig = () => {
   }, [selectedWorkspacesList, selectedAppsList, matchType]);
 
   const getClusterAutomations = useCallback(() => {
-    let clusterAutomations: ClusterAutomation[] = [];
+    const clusterAutomations: ClusterAutomation[] = [];
     clusterAutomations.push({
       cluster: {
         name: clusterName,

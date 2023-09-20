@@ -1,6 +1,6 @@
-import { GitRepository } from '@weaveworks/weave-gitops';
 import { renderHook } from '@testing-library/react-hooks';
 import { useGetInitialGitRepo, getRepositoryUrl } from '../utils';
+import { GitRepository } from '@weaveworks/weave-gitops';
 
 describe('getRepositoryUrl', () => {
   it("should return something, but we don't care what it is as git@github.com: style url as flux does not support these", () => {

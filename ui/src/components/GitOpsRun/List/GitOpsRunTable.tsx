@@ -1,3 +1,6 @@
+import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Routes } from '../../../utils/nav';
+import CommandCell from './CommandCell';
 import {
   DataTable,
   filterConfig,
@@ -8,10 +11,7 @@ import {
   Timestamp,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
-import { Routes } from '../../../utils/nav';
-import CommandCell from './CommandCell';
 
 const sessionObjectsInfo = 'session objects created';
 
@@ -60,7 +60,7 @@ interface Props {
 }
 
 const GitOpsRunTable: FC<Props> = ({ sessions }) => {
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(
       sessions,
       'CLI Version',

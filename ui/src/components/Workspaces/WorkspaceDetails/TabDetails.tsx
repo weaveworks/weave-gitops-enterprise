@@ -1,9 +1,9 @@
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 import { Routes } from '../../../utils/nav';
 import { PoliciesTab } from './Tabs/Policies';
 import { RoleBindingsTab } from './Tabs/RoleBindings';
 import { RolesTab } from './Tabs/Roles';
 import { ServiceAccountsTab } from './Tabs/ServiceAccounts';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
 
 const TabDetails = ({
   clusterName,

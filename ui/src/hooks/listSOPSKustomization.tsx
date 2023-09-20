@@ -1,12 +1,12 @@
 import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
-import { useContext } from 'react';
-import { useQuery } from 'react-query';
 import {
   ListSopsKustomizationsRequest,
   ListSopsKustomizationsResponse
 } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import { RequestError } from '../types/custom';
+import { useContext } from 'react';
+import { useQuery } from 'react-query';
 
 
 export function useListKustomizationSOPS(

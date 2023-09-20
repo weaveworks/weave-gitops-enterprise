@@ -1,8 +1,8 @@
+import { Facet } from '../../api/query/query.pb';
+import { useReadQueryState, useSetQueryState } from './hooks';
 import { Checkbox, FormControlLabel } from '@material-ui/core';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { Facet } from '../../api/query/query.pb';
-import { useReadQueryState, useSetQueryState } from './hooks';
 
 type Props = {
   className?: string;

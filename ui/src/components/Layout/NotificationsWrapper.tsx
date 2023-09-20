@@ -1,6 +1,3 @@
-import { Flex } from '@weaveworks/weave-gitops';
-import { FC, useEffect } from 'react';
-import styled from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
 import { useVersionContext } from '../../contexts/ListConfig';
 import useNotifications, {
@@ -12,6 +9,9 @@ import {
 } from '../PolicyConfigs/PolicyConfigStyles';
 import { AlertListErrors } from './AlertListErrors';
 import Notifications from './Notifications';
+import { Flex } from '@weaveworks/weave-gitops';
+import { FC, useEffect } from 'react';
+import styled from 'styled-components';
 
 const ENTITLEMENT_ERROR =
   'No entitlement was found for Weave GitOps Enterprise. Please contact sales@weave.works.';

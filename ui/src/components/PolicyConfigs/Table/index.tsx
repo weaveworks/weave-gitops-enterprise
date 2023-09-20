@@ -1,3 +1,10 @@
+import { PolicyConfigListItem } from '../../../cluster-services/cluster_services.pb';
+import { Routes } from '../../../utils/nav';
+import {
+  PolicyConfigsTableWrapper,
+  TotalPolicies,
+  WarningIcon,
+} from '../PolicyConfigStyles';
 import {
   DataTable,
   Link,
@@ -7,20 +14,13 @@ import {
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
-import { PolicyConfigListItem } from '../../../cluster-services/cluster_services.pb';
-import { Routes } from '../../../utils/nav';
-import {
-  PolicyConfigsTableWrapper,
-  TotalPolicies,
-  WarningIcon,
-} from '../PolicyConfigStyles';
 
 interface Props {
   PolicyConfigs: PolicyConfigListItem[];
 }
 
 export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(PolicyConfigs, 'name'),
   };
 

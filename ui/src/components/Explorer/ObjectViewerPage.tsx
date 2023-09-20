@@ -1,6 +1,6 @@
+import GenericObjectViewer, { ObjectViewerProps } from './GenericObjectViewer';
 import { Page } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import GenericObjectViewer, { ObjectViewerProps } from './GenericObjectViewer';
 
 function ObjectViewerPage({ className, ...props }: ObjectViewerProps) {
   return (

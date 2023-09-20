@@ -1,11 +1,10 @@
-import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
-// @ts-ignore
-import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import AccessRulesDebugger from './AccessRulesDebugger';
 import Explorer from './Explorer';
-import { Page } from '../Layout/App';
+import { RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 
 type Props = {
   className?: string;

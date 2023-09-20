@@ -1,4 +1,27 @@
 import '@fortawesome/fontawesome-free/css/all.css';
+import 'react-toastify/dist/ReactToastify.css';
+import { Pipelines } from './api/pipelines/pipelines.pb';
+import { Query } from './api/query/query.pb';
+import { Terraform } from './api/terraform/terraform.pb';
+import bgDark from './assets/img/bg-dark.png';
+import bg from './assets/img/bg.svg';
+import { ClustersService } from './cluster-services/cluster_services.pb';
+import App from './components/Layout/App';
+import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
+import Compose from './components/ProvidersCompose';
+import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
+import { GitAuthProvider } from './contexts/GitAuth/index';
+import NotificationsProvider from './contexts/Notifications/Provider';
+import { PipelinesProvider } from './contexts/Pipelines';
+import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
+import QueryServiceProvider from './contexts/QueryService';
+import RequestContextProvider from './contexts/Request';
+import { TerraformProvider } from './contexts/Terraform';
+import ProximaNova from './fonts/proximanova-regular.woff';
+import RobotoMono from './fonts/roboto-mono-regular.woff';
+import { muiTheme } from './muiTheme';
+import { resolver } from './utils/link-resolver';
+import { addTFSupport } from './utils/request';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
 import {
@@ -23,30 +46,7 @@ import {
 } from 'react-query';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
-import ProximaNova from 'url:./fonts/proximanova-regular.woff';
-import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
-import { Pipelines } from './api/pipelines/pipelines.pb';
-import { Query } from './api/query/query.pb';
-import { Terraform } from './api/terraform/terraform.pb';
-import bgDark from './assets/img/bg-dark.png';
-import bg from './assets/img/bg.svg';
-import { ClustersService } from './cluster-services/cluster_services.pb';
-import App from './components/Layout/App';
-import MemoizedHelpLinkWrapper from './components/Layout/HelpLinkWrapper';
-import Compose from './components/ProvidersCompose';
-import EnterpriseClientProvider from './contexts/EnterpriseClient/Provider';
-import { GitAuthProvider } from './contexts/GitAuth/index';
-import NotificationsProvider from './contexts/Notifications/Provider';
-import { PipelinesProvider } from './contexts/Pipelines';
-import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
-import QueryServiceProvider from './contexts/QueryService';
-import RequestContextProvider from './contexts/Request';
-import { TerraformProvider } from './contexts/Terraform';
-import { muiTheme } from './muiTheme';
-import { resolver } from './utils/link-resolver';
-import { addTFSupport } from './utils/request';
 
 const GlobalStyle = createGlobalStyle`
   /* https://github.com/weaveworks/wkp-ui/pull/283#discussion_r339958886 */

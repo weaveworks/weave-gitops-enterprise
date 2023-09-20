@@ -106,12 +106,12 @@ export function useGetInitialGitRepo(
   // if no result, parse it and check for the protocol; if ssh, convert it to https and try again to compare it to the gitrepos links
   // createPRRepo signals that this refers to a pre-existing resource
   if (initialUrl) {
-    for (var repo of gitRepos) {
-      let repoUrl = repo?.obj?.spec?.url;
+    for (const repo of gitRepos) {
+      const repoUrl = repo?.obj?.spec?.url;
       if (repoUrl === initialUrl) {
         return { ...repo, createPRRepo: true };
       }
-      let parsedRepolUrl = GitUrlParse(repoUrl);
+      const parsedRepolUrl = GitUrlParse(repoUrl);
       if (parsedRepolUrl?.protocol === 'ssh') {
         if (
           initialUrl === parsedRepolUrl.href.replace('ssh://git@', 'https://')

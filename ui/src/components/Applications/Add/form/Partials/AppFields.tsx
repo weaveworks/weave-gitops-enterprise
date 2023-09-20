@@ -1,22 +1,22 @@
 import {
+  GitRepository,
+  HelmRepository,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
+import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
+import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
+import { Input, Select } from '../../../../../utils/form';
+import { Tooltip } from '../../../../Shared';
+import { useClustersWithSources } from '../../../utils';
+import {
   Checkbox,
   FormControlLabel,
   ListSubheader,
   MenuItem,
 } from '@material-ui/core';
 import { Flex, Kind, Text, useListSources } from '@weaveworks/weave-gitops';
-import {
-  GitRepository,
-  HelmRepository,
-} from '@weaveworks/weave-gitops/ui/lib/objects';
 import _ from 'lodash';
 import React, { Dispatch, FC, useCallback, useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
-import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
-import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
-import { Input, Select } from '../../../../../utils/form';
-import { Tooltip } from '../../../../Shared';
-import { useClustersWithSources } from '../../../utils';
 
 const AppFields: FC<{
   formData: any;
@@ -46,7 +46,7 @@ const AppFields: FC<{
   const history = useHistory();
   const location = useLocation();
 
-  let clusters: GitopsCluster[] | undefined =
+  const clusters: GitopsCluster[] | undefined =
     useClustersWithSources(allowSelectCluster);
 
   const updateCluster = useCallback(
@@ -57,7 +57,7 @@ const AppFields: FC<{
           pathname: location.pathname,
           search: params.toString(),
         });
-        let currentAutomation = [...formData.clusterAutomations];
+        const currentAutomation = [...formData.clusterAutomations];
         currentAutomation[index] = {
           ...currentAutomation[index],
           cluster_name: cluster.name,
@@ -123,7 +123,7 @@ const AppFields: FC<{
     const { value } = event.target;
     const { obj } = JSON.parse(value);
 
-    let currentAutomation = [...formData.clusterAutomations];
+    const currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
       ...automation,
@@ -151,9 +151,9 @@ const AppFields: FC<{
       | React.ChangeEvent<{ name?: string; value: unknown }>,
     fieldName?: string,
   ) => {
-    const { value } = event?.target;
+    const { value = '' } = event.target;
 
-    let currentAutomation = [...formData.clusterAutomations];
+    const currentAutomation = [...formData.clusterAutomations];
     currentAutomation[index] = {
       ...automation,
       [fieldName as string]: value,
@@ -174,7 +174,7 @@ const AppFields: FC<{
   const handleCreateNamespace = (
     event: React.ChangeEvent<HTMLInputElement>,
   ) => {
-    let currentAutomation = [...formData.clusterAutomations];
+    const currentAutomation = [...formData.clusterAutomations];
 
     currentAutomation[index] = {
       ...automation,

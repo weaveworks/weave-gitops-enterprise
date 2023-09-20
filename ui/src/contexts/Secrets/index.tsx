@@ -1,5 +1,3 @@
-import { useContext } from 'react';
-import { useQuery } from 'react-query';
 import {
   GetExternalSecretRequest,
   GetExternalSecretResponse,
@@ -11,6 +9,8 @@ import {
 import { formatError } from '../../utils/formatters';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
+import { useContext } from 'react';
+import { useQuery } from 'react-query';
 
 const LIST_ALL_SECRETS_QUERY_KEY = 'secrets-list';
 

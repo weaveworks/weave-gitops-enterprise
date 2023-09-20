@@ -1,14 +1,14 @@
-import { FC } from 'react';
+import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { EditButton } from '../Templates/Edit/EditButton';
 import {
   GitRepositoryDetail,
   Kind,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import { GitRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { EditButton } from '../Templates/Edit/EditButton';
-import { Page } from '../Layout/App';
+import { FC } from 'react';
 
 type Props = {
   name: string;

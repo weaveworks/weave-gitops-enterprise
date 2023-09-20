@@ -1,6 +1,6 @@
+import { Routes } from '../../utils/nav';
 import { formatURL } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
-import { Routes } from '../../utils/nav';
 
 interface Props {
   clusterName: string;

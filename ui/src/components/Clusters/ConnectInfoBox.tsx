@@ -1,8 +1,8 @@
+import { MuiDialogTitle } from '../Shared';
 import { Dialog, DialogContent } from '@material-ui/core';
 import { Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
-import { MuiDialogTitle } from '../Shared';
 
 const DialogWrapper = styled(Dialog)`
   div[class*='MuiDialog-paper'] {

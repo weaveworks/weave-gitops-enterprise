@@ -1,8 +1,8 @@
-import React from 'react';
-import _ from 'lodash';
-
-import { Kind, useListSources } from '@weaveworks/weave-gitops';
 import { GitRepository, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { Kind, useListSources } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import React from 'react';
+
 
 export const getGitRepos = (sources: Source[] | undefined) =>
   _.orderBy(

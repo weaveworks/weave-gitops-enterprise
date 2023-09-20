@@ -1,6 +1,6 @@
+import { useReadQueryState, useSetQueryState } from './hooks';
 import { ChipGroup } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { useReadQueryState, useSetQueryState } from './hooks';
 
 type Props = {
   className?: string;

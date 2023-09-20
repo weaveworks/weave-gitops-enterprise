@@ -1,15 +1,15 @@
-import { useCallback, useContext, useMemo, useState } from 'react';
-import { useQuery } from 'react-query';
-import useNotifications from '../contexts/Notifications';
-import fileDownload from 'js-file-download';
-import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
 import { ListGitopsClustersResponse } from '../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
   DeleteClustersPRRequestEnriched,
 } from '../types/custom';
-import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
 import { rawRequest } from '../utils/request';
+import fileDownload from 'js-file-download';
+import { useCallback, useContext, useMemo, useState } from 'react';
+import { useQuery } from 'react-query';
 
 const CLUSTERS_POLL_INTERVAL = 5000;
 

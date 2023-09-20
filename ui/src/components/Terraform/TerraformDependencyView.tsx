@@ -1,13 +1,4 @@
-import {
-  DagGraph,
-  Flex,
-  MessageBox,
-  Spacer,
-  Text,
-} from '@weaveworks/weave-gitops';
 import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
-import React from 'react';
-import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
 import { useListTerraformObjects } from '../../contexts/Terraform';
 import {
@@ -16,6 +7,15 @@ import {
   TerraformNodesMap,
   TerraformObjectNode,
 } from './dependencies';
+import {
+  DagGraph,
+  Flex,
+  MessageBox,
+  Spacer,
+  Text,
+} from '@weaveworks/weave-gitops';
+import React from 'react';
+import styled from 'styled-components';
 
 type Props = {
   className?: string;

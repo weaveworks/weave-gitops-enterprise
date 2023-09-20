@@ -1,9 +1,9 @@
+import { useReadQueryState, useSetQueryState } from './hooks';
 import { FormControl } from '@material-ui/core';
 import { Flex, Icon, IconType, Input } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { useReadQueryState, useSetQueryState } from './hooks';
 
 type Props = {
   className?: string;

@@ -10,11 +10,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
-import _ from 'lodash';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { Redirect, useHistory } from 'react-router-dom';
-import remarkGfm from 'remark-gfm';
-import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import {
@@ -65,6 +60,11 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from './utils';
+import _ from 'lodash';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { Redirect, useHistory } from 'react-router-dom';
+import remarkGfm from 'remark-gfm';
+import styled from 'styled-components';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;

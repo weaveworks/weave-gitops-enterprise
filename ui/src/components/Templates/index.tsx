@@ -1,9 +1,10 @@
-import { FC, useCallback, useEffect } from 'react';
-import styled from 'styled-components';
+import { Template } from '../../cluster-services/cluster_services.pb';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   Button,
   DataTable,
@@ -13,10 +14,8 @@ import {
   filterConfig,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
+import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Template } from '../../cluster-services/cluster_services.pb';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Page } from '../Layout/App';
 import Explorer from '../Explorer/Explorer';
 
 const Error = styled.span`

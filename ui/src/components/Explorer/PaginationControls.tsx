@@ -1,7 +1,7 @@
+import { QueryState } from './hooks';
 import { Box, IconButton } from '@material-ui/core';
 import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { QueryState } from './hooks';
 
 type Props = {
   className?: string;

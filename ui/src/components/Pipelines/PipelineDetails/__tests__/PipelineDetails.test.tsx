@@ -1,11 +1,5 @@
 /* eslint-disable testing-library/no-node-access */
-import {
-  act,
-  fireEvent,
-  render,
-  RenderResult,
-  screen,
-} from '@testing-library/react';
+import { act, render, RenderResult, screen } from '@testing-library/react';
 import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
@@ -17,7 +11,6 @@ import {
   PipelinesClientMock,
   withContext,
 } from '../../../../utils/test-utils';
-const fs = require('fs');
 
 const res: GetPipelineResponse = {
   pipeline: {

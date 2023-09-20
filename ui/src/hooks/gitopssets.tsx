@@ -1,11 +1,14 @@
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import useNotifications from '../contexts/Notifications';
-import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetGitOpsSetResponse,
   GitOpsSets,
   ListGitOpsSetsResponse,
 } from '../api/gitopssets/gitopssets.pb';
+import {
+  GroupVersionKind,
+  Object as ResponseObject,
+} from '../api/gitopssets/types.pb';
+import useNotifications from '../contexts/Notifications';
 import {
   Bucket,
   FluxObject,
@@ -21,11 +24,8 @@ import {
   Provider,
   coreClient,
 } from '@weaveworks/weave-gitops';
-import {
-  GroupVersionKind,
-  Object as ResponseObject,
-} from '../api/gitopssets/types.pb';
 import _ from 'lodash';
+import { QueryClient, useQuery, useQueryClient } from 'react-query';
 
 const GITOPSSETS_KEY = 'gitopssets';
 const GITOPSSETS_POLL_INTERVAL = 5000;
@@ -172,7 +172,7 @@ export const getChildrenRecursive = async (
 ) => {
   const children = [];
 
-  const k = lookup[object?.type!];
+  const k = lookup[object?.type || ''];
 
   if (k && k.children) {
     for (let i = 0; i < k.children.length; i++) {

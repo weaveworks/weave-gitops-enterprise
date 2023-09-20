@@ -1,5 +1,3 @@
-import React from 'react';
-import { useQuery } from 'react-query';
 import {
   GetPipelineRequest,
   GetPipelineResponse,
@@ -12,6 +10,8 @@ import { formatError } from '../../utils/formatters';
 import useNotifications, {
   NotificationData,
 } from './../../contexts/Notifications';
+import React from 'react';
+import { useQuery } from 'react-query';
 
 interface Props {
   api: typeof Pipelines;

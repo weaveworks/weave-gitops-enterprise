@@ -1,7 +1,7 @@
+import AppFields from '../../../Applications/Add/form/Partials/AppFields';
 import { Grid, createStyles, makeStyles } from '@material-ui/core';
 import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC } from 'react';
-import AppFields from '../../../Applications/Add/form/Partials/AppFields';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -29,12 +29,12 @@ export const ApplicationsWrapper: FC<{
   const classes = useStyles();
 
   const handleAddApplication = () => {
-    let newAutomations = [...formData.clusterAutomations];
+    const newAutomations = [...formData.clusterAutomations];
     newAutomations.push({ name: '', namespace: '', path: '' });
     setFormData({ ...formData, clusterAutomations: newAutomations });
   };
   const handleRemoveApplication = (index: number) => {
-    let newAutomations = [...formData.clusterAutomations];
+    const newAutomations = [...formData.clusterAutomations];
     newAutomations.splice(index, 1);
     setFormData({ ...formData, clusterAutomations: newAutomations });
   };

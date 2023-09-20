@@ -1,11 +1,11 @@
-import * as React from 'react';
-import { useQuery } from 'react-query';
 import {
   GitAuth as gitAuthClient,
   GetGithubAuthStatusResponse,
   GetGithubDeviceCodeResponse,
   ParseRepoURLResponse,
 } from '../../api/gitauth/gitauth.pb';
+import * as React from 'react';
+import { useQuery } from 'react-query';
 
 export interface DialogState {
   open: boolean;

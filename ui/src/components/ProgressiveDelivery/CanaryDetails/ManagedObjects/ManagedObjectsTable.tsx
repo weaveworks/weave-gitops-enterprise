@@ -1,7 +1,7 @@
-import { UnstructuredObject } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { DataTable, Link } from '@weaveworks/weave-gitops';
 import { TableWrapper } from '../../../Shared';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
+import { UnstructuredObject } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { DataTable, Link } from '@weaveworks/weave-gitops';
 export const ManagedObjectsTable = ({
   objects,
 }: {

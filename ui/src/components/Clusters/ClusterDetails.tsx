@@ -1,3 +1,14 @@
+import useClusters from '../../hooks/clusters';
+import { GitopsClusterEnriched } from '../../types/custom';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
+import { Routes } from '../../utils/nav';
+import { useIsClusterWithSources } from '../Applications/utils';
+import { QueryState } from '../Explorer/hooks';
+import { linkToExplorer } from '../Explorer/utils';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { Tooltip } from '../Shared';
+import ClusterDashboard from './ClusterDashboard';
 import { CircularProgress } from '@material-ui/core';
 import {
   Flex,
@@ -11,17 +22,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { useEffect, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
-import useClusters from '../../hooks/clusters';
-import { GitopsClusterEnriched } from '../../types/custom';
-import { toFilterQueryString } from '../../utils/FilterQueryString';
-import { Routes } from '../../utils/nav';
-import { useIsClusterWithSources } from '../Applications/utils';
-import { QueryState } from '../Explorer/hooks';
-import { linkToExplorer } from '../Explorer/utils';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Tooltip } from '../Shared';
-import ClusterDashboard from './ClusterDashboard';
 
 type Props = {
   className?: string;

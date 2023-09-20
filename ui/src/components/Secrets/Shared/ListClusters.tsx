@@ -1,8 +1,8 @@
-import { MenuItem } from '@material-ui/core';
-import { Flex, RequestStateHandler, Text } from '@weaveworks/weave-gitops';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useListCluster } from '../../../hooks/clusters';
 import { Select } from '../../../utils/form';
+import { MenuItem } from '@material-ui/core';
+import { Flex, RequestStateHandler, Text } from '@weaveworks/weave-gitops';
 
 const ListClusters = ({
   value,

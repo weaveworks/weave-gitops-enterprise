@@ -1,8 +1,8 @@
+import { useIsFlaggerAvailable } from '../../contexts/ProgressiveDelivery';
+import { Page } from '../Layout/App';
 import CanariesList from './ListCanaries/CanariesList';
 import OnboardingMessage from './Onboarding/OnboardingMessage';
 import { Alert } from '@material-ui/lab';
-import { useIsFlaggerAvailable } from '../../contexts/ProgressiveDelivery';
-import { Page } from '../Layout/App';
 
 const ProgressiveDelivery = () => {
   const {

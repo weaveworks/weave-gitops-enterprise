@@ -1,8 +1,8 @@
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
-import _ from 'lodash';
-import { createContext, useContext, useMemo } from 'react';
 import { Object } from '../../api/query/query.pb';
 import { QueryStateManager } from './QueryStateManager';
+import _ from 'lodash';
+import { createContext, useContext, useMemo } from 'react';
 
 export type QueryState = {
   terms: string;

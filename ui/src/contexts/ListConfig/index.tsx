@@ -1,9 +1,9 @@
-import React from 'react';
 import {
   ListConfigResponse,
   useListConfig,
   useListVersion,
 } from '../../hooks/versions';
+import React from 'react';
 
 export const ListConfigContext = React.createContext<ListConfigResponse | null>(
   null,

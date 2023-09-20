@@ -1,7 +1,3 @@
-import { ButtonProps } from '@material-ui/core';
-import { Button } from '@weaveworks/weave-gitops';
-import * as React from 'react';
-import styled from 'styled-components';
 import { GitAuth } from '../../contexts/GitAuth';
 import {
   CallbackStateContext,
@@ -9,6 +5,10 @@ import {
 } from '../../contexts/GitAuth/CallbackStateContext';
 import { gitlabOAuthRedirectURI } from '../../utils/formatters';
 import { navigate, storeCallbackState } from './utils';
+import { ButtonProps } from '@material-ui/core';
+import { Button } from '@weaveworks/weave-gitops';
+import * as React from 'react';
+import styled from 'styled-components';
 
 type Props = ButtonProps;
 

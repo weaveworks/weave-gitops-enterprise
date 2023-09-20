@@ -11,7 +11,9 @@ import { getProviderToken } from '../utils';
 
 Object.assign(navigator, {
   clipboard: {
-    writeText: () => {},
+    writeText: () => {
+      return;
+    },
   },
 });
 
@@ -46,8 +48,12 @@ describe('Github Authenticate', () => {
     await act(async () => {
       const c = wrap(
         <GithubDeviceAuthModal
-          onClose={() => {}}
-          onSuccess={() => {}}
+          onClose={() => {
+            return;
+          }}
+          onSuccess={() => {
+            return;
+          }}
           open={true}
           repoName="config"
         />,
@@ -81,8 +87,12 @@ describe('Github Authenticate', () => {
     await act(async () => {
       const c = wrap(
         <GithubDeviceAuthModal
-          onClose={() => {}}
-          onSuccess={() => {}}
+          onClose={() => {
+            return;
+          }}
+          onSuccess={() => {
+            return;
+          }}
           open={true}
           repoName="config"
         />,

@@ -16,7 +16,9 @@ import { CoreClientContextProvider, Kind } from '@weaveworks/weave-gitops';
 
 Object.assign(navigator, {
   clipboard: {
-    writeText: () => {},
+    writeText: () => {
+      return;
+    },
   },
 });
 

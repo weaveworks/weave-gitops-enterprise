@@ -1,7 +1,3 @@
-import { Dialog, DialogContent } from '@material-ui/core';
-import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
-import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
-import styled from 'styled-components';
 import { ClusterNamespacedName } from '../../cluster-services/cluster_services.pb';
 import useNotifications from '../../contexts/Notifications';
 import useClusters from '../../hooks/clusters';
@@ -17,6 +13,10 @@ import { clearCallbackState, getProviderToken } from '../GitAuth/utils';
 import { Loader } from '../Loader';
 import { MuiDialogTitle } from '../Shared';
 import { getRepositoryUrl } from '../Templates/Form/utils';
+import { Dialog, DialogContent } from '@material-ui/core';
+import { Button, Icon, IconType, Link } from '@weaveworks/weave-gitops';
+import React, { ChangeEvent, Dispatch, FC, useCallback, useState } from 'react';
+import styled from 'styled-components';
 
 const DeleteClusterWrapper = styled(Dialog)`
   #delete-popup {

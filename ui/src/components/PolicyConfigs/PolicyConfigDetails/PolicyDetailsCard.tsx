@@ -1,11 +1,3 @@
-import { Card, CardContent } from '@material-ui/core';
-import {
-  Flex,
-  Link,
-  Text,
-  V2Routes,
-  formatURL,
-} from '@weaveworks/weave-gitops';
 import {
   GetPolicyConfigResponse,
   PolicyConfigPolicy,
@@ -14,6 +6,14 @@ import {
   PolicyDetailsCardWrapper,
   WarningIcon,
 } from '../PolicyConfigStyles';
+import { Card, CardContent } from '@material-ui/core';
+import {
+  Flex,
+  Link,
+  Text,
+  V2Routes,
+  formatURL,
+} from '@weaveworks/weave-gitops';
 
 interface GetCardTitleProps {
   policy: PolicyConfigPolicy;

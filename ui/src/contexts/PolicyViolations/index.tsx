@@ -1,7 +1,3 @@
-import { useContext } from 'react';
-import { useQuery } from 'react-query';
-
-import { CoreClientContext } from '@weaveworks/weave-gitops';
 import {
   GetPolicyRequest,
   GetPolicyResponse,
@@ -10,9 +6,13 @@ import {
   ListPoliciesRequest,
   ListPoliciesResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';
-import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
+import { CoreClientContext } from '@weaveworks/weave-gitops';
+import { useContext } from 'react';
+import { useQuery } from 'react-query';
+
 
 export const useCoreClientContext = () => useContext(CoreClientContext);
 

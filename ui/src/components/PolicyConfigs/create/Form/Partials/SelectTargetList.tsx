@@ -1,10 +1,10 @@
-import { MenuItem } from '@material-ui/core';
-import { Flex, Text } from '@weaveworks/weave-gitops';
-import { Dispatch } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import { Select } from '../../../../../utils/form';
 import { ListApplications } from './ListApplications';
 import { ListWorkSpaces } from './ListWorkSpaces';
+import { MenuItem } from '@material-ui/core';
+import { Flex, Text } from '@weaveworks/weave-gitops';
+import { Dispatch } from 'react';
 
 interface SelectSecretStoreProps {
   cluster: string;

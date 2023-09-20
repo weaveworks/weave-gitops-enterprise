@@ -1,6 +1,3 @@
-import { Grid } from '@material-ui/core';
-import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
 import {
   Pipeline,
   PipelineTargetStatus,
@@ -19,6 +16,9 @@ import {
   WorkloadWrapper,
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
+import { Grid } from '@material-ui/core';
+import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 
 const PromotionContainer = styled.div`
   height: 40px;

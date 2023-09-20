@@ -1,10 +1,10 @@
-import { RequestStateHandler } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
 import { useQueryService } from '../../../hooks/query';
 import { RequestError } from '../../../types/custom';
-import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
 import { QueryStateProvider } from '../../Explorer/hooks';
+import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
 import { AuditTable } from './AuditTable';
+import { RequestStateHandler } from '@weaveworks/weave-gitops';
+import { useHistory } from 'react-router-dom';
 
 const PolicyAuditList = () => {
   const history = useHistory();

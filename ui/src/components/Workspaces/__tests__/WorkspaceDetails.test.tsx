@@ -1,19 +1,18 @@
-import {
-  act,
-  fireEvent, render,
-  screen
-} from '@testing-library/react';
-import moment from 'moment';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { WorkspaceRoleBindingSubject } from '../../../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
-  defaultContexts, TestFilterableTable, withContext, WorkspaceClientMock
+  defaultContexts,
+  TestFilterableTable,
+  withContext,
+  WorkspaceClientMock,
 } from '../../../utils/test-utils';
 import WorkspaceDetails from '../WorkspaceDetails';
 import { PoliciesTab } from '../WorkspaceDetails/Tabs/Policies';
 import { RoleBindingsTab } from '../WorkspaceDetails/Tabs/RoleBindings';
 import { RolesTab } from '../WorkspaceDetails/Tabs/Roles';
 import { ServiceAccountsTab } from '../WorkspaceDetails/Tabs/ServiceAccounts';
+import moment from 'moment';
 const MockWorkspaceResponse = {
   workspace: {
     name: 'dev-team',
@@ -156,8 +155,8 @@ describe('WorkspaceDetails', () => {
     });
 
     //check Tabs
-    const tabs = await screen.getAllByRole('tab');
-    expect(await screen.getByTitle(workspace.name)).toBeTruthy();
+    const tabs = screen.getAllByRole('tab');
+    expect(screen.getByTitle(workspace.name)).toBeTruthy();
     expect(workspace.clusterName).toBeDefined();
     expect(tabs).toHaveLength(4);
     expect(tabs[0]).toHaveTextContent('Service Accounts');
@@ -168,7 +167,7 @@ describe('WorkspaceDetails', () => {
     expect(screen.getByTestId('Workspace Name')).toHaveTextContent(
       workspace.name,
     );
-    
+
     const namespaces = document.querySelectorAll(
       '#workspace-details-header-namespaces span',
     );

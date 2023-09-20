@@ -1,7 +1,7 @@
-import { PolicyTable } from '@weaveworks/weave-gitops';
 import { useListPolicies } from '../../contexts/PolicyViolations';
 import { TableWrapper } from '../Shared';
 import LoadingWrapper from '../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
+import { PolicyTable } from '@weaveworks/weave-gitops';
 
 export const PoliciesTab = () => {
   const { data, isLoading } = useListPolicies({});

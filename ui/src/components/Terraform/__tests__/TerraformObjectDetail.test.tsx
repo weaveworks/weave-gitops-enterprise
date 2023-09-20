@@ -37,6 +37,13 @@ describe('TerraformObjectDetail', () => {
   let api: TerraformClientMock;
 
   beforeEach(() => {
+    const yamlConverter = jest.mock('yaml', () => {
+      return {
+        load: jest.fn(() => {
+          return {};
+        }),
+      };
+    });
     api = new TerraformClientMock();
     wrap = withContext([...defaultContexts(), [TerraformProvider, { api }]]);
   });

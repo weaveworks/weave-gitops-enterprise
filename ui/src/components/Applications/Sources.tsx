@@ -1,3 +1,8 @@
+import useNotifications from '../../contexts/Notifications';
+import { formatError } from '../../utils/formatters';
+import Explorer from '../Explorer/Explorer';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   SourcesTable,
   useFeatureFlags,
@@ -5,11 +10,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import styled from 'styled-components';
-import useNotifications from '../../contexts/Notifications';
-import { formatError } from '../../utils/formatters';
-import Explorer from '../Explorer/Explorer';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Page } from '../Layout/App';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();

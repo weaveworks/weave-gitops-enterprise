@@ -1,7 +1,7 @@
+import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
 import { useListSources } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useMemo } from 'react';
-import { GitopsCluster } from '../../cluster-services/cluster_services.pb';
 
 const toCluster = (clusterName: string): GitopsCluster => {
   const [firstBit, secondBit] = clusterName.split('/');

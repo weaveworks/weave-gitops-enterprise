@@ -1,8 +1,8 @@
-import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
-import { Dispatch, useEffect } from 'react';
 import { useListWorkspaces } from '../../../../../contexts/Workspaces';
 import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import { CheckList } from '../../../PolicyConfigStyles';
+import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
+import { Dispatch, useEffect } from 'react';
 
 interface SelectSecretStoreProps {
   cluster: string;
@@ -49,7 +49,7 @@ export const ListWorkSpaces = ({
     });
   };
 
-  return !!cluster ? (
+  return cluster ? (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {workspaces.length ? (
         <FormGroup>

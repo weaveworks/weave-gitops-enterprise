@@ -1,8 +1,8 @@
-import { Flex, useListObjects } from '@weaveworks/weave-gitops';
+import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOpsRunTable from './GitOpsRunTable';
 import NoRunsMessage from './NoRunsMessage';
-import { Page } from '../../Layout/App';
+import { Flex, useListObjects } from '@weaveworks/weave-gitops';
 
 const GitOpsRun = () => {
   const { data: sessions, isLoading } = useListObjects('', 'StatefulSet', '', {

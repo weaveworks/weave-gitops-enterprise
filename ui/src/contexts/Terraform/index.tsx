@@ -1,7 +1,5 @@
 import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import * as React from 'react';
-import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
@@ -11,6 +9,8 @@ import {
 import { ObjectRef } from '../../api/terraform/types.pb';
 import { formatError } from '../../utils/formatters';
 import useNotifications from './../../contexts/Notifications';
+import * as React from 'react';
+import { QueryClient, useQuery, useQueryClient } from 'react-query';
 
 const TerraformContext = React.createContext<typeof Terraform>(
   {} as typeof Terraform,
@@ -76,7 +76,9 @@ export function useGetTerraformObjectPlan(
 ) {
   const tf = useTerraform();
 
-  const onError = (error: Error) => {};
+  const onError = (error: Error) => {
+    return;
+  };
 
   return useQuery<GetTerraformObjectPlanResponse, RequestError>(
     [TERRAFORM_PLAN_KEY, clusterName, namespace, name],

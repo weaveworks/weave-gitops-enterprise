@@ -1,9 +1,9 @@
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
-import { TableWrapper } from '../../../Shared';
 import { useGetWorkspaceServiceAccount } from '../../../../contexts/Workspaces';
-import moment from 'moment';
+import { TableWrapper } from '../../../Shared';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
+import { DataTable, YamlView } from '@weaveworks/weave-gitops';
+import moment from 'moment';
 
 export const ServiceAccountsTab = ({
   clusterName,

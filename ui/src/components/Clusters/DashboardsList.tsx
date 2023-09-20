@@ -1,9 +1,9 @@
+import useClusters from '../../hooks/clusters';
+import { GitopsClusterEnriched } from '../../types/custom';
 import { List, ListItem } from '@material-ui/core';
 import { Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
-import useClusters from '../../hooks/clusters';
-import { GitopsClusterEnriched } from '../../types/custom';
 
 // FIXME: move "a" styling up to a top level CSS rule
 const ListWrapper = styled(List)`

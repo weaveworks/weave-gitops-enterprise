@@ -1,5 +1,4 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { Router } from 'react-router-dom';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
@@ -9,6 +8,7 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import { createMemoryHistory } from 'history';
+import { Router } from 'react-router-dom';
 
 const pipelines = {
   pipelines: [
@@ -152,7 +152,9 @@ describe('Auth redirect', () => {
   beforeEach(() => {
     api = new PipelinesClientMock();
     wrap = withContext([...defaultContexts(), [PipelinesProvider, { api }]]);
-    jest.spyOn(console, 'error').mockImplementationOnce(() => {});
+    jest.spyOn(console, 'error').mockImplementationOnce(() => {
+      return;
+    });
   });
   const mockResponse = jest.fn();
   Object.defineProperty(window, 'location', {

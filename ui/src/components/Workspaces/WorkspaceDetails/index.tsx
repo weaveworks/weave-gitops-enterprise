@@ -1,9 +1,9 @@
 import { useGetWorkspaceDetails } from '../../../contexts/Workspaces';
 import { Routes } from '../../../utils/nav';
-import WorkspaceHeaderSection from './WorkspaceHeaderSection';
-import TabDetails from './TabDetails';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { Page } from '../../Layout/App';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import TabDetails from './TabDetails';
+import WorkspaceHeaderSection from './WorkspaceHeaderSection';
 
 const WorkspaceDetails = ({
   clusterName,

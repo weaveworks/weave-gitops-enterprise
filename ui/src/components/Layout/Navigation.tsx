@@ -1,3 +1,5 @@
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { Routes } from '../../utils/nav';
 import {
   getParentNavRouteValue,
   IconType,
@@ -6,11 +8,9 @@ import {
   useFeatureFlags,
   V2Routes,
 } from '@weaveworks/weave-gitops';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { Dispatch, FC, SetStateAction, useMemo } from 'react';
-import styled from 'styled-components';
-import { Routes } from '../../utils/nav';
 import { useLocation } from 'react-router-dom';
+import styled from 'styled-components';
 
 function getParentNavRouteValueExtended(
   route: string,

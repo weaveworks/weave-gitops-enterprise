@@ -1,4 +1,18 @@
 // @ts-ignore
+import { Facet } from '../../api/query/query.pb';
+import { useListFacets, useQueryService } from '../../hooks/query';
+import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
+import FilterDrawer from './FilterDrawer';
+import Filters from './Filters';
+import {
+  QueryStateProvider,
+  columnHeaderHandler,
+  useGetUnstructuredObjects,
+} from './hooks';
+import PaginationControls from './PaginationControls';
+import QueryInput from './QueryInput';
+import QueryStateChips from './QueryStateChips';
+import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
 import { IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
@@ -6,20 +20,6 @@ import _ from 'lodash';
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { Facet } from '../../api/query/query.pb';
-import { useListFacets, useQueryService } from '../../hooks/query';
-import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
-import FilterDrawer from './FilterDrawer';
-import Filters from './Filters';
-import {
-  columnHeaderHandler,
-  QueryStateProvider,
-  useGetUnstructuredObjects,
-} from './hooks';
-import PaginationControls from './PaginationControls';
-import QueryInput from './QueryInput';
-import QueryStateChips from './QueryStateChips';
-import { QueryStateManager, URLQueryStateManager } from './QueryStateManager';
 
 type Props = {
   className?: string;

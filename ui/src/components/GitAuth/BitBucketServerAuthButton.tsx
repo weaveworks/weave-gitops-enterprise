@@ -1,12 +1,12 @@
-import { Button } from '@weaveworks/weave-gitops';
 // @ts-ignore
 import { CallbackStateContextType } from '@weaveworks/weave-gitops/ui/contexts/CallbackStateContext';
-import * as React from 'react';
-import styled from 'styled-components';
 import { GitAuth } from '../../contexts/GitAuth';
 import { CallbackStateContext } from '../../contexts/GitAuth/CallbackStateContext';
 import { bitbucketServerOAuthRedirectURI } from '../../utils/formatters';
 import { navigate, storeCallbackState } from './utils';
+import { Button } from '@weaveworks/weave-gitops';
+import * as React from 'react';
+import styled from 'styled-components';
 
 type Props = {
   className?: string;

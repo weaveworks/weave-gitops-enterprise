@@ -1,6 +1,6 @@
+import { KeyValueRow } from '../../RowHeader';
 import { Size, Table, TableBody } from '@material-ui/core';
 import styled from 'styled-components';
-import { KeyValueRow } from '../../RowHeader';
 
 const DynamicTable = ({
   obj,

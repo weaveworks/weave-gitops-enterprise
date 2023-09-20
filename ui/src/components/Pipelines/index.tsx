@@ -1,3 +1,11 @@
+import { Pipeline } from '../../api/pipelines/types.pb';
+import { useListPipelines } from '../../contexts/Pipelines';
+import { toFilterQueryString } from '../../utils/FilterQueryString';
+import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
+import { TableWrapper } from '../Shared';
 import {
   Button,
   DataTable,
@@ -8,14 +16,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { Pipeline } from '../../api/pipelines/types.pb';
-import { useListPipelines } from '../../contexts/Pipelines';
-import { toFilterQueryString } from '../../utils/FilterQueryString';
-import { Routes } from '../../utils/nav';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { ChipWrapper, LinkWrapper } from '../Policies/PolicyStyles';
-import { TableWrapper } from '../Shared';
-import { Page } from '../Layout/App';
 
 const Pipelines = ({ className }: any) => {
   const { data, isLoading } = useListPipelines();

@@ -1,8 +1,8 @@
-import { MenuItem } from '@material-ui/core';
-import { RequestStateHandler } from '@weaveworks/weave-gitops';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useListKustomizationSOPS } from '../../../hooks/listSOPSKustomization';
 import { Select } from '../../../utils/form';
+import { MenuItem } from '@material-ui/core';
+import { RequestStateHandler } from '@weaveworks/weave-gitops';
 
 const ListKustomizations = ({
   value,
@@ -34,7 +34,7 @@ const ListKustomizations = ({
         value={value}
         error={validateForm && !value}
       >
-        {!!data?.kustomizations?.length ? (
+        {data?.kustomizations?.length ? (
           data?.kustomizations?.map((k, index: number) => {
             return (
               <MenuItem key={index} value={`${k.name}/${k.namespace}`}>

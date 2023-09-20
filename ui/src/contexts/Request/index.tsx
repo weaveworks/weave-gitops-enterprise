@@ -1,5 +1,5 @@
-import React, { useContext } from 'react';
 import { requestWithEntitlementHeader } from '../../utils/request';
+import React, { useContext } from 'react';
 
 interface RequestContextType {
   fetch: typeof window.fetch;

@@ -1,12 +1,12 @@
-import { Layout, Logo, Page as WGPage } from '@weaveworks/weave-gitops';
 import { Breadcrumb } from '@weaveworks/weave-gitops/ui/components/Breadcrumbs';
-import { useState } from 'react';
-import { ToastContainer } from 'react-toastify';
 import { ListConfigProvider, VersionProvider } from '../../contexts/ListConfig';
 import AppRoutes from '../../routes';
 import { Routes } from '../../utils/nav';
 import ErrorBoundary from '../ErrorBoundary';
 import Navigation from './Navigation';
+import { Layout, Logo, Page as WGPage } from '@weaveworks/weave-gitops';
+import { useState } from 'react';
+import { ToastContainer } from 'react-toastify';
 
 export type PageProps = {
   className?: string;

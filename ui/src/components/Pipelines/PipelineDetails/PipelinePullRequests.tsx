@@ -1,8 +1,8 @@
+import { Pipeline } from '../../../api/pipelines/types.pb';
+import { useGetPullRequestsForPipeline } from '../../../contexts/Pipelines';
 import { DataTable, Flex, Link } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
-import { Pipeline } from '../../../api/pipelines/types.pb';
-import { useGetPullRequestsForPipeline } from '../../../contexts/Pipelines';
 
 type Props = {
   className?: string;
