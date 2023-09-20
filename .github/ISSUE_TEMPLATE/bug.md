@@ -2,7 +2,7 @@
 name: Bug report
 about: Use this issue when something is not working as expected.
 title: ''
-labels: ["bug","severity_medium", "team/timber-wolf","team/pesto","team/wild-watermelon","team/tangerine"]
+labels: ["bug","severity_medium", "team/product-management"]
 assignees: []
 
 ---
