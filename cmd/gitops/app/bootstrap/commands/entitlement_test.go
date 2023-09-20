@@ -32,7 +32,7 @@ func TestCheckEntitlementFile(t *testing.T) {
 		{
 			name: "invalid entitlement",
 			secret: &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: entitlementSecretName, Namespace: wgeDefaultNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: entitlementSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
 					"entitlement": []byte(invalidEntitlement),
@@ -45,7 +45,7 @@ func TestCheckEntitlementFile(t *testing.T) {
 		{
 			name: "valid entitlement",
 			secret: &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: entitlementSecretName, Namespace: wgeDefaultNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: entitlementSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
 					"entitlement": []byte(validEntitlement),

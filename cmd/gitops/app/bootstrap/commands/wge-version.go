@@ -21,7 +21,7 @@ func SelectWgeVersion(opts config.Options) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	entitlementSecret, err := utils.GetSecret(entitlementSecretName, wgeDefaultNamespace, kubernetesClient)
+	entitlementSecret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, kubernetesClient)
 	if err != nil {
 		return "", err
 	}

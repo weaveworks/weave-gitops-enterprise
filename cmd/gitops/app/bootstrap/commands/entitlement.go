@@ -47,7 +47,7 @@ func CheckEntitlementFile(opts config.Options) error {
 }
 
 func verifyEntitlementFile(kubernetesClient kubernetes.Interface) error {
-	secret, err := utils.GetSecret(entitlementSecretName, wgeDefaultNamespace, kubernetesClient)
+	secret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, kubernetesClient)
 	if err != nil || secret.Data["entitlement"] == nil {
 		return fmt.Errorf("%s%s", err.Error(), nonExistingEntitlementSecretMsg)
 	}

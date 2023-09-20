@@ -15,6 +15,8 @@ import (
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/tools/clientcmd"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -34,7 +36,8 @@ const (
 	wgeChartName                      = "mccp"
 	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
 	wgeHelmReleaseName                = "weave-gitops-enterprise"
-	wgeDefaultNamespace               = "flux-system"
+	WGEDefaultNamespace               = "flux-system"
+	WGEDefaultRepoName                = "flux-system"
 	domainTypelocalhost               = "localhost"
 	domainTypeExternalDNS             = "external DNS"
 	wgeHelmrepoFileName               = "wge-hrepo.yaml"
@@ -47,6 +50,16 @@ const (
 
 // InstallWge installs weave gitops enterprise chart.
 func InstallWge(opts config.Options, version string) (string, error) {
+
+	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
+	if err != nil {
+		return "", err
+	}
+	cl, err := client.New(config, client.Options{})
+	if err != nil {
+		return "", err
+	}
+
 	domainTypes := []string{
 		domainTypelocalhost,
 		domainTypeExternalDNS,
@@ -68,7 +81,7 @@ func InstallWge(opts config.Options, version string) (string, error) {
 
 	utils.Info(wgeInstallMsg, version)
 
-	pathInRepo, err := utils.CloneRepo()
+	pathInRepo, err := utils.CloneRepo(cl, WGEDefaultRepoName, WGEDefaultNamespace)
 	if err != nil {
 		return "", err
 	}
@@ -146,7 +159,7 @@ func constructWgeHelmRepository() (string, error) {
 	wgeHelmRepo := sourcev1.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      wgeHelmRepositoryName,
-			Namespace: wgeDefaultNamespace,
+			Namespace: WGEDefaultNamespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
 			URL: wgeChartUrl,
@@ -196,7 +209,7 @@ func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 	wgeHelmRelease := helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      wgeHelmReleaseName,
-			Namespace: wgeDefaultNamespace,
+			Namespace: WGEDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
@@ -204,7 +217,7 @@ func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      wgeHelmRepositoryName,
-						Namespace: wgeDefaultNamespace,
+						Namespace: WGEDefaultNamespace,
 					},
 					Version: chartVersion,
 				},
