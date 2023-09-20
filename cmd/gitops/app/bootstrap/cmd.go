@@ -12,7 +12,7 @@ const (
 	cmdName             = "bootstrap"
 	cmdShortDescription = "Bootstraps Weave GitOps Enterprise"
 	cmdLongDescription  = `
-# Bootstrap Weave-gitops-enterprise
+# Bootstrap Weave GitOps Enterprise
 
 gitops bootstrap
 
