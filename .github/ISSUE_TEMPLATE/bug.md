@@ -24,10 +24,11 @@ assignees: 'weaveworks/timber-wolf'
 
 **Severity**
 - [] low 
-- [] medium
-- [x] high
+- [x] medium
+- [] high
 - [] critical
 
+
 **Additional context**
-<!-- Add any other context about the problem here. -->
+<!-- Add any other context about the problem here. For example whether it was found in a release or during testing.-->
 
