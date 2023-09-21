@@ -15,7 +15,7 @@ Things to know:
 1. Add a new entry in the [`SupportedObjectKinds`](https://github.com/weaveworks/weave-gitops-enterprise/blob/253256c16c777b0d488ca0ba8068b8f80b1b4c07/pkg/query/configuration/objectkind.go#L119) slice
 2. Add a entry to [`ToFluxObject`](https://github.com/weaveworks/weave-gitops-enterprise/blob/f36d549b6010afbd3c086c4955637586629ec589/pkg/query/configuration/objectkind.go#L284) as will be required 
 for [Status and Message](https://github.com/weaveworks/weave-gitops-enterprise/blob/f36d549b6010afbd3c086c4955637586629ec589/pkg/query/internal/models/object.go#L113C1-L129)
-3. Add an [RBAC entry](https://github.com/weaveworks/weave-gitops-enterprise/blob/9101b60a487e1f999b4e988e9ca27bdde4ac7538/charts/mccp/templates/clusters-service/collector.yaml#L13) to WeGO ServiceAccount for your kind
+3. Add an [RBAC entry](https://github.com/weaveworks/weave-gitops-enterprise/blob/9101b60a487e1f999b4e988e9ca27bdde4ac7538/charts/mccp/templates/clusters-service/collector.yaml#L13) to WeGO ServiceAccount for your kind.
 
 ## Using the default Explorer UI component
 
