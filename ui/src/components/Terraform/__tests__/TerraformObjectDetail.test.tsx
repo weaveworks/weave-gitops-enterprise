@@ -7,6 +7,7 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import TerraformObjectDetail from '../TerraformObjectDetail';
+import * as yaml from 'yaml';
 
 const res = {
   object: {
@@ -35,15 +36,8 @@ const res = {
 describe('TerraformObjectDetail', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: TerraformClientMock;
-
+  jest.spyOn(yaml, 'parse').mockImplementation(() => '');
   beforeEach(() => {
-    const yamlConverter = jest.mock('yaml', () => {
-      return {
-        load: jest.fn(() => {
-          return {};
-        }),
-      };
-    });
     api = new TerraformClientMock();
     wrap = withContext([...defaultContexts(), [TerraformProvider, { api }]]);
   });

@@ -249,7 +249,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
-              yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
+              yaml={YAML.stringify(JSON.parse(gs?.yaml || ('' as string)))}
               object={{
                 kind: gs?.type,
                 name: gs?.name,
