@@ -1,5 +1,6 @@
 {
   "root": true,
+  "plugins": ["react-hooks"],
   "extends": [
     "eslint:recommended",
     "plugin:import/errors",
