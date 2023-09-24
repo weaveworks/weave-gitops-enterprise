@@ -7,8 +7,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"gopkg.in/yaml.v2"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -16,12 +16,8 @@ const (
 )
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions.
-func SelectWgeVersion(opts config.Options) (string, error) {
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		return "", err
-	}
-	entitlementSecret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, kubernetesClient)
+func SelectWgeVersion(client k8s_client.Client, silent bool) (string, error) {
+	entitlementSecret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, client)
 	if err != nil {
 		return "", err
 	}
@@ -35,6 +31,12 @@ func SelectWgeVersion(opts config.Options) (string, error) {
 	versions, err := fetchHelmChart(chartUrl, username, password)
 	if err != nil {
 		return "", err
+	}
+
+	if silent {
+		version := versions[0]
+		utils.Info("Selected version: %s", version)
+		return version, nil
 	}
 
 	return utils.GetSelectInput(versionMsg, versions)

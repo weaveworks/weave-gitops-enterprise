@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -16,16 +16,17 @@ const (
 )
 
 // VerifyFluxInstallation checks for valid flux installation.
-func VerifyFluxInstallation(opts config.Options) error {
+func VerifyFluxInstallation(client k8s_client.Client) error {
 	utils.Warning(fluxBoostrapCheckMsg)
 
 	var runner runner.CLIRunner
-	_, err := runner.Run("flux", "check")
+	out, err := runner.Run("flux", "check")
 	if err != nil {
-		return err
+		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
+		return fmt.Errorf("%s: %w", errMsg, err)
 	}
 
-	out, err := runner.Run("flux", "reconcile", "kustomization", "flux-system")
+	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
 		return fmt.Errorf("%s: %w", errMsg, err)

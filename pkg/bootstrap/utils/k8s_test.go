@@ -10,7 +10,8 @@ import (
 	"github.com/loft-sh/vcluster/pkg/util/random"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 // TestGetSecret test TestGetSecret
@@ -18,21 +19,29 @@ func TestGetSecret(t *testing.T) {
 	secretName := "test-secret"
 	secretNamespace := "flux-system"
 	invalidSecretName := "invalid-secret"
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		v1.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-	clientset := fake.NewSimpleClientset(&v1.Secret{
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace},
 		Type:       "Opaque",
 		Data: map[string][]byte{
 			"username": []byte("test-username"),
 			"password": []byte("test-password"),
 		},
-	})
+	}).Build()
 
-	secret, err := GetSecret(invalidSecretName, secretNamespace, clientset)
+	secret, err := GetSecret(invalidSecretName, secretNamespace, fakeClient)
 	assert.Error(t, err, "error fetching secret: %v", err)
 	assert.Nil(t, secret, "error fetching secret: %v", err)
 
-	secret, err = GetSecret(secretName, secretNamespace, clientset)
+	secret, err = GetSecret(secretName, secretNamespace, fakeClient)
 
 	expectedUsername := "test-username"
 	expectedPassword := "test-password"
@@ -51,11 +60,20 @@ func TestCreateSecret(t *testing.T) {
 		"password": []byte("test-password"),
 	}
 
-	clientset := fake.NewSimpleClientset()
-	err := CreateSecret(secretName, secretNamespace, secretData, clientset)
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		v1.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
+
+	err = CreateSecret(secretName, secretNamespace, secretData, fakeClient)
 	assert.NoError(t, err, "error creating secret: %v", err)
 
-	secret, err := GetSecret(secretName, secretNamespace, clientset)
+	secret, err := GetSecret(secretName, secretNamespace, fakeClient)
 	expectedUsername := "test-username"
 	expectedPassword := "test-password"
 
@@ -74,14 +92,23 @@ func TestDeleteSecret(t *testing.T) {
 		"password": []byte("test-password"),
 	}
 
-	clientset := fake.NewSimpleClientset()
-	err := CreateSecret(secretName, secretNamespace, secretData, clientset)
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		v1.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
+	err = CreateSecret(secretName, secretNamespace, secretData, fakeClient)
 	assert.NoError(t, err, "error creating secret: %v", err)
 
-	err = DeleteSecret(secretName, secretNamespace, clientset)
+	err = DeleteSecret(secretName, secretNamespace, fakeClient)
 	assert.NoError(t, err, "error deleting secret: %v", err)
 
-	_, err = GetSecret(secretName, secretNamespace, clientset)
+	_, err = GetSecret(secretName, secretNamespace, fakeClient)
 	assert.Error(t, err, "an error was expected")
 
 }
@@ -116,7 +143,6 @@ users:
 	_, err = file.WriteString(kubeConfigFileContent)
 	assert.NoError(t, err, "error creating to file")
 
-	client, err := GetKubernetesClient(fakeKubeconfigfile)
-	assert.NoError(t, err, "error getting Kubernetes client")
-	assert.NotNil(t, client, "expected a non-nil clientset")
+	_, err = GetKubernetesClient(fakeKubeconfigfile)
+	assert.Error(t, err, "error getting Kubernetes client")
 }

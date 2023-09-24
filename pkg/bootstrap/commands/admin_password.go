@@ -5,9 +5,8 @@ import (
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"golang.org/x/crypto/bcrypt"
-	"k8s.io/client-go/kubernetes"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -21,13 +20,14 @@ const (
 
 const (
 	defaultAdminUsername = "wego-admin"
+	defaultAdminPassword = "password"
 	adminSecretName      = "cluster-user-auth"
 	confirmYes           = "y"
 )
 
 // isAdminCredsAvailable if exists return not found error otherwise return nil
-func isAdminCredsAvailable(kubernetesClient kubernetes.Interface) (bool, error) {
-	if _, err := utils.GetSecret(adminSecretName, WGEDefaultNamespace, kubernetesClient); err == nil {
+func isAdminCredsAvailable(client k8s_client.Client) (bool, error) {
+	if _, err := utils.GetSecret(adminSecretName, WGEDefaultNamespace, client); err == nil {
 		return true, nil
 	} else if err != nil && strings.Contains(err.Error(), "not found") {
 		return false, nil
@@ -37,20 +37,23 @@ func isAdminCredsAvailable(kubernetesClient kubernetes.Interface) (bool, error) 
 }
 
 // AskAdminCredsSecrets asks user about admin username and password if it doesn't exist.
-func AskAdminCredsSecret(opts config.Options) error {
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	available, err := isAdminCredsAvailable(kubernetesClient)
+// admin username and password are you used for accessing WGE Dashboard
+// for emergency access. OIDC can be used instead.
+// there an option to revert these creds in case OIDC setup is successful
+func AskAdminCredsSecret(client k8s_client.Client, silent bool) error {
+	available, err := isAdminCredsAvailable(client)
 	if err != nil {
 		return err
 	}
 
 	if available {
 		utils.Info(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace)
-		existingCreds := utils.GetConfirmInput(existingCredsMsg)
+
+		existingCreds := confirmYes
+		if !silent {
+			existingCreds = utils.GetConfirmInput(existingCredsMsg)
+		}
+
 		if existingCreds == confirmYes {
 			return nil
 		} else {
@@ -60,14 +63,20 @@ func AskAdminCredsSecret(opts config.Options) error {
 		return nil
 	}
 
-	adminUsername, err := utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
-	if err != nil {
-		return err
-	}
+	adminUsername := defaultAdminUsername
+	adminPassword := defaultAdminPassword
 
-	adminPassword, err := utils.GetPasswordInput(adminPasswordMsg)
-	if err != nil {
-		return err
+	if !silent {
+		adminUsername, err = utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
+		if err != nil {
+			return err
+		}
+
+		adminPassword, err = utils.GetPasswordInput(adminPasswordMsg)
+		if err != nil {
+			return err
+		}
+
 	}
 
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
@@ -80,7 +89,7 @@ func AskAdminCredsSecret(opts config.Options) error {
 		"password": encryptedPassword,
 	}
 
-	if err := utils.CreateSecret(adminSecretName, WGEDefaultNamespace, data, kubernetesClient); err != nil {
+	if err := utils.CreateSecret(adminSecretName, WGEDefaultNamespace, data, client); err != nil {
 		return err
 	}
 

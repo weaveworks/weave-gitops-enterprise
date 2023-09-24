@@ -6,7 +6,8 @@ import (
 	"github.com/alecthomas/assert"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes/fake"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestIsAdminCredsAvailable(t *testing.T) {
@@ -52,9 +53,17 @@ func TestIsAdminCredsAvailable(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			clientset := fake.NewSimpleClientset(tt.secret)
+			scheme := runtime.NewScheme()
+			schemeBuilder := runtime.SchemeBuilder{
+				v1.AddToScheme,
+			}
+			err := schemeBuilder.AddToScheme(scheme)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.secret).Build()
 
-			available, err := isAdminCredsAvailable(clientset)
+			available, err := isAdminCredsAvailable(fakeClient)
 			assert.Equal(t, tt.available, available, "error verifying admin password")
 			if err != nil {
 				if tt.err {

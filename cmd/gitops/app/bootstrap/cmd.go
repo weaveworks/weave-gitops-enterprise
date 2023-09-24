@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
@@ -27,6 +28,12 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 	redColor = "\x1b[31;1m%w\x1b[0m"
 )
 
+type bootstrapFlags struct {
+	silent bool
+}
+
+var bootstrapArgs bootstrapFlags
+
 func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cmdName,
@@ -34,12 +41,15 @@ func Command(opts *config.Options) *cobra.Command {
 		Example: cmdLongDescription,
 		RunE:    getBootstrapCmdRunE(opts),
 	}
+
+	cmd.Flags().BoolVarP(&bootstrapArgs.silent, "silent", "s", false, "install with the default values without user confirmation")
+
 	return cmd
 }
 
 func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if err := bootstrap(opts); err != nil {
+		if err := bootstrap(opts, bootstrapArgs); err != nil {
 			return fmt.Errorf(redColor, err)
 		}
 		return nil
@@ -47,30 +57,37 @@ func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) er
 }
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
-func bootstrap(opts *config.Options) error {
-	if err := commands.CheckEntitlementFile(*opts); err != nil {
-		return err
-	}
+func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
+	// creating kubernetes client to use it in the commands
 
-	if err := commands.VerifyFluxInstallation(*opts); err != nil {
-		return err
-	}
-
-	wgeVersion, err := commands.SelectWgeVersion(*opts)
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return err
 	}
 
-	if err := commands.AskAdminCredsSecret(*opts); err != nil {
+	if err := commands.CheckEntitlementSecret(kubernetesClient); err != nil {
 		return err
 	}
 
-	userDomain, err := commands.InstallWge(*opts, wgeVersion)
+	if err := commands.VerifyFluxInstallation(kubernetesClient); err != nil {
+		return err
+	}
+
+	wgeVersion, err := commands.SelectWgeVersion(kubernetesClient, bootstrapArgs.silent)
 	if err != nil {
 		return err
 	}
 
-	if err = commands.CheckUIDomain(*opts, userDomain, wgeVersion); err != nil {
+	if err := commands.AskAdminCredsSecret(kubernetesClient, bootstrapArgs.silent); err != nil {
+		return err
+	}
+
+	userDomain, err := commands.InstallWge(kubernetesClient, wgeVersion, bootstrapArgs.silent)
+	if err != nil {
+		return err
+	}
+
+	if err = commands.CheckUIDomain(kubernetesClient, userDomain, wgeVersion); err != nil {
 		return err
 	}
 

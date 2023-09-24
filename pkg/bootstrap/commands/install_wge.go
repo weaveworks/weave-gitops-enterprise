@@ -11,12 +11,10 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/tools/clientcmd"
-	"sigs.k8s.io/controller-runtime/pkg/client"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -56,20 +54,15 @@ var (
 )
 
 // InstallWge installs weave gitops enterprise chart.
-func InstallWge(opts config.Options, version string) (string, error) {
+func InstallWge(client k8s_client.Client, version string, silent bool) (string, error) {
+	var err error
+	domainType := domainTypes[0]
 
-	config, err := clientcmd.BuildConfigFromFlags("", opts.Kubeconfig)
-	if err != nil {
-		return "", err
-	}
-	cl, err := client.New(config, client.Options{})
-	if err != nil {
-		return "", err
-	}
-
-	domainType, err := utils.GetSelectInput(domainMsg, domainTypes)
-	if err != nil {
-		return "", err
+	if !silent {
+		domainType, err = utils.GetSelectInput(domainMsg, domainTypes)
+		if err != nil {
+			return "", err
+		}
 	}
 
 	userDomain := domainTypelocalhost
@@ -83,7 +76,7 @@ func InstallWge(opts config.Options, version string) (string, error) {
 
 	utils.Info(wgeInstallMsg, version)
 
-	pathInRepo, err := utils.CloneRepo(cl, WGEDefaultRepoName, WGEDefaultNamespace)
+	pathInRepo, err := utils.CloneRepo(client, WGEDefaultRepoName, WGEDefaultNamespace)
 	if err != nil {
 		return "", err
 	}
@@ -241,7 +234,7 @@ func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 }
 
 // CheckUIDomain display the message to be for external dns or localhost.
-func CheckUIDomain(opts config.Options, userDomain string, wgeVersion string) error {
+func CheckUIDomain(client k8s_client.Client, userDomain string, wgeVersion string) error {
 	if !strings.Contains(userDomain, domainTypelocalhost) {
 		utils.Info(installSuccessMsg, wgeVersion, userDomain)
 		return nil

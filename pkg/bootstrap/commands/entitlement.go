@@ -8,8 +8,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
-	"k8s.io/client-go/kubernetes"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -28,16 +27,11 @@ var (
 	publicKey string
 )
 
-// CheckEntitlementFile checks for valid entitlement secret.
-func CheckEntitlementFile(opts config.Options) error {
+// CheckEntitlementSecret checks for valid entitlement secret.
+func CheckEntitlementSecret(client k8s_client.Client) error {
 	utils.Warning(entitlementCheckMsg)
 
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	err = verifyEntitlementFile(kubernetesClient)
+	err := verifyEntitlementSecret(client)
 	if err != nil {
 		return err
 	}
@@ -46,8 +40,8 @@ func CheckEntitlementFile(opts config.Options) error {
 	return nil
 }
 
-func verifyEntitlementFile(kubernetesClient kubernetes.Interface) error {
-	secret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, kubernetesClient)
+func verifyEntitlementSecret(client k8s_client.Client) error {
+	secret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, client)
 	if err != nil || secret.Data["entitlement"] == nil {
 		return fmt.Errorf("%s: %w", nonExistingEntitlementSecretMsg, err)
 	}
@@ -56,6 +50,8 @@ func verifyEntitlementFile(kubernetesClient kubernetes.Interface) error {
 	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
 		return fmt.Errorf("%s: %w", invalidEntitlementSecretMsg, err)
 	}
+
+	// TODO: verify username and password
 
 	return nil
 }
