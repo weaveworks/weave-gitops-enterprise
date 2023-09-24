@@ -1,13 +1,11 @@
 package utils
 
 import (
-	"encoding/json"
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8syaml "sigs.k8s.io/yaml"
@@ -109,31 +107,4 @@ func ReconcileFlux(helmReleaseName ...string) error {
 	}
 
 	return nil
-}
-
-// GetCurrentValuesForHelmRelease gets the current values from a specific helmrelease.
-func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.ValuesFile, error) {
-	var runner runner.CLIRunner
-	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values}\"")
-	if err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(out), err)
-	}
-
-	values := domain.ValuesFile{}
-	if err := json.Unmarshal(out[1:len(out)-1], &values); err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(out), err)
-	}
-
-	return values, nil
-}
-
-// GetCurrentVersionForHelmRelease gets the current version of helmrelease chart from helmrelease
-func GetCurrentVersionForHelmRelease(name string, namespace string) (string, error) {
-	var runner runner.CLIRunner
-	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.chart.spec.version}\"")
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", string(out), err)
-	}
-
-	return string(out[1 : len(out)-1]), nil
 }
