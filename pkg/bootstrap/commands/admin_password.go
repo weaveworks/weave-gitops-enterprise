@@ -27,7 +27,7 @@ const (
 
 // isAdminCredsAvailable if exists return not found error otherwise return nil
 func isAdminCredsAvailable(client k8s_client.Client) (bool, error) {
-	secret, err := utils.GetSecret(adminSecretName, WGEDefaultNamespace, client)
+	secret, err := utils.GetSecret(client, adminSecretName, WGEDefaultNamespace)
 	if secret != nil && secret.Data != nil && (secret.Data["username"] == nil || secret.Data["password"] == nil) {
 		return false, err
 	}
@@ -93,7 +93,7 @@ func AskAdminCredsSecret(client k8s_client.Client, silent bool) error {
 		"password": encryptedPassword,
 	}
 
-	if err := utils.CreateSecret(adminSecretName, WGEDefaultNamespace, data, client); err != nil {
+	if err := utils.CreateSecret(client, adminSecretName, WGEDefaultNamespace, data); err != nil {
 		return err
 	}
 

@@ -91,7 +91,7 @@ func TestAskAdminCredsSecret(t *testing.T) {
 	err = AskAdminCredsSecret(fakeClient, true)
 	assert.NoError(t, err, "an unexpected error occured: %w", err)
 
-	secret, err := utils.GetSecret(adminSecretName, WGEDefaultNamespace, fakeClient)
+	secret, err := utils.GetSecret(fakeClient, adminSecretName, WGEDefaultNamespace)
 	assert.NoError(t, err, "an unexpected error occured: %w", err)
 	assert.Equal(t, defaultAdminUsername, string(secret.Data["username"]), "error verifying admin username")
 

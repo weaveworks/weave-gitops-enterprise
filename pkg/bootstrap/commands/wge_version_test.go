@@ -28,7 +28,7 @@ func TestFetchHelmChart(t *testing.T) {
 	}))
 	defer mockServer.Close()
 
-	versions, err := fetchHelmChart(mockServer.URL, "testuser", "testpassword")
+	versions, err := fetchHelmChartVersions(mockServer.URL, "testuser", "testpassword")
 	if err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}

@@ -45,7 +45,7 @@ func CheckEntitlementSecret(client k8s_client.Client) error {
 // and making sure it's not expired
 // verifying username and password by making http request for downloading charts and ensuring it's authenticated
 func verifyEntitlementSecret(client k8s_client.Client) error {
-	secret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, client)
+	secret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil || secret.Data["entitlement"] == nil || secret.Data["username"] == nil || secret.Data["password"] == nil {
 		return fmt.Errorf("%s: %w", nonExistingEntitlementSecretMsg, err)
 	}
@@ -55,7 +55,10 @@ func verifyEntitlementSecret(client k8s_client.Client) error {
 		return fmt.Errorf("%s: %w", invalidEntitlementSecretMsg, err)
 	}
 
-	// TODO: verify username and password
+	body, err := doBasicAuthGetRequest(wgeChartUrl, string(secret.Data["username"]), string(secret.Data["password"]))
+	if err != nil || body == nil {
+		return fmt.Errorf("%s: %w", invalidEntitlementSecretMsg, err)
+	}
 
 	return nil
 }
