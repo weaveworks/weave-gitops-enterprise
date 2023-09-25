@@ -173,9 +173,7 @@ func constructWgeHelmRepository() (string, error) {
 func constructIngressValues(userDomain string) map[string]interface{} {
 	ingressValues := map[string]interface{}{
 		"annotations": map[string]string{
-			"external-dns.alpha.kubernetes.io/hostname":                     userDomain,
-			"service.beta.kubernetes.io/aws-load-balancer-backend-protocol": "http",
-			"service.beta.kubernetes.io/aws-load-balancer-type":             "nlb",
+			"external-dns.alpha.kubernetes.io/hostname": userDomain,
 		},
 		"className": "public-nginx",
 		"enabled":   true,
