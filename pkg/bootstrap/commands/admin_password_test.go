@@ -89,12 +89,12 @@ func TestAskAdminCredsSecret(t *testing.T) {
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 	err = AskAdminCredsSecret(fakeClient, true)
-	assert.NoError(t, err, "an unexpected error occured: %w", err)
+	assert.NoError(t, err, "an unexpected error occurred: %w", err)
 
 	secret, err := utils.GetSecret(fakeClient, adminSecretName, WGEDefaultNamespace)
-	assert.NoError(t, err, "an unexpected error occured: %w", err)
+	assert.NoError(t, err, "an unexpected error occurred: %w", err)
 	assert.Equal(t, defaultAdminUsername, string(secret.Data["username"]), "error verifying admin username")
 
 	err = bcrypt.CompareHashAndPassword(secret.Data["password"], []byte(defaultAdminPassword))
-	assert.NoError(t, err, "an error occured verifying password: %w", err)
+	assert.NoError(t, err, "an error occurred verifying password: %w", err)
 }
