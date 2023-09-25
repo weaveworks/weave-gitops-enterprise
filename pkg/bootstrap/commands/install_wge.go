@@ -24,8 +24,8 @@ const (
 For more information about external DNS, please refer to: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
 `
 	wgeInstallMsg          = "All set installing WGE v%s, This may take a few minutes...\n"
-	installSuccessMsg      = "WGE v%s is installed successfully\n\n✅ You can visit the UI at https://%s/\n"
-	localInstallSuccessMsg = "WGE v%s is installed successfully\n\n✅ You can visit the UI at http://localhost:8000/\n"
+	installSuccessMsg      = "WGE v%s is installed successfully\n✅ You can visit the UI at https://%s/\n"
+	localInstallSuccessMsg = "WGE v%s is installed successfully\n✅ You can visit the UI at http://localhost:8000/\n"
 )
 
 const (
@@ -143,7 +143,11 @@ func InstallWge(client k8s_client.Client, version string, silent bool) (string, 
 		return "", err
 	}
 
-	if err := utils.ReconcileFlux(wgeHelmReleaseName); err != nil {
+	if err := utils.ReconcileFlux(); err != nil {
+		return "", err
+	}
+
+	if err := utils.ReconcileHelmRelease(wgeHelmReleaseName); err != nil {
 		return "", err
 	}
 
