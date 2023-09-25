@@ -18,7 +18,7 @@ const (
 
 	oidcDiscoverUrlMsg    = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
 	discoveryUrlVerifyMsg = "Verifying OIDC discovery URL ..."
-	//TODO: mmegahid - clarify that this is a failed
+
 	discoveryUrlErrorMsgFormat = "error: OIDC discovery URL returned status %d"
 	discoveryUrlNoIssuerMsg    = "error: OIDC discovery URL returned no issuer"
 
