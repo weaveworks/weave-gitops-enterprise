@@ -155,7 +155,7 @@ export const FormWrapper = styled.form`
   width: 80%;
   .preview-cta,
   .create-cta {
-    padding: ${({ theme }) => theme.spacing.small};
+    padding: ${({ theme }) => theme.spacing.medium};
     button {
       width: 200px;
     }

@@ -1,8 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "cluster_services.proto",
-    "version": "version not set"
+    "title": "Weave GitOps Enterprise API",
+    "description": "The API handles operations for Weave GitOps Enterprise",
+    "version": "0.1"
   },
   "tags": [
     {
@@ -16,9 +17,10 @@
     "application/json"
   ],
   "paths": {
-    "/v1/automations": {
+    "/v1/automations/pull-request": {
       "post": {
-        "summary": "Creates a pull request for the given list of Kustomizations.",
+        "summary": "Creates a pull request to add automations to a cluster",
+        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets",
         "operationId": "ClustersService_CreateAutomationsPullRequest",
         "responses": {
           "200": {
@@ -45,13 +47,14 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "automations"
         ]
       }
     },
     "/v1/automations/render": {
       "post": {
-        "summary": "Renders an automation template using given cluster automations.",
+        "summary": "Preview adding automations to a cluster",
+        "description": "Add kustomizations, helm releases, external secrets, policy configs, and sops secrets",
         "operationId": "ClustersService_RenderAutomation",
         "responses": {
           "200": {
@@ -78,13 +81,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "automations"
         ]
       }
     },
     "/v1/charts/jobs/{jobId}": {
       "get": {
-        "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
+        "summary": "Retrieve the results of a /v1/charts/values job",
         "operationId": "ClustersService_GetChartsJob",
         "responses": {
           "200": {
@@ -109,13 +112,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "charts"
         ]
       }
     },
     "/v1/charts/list": {
       "get": {
-        "summary": "Lists the discovered Helm charts in the provided\nrepository.",
+        "summary": "Lists charts in a HelmRepository",
         "operationId": "ClustersService_ListChartsForRepository",
         "responses": {
           "200": {
@@ -170,13 +173,14 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "charts"
         ]
       }
     },
     "/v1/charts/values": {
       "post": {
-        "summary": "Gets the default Values.yaml for the provided Chart\nreference.",
+        "summary": "Get the values.yaml for a chart",
+        "description": "Creates a job. Job status the final result can be retrieved via /v1/charts/jobs/{job_id}",
         "operationId": "ClustersService_GetValuesForChart",
         "responses": {
           "200": {
@@ -203,13 +207,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "charts"
         ]
       }
     },
     "/v1/clusters": {
       "get": {
-        "summary": "Lists available GitOps clusters.",
+        "summary": "List GitOpsClusters",
         "operationId": "ClustersService_ListGitopsClusters",
         "responses": {
           "200": {
@@ -253,74 +257,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
-        ]
-      },
-      "delete": {
-        "summary": "Creates a pull request for the given list of clusters \nto be deleted.",
-        "operationId": "ClustersService_DeleteClustersPullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1DeleteClustersPullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1DeleteClustersPullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
-        ]
-      },
-      "post": {
-        "summary": "Creates a pull request for a cluster template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
-        "operationId": "ClustersService_CreatePullRequest",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1CreatePullRequestRequest"
-            }
-          }
-        ],
-        "tags": [
-          "ClustersService"
+          "clusters"
         ]
       }
     },
     "/v1/config": {
       "get": {
+        "summary": "Get the Weave Gitops Enterprise configuration",
         "operationId": "ClustersService_GetConfig",
         "responses": {
           "200": {
@@ -343,7 +286,8 @@
     },
     "/v1/credentials": {
       "get": {
-        "summary": "List available credentials.",
+        "summary": "List available credentials",
+        "description": "These templates can be used when renderer certain templates",
         "operationId": "ClustersService_ListCredentials",
         "responses": {
           "200": {
@@ -360,7 +304,7 @@
           }
         },
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -393,13 +337,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
     "/v1/enterprise/events": {
       "get": {
-        "summary": "Returns the k8s events for a given object",
+        "summary": "List the kubernetes events for a resource",
         "operationId": "ClustersService_ListEvents",
         "responses": {
           "200": {
@@ -448,7 +392,7 @@
     },
     "/v1/enterprise/version": {
       "get": {
-        "summary": "Returns the WeGO Enterprise version",
+        "summary": "Get the Weave Gitops Enterprise version",
         "operationId": "ClustersService_GetEnterpriseVersion",
         "responses": {
           "200": {
@@ -471,7 +415,7 @@
     },
     "/v1/external-secrets": {
       "get": {
-        "summary": "List external secrets available on all clusters",
+        "summary": "List external secrets",
         "operationId": "ClustersService_ListExternalSecrets",
         "responses": {
           "200": {
@@ -488,7 +432,7 @@
           }
         },
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -519,7 +463,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -552,13 +496,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
     "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/kubeconfig": {
       "get": {
-        "summary": "Returns the Kubeconfig for the given\nworkload cluster.",
+        "summary": "Get the kubeconfig for a GitOpsCluster",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -590,7 +534,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "clusters"
         ]
       }
     },
@@ -639,7 +583,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
@@ -682,7 +626,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "policies"
         ]
       }
     },
@@ -725,7 +669,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -768,7 +712,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -811,7 +755,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -854,7 +798,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
@@ -897,13 +841,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     },
     "/v1/namespaces/{templateNamespace}/templates/{templateName}": {
       "get": {
-        "summary": "Gets details of a specific template.",
+        "summary": "Get template details",
         "operationId": "ClustersService_GetTemplate",
         "responses": {
           "200": {
@@ -940,13 +884,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
     "/v1/namespaces/{templateNamespace}/templates/{templateName}/params": {
       "get": {
-        "summary": "Gets the Values.yaml for a template if one exists.",
+        "summary": "List the params of a template",
         "operationId": "ClustersService_ListTemplateParams",
         "responses": {
           "200": {
@@ -983,13 +927,14 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
     "/v1/namespaces/{templateNamespace}/templates/{templateName}/profiles": {
       "get": {
-        "summary": "Returns a list of profiles within that template.",
+        "summary": "List the profiles of a template",
+        "description": "Includes default and required profiles specified by the template",
         "operationId": "ClustersService_ListTemplateProfiles",
         "responses": {
           "200": {
@@ -1026,7 +971,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1106,7 +1051,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
@@ -1129,7 +1074,7 @@
           }
         },
         "tags": [
-          "ClustersService"
+          "policies"
         ]
       }
     },
@@ -1160,13 +1105,13 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "secrets"
         ]
       }
     },
     "/v1/templates": {
       "get": {
-        "summary": "Returns a list of templates.",
+        "summary": "List templates",
         "operationId": "ClustersService_ListTemplates",
         "responses": {
           "200": {
@@ -1197,13 +1142,81 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "templates"
         ]
       }
     },
-    "/v1/tfcontrollers": {
+    "/v1/templates/deletion-pull-request": {
       "post": {
-        "summary": "Creates a pull request for a tfcontroller template.\nThe template name and values will be used to\ncreate a new branch for which a new pull request\nwill be created.",
+        "summary": "Create a pull request to delete templated resources",
+        "description": "In the request include one of the resources originally generated by the template.\nThen a pull request will be created to delete all resources generated by the template.",
+        "operationId": "ClustersService_CreateDeletionPullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreateDeletionPullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreateDeletionPullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/templates/pull-request": {
+      "post": {
+        "summary": "Create a pull request from a rendered template",
+        "operationId": "ClustersService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "templates"
+        ]
+      }
+    },
+    "/v1/tfcontrollers/pull-request": {
+      "post": {
+        "summary": "Creates a pull request from a tfcontroller template.",
+        "description": "Use CreatePullRequest instead",
         "operationId": "ClustersService_CreateTfControllerPullRequest",
         "responses": {
           "200": {
@@ -1230,13 +1243,14 @@
           }
         ],
         "tags": [
-          "ClustersService"
-        ]
+          "templates"
+        ],
+        "deprecated": true
       }
     },
     "/v1/workspaces": {
       "get": {
-        "summary": "List workspaces available on all clusters",
+        "summary": "List workspaces",
         "operationId": "ClustersService_ListWorkspaces",
         "responses": {
           "200": {
@@ -1268,7 +1282,7 @@
           }
         ],
         "tags": [
-          "ClustersService"
+          "workspaces"
         ]
       }
     }
@@ -1574,6 +1588,65 @@
         }
       }
     },
+    "v1CreateDeletionPullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "clusterNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "The name of the clusters to be delete via a PR."
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "credentials": {
+          "$ref": "#/definitions/v1Credential",
+          "title": "Credentials"
+        },
+        "repositoryApiUrl": {
+          "type": "string",
+          "description": "The repo api url."
+        },
+        "clusterNamespacedNames": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1ClusterNamespacedName"
+          }
+        }
+      }
+    },
+    "v1CreateDeletionPullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
     "v1CreatePullRequestRequest": {
       "type": "object",
       "properties": {
@@ -1758,65 +1831,6 @@
         },
         "secretRef": {
           "$ref": "#/definitions/v1SecretRef"
-        }
-      }
-    },
-    "v1DeleteClustersPullRequestRequest": {
-      "type": "object",
-      "properties": {
-        "repositoryUrl": {
-          "type": "string",
-          "description": "The repository to use."
-        },
-        "headBranch": {
-          "type": "string",
-          "description": "The new branch that will be created."
-        },
-        "baseBranch": {
-          "type": "string",
-          "description": "The target branch."
-        },
-        "title": {
-          "type": "string",
-          "description": "The title of the pull request."
-        },
-        "description": {
-          "type": "string",
-          "title": "The description of the pull request"
-        },
-        "clusterNames": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          },
-          "description": "The name of the clusters to be delete via a PR."
-        },
-        "commitMessage": {
-          "type": "string",
-          "title": "The commit message"
-        },
-        "credentials": {
-          "$ref": "#/definitions/v1Credential",
-          "title": "Credentials"
-        },
-        "repositoryApiUrl": {
-          "type": "string",
-          "description": "The repo api url."
-        },
-        "clusterNamespacedNames": {
-          "type": "array",
-          "items": {
-            "$ref": "#/definitions/v1ClusterNamespacedName"
-          }
-        }
-      }
-    },
-    "v1DeleteClustersPullRequestResponse": {
-      "type": "object",
-      "properties": {
-        "webUrl": {
-          "type": "string",
-          "description": "The url of the new pull request."
         }
       }
     },

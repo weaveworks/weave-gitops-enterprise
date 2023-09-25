@@ -10,7 +10,7 @@ import { getProviderToken } from './utils';
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;
   & .auth-message {
-    padding-right: ${({ theme }) => theme.spacing.small};
+    padding-right: ${({ theme }) => theme.spacing.medium};
     button {
       min-width: 250px;
     }

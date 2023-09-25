@@ -41,6 +41,20 @@ type FakeIterator struct {
 	nextReturnsOnCall map[int]struct {
 		result1 bool
 	}
+	PageStub        func(int, int) ([]models.Object, error)
+	pageMutex       sync.RWMutex
+	pageArgsForCall []struct {
+		arg1 int
+		arg2 int
+	}
+	pageReturns struct {
+		result1 []models.Object
+		result2 error
+	}
+	pageReturnsOnCall map[int]struct {
+		result1 []models.Object
+		result2 error
+	}
 	RowStub        func() (models.Object, error)
 	rowMutex       sync.RWMutex
 	rowArgsForCall []struct {
@@ -219,6 +233,71 @@ func (fake *FakeIterator) NextReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
+func (fake *FakeIterator) Page(arg1 int, arg2 int) ([]models.Object, error) {
+	fake.pageMutex.Lock()
+	ret, specificReturn := fake.pageReturnsOnCall[len(fake.pageArgsForCall)]
+	fake.pageArgsForCall = append(fake.pageArgsForCall, struct {
+		arg1 int
+		arg2 int
+	}{arg1, arg2})
+	stub := fake.PageStub
+	fakeReturns := fake.pageReturns
+	fake.recordInvocation("Page", []interface{}{arg1, arg2})
+	fake.pageMutex.Unlock()
+	if stub != nil {
+		return stub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeIterator) PageCallCount() int {
+	fake.pageMutex.RLock()
+	defer fake.pageMutex.RUnlock()
+	return len(fake.pageArgsForCall)
+}
+
+func (fake *FakeIterator) PageCalls(stub func(int, int) ([]models.Object, error)) {
+	fake.pageMutex.Lock()
+	defer fake.pageMutex.Unlock()
+	fake.PageStub = stub
+}
+
+func (fake *FakeIterator) PageArgsForCall(i int) (int, int) {
+	fake.pageMutex.RLock()
+	defer fake.pageMutex.RUnlock()
+	argsForCall := fake.pageArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeIterator) PageReturns(result1 []models.Object, result2 error) {
+	fake.pageMutex.Lock()
+	defer fake.pageMutex.Unlock()
+	fake.PageStub = nil
+	fake.pageReturns = struct {
+		result1 []models.Object
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeIterator) PageReturnsOnCall(i int, result1 []models.Object, result2 error) {
+	fake.pageMutex.Lock()
+	defer fake.pageMutex.Unlock()
+	fake.PageStub = nil
+	if fake.pageReturnsOnCall == nil {
+		fake.pageReturnsOnCall = make(map[int]struct {
+			result1 []models.Object
+			result2 error
+		})
+	}
+	fake.pageReturnsOnCall[i] = struct {
+		result1 []models.Object
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeIterator) Row() (models.Object, error) {
 	fake.rowMutex.Lock()
 	ret, specificReturn := fake.rowReturnsOnCall[len(fake.rowArgsForCall)]
@@ -284,6 +363,8 @@ func (fake *FakeIterator) Invocations() map[string][][]interface{} {
 	defer fake.closeMutex.RUnlock()
 	fake.nextMutex.RLock()
 	defer fake.nextMutex.RUnlock()
+	fake.pageMutex.RLock()
+	defer fake.pageMutex.RUnlock()
 	fake.rowMutex.RLock()
 	defer fake.rowMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
