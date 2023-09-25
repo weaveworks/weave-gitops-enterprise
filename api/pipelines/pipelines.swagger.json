@@ -186,6 +186,7 @@
         "targetsStatuses": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1PipelineTargetStatus"
           }
         }
@@ -213,6 +214,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -283,6 +285,7 @@
         "targets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Target"
           }
         }
@@ -319,12 +322,14 @@
         "pipelines": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Pipeline"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ListError"
           }
         }
@@ -367,12 +372,14 @@
         "environments": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Environment"
           }
         },
         "targets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Target"
           }
         },
@@ -413,6 +420,7 @@
         "workloads": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1WorkloadStatus"
           }
         }
@@ -494,6 +502,7 @@
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },

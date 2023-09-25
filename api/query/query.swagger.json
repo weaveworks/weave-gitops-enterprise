@@ -117,6 +117,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -143,6 +144,7 @@
         "subjects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Subject"
           }
         },
@@ -160,6 +162,7 @@
         "rules": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1AccessRule"
           }
         }
@@ -185,6 +188,7 @@
         "facets": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Facet"
           }
         }
@@ -265,6 +269,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Object"
           }
         }

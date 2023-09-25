@@ -115,13 +115,13 @@ export type AuthorizeAzureDevOpsResponse = {
 
 export class GitAuth {
   static Authenticate(req: AuthenticateRequest, initReq?: fm.InitReq): Promise<AuthenticateResponse> {
-    return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<AuthenticateRequest, AuthenticateResponse>(`/v1/authenticate/${req["providerName"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetGithubDeviceCode(req: GetGithubDeviceCodeRequest, initReq?: fm.InitReq): Promise<GetGithubDeviceCodeResponse> {
     return fm.fetchReq<GetGithubDeviceCodeRequest, GetGithubDeviceCodeResponse>(`/v1/gitauth/auth-providers/github?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetGithubAuthStatus(req: GetGithubAuthStatusRequest, initReq?: fm.InitReq): Promise<GetGithubAuthStatusResponse> {
-    return fm.fetchReq<GetGithubAuthStatusRequest, GetGithubAuthStatusResponse>(`/v1/gitauth/auth-providers/github/status`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<GetGithubAuthStatusRequest, GetGithubAuthStatusResponse>(`/v1/gitauth/auth-providers/github/status`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetGitlabAuthURL(req: GetGitlabAuthURLRequest, initReq?: fm.InitReq): Promise<GetGitlabAuthURLResponse> {
     return fm.fetchReq<GetGitlabAuthURLRequest, GetGitlabAuthURLResponse>(`/v1/gitauth/auth-providers/gitlab?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -130,21 +130,21 @@ export class GitAuth {
     return fm.fetchReq<GetBitbucketServerAuthURLRequest, GetBitbucketServerAuthURLResponse>(`/v1/gitauth/auth-providers/bitbucketserver?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static AuthorizeBitbucketServer(req: AuthorizeBitbucketServerRequest, initReq?: fm.InitReq): Promise<AuthorizeBitbucketServerResponse> {
-    return fm.fetchReq<AuthorizeBitbucketServerRequest, AuthorizeBitbucketServerResponse>(`/v1/gitauth/auth-providers/bitbucketserver/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<AuthorizeBitbucketServerRequest, AuthorizeBitbucketServerResponse>(`/v1/gitauth/auth-providers/bitbucketserver/authorize`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static AuthorizeGitlab(req: AuthorizeGitlabRequest, initReq?: fm.InitReq): Promise<AuthorizeGitlabResponse> {
-    return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/gitauth/auth-providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<AuthorizeGitlabRequest, AuthorizeGitlabResponse>(`/v1/gitauth/auth-providers/gitlab/authorize`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetAzureDevOpsAuthURL(req: GetAzureDevOpsAuthURLRequest, initReq?: fm.InitReq): Promise<GetAzureDevOpsAuthURLResponse> {
     return fm.fetchReq<GetAzureDevOpsAuthURLRequest, GetAzureDevOpsAuthURLResponse>(`/v1/gitauth/auth-providers/azuredevops?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static AuthorizeAzureDevOps(req: AuthorizeAzureDevOpsRequest, initReq?: fm.InitReq): Promise<AuthorizeAzureDevOpsResponse> {
-    return fm.fetchReq<AuthorizeAzureDevOpsRequest, AuthorizeAzureDevOpsResponse>(`/v1/gitauth/auth-providers/azuredevops/authorize`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<AuthorizeAzureDevOpsRequest, AuthorizeAzureDevOpsResponse>(`/v1/gitauth/auth-providers/azuredevops/authorize`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ParseRepoURL(req: ParseRepoURLRequest, initReq?: fm.InitReq): Promise<ParseRepoURLResponse> {
     return fm.fetchReq<ParseRepoURLRequest, ParseRepoURLResponse>(`/v1/gitauth/parse-repo-url?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static ValidateProviderToken(req: ValidateProviderTokenRequest, initReq?: fm.InitReq): Promise<ValidateProviderTokenResponse> {
-    return fm.fetchReq<ValidateProviderTokenRequest, ValidateProviderTokenResponse>(`/v1/gitauth/validate-token`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ValidateProviderTokenRequest, ValidateProviderTokenResponse>(`/v1/gitauth/validate-token`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

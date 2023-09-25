@@ -282,6 +282,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -358,12 +359,14 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TerraformObject"
           }
         },
         "errors": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1TerraformListError"
           }
         }
@@ -468,6 +471,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         }
@@ -534,12 +538,14 @@
         "inventory": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ResourceRef"
           }
         },
         "conditions": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1Condition"
           }
         },
@@ -558,6 +564,7 @@
         "dependsOn": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1NamespacedObjectReference"
           }
         },
@@ -572,6 +579,7 @@
         "objects": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/v1ObjectRef"
           }
         },

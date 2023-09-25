@@ -69,7 +69,7 @@ export type Facet = {
 
 export class Query {
   static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
-    return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ListFacets(req: ListFacetsRequest, initReq?: fm.InitReq): Promise<ListFacetsResponse> {
     return fm.fetchReq<ListFacetsRequest, ListFacetsResponse>(`/v1/facets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

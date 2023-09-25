@@ -68,12 +68,12 @@ export class GitOpsSets {
     return fm.fetchReq<GetGitOpsSetRequest, GetGitOpsSetResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitopssets/${req["name"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ToggleSuspendGitOpsSet(req: ToggleSuspendGitOpsSetRequest, initReq?: fm.InitReq): Promise<ToggleSuspendGitOpsSetResponse> {
-    return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitopssets/suspend`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitopssets/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
-    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitops-reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitops-reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static SyncGitOpsSet(req: SyncGitOpsSetRequest, initReq?: fm.InitReq): Promise<SyncGitOpsSetResponse> {
-    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/gitopssets/sync`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/gitopssets/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

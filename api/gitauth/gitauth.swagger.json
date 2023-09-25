@@ -38,6 +38,7 @@
         "parameters": [
           {
             "name": "providerName",
+            "description": "The name of the git provider",
             "in": "path",
             "required": true,
             "type": "string"
@@ -50,7 +51,8 @@
               "type": "object",
               "properties": {
                 "accessToken": {
-                  "type": "string"
+                  "type": "string",
+                  "title": "The token of the git provider"
                 }
               }
             }
@@ -331,6 +333,7 @@
         "parameters": [
           {
             "name": "url",
+            "description": "The URL to be parsed",
             "in": "query",
             "required": false,
             "type": "string"
@@ -398,6 +401,7 @@
         "details": {
           "type": "array",
           "items": {
+            "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
         }
@@ -424,7 +428,8 @@
           "title": "The state parameter provided in the authorization URL"
         },
         "redirectUri": {
-          "type": "string"
+          "type": "string",
+          "title": "The redirect URI that originated the OAuth flow"
         }
       }
     },
@@ -449,7 +454,8 @@
           "title": "The state parameter provided in the authorization URL"
         },
         "redirectUri": {
-          "type": "string"
+          "type": "string",
+          "title": "The redirect URI that originated the OAuth flow"
         }
       }
     },
@@ -470,7 +476,8 @@
           "title": "The challenge code obtained from the OAuth callback"
         },
         "redirectUri": {
-          "type": "string"
+          "type": "string",
+          "title": "The redirect URI that originated the OAuth flow"
         }
       }
     },
@@ -518,7 +525,8 @@
           "description": "An access token that can be used to interact with the Weave GitOps API."
         },
         "error": {
-          "type": "string"
+          "type": "string",
+          "description": "An error message."
         }
       }
     },
@@ -530,7 +538,8 @@
           "title": "The Github Device Flow code that will be shown to the user"
         },
         "deviceCode": {
-          "type": "string"
+          "type": "string",
+          "title": "A code that uniquely identifies a device"
         },
         "validationURI": {
           "type": "string",
@@ -538,7 +547,8 @@
         },
         "interval": {
           "type": "integer",
-          "format": "int32"
+          "format": "int32",
+          "title": "How often the client should retry the request"
         }
       }
     },
@@ -567,10 +577,12 @@
       "type": "object",
       "properties": {
         "name": {
-          "type": "string"
+          "type": "string",
+          "title": "The name of the git repository"
         },
         "provider": {
-          "$ref": "#/definitions/v1GitProvider"
+          "$ref": "#/definitions/v1GitProvider",
+          "title": "The GitProvider for the repository"
         },
         "owner": {
           "type": "string",

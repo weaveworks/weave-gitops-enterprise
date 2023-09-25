@@ -58,9 +58,9 @@ export class Pipelines {
     return fm.fetchReq<GetPipelineRequest, GetPipelineResponse>(`/v1/namespaces/${req["namespace"]}/pipelines/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ApprovePromotion(req: ApprovePromotionRequest, initReq?: fm.InitReq): Promise<ApprovePromotionResponse> {
-    return fm.fetchReq<ApprovePromotionRequest, ApprovePromotionResponse>(`/v1/pipelines/approve/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ApprovePromotionRequest, ApprovePromotionResponse>(`/v1/pipelines/approve/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ListPullRequests(req: ListPullRequestsRequest, initReq?: fm.InitReq): Promise<ListPullRequestsResponse> {
-    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list-prs/${req["pipelineName"]}`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list-prs/${req["pipelineName"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }
