@@ -33,7 +33,7 @@ const (
 	wgeHelmReleaseCommitMsg           = "Add WGE HelmRelease YAML file"
 	wgeChartName                      = "mccp"
 	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
-	wgeHelmReleaseName                = "weave-gitops-enterprise"
+	WGEHelmReleaseName                = "weave-gitops-enterprise"
 	WGEDefaultNamespace               = "flux-system"
 	WGEDefaultRepoName                = "flux-system"
 	domainTypelocalhost               = "localhost"
@@ -143,7 +143,7 @@ func InstallWge(client k8s_client.Client, version string, silent bool) (string, 
 		return "", err
 	}
 
-	if err := utils.ReconcileFlux(wgeHelmReleaseName); err != nil {
+	if err := utils.ReconcileFlux(WGEHelmReleaseName); err != nil {
 		return "", err
 	}
 
@@ -203,7 +203,7 @@ func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 
 	wgeHelmRelease := helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      wgeHelmReleaseName,
+			Name:      WGEHelmReleaseName,
 			Namespace: WGEDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{

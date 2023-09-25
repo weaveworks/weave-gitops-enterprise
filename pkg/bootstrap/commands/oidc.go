@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	//TODO: make sure we skip the following message if we are coming from the oidc cmd directly.
-	oidcInstallMsg = "Do you want to setup OIDC to access Weave GitOps Dashboards?"
+	oidcInstallMsg = "Do you want to setup OIDC to access Weave GitOps Dashboards"
 	//TODO: review the URL after updating the docs.
 	oidcConfigInfoMsg = "Setting up OIDC require configurations provided by your OIDC provider. To learn more about these OIDC configurations, checkout https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
 
@@ -22,7 +21,6 @@ const (
 	//TODO: mmegahid - clarify that this is a failed
 	discoveryUrlErrorMsgFormat = "error: OIDC discovery URL returned status %d"
 	discoveryUrlNoIssuerMsg    = "error: OIDC discovery URL returned no issuer"
-	//TODO: prompt the user to enter the URL again, using the oidcDiscoverUrlMsg.
 
 	oidcClientIDMsg     = "Please enter OIDC clientID"
 	oidcClientSecretMsg = "Please enter OIDC clientSecret"
@@ -30,10 +28,9 @@ const (
 	oidcInstallInfoMsg  = "Configuring OIDC ..."
 	oidcConfirmationMsg = "OIDC has been configured successfully!"
 
-	//TODO: replace (cmd) with the command to run again
-	oidcConfigExistWarningMsgFormat = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'cmd' command again."
+	oidcConfigExistWarningMsgFormat = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again."
 
-	adminUserRevertMsg     = "Do you want to revoke admin user login, and only use OIDC for dashboard access?"
+	adminUserRevertMsg     = "Do you want to revoke admin user login, and only use OIDC for dashboard access"
 	adminUsernameRevertMsg = "Admin user login has been revoked!"
 )
 
@@ -45,15 +42,28 @@ const (
 func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 	configs := domain.OIDCConfig{}
 
-	oidcDiscoveryURL, err := utils.GetStringInput(oidcDiscoverUrlMsg, "")
-	if err != nil {
-		return configs, err
-	}
+	var oidcDiscoveryURL string
+	var oidcIssuerURL string
+	var err error
 
-	utils.Info(discoveryUrlVerifyMsg)
-	oidcIssuerURL, err := getIssuer(oidcDiscoveryURL)
-	if err != nil {
-		return configs, err
+	for {
+		// Ask for discovery URL from the user
+		oidcDiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
+		if err != nil {
+			return configs, err
+		}
+
+		utils.Info(discoveryUrlVerifyMsg)
+
+		// Try to get the issuer
+		oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
+		if err != nil {
+			utils.Warning("An error occurred: %s. Please enter the discovery URL again.", err.Error())
+			continue // Go to the next iteration to re-ask for the URL
+		}
+
+		// If we reach this point, it means that the URL is valid. Break out of the loop.
+		break
 	}
 
 	oidcClientID, err := utils.GetStringInput(oidcClientIDMsg, "")
@@ -61,7 +71,7 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 		return configs, err
 	}
 
-	oidcClientSecret, err := utils.GetStringInput(oidcClientSecretMsg, "")
+	oidcClientSecret, err := utils.GetPasswordInput(oidcClientSecretMsg)
 	if err != nil {
 		return configs, err
 	}
@@ -82,11 +92,12 @@ func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
 }
 
 // CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
-func CreateOIDCConfig(client k8s_client.Client, userDomain string, version string) error {
-	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
-
-	if oidcConfigPrompt != "y" {
-		return nil
+func CreateOIDCConfig(client k8s_client.Client, userDomain string, version string, skipPrompt bool) error {
+	if !skipPrompt {
+		oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
+		if oidcConfigPrompt != "y" {
+			return nil
+		}
 	}
 
 	utils.Info(oidcConfigInfoMsg)

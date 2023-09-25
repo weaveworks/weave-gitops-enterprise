@@ -137,3 +137,14 @@ func GetCurrentVersionForHelmRelease(name string, namespace string) (string, err
 
 	return string(out[1 : len(out)-1]), nil
 }
+
+// GetCurrentDominForHelmRelease gets the current domain of helmrelease chart from helmrelease
+func GetCurrentDominForHelmRelease(name string, namespace string) (string, error) {
+	var runner runner.CLIRunner
+	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values.ingress.hosts[0].host}\"")
+	if err != nil {
+		return "", fmt.Errorf("%s: %w", string(out), err)
+	}
+
+	return string(out[1 : len(out)-1]), nil
+}

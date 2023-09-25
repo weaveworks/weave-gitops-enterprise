@@ -24,6 +24,11 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 - Allow selecting the version of WGE to be installed from the latest 3 versions.
 - Set the admin password for WGE Dashboard.
 - Easy steps to make OIDC flow
+
+## gitops bootstrap auth --type=oidc
+
+This sub-command adds OIDC configuration to your cluster. You can specify the type of authentication using the '--type' flag. Currently, only OIDC is supported.
+
 `
 	redColor = "\x1b[31;1m%w\x1b[0m"
 )
@@ -43,6 +48,45 @@ func Command(opts *config.Options) *cobra.Command {
 	}
 
 	cmd.Flags().BoolVarP(&bootstrapArgs.silent, "silent", "s", false, "install with the default values without user confirmation")
+
+	//get kubernetes client
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//get userDomain from helm release
+	userDomain, err := utils.GetCurrentDominForHelmRelease(commands.WGEHelmReleaseName, commands.WGEDefaultNamespace)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//get current version of WGE
+	wgeVersion, err := utils.GetCurrentVersionForHelmRelease(commands.WGEHelmReleaseName, commands.WGEDefaultNamespace)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	var authType string
+
+	// Add the auth sub-command to the bootstrap command
+	authCmd := &cobra.Command{
+		Use:   "auth",
+		Short: "Add OIDC configuration to your cluster",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if authType == "oidc" {
+				return commands.CreateOIDCConfig(kubernetesClient, userDomain, wgeVersion, true)
+			} else {
+				// Handle other types of authentication or return an error
+				return fmt.Errorf("Unsupported authentication type: %s", authType)
+			}
+		},
+	}
+
+	// Flags for the auth sub-command
+	authCmd.Flags().StringVar(&authType, "type", "oidc", "Type of authentication")
+
+	cmd.AddCommand(authCmd)
 
 	return cmd
 }
@@ -87,11 +131,11 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 		return err
 	}
 
-	if err = commands.CheckUIDomain(kubernetesClient, userDomain, wgeVersion); err != nil {
+	if err = commands.CreateOIDCConfig(kubernetesClient, userDomain, wgeVersion, false); err != nil {
 		return err
 	}
 
-	if err = commands.CreateOIDCConfig(kubernetesClient, userDomain, wgeVersion); err != nil {
+	if err = commands.CheckUIDomain(kubernetesClient, userDomain, wgeVersion); err != nil {
 		return err
 	}
 
