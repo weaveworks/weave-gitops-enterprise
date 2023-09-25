@@ -61,8 +61,8 @@ function ExplorerTable({
           });
         } else if (page === Routes.Templates) {
           url = formatURL(page, {
-            name: o.name,
-            namespace: o.namespace,
+            search: o.name + '_',
+            filters: 'namespace: ' + o.namespace + '_',
           });
         } else {
           url = formatURL(page, {
