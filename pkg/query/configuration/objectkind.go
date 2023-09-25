@@ -313,31 +313,7 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *gitopssets.GitOpsSet:
 		return t, nil
-	case *corev1.Event:
-		e, ok := obj.(*corev1.Event)
-		if !ok {
-			return nil, fmt.Errorf("failed to cast object to event")
-		}
-		return &eventAdapter{e}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)
-}
-
-type EventLike interface {
-	client.Object
-	GetConditions() []metav1.Condition
-}
-
-type eventAdapter struct {
-	*corev1.Event
-}
-
-func (ea *eventAdapter) GetConditions() []metav1.Condition {
-	cond := metav1.Condition{
-		Type:    string(NoStatus),
-		Message: ea.Message,
-		Status:  "True",
-	}
-	return []metav1.Condition{cond}
 }
