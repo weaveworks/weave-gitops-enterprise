@@ -1,3 +1,7 @@
+// Package domain implements any related structs used in bootstrap package and utilites
+//
+// it will contain the structs that will be need for bootstrapping WGE
+// and the values for HelmReleases/HelmRepositories
 package domain
 
 // ValuesFile store the wge values

@@ -9,13 +9,8 @@ import (
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
-
-type Client struct {
-	Client k8s_client.Client
-}
 
 // TestGetRepoUrl tests the GetRepoUrl function
 func TestGetRepoUrl(t *testing.T) {

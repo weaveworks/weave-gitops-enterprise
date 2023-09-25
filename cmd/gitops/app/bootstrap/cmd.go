@@ -30,7 +30,7 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 This sub-command adds OIDC configuration to your cluster. You can specify the type of authentication using the '--type' flag. Currently, only OIDC is supported.
 
 `
-	redColor = "\x1b[31;1m%w\x1b[0m"
+	redError = "\x1b[31;1m%w\x1b[0m"
 )
 
 type bootstrapFlags struct {
@@ -94,7 +94,7 @@ func Command(opts *config.Options) *cobra.Command {
 func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
 		if err := bootstrap(opts, bootstrapArgs); err != nil {
-			return fmt.Errorf(redColor, err)
+			return fmt.Errorf(redError, err)
 		}
 		return nil
 	}

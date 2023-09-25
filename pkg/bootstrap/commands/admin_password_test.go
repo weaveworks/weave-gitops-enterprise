@@ -4,6 +4,8 @@ import (
 	"testing"
 
 	"github.com/alecthomas/assert"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -21,7 +23,7 @@ func TestIsAdminCredsAvailable(t *testing.T) {
 			name:      "secret doesn't exist",
 			secret:    &v1.Secret{},
 			available: false,
-			err:       false,
+			err:       true,
 		},
 		{
 			name: "secret exist",
@@ -73,4 +75,26 @@ func TestIsAdminCredsAvailable(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestAskAdminCredsSecret(t *testing.T) {
+	scheme := runtime.NewScheme()
+	schemeBuilder := runtime.SchemeBuilder{
+		v1.AddToScheme,
+	}
+	err := schemeBuilder.AddToScheme(scheme)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
+
+	err = AskAdminCredsSecret(fakeClient, true)
+	assert.NoError(t, err, "an unexpected error occurred: %w", err)
+
+	secret, err := utils.GetSecret(fakeClient, adminSecretName, WGEDefaultNamespace)
+	assert.NoError(t, err, "an unexpected error occurred: %w", err)
+	assert.Equal(t, defaultAdminUsername, string(secret.Data["username"]), "error verifying admin username")
+
+	err = bcrypt.CompareHashAndPassword(secret.Data["password"], []byte(defaultAdminPassword))
+	assert.NoError(t, err, "an error occurred verifying password: %w", err)
 }

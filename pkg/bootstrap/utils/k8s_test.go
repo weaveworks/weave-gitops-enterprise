@@ -37,11 +37,11 @@ func TestGetSecret(t *testing.T) {
 		},
 	}).Build()
 
-	secret, err := GetSecret(invalidSecretName, secretNamespace, fakeClient)
+	secret, err := GetSecret(fakeClient, invalidSecretName, secretNamespace)
 	assert.Error(t, err, "error fetching secret: %v", err)
 	assert.Nil(t, secret, "error fetching secret: %v", err)
 
-	secret, err = GetSecret(secretName, secretNamespace, fakeClient)
+	secret, err = GetSecret(fakeClient, secretName, secretNamespace)
 
 	expectedUsername := "test-username"
 	expectedPassword := "test-password"
@@ -70,10 +70,10 @@ func TestCreateSecret(t *testing.T) {
 	}
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
 
-	err = CreateSecret(secretName, secretNamespace, secretData, fakeClient)
+	err = CreateSecret(fakeClient, secretName, secretNamespace, secretData)
 	assert.NoError(t, err, "error creating secret: %v", err)
 
-	secret, err := GetSecret(secretName, secretNamespace, fakeClient)
+	secret, err := GetSecret(fakeClient, secretName, secretNamespace)
 	expectedUsername := "test-username"
 	expectedPassword := "test-password"
 
@@ -102,13 +102,13 @@ func TestDeleteSecret(t *testing.T) {
 	}
 
 	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
-	err = CreateSecret(secretName, secretNamespace, secretData, fakeClient)
+	err = CreateSecret(fakeClient, secretName, secretNamespace, secretData)
 	assert.NoError(t, err, "error creating secret: %v", err)
 
-	err = DeleteSecret(secretName, secretNamespace, fakeClient)
+	err = DeleteSecret(fakeClient, secretName, secretNamespace)
 	assert.NoError(t, err, "error deleting secret: %v", err)
 
-	_, err = GetSecret(secretName, secretNamespace, fakeClient)
+	_, err = GetSecret(fakeClient, secretName, secretNamespace)
 	assert.Error(t, err, "an error was expected")
 
 }

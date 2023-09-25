@@ -50,7 +50,7 @@ func GetKubernetesClient(kubeconfig string) (k8s_client.Client, error) {
 }
 
 // GetSecret get secret values from kubernetes.
-func GetSecret(name string, namespace string, client k8s_client.Client) (*corev1.Secret, error) {
+func GetSecret(client k8s_client.Client, name string, namespace string) (*corev1.Secret, error) {
 	secret := &corev1.Secret{}
 	err := client.Get(context.Background(), types.NamespacedName{
 		Name:      name,
@@ -65,7 +65,7 @@ func GetSecret(name string, namespace string, client k8s_client.Client) (*corev1
 }
 
 // CreateSecret create a kubernetes secret.
-func CreateSecret(name string, namespace string, data map[string][]byte, client k8s_client.Client) error {
+func CreateSecret(client k8s_client.Client, name string, namespace string, data map[string][]byte) error {
 	secret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,
@@ -83,7 +83,7 @@ func CreateSecret(name string, namespace string, data map[string][]byte, client 
 }
 
 // DeleteSecret delete a kubernetes secret.
-func DeleteSecret(name string, namespace string, client k8s_client.Client) error {
+func DeleteSecret(client k8s_client.Client, name string, namespace string) error {
 	secret := &corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      name,

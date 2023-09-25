@@ -10,6 +10,7 @@ import (
 const (
 	passwordErrorMsg  = "password must have more than 6 characters"
 	inputStringErrMsg = "value can't be empty"
+	blueInfo          = "\x1b[34;1m✔  %s\x1b[0m\n"
 )
 
 // GetPasswordInput prompt to enter password.
@@ -102,7 +103,7 @@ func GetConfirmInput(msg string) string {
 
 // Info should be used to describe the example commands that are about to run.
 func Info(msg string, args ...interface{}) {
-	fmt.Printf("\x1b[34;1m✔  %s\x1b[0m\n", fmt.Sprintf(msg, args...))
+	fmt.Printf(blueInfo, fmt.Sprintf(msg, args...))
 }
 
 // Warning should be used to display a warning.

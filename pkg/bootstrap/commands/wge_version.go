@@ -17,18 +17,15 @@ const (
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions.
 func SelectWgeVersion(client k8s_client.Client, silent bool) (string, error) {
-	entitlementSecret, err := utils.GetSecret(entitlementSecretName, WGEDefaultNamespace, client)
+	entitlementSecret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return "", err
 	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
-	if err != nil {
-		return "", err
-	}
 
 	chartUrl := fmt.Sprintf("%s/index.yaml", wgeChartUrl)
-	versions, err := fetchHelmChart(chartUrl, username, password)
+	versions, err := fetchHelmChartVersions(chartUrl, username, password)
 	if err != nil {
 		return "", err
 	}
@@ -42,26 +39,13 @@ func SelectWgeVersion(client k8s_client.Client, silent bool) (string, error) {
 	return utils.GetSelectInput(versionMsg, versions)
 }
 
-// fetchHelmChart helper method to fetch wge helm chart detauls.
-func fetchHelmChart(chartUrl, username, password string) ([]string, error) {
-	req, err := http.NewRequest("GET", chartUrl, nil)
-	if err != nil {
-		return []string{}, err
-
-	}
-	req.SetBasicAuth(username, password)
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+// fetchHelmChartVersions helper method to fetch wge helm chart versions.
+func fetchHelmChartVersions(chartUrl, username, password string) ([]string, error) {
+	bodyBytes, err := doBasicAuthGetRequest(chartUrl, username, password)
 	if err != nil {
 		return []string{}, err
 	}
-	defer resp.Body.Close()
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return []string{}, err
-	}
 	var chart domain.HelmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
@@ -79,4 +63,26 @@ func fetchHelmChart(chartUrl, username, password string) ([]string, error) {
 	}
 
 	return versions, nil
+}
+
+func doBasicAuthGetRequest(url, username, password string) ([]byte, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return []byte{}, err
+
+	}
+	req.SetBasicAuth(username, password)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return []byte{}, err
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return []byte{}, err
+	}
+	return bodyBytes, err
 }
