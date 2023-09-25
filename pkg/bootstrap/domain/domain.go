@@ -69,3 +69,7 @@ type OIDCConfig struct {
 	ClientSecret string `json:"clientSecret"`
 	RedirectURL  string `json:"redirectURL"`
 }
+
+const (
+	OIDCValuesName = "oidc"
+)

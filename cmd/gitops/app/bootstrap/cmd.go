@@ -91,5 +91,9 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 		return err
 	}
 
+	if err = commands.CreateOIDCConfig(kubernetesClient, userDomain, wgeVersion); err != nil {
+		return err
+	}
+
 	return nil
 }
