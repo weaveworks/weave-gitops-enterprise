@@ -15,21 +15,12 @@ const ProgressiveDelivery = () => {
   return (
     <>
       {!isLoading && isFlaggerAvailable ? (
-        <Page loading={isLoading} path={[{ label: 'Delivery' }]}>
-          {error && <Alert severity="error">{error.message}</Alert>}
+        <Page loading={isLoading} path={[{ label: 'Progressive Delivery' }]}>
+          {error && <Alert severity="error">{error?.message}</Alert>}
           <CanariesList />
         </Page>
       ) : (
-        <Page
-          loading={isLoading}
-          path={[
-            {
-              label: 'Applications',
-              url: Routes.Applications,
-            },
-            { label: 'Delivery' },
-          ]}
-        >
+        <Page loading={isLoading} path={[{ label: 'Progressive Delivery' }]}>
           {error && <Alert severity="error">{error.message}</Alert>}
           <OnboardingMessage />
         </Page>
