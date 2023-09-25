@@ -111,21 +111,11 @@ type defaultNormalizedObject struct {
 }
 
 func (n defaultNormalizedObject) GetStatus() (configuration.ObjectStatus, error) {
-	o, err := configuration.ToFluxObject(n.Object)
-	if err != nil {
-		return "", err
-	}
-
-	return n.config.StatusFunc(o), nil
+	return n.config.StatusFunc(n.Object), nil
 }
 
 func (n defaultNormalizedObject) GetMessage() (string, error) {
-	o, err := configuration.ToFluxObject(n.Object)
-	if err != nil {
-		return "", err
-	}
-
-	return n.config.MessageFunc(o), nil
+	return n.config.MessageFunc(n.Object), nil
 }
 
 func (n defaultNormalizedObject) GetCategory() (configuration.ObjectCategory, error) {
