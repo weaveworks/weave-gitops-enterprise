@@ -220,8 +220,7 @@ service ClustersService {
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/workspaces/{workspace_name}"
+      get : "/v1/workspaces/{workspace_name}"
     };
   }
 
@@ -229,8 +228,7 @@ service ClustersService {
    rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/workspaces/{workspace_name}/roles"
+      get : "/v1/workspaces/{workspace_name}/roles"
     };
   }
 
@@ -238,8 +236,7 @@ service ClustersService {
    rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/workspaces/{workspace_name}/rolebindings"
+      get : "/v1/workspaces/{workspace_name}/rolebindings"
     };
   }
 
@@ -247,8 +244,7 @@ service ClustersService {
    rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/workspaces/{workspace_name}/serviceaccounts"
+      get : "/v1/workspaces/{workspace_name}/serviceaccounts"
     };
   }
 
@@ -256,8 +252,7 @@ service ClustersService {
   rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/workspaces/{workspace_name}/policies"
+      get : "/v1/workspaces/{workspace_name}/policies"
     };
   }
 
@@ -273,8 +268,7 @@ service ClustersService {
   rpc GetExternalSecret(GetExternalSecretRequest) returns (GetExternalSecretResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}"
-            "/namespaces/{namespace}/external-secrets/{external_secret_name}"
+      get : "/v1/namespaces/{namespace}/external-secrets/{external_secret_name}"
     };
   }
 
@@ -324,7 +318,7 @@ service ClustersService {
   rpc GetPolicyConfig(GetPolicyConfigRequest) returns (GetPolicyConfigResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["policies"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/policy-configs/{name}"
+      get : "/v1/policy-configs/{name}"
     };
   }
 
@@ -989,7 +983,6 @@ message WorkspacePolicy {
 message GetWorkspaceRequest{
   string cluster_name = 1;
   string workspace_name = 2;
-  string cluster_namespace = 3;
 }
 
 message GetWorkspaceResponse{
@@ -1044,7 +1037,6 @@ message GetExternalSecretRequest{
   string cluster_name = 1;
   string namespace = 2;
   string external_secret_name = 3;
-  string cluster_namespace = 4;
 }
 
 message GetExternalSecretResponse{
@@ -1107,7 +1099,6 @@ message ListPolicyConfigsResponse{
 message GetPolicyConfigRequest{
   string cluster_name = 1;
   string name = 2;
-  string cluster_namespace = 3;
 }
 
 message GetPolicyConfigResponse{
