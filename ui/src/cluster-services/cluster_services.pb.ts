@@ -630,7 +630,6 @@ export type WorkspacePolicy = {
 export type GetWorkspaceRequest = {
   clusterName?: string
   workspaceName?: string
-  clusterNamespace?: string
 }
 
 export type GetWorkspaceResponse = {
@@ -686,7 +685,6 @@ export type GetExternalSecretRequest = {
   clusterName?: string
   namespace?: string
   externalSecretName?: string
-  clusterNamespace?: string
 }
 
 export type GetExternalSecretResponse = {
@@ -750,7 +748,6 @@ export type ListPolicyConfigsResponse = {
 export type GetPolicyConfigRequest = {
   clusterName?: string
   name?: string
-  clusterNamespace?: string
 }
 
 export type GetPolicyConfigResponse = {
@@ -916,25 +913,25 @@ export class ClustersService {
     return fm.fetchReq<ListWorkspacesRequest, ListWorkspacesResponse>(`/v1/workspaces?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetWorkspace(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceResponse>(`/v1/workspaces/${req["workspaceName"]}?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspaceRoles(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRolesResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/workspaces/${req["workspaceName"]}/roles?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRolesResponse>(`/v1/workspaces/${req["workspaceName"]}/roles?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspaceRoleBindings(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceRoleBindingsResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/workspaces/${req["workspaceName"]}/rolebindings?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceRoleBindingsResponse>(`/v1/workspaces/${req["workspaceName"]}/rolebindings?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspaceServiceAccounts(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspaceServiceAccountsResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/workspaces/${req["workspaceName"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspaceServiceAccountsResponse>(`/v1/workspaces/${req["workspaceName"]}/serviceaccounts?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
   static GetWorkspacePolicies(req: GetWorkspaceRequest, initReq?: fm.InitReq): Promise<GetWorkspacePoliciesResponse> {
-    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "workspaceName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetWorkspaceRequest, GetWorkspacePoliciesResponse>(`/v1/workspaces/${req["workspaceName"]}/policies?${fm.renderURLSearchParams(req, ["workspaceName"])}`, {...initReq, method: "GET"})
   }
   static ListExternalSecrets(req: ListExternalSecretsRequest, initReq?: fm.InitReq): Promise<ListExternalSecretsResponse> {
     return fm.fetchReq<ListExternalSecretsRequest, ListExternalSecretsResponse>(`/v1/external-secrets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetExternalSecret(req: GetExternalSecretRequest, initReq?: fm.InitReq): Promise<GetExternalSecretResponse> {
-    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "namespace", "externalSecretName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetExternalSecretRequest, GetExternalSecretResponse>(`/v1/namespaces/${req["namespace"]}/external-secrets/${req["externalSecretName"]}?${fm.renderURLSearchParams(req, ["namespace", "externalSecretName"])}`, {...initReq, method: "GET"})
   }
   static ListExternalSecretStores(req: ListExternalSecretStoresRequest, initReq?: fm.InitReq): Promise<ListExternalSecretStoresResponse> {
     return fm.fetchReq<ListExternalSecretStoresRequest, ListExternalSecretStoresResponse>(`/v1/external-secrets-stores?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -952,6 +949,6 @@ export class ClustersService {
     return fm.fetchReq<ListPolicyConfigsRequest, ListPolicyConfigsResponse>(`/v1/policy-configs?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
-    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "name"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
   }
 }
