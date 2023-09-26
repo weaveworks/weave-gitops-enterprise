@@ -89,7 +89,7 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 }
 
 // ReconcileFlux reconcile flux default source and kustomization
-// Reconcilation is important to apply the effect of adding resources to the git repository
+// Reconciliation is important to apply the effect of adding resources to the git repository
 func ReconcileFlux() error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
