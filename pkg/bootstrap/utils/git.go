@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -26,7 +25,8 @@ const (
 	fluxGitEmail    = "bootstrap@weave.works"
 )
 
-func getGitRepository(client k8s_client.Client, repoName string, namespace string) (*sourcev1.GitRepository, error) {
+// getGitRepositoryObject get the default source git repository object to be used in cloning
+func getGitRepositoryObject(client k8s_client.Client, repoName string, namespace string) (*sourcev1.GitRepository, error) {
 	gitRepo := &sourcev1.GitRepository{}
 
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
@@ -39,36 +39,18 @@ func getGitRepository(client k8s_client.Client, repoName string, namespace strin
 	return gitRepo, nil
 }
 
-// GetRepoUrl get the default repo url for flux installation (flux-system) GitRepository.
-func GetRepoUrl(client k8s_client.Client, repoName string, namespace string) (string, error) {
-	gitRepo, err := getGitRepository(client, repoName, namespace)
-	if err != nil {
-		return "", err
-	}
-
-	// Parse the URL
-	repoUrlParsed := gitRepo.Spec.URL
-	if strings.Contains(repoUrlParsed, "ssh://") {
-		repoUrlParsed = strings.TrimPrefix(repoUrlParsed, "ssh://")
-		repoUrlParsed = strings.Replace(repoUrlParsed, "/", ":", 1)
-	}
-
-	return repoUrlParsed, nil
+// getRepoUrl get the default repo url for flux installation (flux-system) GitRepository.
+func getRepoUrl(gitRepo *sourcev1.GitRepository) string {
+	return gitRepo.Spec.URL
 }
 
-// GetRepoBranch get the branch for flux installation (flux-system) GitRepository.
-func GetRepoBranch(client k8s_client.Client, repoName string, namespace string) (string, error) {
-	gitRepo, err := getGitRepository(client, repoName, namespace)
-	if err != nil {
-		return "", err
-	}
-
-	// Extract the branch
-	return gitRepo.Spec.Reference.Branch, nil
+// getRepoBranch get the branch for flux installation (flux-system) GitRepository.
+func getRepoBranch(gitRepo *sourcev1.GitRepository) string {
+	return gitRepo.Spec.Reference.Branch
 }
 
-// GetRepoPath get the path for flux installation (flux-system) Kustomization.
-func GetRepoPath(client k8s_client.Client, repoName string, namespace string) (string, error) {
+// getRepoPath get the path for flux installation (flux-system) Kustomization.
+func getRepoPath(client k8s_client.Client, repoName string, namespace string) (string, error) {
 	kustomization := &kustomizev1.Kustomization{}
 
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
@@ -87,29 +69,31 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string) (str
 		return "", err
 	}
 
-	var runner runner.CLIRunner
-
-	repoUrlParsed, err := GetRepoUrl(client, repoName, namespace)
+	gitRepo, err := getGitRepositoryObject(client, repoName, namespace)
 	if err != nil {
 		return "", err
 	}
 
-	repoBranchParsed, err := GetRepoBranch(client, repoName, namespace)
+	repoUrl := getRepoUrl(gitRepo)
+	repoBranch := getRepoBranch(gitRepo)
+
+	repoPath, err := getRepoPath(client, repoName, namespace)
 	if err != nil {
 		return "", err
 	}
 
-	repoPathParsed, err := GetRepoPath(client, repoName, namespace)
+	_, err = git.PlainClone(workingDir, false, &git.CloneOptions{
+		URL:           repoUrl,
+		ReferenceName: plumbing.NewBranchReferenceName(repoBranch),
+		SingleBranch:  true,
+		Depth:         1,
+		Progress:      nil,
+	})
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to clone repository %s: %w", repoName, err)
 	}
 
-	out, err := runner.Run("git", "clone", repoUrlParsed, workingDir, "--depth", "1", "-b", repoBranchParsed)
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", string(out), err)
-	}
-
-	return repoPathParsed, nil
+	return repoPath, nil
 }
 
 // CreateFileToRepo create a file and add to the repo.

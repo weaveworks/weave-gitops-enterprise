@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 	k8syaml "sigs.k8s.io/yaml"
 )
 
@@ -88,8 +90,9 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 	return string(repoBytes), nil
 }
 
-// ReconcileFlux reconcile flux default source and kustomization and a selected helmrelease.
-func ReconcileFlux(helmReleaseName ...string) error {
+// ReconcileFlux reconcile flux default source and kustomization
+// Reconciliation is important to apply the effect of adding resources to the git repository
+func ReconcileFlux() error {
 	var runner runner.CLIRunner
 	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
 	if err != nil {
@@ -101,11 +104,15 @@ func ReconcileFlux(helmReleaseName ...string) error {
 		return fmt.Errorf("%s: %w", string(out), err)
 	}
 
-	if len(helmReleaseName) > 0 {
-		out, err = runner.Run("flux", "reconcile", "helmrelease", helmReleaseName[0])
-		if err != nil {
-			return fmt.Errorf("%s: %w", string(out), err)
-		}
+	return nil
+}
+
+// ReconcileHelmRelease reconcile a particular helmrelease
+func ReconcileHelmRelease(hrName string) error {
+	var runner runner.CLIRunner
+	out, err := runner.Run("flux", "reconcile", "helmrelease", hrName)
+	if err != nil {
+		return fmt.Errorf("%s: %w", string(out), err)
 	}
 
 	return nil
@@ -147,4 +154,17 @@ func GetCurrentDominForHelmRelease(name string, namespace string) (string, error
 	}
 
 	return string(out[1 : len(out)-1]), nil
+}
+
+// getRepoPath get the path for flux installation (flux-system) Kustomization.
+func GetHelmRelease(client k8s_client.Client, releaseName string, namespace string) (string, error) {
+	helmrelease := &helmv2.HelmRelease{}
+	if err := client.Get(context.Background(), k8s_client.ObjectKey{
+		Namespace: namespace,
+		Name:      releaseName,
+	}, helmrelease); err != nil {
+		return "", err
+	}
+
+	return helmrelease.Spec.Chart.Spec.Version, nil
 }
