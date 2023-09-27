@@ -577,22 +577,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               formError={formError}
             />
           ) : null}
-          {previewLoading ? (
-            <LoadingPage className="preview-loading" />
-          ) : (
-            <Flex end className="preview-cta">
-              <Button type="submit" onClick={() => setSubmitType('PR Preview')}>
-                PREVIEW PR
-              </Button>
-            </Flex>
-          )}
-          {openPreview && prPreview ? (
-            <Preview
-              openPreview={openPreview}
-              setOpenPreview={setOpenPreview}
-              prPreview={prPreview}
-            />
-          ) : null}
           {isCostEstimationEnabled ? (
             <CostEstimation
               handleCostEstimation={handleCostEstimation}
@@ -616,10 +600,10 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               )
             }
           />
-          {loading ? (
-            <LoadingPage className="create-loading" />
+          {loading || previewLoading ? (
+            <LoadingPage className="gitops-loading" />
           ) : (
-            <Flex end className="create-cta">
+            <Flex end className="gitops-cta">
               <Button
                 type="submit"
                 onClick={() => setSubmitType('Create resource')}
@@ -627,6 +611,16 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               >
                 CREATE PULL REQUEST
               </Button>
+              <Button type="submit" onClick={() => setSubmitType('PR Preview')}>
+                PREVIEW PR
+              </Button>
+              {openPreview && prPreview ? (
+                <Preview
+                  openPreview={openPreview}
+                  setOpenPreview={setOpenPreview}
+                  prPreview={prPreview}
+                />
+              ) : null}
             </Flex>
           )}
         </FormWrapper>

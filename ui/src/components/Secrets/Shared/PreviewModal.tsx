@@ -82,11 +82,9 @@ export const PreviewModal = ({
       {previewLoading ? (
         <LoadingPage className="preview-loading" />
       ) : (
-        <Flex end className="preview-cta">
-          <Button onClick={() => handlePRPreview()} disabled={previewLoading}>
-            PREVIEW PR
-          </Button>
-        </Flex>
+        <Button onClick={() => handlePRPreview()} disabled={previewLoading}>
+          PREVIEW PR
+        </Button>
       )}
       {!previewLoading && openPreview && prPreview ? (
         <Preview
