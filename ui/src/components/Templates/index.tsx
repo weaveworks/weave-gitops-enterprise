@@ -78,7 +78,25 @@ const TemplatesDashboard: FC<{
     >
       <NotificationsWrapper>
         {useQueryServiceBackend ? (
-          <Explorer category="template" enableBatchSync />
+          <Explorer
+            category="template"
+            enableBatchSync
+            extraColumns={[
+              {
+                label: '',
+                value: (t: Template) => (
+                  <Button
+                    id="create-resource"
+                    startIcon={<Icon type={IconType.AddIcon} size="base" />}
+                    onClick={event => handleAddCluster(event, t)}
+                    disabled={Boolean(t.error)}
+                  >
+                    USE THIS TEMPLATE
+                  </Button>
+                ),
+              },
+            ]}
+          />
         ) : (
           <DataTable
             key={templates?.length}
