@@ -23,7 +23,7 @@ import {
 
 type Props = {
   className?: string;
-  category?: 'automation' | 'source' | 'gitopsset';
+  category?: 'automation' | 'source' | 'gitopsset' | 'template';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
   extraColumns?: FieldWithIndex[];
@@ -118,11 +118,12 @@ const categoryKinds = {
     'OCIRepository',
   ],
   gitopsset: ['GitOpsSet'],
+  template: ['Template'],
 };
 
 function filterFacetsForCategory(
   facets?: Facet[],
-  category?: 'automation' | 'source' | 'gitopsset',
+  category?: 'automation' | 'source' | 'gitopsset' | 'template',
 ): Facet[] {
   if (!category) {
     return _.sortBy(facets, 'field') as Facet[];
