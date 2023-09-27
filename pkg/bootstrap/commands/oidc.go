@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	oidcInstallMsg = "Do you want to setup OIDC to access Weave GitOps Dashboards"
-	//TODO: review the URL after updating the docs.
+	oidcInstallMsg    = "Do you want to setup OIDC to access Weave GitOps Dashboards"
 	oidcConfigInfoMsg = "Setting up OIDC require configurations provided by your OIDC provider. To learn more about these OIDC configurations, checkout https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
 
 	oidcDiscoverUrlMsg    = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
@@ -38,62 +37,12 @@ const (
 	oidcSecretName = "oidc-auth"
 )
 
-// getOIDCSecrets ask the user for the OIDC configuraions.
-func getOIDCSecrets(userDomain string) (domain.OIDCConfig, error) {
-	configs := domain.OIDCConfig{}
-
-	var oidcDiscoveryURL string
-	var oidcIssuerURL string
-	var err error
-
-	for {
-		// Ask for discovery URL from the user
-		oidcDiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
-		if err != nil {
-			return configs, err
-		}
-
-		utils.Info(discoveryUrlVerifyMsg)
-
-		// Try to get the issuer
-		oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
-		if err != nil {
-			utils.Warning("An error occurred: %s. Please enter the discovery URL again.", err.Error())
-			continue // Go to the next iteration to re-ask for the URL
-		}
-
-		// If we reach this point, it means that the URL is valid. Break out of the loop.
-		break
-	}
-
-	oidcClientID, err := utils.GetStringInput(oidcClientIDMsg, "")
-	if err != nil {
-		return configs, err
-	}
-
-	oidcClientSecret, err := utils.GetPasswordInput(oidcClientSecretMsg)
-	if err != nil {
-		return configs, err
-	}
-
-	oidcConfig := domain.OIDCConfig{
-		IssuerURL:    oidcIssuerURL,
-		ClientID:     oidcClientID,
-		ClientSecret: oidcClientSecret,
-	}
-
-	if strings.Contains(userDomain, domainTypelocalhost) {
-		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
-	} else {
-		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", userDomain)
-	}
-
-	return oidcConfig, nil
-}
-
-// CreateOIDCConfig creates OIDC config for the cluster to be used for authentication
-func CreateOIDCConfig(client k8s_client.Client, userDomain string, version string, skipPrompt bool) error {
-	if !skipPrompt {
+/*
+CreateOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
+If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
+*/
+func CreateOIDCConfig(client k8s_client.Client, params domain.OIDCConfigParams) error {
+	if !params.SkipPrompt {
 		oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
 		if oidcConfigPrompt != "y" {
 			return nil
@@ -109,7 +58,7 @@ func CreateOIDCConfig(client k8s_client.Client, userDomain string, version strin
 		return err
 	}
 
-	oidcConfig, err := getOIDCSecrets(userDomain)
+	oidcConfig, err := getOIDCSecrets(params)
 	if err != nil {
 		return err
 	}
@@ -135,15 +84,10 @@ func CreateOIDCConfig(client k8s_client.Client, userDomain string, version strin
 
 	utils.Info(oidcConfirmationMsg)
 
-	// Ask the user if he wants to revert the admin user
-	if err := checkAdminPasswordRevert(client); err != nil {
-		return err
-	}
-
 	return nil
 }
 
-func checkAdminPasswordRevert(client k8s_client.Client) error {
+func CheckAdminPasswordRevert(client k8s_client.Client) error {
 	adminUserRevert := utils.GetConfirmInput(adminUserRevertMsg)
 
 	if adminUserRevert != "y" {
@@ -168,6 +112,83 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 	}
 
 	return values
+}
+
+// getOIDCSecrets gets the OIDC config from the user if not provided
+func getOIDCSecrets(inputs domain.OIDCConfigParams) (domain.OIDCConfig, error) {
+	configs := domain.OIDCConfig{}
+
+	var oidcDiscoveryURL string
+	var oidcIssuerURL string
+	var err error
+
+	// If the user didn't provide a discovery URL, ask for it
+	if inputs.DiscoveryURL == "" {
+		// Keep asking for the discovery URL until we get a valid one
+		for {
+			// Ask for discovery URL from the user
+			oidcDiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
+			if err != nil {
+				return configs, err
+			}
+
+			utils.Info(discoveryUrlVerifyMsg)
+
+			// Try to get the issuer
+			oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
+			if err != nil {
+				utils.Warning("An error occurred: %s. Please enter the discovery URL again.", err.Error())
+				continue // Go to the next iteration to re-ask for the URL
+			}
+
+			// If we reach this point, it means that the URL is valid. Break out of the loop.
+			break
+		}
+	} else {
+		oidcDiscoveryURL = inputs.DiscoveryURL
+		oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
+		// If the discovery URL is invalid, return the error
+		if err != nil {
+			return configs, err
+		}
+	}
+
+	var oidcClientID string
+	var oidcClientSecret string
+
+	// If the user didn't provide a client ID or secret, ask for them
+	if inputs.ClientID == "" {
+		oidcClientID, err = utils.GetStringInput(oidcClientIDMsg, "")
+		if err != nil {
+			return configs, err
+		}
+	} else {
+		oidcClientID = inputs.ClientID
+	}
+
+	// If the user didn't provide a client ID or secret, ask for them
+	if inputs.ClientSecret == "" {
+		oidcClientSecret, err = utils.GetPasswordInput(oidcClientSecretMsg)
+		if err != nil {
+			return configs, err
+		}
+	} else {
+		oidcClientSecret = inputs.ClientSecret
+	}
+
+	oidcConfig := domain.OIDCConfig{
+		IssuerURL:    oidcIssuerURL,
+		ClientID:     oidcClientID,
+		ClientSecret: oidcClientSecret,
+	}
+
+	if strings.Contains(inputs.UserDomain, domainTypelocalhost) {
+		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
+	} else {
+		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", inputs.UserDomain)
+	}
+
+	return oidcConfig, nil
 }
 
 func getIssuer(oidcDiscoveryURL string) (string, error) {

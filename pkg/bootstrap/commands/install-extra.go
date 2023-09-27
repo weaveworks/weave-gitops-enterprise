@@ -18,7 +18,7 @@ func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 		values.Config.OIDC = controllerValues
 	}
 
-	version, err := utils.GetCurrentVersionForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
+	version, err := utils.GetHelmReleaseProperty(cl, WGEHelmReleaseName, WGEDefaultNamespace, "version")
 	if err != nil {
 		return err
 	}
@@ -44,7 +44,7 @@ func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 		return err
 	}
 
-	if err := utils.ReconcileFlux(WGEHelmReleaseName); err != nil {
+	if err := utils.ReconcileFlux(); err != nil {
 		return err
 	}
 

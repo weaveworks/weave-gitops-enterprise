@@ -77,3 +77,12 @@ type OIDCConfig struct {
 const (
 	OIDCValuesName = "oidc"
 )
+
+type OIDCConfigParams struct {
+	UserDomain   string
+	WGEVersion   string
+	SkipPrompt   bool
+	DiscoveryURL string
+	ClientID     string
+	ClientSecret string
+}

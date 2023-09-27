@@ -30,7 +30,7 @@ var (
 
 // CheckEntitlementSecret checks for valid entitlement secret.
 func CheckEntitlementSecret(client k8s_client.Client) error {
-	installedVersion, err := utils.GetHelmRelease(client, wgeHelmReleaseName, WGEDefaultNamespace)
+	installedVersion, err := utils.GetHelmReleaseProperty(client, WGEHelmReleaseName, WGEDefaultNamespace, "version")
 	if err == nil {
 		utils.Info("WGE version: %s is already installed on your cluster!", installedVersion)
 		os.Exit(0)

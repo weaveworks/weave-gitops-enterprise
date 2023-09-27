@@ -134,30 +134,7 @@ func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.Value
 	return values, nil
 }
 
-// GetCurrentVersionForHelmRelease gets the current version of helmrelease chart from helmrelease
-func GetCurrentVersionForHelmRelease(name string, namespace string) (string, error) {
-	var runner runner.CLIRunner
-	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.chart.spec.version}\"")
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", string(out), err)
-	}
-
-	return string(out[1 : len(out)-1]), nil
-}
-
-// GetCurrentDominForHelmRelease gets the current domain of helmrelease chart from helmrelease
-func GetCurrentDominForHelmRelease(name string, namespace string) (string, error) {
-	var runner runner.CLIRunner
-	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values.ingress.hosts[0].host}\"")
-	if err != nil {
-		return "", fmt.Errorf("%s: %w", string(out), err)
-	}
-
-	return string(out[1 : len(out)-1]), nil
-}
-
-// getRepoPath get the path for flux installation (flux-system) Kustomization.
-func GetHelmRelease(client k8s_client.Client, releaseName string, namespace string) (string, error) {
+func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namespace string, property string) (string, error) {
 	helmrelease := &helmv2.HelmRelease{}
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
 		Namespace: namespace,
@@ -166,5 +143,16 @@ func GetHelmRelease(client k8s_client.Client, releaseName string, namespace stri
 		return "", err
 	}
 
-	return helmrelease.Spec.Chart.Spec.Version, nil
+	switch property {
+	case "version":
+		return helmrelease.Spec.Chart.Spec.Version, nil
+	case "domain":
+		values := map[string]interface{}{}
+		if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
+			return "", err
+		}
+		return values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string), nil
+	default:
+		return "", fmt.Errorf("Unsupported property: %s", property)
+	}
 }

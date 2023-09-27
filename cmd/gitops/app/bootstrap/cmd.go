@@ -5,6 +5,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
@@ -49,44 +50,8 @@ func Command(opts *config.Options) *cobra.Command {
 
 	cmd.Flags().BoolVarP(&bootstrapArgs.silent, "silent", "s", false, "install with the default values without user confirmation")
 
-	//get kubernetes client
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	//get userDomain from helm release
-	userDomain, err := utils.GetCurrentDominForHelmRelease(commands.WGEHelmReleaseName, commands.WGEDefaultNamespace)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	//get current version of WGE
-	wgeVersion, err := utils.GetCurrentVersionForHelmRelease(commands.WGEHelmReleaseName, commands.WGEDefaultNamespace)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var authType string
-
-	// Add the auth sub-command to the bootstrap command
-	authCmd := &cobra.Command{
-		Use:   "auth",
-		Short: "Add OIDC configuration to your cluster",
-		RunE: func(cmd *cobra.Command, args []string) error {
-			if authType == "oidc" {
-				return commands.CreateOIDCConfig(kubernetesClient, userDomain, wgeVersion, true)
-			} else {
-				// Handle other types of authentication or return an error
-				return fmt.Errorf("Unsupported authentication type: %s", authType)
-			}
-		},
-	}
-
-	// Flags for the auth sub-command
-	authCmd.Flags().StringVar(&authType, "type", "oidc", "Type of authentication")
-
-	cmd.AddCommand(authCmd)
+	// Add the auth sub-command to bootstrap command to add OIDC authentication to the cluster
+	cmd.AddCommand(createAuthCommand(opts))
 
 	return cmd
 }
@@ -131,7 +96,19 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 		return err
 	}
 
-	if err = commands.CreateOIDCConfig(kubernetesClient, userDomain, wgeVersion, false); err != nil {
+	// initialize config Struct with the userDomain and wgeVersion
+	var params domain.OIDCConfigParams = domain.OIDCConfigParams{
+		UserDomain: userDomain,
+		WGEVersion: wgeVersion,
+		SkipPrompt: false,
+	}
+
+	if err = commands.CreateOIDCConfig(kubernetesClient, params); err != nil {
+		return err
+	}
+
+	// Ask the user if he wants to revert the admin user
+	if err := commands.CheckAdminPasswordRevert(kubernetesClient); err != nil {
 		return err
 	}
 
