@@ -110,8 +110,5 @@ and released the change, we could monitor the impact in the dashboard:
 
 Where we could see how the memory used and the heap flatten as a result of the change. 
 
-These steps could require iteration until the cause is found and addressed. 
-
-
-
+These steps could require iteration until the cause is found and addressed.
 
