@@ -118,6 +118,33 @@ From wider cloud-native ecosystem, Weave GitOps Enterprise integrates:
 
 More info about each of them could be found within their domain. See [domains view](#domains).
 
+### Scalability, High Availability and Disaster Recovery 
+
+#### Weave Gitops Enterprise Management Console
+
+In terms of scalability Weave Gitops Enterprise Management Console presents the following features:
+
+- It is built in golang which makes each api server instance highly-scalable due to its concurrency model. 
+- In terms of scalability models, Weave GitOps Enterprise management app could scale vertically to simplify operations, or 
+it could also do it horizontally as:
+  - User sessions are self-contained in cookies that comes in each user request.
+  - We don't hold application state, but we serve it from Kubernetes. 
+  - Our data layer is cache layer with read-only capabilities that lives alongside each of the server instances.
+- High Availability could be achieved by having multiple api server instanced behind a load balancer with sticky sessions enabled.
+- Disaster Recovery for the app, as the state is hold in kubernetes, follows the same approach as any other stateless application and
+  to be determined by the DR strategy of the team running the platform running Weave Gitops Enterprise.
+
+#### Kubernetes Controllers
+
+About the kubernetes controllers the following statements are true: 
+
+- They are built in golang which makes them instance highly-scalable due to its concurrency model.
+- Given the reconcile resources that usually require write operation or mutating state, they are generally vertically scalable except Flux that supports [horizontal scaling](https://fluxcd.io/flux/installation/configuration/sharding/) 
+- These controllers are built in Go following Kubernetes industry-standard approach based on [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
+  and [controller runtime,](https://github.com/kubernetes-sigs/controller-runtime) so they could achieve HA via multiple instances with enabled [leader-election](https://pkg.go.dev/github.com/kubernetes-sigs/controller-runtime/pkg/leaderelection). 
+- Disaster Recovery for controllers, as the state is hold in kubernetes, follows the same approach as any other stateless application and 
+to be determined by the DR strategy of the team running the platform running Weave Gitops Enterprise.
+
 ## Weave GitOps Enterprise
 
 ### Views
