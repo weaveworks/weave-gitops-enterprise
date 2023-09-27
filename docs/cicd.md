@@ -1,9 +1,11 @@
 # Weave Gitops Enterprise CI/CD
 
-This document aims to characterise the cicd pipeline for change until it reaches production. 
+This document aims to characterise the cicd pipeline for change until it reaches production.
 In our context, given that we are not SaaS company, our definition of production environment
 is until the change gets released as part of a [Weave Gitops release](https://github.com/weaveworks/weave-gitops-enterprise/releases)
-As expected, Flux for deployment and Github Actions as CI. 
+As expected, Flux for deployment and Github Actions as CI.
+
+## PR Journey 
 
 The journey of a Weaveworks engineer development is the following:
 
@@ -17,9 +19,19 @@ The journey of a Weaveworks engineer development is the following:
 4. When approved and merged, `deploy` [github workflow](../.github/workflows/deploy) is executed that:
    - run build and test steps for the integrated code
    - run a set of e2e or smoker tests to ensure the app is health
-5. Once passes CI for main and artifacts are built and pushed. The release candidate is then 
+5. Once passes CI for main and artifacts are built and pushed. The feature is then 
 deployed to [Staging](https://gitops.internal-dev.wego-gke.weave.works) environment by Flux. This environment helps us to:
     - Functional testing of the feature in a released environment
     - Monitor performance of the capability
 6. The feature will be released according to the week-release cadence that we have for Weave Gitops.
 
+## Environments
+
+In the context of environments like dev, test, prod, our picture is like:
+
+- Dev: happens within a developer's machine where a range of unit and integration test supports the process, as well as, [tilt](https://tilt.dev/) 
+that we use to recreate the application locally. See [Tiltfile](../Tiltfile).
+- Test/Staging: once code gets into main branch, it gets deployed to [Staging](https://gitops.internal-dev.wego-gke.weave.works) environment where a developer 
+is able to monitor its behaviour in a long-lived environment. 
+- Production: we don't have a production environment as compared to a SaaS company, as our product gets deployed by customers in their environments. However, we have internal 
+customers (ex. Sales) that provide us early-feedback for any new Weave Gitops Enterprise release.  
