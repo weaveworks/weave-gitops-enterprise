@@ -35,6 +35,8 @@ extraEnvVars:
     value: "bitbucket.yiannis.net"
   - name: WEAVE_GITOPS_ENABLE_PROFILING
     value: "true"
+  - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
+    value: "true"
 
 extraEnvVarsSecret: ""
 

@@ -36,11 +36,13 @@ export const getInventory = (gs: GitOpsSet | undefined) => {
 };
 
 const GitOpsSets: FC = () => {
-  const { isLoading, data } = useListGitOpsSets();
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
+  const { isLoading, data } = useListGitOpsSets({
+    enabled: !useQueryServiceBackend,
+  });
 
   const gitopssets = data?.gitopssets;
 

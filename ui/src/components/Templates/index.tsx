@@ -34,11 +34,13 @@ const DocsLink = styled(Link)`
 const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { templates, isLoading } = useTemplates();
   const { isFlagEnabled } = useFeatureFlags();
   const useQueryServiceBackend = isFlagEnabled(
     'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
   );
+  const { templates, isLoading } = useTemplates({
+    enabled: !useQueryServiceBackend,
+  });
   const { setNotifications } = useNotifications();
   const history = useHistory();
 
