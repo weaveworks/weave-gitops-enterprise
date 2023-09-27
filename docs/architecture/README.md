@@ -177,6 +177,23 @@ WGE sits on top or integrate a set of external systems for gitops delivery and r
 - [External Secrets](https://external-secrets.io/) is the system that provides the capability to integrate external secret stores within WGE.
 - [Terraform Controller](https://docs.gitops.weave.works/docs/terraform/overview/) is the system that provides capabilities to manage terraform infrastructure within WGE.
 
+The following diagram represents the system as a whole. The following considerations might be useful to be fully 
+understand the diagram:
+- Weave Gitops Cluster is represented once for simplicity but in reality is presented as:   
+  - Weave Gitops Management Cluster: single instance that holds the management console and control plane controllers.
+  - Weave Gitops Leaf Cluster: multiple instances that run business applications and managed by Weave Gitops Management Cluster.
+  
+- In terms of **data-flows**, the line starts by the source entity starting the connection and commonly starting a request. For example, 
+Weave Gitops Enterprise opens connections to a Git Provider api for example to request creating a Pull Request.
+- In terms of **networks**, we could say that:
+    - Weave Gitops Cluster:
+      - All components from a cluster lives in the same kubernetes cluster so under the same kubernetes control plane that would be commonly
+          deployed in the same network (for example in a VPC). 
+      - Communication between Weave Gitops Management and Weave Gitops Leaf clusters happens via Kubernetes API so needs to be accessible.
+      - Platform Engineers or Developers consumes the app via a web browser that would communicate with the api server via either public or private networks depending on the customer deployment.
+    - External Systems outside Management or Leaf could communicate via public or private network depending on the customer needs and requirements. 
+    For example, it could communicate with GitHub via internet if using the hosted version, or via internal network if using GitHub Enterprise self-hosted.
+
 ```mermaid
 C4Context
     title Weave GitOps Enterprise Context
@@ -205,7 +222,7 @@ C4Context
     UpdateRelStyle(WeaveGitopsEnterprise, Idp, $offsetX="-50", $offsetY="-20")
 
 
-    Boundary(Runtime, "Weave Gitops Runtime") {
+    Boundary(Runtime, "Weave Gitops Cluster") {
         Boundary(Kubernetes, "Kubernetes") {
             System_Ext(KubernetesCluster, "Kubernetes Cluster", "run customer applications")
         }
@@ -253,6 +270,8 @@ C4Context
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 ```
+
+ 
 
 ### Tiers
 
