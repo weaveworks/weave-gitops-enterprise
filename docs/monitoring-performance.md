@@ -11,11 +11,21 @@ This document tries to provide an overview of performance monitoring for Weave G
 Performance monitoring for Weave Gitops Enterprise happens mostly driven by metrics. Both the management console and controllers
 are instrumented to generate Prometheus metrics. In addition, given that our applications are deployed to Kubernetes, 
 Kubernetes metrics for workloads are also used. In summary, we have the main three monitoring layers:
- - Go runtime metrics via [prometheus client_golang](https://github.com/prometheus/client_golang/blob/1bae6c1e6314f6a20be183a7277059630780232a/prometheus/collectors/go_collector_latest.go)
- - App server metrics via [go-http-metrics](https://github.com/slok/go-http-metrics)
- - Component server metrics for example [Explorer](https://github.com/weaveworks/weave-gitops-enterprise/blob/b643619464104e59a17e77a697cd7c290f96889a/pkg/query/collector/metrics/recorder.go)
- - Kubernetes Workload metrics
 
+ **Go runtime metrics via [prometheus client_golang](https://github.com/prometheus/client_golang/blob/1bae6c1e6314f6a20be183a7277059630780232a/prometheus/collectors/go_collector_latest.go)**
+
+![overview-golang-runtime.png](monitoring%2Fimgs%2Foverview-golang-runtime.png)
+
+ **API and Control Plane metrics via [go-http-metrics](https://github.com/slok/go-http-metrics) and [kubebuilder metrics](https://book.kubebuilder.io/reference/metrics-reference)**
+
+![overview-wge.png](monitoring%2Fimgs%2Foverview-wge.png)
+
+ **Component server metrics for example [Explorer](https://github.com/weaveworks/weave-gitops-enterprise/blob/b643619464104e59a17e77a697cd7c290f96889a/pkg/query/collector/metrics/recorder.go)**
+
+![explorer emtrics](monitoring%2Fimgs%2Fexplorer-query-metrics-87ba3ddbfb12169b31b27e4f9ea8c722.png)
+
+ - Kubernetes Workload metrics
+![overview-kubernetes.png](monitoring%2Fimgs%2Foverview-kubernetes.png)
 The monitoring stack is deployed as [Flux Kustomization](https://github.com/weaveworks/weave-gitops-quickstart/tree/add-monitoring) that includes:
 - Prometheus 
 - Grafana
@@ -31,7 +41,7 @@ This is included in:
 
 Apart from metrics, Weave Gitops Enterprise leverages golang profiling capabilities [pprof](https://pkg.go.dev/runtime/pprof) 
 for complementing the understanding provided via metrics. For an example on using metrics and profiling for troubleshooting 
-memory leaks, see [troubleshooting performance](#troubleshooting-performance-issues)
+memory leaks, see [troubleshooting performance](#troubleshooting-performance-issues).
 
 Any environment could by profiled by enabling the configuration [`WEAVE_GITOPS_ENABLE_PROFILING`](https://github.com/weaveworks/weave-gitops-enterprise/blob/b643619464104e59a17e77a697cd7c290f96889a/cmd/clusters-service/app/server.go#L843)
 that exposes an [http endpoint for pprof](https://pkg.go.dev/net/http/pprof) for any of the available profiles. 
@@ -40,12 +50,7 @@ Then it could be used remote or locally used via pprof tool. An example a memory
 
 ![pprof-web-ui.png](monitoring%2Fimgs%2Fpprof-web-ui.png)
 
-
-
-
-
-
-
+Profiling is enabled by default in [dev via Tilt](../tools/dev-values.yaml) 
 
 ## Troubleshooting Performance Issues
 
