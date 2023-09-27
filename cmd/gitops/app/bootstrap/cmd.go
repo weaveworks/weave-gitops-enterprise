@@ -71,29 +71,29 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
 
 	if err := commands.CheckEntitlementSecret(kubernetesClient); err != nil {
-		return err
+		return fmt.Errorf("failed to check entitlement secret. error: %s", err)
 	}
 
 	if err := commands.VerifyFluxInstallation(kubernetesClient); err != nil {
-		return err
+		return fmt.Errorf("failed to get verify flux installation. error: %s", err)
 	}
 
 	wgeVersion, err := commands.SelectWgeVersion(kubernetesClient, bootstrapArgs.silent)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to select WGE version. error: %s", err)
 	}
 
 	if err := commands.AskAdminCredsSecret(kubernetesClient, bootstrapArgs.silent); err != nil {
-		return err
+		return fmt.Errorf("failed to create admin secret. error: %s", err)
 	}
 
 	userDomain, err := commands.InstallWge(kubernetesClient, wgeVersion, bootstrapArgs.silent)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to install WGE. error: %s", err)
 	}
 
 	// initialize config Struct with the userDomain and wgeVersion
@@ -113,7 +113,7 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 	}
 
 	if err = commands.CheckUIDomain(kubernetesClient, userDomain, wgeVersion); err != nil {
-		return err
+		return fmt.Errorf("failed to get WGE dashboard domain. error: %s", err)
 	}
 
 	return nil
