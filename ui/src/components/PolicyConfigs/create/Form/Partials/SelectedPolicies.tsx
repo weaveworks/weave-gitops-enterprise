@@ -15,9 +15,9 @@ import {
   PolicyParam,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { Dispatch, useState } from 'react';
-import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
+import { ErrorIcon } from '../../../../RemoteSVGIcon';
 import {
   ErrorSection,
   PolicyDetailsCardWrapper,
