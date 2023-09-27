@@ -7,6 +7,7 @@ import {
   filterConfig,
   formatURL,
   statusSortHelper,
+  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
@@ -17,7 +18,7 @@ import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Condition, computeMessage } from '../../utils/conditions';
 import { Routes } from '../../utils/nav';
 import { Page } from '../Layout/App';
-
+import Explorer from '../Explorer/Explorer';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
@@ -36,6 +37,10 @@ export const getInventory = (gs: GitOpsSet | undefined) => {
 
 const GitOpsSets: FC = () => {
   const { isLoading, data } = useListGitOpsSets();
+  const { isFlagEnabled } = useFeatureFlags();
+  const useQueryServiceBackend = isFlagEnabled(
+    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  );
 
   const gitopssets = data?.gitopssets;
 
@@ -125,11 +130,15 @@ const GitOpsSets: FC = () => {
       loading={isLoading}
     >
       <NotificationsWrapper errors={data?.errors}>
-        <DataTable
-          fields={fields}
-          rows={data?.gitopssets}
-          filters={initialFilterState}
-        />
+        {useQueryServiceBackend ? (
+          <Explorer category="gitopsset" enableBatchSync />
+        ) : (
+          <DataTable
+            fields={fields}
+            rows={data?.gitopssets}
+            filters={initialFilterState}
+          />
+        )}
       </NotificationsWrapper>
     </Page>
   );

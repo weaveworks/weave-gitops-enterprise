@@ -23,7 +23,7 @@ import {
 
 type Props = {
   className?: string;
-  category?: 'automation' | 'source';
+  category?: 'automation' | 'source' | 'gitopsset';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
   extraColumns?: FieldWithIndex[];
@@ -117,11 +117,12 @@ const categoryKinds = {
     'HelmChart',
     'OCIRepository',
   ],
+  gitopsset: ['GitOpsSet'],
 };
 
 function filterFacetsForCategory(
   facets?: Facet[],
-  category?: 'automation' | 'source',
+  category?: 'automation' | 'source' | 'gitopsset',
 ): Facet[] {
   if (!category) {
     return _.sortBy(facets, 'field') as Facet[];
