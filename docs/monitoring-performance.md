@@ -60,16 +60,12 @@ expect to behave in en efficient way in terms of performance and compute resourc
 This document guides you on an approach that could be useful to determine performance issues. In particular, we are going 
 to focus on memory leaks as an example based on the experience gathered out of [this issue](https://github.com/weaveworks/weave-gitops-enterprise/issues/3189).
 
+### Requirements
 
-
-
-## Requirements
-
-- An instance of Weave Gitops Enterprise with  
-- Enabled [metrics]() 
-- Enabled [profiling](https://go.dev/blog/pprof) pprof 
-- An instance of Prometheus and Grafana https://github.com/weaveworks/weave-gitops-quickstart/tree/add-monitoring/monitoring  
-- These Grafana [dashboards](./dashboards)  
+- An instance of Weave Gitops Enterprise with Monitoring stack deployed.
+- The monitoring stack deployed [Flux Kustomization](https://github.com/weaveworks/weave-gitops-quickstart/tree/add-monitoring) that includes:
+- Enabled [metrics](https://docs.gitops.weave.works/docs/references/helm-reference/) 
+- Enabled [profiling](https://github.com/weaveworks/weave-gitops-enterprise/blob/b643619464104e59a17e77a697cd7c290f96889a/cmd/clusters-service/app/server.go#L843)
 
 ## Detect memory leaks
 
