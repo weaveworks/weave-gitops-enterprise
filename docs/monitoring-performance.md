@@ -90,8 +90,9 @@ At this point you determine how you memory heap looks like following these steps
 ![pprof web ui overview](monitoring/imgs/pprof-web-ui.png)
 
 Use the pprof view that better helps you understand these two questions:
- a) what is the function that is generating objects for the heap that are not freed
- b) what is the call chain that ends up calling the function
+
+ 1. What is the function that is generating objects for the heap that are not freed?
+ 2. What is the call chain that ends up calling the function?
 
 For example, 
 
@@ -103,9 +104,13 @@ where we expected that server connections were cached.
 which indicate that we had an issue around that feature. 
 
 Once we identified the issue with the [cache](https://github.com/weaveworks/weave-gitops/commit/c6cc497d3c09bcadf019236ec2be8cb08b7e7d02)
-and release the change, we could monitor the impact in the dashboard:
+and released the change, we could monitor the impact in the dashboard:
 
 ![metrics-server-connections.png](monitoring/imgs/metrics-server-connections.png)
+
+Where we could see how the memory used and the heap flatten as a result of the change. 
+
+These steps could require iteration until the cause is found and addressed. 
 
 
 
