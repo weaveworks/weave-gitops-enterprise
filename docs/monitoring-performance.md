@@ -20,13 +20,19 @@ Kubernetes metrics for workloads are also used. In summary, we have the main thr
 
 ![overview-wge.png](monitoring/imgs/overview-wge.png)
 
- **Component server metrics for example [Explorer](https://github.com/weaveworks/weave-gitops-enterprise/blob/b643619464104e59a17e77a697cd7c290f96889a/pkg/query/collector/metrics/recorder.go)**
+ **Component server metrics**  
+ 
+An example for [Explorer](https://github.com/weaveworks/weave-gitops-enterprise/blob/b643619464104e59a17e77a697cd7c290f96889a/pkg/query/collector/metrics/recorder.go) could be 
+seen here:
 
 ![explorer emtrics](monitoring/imgs/explorer-query-metrics-87ba3ddbfb12169b31b27e4f9ea8c722.png)
 
- - Kubernetes Workload metrics
+ **Kubernetes Workload metrics**
+
 ![overview-kubernetes.png](monitoring/imgs/overview-kubernetes.png)
+
 The monitoring stack is deployed as [Flux Kustomization](https://github.com/weaveworks/weave-gitops-quickstart/tree/add-monitoring) that includes:
+
 - Prometheus 
 - Grafana
 - Kubernetes Dashboards
@@ -34,6 +40,7 @@ The monitoring stack is deployed as [Flux Kustomization](https://github.com/weav
 - Weave Gitops Grafana dashboards
 
 This is included in:
+
 - Dev environment (via Tilt) so it could be used during development for understanding feature performance.
 - [Staging cluster](https://github.com/weaveworks/weave-gitops-clusters/tree/main/k8s/clusters/internal-dev-gke/monitoring) so it could be used to long-live monitoring a feature or the app. 
 
@@ -72,7 +79,7 @@ to focus on memory leaks as an example based on the experience gathered out of [
 There could be different ways to detect that you might be facing a memory leak. One of them could have an ever-growing 
 memory usage for you container as shown by the following picture:
 
-![memory usage ever growing](imgs/memory-leak-profile.png)
+![memory usage ever growing](monitoring/imgs/memory-leak-profile.png)
 
 At this point you determine how you memory heap looks like following these steps:
 
@@ -80,7 +87,7 @@ At this point you determine how you memory heap looks like following these steps
 2. Start pprof web interface by `go tool pprof -http=:8082 heap`
 3. Navigate to your browser http://localhost:8082/ui/ and the UI will open like the following  
 
-![pprof web ui overview](imgs/pprof-web-ui.png)
+![pprof web ui overview](monitoring/imgs/pprof-web-ui.png)
 
 Use the pprof view that better helps you understand these two questions:
  a) what is the function that is generating objects for the heap that are not freed
