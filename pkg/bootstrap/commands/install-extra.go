@@ -8,7 +8,7 @@ import (
 
 // UpdateHelmReleaseValues add the extra HelmRelease values.
 func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := utils.GetCurrentValuesForHelmRelease(WGEHelmReleaseName, WGEDefaultNamespace)
+	values, err := utils.GetCurrentValuesForHelmRelease(cl, WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -45,6 +45,9 @@ func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 	}
 
 	if err := utils.ReconcileFlux(); err != nil {
+		return err
+	}
+	if err := utils.ReconcileHelmRelease(WGEHelmReleaseName); err != nil {
 		return err
 	}
 

@@ -119,16 +119,18 @@ func ReconcileHelmRelease(hrName string) error {
 }
 
 // GetCurrentValuesForHelmRelease gets the current values from a specific helmrelease.
-func GetCurrentValuesForHelmRelease(name string, namespace string) (domain.ValuesFile, error) {
-	var runner runner.CLIRunner
-	out, err := runner.Run("kubectl", "get", "helmrelease", name, "-n", namespace, "-o", "jsonpath=\"{.spec.values}\"")
-	if err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(out), err)
+func GetCurrentValuesForHelmRelease(client k8s_client.Client, releaseName string, namespace string) (domain.ValuesFile, error) {
+	helmrelease := &helmv2.HelmRelease{}
+	if err := client.Get(context.Background(), k8s_client.ObjectKey{
+		Namespace: namespace,
+		Name:      releaseName,
+	}, helmrelease); err != nil {
+		return domain.ValuesFile{}, err
 	}
 
 	values := domain.ValuesFile{}
-	if err := json.Unmarshal(out[1:len(out)-1], &values); err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(out), err)
+	if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
+		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(helmrelease.Spec.Values.Raw), err)
 	}
 
 	return values, nil

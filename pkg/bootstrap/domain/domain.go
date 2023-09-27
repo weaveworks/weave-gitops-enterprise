@@ -81,7 +81,6 @@ const (
 type OIDCConfigParams struct {
 	UserDomain   string
 	WGEVersion   string
-	SkipPrompt   bool
 	DiscoveryURL string
 	ClientID     string
 	ClientSecret string

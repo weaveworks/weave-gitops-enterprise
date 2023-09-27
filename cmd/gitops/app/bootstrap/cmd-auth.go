@@ -14,28 +14,30 @@ const (
 	cmdAuthName             = "auth"
 	cmdAuthShortDescription = "Add authentication to your cluster"
 	authOIDC                = "oidc"
+
+	helmDomainProperty = "domain"
 )
 
-func createAuthCommand(opts *config.Options) *cobra.Command {
+func createAuthCommand(opts *config.Options) (*cobra.Command, error) {
 
 	var params domain.OIDCConfigParams
 
 	// get kubernetes client
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	// get userDomain from helm release
-	params.UserDomain, err = utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, "domain")
+	params.UserDomain, err = utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, helmDomainProperty)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	// get current version of WGE
-	params.WGEVersion, err = utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, "version")
+	params.WGEVersion, err = utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, commands.HelmVersionProperty)
 	if err != nil {
-		fmt.Println(err)
+		return nil, err
 	}
 
 	var authType string
@@ -45,7 +47,6 @@ func createAuthCommand(opts *config.Options) *cobra.Command {
 		Use:   cmdAuthName,
 		Short: cmdAuthShortDescription,
 		RunE: func(cmd *cobra.Command, args []string) error {
-			params.SkipPrompt = true
 
 			switch authType {
 			case authOIDC:
@@ -61,5 +62,5 @@ func createAuthCommand(opts *config.Options) *cobra.Command {
 	authCmd.Flags().StringVar(&params.ClientID, "client-id", "", "OIDC Client ID (optional)")
 	authCmd.Flags().StringVar(&params.ClientSecret, "client-secret", "", "OIDC Client Secret (optional)")
 
-	return authCmd
+	return authCmd, nil
 }

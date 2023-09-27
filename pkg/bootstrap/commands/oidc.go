@@ -37,18 +37,18 @@ const (
 	oidcSecretName = "oidc-auth"
 )
 
-/*
-CreateOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
-If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
-*/
-func CreateOIDCConfig(client k8s_client.Client, params domain.OIDCConfigParams) error {
-	if !params.SkipPrompt {
-		oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
-		if oidcConfigPrompt != "y" {
-			return nil
-		}
+func CreateOIDCPrompt(client k8s_client.Client, params domain.OIDCConfigParams) error {
+	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
+	if oidcConfigPrompt != "y" {
+		return nil
 	}
+	return CreateOIDCConfig(client, params)
 
+}
+
+// CreateOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
+// If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
+func CreateOIDCConfig(client k8s_client.Client, params domain.OIDCConfigParams) error {
 	utils.Info(oidcConfigInfoMsg)
 
 	if _, err := utils.GetSecret(client, oidcSecretName, WGEDefaultNamespace); err == nil {

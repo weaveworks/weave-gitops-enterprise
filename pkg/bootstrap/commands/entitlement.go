@@ -21,6 +21,7 @@ const (
 
 const (
 	entitlementSecretName = "weave-gitops-enterprise-credentials"
+	HelmVersionProperty   = "version"
 )
 
 var (
@@ -30,7 +31,7 @@ var (
 
 // CheckEntitlementSecret checks for valid entitlement secret.
 func CheckEntitlementSecret(client k8s_client.Client) error {
-	installedVersion, err := utils.GetHelmReleaseProperty(client, WGEHelmReleaseName, WGEDefaultNamespace, "version")
+	installedVersion, err := utils.GetHelmReleaseProperty(client, WGEHelmReleaseName, WGEDefaultNamespace, HelmVersionProperty)
 	if err == nil {
 		utils.Info("WGE version: %s is already installed on your cluster!", installedVersion)
 		os.Exit(0)

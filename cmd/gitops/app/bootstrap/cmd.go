@@ -51,7 +51,12 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().BoolVarP(&bootstrapArgs.silent, "silent", "s", false, "install with the default values without user confirmation")
 
 	// Add the auth sub-command to bootstrap command to add OIDC authentication to the cluster
-	cmd.AddCommand(createAuthCommand(opts))
+	authCmd, err := createAuthCommand(opts)
+	if err != nil {
+		fmt.Printf("failed to create auth command: %v\n", err)
+		return cmd
+	}
+	cmd.AddCommand(authCmd)
 
 	return cmd
 }
@@ -100,16 +105,16 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 	var params domain.OIDCConfigParams = domain.OIDCConfigParams{
 		UserDomain: userDomain,
 		WGEVersion: wgeVersion,
-		SkipPrompt: false,
 	}
+	if !bootstrapArgs.silent {
+		if err = commands.CreateOIDCPrompt(kubernetesClient, params); err != nil {
+			return err
+		}
 
-	if err = commands.CreateOIDCConfig(kubernetesClient, params); err != nil {
-		return err
-	}
-
-	// Ask the user if he wants to revert the admin user
-	if err := commands.CheckAdminPasswordRevert(kubernetesClient); err != nil {
-		return err
+		// Ask the user if he wants to revert the admin user
+		if err := commands.CheckAdminPasswordRevert(kubernetesClient); err != nil {
+			return err
+		}
 	}
 
 	if err = commands.CheckUIDomain(kubernetesClient, userDomain, wgeVersion); err != nil {
