@@ -328,10 +328,6 @@ func (i *indexerIterator) Row() (models.Object, error) {
 	return i.s.GetObjectByID(context.Background(), id)
 }
 
-func (i *indexerIterator) Close() error {
-	return nil
-}
-
 func (i *indexerIterator) All() ([]models.Object, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
@@ -343,10 +339,41 @@ func (i *indexerIterator) All() ([]models.Object, error) {
 	}
 
 	iter, err := i.s.GetObjects(context.Background(), ids, i.opts)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to get objects: %w", err)
 	}
 
 	return iter.All()
+}
+
+func (i *indexerIterator) Page(count int, offset int) ([]models.Object, error) {
+	i.mu.Lock()
+	defer i.mu.Unlock()
+
+	ids := []string{}
+
+	numHits := i.result.Hits.Len()
+	upper := offset + count
+	if upper > numHits {
+		upper = numHits
+	}
+
+	for index := offset; index < upper; index++ {
+		ids = append(ids, i.result.Hits[index].ID)
+	}
+
+	if len(ids) == 0 {
+		return []models.Object{}, nil
+	}
+
+	iter, err := i.s.GetObjects(context.Background(), ids, i.opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get objects: %w", err)
+	}
+
+	return iter.All()
+}
+
+func (i *indexerIterator) Close() error {
+	return nil
 }
