@@ -6,6 +6,8 @@ metadata:
   annotations:
     templates.weave.works/profiles-enabled: "true"
     templates.weave.works/add-common-bases: "true"
+  labels:
+    weave.works/template-type: cluster
 spec:
   description: A simple capv template
   params:
