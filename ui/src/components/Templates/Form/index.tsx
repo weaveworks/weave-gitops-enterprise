@@ -5,7 +5,6 @@ import {
   Flex,
   GitRepository,
   Link,
-  LoadingPage,
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';

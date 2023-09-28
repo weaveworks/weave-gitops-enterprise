@@ -1,4 +1,4 @@
-import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
+import { Button } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import Preview from '../../Templates/Form/Partials/Preview';

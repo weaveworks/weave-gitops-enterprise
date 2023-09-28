@@ -3,7 +3,6 @@ import {
   Flex,
   GitRepository,
   Link,
-  LoadingPage,
   Page,
 } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
