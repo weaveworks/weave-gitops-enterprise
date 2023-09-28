@@ -27,6 +27,7 @@ type Props = {
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
   extraColumns?: FieldWithIndex[];
+  linkToObject?: boolean;
 };
 
 function Explorer({
@@ -35,6 +36,7 @@ function Explorer({
   enableBatchSync,
   manager,
   extraColumns,
+  linkToObject,
 }: Props) {
   const history = useHistory();
   if (!manager) {
@@ -82,6 +84,7 @@ function Explorer({
             enableBatchSync={enableBatchSync}
             sortField={queryState.orderBy}
             extraColumns={extraColumns}
+            linkToObject={linkToObject}
           />
 
           <FilterDrawer

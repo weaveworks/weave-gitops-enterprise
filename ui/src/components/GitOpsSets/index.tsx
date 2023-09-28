@@ -133,7 +133,7 @@ const GitOpsSets: FC = () => {
     >
       <NotificationsWrapper errors={data?.errors}>
         {useQueryServiceBackend ? (
-          <Explorer category="gitopsset" enableBatchSync />
+          <Explorer category="gitopsset" enableBatchSync={false} />
         ) : (
           <DataTable
             fields={fields}

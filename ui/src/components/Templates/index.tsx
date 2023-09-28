@@ -82,8 +82,13 @@ const TemplatesDashboard: FC<{
         {useQueryServiceBackend ? (
           <Explorer
             category="template"
-            enableBatchSync
+            enableBatchSync={false}
             extraColumns={[
+              {
+                label: 'Type',
+                value: 'templateType',
+                sortValue: ({ name }) => name,
+              },
               {
                 label: '',
                 value: (t: Template) => (
@@ -98,6 +103,7 @@ const TemplatesDashboard: FC<{
                 ),
               },
             ]}
+            linkToObject={false}
           />
         ) : (
           <DataTable
