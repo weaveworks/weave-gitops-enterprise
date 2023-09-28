@@ -79,13 +79,13 @@ export const PreviewModal = ({
 
   return (
     <>
-      {previewLoading ? (
-        <LoadingPage className="preview-loading" />
-      ) : (
-        <Button onClick={() => handlePRPreview()} disabled={previewLoading}>
-          PREVIEW PR
-        </Button>
-      )}
+      <Button
+        onClick={() => handlePRPreview()}
+        disabled={previewLoading}
+        loading={previewLoading}
+      >
+        PREVIEW PR
+      </Button>
       {!previewLoading && openPreview && prPreview ? (
         <Preview
           context={secretType === SecretType.ES ? 'secret' : 'sops'}

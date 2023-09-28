@@ -159,9 +159,6 @@ export const FormWrapper = styled.form`
       margin-right: ${({ theme }) => theme.spacing.base};
     }
   }
-  .gitops-loading {
-    padding: ${({ theme }) => theme.spacing.base};
-  }
   div[class*='MuiInput-root'] {
     border: 1px solid ${props => props.theme.colors.neutral20};
     border-bottom: none;

@@ -600,29 +600,31 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               )
             }
           />
-          {loading || previewLoading ? (
-            <LoadingPage className="gitops-loading" />
-          ) : (
-            <Flex end className="gitops-cta">
-              <Button
-                type="submit"
-                onClick={() => setSubmitType('Create resource')}
-                disabled={!isAuthenticated}
-              >
-                CREATE PULL REQUEST
-              </Button>
-              <Button type="submit" onClick={() => setSubmitType('PR Preview')}>
-                PREVIEW PR
-              </Button>
-              {openPreview && prPreview ? (
-                <Preview
-                  openPreview={openPreview}
-                  setOpenPreview={setOpenPreview}
-                  prPreview={prPreview}
-                />
-              ) : null}
-            </Flex>
-          )}
+          <Flex end className="gitops-cta">
+            <Button
+              loading={loading}
+              type="submit"
+              onClick={() => setSubmitType('Create resource')}
+              disabled={!isAuthenticated || loading}
+            >
+              CREATE PULL REQUEST
+            </Button>
+            <Button
+              loading={previewLoading}
+              disabled={previewLoading}
+              type="submit"
+              onClick={() => setSubmitType('PR Preview')}
+            >
+              PREVIEW PR
+            </Button>
+            {openPreview && prPreview ? (
+              <Preview
+                openPreview={openPreview}
+                setOpenPreview={setOpenPreview}
+                prPreview={prPreview}
+              />
+            ) : null}
+          </Flex>
         </FormWrapper>
       </CallbackStateContextProvider>
     );

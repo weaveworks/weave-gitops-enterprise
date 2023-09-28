@@ -229,16 +229,16 @@ const CreateExternalSecret = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-            {loading ? (
-              <LoadingPage className="gitops-loading" />
-            ) : (
-              <Flex end className="gitops-cta">
-                <Button type="submit" disabled={!isAuthenticated}>
-                  CREATE PULL REQUEST
-                </Button>
-                <PreviewModal formData={formData} secretType={SecretType.ES} />
-              </Flex>
-            )}
+            <Flex end className="gitops-cta">
+              <Button
+                loading={loading}
+                type="submit"
+                disabled={!isAuthenticated || loading}
+              >
+                CREATE PULL REQUEST
+              </Button>
+              <PreviewModal formData={formData} secretType={SecretType.ES} />
+            </Flex>
           </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
