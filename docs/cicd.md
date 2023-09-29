@@ -27,7 +27,7 @@ deployed to [Staging](https://gitops.internal-dev.wego-gke.weave.works) environm
 
 ## Environments
 
-In the context of environments like dev, test, prod, our picture is like:
+In the context of environments like dev, test, prod, our picture is the following:
 
 - Dev: happens within a developer's machine where a range of unit and integration test supports the process, as well as, [tilt](https://tilt.dev/) 
 that we use to recreate the application locally. See [Tiltfile](../Tiltfile).
