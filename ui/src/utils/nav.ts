@@ -84,6 +84,12 @@ export function getKindRoute(k: Kind | string): string {
     case 'GitOpsSet':
       return Routes.GitOpsSetDetail;
 
+    case 'GitOpsTemplate':
+      return Routes.Templates;
+
+    case 'CAPITemplate':
+      return Routes.Templates;
+
     default:
       return V2Routes.NotImplemented;
   }
