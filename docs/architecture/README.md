@@ -130,7 +130,7 @@ it could also do it horizontally as:
   - User sessions are self-contained in cookies that comes in each user request.
   - We don't hold application state, but we serve it from Kubernetes. 
   - Our data layer is cache layer with read-only capabilities that lives alongside each of the server instances.
-- High Availability could be achieved by having multiple api server instanced behind a load balancer with sticky sessions enabled.
+- High Availability can be achieved by having multiple API server instanced behind a load balancer with sticky sessions enabled.
 - Disaster Recovery for the app, as the state is hold in kubernetes, follows the same approach as any other stateless application and
   to be determined by the DR strategy of the team running the platform running Weave Gitops Enterprise.
 
