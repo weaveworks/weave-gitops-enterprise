@@ -124,7 +124,7 @@ More info about each of them could be found within their domain. See [domains vi
 
 In terms of scalability Weave Gitops Enterprise Management Console presents the following features:
 
-- It is built in golang which makes each api server instance highly-scalable due to its concurrency model. 
+- It uses golang's HTTP infrastructure which handles concurrent connections efficiently, so API server instances scale well vertically
 - In terms of scalability models, Weave GitOps Enterprise management app could scale vertically to simplify operations, or 
 it could also do it horizontally as:
   - User sessions are self-contained in cookies that comes in each user request.
