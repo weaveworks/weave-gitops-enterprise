@@ -190,7 +190,7 @@ Weave Gitops Enterprise opens connections to a Git Provider api for example to r
       - All components from a cluster lives in the same kubernetes cluster so under the same kubernetes control plane that would be commonly
           deployed in the same network (for example in a VPC). 
       - Communication between Weave Gitops Management and Weave Gitops Leaf clusters happens via Kubernetes API so needs to be accessible.
-      - Platform Engineers or Developers consumes the app via a web browser that would communicate with the api server via either public or private networks depending on the customer deployment.
+      - Platform Engineers or Developers consumes the app via a web browser that would communicate with the API server via either public or private networks depending on the customer deployment.
     - External Systems outside Management or Leaf could communicate via public or private network depending on the customer needs and requirements. 
     For example, it could communicate with GitHub via internet if using the hosted version, or via internal network if using GitHub Enterprise self-hosted.
 
