@@ -25,7 +25,6 @@ var _ = Describe("Add a Profile", func() {
 				"--cluster", "prod",
 				"--namespace", "test-namespace",
 				"--config-repo", "https://ssh@github:test/test.git",
-				"--auto-merge", "true",
 			})
 
 			err := cmd.Execute()
