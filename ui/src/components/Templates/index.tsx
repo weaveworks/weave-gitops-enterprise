@@ -119,7 +119,9 @@ const TemplatesDashboard: FC<{
               },
               {
                 label: 'Type',
-                value: 'templateType',
+                value: (t: Template) => (
+                  <>{t.labels?.['weave.works/template-type']}</>
+                ),
                 sortValue: ({ name }) => name,
               },
               {
