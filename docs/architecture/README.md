@@ -131,7 +131,7 @@ it could also do it horizontally as:
   - We don't hold application state, but we serve it from Kubernetes. 
   - Our data layer is cache layer with read-only capabilities that lives alongside each of the server instances.
 - High Availability can be achieved by having multiple API server instanced behind a load balancer with sticky sessions enabled.
-- Disaster Recovery for the app, as the state is hold in kubernetes, follows the same approach as any other stateless application and
+- Disaster Recovery for the app, as the state is hold in Kubernetes, follows the same approach as any other stateless application and
   to be determined by the DR strategy of the team running the platform running Weave Gitops Enterprise.
 
 #### Kubernetes Controllers
