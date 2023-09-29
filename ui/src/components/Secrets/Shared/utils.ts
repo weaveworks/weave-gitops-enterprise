@@ -1,11 +1,11 @@
+import { GitRepository } from '@weaveworks/weave-gitops';
+import styled from 'styled-components';
 import {
   ClusterAutomation,
   ClusterNamespacedName,
   EncryptSopsSecretRequest,
 } from '../../../cluster-services/cluster_services.pb';
 import { FormWrapper } from '../../Templates/Form/utils';
-import { GitRepository } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
 
 export interface ExternalSecret {
   defaultSecretNamespace: string;

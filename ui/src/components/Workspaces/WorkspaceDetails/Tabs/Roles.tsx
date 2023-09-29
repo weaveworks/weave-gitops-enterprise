@@ -1,11 +1,11 @@
+import { DataTable, YamlView } from '@weaveworks/weave-gitops';
+import moment from 'moment';
 import { WorkspaceRoleRule } from '../../../../cluster-services/cluster_services.pb';
 import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
 import { TableWrapper } from '../../../Shared';
 import { RulesListWrapper } from '../../WorkspaceStyles';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
-import moment from 'moment';
 
 const RulesList = ({ rules }: { rules: WorkspaceRoleRule[] }) => {
   return (

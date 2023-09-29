@@ -1,9 +1,3 @@
-import { Object } from '../../api/query/query.pb';
-import { Routes } from '../../utils/nav';
-import OpenedPullRequest from '../Clusters/OpenedPullRequest';
-import Explorer from '../Explorer/Explorer';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   AutomationsTable,
   Button,
@@ -20,6 +14,12 @@ import _ from 'lodash';
 import React, { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { Object } from '../../api/query/query.pb';
+import { Routes } from '../../utils/nav';
+import OpenedPullRequest from '../Clusters/OpenedPullRequest';
+import Explorer from '../Explorer/Explorer';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
   const { isFlagEnabled } = useFeatureFlags();

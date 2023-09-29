@@ -1,4 +1,21 @@
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { Box } from '@material-ui/core';
+import {
+  Button,
+  Flex,
+  GitRepository,
+  Link,
+  useListSources,
+} from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import { useHistory } from 'react-router-dom';
 import {
   ClusterAutomation,
   CreateAutomationsPullRequestRequest,
@@ -32,23 +49,6 @@ import {
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
 import AppFields from './form/Partials/AppFields';
-import { Box } from '@material-ui/core';
-import {
-  Button,
-  Flex,
-  GitRepository,
-  Link,
-  useListSources,
-} from '@weaveworks/weave-gitops';
-import _ from 'lodash';
-import React, {
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react';
-import { useHistory } from 'react-router-dom';
 
 interface FormData {
   repo: GitRepository | null;

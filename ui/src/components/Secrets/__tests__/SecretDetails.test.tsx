@@ -8,6 +8,7 @@ import {
 
 import SecretDetails from '../SecretDetails';
 import moment from 'moment';
+
 const MockSecretResponse = {
   secretName: 'secret Name',
   externalSecretName: 'external Secret Name',

@@ -1,9 +1,9 @@
 import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
+import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { useRouteMatch } from 'react-router-dom';
 import ImageAutomationUpdatesTable from '../../components/ImageAutomation/updates/ImageAutomationUpdatesTable';
 import ImagePoliciesTable from './policies/ImagePoliciesTable';
 import ImageRepositoriesTable from './repositories/ImageRepositoriesTable';
-import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
-import { useRouteMatch } from 'react-router-dom';
 
 const ImageAutomation = () => {
   const { path } = useRouteMatch();

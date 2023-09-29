@@ -1,9 +1,9 @@
-import { MuiDialogTitle } from '../../Shared';
-import { DialogWrapper } from '../WorkspaceStyles';
 import { DialogContent } from '@material-ui/core';
 import { Button, Text } from '@weaveworks/weave-gitops';
 import { FC, useState } from 'react';
 import styled from 'styled-components';
+import { MuiDialogTitle } from '../../Shared';
+import { DialogWrapper } from '../WorkspaceStyles';
 
 interface Props {
   title: string;

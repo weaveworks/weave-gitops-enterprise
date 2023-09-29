@@ -1,4 +1,3 @@
-import { WorkloadStatus as WorkloadStatusType } from '../../../api/pipelines/types.pb';
 import {
   Flex,
   Icon,
@@ -6,6 +5,7 @@ import {
   KubeStatusIndicator,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { WorkloadStatus as WorkloadStatusType } from '../../../api/pipelines/types.pb';
 
 interface Props {
   className?: string;

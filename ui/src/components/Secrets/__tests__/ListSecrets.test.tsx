@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import moment from 'moment';
 import SecretsList from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
@@ -7,7 +8,6 @@ import {
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import moment from 'moment';
 
 const ListExternalSecretsResponse = {
   secrets: [

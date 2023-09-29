@@ -1,3 +1,6 @@
+import { Button, Flex } from '@weaveworks/weave-gitops';
+import moment from 'moment';
+import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetSecretDetails } from '../../../contexts/Secrets';
 import { Routes } from '../../../utils/nav';
@@ -6,9 +9,6 @@ import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import SecretDetailsTabs from './SecretDetailsTabs';
 import { useSyncSecret } from './SyncSecret';
-import { Button, Flex } from '@weaveworks/weave-gitops';
-import moment from 'moment';
-import { useState } from 'react';
 
 const SecretDetails = ({
   externalSecretName,

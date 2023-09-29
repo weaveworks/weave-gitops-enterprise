@@ -1,15 +1,15 @@
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import EditIcon from '@material-ui/icons/Edit';
+import { Button, formatURL } from '@weaveworks/weave-gitops';
+import * as React from 'react';
+import { Link } from 'react-router-dom';
+import styled from 'styled-components';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Routes } from '../../../utils/nav';
 import { Tooltip } from '../../Shared';
 import { getCreateRequestAnnotation } from '../Form/utils';
-import EditIcon from '@material-ui/icons/Edit';
-import { Button, formatURL } from '@weaveworks/weave-gitops';
-import * as React from 'react';
-import { Link } from 'react-router-dom';
-import styled from 'styled-components';
 
 export type Resource =
   | GitopsClusterEnriched

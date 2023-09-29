@@ -1,7 +1,7 @@
-import { Page } from './Layout/App';
-import { NotificationsWrapper } from './Layout/NotificationsWrapper';
 import { Auth, UserGroupsTable } from '@weaveworks/weave-gitops';
 import React, { FC } from 'react';
+import { Page } from './Layout/App';
+import { NotificationsWrapper } from './Layout/NotificationsWrapper';
 
 const WGUserInfo: FC = () => {
   const { userInfo, error } = React.useContext(Auth);

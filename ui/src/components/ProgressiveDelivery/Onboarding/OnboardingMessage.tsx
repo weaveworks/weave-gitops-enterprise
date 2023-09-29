@@ -1,5 +1,3 @@
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { LinkTag } from '../../Shared';
 import {
   Button,
   Flex,
@@ -7,6 +5,8 @@ import {
   Spacer,
   Text,
 } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { LinkTag } from '../../Shared';
 
 const OnboardingMessage = () => {
   return (

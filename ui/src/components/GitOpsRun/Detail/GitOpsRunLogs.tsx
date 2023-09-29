@@ -1,6 +1,4 @@
 import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import { useGetLogs } from '../../../hooks/gitopsrun';
-import { Select } from '../../../utils/form';
 import {
   IconButton,
   MenuItem,
@@ -20,6 +18,8 @@ import {
 import { sortBy, sortedUniqBy, uniq } from 'lodash';
 import React, { SetStateAction } from 'react';
 import styled from 'styled-components';
+import { useGetLogs } from '../../../hooks/gitopsrun';
+import { Select } from '../../../utils/form';
 
 type Props = {
   className?: string;

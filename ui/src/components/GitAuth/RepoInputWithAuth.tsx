@@ -1,9 +1,3 @@
-import { GitProvider } from '../../api/gitauth/gitauth.pb';
-import { GitAuth, useParseRepoUrl } from '../../contexts/GitAuth';
-import { Select, SelectProps } from '../../utils/form';
-import { getGitRepos } from '../Clusters';
-import { getRepositoryUrl } from '../Templates/Form/utils';
-import AuthButton from './AuthButton';
 import { MenuItem } from '@material-ui/core';
 import {
   Button,
@@ -14,6 +8,12 @@ import {
 } from '@weaveworks/weave-gitops';
 import * as React from 'react';
 import styled from 'styled-components';
+import { GitProvider } from '../../api/gitauth/gitauth.pb';
+import { GitAuth, useParseRepoUrl } from '../../contexts/GitAuth';
+import { Select, SelectProps } from '../../utils/form';
+import { getGitRepos } from '../Clusters';
+import { getRepositoryUrl } from '../Templates/Form/utils';
+import AuthButton from './AuthButton';
 
 const GitAuthForm = styled(Flex)`
   #SELECT_GIT_REPO-group {

@@ -1,6 +1,3 @@
-import { Workspace } from '../../../cluster-services/cluster_services.pb';
-import { Routes } from '../../../utils/nav';
-import { TableWrapper } from '../../Shared';
 import {
   DataTable,
   filterConfig,
@@ -8,6 +5,9 @@ import {
   Link,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import { Workspace } from '../../../cluster-services/cluster_services.pb';
+import { Routes } from '../../../utils/nav';
+import { TableWrapper } from '../../Shared';
 
 interface Props {
   workspaces: Workspace[];

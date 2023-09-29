@@ -1,3 +1,5 @@
+import { useContext } from 'react';
+import { useQuery } from 'react-query';
 import {
   ListWorkspacesRequest,
   ListWorkspacesResponse,
@@ -11,8 +13,6 @@ import {
 import { formatError } from '../../utils/formatters';
 import { EnterpriseClientContext } from '../EnterpriseClient';
 import useNotifications from './../../contexts/Notifications';
-import { useContext } from 'react';
-import { useQuery } from 'react-query';
 
 const LIST_WORKSPACES_QUERY_KEY = 'workspaces';
 

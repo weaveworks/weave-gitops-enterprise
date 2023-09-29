@@ -1,7 +1,7 @@
-import { TableWrapper } from '../../../Shared';
 import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { AppContext, DataTable, Text } from '@weaveworks/weave-gitops';
 import React, { useContext } from 'react';
+import { TableWrapper } from '../../../Shared';
 
 export const CanaryMetricsTable = ({
   metrics,

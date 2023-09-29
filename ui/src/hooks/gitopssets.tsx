@@ -1,15 +1,5 @@
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import {
-  GetGitOpsSetResponse,
-  GitOpsSets,
-  ListGitOpsSetsResponse,
-} from '../api/gitopssets/gitopssets.pb';
-import {
-  GroupVersionKind,
-  Object as ResponseObject,
-} from '../api/gitopssets/types.pb';
-import useNotifications from '../contexts/Notifications';
-import {
   Bucket,
   FluxObject,
   GitRepository,
@@ -26,6 +16,16 @@ import {
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { QueryClient, useQuery, useQueryClient } from 'react-query';
+import {
+  GetGitOpsSetResponse,
+  GitOpsSets,
+  ListGitOpsSetsResponse,
+} from '../api/gitopssets/gitopssets.pb';
+import {
+  GroupVersionKind,
+  Object as ResponseObject,
+} from '../api/gitopssets/types.pb';
+import useNotifications from '../contexts/Notifications';
 
 const GITOPSSETS_KEY = 'gitopssets';
 const GITOPSSETS_POLL_INTERVAL = 5000;

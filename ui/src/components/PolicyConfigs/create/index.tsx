@@ -9,6 +9,9 @@ import {
   ThemeTypes,
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import {
   ClusterAutomation,
   CreateAutomationsPullRequestRequest,
@@ -39,9 +42,6 @@ import {
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { PreviewPRModal } from './PreviewPRModal';
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {

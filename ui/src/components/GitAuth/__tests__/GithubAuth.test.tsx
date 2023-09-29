@@ -62,7 +62,7 @@ describe('Github Authenticate', () => {
     });
     expect(await screen.findByText('AUTHORIZE GITHUB ACCESS')).toBeTruthy();
 
-    const ghCode = await screen.getByTestId('github-code');
+    const ghCode = screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
     await act(async () => {
       const copyButton = await (

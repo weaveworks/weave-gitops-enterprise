@@ -2,11 +2,6 @@ import {
   GitRepository,
   HelmRepository,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
-import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
-import { Input, Select } from '../../../../../utils/form';
-import { Tooltip } from '../../../../Shared';
-import { useClustersWithSources } from '../../../utils';
 import {
   Checkbox,
   FormControlLabel,
@@ -17,6 +12,11 @@ import { Flex, Kind, Text, useListSources } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import React, { Dispatch, FC, useCallback, useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';
+import { GitopsCluster } from '../../../../../cluster-services/cluster_services.pb';
+import { DEFAULT_FLUX_KUSTOMIZATION_NAMESPACE } from '../../../../../utils/config';
+import { Input, Select } from '../../../../../utils/form';
+import { Tooltip } from '../../../../Shared';
+import { useClustersWithSources } from '../../../utils';
 
 const AppFields: FC<{
   formData: any;

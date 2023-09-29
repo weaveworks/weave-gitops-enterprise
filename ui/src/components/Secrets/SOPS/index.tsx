@@ -1,3 +1,6 @@
+import { MenuItem } from '@material-ui/core';
+import { Button, Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
+import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -27,9 +30,6 @@ import {
   FormWrapperSecret,
 } from '../Shared/utils';
 import SecretData from './SecretData';
-import { MenuItem } from '@material-ui/core';
-import { Button, Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useMemo, useState } from 'react';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();

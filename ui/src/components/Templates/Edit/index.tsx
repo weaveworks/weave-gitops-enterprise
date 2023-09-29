@@ -1,3 +1,7 @@
+import Grid from '@material-ui/core/Grid';
+import { Kind, useGetObject } from '@weaveworks/weave-gitops';
+import { FC } from 'react';
+import { Redirect } from 'react-router-dom';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
@@ -8,10 +12,6 @@ import { Title, NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';
-import Grid from '@material-ui/core/Grid';
-import { Kind, useGetObject } from '@weaveworks/weave-gitops';
-import { FC } from 'react';
-import { Redirect } from 'react-router-dom';
 
 const EditResource: FC<{
   resource: Resource;

@@ -1,8 +1,8 @@
+import { useLocation } from 'react-router-dom';
 import useTemplates from '../../../hooks/templates';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper, Title } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
-import { useLocation } from 'react-router-dom';
 
 const CreateResourcePage = () => {
   const { search } = useLocation();

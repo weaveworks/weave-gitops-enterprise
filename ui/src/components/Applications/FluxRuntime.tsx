@@ -1,5 +1,3 @@
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   FluxRuntime,
   useListFluxCrds,
@@ -7,6 +5,8 @@ import {
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { FC } from 'react';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsFluxRuntime: FC = () => {
   const { data, isLoading, error } = useListFluxRuntimeObjects();

@@ -1,3 +1,6 @@
+import _ from 'lodash';
+import { useContext, useMemo } from 'react';
+import { useQuery } from 'react-query';
 import {
   GetConfigResponse,
   ListChartsForRepositoryResponse,
@@ -16,9 +19,6 @@ import {
 } from '../types/custom';
 import { maybeFromBase64 } from '../utils/base64';
 import { formatError } from '../utils/formatters';
-import _ from 'lodash';
-import { useContext, useMemo } from 'react';
-import { useQuery } from 'react-query';
 
 interface AnnotationData {
   commit_message: string;

@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import * as yaml from 'yaml';
 import { ToggleSuspendTerraformObjectsResponse } from '../../../api/terraform/terraform.pb';
 import { TerraformProvider } from '../../../contexts/Terraform';
 import {
@@ -7,7 +8,6 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import TerraformObjectDetail from '../TerraformObjectDetail';
-import * as yaml from 'yaml';
 
 const res = {
   object: {

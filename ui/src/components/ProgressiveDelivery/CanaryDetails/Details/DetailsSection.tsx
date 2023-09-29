@@ -1,14 +1,14 @@
+import {
+  Automation,
+  Canary,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { Flex, Link, formatURL } from '@weaveworks/weave-gitops';
 import { getKindRoute } from '../../../../utils/nav';
 import { ClusterDashboardLink } from '../../../Clusters/ClusterDashboardLink';
 import RowHeader from '../../../RowHeader';
 import { getDeploymentStrategyIcon } from '../../ListCanaries/Table';
 import Collapsible from '../../SharedComponent/Collapsible';
 import DynamicTable from '../../SharedComponent/DynamicTable';
-import {
-  Automation,
-  Canary,
-} from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import { Flex, Link, formatURL } from '@weaveworks/weave-gitops';
 
 const DetailsSection = ({
   canary,

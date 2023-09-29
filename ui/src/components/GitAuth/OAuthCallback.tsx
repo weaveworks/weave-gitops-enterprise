@@ -1,3 +1,14 @@
+import { CircularProgress } from '@material-ui/core';
+import { Alert, AlertTitle } from '@material-ui/lab';
+import {
+  Flex,
+  useLinkResolver,
+  useRequestState,
+} from '@weaveworks/weave-gitops';
+import qs from 'query-string';
+import * as React from 'react';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import {
   AuthorizeGitlabResponse,
   GitProvider,
@@ -12,17 +23,6 @@ import {
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { getCallbackState, storeProviderToken } from './utils';
-import { CircularProgress } from '@material-ui/core';
-import { Alert, AlertTitle } from '@material-ui/lab';
-import {
-  Flex,
-  useLinkResolver,
-  useRequestState,
-} from '@weaveworks/weave-gitops';
-import qs from 'query-string';
-import * as React from 'react';
-import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 
 type Props = {
   code: string;

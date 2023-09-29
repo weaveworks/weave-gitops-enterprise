@@ -1,4 +1,6 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { createMemoryHistory } from 'history';
+import { Router } from 'react-router-dom';
 import Pipelines from '..';
 import { PipelinesProvider } from '../../../contexts/Pipelines';
 import {
@@ -7,8 +9,6 @@ import {
   TestFilterableTable,
   withContext,
 } from '../../../utils/test-utils';
-import { createMemoryHistory } from 'history';
-import { Router } from 'react-router-dom';
 
 const pipelines = {
   pipelines: [

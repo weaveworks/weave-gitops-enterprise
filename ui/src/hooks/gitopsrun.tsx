@@ -1,8 +1,8 @@
 import { GetSessionLogsResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import useNotifications from '../contexts/Notifications';
-import { formatError } from '../utils/formatters';
 import { coreClient } from '@weaveworks/weave-gitops';
 import { useQuery } from 'react-query';
+import useNotifications from '../contexts/Notifications';
+import { formatError } from '../utils/formatters';
 
 type splitReq = { sessionNamespace: string; sessionId: string; token: string };
 export const useGetLogs = (

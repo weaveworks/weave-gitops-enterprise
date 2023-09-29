@@ -1,7 +1,7 @@
-import { Event } from '../../../../cluster-services/cluster_services.pb';
-import { TableWrapper } from '../../../Shared';
 import { DataTable } from '@weaveworks/weave-gitops';
 import moment from 'moment';
+import { Event } from '../../../../cluster-services/cluster_services.pb';
+import { TableWrapper } from '../../../Shared';
 
 export const EventsTable = ({ events }: { events: Event[] }) => {
   return (

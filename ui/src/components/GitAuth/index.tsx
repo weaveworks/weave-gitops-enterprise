@@ -1,11 +1,11 @@
+import React, { Dispatch, FC, useEffect } from 'react';
+import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import { useIsAuthenticated } from '../../hooks/gitprovider';
 import { getRepositoryUrl } from '../Templates/Form/utils';
 import { GithubDeviceAuthModal } from './GithubDeviceAuthModal';
 import { RepoInputWithAuth } from './RepoInputWithAuth';
 import { getProviderToken } from './utils';
-import React, { Dispatch, FC, useEffect } from 'react';
-import styled from 'styled-components';
 
 const RepoInputWithAuthWrapper = styled(RepoInputWithAuth)`
   width: 100%;

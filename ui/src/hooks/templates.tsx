@@ -1,3 +1,5 @@
+import { useCallback, useContext, useState } from 'react';
+import { useQuery } from 'react-query';
 import {
   CreatePullRequestRequest,
   ListTemplatesResponse,
@@ -5,8 +7,6 @@ import {
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import { TemplateEnriched } from '../types/custom';
-import { useCallback, useContext, useState } from 'react';
-import { useQuery } from 'react-query';
 
 const useTemplates = (
   opts: { enabled: boolean } = {

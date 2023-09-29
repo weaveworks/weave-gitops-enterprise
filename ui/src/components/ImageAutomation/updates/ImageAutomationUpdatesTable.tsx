@@ -1,6 +1,3 @@
-import { useListImageObjects } from '../../../contexts/ImageAutomation';
-import { TableWrapper } from '../../Shared';
-import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import {
   DataTable,
   filterConfig,
@@ -14,6 +11,9 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
+import { useListImageObjects } from '../../../contexts/ImageAutomation';
+import { TableWrapper } from '../../Shared';
+import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ImageAutomationUpdatesTable = () => {
   const { data, isLoading, error } = useListImageObjects(

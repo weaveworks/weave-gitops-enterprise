@@ -1,4 +1,3 @@
-import CloseIconButton from '../assets/img/close-icon-button';
 import {
   DialogTitle,
   Tooltip as Mtooltip,
@@ -9,6 +8,7 @@ import { Flex, Link } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import ReactMarkdown from 'react-markdown';
 import styled from 'styled-components';
+import CloseIconButton from '../assets/img/close-icon-button';
 
 const TooltipStyle = styled.div`
   font-size: 14px;

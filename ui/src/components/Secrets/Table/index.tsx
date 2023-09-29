@@ -1,6 +1,3 @@
-import { ExternalSecretItem } from '../../../cluster-services/cluster_services.pb';
-import { Routes } from '../../../utils/nav';
-import { TableWrapper } from '../../Shared';
 import {
   DataTable,
   formatURL,
@@ -9,6 +6,9 @@ import {
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { FC } from 'react';
+import { ExternalSecretItem } from '../../../cluster-services/cluster_services.pb';
+import { Routes } from '../../../utils/nav';
+import { TableWrapper } from '../../Shared';
 
 interface Props {
   secrets: ExternalSecretItem[];

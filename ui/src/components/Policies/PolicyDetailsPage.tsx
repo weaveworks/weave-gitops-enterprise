@@ -1,6 +1,6 @@
+import { Page, PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 import { useGetPolicyDetails } from '../../contexts/PolicyViolations';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Page, PolicyDetails, V2Routes } from '@weaveworks/weave-gitops';
 
 const PolicyDetailsPage = ({
   clusterName,

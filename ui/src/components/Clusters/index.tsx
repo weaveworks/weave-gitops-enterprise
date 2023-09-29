@@ -1,5 +1,25 @@
 import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
+import { Checkbox } from '@material-ui/core';
+import {
+  Button,
+  DataTable,
+  Flex,
+  GitRepository,
+  Icon,
+  IconType,
+  Kind,
+  KubeStatusIndicator,
+  Link,
+  filterByStatusCallback,
+  filterConfig,
+  statusSortHelper,
+  useListSources
+} from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import Docker from '../../assets/img/docker.svg';
 import EKS from '../../assets/img/EKS.svg';
@@ -33,26 +53,6 @@ import { ConnectClusterDialog } from './ConnectInfoBox';
 import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
-import { Checkbox } from '@material-ui/core';
-import {
-  Button,
-  DataTable,
-  Flex,
-  GitRepository,
-  Icon,
-  IconType,
-  Kind,
-  KubeStatusIndicator,
-  Link,
-  filterByStatusCallback,
-  filterConfig,
-  statusSortHelper,
-  useListSources
-} from '@weaveworks/weave-gitops';
-import _ from 'lodash';
-import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
-import { useHistory } from 'react-router-dom';
-import styled from 'styled-components';
 
 const IconSpan = styled.span`
   display: flex;

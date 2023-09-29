@@ -1,7 +1,4 @@
 import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { EditButton } from '../Templates/Edit/EditButton';
 import {
   BucketDetail,
   Kind,
@@ -9,6 +6,9 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;

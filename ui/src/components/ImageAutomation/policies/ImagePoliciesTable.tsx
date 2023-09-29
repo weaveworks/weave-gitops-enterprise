@@ -1,7 +1,4 @@
 import { ImgPolicy, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { useListImageObjects } from '../../../contexts/ImageAutomation';
-import { TableWrapper } from '../../Shared';
-import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import {
   DataTable,
   filterConfig,
@@ -12,6 +9,9 @@ import {
   Link,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { useListImageObjects } from '../../../contexts/ImageAutomation';
+import { TableWrapper } from '../../Shared';
+import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ImagePoliciesTable = () => {
   const { data, isLoading, error } = useListImageObjects(

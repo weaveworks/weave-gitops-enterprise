@@ -1,9 +1,9 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { QueryClient, QueryClientProvider } from 'react-query';
 import QueryServiceProvider from '../../contexts/QueryService';
 
 import { MockQueryService } from '../../utils/test-utils';
 import { formatFilters, useQueryService } from '../query';
-import { QueryClient, QueryClientProvider } from 'react-query';
 
 describe('useQueryService', () => {
   let mock: MockQueryService;

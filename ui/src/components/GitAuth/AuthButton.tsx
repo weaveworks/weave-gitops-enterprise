@@ -1,9 +1,9 @@
+import styled from 'styled-components';
 import { GitProvider } from '../../api/gitauth/gitauth.pb';
 import AzureDevOpsAuthButton from './AzureDevOpsAuthButton';
 import BitBucketServerAuthButton from './BitBucketServerAuthButton';
 import GithubAuthButton from './GithubAuthButton';
 import GitlabAuthButton from './GitlabAuthButton';
-import styled from 'styled-components';
 
 type Props = {
   className?: string;

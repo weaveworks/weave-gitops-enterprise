@@ -1,7 +1,4 @@
 import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
-import { useListImageObjects } from '../../../contexts/ImageAutomation';
-import { TableWrapper } from '../../Shared';
-import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import {
   DataTable,
   filterConfig,
@@ -13,6 +10,9 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { Link } from 'react-router-dom';
+import { useListImageObjects } from '../../../contexts/ImageAutomation';
+import { TableWrapper } from '../../Shared';
+import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 
 const ImageRepositoriesTable = () => {
   const { data, isLoading, error } = useListImageObjects(

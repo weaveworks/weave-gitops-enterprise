@@ -1,11 +1,3 @@
-import {
-  GetPolicyConfigResponse,
-  PolicyConfigPolicy,
-} from '../../../cluster-services/cluster_services.pb';
-import {
-  PolicyDetailsCardWrapper,
-  WarningIcon,
-} from '../PolicyConfigStyles';
 import { Card, CardContent } from '@material-ui/core';
 import {
   Flex,
@@ -14,6 +6,14 @@ import {
   V2Routes,
   formatURL,
 } from '@weaveworks/weave-gitops';
+import {
+  GetPolicyConfigResponse,
+  PolicyConfigPolicy,
+} from '../../../cluster-services/cluster_services.pb';
+import {
+  PolicyDetailsCardWrapper,
+  WarningIcon,
+} from '../PolicyConfigStyles';
 
 interface GetCardTitleProps {
   policy: PolicyConfigPolicy;

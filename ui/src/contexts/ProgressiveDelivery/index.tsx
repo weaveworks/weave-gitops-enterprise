@@ -1,11 +1,4 @@
 import {
-  ListEventsRequest,
-  ListEventsResponse
-} from '../../cluster-services/cluster_services.pb';
-import { formatError } from '../../utils/formatters';
-import { EnterpriseClientContext } from '../EnterpriseClient';
-import useNotifications from './../../contexts/Notifications';
-import {
   GetCanaryResponse,
   ListCanariesResponse,
   ListCanaryObjectsResponse,
@@ -14,6 +7,13 @@ import {
 import _ from 'lodash';
 import React, { useContext } from 'react';
 import { useQuery } from 'react-query';
+import {
+  ListEventsRequest,
+  ListEventsResponse
+} from '../../cluster-services/cluster_services.pb';
+import { formatError } from '../../utils/formatters';
+import { EnterpriseClientContext } from '../EnterpriseClient';
+import useNotifications from './../../contexts/Notifications';
 
 interface Props {
   api: typeof ProgressiveDeliveryService;

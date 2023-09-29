@@ -1,6 +1,6 @@
+import React from 'react';
 import { ClustersService } from '../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from './index';
-import React from 'react';
 
 type Props = {
   api: typeof ClustersService;

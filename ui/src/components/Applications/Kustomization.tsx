@@ -1,9 +1,4 @@
 import { Kustomization } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Routes } from '../../utils/nav';
-import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { EditButton } from '../Templates/Edit/EditButton';
 import {
   formatURL,
   Kind,
@@ -12,6 +7,11 @@ import {
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import { Routes } from '../../utils/nav';
+import { formatClusterDashboardUrl } from '../Clusters/ClusterDashboardLink';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;

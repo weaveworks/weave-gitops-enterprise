@@ -1,7 +1,4 @@
 import { ImagePolicy } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Page } from '../../Layout/App';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import ImageAutomationDetails from '../ImageAutomationDetails';
 import {
   Kind,
   Metadata,
@@ -9,6 +6,9 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { Page } from '../../Layout/App';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
   className?: string;

@@ -1,5 +1,16 @@
 
 import { act, render, RenderResult, screen } from '@testing-library/react';
+import { MuiThemeProvider } from '@material-ui/core';
+import {
+  AppContextProvider,
+  CoreClientContextProvider,
+  Kind,
+  theme,
+  ThemeTypes,
+} from '@weaveworks/weave-gitops';
+import { QueryClient, QueryClientProvider } from 'react-query';
+import { MemoryRouter } from 'react-router-dom';
+import { ThemeProvider } from 'styled-components';
 import Applications from '../';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
@@ -12,17 +23,6 @@ import {
   EnterpriseClientMock,
   withContext,
 } from '../../../utils/test-utils';
-import { MuiThemeProvider } from '@material-ui/core';
-import {
-  AppContextProvider,
-  CoreClientContextProvider,
-  Kind,
-  theme,
-  ThemeTypes,
-} from '@weaveworks/weave-gitops';
-import { QueryClient, QueryClientProvider } from 'react-query';
-import { MemoryRouter } from 'react-router-dom';
-import { ThemeProvider } from 'styled-components';
 
 describe('Applications index test', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

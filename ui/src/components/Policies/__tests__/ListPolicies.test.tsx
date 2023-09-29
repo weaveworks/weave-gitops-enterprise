@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 import {
   defaultContexts,
   CoreClientMock,
@@ -7,7 +8,6 @@ import {
 } from '../../../utils/test-utils';
 import Policies from '../PoliciesListPage';
 import { PoliciesTab } from '../PoliciesListTab';
-import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 
 const listPoliciesResponse = {
   policies: [

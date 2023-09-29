@@ -7,11 +7,11 @@ import {
   ListPoliciesResponse,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import { formatError } from '../../utils/formatters';
-import useNotifications from './../../contexts/Notifications';
 import { CoreClientContext } from '@weaveworks/weave-gitops';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
+import { formatError } from '../../utils/formatters';
+import useNotifications from './../../contexts/Notifications';
 
 
 export const useCoreClientContext = () => useContext(CoreClientContext);

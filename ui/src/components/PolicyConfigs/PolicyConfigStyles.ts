@@ -1,8 +1,8 @@
-import { TableWrapper } from '../Shared';
 import { RemoveCircleOutline, ReportProblem } from '@material-ui/icons';
 import { Alert } from '@material-ui/lab';
 import { Flex, Text } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { TableWrapper } from '../Shared';
 
 export const TargetItemKind = styled(Text)`
   background: ${props => props.theme.colors.neutralGray};

@@ -1,8 +1,4 @@
 import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { toFilterQueryString } from '../../../utils/FilterQueryString';
-import { Page } from '../../Layout/App';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import ImageAutomationDetails from '../ImageAutomationDetails';
 import {
   Button,
   Interval,
@@ -12,6 +8,10 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { toFilterQueryString } from '../../../utils/FilterQueryString';
+import { Page } from '../../Layout/App';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import ImageAutomationDetails from '../ImageAutomationDetails';
 
 type Props = {
   className?: string;

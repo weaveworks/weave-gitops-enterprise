@@ -1,7 +1,7 @@
-import { Input } from '../../../../utils/form';
-import GitAuth from '../../../GitAuth';
 import React, { ChangeEvent, Dispatch, FC, useCallback } from 'react';
 import styled from 'styled-components';
+import { Input } from '../../../../utils/form';
+import GitAuth from '../../../GitAuth';
 
 const GitOpsWrapper = styled.div`
   .form-section {

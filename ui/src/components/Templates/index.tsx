@@ -1,10 +1,3 @@
-import { Template } from '../../cluster-services/cluster_services.pb';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
-import useTemplates from '../../hooks/templates';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   Button,
   DataTable,
@@ -17,6 +10,14 @@ import {
 import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import Explorer from '../Explorer/Explorer';
+import styled from 'styled-components';
+import { Template } from '../../cluster-services/cluster_services.pb';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
+import useTemplates from '../../hooks/templates';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const Error = styled.span`
   color: ${props => props.theme.colors.alertOriginal};

@@ -1,5 +1,5 @@
-import { ClustersService } from '../../cluster-services/cluster_services.pb';
 import { createContext } from 'react';
+import { ClustersService } from '../../cluster-services/cluster_services.pb';
 
 export type EnterpriseClientContextType = {
   api: typeof ClustersService;

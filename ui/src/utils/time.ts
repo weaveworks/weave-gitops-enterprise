@@ -1,5 +1,5 @@
-import { Duration } from '../types/global';
 import moment from 'moment';
+import { Duration } from '../types/global';
 
 export const asSeconds = (duration: Duration) => {
   let result = moment.duration(Number(duration));

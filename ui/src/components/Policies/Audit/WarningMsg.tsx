@@ -1,11 +1,11 @@
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { LinkTag } from '../../Shared';
 import {
     Button,
     Flex,
     MessageBox,
     Text
 } from '@weaveworks/weave-gitops';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { LinkTag } from '../../Shared';
 
 const WarningMsg = () => {
   return (

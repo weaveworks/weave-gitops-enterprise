@@ -1,6 +1,6 @@
-import { ResourceRef } from '../../api/terraform/types.pb';
 import { DataTable, filterConfig } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { ResourceRef } from '../../api/terraform/types.pb';
 
 type Props = {
   className?: string;

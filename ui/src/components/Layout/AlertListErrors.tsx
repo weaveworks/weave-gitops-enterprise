@@ -1,11 +1,11 @@
-import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
-import { ListError } from '../../cluster-services/cluster_services.pb';
 import { Box, Button, Collapse } from '@material-ui/core';
 import Alert from '@material-ui/lab/Alert';
 import { Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import { sortBy, uniqBy } from 'lodash';
 import { FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
+import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
+import { ListError } from '../../cluster-services/cluster_services.pb';
 
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {

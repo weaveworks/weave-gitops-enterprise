@@ -1,3 +1,11 @@
+import { Box } from '@material-ui/core';
+import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import {
+  Flex,
+  RouterTab,
+  SubRouterTabs,
+  YamlView,
+} from '@weaveworks/weave-gitops';
 import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -9,14 +17,6 @@ import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import PipelinePullRequests from './PipelinePullRequests';
 import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
-import { Box } from '@material-ui/core';
-import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import {
-  Flex,
-  RouterTab,
-  SubRouterTabs,
-  YamlView,
-} from '@weaveworks/weave-gitops';
 
 const mappedErrors = (
   errors: Array<string>,

@@ -1,8 +1,8 @@
-import { QueryResponse } from '../api/query/query.pb';
-import { QueryServiceContext } from '../contexts/QueryService';
 import _ from 'lodash';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
+import { QueryResponse } from '../api/query/query.pb';
+import { QueryServiceContext } from '../contexts/QueryService';
 
 type QueryOpts = {
   terms?: string;

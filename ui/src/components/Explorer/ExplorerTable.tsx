@@ -1,7 +1,4 @@
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
-import { Object } from '../../api/query/query.pb';
-import { Routes, getKindRoute } from '../../utils/nav';
-import { QueryState } from './hooks';
 import { Box } from '@material-ui/core';
 import {
   Flex,
@@ -14,6 +11,9 @@ import {
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
+import { Object } from '../../api/query/query.pb';
+import { Routes, getKindRoute } from '../../utils/nav';
+import { QueryState } from './hooks';
 
 export type FieldWithIndex = Field & { index?: number };
 

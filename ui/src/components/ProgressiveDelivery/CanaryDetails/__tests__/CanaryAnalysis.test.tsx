@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
+import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { ProgressiveDeliveryProvider } from '../../../../contexts/ProgressiveDelivery';
 import {
   defaultContexts,
@@ -7,7 +8,6 @@ import {
   findTextByHeading,
 } from '../../../../utils/test-utils';
 import { CanaryMetricsTable } from '../Analysis/CanaryMetricsTable';
-import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 
 describe('CanaryMetricsTable', () => {
   let wrap: (el: JSX.Element) => JSX.Element;

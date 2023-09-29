@@ -1,6 +1,3 @@
-import { TerraformObject } from '../../api/terraform/types.pb';
-import { computeMessage } from '../../utils/conditions';
-import { getKindRoute, Routes } from '../../utils/nav';
 import {
   DataTable,
   filterByStatusCallback,
@@ -12,6 +9,9 @@ import {
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { TerraformObject } from '../../api/terraform/types.pb';
+import { computeMessage } from '../../utils/conditions';
+import { getKindRoute, Routes } from '../../utils/nav';
 
 type Props = {
   className?: string;

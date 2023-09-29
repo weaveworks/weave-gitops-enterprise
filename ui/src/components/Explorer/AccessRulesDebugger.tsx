@@ -1,9 +1,9 @@
-import { AccessRule } from '../../api/query/query.pb';
-import { useListAccessRules } from '../../hooks/query';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { DataTable } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
+import { AccessRule } from '../../api/query/query.pb';
+import { useListAccessRules } from '../../hooks/query';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 type Props = {
   className?: string;

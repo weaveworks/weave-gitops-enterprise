@@ -1,14 +1,14 @@
 import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Routes } from '../../utils/nav';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { EditButton } from '../Templates/Edit/EditButton';
 import {
   HelmReleaseDetail,
   Kind,
   useGetObject,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;

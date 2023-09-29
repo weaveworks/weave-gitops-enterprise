@@ -1,6 +1,6 @@
-import CodeView from '../CodeView';
 import { Flex, Link, MessageBox, Text, Spacer } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import CodeView from '../CodeView';
 
 type Props = {
   plan?: string;

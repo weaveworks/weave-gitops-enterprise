@@ -1,3 +1,5 @@
+import { Button } from '@weaveworks/weave-gitops';
+import { useCallback, useContext, useState } from 'react';
 import {
   ClusterAutomation,
   RenderAutomationResponse,
@@ -5,8 +7,6 @@ import {
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
 import Preview from '../../Templates/Form/Partials/Preview';
-import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useState } from 'react';
 
 export const PreviewPRModal = ({
   formData,

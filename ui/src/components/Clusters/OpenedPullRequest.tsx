@@ -1,14 +1,3 @@
-import { GetConfigResponse } from '../../cluster-services/cluster_services.pb';
-import { useListConfigContext } from '../../contexts/ListConfig';
-import useConfig from '../../hooks/config';
-import { useGitRepos } from '../../hooks/gitrepos';
-import { openLinkHandler } from '../../utils/link-checker';
-import {
-  getDefaultGitRepo,
-  getProvider,
-  getRepositoryUrl,
-  bitbucketReposToHttpsUrl,
-} from '../Templates/Form/utils';
 import { createStyles, makeStyles } from '@material-ui/core';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -26,6 +15,17 @@ import {
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import React, { useMemo } from 'react';
+import { GetConfigResponse } from '../../cluster-services/cluster_services.pb';
+import { useListConfigContext } from '../../contexts/ListConfig';
+import useConfig from '../../hooks/config';
+import { useGitRepos } from '../../hooks/gitrepos';
+import { openLinkHandler } from '../../utils/link-checker';
+import {
+  getDefaultGitRepo,
+  getProvider,
+  getRepositoryUrl,
+  bitbucketReposToHttpsUrl,
+} from '../Templates/Form/utils';
 
 const useStyles = makeStyles(() =>
   createStyles({

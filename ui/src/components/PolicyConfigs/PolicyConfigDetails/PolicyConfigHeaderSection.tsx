@@ -1,9 +1,9 @@
+import { Flex, Link, Text, formatURL } from '@weaveworks/weave-gitops';
+import moment from 'moment';
 import { GetPolicyConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { Routes, getKindRoute } from '../../../utils/nav';
 import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import { TargetItemKind } from '../PolicyConfigStyles';
-import { Flex, Link, Text, formatURL } from '@weaveworks/weave-gitops';
-import moment from 'moment';
 
 function PolicyConfigHeaderSection({
   age,

@@ -1,10 +1,10 @@
+import { LoadingPage } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import styled from 'styled-components';
 import { Object } from '../../api/query/query.pb';
 import { useQueryService } from '../../hooks/query';
 import CodeView from '../CodeView';
 import KeyValueTable from '../KeyValueTable';
-import { LoadingPage } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
-import styled from 'styled-components';
 
 export type ObjectViewerProps = {
   className?: string;

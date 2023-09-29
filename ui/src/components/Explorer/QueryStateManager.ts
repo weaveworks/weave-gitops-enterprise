@@ -1,7 +1,7 @@
-import { QueryState } from './hooks';
 import _ from 'lodash';
 import qs from 'query-string';
 import { useHistory } from 'react-router-dom';
+import { QueryState } from './hooks';
 
 // We split this into an interface to allow for different implmentations in the future.
 // The default implementation is URLQueryStateManager, which reads from the browser URL.

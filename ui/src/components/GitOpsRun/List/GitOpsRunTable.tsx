@@ -1,6 +1,4 @@
 import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { Routes } from '../../../utils/nav';
-import CommandCell from './CommandCell';
 import {
   DataTable,
   filterConfig,
@@ -12,6 +10,8 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
+import { Routes } from '../../../utils/nav';
+import CommandCell from './CommandCell';
 
 const sessionObjectsInfo = 'session objects created';
 

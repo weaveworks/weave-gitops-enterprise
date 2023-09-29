@@ -1,4 +1,3 @@
-import { LinkTag } from '../Shared';
 import {
   Button,
   Flex,
@@ -6,6 +5,7 @@ import {
   Spacer,
   Text,
 } from '@weaveworks/weave-gitops';
+import { LinkTag } from '../Shared';
 
 const OnboardingImageAutomationMessage = () => {
   return (

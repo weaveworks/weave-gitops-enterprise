@@ -1,12 +1,12 @@
+import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
+import { useListAutomations } from '@weaveworks/weave-gitops';
+import { Dispatch, useEffect, useState } from 'react';
 import { PolicyConfigApplicationMatch } from '../../../../../cluster-services/cluster_services.pb';
 import LoadingWrapper from '../../../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
 import {
   CheckList,
   TargetItemKind,
 } from '../../../PolicyConfigStyles';
-import { Checkbox, FormControlLabel, FormGroup } from '@material-ui/core';
-import { useListAutomations } from '@weaveworks/weave-gitops';
-import { Dispatch, useEffect, useState } from 'react';
 
 interface SelectSecretStoreProps {
   cluster: string;

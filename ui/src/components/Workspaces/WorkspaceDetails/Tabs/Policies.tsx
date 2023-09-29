@@ -1,8 +1,8 @@
+import { DataTable, Link, Severity, V2Routes, formatURL } from '@weaveworks/weave-gitops';
+import moment from 'moment';
 import { useGetWorkspacePolicies } from '../../../../contexts/Workspaces';
 import { TableWrapper } from '../../../Shared';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
-import { DataTable, Link, Severity, V2Routes, formatURL } from '@weaveworks/weave-gitops';
-import moment from 'moment';
 
 export const PoliciesTab = ({
   clusterName,

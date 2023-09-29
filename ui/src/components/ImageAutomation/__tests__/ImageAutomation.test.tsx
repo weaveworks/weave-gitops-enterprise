@@ -1,13 +1,4 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import ImageAutomationPage from '..';
-import {
-  CoreClientMock,
-  defaultContexts,
-  TestFilterableTable,
-  withContext,
-} from '../../../utils/test-utils';
-import ImagePoliciesTable from '../policies/ImagePoliciesTable';
-import ImageAutomationUpdatesTable from '../updates/ImageAutomationUpdatesTable';
 import {
   CoreClientContextProvider,
   ImagePolicy,
@@ -17,6 +8,15 @@ import {
   showInterval,
 } from '@weaveworks/weave-gitops';
 import moment from 'moment';
+import ImageAutomationPage from '..';
+import {
+  CoreClientMock,
+  defaultContexts,
+  TestFilterableTable,
+  withContext,
+} from '../../../utils/test-utils';
+import ImagePoliciesTable from '../policies/ImagePoliciesTable';
+import ImageAutomationUpdatesTable from '../updates/ImageAutomationUpdatesTable';
 
 const IsCRDAvailableReturn = {
   clusters: {

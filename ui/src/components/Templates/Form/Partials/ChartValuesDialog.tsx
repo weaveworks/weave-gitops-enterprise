@@ -1,4 +1,15 @@
 import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  TextareaAutosize,
+} from '@material-ui/core';
+import { makeStyles } from '@material-ui/core/styles';
+import { Alert } from '@material-ui/lab';
+import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
+import { ChangeEvent, FC, useContext, useState } from 'react';
+import { useQuery } from 'react-query';
+import {
   ClusterNamespacedName,
   GetChartsJobResponse,
   GetConfigResponse,
@@ -10,17 +21,6 @@ import { UpdatedProfile } from '../../../../types/custom';
 import { DEFAULT_PROFILE_REPO } from '../../../../utils/config';
 import { Loader } from '../../../Loader';
 import { MuiDialogTitle } from '../../../Shared';
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  TextareaAutosize,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import { Alert } from '@material-ui/lab';
-import { Button, Icon, IconType } from '@weaveworks/weave-gitops';
-import { ChangeEvent, FC, useContext, useState } from 'react';
-import { useQuery } from 'react-query';
 
 
 const useStyles = makeStyles(() => ({

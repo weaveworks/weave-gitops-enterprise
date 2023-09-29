@@ -1,9 +1,5 @@
 import { Breadcrumb } from '@weaveworks/weave-gitops/ui/components/Breadcrumbs';
 import { PolicyValidation } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
-import { useGetPolicyValidationDetails } from '../../contexts/PolicyViolations';
-import { Routes } from '../../utils/nav';
-import { Page } from '../Layout/App';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   FluxObject,
   Kind,
@@ -12,6 +8,10 @@ import {
   formatURL,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+import { useGetPolicyValidationDetails } from '../../contexts/PolicyViolations';
+import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const getPath = (kind?: string, violation?: PolicyValidation): Breadcrumb[] => {
   if (!violation) return [{ label: '' }];

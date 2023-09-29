@@ -1,3 +1,21 @@
+import { Box } from '@material-ui/core';
+import {
+  Button,
+  Flex,
+  formatURL,
+  InfoList,
+  Interval,
+  KubeStatusIndicator,
+  LargeInfo,
+  LinkResolverProvider,
+  Metadata,
+  RouterTab,
+  SubRouterTabs,
+  YamlView,
+} from '@weaveworks/weave-gitops';
+import { useState } from 'react';
+import { useLocation, useRouteMatch } from 'react-router-dom';
+import styled from 'styled-components';
 import {
   GetTerraformObjectPlanResponse,
   GetTerraformObjectResponse,
@@ -20,24 +38,6 @@ import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
 import TerraformPlanView from './TerraformPlanView';
-import { Box } from '@material-ui/core';
-import {
-  Button,
-  Flex,
-  formatURL,
-  InfoList,
-  Interval,
-  KubeStatusIndicator,
-  LargeInfo,
-  LinkResolverProvider,
-  Metadata,
-  RouterTab,
-  SubRouterTabs,
-  YamlView,
-} from '@weaveworks/weave-gitops';
-import { useState } from 'react';
-import { useLocation, useRouteMatch } from 'react-router-dom';
-import styled from 'styled-components';
 
 type Props = {
   className?: string;

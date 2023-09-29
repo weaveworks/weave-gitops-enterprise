@@ -1,9 +1,9 @@
-import { TemplateEnriched } from '../../../../types/custom';
-import { Input, Select } from '../../../../utils/form';
-import { Routes } from '../../../../utils/nav';
 import React, { Dispatch, FC } from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
+import { TemplateEnriched } from '../../../../types/custom';
+import { Input, Select } from '../../../../utils/form';
+import { Routes } from '../../../../utils/nav';
 
 const TemplateFieldsWrapper = styled.div`
   div[class*='MuiFormControl-root'] {
