@@ -18,7 +18,7 @@ The journey of a Weaveworks engineer development is the following:
 3. Pull Request is reviewed
 4. When approved and merged, `deploy` [github workflow](../.github/workflows/deploy) is executed that:
    - run build and test steps for the integrated code
-   - run a set of e2e or smoker tests to ensure the app is health
+   - run a set of e2e or smoke tests to ensure the app is health
 5. Once passes CI for main and artifacts are built and pushed. The feature is then 
 deployed to [Staging](https://gitops.internal-dev.wego-gke.weave.works) environment by Flux. This environment helps us to:
     - Functional testing of the feature in a released environment
