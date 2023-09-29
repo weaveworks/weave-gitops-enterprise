@@ -136,7 +136,7 @@ it could also do it horizontally as:
 
 #### Kubernetes Controllers
 
-About the kubernetes controllers the following statements are true: 
+About the Kubernetes controllers the following statements are true: 
 
 - They are built in golang which makes them instance highly-scalable due to its concurrency model.
 - Given the reconcile resources that usually require write operation or mutating state, they are generally vertically scalable except Flux that supports [horizontal scaling](https://fluxcd.io/flux/installation/configuration/sharding/) 
