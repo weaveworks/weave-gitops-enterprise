@@ -42,7 +42,7 @@ const OnboardingMessage = () => {
           <Spacer padding="small" />
           <Flex wide align center>
             <LinkTag
-              href="https://docs.gitops.weave.works/docs/next/guides/delivery/"
+              href="https://docs.gitops.weave.works/docs/guides/delivery/"
               newTab
             >
               <Button id="navigate-to-flagger"> FLAGGER GUIDE</Button>

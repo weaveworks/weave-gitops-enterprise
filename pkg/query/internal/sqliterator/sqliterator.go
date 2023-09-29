@@ -65,6 +65,38 @@ func (i *iterator) All() ([]models.Object, error) {
 	return objects, nil
 }
 
+func (i *iterator) Page(count int, offset int) ([]models.Object, error) {
+	var objects []models.Object
+
+	index := -1
+
+	for i.rows.Next() {
+		index++
+
+		if index < offset {
+			continue
+		}
+
+		var object models.Object
+
+		if err := i.result.ScanRows(i.rows, &object); err != nil {
+			return nil, fmt.Errorf("failed to scan rows: %w", err)
+		}
+
+		objects = append(objects, object)
+
+		if index >= offset+count-1 {
+			break
+		}
+	}
+
+	if err := i.rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to get rows: %w", err)
+	}
+
+	return objects, nil
+}
+
 func (i *iterator) Close() error {
 	return i.rows.Close()
 }

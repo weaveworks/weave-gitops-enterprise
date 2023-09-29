@@ -64,6 +64,7 @@ func ToPBTerraformObject(clusterName string, tf *tfctrl.Terraform) pb.TerraformO
 		AppliedRevision:      tf.Status.LastAppliedRevision,
 		Path:                 tf.Spec.Path,
 		Interval:             durationToInterval(tf.Spec.Interval),
+		LastUpdatedAt:        tf.Status.GetLastHandledReconcileRequest(),
 		DriftDetectionResult: tf.HasDrift(),
 		Inventory:            inv,
 		Conditions:           conditions,

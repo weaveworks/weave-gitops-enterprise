@@ -43,6 +43,7 @@ export const PolicyDetailsCardWrapper = styled.ul`
   list-style: none;
   display: flex;
   flex-flow: wrap;
+  width: 100%;
   &.policyDetails {
     width: 80%;
   }

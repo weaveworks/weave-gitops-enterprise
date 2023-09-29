@@ -26,6 +26,15 @@ rules:
   - apiGroups: [""]
     resources: ["events"]
     verbs: ["get", "list", "watch"]
+  - apiGroups: ["templates.weave.works"]
+    resources: ["gitopssets"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["capi.weave.works"]
+    resources: ["capitemplates"]
+    verbs: ["get", "watch", "list"]
+  - apiGroups: ["templates.weave.works"]
+    resources: ["gitopstemplates"]
+    verbs: ["get", "watch", "list"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding

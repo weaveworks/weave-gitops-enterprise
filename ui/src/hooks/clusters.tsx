@@ -78,7 +78,7 @@ const useClusters = () => {
     (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
       return api
-        .DeleteClustersPullRequest(data, {
+        .CreateDeletionPullRequest(data, {
           headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
         })
         .finally(() => setLoading(false));
@@ -90,7 +90,7 @@ const useClusters = () => {
     (clusterName: string, clusterNamespace: string, filename: string) => {
       return rawRequest(
         'GET',
-        `/v1/clusters/${clusterName}/kubeconfig?cluster_namespace=${clusterNamespace}`,
+        `/v1/namespaces/${clusterNamespace}/clusters/${clusterName}/kubeconfig`,
         {
           headers: {
             Accept: 'application/octet-stream',

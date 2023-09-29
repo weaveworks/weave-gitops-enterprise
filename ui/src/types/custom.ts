@@ -1,5 +1,5 @@
 import {
-  DeleteClustersPullRequestRequest,
+  CreateDeletionPullRequestRequest,
   GitopsCluster,
   Template,
 } from '../cluster-services/cluster_services.pb';
@@ -106,7 +106,7 @@ export interface GitopsClusterEnriched extends GitopsCluster {
 export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'>;
 
 export type DeleteClustersPRRequestEnriched = WithRequired<
-  DeleteClustersPullRequestRequest,
+  CreateDeletionPullRequestRequest,
   'headBranch' | 'title' | 'commitMessage' | 'description'
 >;
 

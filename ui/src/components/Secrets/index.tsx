@@ -20,7 +20,7 @@ const SecretsList = () => {
     <Page loading={isLoading} path={[{ label: 'Secrets' }]}>
       <NotificationsWrapper errors={data?.errors}>
         <Flex column gap="32">
-          <Flex>
+          <Flex gap="12">
             <Button
               id="create-secrets"
               startIcon={<Icon type={IconType.AddIcon} size="base" />}

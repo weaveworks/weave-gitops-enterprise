@@ -55,18 +55,6 @@ import { DashboardsList } from './DashboardsList';
 import { DeleteClusterDialog } from './Delete';
 import OpenedPullRequest from './OpenedPullRequest';
 
-interface Size {
-  size?: 'small';
-}
-
-export const ActionsWrapper = styled(Flex)<Size>`
-  margin-bottom: ${({ theme }) => theme.spacing.medium};
-  & > .actionButton.btn {
-    margin-right: ${({ theme }) => theme.spacing.small};
-    margin-bottom: ${({ theme }) => theme.spacing.small};
-  }
-`;
-
 const IconSpan = styled.span`
   display: flex;
   img {
@@ -334,7 +322,8 @@ const MCCP: FC<{
         }}
       >
         <NotificationsWrapper>
-          <ActionsWrapper>
+          <Flex column gap="24">
+          <Flex gap="12">
             <Button
               id="create-cluster"
               startIcon={<Icon type={IconType.AddIcon} size="base" />}
@@ -395,7 +384,7 @@ const MCCP: FC<{
               />
             )}
             <OpenedPullRequest />
-          </ActionsWrapper>
+          </Flex>
           <LoadingWrapper loading={isLoading}>
             <DataTable
               className="clusters-list"
@@ -475,6 +464,7 @@ const MCCP: FC<{
               ]}
             />
           </LoadingWrapper>
+          </Flex>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
     </Page>

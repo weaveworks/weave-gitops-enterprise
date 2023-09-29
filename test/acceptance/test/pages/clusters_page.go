@@ -106,8 +106,8 @@ func GetClusterStatus(webDriver *agouti.Page) *ClusterStatus {
 
 func GetClusterInfrastructure(webDriver *agouti.Page) *ClusterInfrastructure {
 	return &ClusterInfrastructure{
-		Kind:       webDriver.FindByXPath(`//tr/td[.="Kind:"]/following-sibling::td`),
-		ApiVersion: webDriver.FindByButton(`//tr/td[.="APIVersion:"]/following-sibling::td`),
+		Kind:       webDriver.Find(`[data-testid="Kind"] :last-child`),
+		ApiVersion: webDriver.Find(`[data-testid="APIVersion"] :last-child`),
 	}
 }
 

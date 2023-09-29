@@ -12,15 +12,21 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
+	gitopssetstemplatesv1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
+	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -169,6 +175,72 @@ func TestQueryServer(t *testing.T) {
 			query:              fmt.Sprintf("kind:%s", sourcev1beta2.BucketKind),
 			expectedNumObjects: 1, // should allow only on default namespace,
 		},
+		{
+			name:   "should support gitopssets",
+			access: allowGitOpsSetsAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&gitopssets.GitOpsSet{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gitopsset-list",
+						Namespace: defaultNamespace,
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind:       "GitOpsSet",
+						APIVersion: gitopssets.GroupVersion.String(),
+					},
+					Spec: gitopssets.GitOpsSetSpec{
+						Generators: []gitopssetstemplatesv1.GitOpsSetGenerator{
+							{
+								List: &gitopssetstemplatesv1.ListGenerator{
+									Elements: []apiextensionsv1.JSON{
+										{Raw: []byte(`{"cluster": "engineering-dev"}`)},
+									},
+								},
+							},
+						},
+						Templates: []gitopssetstemplatesv1.GitOpsSetTemplate{},
+					},
+				},
+			},
+			query:              "kind:GitOpsSet",
+			expectedNumObjects: 1,
+		},
+		{
+			name:   "should support gitops templates",
+			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&gapiv1.GitOpsTemplate{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       gapiv1.Kind,
+						APIVersion: "templates.weave.works/v1alpha2",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cluster-template-1",
+						Namespace: "default",
+					},
+				},
+			},
+			query:              "kind:GitOpsTemplate",
+			expectedNumObjects: 1,
+		},
+		{
+			name:   "should support capi templates",
+			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&capiv1.CAPITemplate{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       capiv1.Kind,
+						APIVersion: "templates.weave.works/v1alpha2",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cluster-template-1",
+						Namespace: "default",
+					},
+				},
+			},
+			query:              "kind:CAPITemplate",
+			expectedNumObjects: 1,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -186,6 +258,12 @@ func TestQueryServer(t *testing.T) {
 			g.Expect(querySucceeded).To(BeTrue())
 
 		})
+	}
+}
+
+func rawExtension(s string) runtime.RawExtension {
+	return runtime.RawExtension{
+		Raw: []byte(s),
 	}
 }
 
@@ -360,6 +438,52 @@ func allowSourcesAnyOnDefaultNamespace(username string) []client.Object {
 				},
 			}),
 	)
+}
+
+func allowGitOpsSetsAnyOnDefaultNamespace(username string) []client.Object {
+	roleName := "gitopssets-admin"
+	roleBindingName := "wego-admin-gitopssets-release-admin"
+
+	return append(createCollectorSecurityContext(),
+		newRole(roleName, "default",
+			[]rbacv1.PolicyRule{{
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
+				Verbs:     []string{"*"},
+			}}),
+		newRoleBinding(roleBindingName,
+			"default",
+			"Role",
+			roleName,
+			[]rbacv1.Subject{
+				{
+					Kind: "User",
+					Name: username,
+				},
+			}))
+}
+
+func allowTemplatesAnyOnDefaultNamespace(username string) []client.Object {
+	roleName := "template-admin"
+	roleBindingName := "wego-admin-template-release-admin"
+
+	return append(createCollectorSecurityContext(),
+		newRole(roleName, "default",
+			[]rbacv1.PolicyRule{{
+				APIGroups: []string{"*"},
+				Resources: []string{"*"},
+				Verbs:     []string{"*"},
+			}}),
+		newRoleBinding(roleBindingName,
+			"default",
+			"Role",
+			roleName,
+			[]rbacv1.Subject{
+				{
+					Kind: "User",
+					Name: username,
+				},
+			}))
 }
 
 func newRoleBinding(name, namespace, roleKind, roleName string, subjects []rbacv1.Subject) *rbacv1.RoleBinding {

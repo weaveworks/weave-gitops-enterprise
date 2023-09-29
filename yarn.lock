@@ -2406,10 +2406,10 @@
   resolved "https://npm.pkg.github.com/download/@weaveworks/progressive-delivery/0.0.0-rc13/2628159001f4812b90e068e64fae8de6b4e3f2b4"
   integrity sha512-51ET/FrGwKcBUSqRTtaWTTuWQi/y51JQAFYMT6ctOLaiIXSopCyi3alf4aYDZ5TPFAIdOQapJMYiq2HVj5XxOQ==
 
-"@weaveworks/weave-gitops@0.31.2":
-  version "0.31.2"
-  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.31.2/25567b7e0c1bc1692029d4af8a3dd635b3aee593#25567b7e0c1bc1692029d4af8a3dd635b3aee593"
-  integrity sha512-pGVtaX1LwMYV6N5rysLZdocSblU6m6UJyhX05CXC0xLO4fmD0mscQd2V5OoGQ8JBT4cWt87OnDPrL6gjmbJguA==
+"@weaveworks/weave-gitops@0.33.0":
+  version "0.33.0"
+  resolved "https://npm.pkg.github.com/download/@weaveworks/weave-gitops/0.33.0/8890c7de18110e8cf0701662055319a51030d364#8890c7de18110e8cf0701662055319a51030d364"
+  integrity sha512-eMzY/DFvYBKfNIMfhEhR8PruXxxh5Q++/QLZOIWjSyAWDXJ+exsJ4T+OSZNO97Xyxzz13kmTt/nO206JA1dKwQ==
   dependencies:
     "@material-ui/core" "^4.12.4"
     "@material-ui/icons" "^4.11.2"
@@ -2836,9 +2836,9 @@ ast-types-flow@^0.0.7:
   integrity sha1-9wtzXGvKGlycItmCw+Oef+ujva0=
 
 async@^2.6.2:
-  version "2.6.3"
-  resolved "https://registry.npmjs.org/async/-/async-2.6.3.tgz"
-  integrity sha512-zflvls11DCy+dQWzTW2dzuilv8Z5X/pjfmZOWba6TNIVDm+2UDaJmXSOXlasHKfNBs8oo3M0aT50fDEWfKZjXg==
+  version "2.6.4"
+  resolved "https://registry.yarnpkg.com/async/-/async-2.6.4.tgz#706b7ff6084664cd7eae713f6f965433b5504221"
+  integrity sha512-mzo5dfJYwAn29PeiJ0zvwTo04zj8HDJj0Mn8TD7sno7q12prdbnasKJHhkm2c1LgrhlJ0teaea8860oxi51mGA==
   dependencies:
     lodash "^4.17.14"
 
