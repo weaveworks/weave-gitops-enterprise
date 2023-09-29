@@ -59,5 +59,5 @@ We use Fossa for doing license checking. An example of it could be seen in [Weav
 
 ### Static Code Analysis 
 
-We currently don't run static code analysis for security vulnerabilities, but it is planned to be leveraging [GitHub CodeQL](https://codeql.github.com/).
+We currently don't run static code analysis for security vulnerabilities, but plan to use [GitHub CodeQL](https://codeql.github.com/).
 
