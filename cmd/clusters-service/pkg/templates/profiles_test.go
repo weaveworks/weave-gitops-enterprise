@@ -10,6 +10,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_protos "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"google.golang.org/protobuf/testing/protocmp"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 )
@@ -73,14 +74,14 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 
 		// profiles in template.spec.profiles
 		profiles := []templatesv1.Chart{
-			{Chart: "cert-manager", Version: "2.0.1"},
+			{Chart: "cert-manager", Version: "2.0.1", SourceRef: corev1.ObjectReference{Name: "charts", Namespace: "default"}},
 			{Chart: "external-dns", Version: "0.0.8", Editable: true},
 		}
 
 		expected := []*capiv1_protos.TemplateProfile{
 			// spec
-			{Name: "cert-manager", Version: "2.0.1"},
-			{Name: "external-dns", Version: "0.0.8", Editable: true},
+			{Name: "cert-manager", Version: "2.0.1", SourceRef: &capiv1_protos.SourceRef{Name: "charts", Namespace: "default"}},
+			{Name: "external-dns", Version: "0.0.8", Editable: true, SourceRef: &capiv1_protos.SourceRef{Name: "", Namespace: ""}},
 			// annotations
 			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks", Required: true},
 		}
@@ -118,6 +119,10 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 				TargetNamespace: "foo-ns",
 				Editable:        true,
 				Required:        true,
+				SourceRef: corev1.ObjectReference{
+					Name:      "charts",
+					Namespace: "default",
+				},
 			},
 		}
 
@@ -131,6 +136,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 				Layer:           "layer-foo",
 				Namespace:       "foo-ns",
 				Required:        true,
+				SourceRef:       &capiv1_protos.SourceRef{Name: "charts", Namespace: "default"},
 			},
 		}
 
