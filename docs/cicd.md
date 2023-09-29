@@ -1,6 +1,6 @@
 # Weave Gitops Enterprise CI/CD
 
-This document aims to characterise the cicd pipeline for change until it reaches production.
+This document aims to characterise the Ci/CD pipeline for change until it reaches production.
 In our context, given that we are not SaaS company, our definition of production environment
 is until the change gets released as part of a [Weave Gitops release](https://github.com/weaveworks/weave-gitops-enterprise/releases)
 As expected, Flux for deployment and Github Actions as CI.
