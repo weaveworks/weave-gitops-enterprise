@@ -1,0 +1,22 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  labels:
+    app.kubernetes.io/component: monitoring
+    app.kubernetes.io/part-of: flux
+    kustomize.toolkit.fluxcd.io/name: monitoring-config
+    kustomize.toolkit.fluxcd.io/namespace: flux-system
+  name: wge
+  namespace: monitoring
+spec:
+  namespaceSelector:
+    matchNames:
+      - flux-system
+  podMetricsEndpoints:
+    - port: http-metrics
+  selector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values:
+          - clusters-service
