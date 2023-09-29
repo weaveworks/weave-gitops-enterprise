@@ -18,6 +18,6 @@ spec:
   interval: 1m0s
   sourceRef:
     kind: GitRepository
-    name: weave-gitops-quickstart-monitoring
+    name: weave-gitops-quickstart
   path: ./monitoring
   prune: true

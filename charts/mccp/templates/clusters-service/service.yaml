@@ -8,11 +8,6 @@ metadata:
   {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  {{- if .Values.metrics.enabled }}
-    {{- with .Values.metrics.service.annotations }}
-      {{- toYaml . | nindent 4 }}
-    {{- end }}
-  {{- end }}
 spec:
   selector:
     app: clusters-service
