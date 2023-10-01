@@ -118,6 +118,33 @@ From wider cloud-native ecosystem, Weave GitOps Enterprise integrates:
 
 More info about each of them could be found within their domain. See [domains view](#domains).
 
+### Scalability, High Availability and Disaster Recovery 
+
+#### Weave Gitops Enterprise Management Console
+
+In terms of scalability Weave Gitops Enterprise Management Console presents the following features:
+
+- It uses golang's HTTP infrastructure which handles concurrent connections efficiently, so API server instances scale well vertically
+- In terms of scalability models, Weave GitOps Enterprise management app could scale vertically to simplify operations, or 
+it could also do it horizontally as:
+  - User sessions are self-contained in cookies that comes in each user request.
+  - We don't hold application state, but we serve it from Kubernetes. 
+  - Our data layer is cache layer with read-only capabilities that lives alongside each of the server instances.
+- High Availability can be achieved by having multiple API server instanced behind a load balancer with sticky sessions enabled.
+- Disaster Recovery for the app, as the state is hold in Kubernetes, follows the same approach as any other stateless application and
+  to be determined by the DR strategy of the team running the platform running Weave Gitops Enterprise.
+
+#### Kubernetes Controllers
+
+About the Kubernetes controllers the following statements are true: 
+
+- They use controller-runtime, which makes it convenient to scale by increasing the number of concurrent workers
+- Given the reconcile resources that usually require write operation or mutating state, they are generally vertically scalable except Flux that supports [horizontal scaling](https://fluxcd.io/flux/installation/configuration/sharding/) 
+- These controllers are built in Go following Kubernetes industry-standard approach based on [kubebuilder](https://github.com/kubernetes-sigs/kubebuilder)
+  and [controller runtime,](https://github.com/kubernetes-sigs/controller-runtime) so they could achieve HA via multiple instances with enabled [leader-election](https://pkg.go.dev/github.com/kubernetes-sigs/controller-runtime/pkg/leaderelection). 
+- Disaster Recovery for controllers, as the state is hold in kubernetes, follows the same approach as any other stateless application and 
+to be determined by the DR strategy of the team running the platform running Weave Gitops Enterprise.
+
 ## Weave GitOps Enterprise
 
 ### Views
@@ -150,6 +177,23 @@ WGE sits on top or integrate a set of external systems for gitops delivery and r
 - [External Secrets](https://external-secrets.io/) is the system that provides the capability to integrate external secret stores within WGE.
 - [Terraform Controller](https://docs.gitops.weave.works/docs/terraform/overview/) is the system that provides capabilities to manage terraform infrastructure within WGE.
 
+The following diagram represents the system as a whole. The following considerations might be useful to be fully 
+understand the diagram:
+- Weave Gitops Cluster is represented once for simplicity but in reality is presented as:   
+  - Weave Gitops Management Cluster: single instance that holds the management console and control plane controllers.
+  - Weave Gitops Leaf Cluster: multiple instances that run business applications and managed by Weave Gitops Management Cluster.
+  
+- In terms of **data-flows**, the line starts by the source entity starting the connection and commonly starting a request. For example, 
+Weave Gitops Enterprise opens connections to a Git Provider api for example to request creating a Pull Request.
+- In terms of **networks**, we could say that:
+    - Weave Gitops Cluster:
+      - All components from a cluster lives in the same kubernetes cluster so under the same kubernetes control plane that would be commonly
+          deployed in the same network (for example in a VPC). 
+      - Communication between Weave Gitops Management and Weave Gitops Leaf clusters happens via Kubernetes API so needs to be accessible.
+      - Platform Engineers or Developers consumes the app via a web browser that would communicate with the API server via either public or private networks depending on the customer deployment.
+    - External Systems outside Management or Leaf could communicate via public or private network depending on the customer needs and requirements. 
+    For example, it could communicate with GitHub via internet if using the hosted version, or via internal network if using GitHub Enterprise self-hosted.
+
 ```mermaid
 C4Context
     title Weave GitOps Enterprise Context
@@ -178,7 +222,7 @@ C4Context
     UpdateRelStyle(WeaveGitopsEnterprise, Idp, $offsetX="-50", $offsetY="-20")
 
 
-    Boundary(Runtime, "Weave Gitops Runtime") {
+    Boundary(Runtime, "Weave Gitops Cluster") {
         Boundary(Kubernetes, "Kubernetes") {
             System_Ext(KubernetesCluster, "Kubernetes Cluster", "run customer applications")
         }
@@ -226,6 +270,8 @@ C4Context
 
     UpdateLayoutConfig($c4ShapeInRow="2", $c4BoundaryInRow="2")
 ```
+
+ 
 
 ### Tiers
 
