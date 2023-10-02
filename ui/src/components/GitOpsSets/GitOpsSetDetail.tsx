@@ -32,10 +32,10 @@ import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
 import { Routes } from '../../utils/nav';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
 import { Page } from '../Layout/App';
+import ListEvents from '../ListEvents';
 
 const YAML = require('yaml');
 
