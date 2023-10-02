@@ -3,7 +3,6 @@ import {
   Flex,
   GitRepository,
   Link,
-  LoadingPage,
   Page,
 } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
@@ -221,7 +220,6 @@ const CreateExternalSecret = () => {
               setFormData={setFormData}
               validateForm={validateForm}
             />
-            <PreviewModal formData={formData} secretType={SecretType.ES} />
             <GitOps
               formData={formData}
               setFormData={setFormData}
@@ -230,15 +228,16 @@ const CreateExternalSecret = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-            {loading ? (
-              <LoadingPage className="create-loading" />
-            ) : (
-              <Flex end className="create-cta">
-                <Button type="submit" disabled={!isAuthenticated}>
-                  CREATE PULL REQUEST
-                </Button>
-              </Flex>
-            )}
+            <Flex end className="gitops-cta">
+              <Button
+                loading={loading}
+                type="submit"
+                disabled={!isAuthenticated || loading}
+              >
+                CREATE PULL REQUEST
+              </Button>
+              <PreviewModal formData={formData} secretType={SecretType.ES} />
+            </Flex>
           </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>

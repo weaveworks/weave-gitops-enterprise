@@ -1,4 +1,4 @@
-import { Button, Flex, LoadingPage } from '@weaveworks/weave-gitops';
+import { Button } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import Preview from '../../Templates/Form/Partials/Preview';
@@ -79,15 +79,13 @@ export const PreviewModal = ({
 
   return (
     <>
-      {previewLoading ? (
-        <LoadingPage className="preview-loading" />
-      ) : (
-        <Flex end className="preview-cta">
-          <Button onClick={() => handlePRPreview()} disabled={previewLoading}>
-            PREVIEW PR
-          </Button>
-        </Flex>
-      )}
+      <Button
+        onClick={() => handlePRPreview()}
+        disabled={previewLoading}
+        loading={previewLoading}
+      >
+        PREVIEW PR
+      </Button>
       {!previewLoading && openPreview && prPreview ? (
         <Preview
           context={secretType === SecretType.ES ? 'secret' : 'sops'}
