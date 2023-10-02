@@ -12,19 +12,20 @@ import (
 
 const (
 	cmdName             = "bootstrap"
-	cmdShortDescription = "Bootstraps Weave GitOps Enterprise"
-	cmdLongDescription  = `
-# Bootstrap Weave GitOps Enterprise
-
-gitops bootstrap
-
-This will help getting started with Weave GitOps Enterprise through simple steps in bootstrap by performing the following tasks:
+	cmdShortDescription = `gitops bootstrap will help getting started with Weave GitOps Enterprise through simple steps in bootstrap by performing the following tasks:
 - Verify the entitlement file exist on the cluster and valid.
 - Verify Flux installation is valid.
 - Allow option to bootstrap Flux in the generic git server way if not installed.
 - Allow selecting the version of WGE to be installed from the latest 3 versions.
 - Set the admin password for WGE Dashboard.
 - Easy steps to make OIDC flow
+`
+	cmdExamples = `
+# Start WGE installation from the current kubeconfig
+gitops bootstrap
+
+# Start WGE installation from a specific kubeconfig
+gitops bootstrap --kubeconfig <your-kubeconfig-location>
 `
 	redError = "\x1b[31;1m%w\x1b[0m"
 )
@@ -33,7 +34,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cmdName,
 		Short:   cmdShortDescription,
-		Example: cmdLongDescription,
+		Example: cmdExamples,
 		RunE:    getBootstrapCmdRunE(opts),
 	}
 
@@ -51,7 +52,6 @@ func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) er
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func bootstrap(opts *config.Options) error {
-	// creating kubernetes client to use it in the commands
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
