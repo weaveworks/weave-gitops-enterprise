@@ -61,7 +61,7 @@ describe('Github Authenticate', () => {
     await act(async () => {
       const copyButton = await (
         await screen.findByTestId('github-code-container')
-      ).querySelector('button');
+      ).querySelector('svg');
       fireEvent.click(copyButton as Element);
       await navigator.clipboard.readText().then(code => {
         expect(ghCode.textContent).toEqual(code);
