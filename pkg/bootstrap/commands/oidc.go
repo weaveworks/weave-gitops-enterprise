@@ -8,7 +8,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -37,18 +36,18 @@ const (
 	oidcSecretName = "oidc-auth"
 )
 
-func CreateOIDCPrompt(client k8s_client.Client, params domain.OIDCConfigParams) error {
+func (c *Config) CreateOIDCPrompt() error {
 	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
 	if oidcConfigPrompt != "y" {
 		return nil
 	}
-	return CreateOIDCConfig(client, params)
+	return createOIDCConfig()
 
 }
 
 // CreateOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
 // If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
-func CreateOIDCConfig(client k8s_client.Client, params domain.OIDCConfigParams) error {
+func createOIDCConfig() error {
 	utils.Info(oidcConfigInfoMsg)
 
 	if _, err := utils.GetSecret(client, oidcSecretName, WGEDefaultNamespace); err == nil {
@@ -87,7 +86,7 @@ func CreateOIDCConfig(client k8s_client.Client, params domain.OIDCConfigParams) 
 	return nil
 }
 
-func CheckAdminPasswordRevert(client k8s_client.Client) error {
+func (c *Config) CheckAdminPasswordRevert() error {
 	adminUserRevert := utils.GetConfirmInput(adminUserRevertMsg)
 
 	if adminUserRevert != "y" {

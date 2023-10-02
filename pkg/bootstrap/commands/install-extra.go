@@ -1,20 +1,23 @@
 package commands
 
 import (
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// UpdateHelmReleaseValues add the extra HelmRelease values.
-func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, controllerValues map[string]interface{}) error {
+const (
+	oidcValuesName = "oidc"
+)
+
+// updateHelmReleaseValues add the extra HelmRelease values.
+func updateHelmReleaseValues(cl client.Client, controllerValuesName string, controllerValues map[string]interface{}) error {
 	values, err := utils.GetCurrentValuesForHelmRelease(cl, WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
 
 	switch controllerValuesName {
-	case domain.OIDCValuesName:
+	case oidcValuesName:
 		values.Config.OIDC = controllerValues
 	}
 
@@ -36,7 +39,7 @@ func UpdateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 	defer func() {
 		err = utils.CleanupRepo()
 		if err != nil {
-			utils.Warning(utils.RepoCleanupMsg)
+			// TODO: handle error
 		}
 	}()
 

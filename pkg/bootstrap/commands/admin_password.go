@@ -2,11 +2,9 @@ package commands
 
 import (
 	"os"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"golang.org/x/crypto/bcrypt"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -19,85 +17,60 @@ const (
 )
 
 const (
-	defaultAdminUsername = "wego-admin"
-	defaultAdminPassword = "password"
+	DefaultAdminUsername = "wego-admin"
+	DefaultAdminPassword = "password"
 	adminSecretName      = "cluster-user-auth"
 	confirmYes           = "y"
 )
 
-// isAdminCredsAvailable if exists return not found error otherwise return nil
-func isAdminCredsAvailable(client k8s_client.Client) (bool, error) {
-	secret, err := utils.GetSecret(client, adminSecretName, WGEDefaultNamespace)
-	if secret != nil && secret.Data != nil && (secret.Data["username"] == nil || secret.Data["password"] == nil) {
-		return false, err
-	}
-	if err == nil {
-		return true, nil
-	} else if err != nil && strings.Contains(err.Error(), "not found") {
-		return false, nil
-	} else {
-		return false, err
-	}
-}
-
-// AskAdminCredsSecrets asks user about admin username and password if it doesn't exist.
+// AskAdminCredsSecrets asks user about admin username and password.
 // admin username and password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
 // there an option to revert these creds in case OIDC setup is successful
-func AskAdminCredsSecret(client k8s_client.Client, silent bool) error {
-	available, err := isAdminCredsAvailable(client)
-	if err != nil {
-		return err
-	}
-
-	if available {
-		utils.Info(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace)
-
-		existingCreds := confirmYes
-		if !silent {
-			existingCreds = utils.GetConfirmInput(existingCredsMsg)
-		}
-
+// if the creds already exist. user will be asked to continue with the current creds
+// Or existing and deleting the creds then re-run the bootstrap process
+func (c *Config) AskAdminCredsSecret() error {
+	// search for existing admin credentials in secret cluster-user-auth
+	secret, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
+	if secret != nil && err == nil {
+		existingCreds := utils.GetConfirmInput(existingCredsMsg)
 		if existingCreds == confirmYes {
 			return nil
 		} else {
-			utils.Warning(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
+			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
 			os.Exit(0)
 		}
-		return nil
 	}
 
-	adminUsername := defaultAdminUsername
-	adminPassword := defaultAdminPassword
-
-	if !silent {
-		adminUsername, err = utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
+	if c.Username == "" {
+		c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername)
 		if err != nil {
 			return err
 		}
+	}
 
-		adminPassword, err = utils.GetPasswordInput(adminPasswordMsg)
+	if c.Password == "" {
+		c.Password, err = utils.GetPasswordInput(adminPasswordMsg)
 		if err != nil {
 			return err
 		}
-
 	}
 
-	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
 	data := map[string][]byte{
-		"username": []byte(adminUsername),
+		"username": []byte(c.Username),
 		"password": encryptedPassword,
 	}
 
-	if err := utils.CreateSecret(client, adminSecretName, WGEDefaultNamespace, data); err != nil {
+	if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data); err != nil {
 		return err
 	}
 
-	utils.Info(secretConfirmationMsg)
+	c.Logger.Successf(secretConfirmationMsg)
 
 	return nil
 }

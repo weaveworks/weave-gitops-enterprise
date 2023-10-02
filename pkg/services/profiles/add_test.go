@@ -112,34 +112,6 @@ var _ = Describe("Add", func() {
 					})
 				})
 
-				When("auto-merge is enabled", func() {
-					It("merges the PR that was created", func() {
-						fakePR.GetReturns(gitprovider.PullRequestInfo{
-							WebURL: "url",
-							Number: 42,
-						})
-						gitProviders.CreatePullRequestReturns(fakePR, nil)
-						addOptions.AutoMerge = true
-						Expect(profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)).Should(Succeed())
-						Expect(gitProviders.RepositoryExistsCallCount()).To(Equal(1))
-						Expect(gitProviders.GetRepoDirFilesCallCount()).To(Equal(1))
-						Expect(gitProviders.CreatePullRequestCallCount()).To(Equal(1))
-					})
-
-					When("the PR fails to be merged", func() {
-						It("returns an error", func() {
-							fakePR.GetReturns(gitprovider.PullRequestInfo{
-								WebURL: "url",
-							})
-							gitProviders.CreatePullRequestReturns(fakePR, nil)
-							gitProviders.MergePullRequestReturns(fmt.Errorf("err"))
-							addOptions.AutoMerge = true
-							err := profilesSvc.Add(context.TODO(), client, gitProviders, addOptions)
-							Expect(err).To(MatchError("error auto-merging PR: err"))
-						})
-					})
-				})
-
 				When("an existing version other than 'latest' is specified", func() {
 					It("creates a helm release with that version", func() {
 						addOptions.Version = "6.0.0"

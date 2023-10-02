@@ -1,38 +1,32 @@
 package commands
 
 import (
-	"fmt"
+	"errors"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
-	fluxBoostrapCheckMsg     = "Checking flux is bootstrapped ..."
-	fluxExistingBootstrapMsg = "Flux is already bootstrapped!"
+	fluxBoostrapCheckMsg     = "Checking flux is bootstrapped"
+	fluxExistingBootstrapMsg = "Flux is already bootstrapped"
 
-	fluxInstallationErrorMsgFormat = "✖️  An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster.\n%v\n"
+	fluxInstallationErrorMsgFormat = "An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster"
 )
 
 // VerifyFluxInstallation checks for valid flux installation.
-func VerifyFluxInstallation(client k8s_client.Client) error {
-	utils.Warning(fluxBoostrapCheckMsg)
+func (c *Config) VerifyFluxInstallation() error {
+	c.Logger.Waitingf(fluxBoostrapCheckMsg)
 
 	var runner runner.CLIRunner
-	out, err := runner.Run("flux", "check")
+	_, err := runner.Run("flux", "check")
 	if err != nil {
-		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
-		return fmt.Errorf("%s: %w", errMsg, err)
+		return errors.New(fluxInstallationErrorMsgFormat)
 	}
 
-	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
+	_, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		errMsg := fmt.Sprintf(fluxInstallationErrorMsgFormat, string(out))
-		return fmt.Errorf("%s: %w", errMsg, err)
+		return errors.New(fluxInstallationErrorMsgFormat)
 	}
-
-	utils.Info(fluxExistingBootstrapMsg)
-
+	c.Logger.Successf(fluxExistingBootstrapMsg)
 	return nil
 }

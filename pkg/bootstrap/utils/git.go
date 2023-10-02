@@ -2,7 +2,6 @@ package utils
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -13,10 +12,6 @@ import (
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
-)
-
-const (
-	RepoCleanupMsg = "Cleaning up repo ..."
 )
 
 const (
@@ -90,7 +85,7 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string) (str
 		Progress:      nil,
 	})
 	if err != nil {
-		return "", fmt.Errorf("failed to clone repository %s: %w", repoName, err)
+		return "", err
 	}
 
 	return repoPath, nil

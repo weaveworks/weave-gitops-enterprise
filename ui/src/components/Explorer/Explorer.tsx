@@ -23,10 +23,11 @@ import {
 
 type Props = {
   className?: string;
-  category?: 'automation' | 'source';
+  category?: 'automation' | 'source' | 'gitopsset' | 'template';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
   extraColumns?: FieldWithIndex[];
+  linkToObject?: boolean;
 };
 
 function Explorer({
@@ -35,6 +36,7 @@ function Explorer({
   enableBatchSync,
   manager,
   extraColumns,
+  linkToObject,
 }: Props) {
   const history = useHistory();
   if (!manager) {
@@ -82,6 +84,7 @@ function Explorer({
             enableBatchSync={enableBatchSync}
             sortField={queryState.orderBy}
             extraColumns={extraColumns}
+            linkToObject={linkToObject}
           />
 
           <FilterDrawer
@@ -117,11 +120,13 @@ const categoryKinds = {
     'HelmChart',
     'OCIRepository',
   ],
+  gitopsset: ['GitOpsSet'],
+  template: ['Template'],
 };
 
 function filterFacetsForCategory(
   facets?: Facet[],
-  category?: 'automation' | 'source',
+  category?: 'automation' | 'source' | 'gitopsset' | 'template',
 ): Facet[] {
   if (!category) {
     return _.sortBy(facets, 'field') as Facet[];

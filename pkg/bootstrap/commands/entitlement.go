@@ -2,7 +2,7 @@ package commands
 
 import (
 	_ "embed"
-	"fmt"
+	"errors"
 	"strings"
 	"time"
 
@@ -12,10 +12,10 @@ import (
 )
 
 const (
-	entitlementCheckConfirmMsg      = "Entitlement File exists and is valid!"
-	nonExistingEntitlementSecretMsg = "\n✖️ Entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster.\n"
-	invalidEntitlementSecretMsg     = "\n✖️ Entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*."
-	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File ..."
+	entitlementCheckConfirmMsg      = "Entitlement File exists and is valid"
+	nonExistingEntitlementSecretMsg = "Entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
+	invalidEntitlementSecretMsg     = "Entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
+	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File"
 )
 
 const (
@@ -29,15 +29,15 @@ var (
 )
 
 // CheckEntitlementSecret checks for valid entitlement secret.
-func CheckEntitlementSecret(client k8s_client.Client) error {
-	utils.Warning(entitlementCheckMsg)
+func (c *Config) CheckEntitlementSecret() error {
+	c.Logger.Waitingf(entitlementCheckMsg)
 
-	err := verifyEntitlementSecret(client)
+	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
 		return err
 	}
 
-	utils.Info(entitlementCheckConfirmMsg)
+	c.Logger.Successf(entitlementCheckConfirmMsg)
 	return nil
 }
 
@@ -48,17 +48,17 @@ func CheckEntitlementSecret(client k8s_client.Client) error {
 func verifyEntitlementSecret(client k8s_client.Client) error {
 	secret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil || secret.Data["entitlement"] == nil || secret.Data["username"] == nil || secret.Data["password"] == nil {
-		return fmt.Errorf("%s: %w", nonExistingEntitlementSecretMsg, err)
+		return errors.New(nonExistingEntitlementSecretMsg)
 	}
 
 	ent, err := entitlement.VerifyEntitlement(strings.NewReader(string(publicKey)), string(secret.Data["entitlement"]))
 	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
-		return fmt.Errorf("%s: %w", invalidEntitlementSecretMsg, err)
+		return errors.New(invalidEntitlementSecretMsg)
 	}
 
 	body, err := doBasicAuthGetRequest(wgeChartUrl, string(secret.Data["username"]), string(secret.Data["password"]))
 	if err != nil || body == nil {
-		return fmt.Errorf("%s: %w", invalidEntitlementSecretMsg, err)
+		return errors.New(invalidEntitlementSecretMsg)
 	}
 
 	return nil

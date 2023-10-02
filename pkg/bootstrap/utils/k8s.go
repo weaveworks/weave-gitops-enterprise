@@ -18,13 +18,11 @@ import (
 
 // GetKubernetesClient creates a kuberentes client from the default kubeconfig.
 func GetKubernetesClient(kubeconfig string) (k8s_client.Client, error) {
-	if kubeconfig == "" {
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return nil, err
-		}
-		kubeconfig = filepath.Join(home, ".kube", "config")
+	kubeconfig, err := getCurrentKubeConfig(kubeconfig)
+	if err != nil {
+		return nil, err
 	}
+
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
 		return nil, err
@@ -49,6 +47,26 @@ func GetKubernetesClient(kubeconfig string) (k8s_client.Client, error) {
 	}
 
 	return client, nil
+}
+
+// getCurrentKubeConfig checks for active kubeconfig by the following priority:
+// passed as cli argument, KUBECONFIG env variable and finally $HOME/.kube/config
+func getCurrentKubeConfig(kubeconfig string) (string, error) {
+	if kubeconfig != "" {
+		return kubeconfig, nil
+	}
+
+	kubeconfigFromEnv := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
+	if kubeconfigFromEnv != "" {
+		return kubeconfigFromEnv, nil
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+
+	return filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName), nil
 }
 
 // GetSecret get secret values from kubernetes.
