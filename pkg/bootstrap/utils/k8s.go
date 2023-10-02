@@ -55,15 +55,18 @@ func getCurrentKubeConfig(kubeconfig string) (string, error) {
 	if kubeconfig != "" {
 		return kubeconfig, nil
 	}
-	kubeconfigFromEnv := os.Getenv("KUBECONFIG")
+
+	kubeconfigFromEnv := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
 	if kubeconfigFromEnv != "" {
 		return kubeconfigFromEnv, nil
 	}
+
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(home, ".kube", "config"), nil
+
+	return filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName), nil
 }
 
 // GetSecret get secret values from kubernetes.
