@@ -1,19 +1,38 @@
-import { useQuery } from 'react-query';
+import { useMutation } from 'react-query';
 import {
   ApprovePromotionRequest,
   ApprovePromotionResponse,
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
-import { toast } from 'react-toastify';
-
-export const useApprove = (req: ApprovePromotionRequest) => {
-  const { data, isLoading, error, refetch } = useQuery<
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
+import { Link } from '@weaveworks/weave-gitops';
+import useNotifications from '../contexts/Notifications';
+import { formatError } from '../utils/formatters';
+export const useApprove = () => {
+  const { setNotifications } = useNotifications();
+  const mutation = useMutation<
     ApprovePromotionResponse,
-    Error
-  >('approve', () => Pipelines.ApprovePromotion(req), {
-    enabled: false,
-    onError: (error: Error) =>
-      toast['error'](error.message || 'Error promoting pipeline'),
+    RequestError,
+    ApprovePromotionRequest
+  >('approve', req => Pipelines.ApprovePromotion(req), {
+    //pending backend changes, show PR through notifications in order to not remove functionality
+    onError: error => {
+      setNotifications(formatError(error));
+    },
+    onSuccess: data => {
+      setNotifications([
+        {
+          message: {
+            component: (
+              <Link href={data.pullRequestURL} newTab>
+                {data.pullRequestURL ? 'Click to view PR' : 'No PR to Approve'}
+              </Link>
+            ),
+          },
+          severity: 'success',
+        },
+      ]);
+    },
   });
-  return { data, isLoading, error, refetch };
+  return mutation;
 };

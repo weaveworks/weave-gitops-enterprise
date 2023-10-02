@@ -1,41 +1,34 @@
 import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
-import { Button, Flex, Link, Text } from '@weaveworks/weave-gitops';
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import { ApprovePromotionRequest } from '../../../api/pipelines/pipelines.pb';
 
 import { useApprove } from '../../../hooks/pipelines';
+import styled from 'styled-components';
 
 const PromotePipeline = ({
+  className,
   req,
   promoteVersion,
 }: {
+  className?: string;
   req: ApprovePromotionRequest;
   promoteVersion: string;
 }) => {
-  const { data, isLoading, refetch } = useApprove(req);
-
+  const approve = useApprove();
   return (
-    <Flex column gap="4">
+    <Flex column gap="8" className={className}>
       <Button
         startIcon={<ShowChartIcon />}
-        onClick={() => refetch()}
-        disabled={isLoading || !promoteVersion}
-        loading={isLoading}
+        onClick={() => approve.mutateAsync(req)}
+        disabled={approve.isLoading || !promoteVersion}
+        loading={approve.isLoading}
       >
         Approve Promotion
       </Button>
-      {/* <Text color="primary20">
-        PR:
-        {data ? (
-          <Link href={data.pullRequestURL} newTab>
-            {data.pullRequestURL}
-          </Link>
-        ) : (
-          ' Waiting For Approval'
-        )}
-      </Text> */}
+      {/** Add PR link here when backend changes get made */}
     </Flex>
   );
 };
 
-export default PromotePipeline;
+export default styled(PromotePipeline)``;

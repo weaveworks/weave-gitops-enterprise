@@ -20,6 +20,11 @@ import {
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
 
+const PromotionContainer = styled.div`
+  height: 40px;
+  padding: ${props => props.theme.spacing.small} 0;
+`;
+
 const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
   return targetsStatuses?.reduce((prev, next) => {
     return prev + (next.workloads?.length || 0);
@@ -120,17 +125,19 @@ function Workloads({
                 {getTargetsCount(status || [])} Targets
               </div>
             </div>
-            {manual && index < environments.length - 1 && (
-              <PromotePipeline
-                req={{
-                  name: pipeline.name,
-                  env: env.name,
-                  namespace: pipeline.namespace,
-                  revision: promoteVersion,
-                }}
-                promoteVersion={promoteVersion || ''}
-              />
-            )}
+            <PromotionContainer>
+              {manual && index < environments.length - 1 && (
+                <PromotePipeline
+                  req={{
+                    name: pipeline.name,
+                    env: env.name,
+                    namespace: pipeline.namespace,
+                    revision: promoteVersion,
+                  }}
+                  promoteVersion={promoteVersion || ''}
+                />
+              )}
+            </PromotionContainer>
             {status.map((target, indx) => (
               <TargetStatus target={target} classes={classes} key={indx} />
             ))}
