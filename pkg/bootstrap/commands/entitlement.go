@@ -3,7 +3,6 @@ package commands
 import (
 	_ "embed"
 	"fmt"
-	"os"
 	"strings"
 	"time"
 
@@ -31,15 +30,9 @@ var (
 
 // CheckEntitlementSecret checks for valid entitlement secret.
 func CheckEntitlementSecret(client k8s_client.Client) error {
-	installedVersion, err := utils.GetHelmReleaseProperty(client, WGEHelmReleaseName, WGEDefaultNamespace, HelmVersionProperty)
-	if err == nil {
-		utils.Info("WGE version: %s is already installed on your cluster!", installedVersion)
-		os.Exit(0)
-	}
-
 	utils.Warning(entitlementCheckMsg)
 
-	err = verifyEntitlementSecret(client)
+	err := verifyEntitlementSecret(client)
 	if err != nil {
 		return err
 	}

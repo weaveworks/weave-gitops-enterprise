@@ -2,6 +2,7 @@ package bootstrap
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
@@ -73,10 +74,15 @@ func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) er
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 	// creating kubernetes client to use it in the commands
-
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
+	}
+
+	installedVersion, err := utils.GetHelmRelease(kubernetesClient, commands.WgeHelmReleaseName, commands.WGEDefaultNamespace)
+	if err == nil {
+		utils.Info("WGE version: %s is already installed on your cluster!", installedVersion)
+		os.Exit(0)
 	}
 
 	if err := commands.CheckEntitlementSecret(kubernetesClient); err != nil {
