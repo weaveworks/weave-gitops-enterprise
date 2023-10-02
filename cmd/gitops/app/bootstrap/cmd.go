@@ -28,7 +28,6 @@ gitops bootstrap
 # Start WGE installation from a specific kubeconfig
 gitops bootstrap --kubeconfig <your-kubeconfig-location>
 `
-	redError = "\x1b[31;1m%w\x1b[0m"
 )
 
 type bootstrapFlags struct {
