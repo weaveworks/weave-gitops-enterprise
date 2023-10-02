@@ -31,7 +31,6 @@ type Options struct {
 	ProfilesPort      string
 	Namespace         string
 	Kubeconfig        string
-	AutoMerge         bool
 	HeadBranch        string
 	BaseBranch        string
 	Message           string
