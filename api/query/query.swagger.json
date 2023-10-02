@@ -232,6 +232,12 @@
         },
         "tenant": {
           "type": "string"
+        },
+        "labels": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       }
     },

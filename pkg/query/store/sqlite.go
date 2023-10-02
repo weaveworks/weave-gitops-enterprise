@@ -269,7 +269,7 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (obj models.
 	metrics.DataStoreInflightRequests(metrics.GetObjectByIdAction, 1)
 	defer recordMetrics(metrics.GetObjectByIdAction, time.Now(), err)
 
-	result := i.db.Model(&object).Where("id = ?", id).First(&object)
+	result := i.db.Model(&object).Where("id = ?", id).Preload("Labels").First(&object)
 	if result.Error != nil {
 		return models.Object{}, fmt.Errorf("failed to get object: %s with error: %w", id, result.Error)
 	}
@@ -279,7 +279,7 @@ func (i *SQLiteStore) GetObjectByID(ctx context.Context, id string) (obj models.
 
 func (i *SQLiteStore) GetAllObjects(ctx context.Context) (Iterator, error) {
 	var objects []models.Object
-	result := i.db.Model(&models.Object{}).Find(&objects)
+	result := i.db.Model(&models.Object{}).Preload("Labels").Find(&objects)
 	if result.Error != nil {
 		return nil, fmt.Errorf("failed to get objects: %w", result.Error)
 	}
@@ -425,7 +425,7 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 	// From the readme: https://github.com/mattn/go-sqlite3
 	goDB.SetMaxOpenConns(1)
 
-	if err := db.AutoMigrate(&models.Object{}, &models.Role{}, &models.Subject{}, &models.RoleBinding{}, &models.PolicyRule{}); err != nil {
+	if err := db.AutoMigrate(&models.Object{}, &models.Labels{}, &models.Role{}, &models.Subject{}, &models.RoleBinding{}, &models.PolicyRule{}); err != nil {
 		return nil, fmt.Errorf("failed to migrate database: %w", err)
 	}
 

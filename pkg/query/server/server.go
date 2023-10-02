@@ -269,6 +269,13 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 	pbObjects := []*pb.Object{}
 
 	for _, o := range obj {
+
+		labels := []string{}
+
+		for _, label := range o.Labels {
+			labels = append(labels, fmt.Sprintf("%s=%s", label.Key, label.Value))
+		}
+
 		pbObjects = append(pbObjects, &pb.Object{
 			Kind:         o.Kind,
 			Name:         o.Name,
@@ -282,6 +289,7 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 			Unstructured: string(o.Unstructured),
 			Id:           o.GetID(),
 			Tenant:       o.Tenant,
+			Labels:       labels,
 		})
 	}
 

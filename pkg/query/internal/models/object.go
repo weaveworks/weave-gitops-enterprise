@@ -27,6 +27,14 @@ type Object struct {
 	KubernetesDeletedAt time.Time                    `json:"kubernetesDeletedAt"`
 	Unstructured        json.RawMessage              `json:"unstructured" gorm:"type:blob"`
 	Tenant              string                       `json:"tenant" gorm:"type:text"`
+	Labels              []Labels                     `gorm:"foreignKey:ObjectID"`
+}
+
+type Labels struct {
+	gorm.Model
+	Key      string `gorm:"type:text"`
+	Value    string `gorm:"type:text"`
+	ObjectID string
 }
 
 func (o Object) Validate() error {

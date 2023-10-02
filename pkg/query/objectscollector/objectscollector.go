@@ -111,6 +111,16 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
+		labels := o.GetLabels()
+		pairs := []models.Labels{}
+
+		for k, v := range labels {
+			pairs = append(pairs, models.Labels{
+				Key:   k,
+				Value: v,
+			})
+		}
+
 		object := models.Object{
 			Cluster:             objTx.ClusterName(),
 			Name:                objTx.Object().GetName(),
@@ -123,7 +133,8 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			Category:            cat,
 			KubernetesDeletedAt: modelTs,
 			Unstructured:        raw,
-			Tenant:              o.GetLabels()[tenantLabel],
+			Tenant:              labels[tenantLabel],
+			Labels:              pairs,
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
