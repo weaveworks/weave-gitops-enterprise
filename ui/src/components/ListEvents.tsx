@@ -32,7 +32,7 @@ const ListEvents = (props: ListEventsRequest) => {
             label: 'Reason',
             labelRenderer: () => {
               return (
-                <Reason title="It refers to what triggered the event. It can be different according to each component.">
+                <Reason title="This refers to what triggered the event, and can vary by component.">
                   Reason
                   <Icon
                     size="base"
