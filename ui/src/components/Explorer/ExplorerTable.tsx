@@ -53,7 +53,7 @@ function ExplorerTable({
       value: (o: Object) => {
         const page = getKindRoute(o?.kind as string);
 
-        let url: string;
+        let url: string = '';
         if (page === V2Routes.NotImplemented) {
           url = formatURL(Routes.ExplorerView, {
             kind: o.kind,
@@ -61,12 +61,7 @@ function ExplorerTable({
             namespace: o.namespace,
             clusterName: o.cluster,
           });
-        } else if (page === Routes.Templates) {
-          url = formatURL(page, {
-            search: o.name + '_',
-            filters: 'namespace: ' + o.namespace + '_',
-          });
-        } else {
+        } else if (page) {
           url = formatURL(page, {
             name: o.name,
             namespace: o.namespace,
