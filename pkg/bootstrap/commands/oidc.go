@@ -2,11 +2,11 @@ package commands
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 )
 
@@ -15,7 +15,7 @@ const (
 	oidcConfigInfoMsg = "Setting up OIDC require configurations provided by your OIDC provider. To learn more about these OIDC configurations, checkout https://docs.gitops.weave.works/docs/next/configuration/oidc-access/#configuration"
 
 	oidcDiscoverUrlMsg    = "Please enter OIDC Discovery URL (example: https://example-idp.com/.well-known/openid-configuration)"
-	discoveryUrlVerifyMsg = "Verifying OIDC discovery URL ..."
+	discoveryUrlVerifyMsg = "Verifying OIDC discovery URL"
 
 	discoveryUrlErrorMsgFormat = "error: OIDC discovery URL returned status %d"
 	discoveryUrlNoIssuerMsg    = "error: OIDC discovery URL returned no issuer"
@@ -23,7 +23,7 @@ const (
 	oidcClientIDMsg     = "Please enter OIDC clientID"
 	oidcClientSecretMsg = "Please enter OIDC clientSecret"
 
-	oidcInstallInfoMsg  = "Configuring OIDC ..."
+	oidcInstallInfoMsg  = "Configuring OIDC"
 	oidcConfirmationMsg = "OIDC has been configured successfully!"
 
 	oidcConfigExistWarningMsgFormat = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again."
@@ -36,28 +36,27 @@ const (
 	oidcSecretName = "oidc-auth"
 )
 
-func (c *Config) CreateOIDCPrompt() error {
+func (c *Config) CreateOIDCPrompt(params AuthConfigParams) error {
 	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
-	if oidcConfigPrompt != "y" {
+	if oidcConfigPrompt != confirmYes {
 		return nil
 	}
-	return createOIDCConfig()
+	return c.CreateOIDCConfig(params)
 
 }
 
 // CreateOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
 // If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
-func createOIDCConfig() error {
-	utils.Info(oidcConfigInfoMsg)
-
-	if _, err := utils.GetSecret(client, oidcSecretName, WGEDefaultNamespace); err == nil {
-		utils.Info(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace)
+func (c *Config) CreateOIDCConfig(params AuthConfigParams) error {
+	c.Logger.Actionf(oidcConfigInfoMsg)
+	if secret, err := utils.GetSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace); secret != nil && err == nil {
+		c.Logger.Warningf(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace)
 		return nil
 	} else if err != nil && !strings.Contains(err.Error(), "not found") {
 		return err
 	}
 
-	oidcConfig, err := getOIDCSecrets(params)
+	oidcConfig, err := c.getOIDCSecrets(params)
 	if err != nil {
 		return err
 	}
@@ -69,19 +68,18 @@ func createOIDCConfig() error {
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	if err = utils.CreateSecret(client, oidcSecretName, WGEDefaultNamespace, oidcSecretData); err != nil {
+	if err = utils.CreateSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace, oidcSecretData); err != nil {
 		return err
 	}
 
 	values := constructOIDCValues(oidcConfig)
 
-	utils.Warning(oidcInstallInfoMsg)
+	c.Logger.Waitingf(oidcInstallInfoMsg)
 
-	if err := UpdateHelmReleaseValues(client, domain.OIDCValuesName, values); err != nil {
+	if err := updateHelmReleaseValues(c.KubernetesClient, oidcValuesName, values); err != nil {
 		return err
 	}
-
-	utils.Info(oidcConfirmationMsg)
+	c.Logger.Successf(oidcConfirmationMsg)
 
 	return nil
 }
@@ -93,16 +91,16 @@ func (c *Config) CheckAdminPasswordRevert() error {
 		return nil
 	}
 
-	if err := utils.DeleteSecret(client, adminSecretName, WGEDefaultNamespace); err != nil {
+	if err := utils.DeleteSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace); err != nil {
 		return err
 	}
 
-	utils.Info(adminUsernameRevertMsg)
+	c.Logger.Successf(adminUsernameRevertMsg)
 	return nil
 }
 
 // constructOIDCValues construct the OIDC values
-func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
+func constructOIDCValues(oidcConfig OIDCConfig) map[string]interface{} {
 	values := map[string]interface{}{
 		"enabled":                 true,
 		"issuerURL":               oidcConfig.IssuerURL,
@@ -114,8 +112,8 @@ func constructOIDCValues(oidcConfig domain.OIDCConfig) map[string]interface{} {
 }
 
 // getOIDCSecrets gets the OIDC config from the user if not provided
-func getOIDCSecrets(inputs domain.OIDCConfigParams) (domain.OIDCConfig, error) {
-	configs := domain.OIDCConfig{}
+func (c *Config) getOIDCSecrets(inputs AuthConfigParams) (OIDCConfig, error) {
+	configs := OIDCConfig{}
 
 	var oidcDiscoveryURL string
 	var oidcIssuerURL string
@@ -131,12 +129,12 @@ func getOIDCSecrets(inputs domain.OIDCConfigParams) (domain.OIDCConfig, error) {
 				return configs, err
 			}
 
-			utils.Info(discoveryUrlVerifyMsg)
+			c.Logger.Waitingf(discoveryUrlVerifyMsg)
 
 			// Try to get the issuer
 			oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
 			if err != nil {
-				utils.Warning("An error occurred: %s. Please enter the discovery URL again.", err.Error())
+				c.Logger.Failuref("An error occurred: %s. Please enter the discovery URL again.", err.Error())
 				continue // Go to the next iteration to re-ask for the URL
 			}
 
@@ -175,7 +173,7 @@ func getOIDCSecrets(inputs domain.OIDCConfigParams) (domain.OIDCConfig, error) {
 		oidcClientSecret = inputs.ClientSecret
 	}
 
-	oidcConfig := domain.OIDCConfig{
+	oidcConfig := OIDCConfig{
 		IssuerURL:    oidcIssuerURL,
 		ClientID:     oidcClientID,
 		ClientSecret: oidcClientSecret,
@@ -209,7 +207,7 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 
 	issuer, ok := result["issuer"].(string)
 	if !ok || issuer == "" {
-		return "", fmt.Errorf(discoveryUrlNoIssuerMsg)
+		return "", errors.New(discoveryUrlNoIssuerMsg)
 	}
 
 	return issuer, nil

@@ -10,7 +10,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
@@ -123,24 +122,6 @@ func ReconcileHelmRelease(hrName string) error {
 	return nil
 }
 
-// GetCurrentValuesForHelmRelease gets the current values from a specific helmrelease.
-func GetCurrentValuesForHelmRelease(client k8s_client.Client, releaseName string, namespace string) (domain.ValuesFile, error) {
-	helmrelease := &helmv2.HelmRelease{}
-	if err := client.Get(context.Background(), k8s_client.ObjectKey{
-		Namespace: namespace,
-		Name:      releaseName,
-	}, helmrelease); err != nil {
-		return domain.ValuesFile{}, err
-	}
-
-	values := domain.ValuesFile{}
-	if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
-		return domain.ValuesFile{}, fmt.Errorf("%s: %w", string(helmrelease.Spec.Values.Raw), err)
-	}
-
-	return values, nil
-}
-
 func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namespace string, property string) (string, error) {
 	helmrelease := &helmv2.HelmRelease{}
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
@@ -160,6 +141,6 @@ func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namesp
 		}
 		return values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string), nil
 	default:
-		return "", fmt.Errorf("Unsupported property: %s", property)
+		return "", fmt.Errorf("unsupported property: %s", property)
 	}
 }

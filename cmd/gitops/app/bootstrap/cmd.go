@@ -105,7 +105,12 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 		return err
 	}
 
-	if err = config.CreateOIDCPrompt(); err != nil {
+	oidcParams := commands.AuthConfigParams{
+		UserDomain: config.UserDomain,
+		WGEVersion: config.WGEVersion,
+	}
+
+	if err = config.CreateOIDCPrompt(oidcParams); err != nil {
 		return err
 	}
 

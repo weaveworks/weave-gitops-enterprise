@@ -1,10 +1,12 @@
 package auth
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -26,7 +28,7 @@ gitops bootstrap auth --type=oidc
 	`,
 		Run: getAuthCmdRun(opts),
 	}
-	cmd.Flags().StringVar(&params.Type, "type", "oidc", "Type of authentication")
+	cmd.Flags().StringVar(&params.Type, "type", "", "Type of authentication")
 	cmd.Flags().StringVar(&params.DiscoveryURL, "discovery-url", "", "OIDC Discovery URL (optional)")
 	cmd.Flags().StringVar(&params.ClientID, "client-id", "", "OIDC Client ID (optional)")
 	cmd.Flags().StringVar(&params.ClientSecret, "client-secret", "", "OIDC Client Secret (optional)")
@@ -44,33 +46,38 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) {
 }
 
 func createAuthCommand(opts *config.Options, logger logger.Logger) error {
-	// // get userDomain from helm release
-	// oidcDomain, err := utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, helmDomainProperty)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
+	if err != nil {
+		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
+	}
 
-	// // get current version of WGE
-	// wgeVersion, err := utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, commands.HelmVersionProperty)
-	// if err != nil {
-	// 	return nil, err
-	// }
+	installedVersion, err := utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, commands.HelmVersionProperty)
+	if err != nil {
+		return err
+	}
 
-	// var authType string
+	oidcDomain, err := utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, helmDomainProperty)
+	if err != nil {
+		return err
+	}
 
-	// // Add the auth sub-command to the bootstrap command
-	// authCmd := &cobra.Command{
-	// 	Use:   cmdAuthName,
-	// 	Short: cmdAuthShortDescription,
-	// 	RunE: func(cmd *cobra.Command, args []string) error {
+	config := commands.Config{}
+	config.KubernetesClient = kubernetesClient
+	config.Logger = logger
 
-	// 		switch authType {
-	// 		case authOIDC:
-	// 			return commands.CreateOIDCConfig()
-	// 		default:
-	// 			return fmt.Errorf("Unsupported authentication type: %s", authType)
-	// 		}
-	// 	},
-	// }
-	return nil
+	authParams := commands.AuthConfigParams{
+		UserDomain:   oidcDomain,
+		WGEVersion:   installedVersion,
+		DiscoveryURL: params.DiscoveryURL,
+		ClientID:     params.ClientID,
+		ClientSecret: params.ClientSecret,
+	}
+
+	switch params.Type {
+	case authOIDC:
+		return config.CreateOIDCConfig(authParams)
+	default:
+		return fmt.Errorf("unsupported authentication type: %s", params.Type)
+	}
+
 }

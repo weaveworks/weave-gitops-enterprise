@@ -80,12 +80,7 @@ func (c *Config) InstallWge() error {
 		return err
 	}
 
-	defer func() {
-		err = utils.CleanupRepo()
-		if err != nil {
-			c.Logger.Failuref("failed to cleanup repo!")
-		}
-	}()
+	defer utils.CleanupRepo()
 
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {

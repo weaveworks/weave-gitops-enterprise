@@ -1,8 +1,13 @@
 package commands
 
 import (
+	"context"
+	"encoding/json"
+
+	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -11,7 +16,7 @@ const (
 
 // updateHelmReleaseValues add the extra HelmRelease values.
 func updateHelmReleaseValues(cl client.Client, controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := utils.GetCurrentValuesForHelmRelease(cl, WGEHelmReleaseName, WGEDefaultNamespace)
+	values, err := getCurrentValuesForHelmRelease(cl, WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -36,12 +41,7 @@ func updateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 		return err
 	}
 
-	defer func() {
-		err = utils.CleanupRepo()
-		if err != nil {
-			// TODO: handle error
-		}
-	}()
+	defer utils.CleanupRepo()
 
 	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, helmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
 		return err
@@ -55,4 +55,22 @@ func updateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 	}
 
 	return nil
+}
+
+// GetCurrentValuesForHelmRelease gets the current values from a specific helmrelease.
+func getCurrentValuesForHelmRelease(client k8s_client.Client, releaseName string, namespace string) (valuesFile, error) {
+	helmrelease := &helmv2.HelmRelease{}
+	if err := client.Get(context.Background(), k8s_client.ObjectKey{
+		Namespace: namespace,
+		Name:      releaseName,
+	}, helmrelease); err != nil {
+		return valuesFile{}, err
+	}
+
+	values := valuesFile{}
+	if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
+		return valuesFile{}, err
+	}
+
+	return values, nil
 }

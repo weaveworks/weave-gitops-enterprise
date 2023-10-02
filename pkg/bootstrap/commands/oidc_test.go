@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/alecthomas/assert"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 func TestGetIssuer(t *testing.T) {
@@ -29,19 +30,19 @@ func TestGetOIDCSecrets(t *testing.T) {
 
 	tests := []struct {
 		name   string
-		input  domain.OIDCConfigParams
-		expect domain.OIDCConfig
+		input  AuthConfigParams
+		expect OIDCConfig
 		err    error
 	}{
 		{
-			name: "OIDCConfigParams with all fields",
-			input: domain.OIDCConfigParams{
+			name: "AuthConfigParams with all fields",
+			input: AuthConfigParams{
 				DiscoveryURL: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				ClientID:     "client-id",
 				ClientSecret: "client-secret",
 				UserDomain:   "localhost",
 			},
-			expect: domain.OIDCConfig{
+			expect: OIDCConfig{
 				IssuerURL:    "https://dex-01.wge.dev.weave.works",
 				ClientID:     "client-id",
 				ClientSecret: "client-secret",
@@ -50,14 +51,14 @@ func TestGetOIDCSecrets(t *testing.T) {
 			err: nil,
 		},
 		{
-			name: "OIDCConfigParams with invalid DiscoveryURL",
-			input: domain.OIDCConfigParams{
+			name: "AuthConfigParams with invalid DiscoveryURL",
+			input: AuthConfigParams{
 				DiscoveryURL: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration-invalid",
 				ClientID:     "client-id",
 				ClientSecret: "client-secret",
 				UserDomain:   "localhost",
 			},
-			expect: domain.OIDCConfig{
+			expect: OIDCConfig{
 				IssuerURL:    "https://dex-01.wge.dev.weave.works",
 				ClientID:     "client-id",
 				ClientSecret: "client-secret",
@@ -69,7 +70,12 @@ func TestGetOIDCSecrets(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := getOIDCSecrets(tt.input)
+			logger := logger.NewCLILogger(os.Stdout)
+			config := Config{
+				Logger: logger,
+			}
+
+			result, err := config.getOIDCSecrets(tt.input)
 			if err != nil {
 				assert.NotNil(t, err)
 				return
