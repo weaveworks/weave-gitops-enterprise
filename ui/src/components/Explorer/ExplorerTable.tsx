@@ -1,19 +1,18 @@
 import { Box } from '@material-ui/core';
 import {
+  DataTable,
   Flex,
+  formatURL,
   Icon,
   IconType,
   Link,
   V2Routes,
-  formatURL,
 } from '@weaveworks/weave-gitops';
-import styled from 'styled-components';
-import { Object } from '../../api/query/query.pb';
-import { Routes, getKindRoute } from '../../utils/nav';
-// @ts-ignore
-import { DataTable } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
+import styled from 'styled-components';
+import { Object } from '../../api/query/query.pb';
+import { getKindRoute, Routes } from '../../utils/nav';
 import { QueryState } from './hooks';
 
 export type FieldWithIndex = Field & { index?: number };

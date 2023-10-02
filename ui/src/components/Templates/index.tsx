@@ -1,23 +1,23 @@
+import {
+  Button,
+  DataTable,
+  filterConfig,
+  Icon,
+  IconType,
+  Link,
+  useFeatureFlags,
+} from '@weaveworks/weave-gitops';
 import { FC, useCallback, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { Template } from '../../cluster-services/cluster_services.pb';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
-import {
-  Button,
-  DataTable,
-  Icon,
-  IconType,
-  Link,
-  filterConfig,
-  useFeatureFlags,
-} from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
-import { Template } from '../../cluster-services/cluster_services.pb';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Page } from '../Layout/App';
 import Explorer from '../Explorer/Explorer';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const Error = styled.span`
   color: ${props => props.theme.colors.alertOriginal};
