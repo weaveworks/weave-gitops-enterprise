@@ -79,7 +79,7 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
 
-	installedVersion, err := utils.GetHelmRelease(kubernetesClient, commands.WgeHelmReleaseName, commands.WGEDefaultNamespace)
+	installedVersion, err := utils.GetHelmReleaseProperty(kubernetesClient, commands.WGEHelmReleaseName, commands.WGEDefaultNamespace, commands.HelmVersionProperty)
 	if err == nil {
 		utils.Info("WGE version: %s is already installed on your cluster!", installedVersion)
 		os.Exit(0)
