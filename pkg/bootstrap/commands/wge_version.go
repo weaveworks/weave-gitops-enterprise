@@ -16,7 +16,7 @@ const (
 )
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions.
-func SelectWgeVersion(client k8s_client.Client, silent bool) (string, error) {
+func SelectWgeVersion(client k8s_client.Client) (string, error) {
 	entitlementSecret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return "", err
@@ -28,12 +28,6 @@ func SelectWgeVersion(client k8s_client.Client, silent bool) (string, error) {
 	versions, err := fetchHelmChartVersions(chartUrl, username, password)
 	if err != nil {
 		return "", err
-	}
-
-	if silent {
-		version := versions[0]
-		utils.Info("Selected version: %s", version)
-		return version, nil
 	}
 
 	return utils.GetSelectInput(versionMsg, versions)

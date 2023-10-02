@@ -44,7 +44,7 @@ func isAdminCredsAvailable(client k8s_client.Client) (bool, error) {
 // admin username and password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
 // there an option to revert these creds in case OIDC setup is successful
-func AskAdminCredsSecret(client k8s_client.Client, silent bool) error {
+func AskAdminCredsSecret(client k8s_client.Client) error {
 	available, err := isAdminCredsAvailable(client)
 	if err != nil {
 		return err
@@ -53,10 +53,7 @@ func AskAdminCredsSecret(client k8s_client.Client, silent bool) error {
 	if available {
 		utils.Info(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace)
 
-		existingCreds := confirmYes
-		if !silent {
-			existingCreds = utils.GetConfirmInput(existingCredsMsg)
-		}
+		existingCreds := utils.GetConfirmInput(existingCredsMsg)
 
 		if existingCreds == confirmYes {
 			return nil
@@ -67,20 +64,14 @@ func AskAdminCredsSecret(client k8s_client.Client, silent bool) error {
 		return nil
 	}
 
-	adminUsername := defaultAdminUsername
-	adminPassword := defaultAdminPassword
+	adminUsername, err := utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
+	if err != nil {
+		return err
+	}
 
-	if !silent {
-		adminUsername, err = utils.GetStringInput(adminUsernameMsg, defaultAdminUsername)
-		if err != nil {
-			return err
-		}
-
-		adminPassword, err = utils.GetPasswordInput(adminPasswordMsg)
-		if err != nil {
-			return err
-		}
-
+	adminPassword, err := utils.GetPasswordInput(adminPasswordMsg)
+	if err != nil {
+		return err
 	}
 
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(adminPassword), bcrypt.DefaultCost)

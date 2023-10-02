@@ -57,15 +57,12 @@ var (
 )
 
 // InstallWge installs weave gitops enterprise chart.
-func InstallWge(client k8s_client.Client, version string, silent bool) (string, error) {
+func InstallWge(client k8s_client.Client, version string) (string, error) {
 	var err error
-	domainType := domainTypes[0]
 
-	if !silent {
-		domainType, err = utils.GetSelectInput(domainMsg, domainTypes)
-		if err != nil {
-			return "", err
-		}
+	domainType, err := utils.GetSelectInput(domainMsg, domainTypes)
+	if err != nil {
+		return "", err
 	}
 
 	userDomain := domainTypelocalhost

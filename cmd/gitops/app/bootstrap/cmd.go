@@ -29,12 +29,6 @@ This will help getting started with Weave GitOps Enterprise through simple steps
 	redError = "\x1b[31;1m%w\x1b[0m"
 )
 
-type bootstrapFlags struct {
-	silent bool
-}
-
-var bootstrapArgs bootstrapFlags
-
 func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cmdName,
@@ -43,14 +37,12 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRunE(opts),
 	}
 
-	cmd.Flags().BoolVarP(&bootstrapArgs.silent, "silent", "s", false, "install with the default values without user confirmation")
-
 	return cmd
 }
 
 func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-		if err := bootstrap(opts, bootstrapArgs); err != nil {
+		if err := bootstrap(opts); err != nil {
 			return fmt.Errorf(redError, err)
 		}
 		return nil
@@ -58,7 +50,7 @@ func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) er
 }
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
-func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
+func bootstrap(opts *config.Options) error {
 	// creating kubernetes client to use it in the commands
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
@@ -79,16 +71,16 @@ func bootstrap(opts *config.Options, bootstrapArgs bootstrapFlags) error {
 		return fmt.Errorf("failed to get verify flux installation. error: %s", err)
 	}
 
-	wgeVersion, err := commands.SelectWgeVersion(kubernetesClient, bootstrapArgs.silent)
+	wgeVersion, err := commands.SelectWgeVersion(kubernetesClient)
 	if err != nil {
 		return fmt.Errorf("failed to select WGE version. error: %s", err)
 	}
 
-	if err := commands.AskAdminCredsSecret(kubernetesClient, bootstrapArgs.silent); err != nil {
+	if err := commands.AskAdminCredsSecret(kubernetesClient); err != nil {
 		return fmt.Errorf("failed to create admin secret. error: %s", err)
 	}
 
-	userDomain, err := commands.InstallWge(kubernetesClient, wgeVersion, bootstrapArgs.silent)
+	userDomain, err := commands.InstallWge(kubernetesClient, wgeVersion)
 	if err != nil {
 		return fmt.Errorf("failed to install WGE. error: %s", err)
 	}
