@@ -13,8 +13,8 @@ import (
 
 const (
 	entitlementCheckConfirmMsg      = "Entitlement File exists and is valid"
-	nonExistingEntitlementSecretMsg = "✖️ Entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
-	invalidEntitlementSecretMsg     = "✖️ Entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
+	nonExistingEntitlementSecretMsg = "Entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
+	invalidEntitlementSecretMsg     = "Entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
 	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File"
 )
 

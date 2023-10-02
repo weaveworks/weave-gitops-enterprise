@@ -10,7 +10,7 @@ const (
 	fluxBoostrapCheckMsg     = "Checking flux is bootstrapped"
 	fluxExistingBootstrapMsg = "Flux is already bootstrapped"
 
-	fluxInstallationErrorMsgFormat = "✖️ An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster"
+	fluxInstallationErrorMsgFormat = "An error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster"
 )
 
 // VerifyFluxInstallation checks for valid flux installation.

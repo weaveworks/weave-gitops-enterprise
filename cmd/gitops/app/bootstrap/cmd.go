@@ -44,28 +44,27 @@ func Command(opts *config.Options) *cobra.Command {
 		Use:     cmdName,
 		Short:   cmdShortDescription,
 		Example: cmdExamples,
-		RunE:    getBootstrapCmdRunE(opts),
+		Run:     getBootstrapCmdRun(opts),
 	}
 
-	cmd.Flags().StringVarP(&flags.username, "username", "u", commands.DefaultAdminUsername, "Dashboard admin username")
-	cmd.Flags().StringVarP(&flags.password, "password", "p", commands.DefaultAdminPassword, "Dashboard admin password")
+	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
+	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version")
 	return cmd
 }
 
-func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) error {
-	return func(cmd *cobra.Command, args []string) error {
-		if err := bootstrap(opts); err != nil {
-			return fmt.Errorf(redError, err)
+func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) {
+	return func(cmd *cobra.Command, args []string) {
+		logger := logger.NewCLILogger(os.Stdout)
+
+		if err := bootstrap(opts, logger); err != nil {
+			logger.Failuref(err.Error())
 		}
-		return nil
 	}
 }
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
-func bootstrap(opts *config.Options) error {
-	logger := logger.NewCLILogger(os.Stdout)
-
+func bootstrap(opts *config.Options, logger logger.Logger) error {
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
