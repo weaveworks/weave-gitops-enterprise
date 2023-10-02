@@ -33,7 +33,7 @@ const (
 	wgeHelmReleaseCommitMsg           = "Add WGE HelmRelease YAML file"
 	wgeChartName                      = "mccp"
 	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
-	wgeHelmReleaseName                = "weave-gitops-enterprise"
+	WgeHelmReleaseName                = "weave-gitops-enterprise"
 	WGEDefaultNamespace               = "flux-system"
 	WGEDefaultRepoName                = "flux-system"
 	domainTypelocalhost               = "localhost"
@@ -44,6 +44,9 @@ const (
 	clusterControllerFullOverrideName = "cluster"
 	clusterControllerImage            = "docker.io/weaveworks/cluster-controller"
 	clusterControllerImageTag         = "v1.5.2"
+	gitopssetsEnabledGenerators       = "GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config"
+	gitopssetsBindAddress             = "127.0.0.1:8080"
+	gitopssetsHealthBindAddress       = ":8081"
 )
 
 var (
@@ -103,10 +106,10 @@ func InstallWge(client k8s_client.Client, version string, silent bool) (string, 
 		"controllerManager": map[string]interface{}{
 			"manager": map[string]interface{}{
 				"args": []string{
-					"--health-probe-bind-address=:8081",
-					"--metrics-bind-address=127.0.0.1:8080",
+					fmt.Sprintf("--health-probe-bind-address=%s", gitopssetsHealthBindAddress),
+					fmt.Sprintf("--metrics-bind-address=%s", gitopssetsBindAddress),
 					"--leader-elect",
-					"--enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config",
+					fmt.Sprintf("--enabled-generators=%s", gitopssetsEnabledGenerators),
 				},
 			},
 		},
@@ -147,7 +150,7 @@ func InstallWge(client k8s_client.Client, version string, silent bool) (string, 
 		return "", err
 	}
 
-	if err := utils.ReconcileHelmRelease(wgeHelmReleaseName); err != nil {
+	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
 		return "", err
 	}
 
@@ -205,7 +208,7 @@ func constructWGEhelmRelease(valuesFile domain.ValuesFile, chartVersion string) 
 
 	wgeHelmRelease := helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
-			Name:      wgeHelmReleaseName,
+			Name:      WgeHelmReleaseName,
 			Namespace: WGEDefaultNamespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
