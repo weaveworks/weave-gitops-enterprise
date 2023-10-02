@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
+	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const (
@@ -30,6 +31,14 @@ gitops bootstrap --kubeconfig <your-kubeconfig-location>
 	redError = "\x1b[31;1m%w\x1b[0m"
 )
 
+type bootstrapFlags struct {
+	username string
+	password string
+	version  string
+}
+
+var flags bootstrapFlags
+
 func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cmdName,
@@ -38,6 +47,9 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRunE(opts),
 	}
 
+	cmd.Flags().StringVarP(&flags.username, "username", "u", commands.DefaultAdminUsername, "Dashboard admin username")
+	cmd.Flags().StringVarP(&flags.password, "password", "p", commands.DefaultAdminPassword, "Dashboard admin password")
+	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version")
 	return cmd
 }
 
@@ -52,6 +64,8 @@ func getBootstrapCmdRunE(opts *config.Options) func(*cobra.Command, []string) er
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func bootstrap(opts *config.Options) error {
+	logger := logger.NewCLILogger(os.Stdout)
+
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
@@ -59,34 +73,39 @@ func bootstrap(opts *config.Options) error {
 
 	installedVersion, err := utils.GetHelmRelease(kubernetesClient, commands.WgeHelmReleaseName, commands.WGEDefaultNamespace)
 	if err == nil {
-		utils.Info("WGE version: %s is already installed on your cluster!", installedVersion)
-		os.Exit(0)
+		logger.Successf("WGE version: %s is already installed on your cluster!", installedVersion)
+		return nil
 	}
 
-	if err := commands.CheckEntitlementSecret(kubernetesClient); err != nil {
-		return fmt.Errorf("failed to check entitlement secret. error: %s", err)
+	config := commands.Config{}
+	config.Username = flags.username
+	config.Password = flags.password
+	config.WGEVersion = flags.version
+	config.KubernetesClient = kubernetesClient
+	config.Logger = logger
+
+	if err := config.CheckEntitlementSecret(); err != nil {
+		return err
 	}
 
-	if err := commands.VerifyFluxInstallation(kubernetesClient); err != nil {
-		return fmt.Errorf("failed to get verify flux installation. error: %s", err)
+	if err := config.VerifyFluxInstallation(); err != nil {
+		return err
 	}
 
-	wgeVersion, err := commands.SelectWgeVersion(kubernetesClient)
-	if err != nil {
-		return fmt.Errorf("failed to select WGE version. error: %s", err)
+	if err := config.SelectWgeVersion(); err != nil {
+		return err
 	}
 
-	if err := commands.AskAdminCredsSecret(kubernetesClient); err != nil {
-		return fmt.Errorf("failed to create admin secret. error: %s", err)
+	if err := config.AskAdminCredsSecret(); err != nil {
+		return err
 	}
 
-	userDomain, err := commands.InstallWge(kubernetesClient, wgeVersion)
-	if err != nil {
-		return fmt.Errorf("failed to install WGE. error: %s", err)
+	if err := config.InstallWge(); err != nil {
+		return err
 	}
 
-	if err = commands.CheckUIDomain(kubernetesClient, userDomain, wgeVersion); err != nil {
-		return fmt.Errorf("failed to get WGE dashboard domain. error: %s", err)
+	if err := config.CheckUIDomain(); err != nil {
+		return err
 	}
 
 	return nil

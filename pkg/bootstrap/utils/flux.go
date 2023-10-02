@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -92,14 +93,16 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 // Reconciliation is important to apply the effect of adding resources to the git repository
 func ReconcileFlux() error {
 	var runner runner.CLIRunner
-	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
+	_, err := runner.Run("flux", "reconcile", "source", "git", "flux-system")
 	if err != nil {
-		return fmt.Errorf("%s: %w", string(out), err)
+		// adding an error message, err is meaningless
+		return errors.New("failed to reconcile flux source flux-system")
 	}
 
-	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
+	_, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		return fmt.Errorf("%s: %w", string(out), err)
+		// adding an error message, err is meaningless
+		return errors.New("failed to reconcile flux kustomization flux-system")
 	}
 
 	return nil
@@ -108,9 +111,10 @@ func ReconcileFlux() error {
 // ReconcileHelmRelease reconcile a particular helmrelease
 func ReconcileHelmRelease(hrName string) error {
 	var runner runner.CLIRunner
-	out, err := runner.Run("flux", "reconcile", "helmrelease", hrName)
+	_, err := runner.Run("flux", "reconcile", "helmrelease", hrName)
 	if err != nil {
-		return fmt.Errorf("%s: %w", string(out), err)
+		// adding an error message, err is meaningless
+		return fmt.Errorf("failed to reconcile flux helmrelease %s", hrName)
 	}
 
 	return nil

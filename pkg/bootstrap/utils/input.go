@@ -2,7 +2,6 @@ package utils
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/manifoldco/promptui"
 )
@@ -58,8 +57,6 @@ func GetSelectInput(msg string, items []string) (string, error) {
 		return "", err
 	}
 
-	Info("Selected: %s\n", result)
-
 	return result, nil
 }
 
@@ -99,14 +96,4 @@ func GetConfirmInput(msg string) string {
 	}
 
 	return result
-}
-
-// Info should be used to describe the example commands that are about to run.
-func Info(msg string, args ...interface{}) {
-	fmt.Printf(blueInfo, fmt.Sprintf(msg, args...))
-}
-
-// Warning should be used to display a warning.
-func Warning(msg string, args ...interface{}) {
-	fmt.Printf("%s\n", fmt.Sprintf(msg, args...))
 }

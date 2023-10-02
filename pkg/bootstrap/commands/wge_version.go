@@ -5,10 +5,8 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/domain"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"gopkg.in/yaml.v2"
-	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
 const (
@@ -16,10 +14,10 @@ const (
 )
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions.
-func SelectWgeVersion(client k8s_client.Client) (string, error) {
-	entitlementSecret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
+func (c *Config) SelectWgeVersion() error {
+	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
-		return "", err
+		return err
 	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
@@ -27,10 +25,18 @@ func SelectWgeVersion(client k8s_client.Client) (string, error) {
 	chartUrl := fmt.Sprintf("%s/index.yaml", wgeChartUrl)
 	versions, err := fetchHelmChartVersions(chartUrl, username, password)
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	return utils.GetSelectInput(versionMsg, versions)
+	if c.WGEVersion == "" {
+		c.WGEVersion, err = utils.GetSelectInput(versionMsg, versions)
+		if err != nil {
+			return err
+		}
+		c.Logger.Successf("Selected version %s", c.WGEVersion)
+	}
+
+	return nil
 }
 
 // fetchHelmChartVersions helper method to fetch wge helm chart versions.
@@ -40,7 +46,7 @@ func fetchHelmChartVersions(chartUrl, username, password string) ([]string, erro
 		return []string{}, err
 	}
 
-	var chart domain.HelmChartResponse
+	var chart helmChartResponse
 	err = yaml.Unmarshal(bodyBytes, &chart)
 	if err != nil {
 		return []string{}, err
