@@ -2,9 +2,13 @@ package connector
 
 import (
 	"context"
+	"fmt"
+	"maps"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
@@ -42,12 +46,20 @@ type ClusterConnectionOptions struct {
 	GitopsClusterName types.NamespacedName
 }
 
-func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *ClusterConnectionOptions) (string, error) {
+func getDynClientAndScheme(config *rest.Config) (dynamic.Interface, *runtime.Scheme, error) {
 	dynClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
 	scheme, err := NewGitopsClusterScheme()
+	if err != nil {
+		return nil, nil, err
+	}
+	return dynClient, scheme, nil
+}
+
+func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *ClusterConnectionOptions) (string, error) {
+	dynClient, scheme, err := getDynClientAndScheme(config)
 	if err != nil {
 		return "", err
 	}
@@ -104,6 +116,11 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 		return err
 	}
 
+	err = addOptionsToGitOpsClusterLabel(ctx, hubClusterConfig, options.GitopsClusterName, options)
+	if err != nil {
+		return err
+	}
+
 	lgr.V(logger.LogLevelInfo).Info("Successfully connected cluster", "cluster", options.GitopsClusterName)
 
 	return nil
@@ -119,4 +136,49 @@ func NewGitopsClusterScheme() (*runtime.Scheme, error) {
 	}
 
 	return scheme, nil
+}
+
+// addOptionsToGitOpsClusterLabel updates the GitopsCluster with the new labels
+func addOptionsToGitOpsClusterLabel(ctx context.Context, config *rest.Config, clusterName types.NamespacedName, options *ClusterConnectionOptions) error {
+	lgr := log.FromContext(ctx)
+	client, scheme, err := getDynClientAndScheme(config)
+	if err != nil {
+		return err
+	}
+
+	newLabels := map[string]string{
+		"clusters.weave.works/connect-cluster-service-account":      options.ServiceAccountName,
+		"clusters.weave.works/connect-cluster-cluster-role-binding": options.ClusterRoleBindingName,
+	}
+
+	resource := gitopsv1alpha1.GroupVersion.WithResource("gitopsclusters")
+	u, err := client.Resource(resource).Namespace(clusterName.Namespace).Get(ctx, clusterName.Name, metav1.GetOptions{})
+	if err != nil {
+		return fmt.Errorf("failed to get GitopsCluster %s: %w", clusterName, err)
+	}
+
+	gitopsCluster, err := unstructuredToGitopsCluster(scheme, u)
+	if err != nil {
+		return err
+	}
+	if gitopsCluster.Labels != nil {
+		maps.Copy(gitopsCluster.Labels, newLabels)
+	} else {
+		gitopsCluster.Labels = newLabels
+	}
+
+	newUnstructured := unstructured.Unstructured{}
+	err = scheme.Convert(gitopsCluster, &newUnstructured, nil)
+	if err != nil {
+		return err
+	}
+
+	_, err = client.Resource(resource).Namespace(clusterName.Namespace).Update(ctx, &newUnstructured, metav1.UpdateOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("Updated Gitopscluster with cluster connection options", "cluster", clusterName.Name)
+
+	return nil
+
 }
