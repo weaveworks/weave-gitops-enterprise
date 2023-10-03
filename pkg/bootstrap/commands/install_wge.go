@@ -56,7 +56,7 @@ var (
 )
 
 // InstallWge installs weave gitops enterprise chart.
-func (c *Config) InstallWge() error {
+func (c *Bootstrapper) InstallWge() error {
 	if c.UserDomain == "" {
 		c.UserDomain = domainTypelocalhost
 		domainType, err := utils.GetSelectInput(domainMsg, domainTypes)
@@ -235,7 +235,7 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 }
 
 // CheckUIDomain display the message to be for external dns or localhost.
-func (c *Config) CheckUIDomain() error {
+func (c *Bootstrapper) CheckUIDomain() error {
 	if !strings.Contains(c.UserDomain, domainTypelocalhost) {
 		c.Logger.Successf(installSuccessMsg, c.WGEVersion, c.UserDomain)
 		return nil

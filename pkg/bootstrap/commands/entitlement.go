@@ -28,7 +28,7 @@ var (
 )
 
 // CheckEntitlementSecret checks for valid entitlement secret.
-func (c *Config) CheckEntitlementSecret() error {
+func (c *Bootstrapper) CheckEntitlementSecret() error {
 	c.Logger.Waitingf(entitlementCheckMsg)
 
 	err := verifyEntitlementSecret(c.KubernetesClient)

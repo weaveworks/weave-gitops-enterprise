@@ -29,7 +29,7 @@ const (
 // there an option to revert these creds in case OIDC setup is successful
 // if the creds already exist. user will be asked to continue with the current creds
 // Or existing and deleting the creds then re-run the bootstrap process
-func (c *Config) AskAdminCredsSecret() error {
+func (c *Bootstrapper) AskAdminCredsSecret() error {
 	// search for existing admin credentials in secret cluster-user-auth
 	secret, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
 	if secret != nil && err == nil {

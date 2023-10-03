@@ -14,7 +14,7 @@ const (
 )
 
 // VerifyFluxInstallation checks for valid flux installation.
-func (c *Config) VerifyFluxInstallation() error {
+func (c *Bootstrapper) VerifyFluxInstallation() error {
 	c.Logger.Waitingf(fluxBoostrapCheckMsg)
 
 	var runner runner.CLIRunner

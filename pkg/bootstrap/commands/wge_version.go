@@ -14,7 +14,7 @@ const (
 )
 
 // SelectWgeVersion ask user to select wge version from the latest 3 versions.
-func (c *Config) SelectWgeVersion() error {
+func (c *Bootstrapper) SelectWgeVersion() error {
 	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return err

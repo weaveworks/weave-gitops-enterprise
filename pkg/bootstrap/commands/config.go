@@ -5,8 +5,8 @@ import (
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Config is the main struct for WGE installation setup
-type Config struct {
+// Bootstrapper is the main struct for WGE installation setup
+type Bootstrapper struct {
 	Username         string
 	Password         string
 	KubernetesClient k8s_client.Client
