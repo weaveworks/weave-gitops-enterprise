@@ -16,16 +16,6 @@ export const usePipelineStyles = makeStyles(() =>
       paddingBottom: '8px',
       margin: `24 0 0 0`,
     },
-    title: {
-      fontSize: `24px`,
-      fontWeight: 600,
-      textTransform: 'capitalize',
-    },
-    subtitle: {
-      fontSize: '12px',
-      fontWeight: 400,
-      marginTop: '8px',
-    },
     mbSmall: {
       marginBottom: '12px',
     },

@@ -1,5 +1,5 @@
 import { Grid } from '@material-ui/core';
-import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import { Flex, formatURL, Link, Text } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import {
   Pipeline,
@@ -24,12 +24,6 @@ const PromotionContainer = styled.div`
   height: 40px;
   padding: ${props => props.theme.spacing.small} 0;
 `;
-
-const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
-  return targetsStatuses?.reduce((prev, next) => {
-    return prev + (next.workloads?.length || 0);
-  }, 0);
-};
 
 const TargetStatus = ({
   target,
@@ -120,10 +114,13 @@ function Workloads({
             id={env.name}
           >
             <div className={classes.mbSmall}>
-              <div className={classes.title}>{env.name}</div>
-              <div className={classes.subtitle}>
-                {getTargetsCount(status || [])} Targets
-              </div>
+              <Flex between align>
+                <Text bold capitalize size="large">
+                  {env.name}
+                </Text>
+                <Text>{env.targets?.length || '0'} TARGETS</Text>
+              </Flex>
+              <Text>Strategy: </Text>
             </div>
             <PromotionContainer>
               {manual && index < environments.length - 1 && (
