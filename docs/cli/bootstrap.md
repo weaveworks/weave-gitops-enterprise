@@ -109,28 +109,168 @@ func (c *Config) AskAdminCredsSecret() error {
 ```
 User has not introduce a custom value so we take the custom value  
 
+```go
+type Config struct {
+	Username         string
+	Password         string
+	KubernetesClient k8s_client.Client
+	WGEVersion       string
+	UserDomain       string
+	Logger           logger.Logger
+}
 
-
-
-
-
-
-
-
-
-
-// Configuration
-
+```
 
 ## How can I add a global or common behaviour for the command?
 
-### silent
+### silent // example of input common behaviour
 
-### export 
+1. add `silent` to the bootstrap flags struct
+2. add `silent` to the config struct so it could be passed downstream
+3. options:
 
+    a)  go to your steps implementation `AskAdminCredsSecret` and add the 
+    custom logic to handle the behaviour.
+    ```go
+        // handle silent behaviour 
+        if c.silent &&  c.Username != "" {
+            //use default value 
+            
+        }
+    ```
+    
+    b) extend the user input method with the `silent`
+    
+    ```go
+        if c.Username == "" {
+            c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername, silent)
+            if err != nil {
+                return err
+            }
+        }
+    ```
 
+### export // example of output common behaviour
+
+1. add `export` to the bootstrap flags struct
+2. add `export` to the config struct so it could be passed downstream
+3. options:
+
+   a)  go to your steps implementation `AskAdminCredsSecret` and add the
+   custom logic to handle the behaviour.
+    ```go
+   // handle export behaviour 
+	if c.export {
+		//write to stdout
+	}
+	else {
+		if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data); err != nil {
+			return err
+		}	
+	}
+    ```
+
+   b) extend the user input method with the `export`
+    ```go
+   // handle export behaviour 
+		if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data, export); err != nil {
+			return err
+		}
+    ```
+
+### other option ~> using generic struct 
+
+```go
+
+type BootstrapStep struct {
+   Name  string
+   Input func(map,config) config
+   Transform func(config)
+   Output     func()
+}
+
+var (
+   //generic
+   AskAdminCredentialsStep = BootstrapStep{
+      Input: defaultInputStep,
+      Output:      defaultOutpuStep,
+      Transform:     askAdminCredentialsStep,
+   }
+   WgeInstallCredentialsStep = BootstrapStep{
+      Input: wgeInstallInputStep,
+      Output:      defaultOutpuStep,
+      Transform:     askAdminCredentialsStep,
+   }
+})
+func defaultInput(params map, config *Config)  *Config {
+   // process the config
+   if config.silent {
+   }
+}
+func defaultOutput(*Config)  *Config {
+   // process the config
+   if config.export {
+   }
+}
+
+```
 
 ## How generated manifests are kept up to date beyond cli lifecycle?
+
+This will be addressed in the following [ticket](https://github.com/weaveworks/weave-gitops-enterprise/issues/3405)
+
+Currently, we do the following in the install wge step
+
+/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands/install_wge.go
+
+we have a valuesFile struct with the helm values that
+we will be writing:
+
+```go
+type valuesFile struct {
+	Config             ValuesWGEConfig        `json:"config,omitempty"`
+	Ingress            map[string]interface{} `json:"ingress,omitempty"`
+	TLS                map[string]interface{} `json:"tls,omitempty"`
+	PolicyAgent        map[string]interface{} `json:"policy-agent,omitempty"`
+	PipelineController map[string]interface{} `json:"pipeline-controller,omitempty"`
+	GitOpsSets         map[string]interface{} `json:"gitopssets-controller,omitempty"`
+	EnablePipelines    bool                   `json:"enablePipelines,omitempty"`
+	EnableTerraformUI  bool                   `json:"enableTerraformUI,omitempty"`
+	Global             global                 `json:"global,omitempty"`
+	ClusterController  clusterController      `json:"cluster-controller,omitempty"`
+}
+```
+
+that we build in the command logic
+
+```go
+values := valuesFile{
+	Ingress: constructIngressValues(c.UserDomain),
+	TLS: map[string]interface{}{
+	"enabled": false,
+	},
+	GitOpsSets:        gitOpsSetsValues,
+	EnablePipelines:   true,
+	ClusterController: clusterController,
+}
+```
+that we build with the following code
+
+```go
+wgeHelmRelease, err := constructWGEhelmRelease(values, c.WGEVersion)
+if err != nil {
+	return err
+}
+
+if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, wgeHelmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
+	return err
+}
+```
+## How should i handle errors in the command and/or step?
+
+
+
+
 
 
 
