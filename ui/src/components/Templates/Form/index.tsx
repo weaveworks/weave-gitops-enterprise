@@ -21,7 +21,6 @@ import {
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
-  RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import {
@@ -56,7 +55,6 @@ import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
 import GitOps from './Partials/GitOps';
-import Preview from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
@@ -65,6 +63,7 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from './utils';
+import { PreviewModal } from './Partials/PreviewModal';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -298,7 +297,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     });
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
-  const [openPreview, setOpenPreview] = useState(false);
+  // const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
@@ -306,54 +305,16 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const authRedirectPage = resource
     ? editLink
     : `/templates/create?name=${template.name}&namespace=${template.namespace}`;
-  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [prPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
-    null,
-  );
+  // const [previewLoading, setPreviewLoading] = useState<boolean>(false);
+  // const [prPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
+  //   null,
+  // );
   const [loading, setLoading] = useState<boolean>(false);
   const [costEstimationLoading, setCostEstimationLoading] =
     useState<boolean>(false);
   const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
   const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
   const [formError, setFormError] = useState<string>('');
-
-  const handlePRPreview = useCallback(() => {
-    const { parameterValues } = formData;
-    setPreviewLoading(true);
-    return renderTemplate({
-      templateName: template.name,
-      templateNamespace: template.namespace,
-      values: parameterValues,
-      profiles: encodedProfiles(updatedProfiles),
-      credentials: infraCredential || undefined,
-      kustomizations: getKustomizations(formData),
-      templateKind: template.templateKind,
-    })
-      .then(data => {
-        setOpenPreview(true);
-        setPRPreview(data);
-      })
-      .catch(err =>
-        setNotifications([
-          {
-            message: { text: err.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]),
-      )
-      .finally(() => setPreviewLoading(false));
-  }, [
-    formData,
-    setOpenPreview,
-    renderTemplate,
-    infraCredential,
-    template.name,
-    template.namespace,
-    template.templateKind,
-    updatedProfiles,
-    setNotifications,
-  ]);
 
   const handleCostEstimation = useCallback(() => {
     const { parameterValues } = formData;
@@ -420,7 +381,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       .then(() =>
         addResource(payload, getProviderToken(formData.provider))
           .then(response => {
-            setPRPreview(null);
+            // setPRPreview(null);
             history.push(Routes.Templates);
             setNotifications([
               {
@@ -457,7 +418,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     addResource,
     formData,
     infraCredential,
-    setPRPreview,
     template.name,
     template.namespace,
     template.templateKind,
@@ -496,8 +456,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const getSubmitFunction = useCallback(
     (submitType?: string) => {
       switch (submitType) {
-        case 'PR Preview':
-          return handlePRPreview;
         case 'Create resource':
           return handleAddResource;
         case 'Get cost estimation':
@@ -506,7 +464,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           return;
       }
     },
-    [handleAddResource, handleCostEstimation, handlePRPreview],
+    [handleAddResource, handleCostEstimation],
   );
 
   return useMemo(() => {
@@ -608,21 +566,13 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             >
               CREATE PULL REQUEST
             </Button>
-            <Button
-              loading={previewLoading}
-              disabled={previewLoading}
-              type="submit"
-              onClick={() => setSubmitType('PR Preview')}
-            >
-              PREVIEW PR
-            </Button>
-            {openPreview && prPreview ? (
-              <Preview
-                openPreview={openPreview}
-                setOpenPreview={setOpenPreview}
-                prPreview={prPreview}
-              />
-            ) : null}
+            <PreviewModal
+              template={template}
+              formData={formData}
+              profiles={encodedProfiles(updatedProfiles)}
+              credentials={infraCredential || undefined}
+              kustomizations={getKustomizations(formData)}
+            />
           </Flex>
         </FormWrapper>
       </CallbackStateContextProvider>
@@ -633,14 +583,14 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formData,
     infraCredential,
     classes,
-    openPreview,
-    prPreview,
+    // openPreview,
+    // prPreview,
     profilesIsLoading,
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
     updatedProfiles,
-    previewLoading,
+    // previewLoading,
     loading,
     costEstimationLoading,
     handleCostEstimation,
