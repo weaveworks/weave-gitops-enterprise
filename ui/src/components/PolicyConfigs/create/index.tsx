@@ -40,7 +40,7 @@ import {
 } from '../../Templates/Form/utils';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-import { PreviewPRModal } from './PreviewPRModal';
+import { PreviewPRModal } from './Preview';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
@@ -170,7 +170,7 @@ const CreatePolicyConfig = () => {
     }
   }, [initialGitRepo, formData.repo, clusterName]);
 
-  const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
+  const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
     const clusterDetails = {
@@ -348,7 +348,7 @@ const CreatePolicyConfig = () => {
                 label="CLUSTER"
                 value={selectedCluster || ''}
                 description="Select your cluster"
-                onChange={HandleSelectCluster}
+                onChange={handleSelectCluster}
                 error={formError === 'clusterName' && !clusterName}
               >
                 {!clusters?.length ? (

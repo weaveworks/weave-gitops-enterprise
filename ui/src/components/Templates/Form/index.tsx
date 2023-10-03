@@ -63,7 +63,7 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from './utils';
-import { PreviewModal } from './Partials/PreviewModal';
+import { Preview } from './Partials/Preview';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;
@@ -297,7 +297,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     });
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
-  // const [openPreview, setOpenPreview] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const history = useHistory();
   const isLargeScreen = useMediaQuery('(min-width:1632px)');
@@ -305,10 +304,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const authRedirectPage = resource
     ? editLink
     : `/templates/create?name=${template.name}&namespace=${template.namespace}`;
-  // const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  // const [prPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
-  //   null,
-  // );
   const [loading, setLoading] = useState<boolean>(false);
   const [costEstimationLoading, setCostEstimationLoading] =
     useState<boolean>(false);
@@ -381,7 +376,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       .then(() =>
         addResource(payload, getProviderToken(formData.provider))
           .then(response => {
-            // setPRPreview(null);
             history.push(Routes.Templates);
             setNotifications([
               {
@@ -566,7 +560,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             >
               CREATE PULL REQUEST
             </Button>
-            <PreviewModal
+            <Preview
               template={template}
               formData={formData}
               profiles={encodedProfiles(updatedProfiles)}
@@ -583,14 +577,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formData,
     infraCredential,
     classes,
-    // openPreview,
-    // prPreview,
     profilesIsLoading,
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
     updatedProfiles,
-    // previewLoading,
     loading,
     costEstimationLoading,
     handleCostEstimation,

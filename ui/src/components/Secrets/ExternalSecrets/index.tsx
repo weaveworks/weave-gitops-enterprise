@@ -21,7 +21,7 @@ import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
-import { PreviewModal, SecretType } from '../Shared/PreviewModal';
+import { Preview, SecretType } from '../Shared/Preview';
 import {
   ExternalSecret,
   FormWrapperSecret,
@@ -236,7 +236,7 @@ const CreateExternalSecret = () => {
               >
                 CREATE PULL REQUEST
               </Button>
-              <PreviewModal formData={formData} secretType={SecretType.ES} />
+              <Preview formData={formData} secretType={SecretType.ES} />
             </Flex>
           </FormWrapperSecret>
         </NotificationsWrapper>

@@ -1,7 +1,7 @@
 import { Button } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
-import Preview from '../../Templates/Form/Partials/Preview';
+import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 import {
   ExternalSecret,
   SOPS,
@@ -19,6 +19,7 @@ export enum SecretType {
   SOPS,
   ES,
 }
+
 const getRender = async (
   api: typeof ClustersService,
   secretType: SecretType,
@@ -49,7 +50,7 @@ const getRender = async (
   }
 };
 
-export const PreviewModal = ({
+export const Preview = ({
   secretType = SecretType.SOPS,
   formData,
 }: {
@@ -87,7 +88,7 @@ export const PreviewModal = ({
         PREVIEW PR
       </Button>
       {!previewLoading && openPreview && prPreview ? (
-        <Preview
+        <PreviewModal
           context={secretType === SecretType.ES ? 'secret' : 'sops'}
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}

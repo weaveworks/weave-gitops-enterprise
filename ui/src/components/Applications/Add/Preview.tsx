@@ -1,19 +1,14 @@
 import { Button } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useState } from 'react';
-import useNotifications from '../../../contexts/Notifications';
-import Preview from '../../Templates/Form/Partials/Preview';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
-import {
-  ClusterAutomation,
-  RenderAutomationResponse,
-} from '../../../cluster-services/cluster_services.pb';
+import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
+import { RenderAutomationResponse } from '../../../cluster-services/cluster_services.pb';
+import useNotifications from '../../../contexts/Notifications';
 
-export const PreviewPRModal = ({
-  formData,
-  getClusterAutomations,
+export const Preview = ({
+  clusterAutomations,
 }: {
-  formData: any;
-  getClusterAutomations: () => ClusterAutomation[];
+  clusterAutomations: any;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -22,32 +17,28 @@ export const PreviewPRModal = ({
   );
   const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
+
   const handlePRPreview = useCallback(() => {
     setPreviewLoading(true);
     return api
-      .RenderAutomation({ clusterAutomations: getClusterAutomations() })
+      .RenderAutomation({
+        clusterAutomations,
+      })
       .then(data => {
         setOpenPreview(true);
         setPRPreview(data);
       })
-      .catch(err => {
+      .catch(err =>
         setNotifications([
           {
             message: { text: err.message },
             severity: 'error',
             display: 'bottom',
           },
-        ]);
-      })
+        ]),
+      )
       .finally(() => setPreviewLoading(false));
-  }, [
-    api,
-    getClusterAutomations,
-    setOpenPreview,
-    setPRPreview,
-    setPreviewLoading,
-    setNotifications,
-  ]);
+  }, [api, setOpenPreview, clusterAutomations, setNotifications]);
 
   return (
     <>
@@ -58,13 +49,11 @@ export const PreviewPRModal = ({
       >
         PREVIEW PR
       </Button>
-      {openPreview && prPreview ? (
-        <Preview
-          context="policyconfig"
+      {!previewLoading && openPreview && prPreview ? (
+        <PreviewModal
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
           prPreview={prPreview}
-          sourceType={formData.source_type}
         />
       ) : null}
     </>

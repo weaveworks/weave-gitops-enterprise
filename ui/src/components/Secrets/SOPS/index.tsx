@@ -13,7 +13,7 @@ import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
 import ListKustomizations from '../Shared/ListKustomizations';
-import { PreviewModal } from '../Shared/PreviewModal';
+import { Preview } from '../Shared/Preview';
 import SecretData from './SecretData';
 import {
   getFormattedPayload,
@@ -214,7 +214,7 @@ const CreateSOPS = () => {
               >
                 CREATE PULL REQUEST
               </Button>
-              <PreviewModal formData={formData} />
+              <Preview formData={formData} />
             </Flex>
           </FormWrapperSecret>
         </NotificationsWrapper>
