@@ -5,6 +5,7 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"golang.org/x/crypto/bcrypt"
+	v1 "k8s.io/api/core/v1"
 )
 
 const (
@@ -22,6 +23,56 @@ const (
 	adminSecretName      = "cluster-user-auth"
 	confirmYes           = "y"
 )
+
+var AskAdminCredsSecretStep = BootstrapStep{
+	Name: "ask admin",
+	Input: []StepInput{
+		{
+			Name:         "username",
+			Type:         "string",
+			Msg:          adminUsernameMsg,
+			DefaultValue: DefaultAdminUsername,
+		},
+		{
+			Name:         "password",
+			Type:         "string",
+			Msg:          adminPasswordMsg,
+			DefaultValue: DefaultAdminPassword,
+		},
+	},
+	Step: encryptCredentials,
+	Output: []StepOutput{
+		{
+			Name: adminSecretName,
+			Type: "secret",
+		},
+	},
+}
+
+func encryptCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
+	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return nil, err
+	}
+
+	data := map[string][]byte{
+		"username": []byte(c.Username),
+		"password": encryptedPassword,
+	}
+
+	if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data); err != nil {
+		return nil, err
+	}
+
+	return []StepOutput{
+		{
+			Name:  "adminSecret",
+			Type:  "secret",
+			Value: v1.Secret{},
+		},
+	}, nil
+
+}
 
 // AskAdminCredsSecrets asks user about admin username and password.
 // admin username and password are you used for accessing WGE Dashboard

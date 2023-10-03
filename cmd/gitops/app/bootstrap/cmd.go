@@ -82,28 +82,15 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 	config.KubernetesClient = kubernetesClient
 	config.Logger = logger
 
-	if err := config.CheckEntitlementSecret(); err != nil {
-		return err
+	var steps = []commands.BootstrapStep{
+		commands.AskAdminCredsSecretStep,
 	}
 
-	if err := config.VerifyFluxInstallation(); err != nil {
-		return err
-	}
-
-	if err := config.SelectWgeVersion(); err != nil {
-		return err
-	}
-
-	if err := config.AskAdminCredsSecret(); err != nil {
-		return err
-	}
-
-	if err := config.InstallWge(); err != nil {
-		return err
-	}
-
-	if err := config.CheckUIDomain(); err != nil {
-		return err
+	for _, step := range steps {
+		err := step.Execute(&config)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
