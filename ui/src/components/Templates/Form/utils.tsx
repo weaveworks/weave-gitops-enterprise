@@ -153,16 +153,11 @@ export function getDefaultGitRepo(
 
 export const FormWrapper = styled.form`
   width: 80%;
-  .preview-cta,
-  .create-cta {
+  .gitops-cta {
     padding: ${({ theme }) => theme.spacing.medium};
-    button {
-      width: 200px;
+    button:first-of-type {
+      margin-right: ${({ theme }) => theme.spacing.base};
     }
-  }
-  .preview-loading,
-  .create-loading {
-    padding: ${({ theme }) => theme.spacing.base};
   }
   div[class*='MuiInput-root'] {
     border: 1px solid ${props => props.theme.colors.neutral20};
