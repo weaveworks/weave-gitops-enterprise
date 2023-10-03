@@ -267,9 +267,21 @@ if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, wgeHelmRelease, pathInR
 }
 ```
 ## How should i handle errors in the command and/or step?
+See example in /Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands/flux.go
 
 
+- Errors should provide the user with
+	- step that failed
+	- reason of the failure
+    - how the user could recover from the failure
+- Return the error in the method
+- if the error is meaningless create a custom one that provides the user:
+```go
+if err != nil {
+	return errors.New(fluxInstallationErrorMsgFormat)
+}
 
+```
 
 
 
