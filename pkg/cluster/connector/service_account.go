@@ -70,6 +70,31 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 
 }
 
+func DeleteServiceAccountResources(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
+	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
+
+	serviceAccountName := clusterConnectionOpts.ServiceAccountName
+	err := deleteServiceAccount(ctx, client, serviceAccountName, namespace)
+	if err != nil {
+		return err
+	}
+
+	clusterRoleBindingName := clusterConnectionOpts.ClusterRoleBindingName
+	err = deleteClusterRoleBinding(ctx, client, clusterRoleBindingName)
+	if err != nil {
+		return err
+	}
+
+	secretName := serviceAccountName + "-token"
+	err = deleteSecret(ctx, client, secretName, namespace)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func newClusterRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
 	return &rbacv1.ClusterRole{
 		TypeMeta: metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
@@ -182,4 +207,35 @@ func createSecret(ctx context.Context, client kubernetes.Interface, clusterConne
 
 	return secret, nil
 
+}
+
+func deleteServiceAccount(ctx context.Context, client kubernetes.Interface, serviceAccountName, namespace string) error {
+	lgr := log.FromContext(ctx)
+	err := client.CoreV1().ServiceAccounts(namespace).Delete(ctx, serviceAccountName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("service account deleted successfully!", "serviceAccount", serviceAccountName)
+
+	return nil
+}
+
+func deleteClusterRoleBinding(ctx context.Context, client kubernetes.Interface, clusterRoleBindingName string) error {
+	lgr := log.FromContext(ctx)
+	err := client.RbacV1().ClusterRoleBindings().Delete(ctx, clusterRoleBindingName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("cluster role binding deleted successfully!", "clusterRoleBinding", clusterRoleBindingName)
+	return nil
+}
+
+func deleteSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string) error {
+	lgr := log.FromContext(ctx)
+	err := client.CoreV1().Secrets(namespace).Delete(ctx, secretName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("secret deleted successfully!", "secret", secretName, "namespace", namespace)
+	return nil
 }

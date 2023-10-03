@@ -238,6 +238,66 @@ func TestGetServiceAccount(t *testing.T) {
 
 }
 
+func TestDeleteServiceAccountResources(t *testing.T) {
+	var tests = []struct {
+		name                   string
+		existingResources      []runtime.Object
+		serviceAccountName     string
+		clusterRoleBindingName string
+		expectedResources      map[string]runtime.Object
+	}{
+		{
+			"delete service account resources",
+			[]runtime.Object{
+				&v1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-service-account",
+						Namespace: corev1.NamespaceDefault,
+					},
+				},
+				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+				newServiceAccountTokenSecret("test-service-account-token", "test-service-account", corev1.NamespaceDefault),
+			},
+			"test-service-account",
+			"test-service-account-cluster-role-binding",
+			map[string]runtime.Object{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remoteClientSet := fake.NewSimpleClientset()
+
+			addFakeResources(t, remoteClientSet, tt.existingResources...)
+			clusterConnectionOpts := ClusterConnectionOptions{
+				ServiceAccountName:     tt.serviceAccountName,
+				ClusterRoleBindingName: tt.clusterRoleBindingName,
+				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
+			}
+			err := DeleteServiceAccountResources(context.Background(), remoteClientSet, clusterConnectionOpts)
+			assert.NoError(t, err)
+
+			// verify service account doesn't exist
+			_, err = remoteClientSet.CoreV1().ServiceAccounts(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName, metav1.GetOptions{})
+			assert.NoError(t, err)
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, apierrors.NewNotFound(v1.Resource("serviceaccounts"), tt.serviceAccountName))
+
+			// Verify ClusterRoleBinding doesn't exist
+			_, err = remoteClientSet.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.clusterRoleBindingName, metav1.GetOptions{})
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, apierrors.NewNotFound(v1.Resource("clusterrolebindings"), tt.clusterRoleBindingName))
+
+			// Verify Secret doesn't exist
+			_, err = remoteClientSet.CoreV1().Secrets(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
+			assert.Error(t, err)
+			assert.ErrorIs(t, err, apierrors.NewNotFound(v1.Resource("secrets"), tt.serviceAccountName+"-token"))
+
+		})
+	}
+
+}
+
 // Add resources of different types to the client based on the type of the resource
 // Valid resources: v1.ServiceAccount, rbacv1.ClusterRole, rbacv1.ClusterRoleBinding, v1.Secret
 func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...runtime.Object) {

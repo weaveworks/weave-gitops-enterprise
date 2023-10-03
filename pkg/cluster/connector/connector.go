@@ -182,3 +182,60 @@ func addOptionsToGitOpsClusterLabel(ctx context.Context, config *rest.Config, cl
 	return nil
 
 }
+
+
+func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
+	lgr := log.FromContext(ctx)
+	pathOpts := clientcmd.NewDefaultPathOptions()
+	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
+
+	// load hub kubeconfig
+	hubClusterConfig, err := configForContext(ctx, pathOpts, "")
+	if err != nil {
+		return err
+	}
+
+	// Get the context from SpokeClusterContext
+	spokeClusterConfig, err := configForContext(ctx, pathOpts, options.RemoteClusterContext)
+	if err != nil {
+		return err
+	}
+	secretName, err := getSecretNameForConfig(ctx, hubClusterConfig, options)
+	if err != nil {
+		return err
+	}
+
+	// ReconcileServiceAccount to create the ServiceAccount/ClusterRole/ClusterRoleBinding/Secret
+	spokeKubernetesClient, err := kubernetes.NewForConfig(spokeClusterConfig)
+	if err != nil {
+		return err
+	}
+	serviceAccountToken, err := ReconcileServiceAccount(ctx, spokeKubernetesClient, *options)
+	if err != nil {
+		return err
+	}
+
+	// Create or update the referenced secret name with the value from the remote cluster ServiceAccount token.
+	newConfig, err := kubeConfigWithToken(ctx, spokeClusterConfig, options.RemoteClusterContext, serviceAccountToken)
+	if err != nil {
+		return err
+	}
+
+	hubKubernetesClient, err := kubernetes.NewForConfig(hubClusterConfig)
+	if err != nil {
+		return err
+	}
+	_, err = createOrUpdateGitOpsClusterSecret(ctx, hubKubernetesClient, secretName, options.GitopsClusterName.Namespace, newConfig)
+	if err != nil {
+		return err
+	}
+
+	err = addOptionsToGitOpsClusterLabel(ctx, hubClusterConfig, options.GitopsClusterName, options)
+	if err != nil {
+		return err
+	}
+
+	lgr.V(logger.LogLevelInfo).Info("Successfully connected cluster", "cluster", options.GitopsClusterName)
+
+	return nil
+}
