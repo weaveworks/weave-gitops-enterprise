@@ -16,9 +16,6 @@ export const usePipelineStyles = makeStyles(() =>
       paddingBottom: '8px',
       margin: `24 0 0 0`,
     },
-    mbSmall: {
-      marginBottom: '12px',
-    },
     subtitleColor: {
       color: '#737373',
     },

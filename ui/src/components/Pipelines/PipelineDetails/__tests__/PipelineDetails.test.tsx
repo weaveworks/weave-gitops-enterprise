@@ -24,6 +24,7 @@ const res: GetPipelineResponse = {
     environments: [
       {
         name: 'dev',
+        promotion: { manual: true, strategy: { notification: {} } },
         targets: [
           {
             namespace: 'podinfo-02-dev',
@@ -37,6 +38,7 @@ const res: GetPipelineResponse = {
       },
       {
         name: 'test',
+        promotion: { manual: true, strategy: { secretRef: { name: 'test' } } },
         targets: [
           {
             namespace: 'podinfo-02-qa',
@@ -370,7 +372,7 @@ describe('PipelineDetails', () => {
       const withPromotion: Pipeline = {
         ...res.pipeline,
         promotion: {
-          manual: false,
+          manual: true,
           strategy: {
             pullRequest: {
               type: 'github',
@@ -393,72 +395,12 @@ describe('PipelineDetails', () => {
         render(c);
       });
 
-      const keyVal = document.querySelector('.KeyValueTable');
-
-      expect(keyVal?.textContent).toContain('Pull Request');
-      expect(keyVal?.textContent).toContain(
-        withPromotion.promotion?.strategy?.pullRequest?.url,
-      );
-      expect(keyVal?.textContent).toContain(
-        withPromotion.promotion?.strategy?.pullRequest?.branch,
-      );
-      expect(keyVal?.textContent).not.toContain('Notification');
-    });
-    it('notification', async () => {
-      const params = res.pipeline;
-      const withPromotion: Pipeline = {
-        ...res.pipeline,
-        promotion: {
-          manual: false,
-          strategy: {
-            notification: {},
-          },
-        },
-      };
-      api.GetPipelineReturns = { ...res, pipeline: withPromotion };
-      core.GetObjectReturns = { object: {} };
-
-      await act(async () => {
-        const c = wrap(
-          <PipelineDetails
-            name={params?.name || ''}
-            namespace={params?.namespace || ''}
-          />,
-        );
-        render(c);
-      });
-
-      const keyVal = document.querySelector('.KeyValueTable');
-
-      expect(keyVal?.textContent).toContain('Notification');
-      expect(keyVal?.textContent).not.toContain('Pull Request');
+      expect(screen.getByText('Pull Request')).toBeInTheDocument();
+      expect(screen.getByText('Secret Ref')).toBeInTheDocument();
+      expect(screen.getByText('Notification')).toBeInTheDocument();
     });
   });
-
-  it('handles visibility of promotion button: auto-approve', async () => {
-    const params = res.pipeline;
-    const auto: Pipeline = {
-      ...res.pipeline,
-      promotion: {
-        manual: false,
-      },
-    };
-    api.GetPipelineReturns = { ...res, pipeline: auto };
-    core.GetObjectReturns = { object: {} };
-
-    await act(async () => {
-      const c = wrap(
-        <PipelineDetails
-          name={params?.name || ''}
-          namespace={params?.namespace || ''}
-        />,
-      );
-      render(c);
-    });
-
-    expect(screen.queryByText('Approve Promotion')).toBeNull();
-  });
-  it('handles visibility of promotion button: manual', async () => {
+  it('handles visibility of promotion button', async () => {
     const params = res.pipeline;
     const manual: Pipeline = {
       ...res.pipeline,
