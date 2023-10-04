@@ -46,6 +46,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Run:     getBootstrapCmdRun(opts),
 	}
 
+	// all the flags are going to be here
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version")
@@ -64,6 +65,9 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) {
 
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func bootstrap(opts *config.Options, logger logger.Logger) error {
+	// parse the flags
+
+	// create configuration
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
@@ -82,6 +86,7 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 	config.KubernetesClient = kubernetesClient
 	config.Logger = logger
 
+	// configure workflow
 	var steps = []commands.BootstrapStep{
 		commands.CheckEntitlementSecretStep,
 		commands.VerifyFluxInstallationStep,
@@ -91,8 +96,22 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 		commands.CheckUIDomainStep,
 	}
 
+	// here at this point we should have two
+	// for a given step we have at this stage configuration
+	// 1 - user flags -> --username=wego
+	// 3 - user input
+
+	// if there is flag -> we take that flag so we dont need to
+	// to add that as an input
+	flags.username
+
+	input = commands.AskAdminCredsSecretStep.WithConfig(config)
+
+	// 2 - default configuration  -> password=password
+
+	//execute workflow
 	for _, step := range steps {
-		err := step.Execute(&config)
+		err := step.Execute(input, &config)
 		if err != nil {
 			return err
 		}

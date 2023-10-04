@@ -15,6 +15,16 @@ type BootstrapStep struct {
 	Step   func(input []StepInput, c *Config) ([]StepOutput, error)
 }
 
+func (s BootstrapStep) WithConfig(config map[string]any) ([]StepInput, error) {
+	requiredInput :=[]StepInput{}
+	for _, input := range s.Input {
+		// check if exists
+		//a := config[input.Name]
+		// if does not exist we add it to requiredInput
+		// otherwise we take
+	}
+}
+
 type StepInput struct {
 	Name         string
 	Msg          string
@@ -31,8 +41,8 @@ type StepOutput struct {
 	Value any
 }
 
-func (s BootstrapStep) Execute(c *Config) error {
-	inputValues, err := defaultInputStep(s.Input, c)
+func (s BootstrapStep) Execute(input []StepInput c *Config) error {
+	inputValues, err := defaultInputStep(input, c)
 	if err != nil {
 		return fmt.Errorf("cannot read input: %v", err)
 	}
