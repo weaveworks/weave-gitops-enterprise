@@ -2,13 +2,17 @@ package query
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"testing"
 
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -427,6 +431,35 @@ func TestRunQuery(t *testing.T) {
 			opts:  &query{orderBy: "name", ascending: true},
 			want:  []string{"flux-system-ingress-nginx", "flux-stress-nginx-975"},
 		},
+		{
+			name: "uniqe hits only",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "some-name",
+					Namespace:  "namespace-1",
+					Kind:       "HelmChart",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+					Unstructured: toUnstructured(&sourcev1beta2.HelmChart{
+						ObjectMeta: v1.ObjectMeta{
+							Name:      "some-name",
+							Namespace: "namespace-1",
+						},
+						Spec: sourcev1beta2.HelmChartSpec{
+							Chart: "some-name",
+							SourceRef: sourcev1beta2.LocalHelmChartSourceReference{
+								Kind: "HelmRepository",
+								Name: "some-name",
+							},
+						},
+					}),
+				},
+			},
+			query: &query{terms: "", filters: []string{}},
+			opts:  &query{orderBy: "name", ascending: true},
+			want:  []string{"some-name"},
+		},
 	}
 
 	for _, tt := range tests {
@@ -684,4 +717,9 @@ func (q *query) GetOrderBy() string {
 
 func (q *query) GetAscending() bool {
 	return q.ascending
+}
+
+func toUnstructured(obj client.Object) json.RawMessage {
+	data, _ := json.Marshal(obj)
+	return data
 }
