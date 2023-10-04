@@ -267,31 +267,31 @@ func TestDeleteServiceAccountResources(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			remoteClientSet := fake.NewSimpleClientset()
-
-			addFakeResources(t, remoteClientSet, tt.existingResources...)
 			clusterConnectionOpts := ClusterConnectionOptions{
 				ServiceAccountName:     tt.serviceAccountName,
 				ClusterRoleBindingName: tt.clusterRoleBindingName,
 				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
 			}
+
+			addFakeResources(t, remoteClientSet, tt.existingResources...)
+
 			err := DeleteServiceAccountResources(context.Background(), remoteClientSet, clusterConnectionOpts)
 			assert.NoError(t, err)
 
-			// verify service account doesn't exist
+			// verify service account deleted
 			_, err = remoteClientSet.CoreV1().ServiceAccounts(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName, metav1.GetOptions{})
-			assert.NoError(t, err)
 			assert.Error(t, err)
-			assert.ErrorIs(t, err, apierrors.NewNotFound(v1.Resource("serviceaccounts"), tt.serviceAccountName))
+			assert.ErrorContains(t, err, apierrors.NewNotFound(v1.Resource("serviceaccounts"), tt.serviceAccountName).Error())
 
-			// Verify ClusterRoleBinding doesn't exist
+			// Verify ClusterRoleBinding deleted
 			_, err = remoteClientSet.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.clusterRoleBindingName, metav1.GetOptions{})
 			assert.Error(t, err)
-			assert.ErrorIs(t, err, apierrors.NewNotFound(v1.Resource("clusterrolebindings"), tt.clusterRoleBindingName))
+			assert.ErrorContains(t, err, apierrors.NewNotFound(rbacv1.Resource("clusterrolebindings"), tt.clusterRoleBindingName).Error())
 
-			// Verify Secret doesn't exist
+			// Verify Secret deleted
 			_, err = remoteClientSet.CoreV1().Secrets(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
 			assert.Error(t, err)
-			assert.ErrorIs(t, err, apierrors.NewNotFound(v1.Resource("secrets"), tt.serviceAccountName+"-token"))
+			assert.ErrorContains(t, err, apierrors.NewNotFound(v1.Resource("secrets"), tt.serviceAccountName+"-token").Error())
 
 		})
 	}
