@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import {
   Pipeline,
   PipelineTargetStatus,
+  Promotion,
+  Strategy,
 } from '../../../api/pipelines/types.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
@@ -19,6 +21,17 @@ import {
   WorkloadWrapper,
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
+import _ from 'lodash';
+
+const getStrategy = (promo?: Promotion) => {
+  if (!promo) return '-';
+  if (!promo.manual) return 'Automated';
+  return (
+    _.map(promo.strategy, (value, key) => {
+      if (value !== null) return key;
+    })[0] || '-'
+  );
+};
 
 const PromotionContainer = styled.div`
   height: 40px;
@@ -104,6 +117,9 @@ function Workloads({
         const status = targetsStatuses[env.name!].targetsStatuses || [];
         const promoteVersion =
           targetsStatuses[env.name!].waitingStatus?.revision || '';
+        const strategy = env.promotion
+          ? getStrategy(env.promotion)
+          : getStrategy(pipeline.promotion);
 
         return (
           <Grid
@@ -120,7 +136,7 @@ function Workloads({
                 </Text>
                 <Text>{env.targets?.length || '0'} TARGETS</Text>
               </Flex>
-              <Text>Strategy: </Text>
+              <Text>Strategy: {strategy}</Text>
             </div>
             <PromotionContainer>
               {manual && index < environments.length - 1 && (
