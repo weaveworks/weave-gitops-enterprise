@@ -100,6 +100,9 @@ func newClusterRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.C
 		TypeMeta: metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "cluster-connector",
+			},
 		},
 		Rules: rules,
 	}
@@ -110,6 +113,9 @@ func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string)
 	return &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "cluster-connector",
+			},
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -134,6 +140,9 @@ func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *c
 			Annotations: map[string]string{
 				corev1.ServiceAccountNameKey: serviceAccountName,
 			},
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "cluster-connector",
+			},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
 	}
@@ -149,6 +158,9 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceAccountName,
 			Namespace: namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": "cluster-connector",
+			},
 		},
 	}, metav1.CreateOptions{})
 
