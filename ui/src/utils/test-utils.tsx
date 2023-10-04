@@ -32,6 +32,7 @@ import {
   ValidateProviderTokenResponse,
 } from '../api/gitauth/gitauth.pb';
 import {
+  ApprovePromotionResponse,
   GetPipelineResponse,
   ListPipelinesResponse,
   Pipelines,
@@ -325,9 +326,11 @@ export class PipelinesClientMock implements Pipelines {
   constructor() {
     this.ListPipelines = this.ListPipelines.bind(this);
     this.GetPipeline = this.GetPipeline.bind(this);
+    this.ApprovePromotion = this.ApprovePromotion.bind(this);
   }
   ListPipelinesReturns: ListPipelinesResponse = {};
   GetPipelineReturns: GetPipelineResponse = {};
+  ApprovePromotionReturns: ApprovePromotionResponse = {};
   ErrorRef: { code: number; message: string } | undefined;
 
   ListPipelines() {
@@ -336,6 +339,10 @@ export class PipelinesClientMock implements Pipelines {
 
   GetPipeline() {
     return promisify(this.GetPipelineReturns);
+  }
+
+  ApprovePromotion() {
+    return promisify(this.ApprovePromotionReturns);
   }
 }
 
