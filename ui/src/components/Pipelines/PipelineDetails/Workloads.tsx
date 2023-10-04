@@ -5,7 +5,6 @@ import {
   Pipeline,
   PipelineTargetStatus,
   Promotion,
-  Strategy,
 } from '../../../api/pipelines/types.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
@@ -26,11 +25,11 @@ import _ from 'lodash';
 const getStrategy = (promo?: Promotion) => {
   if (!promo) return '-';
   if (!promo.manual) return 'Automated';
-  return (
-    _.map(promo.strategy, (value, key) => {
-      if (value !== null) return key;
-    })[0] || '-'
-  );
+
+  const nonNullStrat = _.map(promo.strategy, (value, key) => {
+    if (value !== null) return key;
+  });
+  return _.startCase(nonNullStrat[0] || '-');
 };
 
 const PromotionContainer = styled.div`
@@ -105,7 +104,6 @@ function Workloads({
   const classes = usePipelineStyles();
   const environments = pipeline?.environments || [];
   const targetsStatuses = pipeline?.status?.environments || {};
-  const manual = pipeline?.promotion?.manual || false;
 
   return (
     <Grid
@@ -129,17 +127,20 @@ function Workloads({
             className={classes.gridContainer}
             id={env.name}
           >
-            <div className={classes.mbSmall}>
-              <Flex between align>
+            <Flex column gap="8">
+              <Flex between align wide>
                 <Text bold capitalize size="large">
                   {env.name}
                 </Text>
                 <Text>{env.targets?.length || '0'} TARGETS</Text>
               </Flex>
-              <Text>Strategy: {strategy}</Text>
-            </div>
+              <Flex gap="8">
+                <Text bold>Strategy:</Text>
+                <Text> {strategy}</Text>
+              </Flex>
+            </Flex>
             <PromotionContainer>
-              {manual && index < environments.length - 1 && (
+              {strategy !== 'Automated' && index < environments.length - 1 && (
                 <PromotePipeline
                   req={{
                     name: pipeline.name,
