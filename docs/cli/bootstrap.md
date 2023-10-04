@@ -14,7 +14,7 @@ you expect to have the following:
 - Constants with default configuration
 - Step function like: 
 ```go
-func (c *Bootstrapper) AskAdminCredsSecret() error {
+func (c *Config) AskAdminCredsSecret() error {
 	
 ...
 	// search for existing admin credentials in secret cluster-user-auth
@@ -41,16 +41,16 @@ func (c *Bootstrapper) AskAdminCredsSecret() error {
 
 func bootstrap(opts *config.Options, logger logger.Logger) error {
 	...
-	Bootstrapper := commands.Bootstrapper{}
-	Bootstrapper.Username = flags.username
-	Bootstrapper.Password = flags.password
-	Bootstrapper.WGEVersion = flags.version
-	Bootstrapper.KubernetesClient = kubernetesClient
-	Bootstrapper.Logger = logger
+	Config := commands.Config{}
+	Config.Username = flags.username
+	Config.Password = flags.password
+	Config.WGEVersion = flags.version
+	Config.KubernetesClient = kubernetesClient
+	Config.Logger = logger
 
 	..
 
-	if err := Bootstrapper.AskAdminCredsSecret(); err != nil {
+	if err := Config.AskAdminCredsSecret(); err != nil {
 		return err
 	}
 
@@ -95,7 +95,7 @@ example could be seen here given `gitops bootstrap`
 - this is empty so we go to the next level 
 2. if not, then ask user in interactive session with a default value
 ```go
-func (c *Bootstrapper) AskAdminCredsSecret() error {
+func (c *Config) AskAdminCredsSecret() error {
 
 	if c.Username == "" {
 		c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername)
@@ -110,7 +110,7 @@ func (c *Bootstrapper) AskAdminCredsSecret() error {
 User has not introduce a custom value so we take the custom value  
 
 ```go
-type Bootstrapper struct {
+type Config struct {
 	Username         string
 	Password         string
 	KubernetesClient k8s_client.Client

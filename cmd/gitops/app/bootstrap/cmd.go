@@ -75,35 +75,27 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 		return nil
 	}
 
-	Bootstrapper := commands.Bootstrapper{}
-	Bootstrapper.Username = flags.username
-	Bootstrapper.Password = flags.password
-	Bootstrapper.WGEVersion = flags.version
-	Bootstrapper.KubernetesClient = kubernetesClient
-	Bootstrapper.Logger = logger
+	config := commands.Config{}
+	config.Username = flags.username
+	config.Password = flags.password
+	config.WGEVersion = flags.version
+	config.KubernetesClient = kubernetesClient
+	config.Logger = logger
 
-	if err := Bootstrapper.CheckEntitlementSecret(); err != nil {
-		return err
+	var steps = []commands.BootstrapStep{
+		commands.CheckEntitlementSecretStep,
+		commands.VerifyFluxInstallationStep,
+		commands.SelectWgeVersionStep,
+		commands.AskAdminCredsSecretStep,
+		commands.InstallWGEStep,
+		commands.CheckUIDomainStep,
 	}
 
-	if err := Bootstrapper.VerifyFluxInstallation(); err != nil {
-		return err
-	}
-
-	if err := Bootstrapper.SelectWgeVersion(); err != nil {
-		return err
-	}
-
-	if err := Bootstrapper.AskAdminCredsSecret(); err != nil {
-		return err
-	}
-
-	if err := Bootstrapper.InstallWge(); err != nil {
-		return err
-	}
-
-	if err := Bootstrapper.CheckUIDomain(); err != nil {
-		return err
+	for _, step := range steps {
+		err := step.Execute(&config)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

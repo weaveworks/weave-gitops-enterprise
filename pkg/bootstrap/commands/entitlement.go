@@ -11,13 +11,15 @@ import (
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// user messages
 const (
-	entitlementCheckConfirmMsg      = "Entitlement File exists and is valid"
-	nonExistingEntitlementSecretMsg = "Entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
-	invalidEntitlementSecretMsg     = "Entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
+	entitlementCheckConfirmMsg      = "entitlement file exists and is valid"
+	nonExistingEntitlementSecretMsg = "entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
+	invalidEntitlementSecretMsg     = "entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
 	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File"
 )
 
+// wge consts
 const (
 	entitlementSecretName = "weave-gitops-enterprise-credentials"
 )
@@ -27,17 +29,27 @@ var (
 	publicKey string
 )
 
-// CheckEntitlementSecret checks for valid entitlement secret.
-func (c *Bootstrapper) CheckEntitlementSecret() error {
+// CheckEntitlementSecretStep checks for valid entitlement secret.
+var CheckEntitlementSecretStep = BootstrapStep{
+	Name: "check entitlement secret",
+	Step: checkEntitlementSecret,
+}
+
+func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Waitingf(entitlementCheckMsg)
 
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
-		return err
+		return []StepOutput{}, err
 	}
 
-	c.Logger.Successf(entitlementCheckConfirmMsg)
-	return nil
+	return []StepOutput{
+		{
+			Name:  "entitlement success msg",
+			Type:  successMsg,
+			Value: entitlementCheckConfirmMsg,
+		},
+	}, nil
 }
 
 // verifyEntitlementSecret ensures the entitlement is valid and not expired also verifying username & password

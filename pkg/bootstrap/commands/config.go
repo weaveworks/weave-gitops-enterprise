@@ -5,15 +5,28 @@ import (
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
-// Bootstrapper is the main struct for WGE installation setup
-type Bootstrapper struct {
+// Config is the main struct for WGE installation setup
+type Config struct {
+	KubernetesClient k8s_client.Client
+	Logger           logger.Logger
 	Username         string
 	Password         string
-	KubernetesClient k8s_client.Client
 	WGEVersion       string
 	UserDomain       string
-	Logger           logger.Logger
 }
+
+const (
+	defaultAdminUsername = "wego-admin"
+	defaultAdminPassword = "password"
+)
+
+const (
+	successMsg           = "successMsg"
+	failureMsg           = "failureMsg"
+	multiSelectionChoice = "multiSelect"
+	stringInput          = "string"
+	passwordInput        = "password"
+)
 
 // ValuesFile store the wge values
 type valuesFile struct {

@@ -5,6 +5,8 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"golang.org/x/crypto/bcrypt"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -17,48 +19,46 @@ const (
 )
 
 const (
-	DefaultAdminUsername = "wego-admin"
-	DefaultAdminPassword = "password"
-	adminSecretName      = "cluster-user-auth"
-	confirmYes           = "y"
+	adminSecretName = "cluster-user-auth"
+	confirmYes      = "y"
 )
 
-// AskAdminCredsSecrets asks user about admin username and password.
+// AskAdminCredsSecretStep asks user about admin username and password.
 // admin username and password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
 // there an option to revert these creds in case OIDC setup is successful
 // if the creds already exist. user will be asked to continue with the current creds
 // Or existing and deleting the creds then re-run the bootstrap process
-func (c *Bootstrapper) AskAdminCredsSecret() error {
+var AskAdminCredsSecretStep = BootstrapStep{
+	Name: "ask admin creds",
+	Input: []StepInput{
+		{
+			Name:         "username",
+			Type:         stringInput,
+			Msg:          adminUsernameMsg,
+			DefaultValue: defaultAdminUsername,
+		},
+		{
+			Name:         "password",
+			Type:         passwordInput,
+			Msg:          adminPasswordMsg,
+			DefaultValue: defaultAdminPassword,
+		},
+	},
+	Step: encryptCredentials,
+	Output: []StepOutput{
+		{
+			Name: adminSecretName,
+			Type: "secret",
+		},
+	},
+}
+
+func encryptCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	// search for existing admin credentials in secret cluster-user-auth
-	secret, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
-	if secret != nil && err == nil {
-		existingCreds := utils.GetConfirmInput(existingCredsMsg)
-		if existingCreds == confirmYes {
-			return nil
-		} else {
-			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
-			os.Exit(0)
-		}
-	}
-
-	if c.Username == "" {
-		c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername)
-		if err != nil {
-			return err
-		}
-	}
-
-	if c.Password == "" {
-		c.Password, err = utils.GetPasswordInput(adminPasswordMsg)
-		if err != nil {
-			return err
-		}
-	}
-
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	data := map[string][]byte{
@@ -66,11 +66,39 @@ func (c *Bootstrapper) AskAdminCredsSecret() error {
 		"password": encryptedPassword,
 	}
 
-	if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data); err != nil {
-		return err
+	secret := &corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      adminSecretName,
+			Namespace: WGEDefaultNamespace,
+		},
+		Data: data,
 	}
 
-	c.Logger.Successf(secretConfirmationMsg)
+	return []StepOutput{
+		{
+			Name:  "secret is created",
+			Type:  successMsg,
+			Value: secretConfirmationMsg,
+		},
+		{
+			Name:  "adminSecret",
+			Type:  "secret",
+			Value: secret,
+		},
+	}, nil
 
-	return nil
+}
+
+func checkExistingAdminSecret(input []StepInput, c *Config) ([]StepOutput, error) {
+	secret, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
+	if secret != nil && err == nil {
+		existingCreds := utils.GetConfirmInput(existingCredsMsg)
+		if existingCreds == confirmYes {
+			return []StepOutput{}, nil
+		} else {
+			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
+			os.Exit(0)
+		}
+	}
+	return []StepOutput{}, nil
 }
