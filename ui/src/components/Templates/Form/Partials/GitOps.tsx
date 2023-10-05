@@ -69,7 +69,7 @@ const GitOps: FC<{
 
   return (
     <GitOpsWrapper className="gitops-wrapper">
-      <h2>GitOps</h2>
+      <h2>GitOps: Review and create</h2>
       <Input
         className="form-section"
         required

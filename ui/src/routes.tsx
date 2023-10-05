@@ -1,4 +1,9 @@
-import { V2Routes } from '@weaveworks/weave-gitops';
+import {
+  ImageAutomationRepoDetails,
+  ImageAutomationUpdatesDetails,
+  ImagePolicyDetails,
+  V2Routes,
+} from '@weaveworks/weave-gitops';
 import qs from 'query-string';
 import Lottie from 'react-lottie-player';
 import { Redirect, Route, Switch } from 'react-router-dom';
@@ -27,9 +32,6 @@ import GitOpsRun from './components/GitOpsRun/List';
 import GitOpsSets from './components/GitOpsSets';
 import GitOpsSetDetail from './components/GitOpsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
-import ImagePolicyDetails from './components/ImageAutomation/policies/ImagePolicyDetails';
-import ImageAutomationRepoDetails from './components/ImageAutomation/repositories/ImageAutomationRepoDetails';
-import ImageAutomationUpdatesDetails from './components/ImageAutomation/updates/ImageAutomationUpdatesDetails';
 import { Page } from './components/Layout/App';
 import { NotificationsWrapper } from './components/Layout/NotificationsWrapper';
 import Pipelines from './components/Pipelines';

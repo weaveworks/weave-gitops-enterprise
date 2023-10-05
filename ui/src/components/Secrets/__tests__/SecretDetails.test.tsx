@@ -9,7 +9,6 @@ import {
 } from '../../../utils/test-utils';
 
 import SecretDetails from '../SecretDetails';
-import { EventsTable } from '../SecretDetails/Events/EventsTable';
 const MockSecretResponse = {
   secretName: 'secret Name',
   externalSecretName: 'external Secret Name',
@@ -112,30 +111,5 @@ describe('SecretDetails', () => {
       secret.secretPath,
     );
     expect(screen.getByTestId('Version')).toHaveTextContent(secret.version);
-  });
-
-  it('renders events tab', async () => {
-    api.ListEventsReturns = MockSecretEvents;
-    const filterTable = new TestFilterableTable('events-list', fireEvent);
-
-    await act(async () => {
-      const c = wrap(<EventsTable events={MockSecretEvents.events} />);
-      render(c);
-    });
-
-    filterTable.testRenderTable(
-      ['Reason', 'Message', 'Age'],
-      MockSecretEvents.events.length,
-    );
-
-    const sortRowsByAge = mappedEvents(
-      MockSecretEvents.events.sort((a, b) => {
-        const t1 = new Date(a.timestamp).getTime();
-        const t2 = new Date(b.timestamp).getTime();
-        return t2 - t1;
-      }),
-    );
-
-    filterTable.testSorthTableByColumn('Age', sortRowsByAge);
   });
 });

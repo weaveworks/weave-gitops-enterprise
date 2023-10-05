@@ -12,11 +12,11 @@ import {
   Canary,
 } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Routes } from '../../../utils/nav';
+import ListEvents from '../../ListEvents';
 import { getProgressValue } from '../ListCanaries/Table';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
 import DetailsSection from './Details/DetailsSection';
-import ListEvents from './Events/ListEvents';
 import ListManagedObjects from './ManagedObjects/ListManagedObjects';
 
 const CanaryDetailsWrapper = styled.div`
