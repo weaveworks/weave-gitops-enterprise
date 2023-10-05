@@ -5,7 +5,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
+	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -25,6 +26,9 @@ gitops bootstrap
 
 # Start WGE installation from a specific kubeconfig
 gitops bootstrap --kubeconfig <your-kubeconfig-location>
+
+# Start WGE installation with given 'username' and 'password'
+gitops bootstrap --username wego-admin --password=hell0!
 `
 )
 
@@ -67,38 +71,36 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
 
-	installedVersion, err := utils.GetHelmRelease(kubernetesClient, commands.WgeHelmReleaseName, commands.WGEDefaultNamespace)
+	installedVersion, err := utils.GetHelmRelease(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace)
 	if err == nil {
 		logger.Successf("WGE version: %s is already installed on your cluster!", installedVersion)
 		return nil
 	}
 
-	config := commands.Config{}
-	config.KubernetesClient = kubernetesClient
-	config.Logger = logger
+	// create config from flags
+	cb := steps.NewConfigBuilder().
+		WithLog(logger).
+		WithKubeClient(kubernetesClient)
 
-	flagsMap := map[string]string{
-		commands.UserName:   flags.username,
-		commands.Password:   flags.password,
-		commands.WGEVersion: flags.version,
+	// if valid username
+	if flags.username != "" {
+		cb = cb.WithUsername(flags.username)
 	}
 
-	var steps = []commands.BootstrapStep{
-		commands.CheckEntitlementSecretStep,
-		commands.VerifyFluxInstallationStep,
-		commands.SelectWgeVersionStep,
-		commands.AskAdminCredsSecretStep,
-		commands.SelectDomainType,
-		commands.InstallWGEStep,
-		commands.CheckUIDomainStep,
+	// if valid password
+	if flags.password != "" {
+		cb = cb.WithPassword(flags.password)
 	}
 
-	for _, step := range steps {
-		err := step.Execute(&config, flagsMap)
-		if err != nil {
-			return err
-		}
+	// if valid version
+	if flags.version != "" {
+		cb = cb.WithVersion(flags.version)
 	}
 
-	return nil
+	c, err := cb.Build()
+	if err != nil {
+		return err
+	}
+
+	return Bootstrap(c)
 }

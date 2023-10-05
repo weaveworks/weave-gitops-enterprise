@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"errors"
@@ -8,20 +8,19 @@ import (
 
 // user messages
 const (
-	fluxBoostrapCheckMsg           = "Checking flux is bootstrapped"
+	fluxBoostrapCheckMsg           = "Checking Flux is bootstrapped"
 	fluxExistingBootstrapMsg       = "Flux is already bootstrapped"
 	fluxInstallationErrorMsgFormat = "an error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster"
 )
 
-// CheckEntitlementSecretStep checks for valid entitlement secret.
+// VerifyFluxInstallationStep checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
 var VerifyFluxInstallationStep = BootstrapStep{
-	Name: "verify flux setup",
+	Name: fluxBoostrapCheckMsg,
 	Step: verifyFluxInstallation,
 }
 
 // VerifyFluxInstallation checks for valid flux installation.
 func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.Logger.Waitingf(fluxBoostrapCheckMsg)
 
 	var runner runner.CLIRunner
 	_, err := runner.Run("flux", "check")
@@ -36,7 +35,7 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 
 	return []StepOutput{
 		{
-			Name:  "flux success msg",
+			Name:  "Flux success msg",
 			Type:  successMsg,
 			Value: fluxExistingBootstrapMsg,
 		},

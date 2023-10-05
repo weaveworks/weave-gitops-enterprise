@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	_ "embed"
@@ -29,15 +29,15 @@ var (
 	publicKey string
 )
 
-// CheckEntitlementSecretStep checks for valid entitlement secret.
-var CheckEntitlementSecretStep = BootstrapStep{
-	Name: "check entitlement secret",
-	Step: checkEntitlementSecret,
+// NewCheckEntitlementSecret checks for valid entitlement secret.
+func NewCheckEntitlementSecret() BootstrapStep {
+	return BootstrapStep{
+		Name: entitlementCheckMsg,
+		Step: checkEntitlementSecret,
+	}
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.Logger.Waitingf(entitlementCheckMsg)
-
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
 		return []StepOutput{}, err

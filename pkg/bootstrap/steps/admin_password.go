@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"fmt"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	adminUsernameMsg           = "Please enter WeaveGitOps dashboard admin username (default: wego-admin)"
-	adminPasswordMsg           = "Please enter admin password (Minimum characters: 6)"
+	adminUsernameMsg           = "dashboard admin username (default: wego-admin)"
+	adminPasswordMsg           = "dashboard admin password (Minimum characters: 6)"
 	secretConfirmationMsg      = "Admin login credentials has been created successfully!"
 	adminSecretExistsMsgFormat = "Admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again."
 	existingCredsMsg           = "Do you want to continue using existing credentials"
@@ -31,7 +31,7 @@ const (
 // if the creds already exist. user will be asked to continue with the current creds
 // Or existing and deleting the creds then re-run the bootstrap process
 var AskAdminCredsSecretStep = BootstrapStep{
-	Name: "ask admin creds",
+	Name: "User Authentication",
 	Input: []StepInput{
 		{
 			Name:            "existingCreds",

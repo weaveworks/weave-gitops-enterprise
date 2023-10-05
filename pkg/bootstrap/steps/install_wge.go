@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ For more information about external DNS, please refer to: https://docs.aws.amazo
 `
 	clusterDomainMsg = "Please enter your cluster domain"
 
-	wgeInstallMsg          = "All set installing WGE v%s, This may take a few minutes"
+	wgeInstallMsg          = "Installing v%s :It may take a few minutes."
 	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
 	localInstallSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at http://localhost:8000/"
 )
@@ -45,7 +45,7 @@ const (
 )
 
 var InstallWGEStep = BootstrapStep{
-	Name: "install wge",
+	Name: "Install Weave Gitops Enterprise",
 	Input: []StepInput{
 		{
 			Name:         UserDomain,
@@ -61,7 +61,7 @@ var InstallWGEStep = BootstrapStep{
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.UserDomain = domainTypelocalhost
+	c.UserDomain = domainTypeLocalhost
 	if c.DomainType == domainTypeExternalDNS {
 		for _, param := range input {
 			if param.Name == UserDomain {

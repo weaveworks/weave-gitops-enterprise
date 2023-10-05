@@ -1,20 +1,9 @@
-package commands
+package steps
 
 import (
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
-
-// Config is the main struct for WGE installation setup
-type Config struct {
-	KubernetesClient k8s_client.Client
-	Logger           logger.Logger
-	Username         string
-	Password         string
-	WGEVersion       string
-	DomainType       string
-	UserDomain       string
-}
 
 const (
 	defaultAdminUsername = "wego-admin"
@@ -41,6 +30,62 @@ const (
 	typeFile             = "file"
 	typePortforward      = "portforward"
 )
+
+// Config is the main struct for WGE installation setup
+type Config struct {
+	KubernetesClient k8s_client.Client
+	Logger           logger.Logger
+	Username         string
+	Password         string
+	WGEVersion       string
+	DomainType       string
+	UserDomain       string
+}
+
+type ConfigBuilder struct {
+	logger           logger.Logger
+	username         string
+	password         string
+	wGEVersion       string
+	domainType       string
+	userDomain       string
+	kubernetesClient k8s_client.Client
+}
+
+func NewConfigBuilder() *ConfigBuilder {
+	return &ConfigBuilder{}
+}
+
+type ConfigOption func(*Config)
+
+func (c *ConfigBuilder) WithLog(log logger.Logger) *ConfigBuilder {
+	c.logger = log
+	return c
+}
+
+func (c *ConfigBuilder) WithUsername(username string) *ConfigBuilder {
+	c.username = username
+	return c
+}
+
+func (c *ConfigBuilder) WithPassword(password string) *ConfigBuilder {
+	c.password = password
+	return c
+}
+
+func (c *ConfigBuilder) WithKubeClient(client k8s_client.Client) *ConfigBuilder {
+	c.kubernetesClient = client
+	return c
+}
+
+func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
+	c.wGEVersion = version
+	return c
+}
+
+func (c *ConfigBuilder) Build() (Config, error) {
+
+}
 
 type fileContent struct {
 	Name      string

@@ -1,24 +1,25 @@
-package commands
+package steps
 
 import "errors"
 
 const (
-	domainMsg = "Please select the domain to be used"
+	domainStepName = "Dashboard access"
+	domainMsg      = "Please select the domain to be used"
 )
 const (
-	domainTypelocalhost   = "localhost"
+	domainTypeLocalhost   = "localhost"
 	domainTypeExternalDNS = "external DNS"
 )
 
 var (
 	domainTypes = []string{
-		domainTypelocalhost,
+		domainTypeLocalhost,
 		domainTypeExternalDNS,
 	}
 )
 
 var SelectDomainType = BootstrapStep{
-	Name: "select domain type",
+	Name: domainStepName,
 	Input: []StepInput{
 		{
 			Name:         "domainType",

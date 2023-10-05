@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"errors"
@@ -35,17 +35,17 @@ type StepOutput struct {
 func (s BootstrapStep) Execute(c *Config, flagsInput map[string]string) error {
 	inputValues, err := defaultInputStep(s.Input, c, flagsInput)
 	if err != nil {
-		return fmt.Errorf("cannot read input: %v", err)
+		return fmt.Errorf("cannot process input '%s': %v", s.Name, err)
 	}
 
 	outputs, err := s.Step(inputValues, c)
 	if err != nil {
-		return fmt.Errorf("cannot execute step: %v", err)
+		return fmt.Errorf("cannot execute '%s': %v", s.Name, err)
 	}
 
 	err = defaultOutputStep(outputs, c)
 	if err != nil {
-		return fmt.Errorf("cannot execute step: %v", err)
+		return fmt.Errorf("cannot process output '%s': %v", s.Name, err)
 	}
 	return nil
 }
@@ -174,6 +174,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			name := secret.ObjectMeta.Name
 			namespace := secret.ObjectMeta.Namespace
 			data := secret.Data
+			c.Logger.Println("creating secret '%s/%s'", secret.Namespace, secret.Name)
 			if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
 				return err
 			}

@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"errors"
@@ -12,11 +12,12 @@ import (
 
 // user messages
 const (
-	versionMsg = "Please select a version for WGE to be installed"
+	versionStepName = "Select WGE Version"
+	versionMsg      = "select one of the following"
 )
 
 var SelectWgeVersionStep = BootstrapStep{
-	Name: "select WGE version",
+	Name: versionStepName,
 	Input: []StepInput{
 		{
 			Name:     WGEVersion,
