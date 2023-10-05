@@ -206,7 +206,7 @@
     },
     "/v1/namespaces/{namespace}/gitopssets/{name}/sync": {
       "post": {
-        "summary": "Sync a GitOpsSet",
+        "summary": "Trigger reconciliation of a GitOpsSet",
         "operationId": "GitOpsSets_SyncGitOpsSet",
         "responses": {
           "200": {

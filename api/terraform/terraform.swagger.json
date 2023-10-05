@@ -17,8 +17,9 @@
     "application/json"
   ],
   "paths": {
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/terraform-objects/{name}": {
+    "/v1/namespaces/{namespace}/terraform-objects/{name}": {
       "get": {
+        "summary": "Get a terraform object",
         "operationId": "Terraform_GetTerraformObject",
         "responses": {
           "200": {
@@ -36,18 +37,6 @@
         },
         "parameters": [
           {
-            "name": "clusterNamespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "namespace",
             "in": "path",
             "required": true,
@@ -58,6 +47,18 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "clusterNamespace",
+            "in": "query",
+            "required": false,
+            "type": "string"
           }
         ],
         "tags": [
@@ -65,8 +66,9 @@
         ]
       }
     },
-    "/v1/namespaces/{clusterName}/clusters/{clusterName}/namespaces/{namespace}/terraform-objects/plan": {
+    "/v1/namespaces/{namespace}/terraform-objects/{name}/plan": {
       "get": {
+        "summary": "Get the plan for a terraform object",
         "operationId": "Terraform_GetTerraformObjectPlan",
         "responses": {
           "200": {
@@ -84,18 +86,6 @@
         },
         "parameters": [
           {
-            "name": "clusterName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
             "name": "namespace",
             "in": "path",
             "required": true,
@@ -103,6 +93,12 @@
           },
           {
             "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
             "in": "query",
             "required": false,
             "type": "string"
@@ -113,8 +109,59 @@
         ]
       }
     },
+    "/v1/namespaces/{namespace}/terraform-objects/{name}/replan": {
+      "post": {
+        "summary": "Replan a terraform object",
+        "operationId": "Terraform_ReplanTerraformObject",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ReplanTerraformObjectResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "clusterName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "Terraform"
+        ]
+      }
+    },
     "/v1/terraform-objects": {
       "get": {
+        "summary": "List terraform objects across all clusters",
         "operationId": "Terraform_ListTerraformObjects",
         "responses": {
           "200": {
@@ -162,40 +209,9 @@
         ]
       }
     },
-    "/v1/terraform-objects/replan": {
-      "post": {
-        "operationId": "Terraform_ReplanTerraformObject",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ReplanTerraformObjectResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ReplanTerraformObjectRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Terraform"
-        ]
-      }
-    },
     "/v1/terraform-objects/suspend": {
       "post": {
+        "summary": "Toggle suspend on multiple terraform objects",
         "operationId": "Terraform_ToggleSuspendTerraformObjects",
         "responses": {
           "200": {
@@ -228,6 +244,7 @@
     },
     "/v1/terraform-objects/sync": {
       "post": {
+        "summary": "Sync multiple terraform objects",
         "operationId": "Terraform_SyncTerraformObjects",
         "responses": {
           "200": {
@@ -408,20 +425,6 @@
           "format": "int32"
         },
         "pageToken": {
-          "type": "string"
-        }
-      }
-    },
-    "v1ReplanTerraformObjectRequest": {
-      "type": "object",
-      "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
           "type": "string"
         }
       }

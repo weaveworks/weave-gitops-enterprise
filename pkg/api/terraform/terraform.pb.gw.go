@@ -67,6 +67,10 @@ func local_request_Terraform_ListTerraformObjects_0(ctx context.Context, marshal
 
 }
 
+var (
+	filter_Terraform_GetTerraformObject_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0, "name": 1}, Base: []int{1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 2, 2, 3, 3}}
+)
+
 func request_Terraform_GetTerraformObject_0(ctx context.Context, marshaler runtime.Marshaler, client TerraformClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetTerraformObjectRequest
 	var metadata runtime.ServerMetadata
@@ -77,26 +81,6 @@ func request_Terraform_GetTerraformObject_0(ctx context.Context, marshaler runti
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
 
 	val, ok = pathParams["namespace"]
 	if !ok {
@@ -116,6 +100,13 @@ func request_Terraform_GetTerraformObject_0(ctx context.Context, marshaler runti
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Terraform_GetTerraformObject_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetTerraformObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -134,26 +125,6 @@ func local_request_Terraform_GetTerraformObject_0(ctx context.Context, marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -172,6 +143,13 @@ func local_request_Terraform_GetTerraformObject_0(ctx context.Context, marshaler
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_Terraform_GetTerraformObject_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetTerraformObject(ctx, &protoReq)
@@ -248,7 +226,7 @@ func local_request_Terraform_ToggleSuspendTerraformObjects_0(ctx context.Context
 }
 
 var (
-	filter_Terraform_GetTerraformObjectPlan_0 = &utilities.DoubleArray{Encoding: map[string]int{"cluster_name": 0, "clusterName": 1, "namespace": 2}, Base: []int{1, 2, 4, 6, 0, 0, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 2, 2, 3, 3, 4, 4}}
+	filter_Terraform_GetTerraformObjectPlan_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0, "name": 1}, Base: []int{1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 2, 2, 3, 3}}
 )
 
 func request_Terraform_GetTerraformObjectPlan_0(ctx context.Context, marshaler runtime.Marshaler, client TerraformClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -262,26 +240,6 @@ func request_Terraform_GetTerraformObjectPlan_0(ctx context.Context, marshaler r
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -290,6 +248,16 @@ func request_Terraform_GetTerraformObjectPlan_0(ctx context.Context, marshaler r
 	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -315,26 +283,6 @@ func local_request_Terraform_GetTerraformObjectPlan_0(ctx context.Context, marsh
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -343,6 +291,16 @@ func local_request_Terraform_GetTerraformObjectPlan_0(ctx context.Context, marsh
 	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -369,6 +327,33 @@ func request_Terraform_ReplanTerraformObject_0(ctx context.Context, marshaler ru
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
 	msg, err := client.ReplanTerraformObject(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -384,6 +369,33 @@ func local_request_Terraform_ReplanTerraformObject_0(ctx context.Context, marsha
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.ReplanTerraformObject(ctx, &protoReq)
@@ -430,7 +442,7 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObject", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/terraform-objects/{name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObject", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/terraform-objects/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -505,7 +517,7 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObjectPlan", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_name}/clusters/{cluster_name}/namespaces/{namespace}/terraform-objects/plan"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObjectPlan", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/terraform-objects/{name}/plan"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -530,7 +542,7 @@ func RegisterTerraformHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/ReplanTerraformObject", runtime.WithHTTPPathPattern("/v1/terraform-objects/replan"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/terraform.v1.Terraform/ReplanTerraformObject", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/terraform-objects/{name}/replan"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -616,7 +628,7 @@ func RegisterTerraformHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObject", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/terraform-objects/{name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObject", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/terraform-objects/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -682,7 +694,7 @@ func RegisterTerraformHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObjectPlan", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_name}/clusters/{cluster_name}/namespaces/{namespace}/terraform-objects/plan"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/GetTerraformObjectPlan", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/terraform-objects/{name}/plan"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -704,7 +716,7 @@ func RegisterTerraformHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/ReplanTerraformObject", runtime.WithHTTPPathPattern("/v1/terraform-objects/replan"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/terraform.v1.Terraform/ReplanTerraformObject", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/terraform-objects/{name}/replan"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -726,15 +738,15 @@ func RegisterTerraformHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 var (
 	pattern_Terraform_ListTerraformObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "terraform-objects"}, ""))
 
-	pattern_Terraform_GetTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 1, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"v1", "namespaces", "cluster_namespace", "clusters", "cluster_name", "namespace", "terraform-objects", "name"}, ""))
+	pattern_Terraform_GetTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "namespaces", "namespace", "terraform-objects", "name"}, ""))
 
 	pattern_Terraform_SyncTerraformObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform-objects", "sync"}, ""))
 
 	pattern_Terraform_ToggleSuspendTerraformObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform-objects", "suspend"}, ""))
 
-	pattern_Terraform_GetTerraformObjectPlan_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 2, 2, 1, 1, 0, 4, 1, 5, 4, 2, 5, 2, 6}, []string{"v1", "namespaces", "cluster_name", "clusters", "namespace", "terraform-objects", "plan"}, ""))
+	pattern_Terraform_GetTerraformObjectPlan_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "terraform-objects", "name", "plan"}, ""))
 
-	pattern_Terraform_ReplanTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "terraform-objects", "replan"}, ""))
+	pattern_Terraform_ReplanTerraformObject_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "terraform-objects", "name", "replan"}, ""))
 )
 
 var (

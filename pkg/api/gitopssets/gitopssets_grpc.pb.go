@@ -42,7 +42,7 @@ type GitOpsSetsClient interface {
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
 	// Get the reconciled objects for a GitOpsSet
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
-	// Sync a GitOpsSet
+	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error)
 }
 
@@ -111,7 +111,7 @@ type GitOpsSetsServer interface {
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
 	// Get the reconciled objects for a GitOpsSet
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
-	// Sync a GitOpsSet
+	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
 	mustEmbedUnimplementedGitOpsSetsServer()
 }
