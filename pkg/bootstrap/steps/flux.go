@@ -13,8 +13,8 @@ const (
 	fluxInstallationErrorMsgFormat = "an error occurred. Please refer to flux docs https://fluxcd.io/flux/installation/ to install and bootstrap flux on your cluster"
 )
 
-// VerifyFluxInstallationStep checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
-var VerifyFluxInstallationStep = BootstrapStep{
+// VerifyFluxInstallation checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
+var VerifyFluxInstallation = BootstrapStep{
 	Name: fluxBoostrapCheckMsg,
 	Step: verifyFluxInstallation,
 }

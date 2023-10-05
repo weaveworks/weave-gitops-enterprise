@@ -7,9 +7,10 @@ import (
 // Bootstrap initiated by the command runs the WGE bootstrap steps
 func Bootstrap(config steps.Config) error {
 	var steps = []steps.BootstrapStep{
-		steps.NewCheckEntitlementSecret(),
-		steps.VerifyFluxInstallationStep,
-		steps.SelectWgeVersionStep,
+		steps.CheckEntitlementSecret,
+		steps.VerifyFluxInstallation,
+		steps.NewSelectWgeVersionStep(config),
+
 		steps.AskAdminCredsSecretStep,
 		steps.SelectDomainType,
 		steps.InstallWGEStep,

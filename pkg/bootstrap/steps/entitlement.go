@@ -29,15 +29,13 @@ var (
 	publicKey string
 )
 
-// NewCheckEntitlementSecret checks for valid entitlement secret.
-func NewCheckEntitlementSecret() BootstrapStep {
-	return BootstrapStep{
-		Name: entitlementCheckMsg,
-		Step: checkEntitlementSecret,
-	}
+var CheckEntitlementSecret = BootstrapStep{
+	Name: entitlementCheckMsg,
+	Step: checkEntitlementSecret,
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
+
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
 		return []StepOutput{}, err

@@ -16,17 +16,24 @@ const (
 	versionMsg      = "select one of the following"
 )
 
-var SelectWgeVersionStep = BootstrapStep{
-	Name: versionStepName,
-	Input: []StepInput{
-		{
-			Name:     WGEVersion,
-			Type:     multiSelectionChoice,
-			Msg:      versionMsg,
-			Valuesfn: getWgeVersions,
-		},
-	},
-	Step: selectWgeVersion,
+var getVersionInput = StepInput{
+	Name:     WGEVersion,
+	Type:     multiSelectionChoice,
+	Msg:      versionMsg,
+	Valuesfn: getWgeVersions,
+}
+
+func NewSelectWgeVersionStep(config Config) BootstrapStep {
+	inputs := []StepInput{}
+
+	if config.WGEVersion != "" {
+		inputs = append(inputs, getVersionInput)
+	}
+	return BootstrapStep{
+		Name:  versionStepName,
+		Input: inputs,
+		Step:  selectWgeVersion,
+	}
 }
 
 // selectWgeVersion step ask user to select wge version from the latest 3 versions.
