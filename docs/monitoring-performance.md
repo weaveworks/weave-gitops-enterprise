@@ -41,7 +41,7 @@ The monitoring stack is deployed as [Flux Kustomization](https://github.com/weav
 
 This is included in:
 
-- Dev environment (via Tilt) so it could be used during development for understanding feature performance.
+- [Dev environment](../tools/dev-resources/monitoring/wge-monitoring.yaml) so it could be used during development for understanding feature performance.
 - [Staging cluster](https://github.com/weaveworks/weave-gitops-clusters/tree/main/k8s/clusters/internal-dev-gke/monitoring) so it could be used to long-live monitoring a feature or the app. 
 
 ### Profiling 
