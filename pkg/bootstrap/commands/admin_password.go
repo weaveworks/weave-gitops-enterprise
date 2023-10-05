@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -33,29 +34,66 @@ var AskAdminCredsSecretStep = BootstrapStep{
 	Name: "ask admin creds",
 	Input: []StepInput{
 		{
-			Name:         "username",
+			Name:            "existingCreds",
+			Type:            confirmInput,
+			Msg:             existingCredsMsg,
+			DefaultValue:    "",
+			Valuesfn:        checkExistingAdminSecret,
+			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
+		},
+		{
+			Name:         UserName,
 			Type:         stringInput,
 			Msg:          adminUsernameMsg,
 			DefaultValue: defaultAdminUsername,
+			Valuesfn:     canAskForCreds,
 		},
 		{
-			Name:         "password",
+			Name:         Password,
 			Type:         passwordInput,
 			Msg:          adminPasswordMsg,
 			DefaultValue: defaultAdminPassword,
+			Valuesfn:     canAskForCreds,
 		},
 	},
-	Step: encryptCredentials,
-	Output: []StepOutput{
-		{
-			Name: adminSecretName,
-			Type: "secret",
-		},
-	},
+	Step: createCredentials,
 }
 
-func encryptCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
+func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	// search for existing admin credentials in secret cluster-user-auth
+	continueWithExistingCreds := confirmYes
+	for _, param := range input {
+		if param.Name == UserName {
+			username, ok := param.Value.(string)
+			if ok {
+				c.Username = username
+			}
+		}
+		if param.Name == Password {
+			password, ok := param.Value.(string)
+			if ok {
+				c.Password = password
+			}
+		}
+		if param.Name == "existingCreds" {
+			existing, ok := param.Value.(string)
+			if ok {
+				continueWithExistingCreds = existing
+			} else {
+				existing = "n"
+			}
+		}
+	}
+
+	if existing, _ := checkExistingAdminSecret(input, c); existing.(bool) {
+		if continueWithExistingCreds != confirmYes {
+			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
+			os.Exit(0)
+		} else {
+			return []StepOutput{}, nil
+		}
+	}
+
 	encryptedPassword, err := bcrypt.GenerateFromPassword([]byte(c.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
@@ -66,7 +104,7 @@ func encryptCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		"password": encryptedPassword,
 	}
 
-	secret := &corev1.Secret{
+	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      adminSecretName,
 			Namespace: WGEDefaultNamespace,
@@ -82,23 +120,27 @@ func encryptCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		},
 		{
 			Name:  "adminSecret",
-			Type:  "secret",
+			Type:  typeSecret,
 			Value: secret,
 		},
 	}, nil
 
 }
 
-func checkExistingAdminSecret(input []StepInput, c *Config) ([]StepOutput, error) {
-	secret, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
-	if secret != nil && err == nil {
-		existingCreds := utils.GetConfirmInput(existingCredsMsg)
-		if existingCreds == confirmYes {
-			return []StepOutput{}, nil
-		} else {
-			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
-			os.Exit(0)
-		}
+// checkExistingAdminSecret checks for admin secret on management cluster
+// returns true if admin secret is already on the cluster
+// returns false if no admin secret on the cluster
+func checkExistingAdminSecret(input []StepInput, c *Config) (interface{}, error) {
+	_, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
+	if err != nil {
+		return false, nil
 	}
-	return []StepOutput{}, nil
+	return true, nil
+}
+
+func canAskForCreds(input []StepInput, c *Config) (interface{}, error) {
+	if ask, _ := checkExistingAdminSecret(input, c); ask.(bool) {
+		return false, nil
+	}
+	return true, nil
 }

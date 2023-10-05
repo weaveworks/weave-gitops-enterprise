@@ -16,13 +16,14 @@ type BootstrapStep struct {
 }
 
 type StepInput struct {
-	Name         string
-	Msg          string
-	Type         string
-	DefaultValue any
-	Value        any
-	Valuesfn     func(input []StepInput, c *Config) ([]string, error)
-	Values       []string
+	Name            string
+	Msg             string
+	StepInformation string
+	Type            string
+	DefaultValue    any
+	Value           any
+	Values          []string
+	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
 }
 
 type StepOutput struct {
@@ -31,8 +32,8 @@ type StepOutput struct {
 	Value any
 }
 
-func (s BootstrapStep) Execute(c *Config) error {
-	inputValues, err := defaultInputStep(s.Input, c)
+func (s BootstrapStep) Execute(c *Config, flagsInput map[string]string) error {
+	inputValues, err := defaultInputStep(s.Input, c, flagsInput)
 	if err != nil {
 		return fmt.Errorf("cannot read input: %v", err)
 	}
@@ -49,7 +50,7 @@ func (s BootstrapStep) Execute(c *Config) error {
 	return nil
 }
 
-func defaultInputStep(params []StepInput, c *Config) ([]StepInput, error) {
+func defaultInputStep(params []StepInput, c *Config, flagsInput map[string]string) ([]StepInput, error) {
 	processedParams := []StepInput{}
 	for _, param := range params {
 		// handle global behaviour
@@ -58,40 +59,101 @@ func defaultInputStep(params []StepInput, c *Config) ([]StepInput, error) {
 		// handle particular behaviours
 		switch param.Type {
 		case stringInput:
-			if param.Value == nil {
+			// verify the input is enabled by executing the function
+			enable := true
+			if param.Valuesfn != nil {
+				res, _ := param.Valuesfn(params, c)
+				enable = res.(bool)
+				if enable && param.StepInformation != "" {
+					c.Logger.Warningf(param.StepInformation)
+				}
+			}
+			// get the value from flags
+			val, ok := flagsInput[param.Name]
+			if ok && val != "" {
+				param.Value = val
+				enable = false
+			}
+			// get the value from user otherwise
+			if param.Value == nil && enable {
 				paramValue, err := utils.GetStringInput(param.Msg, param.DefaultValue.(string))
 				if err != nil {
 					return []StepInput{}, err
 				}
 				param.Value = paramValue
-				processedParams = append(processedParams, param)
 			}
+			// fill the new params
+			processedParams = append(processedParams, param)
 		case passwordInput:
-			if param.Value == nil {
+			// verify the input is enabled by executing the function
+			enable := true
+			if param.Valuesfn != nil {
+				res, _ := param.Valuesfn(params, c)
+				enable = res.(bool)
+				if enable && param.StepInformation != "" {
+					c.Logger.Warningf(param.StepInformation)
+				}
+			}
+			// get the value from flags
+			val, ok := flagsInput[param.Name]
+			if ok && val != "" {
+				param.Value = val
+				enable = false
+			}
+			// get the value from user otherwise
+			if param.Value == nil && enable {
 				paramValue, err := utils.GetPasswordInput(param.Msg)
 				if err != nil {
 					return []StepInput{}, err
 				}
 				param.Value = paramValue
-				processedParams = append(processedParams, param)
 			}
-		case multiSelectionChoice:
-			if param.Value == nil {
-				var values []string
-				var err error
-				if param.Valuesfn != nil {
-					values, err = param.Valuesfn(params, c)
-					if err != nil {
-						return []StepInput{}, err
-					}
+			processedParams = append(processedParams, param)
+		case confirmInput:
+			// verify the input is enabled by executing the function
+			enable := true
+			if param.Valuesfn != nil {
+				res, _ := param.Valuesfn(params, c)
+				enable = res.(bool)
+				if enable && param.StepInformation != "" {
+					c.Logger.Warningf(param.StepInformation)
 				}
+			}
+			// get the value from flags
+			val, ok := flagsInput[param.Name]
+			if ok && val != "" {
+				param.Value = val
+				enable = false
+			}
+			// get the value from user otherwise
+			if param.Value == nil && enable {
+				param.Value = utils.GetConfirmInput(param.Msg)
+			}
+			processedParams = append(processedParams, param)
+		case multiSelectionChoice:
+			// process the values from the function
+			var values []string = param.Values
+			if param.Valuesfn != nil {
+				res, err := param.Valuesfn(params, c)
+				if err != nil {
+					return []StepInput{}, err
+				}
+				values = res.([]string)
+			}
+			// get the value from flags
+			val, ok := flagsInput[param.Name]
+			if ok && val != "" {
+				param.Value = val
+			}
+			// get the values from user
+			if param.Value == nil {
 				paramValue, err := utils.GetSelectInput(param.Msg, values)
 				if err != nil {
 					return []StepInput{}, err
 				}
 				param.Value = paramValue
-				processedParams = append(processedParams, param)
 			}
+			processedParams = append(processedParams, param)
 		default:
 			return []StepInput{}, errors.New("not supported")
 		}
@@ -104,12 +166,50 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 		switch param.Type {
 		case successMsg:
 			c.Logger.Successf(param.Value.(string))
-		case "secret":
-			secret := param.Value.(v1.Secret)
+		case typeSecret:
+			secret, ok := param.Value.(v1.Secret)
+			if !ok {
+				return errors.New("unexpected error casting secret")
+			}
 			name := secret.ObjectMeta.Name
 			namespace := secret.ObjectMeta.Namespace
 			data := secret.Data
 			if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
+				return err
+			}
+		case typeFile:
+			file, ok := param.Value.(fileContent)
+			if !ok {
+				return errors.New("unexpected error casting file")
+			}
+			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
+			if err != nil {
+				return err
+			}
+
+			defer func() {
+				err = utils.CleanupRepo()
+				if err != nil {
+					c.Logger.Failuref("failed to cleanup repo!")
+				}
+			}()
+
+			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg)
+			if err != nil {
+				return err
+			}
+
+			if err := utils.ReconcileFlux(); err != nil {
+				return err
+			}
+
+		case typePortforward:
+			portforward, ok := param.Value.(func() error)
+			if !ok {
+				return errors.New("unexpected error for function casting")
+			}
+			err := portforward()
+			if err != nil {
 				return err
 			}
 		default:

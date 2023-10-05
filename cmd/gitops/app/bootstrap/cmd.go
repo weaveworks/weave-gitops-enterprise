@@ -76,23 +76,27 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 	}
 
 	config := commands.Config{}
-	config.Username = flags.username
-	config.Password = flags.password
-	config.WGEVersion = flags.version
 	config.KubernetesClient = kubernetesClient
 	config.Logger = logger
+
+	flagsMap := map[string]string{
+		commands.UserName:   flags.username,
+		commands.Password:   flags.password,
+		commands.WGEVersion: flags.version,
+	}
 
 	var steps = []commands.BootstrapStep{
 		commands.CheckEntitlementSecretStep,
 		commands.VerifyFluxInstallationStep,
 		commands.SelectWgeVersionStep,
 		commands.AskAdminCredsSecretStep,
+		commands.SelectDomainType,
 		commands.InstallWGEStep,
 		commands.CheckUIDomainStep,
 	}
 
 	for _, step := range steps {
-		err := step.Execute(&config)
+		err := step.Execute(&config, flagsMap)
 		if err != nil {
 			return err
 		}

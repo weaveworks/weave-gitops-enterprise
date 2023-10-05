@@ -19,7 +19,7 @@ var SelectWgeVersionStep = BootstrapStep{
 	Name: "select WGE version",
 	Input: []StepInput{
 		{
-			Name:     "version",
+			Name:     WGEVersion,
 			Type:     multiSelectionChoice,
 			Msg:      versionMsg,
 			Valuesfn: getWgeVersions,
@@ -31,7 +31,7 @@ var SelectWgeVersionStep = BootstrapStep{
 // selectWgeVersion step ask user to select wge version from the latest 3 versions.
 func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == "version" {
+		if param.Name == WGEVersion {
 			version, ok := param.Value.(string)
 			if !ok {
 				return []StepOutput{}, errors.New("unexpected error occured. Version not found")
@@ -49,7 +49,7 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 	}, nil
 }
 
-func getWgeVersions(input []StepInput, c *Config) ([]string, error) {
+func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
 	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return []string{}, err

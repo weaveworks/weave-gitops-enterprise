@@ -12,6 +12,7 @@ type Config struct {
 	Username         string
 	Password         string
 	WGEVersion       string
+	DomainType       string
 	UserDomain       string
 }
 
@@ -20,13 +21,32 @@ const (
 	defaultAdminPassword = "password"
 )
 
+// inputs names
+const (
+	UserName   = "username"
+	Password   = "password"
+	WGEVersion = "wgeVersion"
+	UserDomain = "userDomain"
+)
+
+// input/output types
 const (
 	successMsg           = "successMsg"
 	failureMsg           = "failureMsg"
 	multiSelectionChoice = "multiSelect"
 	stringInput          = "string"
 	passwordInput        = "password"
+	confirmInput         = "confirm"
+	typeSecret           = "secret"
+	typeFile             = "file"
+	typePortforward      = "portforward"
 )
+
+type fileContent struct {
+	Name      string
+	Content   string
+	CommitMsg string
+}
 
 // ValuesFile store the wge values
 type valuesFile struct {
