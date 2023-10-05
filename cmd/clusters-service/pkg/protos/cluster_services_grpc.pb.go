@@ -100,6 +100,8 @@ type ClustersServiceClient interface {
 	ListPolicyConfigs(ctx context.Context, in *ListPolicyConfigsRequest, opts ...grpc.CallOption) (*ListPolicyConfigsResponse, error)
 	// Get policy config details
 	GetPolicyConfig(ctx context.Context, in *GetPolicyConfigRequest, opts ...grpc.CallOption) (*GetPolicyConfigResponse, error)
+	// PreviewYAML is used to return the YAML representation of the resource
+	PreviewYAML(ctx context.Context, in *PreviewYAMLRequest, opts ...grpc.CallOption) (*PreviewYAMLResponse, error)
 }
 
 type clustersServiceClient struct {
@@ -407,6 +409,15 @@ func (c *clustersServiceClient) GetPolicyConfig(ctx context.Context, in *GetPoli
 	return out, nil
 }
 
+func (c *clustersServiceClient) PreviewYAML(ctx context.Context, in *PreviewYAMLRequest, opts ...grpc.CallOption) (*PreviewYAMLResponse, error) {
+	out := new(PreviewYAMLResponse)
+	err := c.cc.Invoke(ctx, "/cluster_services.v1.ClustersService/PreviewYAML", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ClustersServiceServer is the server API for ClustersService service.
 // All implementations must embed UnimplementedClustersServiceServer
 // for forward compatibility
@@ -492,6 +503,8 @@ type ClustersServiceServer interface {
 	ListPolicyConfigs(context.Context, *ListPolicyConfigsRequest) (*ListPolicyConfigsResponse, error)
 	// Get policy config details
 	GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error)
+	// PreviewYAML is used to return the YAML representation of the resource
+	PreviewYAML(context.Context, *PreviewYAMLRequest) (*PreviewYAMLResponse, error)
 	mustEmbedUnimplementedClustersServiceServer()
 }
 
@@ -597,6 +610,9 @@ func (UnimplementedClustersServiceServer) ListPolicyConfigs(context.Context, *Li
 }
 func (UnimplementedClustersServiceServer) GetPolicyConfig(context.Context, *GetPolicyConfigRequest) (*GetPolicyConfigResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetPolicyConfig not implemented")
+}
+func (UnimplementedClustersServiceServer) PreviewYAML(context.Context, *PreviewYAMLRequest) (*PreviewYAMLResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method PreviewYAML not implemented")
 }
 func (UnimplementedClustersServiceServer) mustEmbedUnimplementedClustersServiceServer() {}
 
@@ -1205,6 +1221,24 @@ func _ClustersService_GetPolicyConfig_Handler(srv interface{}, ctx context.Conte
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ClustersService_PreviewYAML_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PreviewYAMLRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ClustersServiceServer).PreviewYAML(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/cluster_services.v1.ClustersService/PreviewYAML",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ClustersServiceServer).PreviewYAML(ctx, req.(*PreviewYAMLRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ClustersService_ServiceDesc is the grpc.ServiceDesc for ClustersService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1343,6 +1377,10 @@ var ClustersService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetPolicyConfig",
 			Handler:    _ClustersService_GetPolicyConfig_Handler,
+		},
+		{
+			MethodName: "PreviewYAML",
+			Handler:    _ClustersService_PreviewYAML_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

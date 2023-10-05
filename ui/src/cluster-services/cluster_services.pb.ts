@@ -851,6 +851,15 @@ export type SopsSecret = {
   sops?: GoogleProtobufStruct.Value
 }
 
+export type PreviewYAMLRequest = {
+  kind?: string
+  values?: {[key: string]: string}
+}
+
+export type PreviewYAMLResponse = {
+  preview?: CommitFile
+}
+
 export class ClustersService {
   static ListTemplates(req: ListTemplatesRequest, initReq?: fm.InitReq): Promise<ListTemplatesResponse> {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
@@ -950,5 +959,8 @@ export class ClustersService {
   }
   static GetPolicyConfig(req: GetPolicyConfigRequest, initReq?: fm.InitReq): Promise<GetPolicyConfigResponse> {
     return fm.fetchReq<GetPolicyConfigRequest, GetPolicyConfigResponse>(`/v1/policy-configs/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+  }
+  static PreviewYAML(req: PreviewYAMLRequest, initReq?: fm.InitReq): Promise<PreviewYAMLResponse> {
+    return fm.fetchReq<PreviewYAMLRequest, PreviewYAMLResponse>(`/v1/preview-yaml`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
 }

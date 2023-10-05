@@ -322,6 +322,15 @@ service ClustersService {
     };
   }
 
+  // PreviewYAML is used to return the YAML representation of the resource
+  rpc PreviewYAML(PreviewYAMLRequest) returns (PreviewYAMLResponse) {
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["preview"]; };
+    option (google.api.http) = {
+      post : "/v1/preview-yaml"
+      body : "*"
+    };
+  }
+
 }
 
 message ListTemplatesRequest {
@@ -1200,4 +1209,13 @@ message SopsSecret {
   string type = 6;
   bool immutable = 7;
   google.protobuf.Value sops = 8;
+}
+
+message PreviewYAMLRequest {
+  string kind = 1;
+  map<string,string> values = 2;
+}
+
+message PreviewYAMLResponse {
+  CommitFile preview = 1;
 }
