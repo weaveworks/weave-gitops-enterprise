@@ -27,44 +27,44 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  * Weave GitOps GitOpsSets service definition
  */
 service GitOpsSets {
+    // List GitOpsSets across all clusters
     rpc ListGitOpsSets(ListGitOpsSetsRequest) returns (ListGitOpsSetsResponse) {
         option (google.api.http) = {
             get : "/v1/gitopssets"
         };
     }
 
+    // Get a GitOpsSet
     rpc GetGitOpsSet(GetGitOpsSetRequest) returns (GetGitOpsSetResponse) {
         option (google.api.http) = {
-            get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitopssets/{name}"
+            get : "/v1/namespaces/{namespace}/gitopssets/{name}"
         };
     }
     
 
+    // Toggle suspend on a GitOpsSet
     rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest)
         returns (ToggleSuspendGitOpsSetResponse) {
         option (google.api.http) = {
-            post : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitopssets/suspend"
+            post : "/v1/namespaces/{namespace}/gitopssets/{name}/suspend"
             body: "*"
         }; 
     }
 
-    /**
-    * GetReconciledObjects returns a list of objects
-    * that were created as a result a Flux automation.
-    * This list is derived by looking at the Kustomization
-    * or HelmRelease specified in the request body.
-    */
+    // Get the reconciled objects for a GitOpsSet
     rpc GetReconciledObjects(GetReconciledObjectsRequest)
         returns (GetReconciledObjectsResponse) {
         option (google.api.http) = {
-            post: "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitops-reconciled-objects"
+            // FIXME: can we make this a GET request?
+            post: "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects"
             body: "*"
         };
     };
 
+    // Trigger reconciliation of a GitOpsSet
     rpc SyncGitOpsSet(SyncGitOpsSetRequest) returns (SyncGitOpsSetResponse) {
         option (google.api.http) = {
-            post : "/v1/gitopssets/sync"
+            post : "/v1/namespaces/{namespace}/gitopssets/{name}/sync"
             body: "*"
         };  
     }    
@@ -84,7 +84,6 @@ message ToggleSuspendGitOpsSetRequest {
     string name              = 2;
     string namespace         = 3;
     bool   suspend           = 4;
-    string cluster_namespace = 5;
 }
 
 message ToggleSuspendGitOpsSetResponse {
@@ -96,7 +95,6 @@ message GetReconciledObjectsRequest {
     string         automationKind          = 3;
     repeated       GroupVersionKind kinds  = 4;
     string         cluster_name            = 5;
-    string         cluster_namespace       = 6;
 }
 
 message GetReconciledObjectsResponse {
@@ -116,8 +114,7 @@ message SyncGitOpsSetResponse {
 message GetGitOpsSetRequest {
     string name        = 1;
     string namespace   = 2;
-    string cluster_namespace = 3;
-    string cluster_name = 4;
+    string cluster_name = 3;
 }
 
 message GetGitOpsSetResponse {

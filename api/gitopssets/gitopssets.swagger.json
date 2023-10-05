@@ -19,6 +19,7 @@
   "paths": {
     "/v1/gitopssets": {
       "get": {
+        "summary": "List GitOpsSets across all clusters",
         "operationId": "GitOpsSets_ListGitOpsSets",
         "responses": {
           "200": {
@@ -47,164 +48,9 @@
         ]
       }
     },
-    "/v1/gitopssets/sync": {
-      "post": {
-        "operationId": "GitOpsSets_SyncGitOpsSet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SyncGitOpsSetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SyncGitOpsSetRequest"
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/gitops-reconciled-objects": {
-      "post": {
-        "summary": "GetReconciledObjects returns a list of objects\nthat were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization\nor HelmRelease specified in the request body.",
-        "operationId": "GitOpsSets_GetReconciledObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "clusterNamespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "automationKind": {
-                  "type": "string"
-                },
-                "kinds": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "$ref": "#/definitions/v1GroupVersionKind"
-                  }
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/gitopssets/suspend": {
-      "post": {
-        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "clusterNamespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "clusterName",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "namespace",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "type": "object",
-              "properties": {
-                "name": {
-                  "type": "string"
-                },
-                "suspend": {
-                  "type": "boolean"
-                }
-              }
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
-    "/v1/namespaces/{clusterNamespace}/clusters/{clusterName}/namespaces/{namespace}/gitopssets/{name}": {
+    "/v1/namespaces/{namespace}/gitopssets/{name}": {
       "get": {
+        "summary": "Get a GitOpsSet",
         "operationId": "GitOpsSets_GetGitOpsSet",
         "responses": {
           "200": {
@@ -222,17 +68,48 @@
         },
         "parameters": [
           {
-            "name": "clusterNamespace",
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "clusterName",
-            "in": "path",
-            "required": true,
+            "in": "query",
+            "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects": {
+      "post": {
+        "summary": "Get the reconciled objects for a GitOpsSet",
+        "operationId": "GitOpsSets_GetReconciledObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
+            }
           },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
           {
             "name": "namespace",
             "in": "path",
@@ -244,6 +121,132 @@
             "in": "path",
             "required": true,
             "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "automationKind": {
+                  "type": "string"
+                },
+                "kinds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1GroupVersionKind"
+                  }
+                },
+                "clusterName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/suspend": {
+      "post": {
+        "summary": "Toggle suspend on a GitOpsSet",
+        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "clusterName": {
+                  "type": "string"
+                },
+                "suspend": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/sync": {
+      "post": {
+        "summary": "Sync a GitOpsSet",
+        "operationId": "GitOpsSets_SyncGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "clusterName": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "tags": [
@@ -473,20 +476,6 @@
           "type": "string"
         },
         "version": {
-          "type": "string"
-        }
-      }
-    },
-    "v1SyncGitOpsSetRequest": {
-      "type": "object",
-      "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
           "type": "string"
         }
       }

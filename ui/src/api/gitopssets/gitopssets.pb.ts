@@ -20,7 +20,6 @@ export type ToggleSuspendGitOpsSetRequest = {
   name?: string
   namespace?: string
   suspend?: boolean
-  clusterNamespace?: string
 }
 
 export type ToggleSuspendGitOpsSetResponse = {
@@ -32,7 +31,6 @@ export type GetReconciledObjectsRequest = {
   automationKind?: string
   kinds?: GitopssetsV1Types.GroupVersionKind[]
   clusterName?: string
-  clusterNamespace?: string
 }
 
 export type GetReconciledObjectsResponse = {
@@ -52,7 +50,6 @@ export type SyncGitOpsSetResponse = {
 export type GetGitOpsSetRequest = {
   name?: string
   namespace?: string
-  clusterNamespace?: string
   clusterName?: string
 }
 
@@ -65,15 +62,15 @@ export class GitOpsSets {
     return fm.fetchReq<ListGitOpsSetsRequest, ListGitOpsSetsResponse>(`/v1/gitopssets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetGitOpsSet(req: GetGitOpsSetRequest, initReq?: fm.InitReq): Promise<GetGitOpsSetResponse> {
-    return fm.fetchReq<GetGitOpsSetRequest, GetGitOpsSetResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitopssets/${req["name"]}?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName", "namespace", "name"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetGitOpsSetRequest, GetGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ToggleSuspendGitOpsSet(req: ToggleSuspendGitOpsSetRequest, initReq?: fm.InitReq): Promise<ToggleSuspendGitOpsSetResponse> {
-    return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitopssets/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
-    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/namespaces/${req["namespace"]}/gitops-reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static SyncGitOpsSet(req: SyncGitOpsSetRequest, initReq?: fm.InitReq): Promise<SyncGitOpsSetResponse> {
-    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/gitopssets/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

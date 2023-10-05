@@ -67,6 +67,10 @@ func local_request_GitOpsSets_ListGitOpsSets_0(ctx context.Context, marshaler ru
 
 }
 
+var (
+	filter_GitOpsSets_GetGitOpsSet_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0, "name": 1}, Base: []int{1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 2, 2, 3, 3}}
+)
+
 func request_GitOpsSets_GetGitOpsSet_0(ctx context.Context, marshaler runtime.Marshaler, client GitOpsSetsClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var protoReq GetGitOpsSetRequest
 	var metadata runtime.ServerMetadata
@@ -77,26 +81,6 @@ func request_GitOpsSets_GetGitOpsSet_0(ctx context.Context, marshaler runtime.Ma
 		err error
 		_   = err
 	)
-
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
 
 	val, ok = pathParams["namespace"]
 	if !ok {
@@ -116,6 +100,13 @@ func request_GitOpsSets_GetGitOpsSet_0(ctx context.Context, marshaler runtime.Ma
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_GitOpsSets_GetGitOpsSet_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := client.GetGitOpsSet(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -134,26 +125,6 @@ func local_request_GitOpsSets_GetGitOpsSet_0(ctx context.Context, marshaler runt
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -172,6 +143,13 @@ func local_request_GitOpsSets_GetGitOpsSet_0(ctx context.Context, marshaler runt
 	protoReq.Name, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_GitOpsSets_GetGitOpsSet_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
 	msg, err := server.GetGitOpsSet(ctx, &protoReq)
@@ -198,26 +176,6 @@ func request_GitOpsSets_ToggleSuspendGitOpsSet_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -226,6 +184,16 @@ func request_GitOpsSets_ToggleSuspendGitOpsSet_0(ctx context.Context, marshaler 
 	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := client.ToggleSuspendGitOpsSet(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -252,26 +220,6 @@ func local_request_GitOpsSets_ToggleSuspendGitOpsSet_0(ctx context.Context, mars
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -280,6 +228,16 @@ func local_request_GitOpsSets_ToggleSuspendGitOpsSet_0(ctx context.Context, mars
 	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.ToggleSuspendGitOpsSet(ctx, &protoReq)
@@ -306,26 +264,6 @@ func request_GitOpsSets_GetReconciledObjects_0(ctx context.Context, marshaler ru
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -334,6 +272,16 @@ func request_GitOpsSets_GetReconciledObjects_0(ctx context.Context, marshaler ru
 	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := client.GetReconciledObjects(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -360,26 +308,6 @@ func local_request_GitOpsSets_GetReconciledObjects_0(ctx context.Context, marsha
 		_   = err
 	)
 
-	val, ok = pathParams["cluster_namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_namespace")
-	}
-
-	protoReq.ClusterNamespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_namespace", err)
-	}
-
-	val, ok = pathParams["cluster_name"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "cluster_name")
-	}
-
-	protoReq.ClusterName, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "cluster_name", err)
-	}
-
 	val, ok = pathParams["namespace"]
 	if !ok {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
@@ -388,6 +316,16 @@ func local_request_GitOpsSets_GetReconciledObjects_0(ctx context.Context, marsha
 	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.GetReconciledObjects(ctx, &protoReq)
@@ -407,6 +345,33 @@ func request_GitOpsSets_SyncGitOpsSet_0(ctx context.Context, marshaler runtime.M
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
+	}
+
 	msg, err := client.SyncGitOpsSet(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 
@@ -422,6 +387,33 @@ func local_request_GitOpsSets_SyncGitOpsSet_0(ctx context.Context, marshaler run
 	}
 	if err := marshaler.NewDecoder(newReader()).Decode(&protoReq); err != nil && err != io.EOF {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	var (
+		val string
+		ok  bool
+		err error
+		_   = err
+	)
+
+	val, ok = pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+
+	val, ok = pathParams["name"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
+	}
+
+	protoReq.Name, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.SyncGitOpsSet(ctx, &protoReq)
@@ -468,7 +460,7 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitopssets/{name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -493,7 +485,7 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitopssets/suspend"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -518,7 +510,7 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitops-reconciled-objects"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -543,7 +535,7 @@ func RegisterGitOpsSetsHandlerServer(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/sync"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -629,7 +621,7 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitopssets/{name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -651,7 +643,7 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitopssets/suspend"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/ToggleSuspendGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}/suspend"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -673,7 +665,7 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/namespaces/{namespace}/gitops-reconciled-objects"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/GetReconciledObjects", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -695,7 +687,7 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/gitopssets/sync"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitopssets.v1.GitOpsSets/SyncGitOpsSet", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/gitopssets/{name}/sync"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -717,13 +709,13 @@ func RegisterGitOpsSetsHandlerClient(ctx context.Context, mux *runtime.ServeMux,
 var (
 	pattern_GitOpsSets_ListGitOpsSets_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "gitopssets"}, ""))
 
-	pattern_GitOpsSets_GetGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 1, 1, 0, 4, 1, 5, 5, 2, 6, 1, 0, 4, 1, 5, 7}, []string{"v1", "namespaces", "cluster_namespace", "clusters", "cluster_name", "namespace", "gitopssets", "name"}, ""))
+	pattern_GitOpsSets_GetGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "namespaces", "namespace", "gitopssets", "name"}, ""))
 
-	pattern_GitOpsSets_ToggleSuspendGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 1, 1, 0, 4, 1, 5, 5, 2, 6, 2, 7}, []string{"v1", "namespaces", "cluster_namespace", "clusters", "cluster_name", "namespace", "gitopssets", "suspend"}, ""))
+	pattern_GitOpsSets_ToggleSuspendGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "gitopssets", "name", "suspend"}, ""))
 
-	pattern_GitOpsSets_GetReconciledObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 1, 1, 0, 4, 1, 5, 5, 2, 6}, []string{"v1", "namespaces", "cluster_namespace", "clusters", "cluster_name", "namespace", "gitops-reconciled-objects"}, ""))
+	pattern_GitOpsSets_GetReconciledObjects_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "gitopssets", "name", "reconciled-objects"}, ""))
 
-	pattern_GitOpsSets_SyncGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitopssets", "sync"}, ""))
+	pattern_GitOpsSets_SyncGitOpsSet_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "gitopssets", "name", "sync"}, ""))
 )
 
 var (
