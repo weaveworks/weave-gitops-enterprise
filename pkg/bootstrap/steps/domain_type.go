@@ -1,6 +1,8 @@
 package steps
 
-import "errors"
+import (
+	"errors"
+)
 
 const (
 	domainStepName = "Dashboard access"
@@ -18,18 +20,26 @@ var (
 	}
 )
 
-var SelectDomainType = BootstrapStep{
-	Name: domainStepName,
-	Input: []StepInput{
-		{
-			Name:         "domainType",
-			Type:         multiSelectionChoice,
-			Msg:          domainMsg,
-			Values:       domainTypes,
-			DefaultValue: "",
-		},
-	},
-	Step: selectDomainType,
+var getDomainType = StepInput{
+	Name:         "domainType",
+	Type:         multiSelectionChoice,
+	Msg:          domainMsg,
+	Values:       domainTypes,
+	DefaultValue: "",
+}
+
+func NewSelectDomainType(config Config) BootstrapStep {
+	inputs := []StepInput{}
+
+	if config.DomainType != "" {
+		inputs = append(inputs, getDomainType)
+	}
+
+	return BootstrapStep{
+		Name:  domainStepName,
+		Input: inputs,
+		Step:  selectDomainType,
+	}
 }
 
 func selectDomainType(input []StepInput, c *Config) ([]StepOutput, error) {

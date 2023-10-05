@@ -24,15 +24,30 @@ const (
 	confirmYes      = "y"
 )
 
-// AskAdminCredsSecretStep asks user about admin username and password.
+var getUsernameInput = StepInput{
+	Name:         UserName,
+	Type:         stringInput,
+	Msg:          adminUsernameMsg,
+	DefaultValue: defaultAdminUsername,
+	Valuesfn:     canAskForCreds,
+}
+
+var getPasswordInput = StepInput{
+	Name:         Password,
+	Type:         passwordInput,
+	Msg:          adminPasswordMsg,
+	DefaultValue: defaultAdminPassword,
+	Valuesfn:     canAskForCreds,
+}
+
+// NewAskAdminCredsSecretStep asks user about admin username and password.
 // admin username and password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
 // there an option to revert these creds in case OIDC setup is successful
 // if the creds already exist. user will be asked to continue with the current creds
 // Or existing and deleting the creds then re-run the bootstrap process
-var AskAdminCredsSecretStep = BootstrapStep{
-	Name: "User Authentication",
-	Input: []StepInput{
+func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
+	inputs := []StepInput{
 		{
 			Name:            "existingCreds",
 			Type:            confirmInput,
@@ -41,22 +56,21 @@ var AskAdminCredsSecretStep = BootstrapStep{
 			Valuesfn:        checkExistingAdminSecret,
 			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
 		},
-		{
-			Name:         UserName,
-			Type:         stringInput,
-			Msg:          adminUsernameMsg,
-			DefaultValue: defaultAdminUsername,
-			Valuesfn:     canAskForCreds,
-		},
-		{
-			Name:         Password,
-			Type:         passwordInput,
-			Msg:          adminPasswordMsg,
-			DefaultValue: defaultAdminPassword,
-			Valuesfn:     canAskForCreds,
-		},
-	},
-	Step: createCredentials,
+	}
+
+	if config.Username != "" {
+		inputs = append(inputs, getUsernameInput)
+	}
+
+	if config.Password != "" {
+		inputs = append(inputs, getPasswordInput)
+	}
+
+	return BootstrapStep{
+		Name:  "User Authentication",
+		Input: inputs,
+		Step:  createCredentials,
+	}
 }
 
 func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {

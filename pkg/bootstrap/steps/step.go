@@ -32,8 +32,8 @@ type StepOutput struct {
 	Value any
 }
 
-func (s BootstrapStep) Execute(c *Config, flagsInput map[string]string) error {
-	inputValues, err := defaultInputStep(s.Input, c, flagsInput)
+func (s BootstrapStep) Execute(c *Config) error {
+	inputValues, err := defaultInputStep(s.Input, c)
 	if err != nil {
 		return fmt.Errorf("cannot process input '%s': %v", s.Name, err)
 	}
@@ -50,115 +50,88 @@ func (s BootstrapStep) Execute(c *Config, flagsInput map[string]string) error {
 	return nil
 }
 
-func defaultInputStep(params []StepInput, c *Config, flagsInput map[string]string) ([]StepInput, error) {
-	processedParams := []StepInput{}
-	for _, param := range params {
-		// handle global behaviour
-		// for example silent
-
-		// handle particular behaviours
-		switch param.Type {
+func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
+	processedInputs := []StepInput{}
+	for _, input := range inputs {
+		switch input.Type {
 		case stringInput:
 			// verify the input is enabled by executing the function
 			enable := true
-			if param.Valuesfn != nil {
-				res, _ := param.Valuesfn(params, c)
+			if input.Valuesfn != nil {
+				res, _ := input.Valuesfn(inputs, c)
 				enable = res.(bool)
-				if enable && param.StepInformation != "" {
-					c.Logger.Warningf(param.StepInformation)
+				if enable && input.StepInformation != "" {
+					c.Logger.Warningf(input.StepInformation)
 				}
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-				enable = false
-			}
 			// get the value from user otherwise
-			if param.Value == nil && enable {
-				paramValue, err := utils.GetStringInput(param.Msg, param.DefaultValue.(string))
+			if input.Value == nil && enable {
+				paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string))
 				if err != nil {
 					return []StepInput{}, err
 				}
-				param.Value = paramValue
+				input.Value = paramValue
 			}
-			// fill the new params
-			processedParams = append(processedParams, param)
+			// fill the new inputs
+			processedInputs = append(processedInputs, input)
 		case passwordInput:
 			// verify the input is enabled by executing the function
 			enable := true
-			if param.Valuesfn != nil {
-				res, _ := param.Valuesfn(params, c)
+			if input.Valuesfn != nil {
+				res, _ := input.Valuesfn(inputs, c)
 				enable = res.(bool)
-				if enable && param.StepInformation != "" {
-					c.Logger.Warningf(param.StepInformation)
+				if enable && input.StepInformation != "" {
+					c.Logger.Warningf(input.StepInformation)
 				}
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-				enable = false
-			}
 			// get the value from user otherwise
-			if param.Value == nil && enable {
-				paramValue, err := utils.GetPasswordInput(param.Msg)
+			if input.Value == nil && enable {
+				paramValue, err := utils.GetPasswordInput(input.Msg)
 				if err != nil {
 					return []StepInput{}, err
 				}
-				param.Value = paramValue
+				input.Value = paramValue
 			}
-			processedParams = append(processedParams, param)
+			processedInputs = append(processedInputs, input)
 		case confirmInput:
 			// verify the input is enabled by executing the function
 			enable := true
-			if param.Valuesfn != nil {
-				res, _ := param.Valuesfn(params, c)
+			if input.Valuesfn != nil {
+				res, _ := input.Valuesfn(inputs, c)
 				enable = res.(bool)
-				if enable && param.StepInformation != "" {
-					c.Logger.Warningf(param.StepInformation)
+				if enable && input.StepInformation != "" {
+					c.Logger.Warningf(input.StepInformation)
 				}
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-				enable = false
-			}
 			// get the value from user otherwise
-			if param.Value == nil && enable {
-				param.Value = utils.GetConfirmInput(param.Msg)
+			if input.Value == nil && enable {
+				input.Value = utils.GetConfirmInput(input.Msg)
 			}
-			processedParams = append(processedParams, param)
+			processedInputs = append(processedInputs, input)
 		case multiSelectionChoice:
 			// process the values from the function
-			var values []string = param.Values
-			if param.Valuesfn != nil {
-				res, err := param.Valuesfn(params, c)
+			var values []string = input.Values
+			if input.Valuesfn != nil {
+				res, err := input.Valuesfn(inputs, c)
 				if err != nil {
 					return []StepInput{}, err
 				}
 				values = res.([]string)
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-			}
 			// get the values from user
-			if param.Value == nil {
-				paramValue, err := utils.GetSelectInput(param.Msg, values)
+			if input.Value == nil {
+				paramValue, err := utils.GetSelectInput(input.Msg, values)
 				if err != nil {
 					return []StepInput{}, err
 				}
-				param.Value = paramValue
+				input.Value = paramValue
 			}
-			processedParams = append(processedParams, param)
+			processedInputs = append(processedInputs, input)
 		default:
-			return []StepInput{}, errors.New("not supported")
+			return []StepInput{}, fmt.Errorf("input not supported: %s", input.Name)
 		}
 	}
-	return processedParams, nil
+	return processedInputs, nil
 }
 
 func defaultOutputStep(params []StepOutput, c *Config) error {

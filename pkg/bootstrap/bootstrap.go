@@ -10,16 +10,15 @@ func Bootstrap(config steps.Config) error {
 		steps.CheckEntitlementSecret,
 		steps.VerifyFluxInstallation,
 		steps.NewSelectWgeVersionStep(config),
-
-		steps.AskAdminCredsSecretStep,
-		steps.SelectDomainType,
-		steps.InstallWGEStep,
+		steps.NewAskAdminCredsSecretStep(config),
+		steps.NewSelectDomainType(config),
+		steps.NewInstallWGEStep(config),
 		steps.CheckUIDomainStep,
 	}
 
 	for _, step := range steps {
 		config.Logger.Waitingf(step.Name)
-		err := step.Execute(&config, nil)
+		err := step.Execute(&config)
 		if err != nil {
 			return err
 		}

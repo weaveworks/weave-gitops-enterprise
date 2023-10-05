@@ -44,19 +44,27 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
-var InstallWGEStep = BootstrapStep{
-	Name: "Install Weave Gitops Enterprise",
-	Input: []StepInput{
-		{
-			Name:         UserDomain,
-			Type:         stringInput,
-			Msg:          clusterDomainMsg,
-			DefaultValue: "",
-			Valuesfn:     isUserDomainEnabled,
-		},
-	},
-	Step:   installWge,
-	Output: []StepOutput{},
+var getUserDomain = StepInput{
+	Name:         UserDomain,
+	Type:         stringInput,
+	Msg:          clusterDomainMsg,
+	DefaultValue: "",
+	Valuesfn:     isUserDomainEnabled,
+}
+
+func NewInstallWGEStep(config Config) BootstrapStep {
+	inputs := []StepInput{}
+
+	if config.UserDomain != "" {
+		inputs = append(inputs, getUserDomain)
+	}
+
+	return BootstrapStep{
+		Name:   "Install Weave Gitops Enterprise",
+		Input:  inputs,
+		Step:   installWge,
+		Output: []StepOutput{},
+	}
 }
 
 // InstallWge installs weave gitops enterprise chart.
