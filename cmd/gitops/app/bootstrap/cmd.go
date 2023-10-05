@@ -13,13 +13,11 @@ import (
 
 const (
 	cmdName             = "bootstrap"
-	cmdShortDescription = `gitops bootstrap will help getting started with Weave GitOps Enterprise through simple steps in bootstrap by performing the following tasks:
-- Verify the entitlement file exist on the cluster and valid.
-- Verify Flux installation is valid.
-- Allow option to bootstrap Flux in the generic git server way if not installed.
-- Allow selecting the version of WGE to be installed from the latest 3 versions.
-- Set the admin password for WGE Dashboard.
-- Easy steps to make OIDC flow
+	cmdShortDescription = `gitops bootstrap installs Weave GitOps Enterprise in simple steps:
+- Entitlements: check that you have valid entitlements.
+- Flux: check or bootstrap Flux. 
+- Weave Gitops: check or install a supported Weave GitOps version with default configuration.
+- Authentication: check or setup cluster user authentication to access the dashboard.
 `
 	cmdExamples = `
 # Start WGE installation from the current kubeconfig
@@ -48,7 +46,7 @@ func Command(opts *config.Options) *cobra.Command {
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
-	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version")
+	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install.")
 	return cmd
 }
 
