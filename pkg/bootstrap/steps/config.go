@@ -5,7 +5,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
-	"k8s.io/apimachinery/pkg/api/errors"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -100,15 +99,16 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	}
 	l.Actionf("created client to cluster")
 
-	installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
-	if err != nil {
-		if !errors.IsNotFound(err) {
-			return Config{}, fmt.Errorf("unexpected error finding weave gitops helm release: %w", err)
-		}
-		l.Successf("weave gitops not found in the cluster")
-	} else if installedVersion != "" {
-		return Config{}, fmt.Errorf("cannot config bootstrap: weave gitops `%s` exists in the cluster", installedVersion)
-	}
+	// TODO this should be part of a verify wge step, potentially select wge version
+	//installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
+	//if err != nil {
+	//	if !errors.IsNotFound(err) {
+	//		return Config{}, fmt.Errorf("unexpected error finding weave gitops helm release: %w", err)
+	//	}
+	//	l.Successf("weave gitops not found in the cluster")
+	//} else if installedVersion != "" {
+	//	return Config{}, fmt.Errorf("cannot config bootstrap: weave gitops `%s` exists in the cluster", installedVersion)
+	//}
 
 	return Config{
 		KubernetesClient: kubernetesClient,

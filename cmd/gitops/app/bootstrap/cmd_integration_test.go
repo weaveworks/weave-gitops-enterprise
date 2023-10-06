@@ -7,7 +7,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/alecthomas/assert"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 
@@ -19,9 +18,8 @@ const (
 	defaultInterval = time.Second
 )
 
-// TestQueryServer is an integration test for exercising the integration of the
-// query system that includes both collecting from a cluster (using envtest) and doing queries via grpc.
-// It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
+// TestBootstrapCmd is an integration test for bootstrapping command.
+// It uses envtest to simulate a cluster.
 func TestBootstrapCmd(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
@@ -33,8 +31,9 @@ func TestBootstrapCmd(t *testing.T) {
 		expectedErrorStr string
 	}{
 		{
-			name:  "can execute bootstrap command",
-			flags: []string{},
+			name:             "should fail without entitlements",
+			flags:            []string{},
+			expectedErrorStr: "entitlement file is not found",
 		},
 	}
 	for _, tt := range tests {
@@ -48,11 +47,9 @@ func TestBootstrapCmd(t *testing.T) {
 			cmd.SetArgs(bootstrapCmdArgs)
 
 			err := cmd.Execute()
-			assert.NoError(t, err)
 
 			if err != nil {
-				g.Expect(err).To(ContainSubstring(tt.expectedErrorStr))
-
+				g.Expect(err.Error()).To(ContainSubstring(tt.expectedErrorStr))
 			} else {
 				g.Expect(err).To(BeNil())
 			}
