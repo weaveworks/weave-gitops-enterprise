@@ -93,8 +93,6 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 			existing, ok := param.Value.(string)
 			if ok {
 				continueWithExistingCreds = existing
-			} else {
-				existing = "n"
 			}
 		}
 	}

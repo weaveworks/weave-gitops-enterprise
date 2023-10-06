@@ -1,13 +1,11 @@
 package bootstrap
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
 	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -56,51 +54,26 @@ func Command(opts *config.Options) *cobra.Command {
 
 func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) {
 	return func(cmd *cobra.Command, args []string) {
-		logger := logger.NewCLILogger(os.Stdout)
 
-		if err := bootstrap(opts, logger); err != nil {
-			logger.Failuref(err.Error())
+		cliLogger := logger.NewCLILogger(os.Stdout)
+
+		// create config from flags
+		c, err := steps.NewConfigBuilder().
+			WithLogWriter(cliLogger).
+			WithKubeconfig(opts.Kubeconfig).
+			WithUsername(flags.username).
+			WithPassword(flags.password).
+			WithVersion(flags.version).
+			Build()
+
+		if err != nil {
+			cliLogger.Failuref("cannot config bootstrap: %w", err)
 		}
+
+		err = Bootstrap(c)
+		if err != nil {
+			cliLogger.Failuref("cannot execute bootstrap: %w", err)
+		}
+
 	}
-}
-
-// Bootstrap initiated by the command runs the WGE bootstrap steps
-func bootstrap(opts *config.Options, logger logger.Logger) error {
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
-	}
-
-	installedVersion, err := utils.GetHelmRelease(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace)
-	if err == nil {
-		logger.Successf("WGE version: %s is already installed on your cluster!", installedVersion)
-		return nil
-	}
-
-	// create config from flags
-	cb := steps.NewConfigBuilder().
-		WithLog(logger).
-		WithKubeClient(kubernetesClient)
-
-	// if valid username
-	if flags.username != "" {
-		cb = cb.WithUsername(flags.username)
-	}
-
-	// if valid password
-	if flags.password != "" {
-		cb = cb.WithPassword(flags.password)
-	}
-
-	// if valid version
-	if flags.version != "" {
-		cb = cb.WithVersion(flags.version)
-	}
-
-	c, err := cb.Build()
-	if err != nil {
-		return err
-	}
-
-	return Bootstrap(c)
 }

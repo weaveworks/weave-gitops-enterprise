@@ -1,7 +1,11 @@
 package steps
 
 import (
+	"fmt"
+
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"k8s.io/apimachinery/pkg/api/errors"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -31,35 +35,21 @@ const (
 	typePortforward      = "portforward"
 )
 
-// Config is the main struct for WGE installation setup
-type Config struct {
-	KubernetesClient k8s_client.Client
-	Logger           logger.Logger
-	Username         string
-	Password         string
-	WGEVersion       string
-	DomainType       string
-	UserDomain       string
-}
-
+// ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger           logger.Logger
-	username         string
-	password         string
-	wGEVersion       string
-	domainType       string
-	userDomain       string
-	kubernetesClient k8s_client.Client
+	username   string
+	password   string
+	wGEVersion string
+	kubeconfig string
+	logger     logger.Logger
 }
 
 func NewConfigBuilder() *ConfigBuilder {
 	return &ConfigBuilder{}
 }
 
-type ConfigOption func(*Config)
-
-func (c *ConfigBuilder) WithLog(log logger.Logger) *ConfigBuilder {
-	c.logger = log
+func (c *ConfigBuilder) WithLogWriter(logger logger.Logger) *ConfigBuilder {
+	c.logger = logger
 	return c
 }
 
@@ -73,8 +63,8 @@ func (c *ConfigBuilder) WithPassword(password string) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) WithKubeClient(client k8s_client.Client) *ConfigBuilder {
-	c.kubernetesClient = client
+func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
+	c.kubeconfig = kubeconfig
 	return c
 }
 
@@ -83,7 +73,48 @@ func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	return c
 }
 
-func (c *ConfigBuilder) Build() (Config, error) {
+// Config is the configuration struct to user for WGE installation. It includes
+// configuration values as well as other required structs like clients
+type Config struct {
+	KubernetesClient k8s_client.Client
+	Logger           logger.Logger
+
+	ExistsWgeVersion string // existing wge version in the cluster
+	WGEVersion       string // user want this version in the cluster
+
+	Username string // cluster user username
+	Password string // cluster user password
+
+	DomainType string
+	UserDomain string
+}
+
+// Builds creates a valid config from values introduced config where created bui
+func (cb *ConfigBuilder) Build() (Config, error) {
+	l := cb.logger
+
+	kubernetesClient, err := utils.GetKubernetesClient(cb.kubeconfig)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
+	}
+	l.Actionf("created client to cluster")
+
+	installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
+	if err != nil {
+		if !errors.IsNotFound(err) {
+			return Config{}, fmt.Errorf("unexpected error finding weave gitops helm release: %w", err)
+		}
+		l.Successf("weave gitops not found in the cluster")
+	} else if installedVersion != "" {
+		return Config{}, fmt.Errorf("cannot config bootstrap: weave gitops `%s` exists in the cluster", installedVersion)
+	}
+
+	return Config{
+		KubernetesClient: kubernetesClient,
+		WGEVersion:       cb.wGEVersion,
+		Username:         cb.username,
+		Password:         cb.password,
+	}, nil
 
 }
 
