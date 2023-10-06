@@ -26,7 +26,7 @@ var getVersionInput = StepInput{
 func NewSelectWgeVersionStep(config Config) BootstrapStep {
 	inputs := []StepInput{}
 
-	if config.WGEVersion != "" {
+	if config.WGEVersion == "" {
 		inputs = append(inputs, getVersionInput)
 	}
 	return BootstrapStep{

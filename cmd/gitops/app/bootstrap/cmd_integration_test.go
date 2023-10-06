@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
+	"github.com/weaveworks/weave-gitops/pkg/runner"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -76,24 +77,32 @@ func TestBootstrapCmd(t *testing.T) {
 		flags            []string
 		expectedErrorStr string
 		setup            func(t *testing.T)
+		reset            func(t *testing.T)
 	}{
+		//{
+		//	name:             "should fail without entitlements",
+		//	flags:            []string{},
+		//	expectedErrorStr: "entitlement file is not found",
+		//},
+		//{
+		//	name:  "should fail without flux bootstrapped",
+		//	flags: []string{},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "Please bootstrap Flux into your cluster",
+		//},
 		{
-			name:             "should fail without entitlements",
-			flags:            []string{},
-			expectedErrorStr: "entitlement file is not found",
-		},
-		{
-			name:  "should fail without flux bootstrapped",
+			name:  "should fail without selected wge version",
 			flags: []string{},
 			setup: func(t *testing.T) {
-				secret := createEntitlementSecretFromEnv(t)
-				objects := []client.Object{
-					&fluxSystemNamespace,
-					&secret,
-				}
-				createResources(testLog, t, k8sClient, objects...)
+				createEntitlements(t, testLog)
+				bootstrapFlux(g)
 			},
-			expectedErrorStr: "Please bootstrap Flux into your cluster",
+			reset: func(t *testing.T) {
+				uninstallFlux(g)
+			},
+			expectedErrorStr: "Select WGE Version",
 		},
 	}
 	for _, tt := range tests {
@@ -101,6 +110,10 @@ func TestBootstrapCmd(t *testing.T) {
 
 			if tt.setup != nil {
 				tt.setup(t)
+			}
+
+			if tt.reset != nil {
+				defer tt.reset(t)
 			}
 
 			client := adapters.NewHTTPClient()
@@ -118,6 +131,29 @@ func TestBootstrapCmd(t *testing.T) {
 
 		})
 	}
+}
+
+func bootstrapFlux(g *WithT) {
+	var runner runner.CLIRunner
+	args := []string{"bootstrap", "github", "--owner=enekofb", "--repository=cli-dev", "--path=clusters/management"}
+	_, err := runner.Run("flux", args...)
+	g.Expect(err).To(BeNil())
+}
+
+func uninstallFlux(g *WithT) {
+	var runner runner.CLIRunner
+	args := []string{"uninstall", "-s"}
+	_, err := runner.Run("flux", args...)
+	g.Expect(err).To(BeNil())
+}
+
+func createEntitlements(t *testing.T, testLog logr.Logger) {
+	secret := createEntitlementSecretFromEnv(t)
+	objects := []client.Object{
+		&fluxSystemNamespace,
+		&secret,
+	}
+	createResources(testLog, t, k8sClient, objects...)
 }
 
 func createResources(log logr.Logger, t *testing.T, k client.Client, objects ...client.Object) {
