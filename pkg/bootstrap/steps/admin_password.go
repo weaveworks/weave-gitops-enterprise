@@ -58,11 +58,11 @@ func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 		},
 	}
 
-	if config.Username != "" {
+	if config.Username == "" {
 		inputs = append(inputs, getUsernameInput)
 	}
 
-	if config.Password != "" {
+	if config.Password == "" {
 		inputs = append(inputs, getPasswordInput)
 	}
 

@@ -92,9 +92,21 @@ func TestBootstrapCmd(t *testing.T) {
 		//	},
 		//	expectedErrorStr: "Please bootstrap Flux into your cluster",
 		//},
+		//{
+		//	name:  "should fail without selected wge version",
+		//	flags: []string{},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFlux(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//	},
+		//	expectedErrorStr: "cannot process input 'Select WGE Version'",
+		//},
 		{
-			name:  "should fail without selected wge version",
-			flags: []string{},
+			name:  "should fail without user authentication",
+			flags: []string{"--version=0.33.0"},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
 				bootstrapFlux(g)
@@ -102,7 +114,7 @@ func TestBootstrapCmd(t *testing.T) {
 			reset: func(t *testing.T) {
 				uninstallFlux(g)
 			},
-			expectedErrorStr: "Select WGE Version",
+			expectedErrorStr: "cannot process input 'User Authentication'",
 		},
 	}
 	for _, tt := range tests {
