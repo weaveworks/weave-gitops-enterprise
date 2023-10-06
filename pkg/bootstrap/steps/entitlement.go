@@ -3,6 +3,7 @@ package steps
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -62,12 +63,12 @@ func verifyEntitlementSecret(client k8s_client.Client) error {
 
 	ent, err := entitlement.VerifyEntitlement(strings.NewReader(string(publicKey)), string(secret.Data["entitlement"]))
 	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
-		return errors.New(invalidEntitlementSecretMsg)
+		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
 	}
 
 	body, err := doBasicAuthGetRequest(wgeChartUrl, string(secret.Data["username"]), string(secret.Data["password"]))
 	if err != nil || body == nil {
-		return errors.New(invalidEntitlementSecretMsg)
+		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
 	}
 
 	return nil

@@ -9,7 +9,6 @@ import (
 	"log"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -34,11 +33,13 @@ func TestMain(m *testing.M) {
 	repoRoot := strings.TrimSpace(string(cmdOut))
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
+	useExistingCluster := true
 	testEnv := &envtest.Environment{
-		CRDDirectoryPaths: []string{
-			filepath.Join("testdata", "crds"),
-		},
-		ErrorIfCRDPathMissing: true,
+		//CRDDirectoryPaths: []string{
+		//	filepath.Join("testdata", "crds"),
+		//},
+		//ErrorIfCRDPathMissing: true,
+		UseExistingCluster: &useExistingCluster,
 	}
 
 	cfg, err = testEnv.Start()

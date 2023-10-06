@@ -5,9 +5,13 @@ package bootstrap_test
 
 import (
 	"context"
+	"os"
 	"testing"
 	"time"
 
+	"github.com/go-logr/logr"
+	"github.com/go-logr/logr/testr"
+	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/root"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
 	corev1 "k8s.io/api/core/v1"
@@ -22,8 +26,6 @@ const (
 	defaultInterval = time.Second
 )
 
-var validEntitlement = `eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJsaWNlbmNlZFVudGlsIjoxNzg5MzgxMDE1LCJpYXQiOjE2MzE2MTQ2MTUsImlzcyI6InNhbGVzQHdlYXZlLndvcmtzIiwibmJmIjoxNjMxNjE0NjE1LCJzdWIiOiJ0ZWFtLXBlc3RvQHdlYXZlLndvcmtzIn0.klRpQQgbCtshC3PuuD4DdI3i-7Z0uSGQot23YpsETphFq4i3KK4NmgfnDg_WA3Pik-C2cJgG8WWYkWnemWQJAw`
-
 var fluxSystemNamespace = corev1.Namespace{
 	TypeMeta: metav1.TypeMeta{
 		Kind:       "Namespace",
@@ -34,13 +36,31 @@ var fluxSystemNamespace = corev1.Namespace{
 	},
 }
 
-var entitlementSecret = corev1.Secret{
-	ObjectMeta: metav1.ObjectMeta{
-		Name:      "weave-gitops-credentials",
-		Namespace: "flux-system",
-	},
-	Type: corev1.SecretTypeOpaque,
-	Data: map[string][]byte{"entitlement": []byte(validEntitlement)},
+func createEntitlementSecretFromEnv(t *testing.T) corev1.Secret {
+
+	username := os.Getenv("WGE_ENTITLEMENT_USERNAME")
+	require.NotEmpty(t, username)
+	password := os.Getenv("WGE_ENTITLEMENT_PASSWORD")
+	require.NotEmpty(t, password)
+	entitlement := os.Getenv("WGE_ENTITLEMENT_ENTITLEMENT")
+	require.NotEmpty(t, entitlement)
+
+	return corev1.Secret{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Secret",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "weave-gitops-enterprise-credentials",
+			Namespace: "flux-system",
+		},
+		Type: corev1.SecretTypeOpaque,
+		Data: map[string][]byte{
+			"username":    []byte(username),
+			"password":    []byte(password),
+			"entitlement": []byte(entitlement),
+		},
+	}
 }
 
 // TestBootstrapCmd is an integration test for bootstrapping command.
@@ -49,12 +69,13 @@ func TestBootstrapCmd(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
+	testLog := testr.New(t)
 
 	tests := []struct {
 		name             string
 		flags            []string
 		expectedErrorStr string
-		objects          []client.Object
+		setup            func(t *testing.T)
 	}{
 		{
 			name:             "should fail without entitlements",
@@ -62,19 +83,25 @@ func TestBootstrapCmd(t *testing.T) {
 			expectedErrorStr: "entitlement file is not found",
 		},
 		{
-			name:  "should not fail with entitlements",
+			name:  "should fail without flux bootstrapped",
 			flags: []string{},
-			objects: []client.Object{
-				&fluxSystemNamespace,
-				&entitlementSecret,
+			setup: func(t *testing.T) {
+				secret := createEntitlementSecretFromEnv(t)
+				objects := []client.Object{
+					&fluxSystemNamespace,
+					&secret,
+				}
+				createResources(testLog, t, k8sClient, objects...)
 			},
-			expectedErrorStr: "",
+			expectedErrorStr: "Please bootstrap Flux into your cluster",
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			createResources(t, k8sClient, tt.objects...)
+			if tt.setup != nil {
+				tt.setup(t)
+			}
 
 			client := adapters.NewHTTPClient()
 			cmd := root.Command(client)
@@ -93,21 +120,24 @@ func TestBootstrapCmd(t *testing.T) {
 	}
 }
 
-func createResources(t *testing.T, k client.Client, state ...client.Object) {
+func createResources(log logr.Logger, t *testing.T, k client.Client, objects ...client.Object) {
 	ctx := context.Background()
 	t.Helper()
-	for _, o := range state {
+	for _, o := range objects {
 		err := k.Create(ctx, o)
 		if err != nil {
 			t.Errorf("failed to create object: %s", err)
 		}
+		log.Info("created object", "name", o.GetName(), "ns", o.GetNamespace(), "kind", o.GetObjectKind().GroupVersionKind().Kind)
 	}
 	t.Cleanup(func() {
-		for _, o := range state {
+		for _, o := range objects {
 			err := k.Delete(ctx, o)
 			if err != nil {
 				t.Logf("failed to cleanup object: %s", err)
 			}
+			log.Info("deleted object", "name", o.GetName(), "ns", o.GetNamespace(), "kind", o.GetObjectKind().GroupVersionKind().Kind)
+
 		}
 	})
 }
