@@ -1,6 +1,7 @@
 package bootstrap
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -43,7 +44,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Use:     cmdName,
 		Short:   cmdShortDescription,
 		Example: cmdExamples,
-		Run:     getBootstrapCmdRun(opts),
+		RunE:    getBootstrapCmdRun(opts),
 	}
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
@@ -52,8 +53,8 @@ func Command(opts *config.Options) *cobra.Command {
 	return cmd
 }
 
-func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) {
-	return func(cmd *cobra.Command, args []string) {
+func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 
 		cliLogger := logger.NewCLILogger(os.Stdout)
 
@@ -67,13 +68,13 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) {
 			Build()
 
 		if err != nil {
-			cliLogger.Failuref("cannot config bootstrap: %w", err)
+			return fmt.Errorf("cannot config bootstrap: %v", err)
 		}
 
 		err = Bootstrap(c)
 		if err != nil {
-			cliLogger.Failuref("cannot execute bootstrap: %w", err)
+			return fmt.Errorf("cannot execute bootstrap: %w", err)
 		}
-
+		return nil
 	}
 }

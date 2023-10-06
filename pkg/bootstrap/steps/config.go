@@ -114,6 +114,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		WGEVersion:       cb.wGEVersion,
 		Username:         cb.username,
 		Password:         cb.password,
+		Logger:           cb.logger,
 	}, nil
 
 }
