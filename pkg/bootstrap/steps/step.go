@@ -8,6 +8,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// BootstrapStep struct that defines the contract of a bootstrapping step.
+// It is abstracted to have a generic way to handle them, so we could achieve easier
+// extensibility, consistency and maintainability.
 type BootstrapStep struct {
 	Name   string
 	Input  []StepInput
@@ -15,6 +18,8 @@ type BootstrapStep struct {
 	Step   func(input []StepInput, c *Config) ([]StepOutput, error)
 }
 
+// StepInput represents an input an step requires to execute it. for example the
+// user needs to introduce an string or a password.
 type StepInput struct {
 	Name            string
 	Msg             string
@@ -26,6 +31,8 @@ type StepInput struct {
 	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
 }
 
+// StepOutput represents an output generated out of the execution of a step.
+// An example could be a helm release manifest for weave gitops.
 type StepOutput struct {
 	Name  string
 	Type  string
