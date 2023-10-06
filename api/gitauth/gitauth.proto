@@ -28,8 +28,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  */
 service GitAuth {
     /**
-    * Authenticate generates jwt token using git provider name
-    * and git provider token arguments
+    * Wrap a git provider token in a JWT
     */
     rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse) {
         option (google.api.http) = {
@@ -39,8 +38,8 @@ service GitAuth {
     }
 
     /**
-    * GetGithubDeviceCode retrieves a temporary device code
-    * for Github authentication.
+    * Get a temporary device code for Github authentication
+    *
     * This code is used to start the Github device-flow.
     */
     rpc GetGithubDeviceCode(GetGithubDeviceCodeRequest)
@@ -51,9 +50,9 @@ service GitAuth {
     }
 
     /**
-    * GetGithubAuthStatus gets the status of the Github device flow
-    * authentication requests. Once the user has completed
-    * the Github device flow, an access token will be returned.
+    * Get the status of the Github device flow authentication requests
+    *
+    * Once the user has completed the Github device flow, an access token will be returned.
     * This token will expire in 15 minutes,
     * after which the user will need to complete the flow again
     * to do Git Provider operations.
@@ -67,7 +66,8 @@ service GitAuth {
     }
 
     /**
-    * GetGitlabAuthURL returns the URL to initiate a GitLab OAuth PKCE flow.
+    * Get the URL to initiate a GitLab OAuth flow.
+    *
     * The user must browse to the returned URL to authorize the OAuth callback
     * to the GitOps UI.
     * See the GitLab OAuth docs for more more information:
@@ -81,6 +81,7 @@ service GitAuth {
     }
 
     /**
+    * Get the URL to initiate a Bitbucket Server OAuth flow.
     */
     rpc GetBitbucketServerAuthURL(GetBitbucketServerAuthURLRequest)
         returns (GetBitbucketServerAuthURLResponse) {
@@ -90,6 +91,9 @@ service GitAuth {
     }
 
     /**
+    * Exchange a Bitbucket Server code obtained via OAuth callback.
+    *
+    * The returned token is useable for authentication with the GitOps server only.
     */
     rpc AuthorizeBitbucketServer (AuthorizeBitbucketServerRequest)
         returns (AuthorizeBitbucketServerResponse) {
@@ -100,9 +104,9 @@ service GitAuth {
     }
 
     /**
-    * AuthorizeGitlab exchanges a GitLab code obtained via OAuth callback.
-    * The returned token is useable for authentication
-    * with the GitOps server only.
+    * Exchange a GitLab code obtained via OAuth callback.
+    *
+    * The returned token is useable for authentication with the GitOps server only.
     * See the GitLab OAuth docs for more more information:
     * https://docs.gitlab.com/ee/api/oauth2.html#supported-oauth-20-flows
     */
@@ -115,8 +119,7 @@ service GitAuth {
     }
 
     /**
-    * GetAzureDevOpsAuthURL returns the Azure DevOps authorization URL
-    * used to initiate the OAuth flow.
+    * Get the Azure DevOps authorization URL used to initiate the OAuth flow.
     */
     rpc GetAzureDevOpsAuthURL(GetAzureDevOpsAuthURLRequest)
         returns (GetAzureDevOpsAuthURLResponse) {
@@ -126,8 +129,9 @@ service GitAuth {
     }
 
     /**
-    * AuthorizeAzureDevOps returns a token after a user authorizes
-    * Azure DevOps to grant access to their account
+    * Exchange an Azure DevOps code obtained via OAuth callback.
+    *
+    * Get a token after a user authorizes Azure DevOps to grant access to their account
     * on behalf of Weave GitOps Enterprise.
     */
     rpc AuthorizeAzureDevOps (AuthorizeAzureDevOpsRequest)
@@ -139,7 +143,7 @@ service GitAuth {
     }
 
     /**
-    * ParseRepoURL returns structured data about a git repository URL
+    * Get structured data about a git repository URL
     */
     rpc ParseRepoURL(ParseRepoURLRequest) returns(ParseRepoURLResponse) {
         option (google.api.http) = {
@@ -148,8 +152,7 @@ service GitAuth {
     }
 
     /**
-    * ValidateProviderToken check to see if the git provider token
-    * is still valid
+    * Check if a git provider token is still valid
     */
     rpc ValidateProviderToken(ValidateProviderTokenRequest)
         returns (ValidateProviderTokenResponse) {

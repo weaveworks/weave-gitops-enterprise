@@ -27,6 +27,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  * Weave GitOps Query service definition
  */
 service Query {
+    /*
+     * Query for resources across clusters
+     */
     rpc DoQuery(QueryRequest) returns (QueryResponse) {
         option (google.api.http) = {
             post: "/v1/query"
@@ -34,12 +37,18 @@ service Query {
         };
     }
 
+    /*
+     * List facets available for querying
+     */
     rpc ListFacets(ListFacetsRequest) returns (ListFacetsResponse) {
         option (google.api.http) = {
             get: "/v1/facets"
         };
     }
 
+    /*
+     * Get debug access rules
+     */
     rpc DebugGetAccessRules(DebugGetAccessRulesRequest)
         returns (DebugGetAccessRulesResponse) {
         option (google.api.http) = {

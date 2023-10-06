@@ -245,6 +245,14 @@ swagger-docs:
 	-v $(CURRENT_DIR)/api:/usr/share/nginx/html/api \
 	swaggerapi/swagger-ui
 
+.PHONY: user-guide-apis
+user-guide-apis:
+	cp api/gitauth/gitauth.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/gitopssets/gitopssets.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/pipelines/pipelines.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/query/query.swagger.json ../weave-gitops/website/static/swagger/
+	cp api/terraform/terraform.swagger.json ../weave-gitops/website/static/swagger/
+
 
 FORCE:
 
