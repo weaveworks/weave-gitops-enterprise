@@ -12,7 +12,7 @@ import styled from 'styled-components';
 import useNotifications from '../../contexts/Notifications';
 import { formatError } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
-import { ActionsWrapper } from '../Clusters';
+
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
@@ -51,15 +51,14 @@ const WGApplicationsSources: FC = ({ className }: any) => {
       ]}
     >
       <NotificationsWrapper errors={sources?.errors}>
-        <ActionsWrapper>
-          <Button
-            startIcon={<Icon type={IconType.AddIcon} size="base" />}
-            onClick={() => history.push(Routes.AddSource)}
-          >
-            ADD A SOURCE
-          </Button>
-          <OpenedPullRequest />
-        </ActionsWrapper>
+        <Button
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
+          onClick={() => history.push(Routes.AddSource)}
+        >
+          ADD A SOURCE
+        </Button>
+        <OpenedPullRequest />
+
         <div className={className}>
           {useQueryServiceBackend ? (
             <Explorer enableBatchSync category="source" />
