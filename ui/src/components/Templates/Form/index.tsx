@@ -43,7 +43,6 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { getGitRepos } from '../../Clusters';
@@ -243,7 +242,7 @@ interface ResourceFormProps {
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
-  const { renderTemplate, addResource } = useTemplates();
+  const { addResource } = useTemplates();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
@@ -305,49 +304,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     ? editLink
     : `/templates/create?name=${template.name}&namespace=${template.namespace}`;
   const [loading, setLoading] = useState<boolean>(false);
-  const [costEstimationLoading, setCostEstimationLoading] =
-    useState<boolean>(false);
-  const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
-  const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
-  const [formError, setFormError] = useState<string>('');
 
-  const handleCostEstimation = useCallback(() => {
-    const { parameterValues } = formData;
-    setCostEstimationLoading(true);
-    return renderTemplate({
-      templateName: template.name,
-      templateNamespace: template.namespace,
-      values: parameterValues,
-      profiles: encodedProfiles(updatedProfiles),
-      credentials: infraCredential || undefined,
-      kustomizations: getKustomizations(formData),
-      templateKind: template.templateKind,
-    })
-      .then(data => {
-        const { costEstimate } = data;
-        setCostEstimate(getFormattedCostEstimate(costEstimate));
-        setCostEstimateMessage(costEstimate?.message || '');
-      })
-      .catch(err =>
-        setNotifications([
-          {
-            message: { text: err.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]),
-      )
-      .finally(() => setCostEstimationLoading(false));
-  }, [
-    formData,
-    renderTemplate,
-    infraCredential,
-    template.name,
-    template.templateKind,
-    template.namespace,
-    updatedProfiles,
-    setNotifications,
-  ]);
+  const [formError, setFormError] = useState<string>('');
 
   const token = getProviderToken(formData.provider);
 
@@ -441,26 +399,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     }
   }, [initialGitRepo, formData.repo]);
 
-  useEffect(() => {
-    setCostEstimate('00.00 USD');
-  }, [formData.parameterValues]);
-
-  const [submitType, setSubmitType] = useState<string>('');
-
-  const getSubmitFunction = useCallback(
-    (submitType?: string) => {
-      switch (submitType) {
-        case 'Create resource':
-          return handleAddResource;
-        case 'Get cost estimation':
-          return handleCostEstimation;
-        default:
-          return;
-      }
-    },
-    [handleAddResource, handleCostEstimation],
-  );
-
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -476,12 +414,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         <FormWrapper
           noValidate
           onSubmit={event =>
-            validateFormData(
-              event,
-              getSubmitFunction(submitType),
-              setFormError,
-              setSubmitType,
-            )
+            validateFormData(event, handleAddResource, setFormError)
           }
         >
           <CredentialsWrapper align>
@@ -530,12 +463,12 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           ) : null}
           {isCostEstimationEnabled ? (
             <CostEstimation
-              handleCostEstimation={handleCostEstimation}
-              costEstimate={costEstimate}
-              isCostEstimationLoading={costEstimationLoading}
-              costEstimateMessage={costEstimateMessage}
+              template={template}
+              formData={formData}
               setFormError={setFormError}
-              setSubmitType={setSubmitType}
+              profiles={encodedProfiles(updatedProfiles)}
+              credentials={infraCredential || undefined}
+              kustomizations={getKustomizations(formData)}
             />
           ) : null}
           <GitOps
@@ -555,7 +488,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             <Button
               loading={loading}
               type="submit"
-              onClick={() => setSubmitType('Create resource')}
               disabled={!isAuthenticated || loading}
             >
               CREATE PULL REQUEST
@@ -566,6 +498,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               profiles={encodedProfiles(updatedProfiles)}
               credentials={infraCredential || undefined}
               kustomizations={getKustomizations(formData)}
+              setFormError={setFormError}
             />
           </Flex>
         </FormWrapper>
@@ -583,20 +516,15 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     setUpdatedProfiles,
     updatedProfiles,
     loading,
-    costEstimationLoading,
-    handleCostEstimation,
-    costEstimate,
-    costEstimateMessage,
     isCredentialEnabled,
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
     formError,
-    submitType,
-    getSubmitFunction,
     resource,
     initialGitRepo,
     isAuthenticated,
+    handleAddResource,
   ]);
 };
 

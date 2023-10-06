@@ -204,7 +204,11 @@ export const validateFormData = (
   setSubmitType?: Dispatch<React.SetStateAction<string>>,
 ) => {
   event.preventDefault();
-  const requiredButEmptyInputs = Array.from(event.target).filter(
+  console.log('type', event.type);
+  console.log('form', event.target, event.target.form);
+  const requiredButEmptyInputs = Array?.from(
+    event.type === 'submit' ? event.target : event.target.form,
+  ).filter(
     (element: any) =>
       element.type === 'text' && element.required && element.value === '',
   );
@@ -215,7 +219,6 @@ export const validateFormData = (
     (firstEmpty as HTMLInputElement).focus();
     setFormError((firstEmpty as HTMLInputElement).name);
   }
-  setSubmitType && setSubmitType('');
 };
 
 interface InputDebounceProps extends InputProps {

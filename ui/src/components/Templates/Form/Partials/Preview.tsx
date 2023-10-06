@@ -1,5 +1,5 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useState } from 'react';
+import { Dispatch, useCallback, useState } from 'react';
 import useTemplates from '../../../../hooks/templates';
 import { TemplateEnriched } from '../../../../types/custom';
 import {
@@ -10,6 +10,7 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import useNotifications from '../../../../contexts/Notifications';
 import PreviewModal from './PreviewModal';
+import { validateFormData } from '../../../../utils/form';
 
 export const Preview = ({
   template,
@@ -17,12 +18,14 @@ export const Preview = ({
   profiles,
   credentials,
   kustomizations,
+  setFormError,
 }: {
   template: TemplateEnriched;
   formData: any;
   profiles: ProfileValues[];
   credentials: Credential | undefined;
   kustomizations: Kustomization[];
+  setFormError: Dispatch<React.SetStateAction<string>>;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -74,7 +77,9 @@ export const Preview = ({
   return (
     <>
       <Button
-        onClick={() => handlePRPreview()}
+        onClick={event =>
+          validateFormData(event, handlePRPreview, setFormError)
+        }
         disabled={previewLoading}
         loading={previewLoading}
       >
