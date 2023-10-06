@@ -116,11 +116,26 @@ func TestBootstrapCmd(t *testing.T) {
 		//	},
 		//	expectedErrorStr: "cannot process input 'User Authentication'",
 		//},
+		//{
+		//	name: "should fail without dashboard access",
+		//	flags: []string{"--version=0.33.0",
+		//		"--username=admin",
+		//		"--password=admin"},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFlux(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//	},
+		//	expectedErrorStr: "cannot process input 'Dashboard access'",
+		//},
 		{
-			name: "should fail without user authentication",
+			name: "should fail without dashboard access",
 			flags: []string{"--version=0.33.0",
-				"--username=admin",
-				"--password=admin"},
+				"--username=admin", "--password=admin",
+				"--domain=localhost",
+			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
 				bootstrapFlux(g)
@@ -128,7 +143,7 @@ func TestBootstrapCmd(t *testing.T) {
 			reset: func(t *testing.T) {
 				uninstallFlux(g)
 			},
-			expectedErrorStr: "cannot process input 'User Authentication'",
+			expectedErrorStr: "cannot process input 'Dashboard access'",
 		},
 	}
 	for _, tt := range tests {

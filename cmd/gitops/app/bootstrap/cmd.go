@@ -32,9 +32,10 @@ gitops bootstrap --username wego-admin --password=hell0!
 )
 
 type bootstrapFlags struct {
-	username string
-	password string
-	version  string
+	username   string
+	password   string
+	version    string
+	domainType string
 }
 
 var flags bootstrapFlags
@@ -49,7 +50,8 @@ func Command(opts *config.Options) *cobra.Command {
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
-	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install.")
+	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install")
+	cmd.Flags().StringVarP(&flags.domainType, "domain", "d", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	return cmd
 }
 
@@ -65,6 +67,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithUsername(flags.username).
 			WithPassword(flags.password).
 			WithVersion(flags.version).
+			WithDomainType(flags.domainType).
 			Build()
 
 		if err != nil {

@@ -36,11 +36,12 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
+	logger     logger.Logger
+	kubeconfig string
 	username   string
 	password   string
 	wGEVersion string
-	kubeconfig string
-	logger     logger.Logger
+	domainType string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -70,6 +71,12 @@ func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
 func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
 	c.wGEVersion = version
 	return c
+}
+
+func (c *ConfigBuilder) WithDomainType(domainType string) *ConfigBuilder {
+	c.domainType = domainType
+	return c
+
 }
 
 // Config is the configuration struct to user for WGE installation. It includes
@@ -116,6 +123,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		Username:         cb.username,
 		Password:         cb.password,
 		Logger:           cb.logger,
+		DomainType:       cb.domainType,
 	}, nil
 
 }
