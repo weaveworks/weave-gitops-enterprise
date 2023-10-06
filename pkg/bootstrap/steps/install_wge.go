@@ -20,7 +20,7 @@ For more information about external DNS, please refer to: https://docs.aws.amazo
 `
 	clusterDomainMsg = "Please enter your cluster domain"
 
-	wgeInstallMsg          = "Installing v%s :It may take a few minutes."
+	wgeInstallMsg          = "Installing v%s ... It may take a few minutes."
 	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
 	localInstallSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at http://localhost:8000/"
 )
@@ -82,7 +82,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	c.Logger.Waitingf(wgeInstallMsg, c.WGEVersion)
+	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
@@ -140,6 +140,8 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		Content:   wgeHelmRelease,
 		CommitMsg: wgeHelmReleaseCommitMsg,
 	}
+
+	c.Logger.Actionf("rendered helm release resources")
 
 	return []StepOutput{
 		{
