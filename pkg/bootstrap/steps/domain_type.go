@@ -47,7 +47,7 @@ func selectDomainType(input []StepInput, c *Config) ([]StepOutput, error) {
 		if param.Name == "domainType" {
 			domainType, ok := param.Value.(string)
 			if !ok {
-				return []StepOutput{}, errors.New("unexpected error occured. domain type not found")
+				return []StepOutput{}, errors.New("unexpected error occurred. domain type not found")
 			}
 			c.DomainType = domainType
 		}

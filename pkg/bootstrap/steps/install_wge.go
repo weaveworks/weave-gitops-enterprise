@@ -75,7 +75,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 			if param.Name == UserDomain {
 				userDomain, ok := param.Value.(string)
 				if !ok {
-					return []StepOutput{}, errors.New("unexpected error occured. user domain not found")
+					return []StepOutput{}, errors.New("unexpected error occurred. user domain not found")
 				}
 				c.UserDomain = userDomain
 			}
