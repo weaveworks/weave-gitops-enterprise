@@ -31,7 +31,7 @@ var getDomainType = StepInput{
 func NewSelectDomainType(config Config) BootstrapStep {
 	inputs := []StepInput{}
 
-	if config.DomainType != "" {
+	if config.DomainType == "" {
 		inputs = append(inputs, getDomainType)
 	}
 

@@ -104,9 +104,23 @@ func TestBootstrapCmd(t *testing.T) {
 		//	},
 		//	expectedErrorStr: "cannot process input 'Select WGE Version'",
 		//},
+		//{
+		//	name:  "should fail without user authentication",
+		//	flags: []string{"--version=0.33.0"},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFlux(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//	},
+		//	expectedErrorStr: "cannot process input 'User Authentication'",
+		//},
 		{
-			name:  "should fail without user authentication",
-			flags: []string{"--version=0.33.0"},
+			name: "should fail without user authentication",
+			flags: []string{"--version=0.33.0",
+				"--username=admin",
+				"--password=admin"},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
 				bootstrapFlux(g)

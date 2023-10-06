@@ -115,6 +115,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		"username": []byte(c.Username),
 		"password": encryptedPassword,
 	}
+	c.Logger.Actionf("dashboard admin username: %s", c.Username)
 
 	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
