@@ -3,9 +3,14 @@ package steps
 import (
 	"errors"
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	v1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 )
 
 // BootstrapStep struct that defines the contract of a bootstrapping step.
@@ -152,15 +157,24 @@ func defaultOutputStep(outputs []StepOutput, c *Config) error {
 			if !ok {
 				return errors.New("unexpected error casting secret")
 			}
-			name := secret.ObjectMeta.Name
-			namespace := secret.ObjectMeta.Namespace
-			data := secret.Data
 
 			if !c.DryRun {
-				if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
-					return err
+				// generate resources
+				if c.Export {
+					// write to output
+					// TODO propagate writer instead of fixing it
+					err := outputResources(os.Stdout, []client.Object{&secret})
+					if err != nil {
+						return err
+					}
+				} else {
+					// write to kubernetes
+					if err := utils.CreateResource(c.KubernetesClient, &secret); err != nil {
+						return err
+					}
 				}
 			}
+
 			c.Logger.Successf("created secret '%s/%s'", secret.Namespace, secret.Name)
 		case typeFile:
 			var pathInRepo string
@@ -172,24 +186,39 @@ func defaultOutputStep(outputs []StepOutput, c *Config) error {
 			}
 			c.Logger.Actionf("cloning flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
 			if !c.DryRun {
-				pathInRepo, err = utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
-				if err != nil {
-					return fmt.Errorf("cannot clone repo: %v", err)
-				}
-				defer func() {
-					err = utils.CleanupRepo()
+				if !c.Export {
+					pathInRepo, err = utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
 					if err != nil {
-						c.Logger.Failuref("failed to cleanup repo!")
+						return fmt.Errorf("cannot clone repo: %v", err)
 					}
-				}()
+					defer func() {
+						err = utils.CleanupRepo()
+						if err != nil {
+							c.Logger.Failuref("failed to cleanup repo!")
+						}
+					}()
+				}
 			}
 			c.Logger.Successf("cloned flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
-
 			if !c.DryRun {
-				err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg)
-				if err != nil {
-					return err
+				if c.Export {
+					// write to output
+					// TODO propagate writer instead of fixing it
+					err := outputResources(os.Stdout, []client.Object{file.Content})
+					if err != nil {
+						return err
+					}
+				} else {
+					objectString, err := utils.CreateStringFromObject(file.Content)
+					if err != nil {
+						return err
+					}
+					err = utils.CreateFileToRepo(file.Name, objectString, pathInRepo, file.CommitMsg)
+					if err != nil {
+						return err
+					}
 				}
+
 			}
 			c.Logger.Successf("written file to repo '%s'", file.Name)
 
@@ -206,9 +235,11 @@ func defaultOutputStep(outputs []StepOutput, c *Config) error {
 				return errors.New("unexpected error for function casting")
 			}
 			if !c.DryRun {
-				err := portforward()
-				if err != nil {
-					return err
+				if !c.Export {
+					err := portforward()
+					if err != nil {
+						return err
+					}
 				}
 			}
 			c.Logger.Successf("port forward executed")
@@ -216,5 +247,33 @@ func defaultOutputStep(outputs []StepOutput, c *Config) error {
 			return fmt.Errorf("output not supported: %s/%s", output.Type, output.Name)
 		}
 	}
+	return nil
+}
+
+func marshalOutput(out io.Writer, output runtime.Object) error {
+	data, err := yaml.Marshal(output)
+	if err != nil {
+		return fmt.Errorf("failed to marshal data: %v", err)
+	}
+
+	_, err = fmt.Fprintf(out, "%s", data)
+	if err != nil {
+		return fmt.Errorf("failed to write data: %v", err)
+	}
+
+	return nil
+}
+
+func outputResources(out io.Writer, resources []client.Object) error {
+	for _, v := range resources {
+		if err := marshalOutput(out, v); err != nil {
+			return fmt.Errorf("failed outputting tenant: %w", err)
+		}
+
+		if _, err := out.Write([]byte("---\n")); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

@@ -179,12 +179,29 @@ func TestBootstrapCmd(t *testing.T) {
 		//	},
 		//	expectedErrorStr: "",
 		//},
+		//{
+		//	name: "should support dry-run",
+		//	flags: []string{"--version=0.33.0",
+		//		"--username=admin", "--password=admin",
+		//		"--domain=localhost",
+		//		"--dry-run",
+		//	},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFluxHttps(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "",
+		//},
 		{
-			name: "should support dry-run",
+			name: "should support export",
 			flags: []string{"--version=0.33.0",
 				"--username=admin", "--password=admin",
 				"--domain=localhost",
-				"--dry-run",
+				"--export",
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)

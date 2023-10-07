@@ -84,21 +84,12 @@ func GetSecret(client k8s_client.Client, name string, namespace string) (*corev1
 	return secret, nil
 }
 
-// CreateSecret create a kubernetes secret.
-func CreateSecret(client k8s_client.Client, name string, namespace string, data map[string][]byte) error {
-	secret := &corev1.Secret{
-		ObjectMeta: v1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
-		},
-		Data: data,
-	}
-
-	err := client.Create(context.Background(), secret, &k8s_client.CreateOptions{})
+// CreateResource generic create kubernetes resources
+func CreateResource(client k8s_client.Client, object k8s_client.Object) error {
+	err := client.Create(context.Background(), object, &k8s_client.CreateOptions{})
 	if err != nil {
 		return err
 	}
-
 	return nil
 }
 

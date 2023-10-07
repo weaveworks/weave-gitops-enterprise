@@ -43,6 +43,7 @@ type ConfigBuilder struct {
 	wGEVersion string
 	domainType string
 	dryRun     bool
+	export     bool
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -85,6 +86,11 @@ func (c *ConfigBuilder) WithDryRun(dryRun bool) *ConfigBuilder {
 	return c
 }
 
+func (c *ConfigBuilder) WithExport(export bool) *ConfigBuilder {
+	c.export = export
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -100,6 +106,7 @@ type Config struct {
 	DomainType string
 	UserDomain string
 	DryRun     bool
+	Export     bool
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -132,13 +139,14 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		Logger:           cb.logger,
 		DomainType:       cb.domainType,
 		DryRun:           cb.dryRun,
+		Export:           cb.export,
 	}, nil
 
 }
 
 type fileContent struct {
 	Name      string
-	Content   string
+	Content   k8s_client.Object
 	CommitMsg string
 }
 

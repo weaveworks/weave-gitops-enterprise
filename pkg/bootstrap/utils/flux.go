@@ -60,6 +60,17 @@ func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 }
 
 // CreateHelmRepositoryYamlString create HelmRepository yaml string to add to file.
+func CreateStringFromObject(object k8s_client.Object) (string, error) {
+
+	repoBytes, err := k8syaml.Marshal(object)
+	if err != nil {
+		return "", err
+	}
+
+	return string(repoBytes), nil
+}
+
+// CreateHelmRepositoryYamlString create HelmRepository yaml string to add to file.
 func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, error) {
 	repo := sourcev1.HelmRepository{
 		TypeMeta: v1.TypeMeta{

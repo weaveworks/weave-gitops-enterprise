@@ -9,7 +9,6 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -84,10 +83,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
-	wgehelmRepo, err := constructWgeHelmRepository()
-	if err != nil {
-		return []StepOutput{}, err
-	}
+	wgehelmRepo := constructWgeHelmRepository()
 
 	gitOpsSetsValues := map[string]interface{}{
 		"enabled": true,
@@ -132,12 +128,13 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	helmrepoFile := fileContent{
 		Name:      wgeHelmrepoFileName,
-		Content:   wgehelmRepo,
+		Content:   &wgehelmRepo,
 		CommitMsg: wgeHelmRepoCommitMsg,
 	}
+
 	helmreleaseFile := fileContent{
 		Name:      wgeHelmReleaseFileName,
-		Content:   wgeHelmRelease,
+		Content:   &wgeHelmRelease,
 		CommitMsg: wgeHelmReleaseCommitMsg,
 	}
 
@@ -157,8 +154,9 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	}, nil
 }
 
-func constructWgeHelmRepository() (string, error) {
-	wgeHelmRepo := sourcev1.HelmRepository{
+// TODO i should return the helm repo and do the transformation in the outupt
+func constructWgeHelmRepository() sourcev1.HelmRepository {
+	return sourcev1.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      wgeHelmRepositoryName,
 			Namespace: WGEDefaultNamespace,
@@ -173,8 +171,6 @@ func constructWgeHelmRepository() (string, error) {
 			},
 		},
 	}
-
-	return utils.CreateHelmRepositoryYamlString(wgeHelmRepo)
 }
 
 func constructIngressValues(userDomain string) map[string]interface{} {
@@ -200,13 +196,13 @@ func constructIngressValues(userDomain string) map[string]interface{} {
 	return ingressValues
 }
 
-func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string, error) {
+func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (helmv2.HelmRelease, error) {
 	valuesBytes, err := json.Marshal(valuesFile)
 	if err != nil {
-		return "", err
+		return helmv2.HelmRelease{}, err
 	}
 
-	wgeHelmRelease := helmv2.HelmRelease{
+	return helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      WgeHelmReleaseName,
 			Namespace: WGEDefaultNamespace,
@@ -233,9 +229,8 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 			},
 			Values: &apiextensionsv1.JSON{Raw: valuesBytes},
 		},
-	}
+	}, nil
 
-	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
 
 func isUserDomainEnabled(input []StepInput, c *Config) (interface{}, error) {

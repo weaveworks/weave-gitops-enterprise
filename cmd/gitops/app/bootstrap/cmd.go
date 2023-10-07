@@ -37,6 +37,7 @@ type bootstrapFlags struct {
 	version    string
 	domainType string
 	dryRun     bool
+	export     bool
 }
 
 var flags bootstrapFlags
@@ -54,6 +55,8 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install")
 	cmd.Flags().StringVarP(&flags.domainType, "domain", "d", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().BoolVarP(&flags.dryRun, "dry-run", "r", false, "dry run mode: execute bootstrapping workflow but does not write any resource")
+	cmd.Flags().BoolVar(&flags.export, "export", false, "export: does not creare resources but write them as yaml to stdout")
+
 	return cmd
 }
 
@@ -71,6 +74,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithVersion(flags.version).
 			WithDomainType(flags.domainType).
 			WithDryRun(flags.dryRun).
+			WithExport(flags.export).
 			Build()
 
 		if err != nil {
