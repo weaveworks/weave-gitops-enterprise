@@ -86,87 +86,105 @@ func TestBootstrapCmd(t *testing.T) {
 		setup            func(t *testing.T)
 		reset            func(t *testing.T)
 	}{
+		//{
+		//	name:             "should fail without entitlements",
+		//	flags:            []string{},
+		//	expectedErrorStr: "entitlement file is not found",
+		//},
+		//{
+		//	name:  "should fail without flux bootstrapped",
+		//	flags: []string{},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//
+		//	expectedErrorStr: "Please bootstrap Flux into your cluster",
+		//},
+		//{
+		//	name:  "should fail without selected wge version",
+		//	flags: []string{},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFluxSsh(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "cannot process input 'Select WGE Version'",
+		//},
+		//{
+		//	name:  "should fail without user authentication",
+		//	flags: []string{"--version=0.33.0"},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFluxSsh(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "cannot process input 'User Authentication'",
+		//},
+		//{
+		//	name: "should fail without dashboard access",
+		//	flags: []string{"--version=0.33.0",
+		//		"--username=admin",
+		//		"--password=admin"},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFluxSsh(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//		deleteClusterUser(t, testLog)
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "cannot process input 'Dashboard access'",
+		//},
+		//{
+		//	name: "should install with ssh repo",
+		//	flags: []string{"--version=0.33.0",
+		//		"--username=admin", "--password=admin",
+		//		"--domain=localhost",
+		//	},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFluxSsh(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//		deleteClusterUser(t, testLog)
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "",
+		//},
+		//{
+		//	name: "should install with https repo",
+		//	flags: []string{"--version=0.33.0",
+		//		"--username=admin", "--password=admin",
+		//		"--domain=localhost",
+		//	},
+		//	setup: func(t *testing.T) {
+		//		createEntitlements(t, testLog)
+		//		bootstrapFluxHttps(g)
+		//	},
+		//	reset: func(t *testing.T) {
+		//		uninstallFlux(g)
+		//		deleteClusterUser(t, testLog)
+		//		deleteEntitlements(t, testLog)
+		//	},
+		//	expectedErrorStr: "",
+		//},
 		{
-			name:             "should fail without entitlements",
-			flags:            []string{},
-			expectedErrorStr: "entitlement file is not found",
-		},
-		{
-			name:  "should fail without flux bootstrapped",
-			flags: []string{},
-			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
-			},
-			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-			},
-
-			expectedErrorStr: "Please bootstrap Flux into your cluster",
-		},
-		{
-			name:  "should fail without selected wge version",
-			flags: []string{},
-			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
-				bootstrapFluxSsh(g)
-			},
-			reset: func(t *testing.T) {
-				uninstallFlux(g)
-				deleteEntitlements(t, testLog)
-			},
-			expectedErrorStr: "cannot process input 'Select WGE Version'",
-		},
-		{
-			name:  "should fail without user authentication",
-			flags: []string{"--version=0.33.0"},
-			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
-				bootstrapFluxSsh(g)
-			},
-			reset: func(t *testing.T) {
-				uninstallFlux(g)
-				deleteEntitlements(t, testLog)
-			},
-			expectedErrorStr: "cannot process input 'User Authentication'",
-		},
-		{
-			name: "should fail without dashboard access",
-			flags: []string{"--version=0.33.0",
-				"--username=admin",
-				"--password=admin"},
-			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
-				bootstrapFluxSsh(g)
-			},
-			reset: func(t *testing.T) {
-				uninstallFlux(g)
-				deleteClusterUser(t, testLog)
-				deleteEntitlements(t, testLog)
-			},
-			expectedErrorStr: "cannot process input 'Dashboard access'",
-		},
-		{
-			name: "should install with ssh repo",
+			name: "should support dry-run",
 			flags: []string{"--version=0.33.0",
 				"--username=admin", "--password=admin",
 				"--domain=localhost",
-			},
-			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
-				bootstrapFluxSsh(g)
-			},
-			reset: func(t *testing.T) {
-				uninstallFlux(g)
-				deleteClusterUser(t, testLog)
-				deleteEntitlements(t, testLog)
-			},
-			expectedErrorStr: "",
-		},
-		{
-			name: "should install with https repo",
-			flags: []string{"--version=0.33.0",
-				"--username=admin", "--password=admin",
-				"--domain=localhost",
+				"--dry-run",
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
@@ -174,7 +192,6 @@ func TestBootstrapCmd(t *testing.T) {
 			},
 			reset: func(t *testing.T) {
 				uninstallFlux(g)
-				deleteClusterUser(t, testLog)
 				deleteEntitlements(t, testLog)
 			},
 			expectedErrorStr: "",

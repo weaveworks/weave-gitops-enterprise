@@ -5,20 +5,22 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-var CheckUIDomainStep = BootstrapStep{
-	Name: "check ui domain",
-	Step: checkUIDomain,
+// ExposeWge step that exposes weave gitops enterprise ui to the user doing bootstrap.
+// It could be either by providing its Url if public or using port-forward if private.
+var ExposeWge = BootstrapStep{
+	Name: "expose wge ui",
+	Step: exposeWge,
 }
 
-// checkUIDomain display the message to be for external dns or localhost.
-func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
-	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
-		return []StepOutput{}, err
-	}
+// exposeWge display the message to be for external dns or localhost.
+func exposeWge(input []StepInput, c *Config) ([]StepOutput, error) {
+	//TODO we should not reconcile or do a write operation in a read-only operation
+	//if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
+	//	return []StepOutput{}, err
+	//}
 	if !strings.Contains(c.UserDomain, domainTypeLocalhost) {
 		return []StepOutput{
 			{

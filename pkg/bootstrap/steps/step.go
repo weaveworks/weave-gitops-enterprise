@@ -141,62 +141,79 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 	return processedInputs, nil
 }
 
-func defaultOutputStep(params []StepOutput, c *Config) error {
-	for _, param := range params {
-		switch param.Type {
+// TODO we could refactor this behaviour to make it more generic
+func defaultOutputStep(outputs []StepOutput, c *Config) error {
+	for _, output := range outputs {
+		switch output.Type {
 		case successMsg:
-			c.Logger.Successf(param.Value.(string))
+			c.Logger.Successf(output.Value.(string))
 		case typeSecret:
-			secret, ok := param.Value.(v1.Secret)
+			secret, ok := output.Value.(v1.Secret)
 			if !ok {
 				return errors.New("unexpected error casting secret")
 			}
 			name := secret.ObjectMeta.Name
 			namespace := secret.ObjectMeta.Namespace
 			data := secret.Data
-			if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
-				return err
+
+			if !c.DryRun {
+				if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
+					return err
+				}
 			}
 			c.Logger.Successf("created secret '%s/%s'", secret.Namespace, secret.Name)
 		case typeFile:
-			c.Logger.Actionf("writing file to repo: '%s'", param.Name)
-			file, ok := param.Value.(fileContent)
+			var pathInRepo string
+			var err error
+			c.Logger.Actionf("writing file to repo: '%s'", output.Name)
+			file, ok := output.Value.(fileContent)
 			if !ok {
 				return errors.New("unexpected error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
-			if err != nil {
-				return fmt.Errorf("cannot clone repo: %v", err)
-			}
-			defer func() {
-				err = utils.CleanupRepo()
+			if !c.DryRun {
+				pathInRepo, err = utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
 				if err != nil {
-					c.Logger.Failuref("failed to cleanup repo!")
+					return fmt.Errorf("cannot clone repo: %v", err)
 				}
-			}()
+				defer func() {
+					err = utils.CleanupRepo()
+					if err != nil {
+						c.Logger.Failuref("failed to cleanup repo!")
+					}
+				}()
+			}
 			c.Logger.Successf("cloned flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
 
-			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg)
-			if err != nil {
-				return err
+			if !c.DryRun {
+				err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg)
+				if err != nil {
+					return err
+				}
 			}
+			c.Logger.Successf("written file to repo '%s'", file.Name)
 
-			if err := utils.ReconcileFlux(); err != nil {
-				return err
+			if !c.DryRun {
+				if err := utils.ReconcileFlux(); err != nil {
+					return err
+				}
 			}
+			c.Logger.Successf("flux reconciled")
 
 		case typePortforward:
-			portforward, ok := param.Value.(func() error)
+			portforward, ok := output.Value.(func() error)
 			if !ok {
 				return errors.New("unexpected error for function casting")
 			}
-			err := portforward()
-			if err != nil {
-				return err
+			if !c.DryRun {
+				err := portforward()
+				if err != nil {
+					return err
+				}
 			}
+			c.Logger.Successf("port forward executed")
 		default:
-			return fmt.Errorf("not supported")
+			return fmt.Errorf("output not supported: %s/%s", output.Type, output.Name)
 		}
 	}
 	return nil
