@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
+	//"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -47,7 +47,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Run:     getBootstrapCmdRun(opts),
 	}
 
-	cmd.AddCommand(auth.Command(opts))
+	//cmd.AddCommand(auth.Command(opts))
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
@@ -95,37 +95,11 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 		commands.AskAdminCredsSecretStep,
 		commands.SelectDomainType,
 		commands.InstallWGEStep,
+		commands.OIDCConfigStep,
+		//commands.AdminPasswordRevertStep,
 		commands.CheckUIDomainStep,
 	}
 
-	// if err := config.SelectWgeVersion(); err != nil {
-	// 	return err
-	// }
-
-	// if err := config.AskAdminCredsSecret(); err != nil {
-	// 	return err
-	// }
-
-	// if err := config.InstallWge(); err != nil {
-	// 	return err
-	// }
-
-	// oidcParams := commands.AuthConfigParams{
-	// 	UserDomain: config.UserDomain,
-	// 	WGEVersion: config.WGEVersion,
-	// }
-
-	// if err = config.CreateOIDCPrompt(oidcParams); err != nil {
-	// 	return err
-	// }
-
-	// // Ask the user if he wants to revert the admin user
-	// if err := config.CheckAdminPasswordRevert(); err != nil {
-	// 	return err
-	// }
-
-	// if err := config.CheckUIDomain(); err != nil {
-	// 	return err
 	for _, step := range steps {
 		err := step.Execute(&config, flagsMap)
 		if err != nil {

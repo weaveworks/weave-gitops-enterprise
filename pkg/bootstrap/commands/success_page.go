@@ -16,7 +16,7 @@ var CheckUIDomainStep = BootstrapStep{
 
 // checkUIDomain display the message to be for external dns or localhost.
 func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
-	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
+	if err := utils.ReconcileHelmRelease(WGEHelmReleaseName); err != nil {
 		return []StepOutput{}, err
 	}
 	if !strings.Contains(c.UserDomain, domainTypelocalhost) {

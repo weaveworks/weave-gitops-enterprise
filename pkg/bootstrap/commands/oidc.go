@@ -34,31 +34,75 @@ const (
 
 const (
 	oidcSecretName = "oidc-auth"
+	DiscoveryURL   = "DiscoveryURL"
+	ClientID       = "ClientID"
+	ClientSecret   = "ClientSecret"
 )
 
-func (c *Config) CreateOIDCPrompt(params AuthConfigParams) error {
-	oidcConfigPrompt := utils.GetConfirmInput(oidcInstallMsg)
-	if oidcConfigPrompt != confirmYes {
-		return nil
-	}
-	return c.CreateOIDCConfig(params)
-
+var OIDCConfigStep = BootstrapStep{
+	Name: "OIDC config",
+	Input: []StepInput{
+		{
+			Name:            "oidcConfig",
+			Type:            confirmInput,
+			Msg:             oidcInstallMsg,
+			DefaultValue:    "",
+			Valuesfn:        checkExistingOIDCConfig,
+			StepInformation: fmt.Sprintf(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace),
+		},
+		{
+			Name:         DiscoveryURL,
+			Type:         stringInput,
+			Msg:          oidcDiscoverUrlMsg,
+			DefaultValue: "",
+			Valuesfn:     canAskForConfig,
+		},
+		{
+			Name:         ClientID,
+			Type:         stringInput,
+			Msg:          oidcClientIDMsg,
+			DefaultValue: "",
+			Valuesfn:     canAskForConfig,
+		},
+		{
+			Name:         ClientSecret,
+			Type:         passwordInput,
+			Msg:          oidcClientSecretMsg,
+			DefaultValue: "",
+			Valuesfn:     canAskForConfig,
+		},
+	},
+	Step: CreateOIDCConfig,
 }
 
 // CreateOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
 // If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
-func (c *Config) CreateOIDCConfig(params AuthConfigParams) error {
+func CreateOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Actionf(oidcConfigInfoMsg)
-	if secret, err := utils.GetSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace); secret != nil && err == nil {
-		c.Logger.Warningf(oidcConfigExistWarningMsgFormat, oidcSecretName, WGEDefaultNamespace)
-		return nil
-	} else if err != nil && !strings.Contains(err.Error(), "not found") {
-		return err
+
+	oidcConfig := OIDCConfig{}
+
+	for _, param := range input {
+		if param.Name == DiscoveryURL {
+			// get issuerUrl
+			issuerURL, err := getIssuer(param.Value.(string))
+			if err != nil {
+				return []StepOutput{}, err
+			}
+			oidcConfig.IssuerURL = issuerURL
+		}
+		if param.Name == ClientID {
+			oidcConfig.ClientID = param.Value.(string)
+		}
+		if param.Name == ClientSecret {
+			oidcConfig.ClientSecret = param.Value.(string)
+		}
 	}
 
-	oidcConfig, err := c.getOIDCSecrets(params)
-	if err != nil {
-		return err
+	if strings.Contains(c.WGEVersion, domainTypelocalhost) {
+		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
+	} else {
+		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", c.UserDomain)
 	}
 
 	oidcSecretData := map[string][]byte{
@@ -68,8 +112,8 @@ func (c *Config) CreateOIDCConfig(params AuthConfigParams) error {
 		"redirectURL":  []byte(oidcConfig.RedirectURL),
 	}
 
-	if err = utils.CreateSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace, oidcSecretData); err != nil {
-		return err
+	if err := utils.CreateSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace, oidcSecretData); err != nil {
+		return []StepOutput{}, err
 	}
 
 	values := constructOIDCValues(oidcConfig)
@@ -77,11 +121,11 @@ func (c *Config) CreateOIDCConfig(params AuthConfigParams) error {
 	c.Logger.Waitingf(oidcInstallInfoMsg)
 
 	if err := updateHelmReleaseValues(c.KubernetesClient, oidcValuesName, values); err != nil {
-		return err
+		return []StepOutput{}, err
 	}
 	c.Logger.Successf(oidcConfirmationMsg)
 
-	return nil
+	return []StepOutput{}, nil
 }
 
 func (c *Config) CheckAdminPasswordRevert() error {
@@ -111,82 +155,82 @@ func constructOIDCValues(oidcConfig OIDCConfig) map[string]interface{} {
 	return values
 }
 
-// getOIDCSecrets gets the OIDC config from the user if not provided
-func (c *Config) getOIDCSecrets(inputs AuthConfigParams) (OIDCConfig, error) {
-	configs := OIDCConfig{}
+// // getOIDCSecrets gets the OIDC config from the user if not provided
+// func getOIDCSecrets(inputs AuthConfigParams) (OIDCConfig, error) {
+// 	configs := OIDCConfig{}
 
-	var oidcDiscoveryURL string
-	var oidcIssuerURL string
-	var err error
+// 	var oidcDiscoveryURL string
+// 	var oidcIssuerURL string
+// 	var err error
 
-	// If the user didn't provide a discovery URL, ask for it
-	if inputs.DiscoveryURL == "" {
-		// Keep asking for the discovery URL until we get a valid one
-		for {
-			// Ask for discovery URL from the user
-			oidcDiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
-			if err != nil {
-				return configs, err
-			}
+// 	// If the user didn't provide a discovery URL, ask for it
+// 	if inputs.DiscoveryURL == "" {
+// 		// Keep asking for the discovery URL until we get a valid one
+// 		for {
+// 			// Ask for discovery URL from the user
+// 			oidcDiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
+// 			if err != nil {
+// 				return configs, err
+// 			}
 
-			c.Logger.Waitingf(discoveryUrlVerifyMsg)
+// 			c.Logger.Waitingf(discoveryUrlVerifyMsg)
 
-			// Try to get the issuer
-			oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
-			if err != nil {
-				c.Logger.Failuref("An error occurred: %s. Please enter the discovery URL again.", err.Error())
-				continue // Go to the next iteration to re-ask for the URL
-			}
+// 			// Try to get the issuer
+// 			oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
+// 			if err != nil {
+// 				c.Logger.Failuref("An error occurred: %s. Please enter the discovery URL again.", err.Error())
+// 				continue // Go to the next iteration to re-ask for the URL
+// 			}
 
-			// If we reach this point, it means that the URL is valid. Break out of the loop.
-			break
-		}
-	} else {
-		oidcDiscoveryURL = inputs.DiscoveryURL
-		oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
-		// If the discovery URL is invalid, return the error
-		if err != nil {
-			return configs, err
-		}
-	}
+// 			// If we reach this point, it means that the URL is valid. Break out of the loop.
+// 			break
+// 		}
+// 	} else {
+// 		oidcDiscoveryURL = inputs.DiscoveryURL
+// 		oidcIssuerURL, err = getIssuer(oidcDiscoveryURL)
+// 		// If the discovery URL is invalid, return the error
+// 		if err != nil {
+// 			return configs, err
+// 		}
+// 	}
 
-	var oidcClientID string
-	var oidcClientSecret string
+// 	var oidcClientID string
+// 	var oidcClientSecret string
 
-	// If the user didn't provide a client ID or secret, ask for them
-	if inputs.ClientID == "" {
-		oidcClientID, err = utils.GetStringInput(oidcClientIDMsg, "")
-		if err != nil {
-			return configs, err
-		}
-	} else {
-		oidcClientID = inputs.ClientID
-	}
+// 	// If the user didn't provide a client ID or secret, ask for them
+// 	if inputs.ClientID == "" {
+// 		oidcClientID, err = utils.GetStringInput(oidcClientIDMsg, "")
+// 		if err != nil {
+// 			return configs, err
+// 		}
+// 	} else {
+// 		oidcClientID = inputs.ClientID
+// 	}
 
-	// If the user didn't provide a client ID or secret, ask for them
-	if inputs.ClientSecret == "" {
-		oidcClientSecret, err = utils.GetPasswordInput(oidcClientSecretMsg)
-		if err != nil {
-			return configs, err
-		}
-	} else {
-		oidcClientSecret = inputs.ClientSecret
-	}
+// 	// If the user didn't provide a client ID or secret, ask for them
+// 	if inputs.ClientSecret == "" {
+// 		oidcClientSecret, err = utils.GetPasswordInput(oidcClientSecretMsg)
+// 		if err != nil {
+// 			return configs, err
+// 		}
+// 	} else {
+// 		oidcClientSecret = inputs.ClientSecret
+// 	}
 
-	oidcConfig := OIDCConfig{
-		IssuerURL:    oidcIssuerURL,
-		ClientID:     oidcClientID,
-		ClientSecret: oidcClientSecret,
-	}
+// 	oidcConfig := OIDCConfig{
+// 		IssuerURL:    oidcIssuerURL,
+// 		ClientID:     oidcClientID,
+// 		ClientSecret: oidcClientSecret,
+// 	}
 
-	if strings.Contains(inputs.UserDomain, domainTypelocalhost) {
-		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
-	} else {
-		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", inputs.UserDomain)
-	}
+// 	if strings.Contains(inputs.UserDomain, domainTypelocalhost) {
+// 		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
+// 	} else {
+// 		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", inputs.UserDomain)
+// 	}
 
-	return oidcConfig, nil
-}
+// 	return oidcConfig, nil
+// }
 
 func getIssuer(oidcDiscoveryURL string) (string, error) {
 	resp, err := http.Get(oidcDiscoveryURL)
@@ -211,4 +255,22 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 	}
 
 	return issuer, nil
+}
+
+// checkExistingOIDCConfig checks for OIDC secret on management cluster
+// returns true if OIDC is already on the cluster
+// returns false if no OIDC on the cluster
+func checkExistingOIDCConfig(input []StepInput, c *Config) (interface{}, error) {
+	_, err := utils.GetSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace)
+	if err != nil {
+		return false, nil
+	}
+	return true, nil
+}
+
+func canAskForConfig(input []StepInput, c *Config) (interface{}, error) {
+	if ask, _ := checkExistingOIDCConfig(input, c); ask.(bool) {
+		return false, nil
+	}
+	return true, nil
 }
