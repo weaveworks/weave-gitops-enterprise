@@ -60,7 +60,10 @@ func getRepoPath(client k8s_client.Client, repoName string, namespace string) (s
 
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
 func CloneRepo(client k8s_client.Client, repoName string, namespace string) (string, error) {
-	CleanupRepo()
+	if err := CleanupRepo(); err != nil {
+		return "", err
+	}
+
 	gitRepo, err := getGitRepositoryObject(client, repoName, namespace)
 	if err != nil {
 		return "", err
@@ -134,6 +137,6 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 }
 
 // CleanupRepo delete the temp repo.
-func CleanupRepo() {
-	os.RemoveAll(workingDir)
+func CleanupRepo() error {
+	return os.RemoveAll(workingDir)
 }

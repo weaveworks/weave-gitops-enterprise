@@ -21,17 +21,17 @@ var params commands.AuthConfigParams
 func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "auth",
-		Short: "Add authentication to your cluster. You can specify the type of authentication using the '--type' flag. Currently, only OIDC is supported.",
+		Short: "Generate authentication configuration for Weave GitOps. You can specify the type of authentication using the '--type' flag. Currently, only OIDC is supported.",
 		Example: `
 ## Add OIDC configuration to your cluster. 
 gitops bootstrap auth --type=oidc
 	`,
 		Run: getAuthCmdRun(opts),
 	}
-	cmd.Flags().StringVar(&params.Type, "type", "", "Type of authentication")
-	cmd.Flags().StringVar(&params.DiscoveryURL, "discovery-url", "", "OIDC Discovery URL (optional)")
-	cmd.Flags().StringVar(&params.ClientID, "client-id", "", "OIDC Client ID (optional)")
-	cmd.Flags().StringVar(&params.ClientSecret, "client-secret", "", "OIDC Client Secret (optional)")
+	cmd.Flags().StringVarP(&params.Type, "type", "t", "", "Type of authentication")
+	cmd.Flags().StringVarP(&params.DiscoveryURL, "discovery-url", "du", "", "OIDC Discovery URL (optional)")
+	cmd.Flags().StringVarP(&params.ClientID, "client-id", "ci", "", "OIDC Client ID (optional)")
+	cmd.Flags().StringVarP(&params.ClientSecret, "client-secret", "cs", "", "OIDC Client Secret (optional)")
 	return cmd
 }
 
