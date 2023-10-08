@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,15 +10,49 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+// user messages
 const (
 	versionMsg = "Please select a version for WGE to be installed"
 )
 
-// SelectWgeVersion ask user to select wge version from the latest 3 versions.
-func (c *Config) SelectWgeVersion() error {
+var SelectWgeVersionStep = BootstrapStep{
+	Name: "select WGE version",
+	Input: []StepInput{
+		{
+			Name:     WGEVersion,
+			Type:     multiSelectionChoice,
+			Msg:      versionMsg,
+			Valuesfn: getWgeVersions,
+		},
+	},
+	Step: selectWgeVersion,
+}
+
+// selectWgeVersion step ask user to select wge version from the latest 3 versions.
+func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
+	for _, param := range input {
+		if param.Name == WGEVersion {
+			version, ok := param.Value.(string)
+			if !ok {
+				return []StepOutput{}, errors.New("unexpected error occured. Version not found")
+			}
+			c.WGEVersion = version
+		}
+	}
+
+	return []StepOutput{
+		{
+			Name:  "version selection msg",
+			Type:  successMsg,
+			Value: fmt.Sprintf("Selected version %s", c.WGEVersion),
+		},
+	}, nil
+}
+
+func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
 	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
 	if err != nil {
-		return err
+		return []string{}, err
 	}
 
 	username, password := string(entitlementSecret.Data["username"]), string(entitlementSecret.Data["password"])
@@ -25,18 +60,9 @@ func (c *Config) SelectWgeVersion() error {
 	chartUrl := fmt.Sprintf("%s/index.yaml", wgeChartUrl)
 	versions, err := fetchHelmChartVersions(chartUrl, username, password)
 	if err != nil {
-		return err
+		return []string{}, err
 	}
-
-	if c.WGEVersion == "" {
-		c.WGEVersion, err = utils.GetSelectInput(versionMsg, versions)
-		if err != nil {
-			return err
-		}
-		c.Logger.Successf("Selected version %s", c.WGEVersion)
-	}
-
-	return nil
+	return versions, nil
 }
 
 // fetchHelmChartVersions helper method to fetch wge helm chart versions.

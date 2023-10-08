@@ -1,5 +1,11 @@
 /* eslint-disable testing-library/no-node-access */
-import { act, render, RenderResult, screen } from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  RenderResult,
+  screen,
+} from '@testing-library/react';
 import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
@@ -75,6 +81,7 @@ const res: GetPipelineResponse = {
     status: {
       environments: {
         dev: {
+          waitingStatus: { revision: '2.0.0' },
           targetsStatuses: [
             {
               clusterRef: {
@@ -433,6 +440,61 @@ describe('PipelineDetails', () => {
       expect(keyVal?.textContent).toContain('Notification');
       expect(keyVal?.textContent).not.toContain('Pull Request');
     });
+  });
+
+  it('handles visibility of promotion button: auto-approve', async () => {
+    const params = res.pipeline;
+    const auto: Pipeline = {
+      ...res.pipeline,
+      promotion: {
+        manual: false,
+      },
+    };
+    api.GetPipelineReturns = { ...res, pipeline: auto };
+    core.GetObjectReturns = { object: {} };
+
+    await act(async () => {
+      const c = wrap(
+        <PipelineDetails
+          name={params?.name || ''}
+          namespace={params?.namespace || ''}
+        />,
+      );
+      render(c);
+    });
+
+    expect(screen.queryByText('Approve Promotion')).toBeNull();
+  });
+  it('handles visibility of promotion button: manual', async () => {
+    const params = res.pipeline;
+    const manual: Pipeline = {
+      ...res.pipeline,
+      promotion: {
+        manual: true,
+      },
+    };
+    api.GetPipelineReturns = { ...res, pipeline: manual };
+    core.GetObjectReturns = { object: {} };
+
+    await act(async () => {
+      const c = wrap(
+        <PipelineDetails
+          name={params?.name || ''}
+          namespace={params?.namespace || ''}
+        />,
+      );
+      render(c);
+    });
+    const buttons = screen.getAllByRole('button');
+
+    const filteredButtons = buttons.filter(e =>
+      e.innerHTML.includes('Approve Promotion'),
+    );
+    expect(filteredButtons.length).toEqual(2);
+    const devButton = filteredButtons.filter(
+      e => !e.className.includes('Mui-disabled'),
+    );
+    expect(devButton.length).toEqual(1);
   });
 
   describe('snapshots', () => {

@@ -76,7 +76,6 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string) (str
 	if err != nil {
 		return "", err
 	}
-
 	_, err = git.PlainClone(workingDir, false, &git.CloneOptions{
 		URL:           repoUrl,
 		ReferenceName: plumbing.NewBranchReferenceName(repoBranch),
@@ -87,7 +86,6 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string) (str
 	if err != nil {
 		return "", err
 	}
-
 	return repoPath, nil
 }
 

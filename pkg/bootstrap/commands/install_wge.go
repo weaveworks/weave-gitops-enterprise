@@ -4,24 +4,22 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
-	domainMsg             = "Please select the domain to be used"
-	clusterDomainMsg      = "Please enter your cluster domain"
 	externalDNSWarningMsg = `Please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.
 For more information about external DNS, please refer to: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
 `
+	clusterDomainMsg = "Please enter your cluster domain"
+
 	wgeInstallMsg          = "All set installing WGE v%s, This may take a few minutes"
 	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
 	localInstallSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at http://localhost:8000/"
@@ -35,8 +33,6 @@ const (
 	WGEHelmReleaseName                = "weave-gitops-enterprise"
 	WGEDefaultNamespace               = "flux-system"
 	WGEDefaultRepoName                = "flux-system"
-	domainTypelocalhost               = "localhost"
-	domainTypeExternalDNS             = "external DNS"
 	wgeHelmrepoFileName               = "wge-hrepo.yaml"
 	wgeHelmReleaseFileName            = "wge-hrelease.yaml"
 	wgeChartUrl                       = "https://charts.dev.wkp.weave.works/releases/charts-v3"
@@ -48,53 +44,41 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
-var (
-	domainTypes = []string{
-		domainTypelocalhost,
-		domainTypeExternalDNS,
-	}
-)
+var InstallWGEStep = BootstrapStep{
+	Name: "install wge",
+	Input: []StepInput{
+		{
+			Name:         UserDomain,
+			Type:         stringInput,
+			Msg:          clusterDomainMsg,
+			DefaultValue: "",
+			Valuesfn:     isUserDomainEnabled,
+		},
+	},
+	Step:   installWge,
+	Output: []StepOutput{},
+}
 
 // InstallWge installs weave gitops enterprise chart.
-func (c *Config) InstallWge() error {
-	if c.UserDomain == "" {
-		c.UserDomain = domainTypelocalhost
-		domainType, err := utils.GetSelectInput(domainMsg, domainTypes)
-		if err != nil {
-			return err
-		}
-
-		if domainType == domainTypeExternalDNS {
-			c.Logger.L().Info(externalDNSWarningMsg)
-			c.UserDomain, err = utils.GetStringInput(clusterDomainMsg, "")
-			if err != nil {
-				return err
+func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
+	c.UserDomain = domainTypelocalhost
+	if c.DomainType == domainTypeExternalDNS {
+		for _, param := range input {
+			if param.Name == UserDomain {
+				userDomain, ok := param.Value.(string)
+				if !ok {
+					return []StepOutput{}, errors.New("unexpected error occured. user domain not found")
+				}
+				c.UserDomain = userDomain
 			}
 		}
 	}
 
 	c.Logger.Waitingf(wgeInstallMsg, c.WGEVersion)
 
-	pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		err = utils.CleanupRepo()
-		if err != nil {
-			c.Logger.Failuref("failed to cleanup repo!")
-		}
-	}()
-
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
-		return err
-	}
-
-	err = utils.CreateFileToRepo(wgeHelmrepoFileName, wgehelmRepo, pathInRepo, wgeHelmRepoCommitMsg)
-	if err != nil {
-		return err
+		return []StepOutput{}, err
 	}
 
 	gitOpsSetsValues := map[string]interface{}{
@@ -135,22 +119,32 @@ func (c *Config) InstallWge() error {
 
 	wgeHelmRelease, err := constructWGEhelmRelease(values, c.WGEVersion)
 	if err != nil {
-		return err
+		return []StepOutput{}, err
 	}
 
-	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, wgeHelmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
-		return err
+	helmrepoFile := fileContent{
+		Name:      wgeHelmrepoFileName,
+		Content:   wgehelmRepo,
+		CommitMsg: wgeHelmRepoCommitMsg,
+	}
+	helmreleaseFile := fileContent{
+		Name:      wgeHelmReleaseFileName,
+		Content:   wgeHelmRelease,
+		CommitMsg: wgeHelmReleaseCommitMsg,
 	}
 
-	if err := utils.ReconcileFlux(); err != nil {
-		return err
-	}
-
-	if err := utils.ReconcileHelmRelease(WGEHelmReleaseName); err != nil {
-		return err
-	}
-
-	return nil
+	return []StepOutput{
+		{
+			Name:  "helmrepo file",
+			Type:  typeFile,
+			Value: helmrepoFile,
+		},
+		{
+			Name:  "helmrelease file",
+			Type:  typeFile,
+			Value: helmreleaseFile,
+		},
+	}, nil
 }
 
 func constructWgeHelmRepository() (string, error) {
@@ -234,21 +228,10 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
 
-// CheckUIDomain display the message to be for external dns or localhost.
-func (c *Config) CheckUIDomain() error {
-	if !strings.Contains(c.UserDomain, domainTypelocalhost) {
-		c.Logger.Successf(installSuccessMsg, c.WGEVersion, c.UserDomain)
-		return nil
+func isUserDomainEnabled(input []StepInput, c *Config) (interface{}, error) {
+	if c.DomainType == domainTypeExternalDNS {
+		c.Logger.L().Info(externalDNSWarningMsg)
+		return true, nil
 	}
-
-	c.Logger.Successf(localInstallSuccessMsg, c.WGEVersion)
-
-	var runner runner.CLIRunner
-	_, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-	if err != nil {
-		// adding an error message, err is meaningless
-		return errors.New("failed to make portforward 8000")
-	}
-
-	return nil
+	return false, nil
 }

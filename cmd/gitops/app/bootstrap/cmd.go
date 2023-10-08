@@ -79,48 +79,58 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 	}
 
 	config := commands.Config{}
-	config.Username = flags.username
-	config.Password = flags.password
-	config.WGEVersion = flags.version
 	config.KubernetesClient = kubernetesClient
 	config.Logger = logger
 
-	if err := config.CheckEntitlementSecret(); err != nil {
-		return err
+	flagsMap := map[string]string{
+		commands.UserName:   flags.username,
+		commands.Password:   flags.password,
+		commands.WGEVersion: flags.version,
 	}
 
-	if err := config.VerifyFluxInstallation(); err != nil {
-		return err
+	var steps = []commands.BootstrapStep{
+		commands.CheckEntitlementSecretStep,
+		commands.VerifyFluxInstallationStep,
+		commands.SelectWgeVersionStep,
+		commands.AskAdminCredsSecretStep,
+		commands.SelectDomainType,
+		commands.InstallWGEStep,
+		commands.CheckUIDomainStep,
 	}
 
-	if err := config.SelectWgeVersion(); err != nil {
-		return err
-	}
+	// if err := config.SelectWgeVersion(); err != nil {
+	// 	return err
+	// }
 
-	if err := config.AskAdminCredsSecret(); err != nil {
-		return err
-	}
+	// if err := config.AskAdminCredsSecret(); err != nil {
+	// 	return err
+	// }
 
-	if err := config.InstallWge(); err != nil {
-		return err
-	}
+	// if err := config.InstallWge(); err != nil {
+	// 	return err
+	// }
 
-	oidcParams := commands.AuthConfigParams{
-		UserDomain: config.UserDomain,
-		WGEVersion: config.WGEVersion,
-	}
+	// oidcParams := commands.AuthConfigParams{
+	// 	UserDomain: config.UserDomain,
+	// 	WGEVersion: config.WGEVersion,
+	// }
 
-	if err = config.CreateOIDCPrompt(oidcParams); err != nil {
-		return err
-	}
+	// if err = config.CreateOIDCPrompt(oidcParams); err != nil {
+	// 	return err
+	// }
 
-	// Ask the user if he wants to revert the admin user
-	if err := config.CheckAdminPasswordRevert(); err != nil {
-		return err
-	}
+	// // Ask the user if he wants to revert the admin user
+	// if err := config.CheckAdminPasswordRevert(); err != nil {
+	// 	return err
+	// }
 
-	if err := config.CheckUIDomain(); err != nil {
-		return err
+	// if err := config.CheckUIDomain(); err != nil {
+	// 	return err
+	for _, step := range steps {
+		err := step.Execute(&config, flagsMap)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -7,12 +7,45 @@ import (
 
 // Config is the main struct for WGE installation setup
 type Config struct {
+	KubernetesClient k8s_client.Client
+	Logger           logger.Logger
 	Username         string
 	Password         string
-	KubernetesClient k8s_client.Client
 	WGEVersion       string
+	DomainType       string
 	UserDomain       string
-	Logger           logger.Logger
+}
+
+const (
+	defaultAdminUsername = "wego-admin"
+	defaultAdminPassword = "password"
+)
+
+// inputs names
+const (
+	UserName   = "username"
+	Password   = "password"
+	WGEVersion = "wgeVersion"
+	UserDomain = "userDomain"
+)
+
+// input/output types
+const (
+	successMsg           = "successMsg"
+	failureMsg           = "failureMsg"
+	multiSelectionChoice = "multiSelect"
+	stringInput          = "string"
+	passwordInput        = "password"
+	confirmInput         = "confirm"
+	typeSecret           = "secret"
+	typeFile             = "file"
+	typePortforward      = "portforward"
+)
+
+type fileContent struct {
+	Name      string
+	Content   string
+	CommitMsg string
 }
 
 // ValuesFile store the wge values
