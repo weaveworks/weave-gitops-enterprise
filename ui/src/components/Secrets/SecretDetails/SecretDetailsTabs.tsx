@@ -10,7 +10,7 @@ import {
 import { GetExternalSecretResponse } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
 import { RowHeaders, SectionRowHeader } from '../../RowHeader';
-import ListEvents from './Events/ListEvents';
+import ListEvents from '../../ListEvents';
 
 const SecretDetailsTabs = ({
   clusterName,

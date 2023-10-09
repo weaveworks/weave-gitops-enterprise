@@ -13,6 +13,7 @@ import (
 
 	bleve "github.com/blevesearch/bleve/v2"
 	"github.com/blevesearch/bleve/v2/mapping"
+	"github.com/blevesearch/bleve/v2/search"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 )
@@ -249,6 +250,18 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 
 		searchResults.Hits[i] = hit
 	}
+
+	// Ensure hits are unique
+	seen := map[string]bool{}
+	uniqueHits := []*search.DocumentMatch{}
+	for _, hit := range searchResults.Hits {
+		if _, ok := seen[hit.ID]; !ok {
+			uniqueHits = append(uniqueHits, hit)
+			seen[hit.ID] = true
+		}
+	}
+
+	searchResults.Hits = uniqueHits
 
 	iter := &indexerIterator{
 		result: searchResults,
