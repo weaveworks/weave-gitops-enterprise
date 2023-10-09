@@ -1,5 +1,5 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useState } from 'react';
+import { Dispatch, useCallback, useContext, useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 import {
@@ -14,6 +14,7 @@ import {
   ClustersService,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import { validateFormData } from '../../../utils/form';
 
 export enum SecretType {
   SOPS,
@@ -53,9 +54,11 @@ const getRender = async (
 export const Preview = ({
   secretType = SecretType.SOPS,
   formData,
+  setFormError,
 }: {
   secretType?: SecretType;
   formData: SOPS | ExternalSecret;
+  setFormError: Dispatch<React.SetStateAction<string>>;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -81,7 +84,9 @@ export const Preview = ({
   return (
     <>
       <Button
-        onClick={() => handlePRPreview()}
+        onClick={event =>
+          validateFormData(event, handlePRPreview, setFormError)
+        }
         disabled={previewLoading}
         loading={previewLoading}
       >

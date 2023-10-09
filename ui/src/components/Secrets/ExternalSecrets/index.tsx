@@ -236,7 +236,11 @@ const CreateExternalSecret = () => {
               >
                 CREATE PULL REQUEST
               </Button>
-              <Preview formData={formData} secretType={SecretType.ES} />
+              <Preview
+                formData={formData}
+                secretType={SecretType.ES}
+                setFormError={setFormError}
+              />
             </Flex>
           </FormWrapperSecret>
         </NotificationsWrapper>

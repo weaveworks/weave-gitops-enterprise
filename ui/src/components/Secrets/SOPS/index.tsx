@@ -214,7 +214,7 @@ const CreateSOPS = () => {
               >
                 CREATE PULL REQUEST
               </Button>
-              <Preview formData={formData} />
+              <Preview formData={formData} setFormError={setFormError} />
             </Flex>
           </FormWrapperSecret>
         </NotificationsWrapper>
