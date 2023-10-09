@@ -40,7 +40,7 @@ import {
 } from '../../Templates/Form/utils';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-import { PreviewPRModal } from './Preview';
+import { Preview } from './Preview';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
@@ -405,9 +405,10 @@ const CreatePolicyConfig = () => {
               >
                 CREATE PULL REQUEST
               </Button>
-              <PreviewPRModal
+              <Preview
                 formData={formData}
                 getClusterAutomations={getClusterAutomations}
+                setFormError={setFormError}
               />
             </Flex>
           </FormWrapperPolicyConfig>
