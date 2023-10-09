@@ -188,6 +188,7 @@ const Preview: FC<{
             <Tab key={index} className="tab-label" label={tabName} />
           ) : (
             <Tooltip
+              key={index}
               title={`No ${getTooltipText(
                 tabName,
               )} files in this rendered template.`}

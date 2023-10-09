@@ -127,9 +127,9 @@ const CostEstimation: FC<{
           container
         >
           <Button
+            id="get-estimation"
             loading={costEstimationLoading}
             disabled={costEstimationLoading}
-            id="get-estimation"
             onClick={event =>
               validateFormData(event, handleCostEstimation, setFormError)
             }
