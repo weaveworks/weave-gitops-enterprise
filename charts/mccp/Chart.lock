@@ -14,5 +14,8 @@ dependencies:
 - name: gitopssets-controller
   repository: oci://ghcr.io/weaveworks/charts
   version: 0.16.4
-digest: sha256:6165ac992c76c5fbe8c38a678fb31ab00909d6bc9f8d9b628cf1baa79c262a69
-generated: "2023-10-05T09:09:32.304582+01:00"
+- name: cluster-bootstrap-controller
+  repository: oci://ghcr.io/weaveworks/charts
+  version: 0.7.1-9-g0bd4b59
+digest: sha256:f16c13ec2a411de2d11854a575e5456baeda77252156920abe5cf939fad368a8
+generated: "2023-10-09T20:00:09.362077+02:00"
