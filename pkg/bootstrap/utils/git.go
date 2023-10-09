@@ -11,6 +11,7 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -58,8 +59,20 @@ func getRepoPath(client k8s_client.Client, repoName string, namespace string) (s
 	return kustomization.Spec.Path, nil
 }
 
+func getGitAuth(privateKeyPath, privateKeyPassword string) (*ssh.PublicKeys, error) {
+	sshKey, err := os.ReadFile(privateKeyPath)
+	if err != nil {
+		return nil, err
+	}
+	pubKey, err := ssh.NewPublicKeys("git", sshKey, privateKeyPassword)
+	if err != nil {
+		return nil, err
+	}
+	return pubKey, nil
+}
+
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
-func CloneRepo(client k8s_client.Client, repoName string, namespace string) (string, error) {
+func CloneRepo(client k8s_client.Client, repoName string, namespace string, privateKeyPath string, privateKeyPassword string) (string, error) {
 	if err := CleanupRepo(); err != nil {
 		return "", err
 	}
@@ -76,7 +89,13 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string) (str
 	if err != nil {
 		return "", err
 	}
+
+	authMethod, err := getGitAuth(privateKeyPath, privateKeyPassword)
+	if err != nil {
+		return "", err
+	}
 	_, err = git.PlainClone(workingDir, false, &git.CloneOptions{
+		Auth:          authMethod,
 		URL:           repoUrl,
 		ReferenceName: plumbing.NewBranchReferenceName(repoBranch),
 		SingleBranch:  true,
@@ -90,7 +109,7 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string) (str
 }
 
 // CreateFileToRepo create a file and add to the repo.
-func CreateFileToRepo(filename string, filecontent string, path string, commitmsg string) error {
+func CreateFileToRepo(filename, filecontent, path, commitmsg, privateKeyPath, privateKeyPassword string) error {
 	repo, err := git.PlainOpen(workingDir)
 	if err != nil {
 		return err
@@ -127,7 +146,13 @@ func CreateFileToRepo(filename string, filecontent string, path string, commitms
 		return err
 	}
 
-	if err := repo.Push(&git.PushOptions{}); err != nil {
+	authMethod, err := getGitAuth(privateKeyPath, privateKeyPassword)
+	if err != nil {
+		return err
+	}
+	if err := repo.Push(&git.PushOptions{
+		Auth: authMethod,
+	}); err != nil {
 		return err
 	}
 

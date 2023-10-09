@@ -7,13 +7,15 @@ import (
 
 // Config is the main struct for WGE installation setup
 type Config struct {
-	KubernetesClient k8s_client.Client
-	Logger           logger.Logger
-	Username         string
-	Password         string
-	WGEVersion       string
-	DomainType       string
-	UserDomain       string
+	KubernetesClient   k8s_client.Client
+	Logger             logger.Logger
+	Username           string
+	Password           string
+	WGEVersion         string
+	DomainType         string
+	UserDomain         string
+	PrivateKeyPath     string
+	PrivateKeyPassword string
 }
 
 const (
@@ -23,10 +25,12 @@ const (
 
 // inputs names
 const (
-	UserName   = "username"
-	Password   = "password"
-	WGEVersion = "wgeVersion"
-	UserDomain = "userDomain"
+	UserName           = "username"
+	Password           = "password"
+	WGEVersion         = "wgeVersion"
+	UserDomain         = "userDomain"
+	PrivateKeyPath     = "privateKeyPath"
+	PrivateKeyPassword = "privateKeyPassword"
 )
 
 // input/output types

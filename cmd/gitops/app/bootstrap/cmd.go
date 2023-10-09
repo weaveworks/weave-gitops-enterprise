@@ -31,9 +31,11 @@ gitops bootstrap --kubeconfig <your-kubeconfig-location>
 )
 
 type bootstrapFlags struct {
-	username string
-	password string
-	version  string
+	username           string
+	password           string
+	version            string
+	privateKeyPath     string
+	privateKeyPassword string
 }
 
 var flags bootstrapFlags
@@ -49,6 +51,8 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version")
+	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
+	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "Private key password. If the private key is encrypted using password")
 	return cmd
 }
 
@@ -80,14 +84,17 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 	config.Logger = logger
 
 	flagsMap := map[string]string{
-		commands.UserName:   flags.username,
-		commands.Password:   flags.password,
-		commands.WGEVersion: flags.version,
+		commands.UserName:           flags.username,
+		commands.Password:           flags.password,
+		commands.WGEVersion:         flags.version,
+		commands.PrivateKeyPath:     flags.privateKeyPath,
+		commands.PrivateKeyPassword: flags.privateKeyPassword,
 	}
 
 	var steps = []commands.BootstrapStep{
 		commands.CheckEntitlementSecretStep,
 		commands.VerifyFluxInstallationStep,
+		commands.AskPrivateKeyStep,
 		commands.SelectWgeVersionStep,
 		commands.AskAdminCredsSecretStep,
 		commands.SelectDomainType,

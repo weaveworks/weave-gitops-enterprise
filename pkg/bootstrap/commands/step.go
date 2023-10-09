@@ -182,7 +182,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			if !ok {
 				return errors.New("unexpected error casting file")
 			}
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
+			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
 				return err
 			}
@@ -194,7 +194,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				}
 			}()
 
-			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg)
+			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
 				return err
 			}
