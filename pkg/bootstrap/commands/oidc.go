@@ -158,21 +158,6 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	return []StepOutput{}, nil
 }
 
-func (c *Config) CheckAdminPasswordRevert() error {
-	adminUserRevert := utils.GetConfirmInput(adminUserRevertMsg)
-
-	if adminUserRevert != "y" {
-		return nil
-	}
-
-	if err := utils.DeleteSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace); err != nil {
-		return err
-	}
-
-	c.Logger.Successf(adminUsernameRevertMsg)
-	return nil
-}
-
 // constructOIDCValues construct the OIDC values
 func constructOIDCValues(oidcConfig OIDCConfig) map[string]interface{} {
 	values := map[string]interface{}{

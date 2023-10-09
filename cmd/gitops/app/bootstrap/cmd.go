@@ -96,7 +96,6 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 		commands.SelectDomainType,
 		commands.InstallWGEStep,
 		commands.OIDCConfigStep,
-		//commands.AdminPasswordRevertStep,
 		commands.CheckUIDomainStep,
 	}
 
