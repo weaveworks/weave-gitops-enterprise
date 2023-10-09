@@ -37,7 +37,7 @@ import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
+import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
 
 type Props = {

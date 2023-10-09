@@ -70,7 +70,7 @@ func (a AddApplication) SelectListItem(webDriver *agouti.Page, itemName string) 
 
 func GetGitOps(webDriver *agouti.Page) GitOps {
 	return GitOps{
-		GitOpsLabel:      webDriver.FindByXPath(`//h2[.="GitOps"]`),
+		GitOpsLabel:      webDriver.FindByXPath(`//h2[.="GitOps: Review and create"]`),
 		BranchName:       webDriver.FindByID(`CREATE BRANCH-input`),
 		PullRequestTitle: webDriver.FindByID(`PULL REQUEST TITLE-input`),
 		CommitMessage:    webDriver.FindByID(`COMMIT MESSAGE-input`),

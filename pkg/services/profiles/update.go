@@ -68,14 +68,6 @@ func (s *ProfilesSvc) Update(ctx context.Context, r ProfilesRetriever, gitProvid
 
 	s.Logger.Actionf("created Pull Request: %s", pr.Get().WebURL)
 
-	if opts.AutoMerge {
-		s.Logger.Actionf("auto-merge=true; merging PR number %v", pr.Get().Number)
-
-		if err := gitProvider.MergePullRequest(ctx, configRepoURL, pr.Get().Number, AddCommitMessage); err != nil {
-			return fmt.Errorf("error auto-merging PR: %w", err)
-		}
-	}
-
 	s.printUpdateSummary(opts)
 
 	return nil
