@@ -3,7 +3,6 @@ import {
   Flex,
   GitRepository,
   Link,
-  LoadingPage,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { Box } from '@material-ui/core';
@@ -449,15 +448,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   );
                 },
               )}
-              {openPreview && prPreview ? (
-                <Preview
-                  context="app"
-                  openPreview={openPreview}
-                  setOpenPreview={setOpenPreview}
-                  prPreview={prPreview}
-                  sourceType={formData.source_type}
-                />
-              ) : null}
               <Box className="selected-source">
                 {formData.source_url && 'Selected source: '}
                 {optionUrl(formData.source_url, formData.source_branch)}
@@ -476,18 +466,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                   selectedHelmRepositories={[helmRepo]}
                 />
               ) : null}
-              {previewLoading ? (
-                <LoadingPage className="preview-loading" />
-              ) : (
-                <Flex end className="preview-cta">
-                  <Button
-                    type="submit"
-                    onClick={() => setSubmitType('PR Preview')}
-                  >
-                    PREVIEW PR
-                  </Button>
-                </Flex>
-              )}
               <GitOps
                 formData={formData}
                 setFormData={setFormData}
@@ -496,19 +474,33 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 formError={formError}
                 enableGitRepoSelection={true}
               />
-              {loading ? (
-                <LoadingPage className="create-loading" />
-              ) : (
-                <Flex end className="create-cta">
-                  <Button
-                    type="submit"
-                    onClick={() => setSubmitType('Create app')}
-                    disabled={!isAuthenticated}
-                  >
-                    CREATE PULL REQUEST
-                  </Button>
-                </Flex>
-              )}
+              <Flex end className="gitops-cta">
+                <Button
+                  loading={loading}
+                  type="submit"
+                  onClick={() => setSubmitType('Create app')}
+                  disabled={!isAuthenticated || loading}
+                >
+                  CREATE PULL REQUEST
+                </Button>
+                <Button
+                  loading={previewLoading}
+                  disabled={previewLoading}
+                  type="submit"
+                  onClick={() => setSubmitType('PR Preview')}
+                >
+                  PREVIEW PR
+                </Button>
+                {openPreview && prPreview ? (
+                  <Preview
+                    context="app"
+                    openPreview={openPreview}
+                    setOpenPreview={setOpenPreview}
+                    prPreview={prPreview}
+                    sourceType={formData.source_type}
+                  />
+                ) : null}
+              </Flex>
             </FormWrapper>
           </NotificationsWrapper>
         </CallbackStateContextProvider>

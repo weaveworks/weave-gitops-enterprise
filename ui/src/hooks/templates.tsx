@@ -8,7 +8,11 @@ import { TemplateEnriched } from '../types/custom';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 
-const useTemplates = () => {
+const useTemplates = (
+  opts: { enabled: boolean } = {
+    enabled: true,
+  },
+) => {
   const [loading, setLoading] = useState<boolean>(false);
   const { setNotifications } = useNotifications();
   const { api } = useContext(EnterpriseClientContext);
@@ -22,6 +26,7 @@ const useTemplates = () => {
     {
       keepPreviousData: true,
       onError,
+      ...opts,
     },
   );
   const templates = data?.templates as TemplateEnriched[] | undefined;

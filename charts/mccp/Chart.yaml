@@ -37,6 +37,6 @@ dependencies:
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: enablePipelines
   - name: gitopssets-controller
-    version: "0.16.2"
+    version: "0.16.4"
     repository: "oci://ghcr.io/weaveworks/charts"
     condition: gitopssets-controller.enabled

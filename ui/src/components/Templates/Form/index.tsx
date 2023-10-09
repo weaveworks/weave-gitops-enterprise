@@ -6,7 +6,6 @@ import {
   GitRepository,
   HelmRepository,
   Link,
-  LoadingPage,
   useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
@@ -619,22 +618,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               formError={formError}
             />
           ) : null}
-          {previewLoading ? (
-            <LoadingPage className="preview-loading" />
-          ) : (
-            <Flex end className="preview-cta">
-              <Button type="submit" onClick={() => setSubmitType('PR Preview')}>
-                PREVIEW PR
-              </Button>
-            </Flex>
-          )}
-          {openPreview && prPreview ? (
-            <Preview
-              openPreview={openPreview}
-              setOpenPreview={setOpenPreview}
-              prPreview={prPreview}
-            />
-          ) : null}
           {isCostEstimationEnabled ? (
             <CostEstimation
               handleCostEstimation={handleCostEstimation}
@@ -658,19 +641,31 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               )
             }
           />
-          {loading ? (
-            <LoadingPage className="create-loading" />
-          ) : (
-            <Flex end className="create-cta">
-              <Button
-                type="submit"
-                onClick={() => setSubmitType('Create resource')}
-                disabled={!isAuthenticated}
-              >
-                CREATE PULL REQUEST
-              </Button>
-            </Flex>
-          )}
+          <Flex end className="gitops-cta">
+            <Button
+              loading={loading}
+              type="submit"
+              onClick={() => setSubmitType('Create resource')}
+              disabled={!isAuthenticated || loading}
+            >
+              CREATE PULL REQUEST
+            </Button>
+            <Button
+              loading={previewLoading}
+              disabled={previewLoading}
+              type="submit"
+              onClick={() => setSubmitType('PR Preview')}
+            >
+              PREVIEW PR
+            </Button>
+            {openPreview && prPreview ? (
+              <Preview
+                openPreview={openPreview}
+                setOpenPreview={setOpenPreview}
+                prPreview={prPreview}
+              />
+            ) : null}
+          </Flex>
         </FormWrapper>
       </CallbackStateContextProvider>
     );

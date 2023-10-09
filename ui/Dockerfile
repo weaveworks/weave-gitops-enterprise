@@ -8,7 +8,6 @@ COPY --chown=node:node yarn.lock /home/node
 COPY --chown=node:node Makefile /home/node
 COPY --chown=node:node tsconfig.json /home/node
 
-ARG REACT_APP_DISABLE_PROGRESSIVE_DELIVERY
 ARG GITHUB_TOKEN
 RUN --mount=type=cache,target=/home/node/node_modules,uid=1000,gid=1000 make node_modules GITHUB_TOKEN=${GITHUB_TOKEN}
 
