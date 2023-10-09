@@ -42,7 +42,7 @@ function AddSource({ className }: Props) {
     prDesc: '',
   });
   const [secret, setSecret] = useState<ExternalSecretItem>({});
-  const [openPreview, setOpenPreview] = useState(false);
+  // const [openPreview, setOpenPreview] = useState(false);
   return (
     <Page
       path={[
