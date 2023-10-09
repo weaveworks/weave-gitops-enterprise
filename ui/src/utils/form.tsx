@@ -201,20 +201,17 @@ export const validateFormData = (
   event: any,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
-  setSubmitType?: Dispatch<React.SetStateAction<string>>,
 ) => {
   event.preventDefault();
 
   const onClickFormData = event.target.form || event.target.parentElement.form;
 
-  const requiredButEmptyInputs =
-    event?.target &&
-    Array?.from(
-      event.type === 'submit' ? event.target : onClickFormData,
-    ).filter(
-      (element: any) =>
-        element.type === 'text' && element.required && element.value === '',
-    );
+  const requiredButEmptyInputs = Array.from(
+    event.type === 'submit' ? event.target : onClickFormData,
+  ).filter(
+    (element: any) =>
+      element.type === 'text' && element.required && element.value === '',
+  );
   if (requiredButEmptyInputs.length === 0) {
     onSubmit();
   } else {

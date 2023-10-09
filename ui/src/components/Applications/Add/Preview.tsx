@@ -1,14 +1,20 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useState } from 'react';
+import { Dispatch, useCallback, useContext, useState } from 'react';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
-import { RenderAutomationResponse } from '../../../cluster-services/cluster_services.pb';
+import {
+  ClusterAutomation,
+  RenderAutomationResponse,
+} from '../../../cluster-services/cluster_services.pb';
 import useNotifications from '../../../contexts/Notifications';
+import { validateFormData } from '../../../utils/form';
 
 export const Preview = ({
   clusterAutomations,
+  setFormError,
 }: {
-  clusterAutomations: any;
+  clusterAutomations: ClusterAutomation[];
+  setFormError: Dispatch<React.SetStateAction<string>>;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -43,7 +49,9 @@ export const Preview = ({
   return (
     <>
       <Button
-        onClick={() => handlePRPreview()}
+        onClick={event =>
+          validateFormData(event, handlePRPreview, setFormError)
+        }
         disabled={previewLoading}
         loading={previewLoading}
       >

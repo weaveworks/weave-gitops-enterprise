@@ -364,8 +364,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     validateToken,
   ]);
 
-  const [submitType, setSubmitType] = useState<string>('');
-
   return useMemo(() => {
     return (
       <Page
@@ -390,12 +388,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             <FormWrapper
               noValidate
               onSubmit={event =>
-                validateFormData(
-                  event,
-                  submitType === 'Create app' ? handleAddApplication : '',
-                  setFormError,
-                  setSubmitType,
-                )
+                validateFormData(event, handleAddApplication, setFormError)
               }
             >
               {formData.clusterAutomations.map(
@@ -443,17 +436,18 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 formError={formError}
                 enableGitRepoSelection={true}
               />
-              {/* Should the below be passed to GitOps as a child? */}
               <Flex end className="gitops-cta">
                 <Button
                   loading={loading}
                   type="submit"
-                  onClick={() => setSubmitType('Create app')}
                   disabled={!isAuthenticated || loading}
                 >
                   CREATE PULL REQUEST
                 </Button>
-                <Preview clusterAutomations={getKustomizations()} />
+                <Preview
+                  setFormError={setFormError}
+                  clusterAutomations={getKustomizations()}
+                />
               </Flex>
             </FormWrapper>
           </NotificationsWrapper>
@@ -472,7 +466,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     clusterName,
     helmRepo,
     formError,
-    submitType,
     isAuthenticated,
     getKustomizations,
   ]);
