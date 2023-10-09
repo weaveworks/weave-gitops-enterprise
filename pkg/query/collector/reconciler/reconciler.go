@@ -8,6 +8,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	"k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -22,8 +23,14 @@ type Reconciler interface {
 
 type ProcessFunc func(models.ObjectTransaction) error
 
-func NewReconciler(clusterName string, objectKind configuration.ObjectKind, client client.Client, process ProcessFunc, log logr.Logger) (Reconciler, error) {
+var kindsWithoutFinalizers = map[string]bool{
+	"ClusterRoleBinding": true,
+	"ClusterRole":        true,
+	"RoleBinding":        true,
+	"Role":               true,
+}
 
+func NewReconciler(clusterName string, objectKind configuration.ObjectKind, client client.Client, process ProcessFunc, log logr.Logger) (Reconciler, error) {
 	if client == nil {
 		return nil, fmt.Errorf("invalid client")
 	}
@@ -65,10 +72,35 @@ func (g GenericReconciler) Setup(mgr ctrl.Manager) error {
 }
 
 func (r *GenericReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-
 	clientObject := r.objectKind.NewClientObjectFunc()
 	if err := r.client.Get(ctx, req.NamespacedName, clientObject); err != nil {
-		return ctrl.Result{}, client.IgnoreNotFound(err)
+		// If the object being reconciled has no finalizers, then on deletion we will receive a reconcile request
+		// for this object only after the object was deleted (not before deletion, as in the case of objects with finalizers)
+		// and `client.Get` will return a `NotFound` error.
+		// Thus, if a `NotFound` error is returned for an object whose Kind is included
+		// in the list of known `Kinds` of objects, which do not have finalizers by default,
+		// we can infer that the object was deleted.
+		_, ok := kindsWithoutFinalizers[r.objectKind.Gvk.Kind]
+
+		if !errors.IsNotFound(err) || !ok {
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+
+		clientObject.SetName(req.Name)
+		clientObject.SetNamespace(req.Namespace)
+		clientObject.GetObjectKind().SetGroupVersionKind(r.objectKind.Gvk)
+
+		tx := transaction{
+			clusterName:     r.clusterName,
+			object:          clientObject,
+			transactionType: models.TransactionTypeDelete,
+			retentionPolicy: r.objectKind.RetentionPolicy,
+			config:          r.objectKind,
+		}
+
+		r.debug.Info("object transaction received", "transaction", tx.String())
+
+		return ctrl.Result{}, r.processFunc(tx)
 	}
 
 	if r.objectKind.FilterFunc != nil {
