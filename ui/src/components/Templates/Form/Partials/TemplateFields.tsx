@@ -55,6 +55,7 @@ const TemplateFields: FC<{
               onChange={event => handleFormData(event, name)}
               items={options}
               description={param.description}
+              error={formError === name && !parameterValues[name]}
             />
           );
         } else {
