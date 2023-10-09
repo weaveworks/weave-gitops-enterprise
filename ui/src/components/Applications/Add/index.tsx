@@ -1,10 +1,4 @@
-import {
-  Button,
-  Flex,
-  GitRepository,
-  Link,
-  useListSources,
-} from '@weaveworks/weave-gitops';
+import { GitRepository, Link, useListSources } from '@weaveworks/weave-gitops';
 import { Box } from '@material-ui/core';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
@@ -429,26 +423,20 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 />
               ) : null}
               <GitOps
+                loading={loading}
+                isAuthenticated={isAuthenticated}
                 formData={formData}
                 setFormData={setFormData}
                 showAuthDialog={showAuthDialog}
                 setShowAuthDialog={setShowAuthDialog}
                 formError={formError}
                 enableGitRepoSelection={true}
-              />
-              <Flex end className="gitops-cta">
-                <Button
-                  loading={loading}
-                  type="submit"
-                  disabled={!isAuthenticated || loading}
-                >
-                  CREATE PULL REQUEST
-                </Button>
+              >
                 <Preview
                   setFormError={setFormError}
                   clusterAutomations={getKustomizations()}
                 />
-              </Flex>
+              </GitOps>
             </FormWrapper>
           </NotificationsWrapper>
         </CallbackStateContextProvider>

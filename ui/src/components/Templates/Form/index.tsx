@@ -1,7 +1,6 @@
 import { Divider, useMediaQuery } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import {
-  Button,
   Flex,
   GitRepository,
   Link,
@@ -472,6 +471,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             />
           ) : null}
           <GitOps
+            loading={loading}
+            isAuthenticated={isAuthenticated}
             formData={formData}
             setFormData={setFormData}
             showAuthDialog={showAuthDialog}
@@ -483,15 +484,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 (initialGitRepo as GitRepositoryEnriched)?.createPRRepo
               )
             }
-          />
-          <Flex end className="gitops-cta">
-            <Button
-              loading={loading}
-              type="submit"
-              disabled={!isAuthenticated || loading}
-            >
-              CREATE PULL REQUEST
-            </Button>
+          >
             <Preview
               template={template}
               formData={formData}
@@ -500,7 +493,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
               kustomizations={getKustomizations(formData)}
               setFormError={setFormError}
             />
-          </Flex>
+          </GitOps>
         </FormWrapper>
       </CallbackStateContextProvider>
     );

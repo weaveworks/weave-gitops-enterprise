@@ -1,5 +1,5 @@
 import { MenuItem } from '@material-ui/core';
-import { Button, Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
+import { Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -199,23 +199,17 @@ const CreateSOPS = () => {
               validateForm={validateForm}
             />
             <GitOps
+              loading={loading}
+              isAuthenticated={isAuthenticated}
               formData={formData}
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               formError={formError}
               enableGitRepoSelection={true}
-            />
-            <Flex end className="gitops-cta">
-              <Button
-                loading={loading}
-                type="submit"
-                disabled={!isAuthenticated || loading}
-              >
-                CREATE PULL REQUEST
-              </Button>
+            >
               <Preview formData={formData} setFormError={setFormError} />
-            </Flex>
+            </GitOps>
           </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>

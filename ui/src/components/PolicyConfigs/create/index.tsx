@@ -1,6 +1,5 @@
 import { MenuItem } from '@material-ui/core';
 import {
-  Button,
   Flex,
   GitRepository,
   Link,
@@ -390,27 +389,21 @@ const CreatePolicyConfig = () => {
               />
             </Flex>
             <GitOps
+              loading={loading}
+              isAuthenticated={isAuthenticated}
               formData={formData}
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               formError={formError}
               enableGitRepoSelection={true}
-            />
-            <Flex end className="gitops-cta">
-              <Button
-                loading={loading}
-                type="submit"
-                disabled={!isAuthenticated || loading}
-              >
-                CREATE PULL REQUEST
-              </Button>
+            >
               <Preview
                 formData={formData}
                 getClusterAutomations={getClusterAutomations}
                 setFormError={setFormError}
               />
-            </Flex>
+            </GitOps>
           </FormWrapperPolicyConfig>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
