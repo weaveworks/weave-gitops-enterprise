@@ -21,6 +21,23 @@ spec:
       description: Kubernetes version to use for the cluster
       options: ["1.19.11", "1.21.1", "1.22.0", "1.23.3"]
       default: "1.23.3"
+  charts:
+    items:
+      - chart: podinfo
+        sourceRef:
+          name: podinfo
+          namespace: dev-github
+      - chart: cert-manager
+        targetNamespace: cert-manager
+
+        # version: v1.5.3
+        # editable: false
+        # required: true
+        # values:
+        #   installCRDs: ${CERT_MANAGER_INSTALL_CRDS}
+        # targetNamespace: cert-manager
+        # layer: layer-1
+
   resourcetemplates:
     - content:
         - apiVersion: gitops.weave.works/v1alpha1
