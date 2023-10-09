@@ -34,9 +34,6 @@ const (
 
 const (
 	oidcSecretName = "oidc-auth"
-	DiscoveryURL   = "DiscoveryURL"
-	ClientID       = "ClientID"
-	ClientSecret   = "ClientSecret"
 )
 
 var OIDCConfigStep = BootstrapStep{
@@ -214,8 +211,8 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 }
 
 // checkExistingOIDCConfig checks for OIDC secret on management cluster
-// returns true if OIDC is already on the cluster
-// returns false if no OIDC on the cluster
+// returns false if OIDC is already on the cluster
+// returns true if no OIDC on the cluster
 func checkExistingOIDCConfig(input []StepInput, c *Config) (interface{}, error) {
 	_, err := utils.GetSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace)
 	if err != nil {

@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	//"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -47,7 +47,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Run:     getBootstrapCmdRun(opts),
 	}
 
-	//cmd.AddCommand(auth.Command(opts))
+	cmd.AddCommand(auth.Command(opts))
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")

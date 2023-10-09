@@ -24,10 +24,13 @@ const (
 
 // inputs names
 const (
-	UserName   = "username"
-	Password   = "password"
-	WGEVersion = "wgeVersion"
-	UserDomain = "userDomain"
+	UserName     = "username"
+	Password     = "password"
+	WGEVersion   = "wgeVersion"
+	UserDomain   = "userDomain"
+	DiscoveryURL = "discoveryURL"
+	ClientID     = "clientID"
+	ClientSecret = "clientSecret"
 )
 
 // input/output types
@@ -117,13 +120,4 @@ type OIDCConfig struct {
 	ClientID     string `json:"clientID"`
 	ClientSecret string `json:"clientSecret"`
 	RedirectURL  string `json:"redirectURL"`
-}
-
-type AuthConfigParams struct {
-	Type         string
-	UserDomain   string
-	WGEVersion   string
-	DiscoveryURL string
-	ClientID     string
-	ClientSecret string
 }
