@@ -17,7 +17,7 @@ const (
 	entitlementCheckConfirmMsg      = "entitlement file exists and is valid"
 	nonExistingEntitlementSecretMsg = "entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
 	invalidEntitlementSecretMsg     = "entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
-	expiredEntitlementSecretMsg     = "entitlement file is expired, please contact *sales@weave.works*"
+	expiredEntitlementSecretMsg     = "entitlement file is expired at: %s, please contact *sales@weave.works*"
 	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File"
 )
 
@@ -65,8 +65,8 @@ func verifyEntitlementSecret(client k8s_client.Client) error {
 	if err != nil {
 		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
 	}
-	if time.Now().Compare(ent.IssuedAt) <= 0 {
-		return fmt.Errorf("%s: %s", expiredEntitlementSecretMsg, ent.IssuedAt)
+	if time.Now().Compare(ent.LicencedUntil) >= 0 {
+		return fmt.Errorf(expiredEntitlementSecretMsg, ent.LicencedUntil)
 	}
 
 	body, err := doBasicAuthGetRequest(wgeChartUrl, string(secret.Data["username"]), string(secret.Data["password"]))
