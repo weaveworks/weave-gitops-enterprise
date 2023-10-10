@@ -149,7 +149,9 @@ func TestBootstrapCmd(t *testing.T) {
 			name: "should install with ssh repo",
 			flags: []string{"--version=0.33.0",
 				"--username=admin", "--password=admin",
-				"--domain=localhost",
+				"--domain-type=localhost",
+				"--private-key=/Users/enekofb/.ssh/id_ed25519",
+				"--private-key-password=\"\"",
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)

@@ -2,6 +2,7 @@ package steps
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
@@ -36,13 +37,15 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger     logger.Logger
-	kubeconfig string
-	username   string
-	password   string
-	wGEVersion string
-	domainType string
-	domain     string
+	logger             logger.Logger
+	kubeconfig         string
+	username           string
+	password           string
+	wGEVersion         string
+	domainType         string
+	domain             string
+	privateKeyPath     string
+	privateKeyPassword string
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -86,6 +89,12 @@ func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
 
 }
 
+func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword string) *ConfigBuilder {
+	c.privateKeyPath = privateKeyPath
+	c.privateKeyPassword = privateKeyPassword
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -100,6 +109,9 @@ type Config struct {
 
 	DomainType string
 	UserDomain string
+
+	PrivateKeyPath     string
+	PrivateKeyPassword string
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -124,14 +136,25 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	//	return Config{}, fmt.Errorf("cannot config bootstrap: weave gitops `%s` exists in the cluster", installedVersion)
 	//}
 
+	// validate ssh keys
+	if cb.privateKeyPath != "" {
+		_, err = os.ReadFile(cb.privateKeyPath)
+		if err != nil {
+			return Config{}, fmt.Errorf("cannot read ssh key: %v", err)
+		}
+	}
+
+	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient: kubernetesClient,
-		WGEVersion:       cb.wGEVersion,
-		Username:         cb.username,
-		Password:         cb.password,
-		Logger:           cb.logger,
-		DomainType:       cb.domainType,
-		UserDomain:       cb.domain,
+		KubernetesClient:   kubernetesClient,
+		WGEVersion:         cb.wGEVersion,
+		Username:           cb.username,
+		Password:           cb.password,
+		Logger:             cb.logger,
+		DomainType:         cb.domainType,
+		UserDomain:         cb.domain,
+		PrivateKeyPath:     cb.privateKeyPath,
+		PrivateKeyPassword: cb.privateKeyPassword,
 	}, nil
 
 }

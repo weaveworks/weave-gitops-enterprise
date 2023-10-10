@@ -32,11 +32,13 @@ gitops bootstrap --username wego-admin --password=hell0!
 )
 
 type bootstrapFlags struct {
-	username   string
-	password   string
-	version    string
-	domainType string
-	domain     string
+	username           string
+	password           string
+	version            string
+	domainType         string
+	domain             string
+	privateKeyPath     string
+	privateKeyPassword string
 }
 
 var flags bootstrapFlags
@@ -54,6 +56,8 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install")
 	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "indicate the domain to use in case of using `externaldns`")
+	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
+	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "Private key password. If the private key is encrypted using password")
 	return cmd
 }
 
@@ -71,6 +75,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithVersion(flags.version).
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
+			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
 			Build()
 
 		if err != nil {

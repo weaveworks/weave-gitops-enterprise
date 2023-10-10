@@ -9,6 +9,7 @@ func Bootstrap(config steps.Config) error {
 	var steps = []steps.BootstrapStep{
 		steps.CheckEntitlementSecret,
 		steps.VerifyFluxInstallation,
+		steps.NewAskPrivateKeyStep(config),
 		steps.NewSelectWgeVersionStep(config),
 		steps.NewAskAdminCredsSecretStep(config),
 		steps.NewSelectDomainType(config),
