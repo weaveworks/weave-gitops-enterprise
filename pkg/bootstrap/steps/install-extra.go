@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"context"
@@ -6,7 +6,6 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -15,8 +14,8 @@ const (
 )
 
 // updateHelmReleaseValues add the extra HelmRelease values.
-func updateHelmReleaseValues(cl client.Client, controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := getCurrentValuesForHelmRelease(cl, WGEHelmReleaseName, WGEDefaultNamespace)
+func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerValues map[string]interface{}) error {
+	values, err := getCurrentValuesForHelmRelease(c.KubernetesClient, WGEHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -26,7 +25,7 @@ func updateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 		values.Config.OIDC = controllerValues
 	}
 
-	version, err := utils.GetHelmReleaseProperty(cl, WGEHelmReleaseName, WGEDefaultNamespace, "version")
+	version, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WGEHelmReleaseName, WGEDefaultNamespace, "version")
 	if err != nil {
 		return err
 	}
@@ -36,14 +35,14 @@ func updateHelmReleaseValues(cl client.Client, controllerValuesName string, cont
 		return err
 	}
 
-	pathInRepo, err := utils.CloneRepo(cl, WGEDefaultRepoName, WGEDefaultNamespace)
+	pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 	if err != nil {
 		return err
 	}
 
 	defer utils.CleanupRepo()
 
-	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, helmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
+	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, helmRelease, pathInRepo, wgeHelmReleaseCommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword); err != nil {
 		return err
 	}
 

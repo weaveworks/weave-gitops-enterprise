@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"encoding/json"

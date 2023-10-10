@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"encoding/json"
@@ -36,9 +36,8 @@ const (
 	oidcSecretName = "oidc-auth"
 )
 
-var OIDCConfigStep = BootstrapStep{
-	Name: "OIDC config",
-	Input: []StepInput{
+func OIDCConfigStep(config Config) BootstrapStep {
+	inputs := []StepInput{
 		{
 			Name:            "oidcConfig",
 			Type:            confirmInput,
@@ -69,8 +68,13 @@ var OIDCConfigStep = BootstrapStep{
 			DefaultValue: "",
 			Valuesfn:     canAskForConfig,
 		},
-	},
-	Step: createOIDCConfig,
+	}
+	return BootstrapStep{
+		Name:  "OIDC Configuration",
+		Input: inputs,
+		Step:  createOIDCConfig,
+	}
+
 }
 
 // createOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
@@ -129,7 +133,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	if strings.Contains(c.UserDomain, domainTypelocalhost) {
+	if strings.Contains(c.UserDomain, domainTypeLocalhost) {
 		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
 	} else {
 		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", c.UserDomain)
@@ -150,7 +154,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	c.Logger.Waitingf(oidcInstallInfoMsg)
 
-	if err := updateHelmReleaseValues(c.KubernetesClient, oidcValuesName, values); err != nil {
+	if err := updateHelmReleaseValues(c, oidcValuesName, values); err != nil {
 		return []StepOutput{}, err
 	}
 	c.Logger.Successf(oidcConfirmationMsg)
