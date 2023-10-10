@@ -3,12 +3,10 @@ import Alert from '@material-ui/lab/Alert';
 import { Text } from '@weaveworks/weave-gitops';
 import { FC } from 'react';
 import styled from 'styled-components';
-import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
-import { ReactComponent as SuccessIcon } from '../../assets/img/success.svg';
-import { ReactComponent as WarningIcon } from '../../assets/img/warning.svg';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
+import { ErrorIcon, SuccessIcon, WarningIcon } from '../RemoteSVGIcon';
 
 const BoxWrapper = styled(Box)<{ severity: string }>`
   div[class*='MuiAlert-root'] {
@@ -103,7 +101,7 @@ const Notifications: FC<{ notifications: NotificationData[] }> = ({
   };
 
   return (
-    <Box style={{ width: "100%"}}>
+    <Box style={{ width: '100%' }}>
       {notifications.map((n, index) => {
         return (
           (n?.message.text || n?.message.component) &&
