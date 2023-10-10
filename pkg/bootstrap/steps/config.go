@@ -127,7 +127,11 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
-	l.Successf("Created client to cluster")
+	context, err := utils.GetCurrentContext(cb.kubeconfig)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get kubernetes current context. error: %s", err)
+	}
+	l.Successf("Created client to cluster %s", context)
 
 	// TODO this should be part of a verify wge step, potentially select wge version
 	//installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)

@@ -49,6 +49,23 @@ func GetKubernetesClient(kubeconfig string) (k8s_client.Client, error) {
 	return client, nil
 }
 
+// GetCurrentContext get the current context and cluster name from the kubeconfig.
+func GetCurrentContext(kubeconfig string) (string, error) {
+	kubeconfig, err := getCurrentKubeConfig(kubeconfig)
+	if err != nil {
+		return "", err
+	}
+
+	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
+		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
+		&clientcmd.ConfigOverrides{}).RawConfig()
+	if err != nil {
+		return "", err
+	}
+
+	return config.CurrentContext, nil
+}
+
 // getCurrentKubeConfig checks for active kubeconfig by the following priority:
 // passed as cli argument, KUBECONFIG env variable and finally $HOME/.kube/config
 func getCurrentKubeConfig(kubeconfig string) (string, error) {
