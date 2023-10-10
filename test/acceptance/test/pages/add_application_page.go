@@ -82,9 +82,9 @@ func GetGitOps(webDriver *agouti.Page) GitOps {
 
 func GetMessages(webDriver *agouti.Page) *Messages {
 	return &Messages{
-		Success: webDriver.Find(`div > div.MuiAlert-message:has(svg > path[fill="#27AE60"])`),
-		Warning: webDriver.Find(`div > div.MuiAlert-message:has(svg > path[fill="#F2994A"])`),
-		Error:   webDriver.Find(`div > div.MuiAlert-message:has(svg > path[fill="#BC3B1D"])`),
+		Success: webDriver.Find("div.MuiAlert-standardSuccess"),
+		Warning: webDriver.Find("div.MuiAlert-standardWarning"),
+		Error:   webDriver.Find("div.MuiAlert-standardError"),
 		Close:   webDriver.Find(`div.MuiAlert-action > button[title="Close"]`),
 	}
 }
