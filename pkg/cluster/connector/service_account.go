@@ -74,6 +74,7 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 func DeleteServiceAccountResources(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
+	// deleting service account deletes associated secret with token
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	err := deleteServiceAccount(ctx, client, serviceAccountName, namespace)
 	if err != nil {
@@ -82,12 +83,6 @@ func DeleteServiceAccountResources(ctx context.Context, client kubernetes.Interf
 
 	clusterRoleBindingName := clusterConnectionOpts.ClusterRoleBindingName
 	err = deleteClusterRoleBinding(ctx, client, clusterRoleBindingName)
-	if err != nil {
-		return err
-	}
-
-	secretName := serviceAccountName + "-token"
-	err = deleteSecret(ctx, client, secretName, namespace)
 	if err != nil {
 		return err
 	}
@@ -240,16 +235,6 @@ func deleteClusterRoleBinding(ctx context.Context, client kubernetes.Interface, 
 		return err
 	}
 	lgr.V(logger.LogLevelDebug).Info("cluster role binding deleted successfully!", "clusterRoleBinding", clusterRoleBindingName)
-	return nil
-}
-
-func deleteSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string) error {
-	lgr := log.FromContext(ctx)
-	err := client.CoreV1().Secrets(namespace).Delete(ctx, secretName, metav1.DeleteOptions{})
-	if err != nil {
-		return err
-	}
-	lgr.V(logger.LogLevelDebug).Info("secret deleted successfully!", "secret", secretName, "namespace", namespace)
 	return nil
 }
 
