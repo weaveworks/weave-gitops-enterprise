@@ -1,6 +1,6 @@
 # Bootstrap cli command 
 
-The same as flux bootstrap, gitopsee bootstrap could be considered as one of the most important and complex comamnds that we have as part of our cli.
+The same as flux bootstrap, gitopsee bootstrap could be considered as one of the most important and complex commands that we have as part of our cli.
 
 Given the expectations of evolution for this command, this document provides background 
 and guidance on the design considerations taken for you to be in a successful extension path.
@@ -14,10 +14,10 @@ and guidance on the design considerations taken for you to be in a successful ex
 
 It follows a regular cli structure where:
 
-- [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go): represents the presentation layer.
-- [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go): represents the service layer.
-- [pkg/bootstrap/steps](../../pkg/bootstrap/steps): the different actions for the workflow.
-- [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go): the configuration layer.
+- [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go): represents the presentation layer
+- [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go): domain layer for bootstrapping
+- [pkg/bootstrap/steps](../../pkg/bootstrap/steps): domain layer for bootstrapping steps
+- [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go): configuration for bootstrapping
 
 ## How the bootstrapping workflow looks like?
 
@@ -33,46 +33,49 @@ You could find it in [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.
 		steps.NewInstallWGEStep(config),
 		steps.CheckUIDomainStep,
 	}
+
 ```
 
+## How configuration works ?
+
+The following chain of responsibility applies for config:
+
+1. Users introduce command flags values [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go)
+2. We use builder pattern for configuration [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go): 
+    - builder: so we propagate user flags
+    - build: we build the configuration object
+3. Configuration is then used to create the workflow steps [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go)
+```
+		steps.NewSelectWgeVersionStep(config),
+```
+4. Steps use configuration for execution (for example [wge_version.go](../../pkg/bootstrap/steps/wge_version.go))
+```
+// selectWgeVersion step ask user to select wge version from the latest 3 versions.
+func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
+	for _, param := range input {
+		if param.Name == WGEVersion {
+			version, ok := param.Value.(string)
+			if !ok {
+				return []StepOutput{}, errors.New("unexpected error occurred. Version not found")
+			}
+			c.WGEVersion = version
+		}
+
+```
 ## How can I add a new step?
 
 Follow these indications:
 
-1. Add the user flags to [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go).
-2. Add the config to [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go).
-3. Add a new step [pkg/bootstrap/steps](../../pkg/bootstrap/steps)
+1. Add or extend an existing [test case](../../cmd/gitops/app/bootstrap/cmd_integration_test.go)
+2. Add the user flags to [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go)
+3. Add the config to [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go):
+   - Add config values to the builder
+   - Resolves the configuration business logic in the build function. Ensure that validation happens to fail fast. 
 4. Add the step as part of the workflow [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go)
+5. Add the new step [pkg/bootstrap/steps](../../pkg/bootstrap/steps)
 
-## How configuration works ?
-// CONTINUE HERE
 
-We support the following levels of configuration:
-
-1. User introduces configuration via flags
-   [bootstrapFlags](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/cmd.go)
-   `gitops bootstrap --username=wego-admin`
-
-```go
-type bootstrapFlags struct {
-	username string
-	password string
-	version  string
-}
-```
-2. User input via interactive dialog
-
-3.Default values
-
-The resolutions of the configuartion based on the previous
-three levels as follow:
-
-1. if user passes the flag we use the flag
-2. if not, then ask user in interactive session with a default value
-3. user introduces custom value
-4. otherwise default configuration is taken
-
-example could be seen here given `gitops bootstrap`
+An example could be seen here given `gitops bootstrap`
 
 1. if user passes the flag we use the flag
 ```go
@@ -107,156 +110,43 @@ type Config struct {
 
 ```
 
+## Error management 
 
-## Design configuration for a new step?
+// TBD with waleed
 
-
-1. Add a new file into [pkg/bootstrap/commands](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands)
-Example /pkg/bootstrap/commands/admin_password.go
-you expect to have the following:
-- Constants with the user messages.
-- Constants with default configuration
-- Step function like: 
+- Errors should provide the user with
+   - step that failed
+   - reason of the failure
+   - how the user could recover from the failure
+- Return the error in the method
+- if the error is meaningless create a custom one that provides the user:
 ```go
-func (c *Config) AskAdminCredsSecret() error {
-	
-...
-	// search for existing admin credentials in secret cluster-user-auth
-	secret, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
-	if secret != nil && err == nil {
-		existingCreds := utils.GetConfirmInput(existingCredsMsg)
-		if existingCreds == confirmYes {
-			return nil
-		} else {
-			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
-			os.Exit(0)
-		}
-	}
-...
+if err != nil {
+	return errors.New(fluxInstallationErrorMsgFormat)
 }
 
 ```
-- configuration: setup your configuration structs in the [config file](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands/config.go)
-- utils: leverage utils package for helper functions
 
-2. Add your step to the [bootstrap command flow](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/cmd.go)
+## Logging Actions
 
-```go
+// TBD with waleed
 
-func bootstrap(opts *config.Options, logger logger.Logger) error {
-	...
-	Config := commands.Config{}
-	Config.Username = flags.username
-	Config.Password = flags.password
-	Config.WGEVersion = flags.version
-	Config.KubernetesClient = kubernetesClient
-	Config.Logger = logger
 
-	..
+## How to 
 
-	if err := Config.AskAdminCredsSecret(); err != nil {
-		return err
-	}
+### How can I add a global behaviour around input management?
 
-	...
+For example `silent` flag that affects how we resolve inputs: if silent, the we take defaults and we dont ask 
+the user. if not silent and no configuration exists, we ask via input the user. 
 
-	return nil
-}
-```
+// TBD
 
-## How can I add a global or common behaviour for the command?
+### How can I add a global behaviour around output management?
+See the following examples:
 
-### silent // example of input common behaviour
+- https://github.com/weaveworks/weave-gitops-enterprise/tree/cli-dry-run
+- https://github.com/weaveworks/weave-gitops-enterprise/tree/cli-export
 
-1. add `silent` to the bootstrap flags struct
-2. add `silent` to the config struct so it could be passed downstream
-3. options:
-
-    a)  go to your steps implementation `AskAdminCredsSecret` and add the 
-    custom logic to handle the behaviour.
-    ```go
-        // handle silent behaviour 
-        if c.silent &&  c.Username != "" {
-            //use default value 
-            
-        }
-    ```
-    
-    b) extend the user input method with the `silent`
-    
-    ```go
-        if c.Username == "" {
-            c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername, silent)
-            if err != nil {
-                return err
-            }
-        }
-    ```
-
-### export // example of output common behaviour
-
-1. add `export` to the bootstrap flags struct
-2. add `export` to the config struct so it could be passed downstream
-3. options:
-
-   a)  go to your steps implementation `AskAdminCredsSecret` and add the
-   custom logic to handle the behaviour.
-    ```go
-   // handle export behaviour 
-	if c.export {
-		//write to stdout
-	}
-	else {
-		if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data); err != nil {
-			return err
-		}	
-	}
-    ```
-
-   b) extend the user input method with the `export`
-    ```go
-   // handle export behaviour 
-		if err := utils.CreateSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace, data, export); err != nil {
-			return err
-		}
-    ```
-
-### other option ~> using generic struct 
-
-```go
-
-type BootstrapStep struct {
-   Name  string
-   Input func(map,config) config
-   Transform func(config)
-   Output     func()
-}
-
-var (
-   //generic
-   AskAdminCredentialsStep = BootstrapStep{
-      Input: defaultInputStep,
-      Output:      defaultOutpuStep,
-      Transform:     askAdminCredentialsStep,
-   }
-   WgeInstallCredentialsStep = BootstrapStep{
-      Input: wgeInstallInputStep,
-      Output:      defaultOutpuStep,
-      Transform:     askAdminCredentialsStep,
-   }
-})
-func defaultInput(params map, config *Config)  *Config {
-   // process the config
-   if config.silent {
-   }
-}
-func defaultOutput(*Config)  *Config {
-   // process the config
-   if config.export {
-   }
-}
-
-```
 
 ## How generated manifests are kept up to date beyond cli lifecycle?
 
@@ -308,22 +198,6 @@ if err != nil {
 if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, wgeHelmRelease, pathInRepo, wgeHelmReleaseCommitMsg); err != nil {
 	return err
 }
-```
-## How should i handle errors in the command and/or step?
-See example in /Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands/flux.go
-
-
-- Errors should provide the user with
-	- step that failed
-	- reason of the failure
-    - how the user could recover from the failure
-- Return the error in the method
-- if the error is meaningless create a custom one that provides the user:
-```go
-if err != nil {
-	return errors.New(fluxInstallationErrorMsgFormat)
-}
-
 ```
 
 
