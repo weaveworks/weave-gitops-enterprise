@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
+	//"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
 	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -52,7 +52,7 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRun(opts),
 	}
 
-	cmd.AddCommand(auth.Command(opts))
+	//cmd.AddCommand(auth.Command(opts))
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
@@ -79,6 +79,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
+			WithPromptedForDiscoveryURL(true).
 			Build()
 
 		if err != nil {

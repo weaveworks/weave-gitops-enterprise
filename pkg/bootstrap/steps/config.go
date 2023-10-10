@@ -16,10 +16,13 @@ const (
 
 // inputs names
 const (
-	UserName   = "username"
-	Password   = "password"
-	WGEVersion = "wgeVersion"
-	UserDomain = "userDomain"
+	UserName     = "username"
+	Password     = "password"
+	WGEVersion   = "wgeVersion"
+	UserDomain   = "userDomain"
+	DiscoveryURL = "discoveryURL"
+	ClientID     = "clientID"
+	ClientSecret = "clientSecret"
 )
 
 // input/output types
@@ -37,15 +40,16 @@ const (
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger             logger.Logger
-	kubeconfig         string
-	username           string
-	password           string
-	wGEVersion         string
-	domainType         string
-	domain             string
-	privateKeyPath     string
-	privateKeyPassword string
+	logger                  logger.Logger
+	kubeconfig              string
+	username                string
+	password                string
+	wGEVersion              string
+	domainType              string
+	domain                  string
+	privateKeyPath          string
+	privateKeyPassword      string
+	PromptedForDiscoveryURL bool
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -95,6 +99,11 @@ func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword
 	return c
 }
 
+func (c *ConfigBuilder) WithPromptedForDiscoveryURL(prompted bool) *ConfigBuilder {
+	c.PromptedForDiscoveryURL = prompted
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -112,6 +121,8 @@ type Config struct {
 
 	PrivateKeyPath     string
 	PrivateKeyPassword string
+
+	PromptedForDiscoveryURL bool
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -146,15 +157,16 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:   kubernetesClient,
-		WGEVersion:         cb.wGEVersion,
-		Username:           cb.username,
-		Password:           cb.password,
-		Logger:             cb.logger,
-		DomainType:         cb.domainType,
-		UserDomain:         cb.domain,
-		PrivateKeyPath:     cb.privateKeyPath,
-		PrivateKeyPassword: cb.privateKeyPassword,
+		KubernetesClient:        kubernetesClient,
+		WGEVersion:              cb.wGEVersion,
+		Username:                cb.username,
+		Password:                cb.password,
+		Logger:                  cb.logger,
+		DomainType:              cb.domainType,
+		UserDomain:              cb.domain,
+		PrivateKeyPath:          cb.privateKeyPath,
+		PrivateKeyPassword:      cb.privateKeyPassword,
+		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 	}, nil
 
 }
@@ -225,4 +237,12 @@ type chartEntry struct {
 	ApiVersion string
 	Name       string
 	Version    string
+}
+
+// OIDCConfig store the OIDC config
+type OIDCConfig struct {
+	IssuerURL    string `json:"issuerURL"`
+	ClientID     string `json:"clientID"`
+	ClientSecret string `json:"clientSecret"`
+	RedirectURL  string `json:"redirectURL"`
 }

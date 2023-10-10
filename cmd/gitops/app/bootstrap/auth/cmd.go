@@ -43,7 +43,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Run:     getAuthCmdRun(opts),
 	}
 	cmd.Flags().StringVarP(&params.Type, "type", "t", "", "Type of authentication")
-	cmd.Flags().StringVarP(&params.DiscoveryURL, "discovery-url", "d", "", "OIDC Discovery URL (optional)")
+	cmd.Flags().StringVarP(&params.DiscoveryURL, "discovery-url", "u", "", "OIDC Discovery URL (optional)")
 	cmd.Flags().StringVarP(&params.ClientID, "client-id", "c", "", "OIDC Client ID (optional)")
 	cmd.Flags().StringVarP(&params.ClientSecret, "client-secret", "s", "", "OIDC Client Secret (optional)")
 	return cmd
