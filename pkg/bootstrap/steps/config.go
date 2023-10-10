@@ -16,13 +16,19 @@ const (
 
 // inputs names
 const (
-	UserName     = "username"
-	Password     = "password"
-	WGEVersion   = "wgeVersion"
-	UserDomain   = "userDomain"
-	DiscoveryURL = "discoveryURL"
-	ClientID     = "clientID"
-	ClientSecret = "clientSecret"
+	UserName           = "username"
+	Password           = "password"
+	WGEVersion         = "wgeVersion"
+	UserDomain         = "userDomain"
+	PrivateKeyPath     = "privateKeyPath"
+	PrivateKeyPassword = "privateKeyPassword"
+	existingCreds      = "existingCreds"
+	domainType         = "domainType"
+	DiscoveryURL       = "discoveryURL"
+	ClientID           = "clientID"
+	ClientSecret       = "clientSecret"
+	oidcInstalled      = "oidcInstalled"
+	existingOIDC       = "existingOIDC"
 )
 
 // input/output types
@@ -126,15 +132,19 @@ type Config struct {
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
-// and checks the requirements for the environmnet.
+// and checks the requirements for the environments.
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
-
+	l.Actionf("Creating client to cluster")
 	kubernetesClient, err := utils.GetKubernetesClient(cb.kubeconfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
-	l.Actionf("created client to cluster")
+	context, err := utils.GetCurrentContext(cb.kubeconfig)
+	if err != nil {
+		return Config{}, fmt.Errorf("failed to get kubernetes current context. error: %s", err)
+	}
+	l.Successf("Created client to cluster %s", context)
 
 	// TODO this should be part of a verify wge step, potentially select wge version
 	//installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)

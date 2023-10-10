@@ -17,6 +17,7 @@ const (
 	entitlementCheckConfirmMsg      = "entitlement file exists and is valid"
 	nonExistingEntitlementSecretMsg = "entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
 	invalidEntitlementSecretMsg     = "entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
+	expiredEntitlementSecretMsg     = "entitlement file is expired at: %s, please contact *sales@weave.works*"
 	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File"
 )
 
@@ -37,7 +38,6 @@ var CheckEntitlementSecret = BootstrapStep{
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
-
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
 		return []StepOutput{}, err
@@ -45,7 +45,7 @@ func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) 
 
 	return []StepOutput{
 		{
-			Name:  "entitlement success msg",
+			Name:  entitlementCheckConfirmMsg,
 			Type:  successMsg,
 			Value: entitlementCheckConfirmMsg,
 		},
@@ -58,13 +58,20 @@ func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) 
 // verifying username and password by making http request for downloading charts and ensuring it's authenticated
 func verifyEntitlementSecret(client k8s_client.Client) error {
 	secret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
-	if err != nil || secret.Data["entitlement"] == nil || secret.Data["username"] == nil || secret.Data["password"] == nil {
-		return errors.New(nonExistingEntitlementSecretMsg)
+	if err != nil {
+		return fmt.Errorf("%s: %v", nonExistingEntitlementSecretMsg, err)
+	}
+
+	if secret.Data["entitlement"] == nil || secret.Data["username"] == nil || secret.Data["password"] == nil {
+		return errors.New(invalidEntitlementSecretMsg)
 	}
 
 	ent, err := entitlement.VerifyEntitlement(strings.NewReader(string(publicKey)), string(secret.Data["entitlement"]))
-	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
+	if err != nil {
 		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
+	}
+	if time.Now().Compare(ent.LicencedUntil) >= 0 {
+		return fmt.Errorf(expiredEntitlementSecretMsg, ent.LicencedUntil)
 	}
 
 	body, err := doBasicAuthGetRequest(wgeChartUrl, string(secret.Data["username"]), string(secret.Data["password"]))

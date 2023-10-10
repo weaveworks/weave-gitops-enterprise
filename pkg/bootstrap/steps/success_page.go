@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -10,7 +9,7 @@ import (
 )
 
 var CheckUIDomainStep = BootstrapStep{
-	Name: "check ui domain",
+	Name: "Preparing dashboard domain",
 	Step: checkUIDomain,
 }
 
@@ -45,10 +44,9 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 
 func createPortforward() error {
 	var runner runner.CLIRunner
-	_, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
+	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
 	if err != nil {
-		// adding an error message, err is meaningless
-		return errors.New("failed to make portforward 8000")
+		return fmt.Errorf("failed to create portforward 8000: %s", string(out))
 	}
 	return nil
 }

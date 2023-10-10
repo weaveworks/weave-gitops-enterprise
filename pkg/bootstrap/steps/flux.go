@@ -24,12 +24,14 @@ var VerifyFluxInstallation = BootstrapStep{
 func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) {
 	var runner runner.CLIRunner
 
+	c.Logger.Actionf("Verifying flux installation")
 	out, err := runner.Run("flux", "check")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("flux installed error: %v. %s", string(out), fluxRecoverMsg)
 	}
 	c.Logger.Successf(fluxExistingInstallMsg)
 
+	c.Logger.Actionf("Verifying flux reconcillation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxRecoverMsg)

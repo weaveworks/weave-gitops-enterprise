@@ -21,7 +21,7 @@ var (
 )
 
 var getDomainType = StepInput{
-	Name:         "domainType",
+	Name:         domainType,
 	Type:         multiSelectionChoice,
 	Msg:          domainMsg,
 	Values:       domainTypes,
@@ -44,14 +44,14 @@ func NewSelectDomainType(config Config) BootstrapStep {
 
 func selectDomainType(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == "domainType" {
+		if param.Name == domainType {
 			domainType, ok := param.Value.(string)
 			if !ok {
-				return []StepOutput{}, errors.New("unexpected error occurred. domain type not found")
+				return []StepOutput{}, errors.New("unexpected error occurred. domainType is not found")
 			}
 			c.DomainType = domainType
 		}
 	}
-	c.Logger.Successf("dashboard access domain: %s", c.DomainType)
+	c.Logger.Successf("Dashboard access domain: %s", c.DomainType)
 	return []StepOutput{}, nil
 }

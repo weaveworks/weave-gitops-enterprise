@@ -42,7 +42,7 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 		if param.Name == WGEVersion {
 			version, ok := param.Value.(string)
 			if !ok {
-				return []StepOutput{}, errors.New("unexpected error occurred. Version not found")
+				return []StepOutput{}, errors.New("unexpected error occurred. WGEVersion is not found")
 			}
 			c.WGEVersion = version
 		}

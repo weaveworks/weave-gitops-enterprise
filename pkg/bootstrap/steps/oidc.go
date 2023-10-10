@@ -41,14 +41,14 @@ func OIDCConfigStep(config Config) BootstrapStep {
 
 	inputs := []StepInput{
 		{
-			Name:         "oidcInstall",
+			Name:         oidcInstalled,
 			Type:         confirmInput,
 			Msg:          oidcInstallMsg,
 			DefaultValue: "",
 			Valuesfn:     canAskOIDCPrompot,
 		},
 		{
-			Name:            "existingOIDC",
+			Name:            existingOIDC,
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
 			DefaultValue:    "",
@@ -124,7 +124,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 				return []StepOutput{}, errors.New("ClientSecret not found")
 			}
 		}
-		if param.Name == "existingOIDC" && param.Value != nil {
+		if param.Name == existingOIDC && param.Value != nil {
 			existing, ok := param.Value.(string)
 			if ok {
 				continueWithExistingConfigs = existing

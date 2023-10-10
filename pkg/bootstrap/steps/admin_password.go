@@ -49,11 +49,11 @@ var getPasswordInput = StepInput{
 func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 	inputs := []StepInput{
 		{
-			Name:            "existingCreds",
+			Name:            existingCreds,
 			Type:            confirmInput,
 			Msg:             existingCredsMsg,
 			DefaultValue:    "",
-			Valuesfn:        checkExistingAdminSecret,
+			Valuesfn:        isExistingAdminSecret,
 			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
 		},
 	}
@@ -89,7 +89,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 				c.Password = password
 			}
 		}
-		if param.Name == "existingCreds" {
+		if param.Name == existingCreds {
 			existing, ok := param.Value.(string)
 			if ok {
 				continueWithExistingCreds = existing
@@ -97,7 +97,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	if existing, _ := checkExistingAdminSecret(input, c); existing.(bool) {
+	if existing, _ := isExistingAdminSecret(input, c); existing.(bool) {
 		if continueWithExistingCreds != confirmYes {
 			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
 			os.Exit(0)
@@ -115,7 +115,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		"username": []byte(c.Username),
 		"password": encryptedPassword,
 	}
-	c.Logger.Actionf("dashboard admin username: %s", c.Username)
+	c.Logger.Actionf("Dashboard admin username: %s", c.Username)
 
 	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
@@ -127,12 +127,12 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	return []StepOutput{
 		{
-			Name:  "secret is created",
+			Name:  "admin secret is created",
 			Type:  successMsg,
 			Value: secretConfirmationMsg,
 		},
 		{
-			Name:  "adminSecret",
+			Name:  adminSecretName,
 			Type:  typeSecret,
 			Value: secret,
 		},
@@ -140,10 +140,10 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 
 }
 
-// checkExistingAdminSecret checks for admin secret on management cluster
+// isExistingAdminSecret checks for admin secret on management cluster
 // returns true if admin secret is already on the cluster
 // returns false if no admin secret on the cluster
-func checkExistingAdminSecret(input []StepInput, c *Config) (interface{}, error) {
+func isExistingAdminSecret(input []StepInput, c *Config) (interface{}, error) {
 	_, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return false, nil
@@ -152,7 +152,7 @@ func checkExistingAdminSecret(input []StepInput, c *Config) (interface{}, error)
 }
 
 func canAskForCreds(input []StepInput, c *Config) (interface{}, error) {
-	if ask, _ := checkExistingAdminSecret(input, c); ask.(bool) {
+	if ask, _ := isExistingAdminSecret(input, c); ask.(bool) {
 		return false, nil
 	}
 	return true, nil
