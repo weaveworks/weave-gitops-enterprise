@@ -9,7 +9,9 @@ import (
 	"github.com/weaveworks/weave-gitops/core/logger"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -183,7 +185,18 @@ func addOptionsToGitOpsClusterLabel(ctx context.Context, config *rest.Config, cl
 
 }
 
+func deleteGitOpsClusterSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string) error {
+	lgr := log.FromContext(ctx)
+	err := client.CoreV1().Secrets(namespace).Delete(ctx, secretName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("gitops cluster secret deleted successfully!", "secret", secretName, "namespace", namespace)
+	return nil
+}
 
+// DisconnectCluster disconnects a cluster from a spoke cluster given its name and context
+// The Service account, Cluster Role binding and secret are deleted in the remote cluster and secret containing token in hub cluster is deleted
 func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
 	lgr := log.FromContext(ctx)
 	pathOpts := clientcmd.NewDefaultPathOptions()
@@ -192,6 +205,8 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 	// load hub kubeconfig
 	hubClusterConfig, err := configForContext(ctx, pathOpts, "")
 	if err != nil {
+		// ConnectCluster connects a cluster to a spoke cluster given its name and context
+		// Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 		return err
 	}
 
@@ -210,13 +225,22 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 	if err != nil {
 		return err
 	}
-	serviceAccountToken, err := ReconcileServiceAccount(ctx, spokeKubernetesClient, *options)
+
+	req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+	selector := labels.NewSelector()
+	selector = selector.Add(*req)
+	serviceAccountName, err := getServiceAccountName(ctx, spokeKubernetesClient, options, selector)
 	if err != nil {
 		return err
 	}
+	options.ServiceAccountName = serviceAccountName
+	clusterRoleBindingName, err := getClusterRoleBindingName(ctx, spokeKubernetesClient, options, selector)
+	if err != nil {
+		return err
+	}
+	options.ClusterRoleBindingName = clusterRoleBindingName
 
-	// Create or update the referenced secret name with the value from the remote cluster ServiceAccount token.
-	newConfig, err := kubeConfigWithToken(ctx, spokeClusterConfig, options.RemoteClusterContext, serviceAccountToken)
+	err = DeleteServiceAccountResources(ctx, spokeKubernetesClient, *options)
 	if err != nil {
 		return err
 	}
@@ -225,17 +249,12 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 	if err != nil {
 		return err
 	}
-	_, err = createOrUpdateGitOpsClusterSecret(ctx, hubKubernetesClient, secretName, options.GitopsClusterName.Namespace, newConfig)
+	err = deleteGitOpsClusterSecret(ctx, hubKubernetesClient, secretName, options.GitopsClusterName.Namespace)
 	if err != nil {
 		return err
 	}
 
-	err = addOptionsToGitOpsClusterLabel(ctx, hubClusterConfig, options.GitopsClusterName, options)
-	if err != nil {
-		return err
-	}
-
-	lgr.V(logger.LogLevelInfo).Info("Successfully connected cluster", "cluster", options.GitopsClusterName)
+	lgr.V(logger.LogLevelInfo).Info("Successfully disconnected cluster and deleted resources", "cluster", options.GitopsClusterName)
 
 	return nil
 }

@@ -11,7 +11,9 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -232,6 +234,88 @@ func TestGetServiceAccount(t *testing.T) {
 				t.Errorf("Error getting service account: %v", err)
 			}
 			assert.Equal(t, tt.expected, *resServiceAccount, "service account found doesn't match expected")
+
+		})
+	}
+
+}
+
+func TestGetServiceAccountName(t *testing.T) {
+	var tests = []struct {
+		name              string
+		existingResources []runtime.Object
+		expected          string
+	}{
+		{
+			"get existing service account name matching label cluster-controller",
+			[]runtime.Object{
+				&v1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-service-account",
+						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": "cluster-connector",
+						},
+					},
+				},
+			},
+			"test-service-account",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remoteClientSet := fake.NewSimpleClientset()
+			clusterConnectionOpts := ClusterConnectionOptions{
+				GitopsClusterName: types.NamespacedName{Namespace: corev1.NamespaceDefault},
+			}
+
+			addFakeResources(t, remoteClientSet, tt.existingResources...)
+
+			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+			selector := labels.NewSelector()
+			selector = selector.Add(*req)
+
+			serviceAccountName, err := getServiceAccountName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, serviceAccountName, "service account name found doesn't match expected")
+
+		})
+	}
+
+}
+
+func TestGetClusterRoleBindingName(t *testing.T) {
+	var tests = []struct {
+		name              string
+		existingResources []runtime.Object
+		expected          string
+	}{
+		{
+			"get existing cluster role binding name matching label cluster-controller",
+			[]runtime.Object{
+				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+			},
+			"test-service-account-cluster-role-binding",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remoteClientSet := fake.NewSimpleClientset()
+			clusterConnectionOpts := ClusterConnectionOptions{
+				GitopsClusterName: types.NamespacedName{Namespace: corev1.NamespaceDefault},
+			}
+
+			addFakeResources(t, remoteClientSet, tt.existingResources...)
+
+			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+			selector := labels.NewSelector()
+			selector = selector.Add(*req)
+
+			clusterRoleBindingName, err := getClusterRoleBindingName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, clusterRoleBindingName, "cluster role binding name found doesn't match expected")
 
 		})
 	}

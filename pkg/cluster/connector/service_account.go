@@ -11,6 +11,7 @@ import (
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -250,4 +251,28 @@ func deleteSecret(ctx context.Context, client kubernetes.Interface, secretName, 
 	}
 	lgr.V(logger.LogLevelDebug).Info("secret deleted successfully!", "secret", secretName, "namespace", namespace)
 	return nil
+}
+
+func getServiceAccountName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) (string, error) {
+	serviceAccountList, err := client.CoreV1().ServiceAccounts(options.GitopsClusterName.Namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector.String()})
+	if err != nil {
+		return "", err
+	}
+
+	if len(serviceAccountList.Items) > 0 {
+		return serviceAccountList.Items[0].Name, nil
+	}
+	return "", fmt.Errorf("service account not found with label %s", labelSelector.String())
+}
+
+func getClusterRoleBindingName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) (string, error) {
+	clusterRoleBindingsList, err := client.RbacV1().ClusterRoleBindings().List(ctx, metav1.ListOptions{LabelSelector: labelSelector.String()})
+	if err != nil {
+		return "", err
+	}
+
+	if len(clusterRoleBindingsList.Items) > 0 {
+		return clusterRoleBindingsList.Items[0].Name, nil
+	}
+	return "", fmt.Errorf("cluster role binding not found with label %s", labelSelector.String())
 }
