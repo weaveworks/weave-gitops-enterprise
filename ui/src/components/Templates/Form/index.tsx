@@ -276,6 +276,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     random,
     template.name,
   );
+  console.log(initialFormData);
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,

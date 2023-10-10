@@ -43,7 +43,11 @@ const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
   return profiles.find(p => p.name === name)?.layer;
 };
 
-const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
+const getDefaultProfiles = (
+  template: Template,
+  profiles: UpdatedProfile[],
+  defaultHelmRepository?: HelmRepositoryRef,
+) => {
   const defaultProfiles: UpdatedProfile[] =
     template.profiles?.map(
       profile =>
@@ -58,6 +62,9 @@ const getDefaultProfiles = (template: Template, profiles: UpdatedProfile[]) => {
           ],
           selected: true,
           layer: profile.layer || getProfileLayer(profiles, profile.name!),
+          repoName: profile.sourceRef?.name || defaultHelmRepository?.name,
+          repoNamespace:
+            profile.sourceRef?.namespace || defaultHelmRepository?.namespace,
         } as UpdatedProfile),
     ) || [];
 
@@ -98,9 +105,14 @@ const toUpdatedProfiles = (
 const setVersionAndValuesFromTemplate = (
   profiles: UpdatedProfile[],
   template: TemplateEnriched,
+  defaultHelmRepository?: HelmRepositoryRef,
 ) => {
   // get default / required profiles for the active template
-  let defaultProfiles = getDefaultProfiles(template, profiles);
+  let defaultProfiles = getDefaultProfiles(
+    template,
+    profiles,
+    defaultHelmRepository,
+  );
 
   // get the optional profiles by excluding the default profiles from the /v1/profiles response
   const optionalProfiles =
@@ -177,7 +189,11 @@ const mergeClusterAndTemplate = (
     toUpdatedProfiles(d?.charts, defaultHelmRepository),
   );
   if (template) {
-    profiles = setVersionAndValuesFromTemplate(profiles, template);
+    profiles = setVersionAndValuesFromTemplate(
+      profiles,
+      template,
+      defaultHelmRepository,
+    );
   }
   if (clusterData) {
     profiles = setVersionAndValuesFromCluster(profiles, clusterData);
