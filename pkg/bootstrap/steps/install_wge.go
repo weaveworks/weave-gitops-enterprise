@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"encoding/json"
@@ -20,7 +20,7 @@ For more information about external DNS, please refer to: https://docs.aws.amazo
 `
 	clusterDomainMsg = "Please enter your cluster domain"
 
-	wgeInstallMsg          = "All set installing WGE v%s, This may take a few minutes"
+	wgeInstallMsg          = "Installing v%s ... It may take a few minutes."
 	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
 	localInstallSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at http://localhost:8000/"
 )
@@ -44,37 +44,45 @@ const (
 	gitopssetsHealthBindAddress       = ":8081"
 )
 
-var InstallWGEStep = BootstrapStep{
-	Name: "install wge",
-	Input: []StepInput{
-		{
-			Name:         UserDomain,
-			Type:         stringInput,
-			Msg:          clusterDomainMsg,
-			DefaultValue: "",
-			Valuesfn:     isUserDomainEnabled,
-		},
-	},
-	Step:   installWge,
-	Output: []StepOutput{},
+var getUserDomain = StepInput{
+	Name:         UserDomain,
+	Type:         stringInput,
+	Msg:          clusterDomainMsg,
+	DefaultValue: "",
+	Valuesfn:     isUserDomainEnabled,
+}
+
+func NewInstallWGEStep(config Config) BootstrapStep {
+	inputs := []StepInput{}
+
+	if config.UserDomain != "" {
+		inputs = append(inputs, getUserDomain)
+	}
+
+	return BootstrapStep{
+		Name:   "Install Weave Gitops Enterprise",
+		Input:  inputs,
+		Step:   installWge,
+		Output: []StepOutput{},
+	}
 }
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.UserDomain = domainTypelocalhost
+	c.UserDomain = domainTypeLocalhost
 	if c.DomainType == domainTypeExternalDNS {
 		for _, param := range input {
 			if param.Name == UserDomain {
 				userDomain, ok := param.Value.(string)
 				if !ok {
-					return []StepOutput{}, errors.New("unexpected error occured. user domain not found")
+					return []StepOutput{}, errors.New("unexpected error occurred. user domain not found")
 				}
 				c.UserDomain = userDomain
 			}
 		}
 	}
 
-	c.Logger.Waitingf(wgeInstallMsg, c.WGEVersion)
+	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
@@ -132,6 +140,8 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		Content:   wgeHelmRelease,
 		CommitMsg: wgeHelmReleaseCommitMsg,
 	}
+
+	c.Logger.Actionf("rendered helm release resources")
 
 	return []StepOutput{
 		{

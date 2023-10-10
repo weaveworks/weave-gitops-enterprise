@@ -3,9 +3,113 @@
 The same as flux bootstrap, gitopsee bootstrap could be considered as one of the most important and complex comamnds that we have as part of our cli.
 
 Given the expectations of evolution for this command, this document provides background 
-and guidance on the design considerations taken for you to be in a succesful extension path.
+and guidance on the design considerations taken for you to be in a successful extension path.
+
+## Glossary
+
+- Bootstrap: the process of installing weave gitops enterprise app and configure a management cluster.
+- Step: each of the bootstrapping stages or activities the workflow goes through. For example, checking entitlements.
+
+## What is the bootstrapping command architecture?
+
+It follows a regular cli structure where:
+
+- [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go): represents the presentation layer.
+- [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go): represents the service layer.
+- [pkg/bootstrap/steps](../../pkg/bootstrap/steps): the different actions for the workflow.
+- [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go): the configuration layer.
+
+## How the bootstrapping workflow looks like?
+
+You could find it in [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go) as a sequence of steps:
+
+```go
+	var steps = []steps.BootstrapStep{
+		steps.CheckEntitlementSecret,
+		steps.VerifyFluxInstallation,
+		steps.NewSelectWgeVersionStep(config),
+		steps.NewAskAdminCredsSecretStep(config),
+		steps.NewSelectDomainType(config),
+		steps.NewInstallWGEStep(config),
+		steps.CheckUIDomainStep,
+	}
+```
 
 ## How can I add a new step?
+
+Follow these indications:
+
+1. Add the user flags to [cmd/gitops/app/bootstrap/cmd.go](../../cmd/gitops/app/bootstrap/cmd.go).
+2. Add the config to [pkg/bootstrap/steps/config.go](../../pkg/bootstrap/steps/config.go).
+3. Add a new step [pkg/bootstrap/steps](../../pkg/bootstrap/steps)
+4. Add the step as part of the workflow [pkg/bootstrap/bootstrap.go](../../pkg/bootstrap/bootstrap.go)
+
+## How configuration works ?
+// CONTINUE HERE
+
+We support the following levels of configuration:
+
+1. User introduces configuration via flags
+   [bootstrapFlags](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/cmd.go)
+   `gitops bootstrap --username=wego-admin`
+
+```go
+type bootstrapFlags struct {
+	username string
+	password string
+	version  string
+}
+```
+2. User input via interactive dialog
+
+3.Default values
+
+The resolutions of the configuartion based on the previous
+three levels as follow:
+
+1. if user passes the flag we use the flag
+2. if not, then ask user in interactive session with a default value
+3. user introduces custom value
+4. otherwise default configuration is taken
+
+example could be seen here given `gitops bootstrap`
+
+1. if user passes the flag we use the flag
+```go
+   cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
+```
+- this is empty so we go to the next level
+2. if not, then ask user in interactive session with a default value
+```go
+func (c *Config) AskAdminCredsSecret() error {
+
+	if c.Username == "" {
+		c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername)
+		if err != nil {
+			return err
+		}
+	}
+	
+	return nil
+}
+```
+User has not introduce a custom value so we take the custom value
+
+```go
+type Config struct {
+	Username         string
+	Password         string
+	KubernetesClient k8s_client.Client
+	WGEVersion       string
+	UserDomain       string
+	Logger           logger.Logger
+}
+
+```
+
+
+## Design configuration for a new step?
+
 
 1. Add a new file into [pkg/bootstrap/commands](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands)
 Example /pkg/bootstrap/commands/admin_password.go
@@ -58,67 +162,6 @@ func bootstrap(opts *config.Options, logger logger.Logger) error {
 
 	return nil
 }
-```
-## How bootstrap configuration works?
-
-We support the following levels of configuration:
-
-1. User introduces configuration via flags
-[bootstrapFlags](/Users/enekofb/projects/github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/cmd.go)
-`gitops bootstrap --username=wego-admin`
-
-```go
-type bootstrapFlags struct {
-	username string
-	password string
-	version  string
-}
-```
-2. User input via interactive dialog
-
-3.Default values 
-
-The resolutions of the configuartion based on the previous 
-three levels as follow:
-
-1. if user passes the flag we use the flag 
-2. if not, then ask user in interactive session with a default value
-3. user introduces custom value
-4. otherwise default configuration is taken
-
-example could be seen here given `gitops bootstrap`
-
-1. if user passes the flag we use the flag
-```go
-   cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
-```
-- this is empty so we go to the next level 
-2. if not, then ask user in interactive session with a default value
-```go
-func (c *Config) AskAdminCredsSecret() error {
-
-	if c.Username == "" {
-		c.Username, err = utils.GetStringInput(adminUsernameMsg, DefaultAdminUsername)
-		if err != nil {
-			return err
-		}
-	}
-	
-	return nil
-}
-```
-User has not introduce a custom value so we take the custom value  
-
-```go
-type Config struct {
-	Username         string
-	Password         string
-	KubernetesClient k8s_client.Client
-	WGEVersion       string
-	UserDomain       string
-	Logger           logger.Logger
-}
-
 ```
 
 ## How can I add a global or common behaviour for the command?

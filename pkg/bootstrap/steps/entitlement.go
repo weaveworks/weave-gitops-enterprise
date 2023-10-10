@@ -1,8 +1,9 @@
-package commands
+package steps
 
 import (
 	_ "embed"
 	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -29,14 +30,12 @@ var (
 	publicKey string
 )
 
-// CheckEntitlementSecretStep checks for valid entitlement secret.
-var CheckEntitlementSecretStep = BootstrapStep{
-	Name: "check entitlement secret",
+var CheckEntitlementSecret = BootstrapStep{
+	Name: entitlementCheckMsg,
 	Step: checkEntitlementSecret,
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.Logger.Waitingf(entitlementCheckMsg)
 
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
@@ -64,12 +63,12 @@ func verifyEntitlementSecret(client k8s_client.Client) error {
 
 	ent, err := entitlement.VerifyEntitlement(strings.NewReader(string(publicKey)), string(secret.Data["entitlement"]))
 	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
-		return errors.New(invalidEntitlementSecretMsg)
+		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
 	}
 
 	body, err := doBasicAuthGetRequest(wgeChartUrl, string(secret.Data["username"]), string(secret.Data["password"]))
 	if err != nil || body == nil {
-		return errors.New(invalidEntitlementSecretMsg)
+		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
 	}
 
 	return nil
