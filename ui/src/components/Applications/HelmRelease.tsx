@@ -1,9 +1,9 @@
-import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   HelmReleaseDetail,
   Kind,
   useGetObject,
 } from '@weaveworks/weave-gitops';
+import { HelmRelease } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Routes } from '../../utils/nav';
 import { Page } from '../Layout/App';

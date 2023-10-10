@@ -1,10 +1,10 @@
-import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   BucketDetail,
   Kind,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { Bucket } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';

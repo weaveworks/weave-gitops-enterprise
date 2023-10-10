@@ -6,7 +6,6 @@ import {
 import GitUrlParse from 'git-url-parse';
 import styled from 'styled-components';
 import URI from 'urijs';
-import { GitRepositoryEnriched } from '.';
 import * as yamlConverter from 'yaml';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
@@ -14,6 +13,7 @@ import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
+import { GitRepositoryEnriched } from '.';
 
 export const maybeParseJSON = (data: string) => {
   try {

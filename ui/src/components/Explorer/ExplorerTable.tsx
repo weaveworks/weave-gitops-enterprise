@@ -1,4 +1,3 @@
-import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import { Box } from '@material-ui/core';
 import {
   Flex,
@@ -9,6 +8,7 @@ import {
   formatURL,
   DataTable,
 } from '@weaveworks/weave-gitops';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { Object } from '../../api/query/query.pb';

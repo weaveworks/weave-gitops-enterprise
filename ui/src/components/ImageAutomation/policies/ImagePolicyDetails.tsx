@@ -1,10 +1,10 @@
-import { ImagePolicy } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   Kind,
   Metadata,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { ImagePolicy } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';

@@ -17,6 +17,7 @@ import {
   SubRouterTabs,
   YamlView,
 } from '@weaveworks/weave-gitops';
+import { GroupVersionKind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
@@ -39,7 +40,6 @@ import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ProgressiveDelivery/CanaryDetails/Events/ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
-import { GroupVersionKind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 
 type Props = {
   className?: string;

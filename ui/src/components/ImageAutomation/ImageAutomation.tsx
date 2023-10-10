@@ -1,5 +1,5 @@
-import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
 import { Flex, RouterTab, SubRouterTabs } from '@weaveworks/weave-gitops';
+import { routeTab } from '@weaveworks/weave-gitops/ui/components/KustomizationDetail';
 import { useRouteMatch } from 'react-router-dom';
 import ImageAutomationUpdatesTable from '../../components/ImageAutomation/updates/ImageAutomationUpdatesTable';
 import ImagePoliciesTable from './policies/ImagePoliciesTable';

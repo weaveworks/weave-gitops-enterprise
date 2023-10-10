@@ -1,10 +1,10 @@
-import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   HelmChartDetail,
   Kind,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { HelmChart } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';

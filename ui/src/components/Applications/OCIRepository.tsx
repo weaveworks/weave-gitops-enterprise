@@ -1,10 +1,10 @@
-import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   OCIRepositoryDetail,
   Kind,
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';

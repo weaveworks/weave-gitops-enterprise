@@ -1,4 +1,3 @@
-import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   DagGraph,
   Flex,
@@ -6,6 +5,7 @@ import {
   Spacer,
   Text,
 } from '@weaveworks/weave-gitops';
+import { FluxObjectNode } from '@weaveworks/weave-gitops/ui/lib/objects';
 import React from 'react';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';

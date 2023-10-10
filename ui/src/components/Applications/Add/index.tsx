@@ -1,4 +1,3 @@
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { Box } from '@material-ui/core';
 import {
   Button,
@@ -7,6 +6,7 @@ import {
   Link,
   useListSources,
 } from '@weaveworks/weave-gitops';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, {
   useCallback,

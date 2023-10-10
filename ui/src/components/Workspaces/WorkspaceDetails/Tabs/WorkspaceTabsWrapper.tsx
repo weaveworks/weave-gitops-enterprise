@@ -1,6 +1,6 @@
-import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { Box, CircularProgress } from '@material-ui/core';
 import { Flex } from '@weaveworks/weave-gitops';
+import { ListError } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { FC } from 'react';
 import { AlertListErrors } from '../../../Layout/AlertListErrors';
 

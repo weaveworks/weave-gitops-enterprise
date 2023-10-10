@@ -1,4 +1,5 @@
 import { act, render, screen } from '@testing-library/react';
+import moment from 'moment';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   SecretsClientMock,
@@ -7,7 +8,6 @@ import {
 } from '../../../utils/test-utils';
 
 import SecretDetails from '../SecretDetails';
-import moment from 'moment';
 
 const MockSecretResponse = {
   secretName: 'secret Name',

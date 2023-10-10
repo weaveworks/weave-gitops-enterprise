@@ -1,4 +1,8 @@
 import {
+  Automation,
+  Canary,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import {
   Flex,
   RouterTab,
   SubRouterTabs,
@@ -14,10 +18,6 @@ import DetailsSection from './Details/DetailsSection';
 import ListEvents from './Events/ListEvents';
 import ListManagedObjects from './ManagedObjects/ListManagedObjects';
 
-import {
-  Automation,
-  Canary,
-} from '@weaveworks/progressive-delivery/api/prog/types.pb';
 
 const CanaryDetailsWrapper = styled.div`
   width: 100%;

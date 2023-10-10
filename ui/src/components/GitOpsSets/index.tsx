@@ -1,4 +1,3 @@
-import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import {
   DataTable,
   KubeStatusIndicator,
@@ -9,14 +8,15 @@ import {
   statusSortHelper,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
+import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
-import Explorer from '../Explorer/Explorer';
 import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Condition, computeMessage } from '../../utils/conditions';
 import { Routes } from '../../utils/nav';
+import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 

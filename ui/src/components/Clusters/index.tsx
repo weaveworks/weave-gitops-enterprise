@@ -1,5 +1,3 @@
-import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { Checkbox } from '@material-ui/core';
 import {
   Button,
@@ -16,6 +14,8 @@ import {
   statusSortHelper,
   useListSources
 } from '@weaveworks/weave-gitops';
+import { Source } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, { FC, useCallback, useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';

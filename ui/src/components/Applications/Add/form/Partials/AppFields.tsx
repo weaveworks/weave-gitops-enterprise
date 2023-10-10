@@ -1,14 +1,14 @@
 import {
-  GitRepository,
-  HelmRepository,
-} from '@weaveworks/weave-gitops/ui/lib/objects';
-import {
   Checkbox,
   FormControlLabel,
   ListSubheader,
   MenuItem,
 } from '@material-ui/core';
 import { Flex, Kind, Text, useListSources } from '@weaveworks/weave-gitops';
+import {
+  GitRepository,
+  HelmRepository,
+} from '@weaveworks/weave-gitops/ui/lib/objects';
 import _ from 'lodash';
 import React, { Dispatch, FC, useCallback, useEffect } from 'react';
 import { useHistory, useLocation } from 'react-router-dom';

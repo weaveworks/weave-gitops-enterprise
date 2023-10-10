@@ -1,4 +1,3 @@
-import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import { Box } from '@material-ui/core';
 import {
   EventsTable,
@@ -10,6 +9,7 @@ import {
   SubRouterTabs,
   YamlView,
 } from '@weaveworks/weave-gitops';
+import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
 import styled from 'styled-components';
 
 const HeaderSection = styled.div`

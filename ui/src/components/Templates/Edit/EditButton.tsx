@@ -1,6 +1,6 @@
-import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import EditIcon from '@material-ui/icons/Edit';
 import { Button, formatURL } from '@weaveworks/weave-gitops';
+import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';

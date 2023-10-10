@@ -1,4 +1,3 @@
-import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import {
   DataTable,
   filterConfig,
@@ -9,6 +8,7 @@ import {
   showInterval,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { Source } from '@weaveworks/weave-gitops/ui/lib/types';
 import { Link } from 'react-router-dom';
 import { useListImageObjects } from '../../../contexts/ImageAutomation';
 import { TableWrapper } from '../../Shared';

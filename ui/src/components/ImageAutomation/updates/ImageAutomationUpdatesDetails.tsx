@@ -1,5 +1,3 @@
-import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
-import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   Kind,
   Metadata,
@@ -7,6 +5,8 @@ import {
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { InfoField } from '@weaveworks/weave-gitops/ui/components/InfoList';
+import { ImageUpdateAutomation } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';

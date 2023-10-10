@@ -1,3 +1,5 @@
+import { Button } from '@weaveworks/weave-gitops';
+import { useCallback, useContext, useState } from 'react';
 import {
   ClustersService,
   RenderAutomationResponse,
@@ -12,8 +14,6 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
-import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useState } from 'react';
 
 export enum SecretType {
   SOPS,

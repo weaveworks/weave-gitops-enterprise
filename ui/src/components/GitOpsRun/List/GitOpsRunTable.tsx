@@ -1,4 +1,3 @@
-import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   DataTable,
   filterConfig,
@@ -9,6 +8,7 @@ import {
   Timestamp,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { FluxObject } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { FC } from 'react';
 import { Routes } from '../../../utils/nav';
 import CommandCell from './CommandCell';

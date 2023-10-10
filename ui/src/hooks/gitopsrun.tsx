@@ -1,5 +1,5 @@
-import { GetSessionLogsResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { coreClient } from '@weaveworks/weave-gitops';
+import { GetSessionLogsResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { useQuery } from 'react-query';
 import useNotifications from '../contexts/Notifications';
 import { formatError } from '../utils/formatters';

@@ -9,13 +9,13 @@ import {
 } from '@weaveworks/weave-gitops';
 import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import Explorer from '../Explorer/Explorer';
 import styled from 'styled-components';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
 import useTemplates from '../../hooks/templates';
+import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 

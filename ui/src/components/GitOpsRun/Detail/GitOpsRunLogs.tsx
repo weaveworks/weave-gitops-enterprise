@@ -1,4 +1,3 @@
-import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import {
   IconButton,
   MenuItem,
@@ -15,6 +14,7 @@ import {
   IconType,
   formatLogTimestamp,
 } from '@weaveworks/weave-gitops';
+import { LogEntry } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { sortBy, sortedUniqBy, uniq } from 'lodash';
 import React, { SetStateAction } from 'react';
 import styled from 'styled-components';

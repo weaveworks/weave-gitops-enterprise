@@ -1,10 +1,10 @@
-import React from 'react';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 import { Button, Flex } from '@weaveworks/weave-gitops';
+import React from 'react';
+import styled from 'styled-components';
 import { ApprovePromotionRequest } from '../../../api/pipelines/pipelines.pb';
 
 import { useApprove } from '../../../hooks/pipelines';
-import styled from 'styled-components';
 
 const PromotePipeline = ({
   className,

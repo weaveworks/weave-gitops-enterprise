@@ -4,8 +4,8 @@ import { Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import { sortBy, uniqBy } from 'lodash';
 import { FC, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { ReactComponent as ErrorIcon } from '../../assets/img/error.svg';
 import { ListError } from '../../cluster-services/cluster_services.pb';
+import { ErrorIcon } from '../RemoteSVGIcon';
 
 const BoxWrapper = styled(Box)`
   .MuiAlert-root {

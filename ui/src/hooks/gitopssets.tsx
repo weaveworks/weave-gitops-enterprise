@@ -1,4 +1,3 @@
-import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import {
   Bucket,
   FluxObject,
@@ -14,6 +13,7 @@ import {
   Provider,
   coreClient,
 } from '@weaveworks/weave-gitops';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import { QueryClient, useQuery, useQueryClient } from 'react-query';
 import {

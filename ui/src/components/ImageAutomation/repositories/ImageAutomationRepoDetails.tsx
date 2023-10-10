@@ -1,4 +1,3 @@
-import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   Button,
   Interval,
@@ -7,6 +6,7 @@ import {
   useGetObject,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { ImageRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
 import styled from 'styled-components';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
 import { Page } from '../../Layout/App';

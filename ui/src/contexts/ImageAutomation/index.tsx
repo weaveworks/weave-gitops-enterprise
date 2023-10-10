@@ -1,6 +1,6 @@
-import { IsCRDAvailableResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { CoreClientContext } from '@weaveworks/weave-gitops';
+import { IsCRDAvailableResponse } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import React from 'react';
 import { useQuery } from 'react-query';
 import { RequestError } from '../../utils/test-utils';

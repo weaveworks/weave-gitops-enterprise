@@ -1,6 +1,6 @@
 
-import { act, render, RenderResult, screen } from '@testing-library/react';
 import { MuiThemeProvider } from '@material-ui/core';
+import { act, render, RenderResult, screen } from '@testing-library/react';
 import {
   AppContextProvider,
   CoreClientContextProvider,

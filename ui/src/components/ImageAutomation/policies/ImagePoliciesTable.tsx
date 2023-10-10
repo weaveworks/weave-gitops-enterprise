@@ -1,4 +1,3 @@
-import { ImgPolicy, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import {
   DataTable,
   filterConfig,
@@ -9,6 +8,7 @@ import {
   Link,
   V2Routes,
 } from '@weaveworks/weave-gitops';
+import { ImgPolicy, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import { useListImageObjects } from '../../../contexts/ImageAutomation';
 import { TableWrapper } from '../../Shared';
 import LoadingWrapper from '../../Workspaces/WorkspaceDetails/Tabs/WorkspaceTabsWrapper';
