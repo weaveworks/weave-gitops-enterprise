@@ -119,7 +119,7 @@ type Config struct {
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
-// and checks the requirements for the environmnet.
+// and checks the requirements for the environments.
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
 	l.Actionf("Creating client to cluster")
