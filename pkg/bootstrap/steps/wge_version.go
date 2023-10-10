@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"errors"
@@ -12,20 +12,28 @@ import (
 
 // user messages
 const (
-	versionMsg = "Please select a version for WGE to be installed"
+	versionStepName = "Select WGE Version"
+	versionMsg      = "select one of the following"
 )
 
-var SelectWgeVersionStep = BootstrapStep{
-	Name: "select WGE version",
-	Input: []StepInput{
-		{
-			Name:     WGEVersion,
-			Type:     multiSelectionChoice,
-			Msg:      versionMsg,
-			Valuesfn: getWgeVersions,
-		},
-	},
-	Step: selectWgeVersion,
+var getVersionInput = StepInput{
+	Name:     WGEVersion,
+	Type:     multiSelectionChoice,
+	Msg:      versionMsg,
+	Valuesfn: getWgeVersions,
+}
+
+func NewSelectWgeVersionStep(config Config) BootstrapStep {
+	inputs := []StepInput{}
+
+	if config.WGEVersion == "" {
+		inputs = append(inputs, getVersionInput)
+	}
+	return BootstrapStep{
+		Name:  versionStepName,
+		Input: inputs,
+		Step:  selectWgeVersion,
+	}
 }
 
 // selectWgeVersion step ask user to select wge version from the latest 3 versions.
@@ -34,7 +42,7 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 		if param.Name == WGEVersion {
 			version, ok := param.Value.(string)
 			if !ok {
-				return []StepOutput{}, errors.New("unexpected error occured. Version not found")
+				return []StepOutput{}, errors.New("unexpected error occurred. Version not found")
 			}
 			c.WGEVersion = version
 		}

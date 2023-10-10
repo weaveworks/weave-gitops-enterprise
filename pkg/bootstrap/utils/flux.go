@@ -120,8 +120,8 @@ func ReconcileHelmRelease(hrName string) error {
 	return nil
 }
 
-// getRepoPath get the path for flux installation (flux-system) Kustomization.
-func GetHelmRelease(client k8s_client.Client, releaseName string, namespace string) (string, error) {
+// GetHelmReleaseVersion return the chart version for the release `releaseName` in `namespace`
+func GetHelmReleaseVersion(client k8s_client.Client, releaseName string, namespace string) (string, error) {
 	helmrelease := &helmv2.HelmRelease{}
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
 		Namespace: namespace,

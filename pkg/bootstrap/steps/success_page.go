@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"errors"
@@ -19,7 +19,7 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
 		return []StepOutput{}, err
 	}
-	if !strings.Contains(c.UserDomain, domainTypelocalhost) {
+	if !strings.Contains(c.UserDomain, domainTypeLocalhost) {
 		return []StepOutput{
 			{
 				Name:  "domain msg",

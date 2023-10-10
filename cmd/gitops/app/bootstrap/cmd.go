@@ -5,21 +5,19 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/commands"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
 
 const (
 	cmdName             = "bootstrap"
-	cmdShortDescription = `gitops bootstrap will help getting started with Weave GitOps Enterprise through simple steps in bootstrap by performing the following tasks:
-- Verify the entitlement file exist on the cluster and valid.
-- Verify Flux installation is valid.
-- Allow option to bootstrap Flux in the generic git server way if not installed.
-- Allow selecting the version of WGE to be installed from the latest 3 versions.
-- Set the admin password for WGE Dashboard.
-- Easy steps to make OIDC flow
+	cmdShortDescription = `gitops bootstrap installs Weave GitOps Enterprise in simple steps:
+- Entitlements: check that you have valid entitlements.
+- Flux: check or bootstrap Flux. 
+- Weave Gitops: check or install a supported Weave GitOps version with default configuration.
+- Authentication: check or setup cluster user authentication to access the dashboard.
 `
 	cmdExamples = `
 # Start WGE installation from the current kubeconfig
@@ -27,6 +25,9 @@ gitops bootstrap
 
 # Start WGE installation from a specific kubeconfig
 gitops bootstrap --kubeconfig <your-kubeconfig-location>
+
+# Start WGE installation with given 'username' and 'password'
+gitops bootstrap --username wego-admin --password=hell0!
 `
 )
 
@@ -34,6 +35,8 @@ type bootstrapFlags struct {
 	username           string
 	password           string
 	version            string
+	domainType         string
+	domain             string
 	privateKeyPath     string
 	privateKeyPassword string
 }
@@ -45,69 +48,44 @@ func Command(opts *config.Options) *cobra.Command {
 		Use:     cmdName,
 		Short:   cmdShortDescription,
 		Example: cmdExamples,
-		Run:     getBootstrapCmdRun(opts),
+		RunE:    getBootstrapCmdRun(opts),
 	}
 
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
-	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version")
+	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install")
+	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
+	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "indicate the domain to use in case of using `externaldns`")
 	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
 	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "Private key password. If the private key is encrypted using password")
 	return cmd
 }
 
-func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) {
-	return func(cmd *cobra.Command, args []string) {
-		logger := logger.NewCLILogger(os.Stdout)
+func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
+	return func(cmd *cobra.Command, args []string) error {
 
-		if err := bootstrap(opts, logger); err != nil {
-			logger.Failuref(err.Error())
+		cliLogger := logger.NewCLILogger(os.Stdout)
+
+		// create config from flags
+		c, err := steps.NewConfigBuilder().
+			WithLogWriter(cliLogger).
+			WithKubeconfig(opts.Kubeconfig).
+			WithUsername(flags.username).
+			WithPassword(flags.password).
+			WithVersion(flags.version).
+			WithDomainType(flags.domainType).
+			WithDomain(flags.domain).
+			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
+			Build()
+
+		if err != nil {
+			return fmt.Errorf("cannot config bootstrap: %v", err)
 		}
-	}
-}
 
-// Bootstrap initiated by the command runs the WGE bootstrap steps
-func bootstrap(opts *config.Options, logger logger.Logger) error {
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		return fmt.Errorf("failed to get kubernetes client. error: %s", err)
-	}
-
-	installedVersion, err := utils.GetHelmRelease(kubernetesClient, commands.WgeHelmReleaseName, commands.WGEDefaultNamespace)
-	if err == nil {
-		logger.Successf("WGE version: %s is already installed on your cluster!", installedVersion)
+		err = Bootstrap(c)
+		if err != nil {
+			return fmt.Errorf("cannot execute bootstrap: %v", err)
+		}
 		return nil
 	}
-
-	config := commands.Config{}
-	config.KubernetesClient = kubernetesClient
-	config.Logger = logger
-
-	flagsMap := map[string]string{
-		commands.UserName:           flags.username,
-		commands.Password:           flags.password,
-		commands.WGEVersion:         flags.version,
-		commands.PrivateKeyPath:     flags.privateKeyPath,
-		commands.PrivateKeyPassword: flags.privateKeyPassword,
-	}
-
-	var steps = []commands.BootstrapStep{
-		commands.CheckEntitlementSecretStep,
-		commands.VerifyFluxInstallationStep,
-		commands.AskPrivateKeyStep,
-		commands.SelectWgeVersionStep,
-		commands.AskAdminCredsSecretStep,
-		commands.SelectDomainType,
-		commands.InstallWGEStep,
-		commands.CheckUIDomainStep,
-	}
-
-	for _, step := range steps {
-		err := step.Execute(&config, flagsMap)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }

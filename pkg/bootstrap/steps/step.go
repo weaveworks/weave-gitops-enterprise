@@ -1,4 +1,4 @@
-package commands
+package steps
 
 import (
 	"errors"
@@ -8,6 +8,9 @@ import (
 	v1 "k8s.io/api/core/v1"
 )
 
+// BootstrapStep struct that defines the contract of a bootstrapping step.
+// It is abstracted to have a generic way to handle them, so we could achieve easier
+// extensibility, consistency and maintainability.
 type BootstrapStep struct {
 	Name   string
 	Input  []StepInput
@@ -15,6 +18,8 @@ type BootstrapStep struct {
 	Step   func(input []StepInput, c *Config) ([]StepOutput, error)
 }
 
+// StepInput represents an input an step requires to execute it. for example the
+// user needs to introduce an string or a password.
 type StepInput struct {
 	Name            string
 	Msg             string
@@ -26,139 +31,114 @@ type StepInput struct {
 	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
 }
 
+// StepOutput represents an output generated out of the execution of a step.
+// An example could be a helm release manifest for weave gitops.
 type StepOutput struct {
 	Name  string
 	Type  string
 	Value any
 }
 
-func (s BootstrapStep) Execute(c *Config, flagsInput map[string]string) error {
-	inputValues, err := defaultInputStep(s.Input, c, flagsInput)
+func (s BootstrapStep) Execute(c *Config) error {
+	inputValues, err := defaultInputStep(s.Input, c)
 	if err != nil {
-		return fmt.Errorf("cannot read input: %v", err)
+		return fmt.Errorf("cannot process input '%s': %v", s.Name, err)
 	}
 
 	outputs, err := s.Step(inputValues, c)
 	if err != nil {
-		return fmt.Errorf("cannot execute step: %v", err)
+		return fmt.Errorf("cannot execute '%s': %v", s.Name, err)
 	}
 
 	err = defaultOutputStep(outputs, c)
 	if err != nil {
-		return fmt.Errorf("cannot execute step: %v", err)
+		return fmt.Errorf("cannot process output '%s': %v", s.Name, err)
 	}
 	return nil
 }
 
-func defaultInputStep(params []StepInput, c *Config, flagsInput map[string]string) ([]StepInput, error) {
-	processedParams := []StepInput{}
-	for _, param := range params {
-		// handle global behaviour
-		// for example silent
-
-		// handle particular behaviours
-		switch param.Type {
+func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
+	processedInputs := []StepInput{}
+	for _, input := range inputs {
+		switch input.Type {
 		case stringInput:
 			// verify the input is enabled by executing the function
 			enable := true
-			if param.Valuesfn != nil {
-				res, _ := param.Valuesfn(params, c)
+			if input.Valuesfn != nil {
+				res, _ := input.Valuesfn(inputs, c)
 				enable = res.(bool)
-				if enable && param.StepInformation != "" {
-					c.Logger.Warningf(param.StepInformation)
+				if enable && input.StepInformation != "" {
+					c.Logger.Warningf(input.StepInformation)
 				}
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-				enable = false
-			}
 			// get the value from user otherwise
-			if param.Value == nil && enable {
-				paramValue, err := utils.GetStringInput(param.Msg, param.DefaultValue.(string))
+			if input.Value == nil && enable {
+				paramValue, err := utils.GetStringInput(input.Msg, input.DefaultValue.(string))
 				if err != nil {
 					return []StepInput{}, err
 				}
-				param.Value = paramValue
+				input.Value = paramValue
 			}
-			// fill the new params
-			processedParams = append(processedParams, param)
+			// fill the new inputs
+			processedInputs = append(processedInputs, input)
 		case passwordInput:
 			// verify the input is enabled by executing the function
 			enable := true
-			if param.Valuesfn != nil {
-				res, _ := param.Valuesfn(params, c)
+			if input.Valuesfn != nil {
+				res, _ := input.Valuesfn(inputs, c)
 				enable = res.(bool)
-				if enable && param.StepInformation != "" {
-					c.Logger.Warningf(param.StepInformation)
+				if enable && input.StepInformation != "" {
+					c.Logger.Warningf(input.StepInformation)
 				}
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-				enable = false
-			}
 			// get the value from user otherwise
-			if param.Value == nil && enable {
-				paramValue, err := utils.GetPasswordInput(param.Msg)
+			if input.Value == nil && enable {
+				paramValue, err := utils.GetPasswordInput(input.Msg)
 				if err != nil {
 					return []StepInput{}, err
 				}
-				param.Value = paramValue
+				input.Value = paramValue
 			}
-			processedParams = append(processedParams, param)
+			processedInputs = append(processedInputs, input)
 		case confirmInput:
 			// verify the input is enabled by executing the function
 			enable := true
-			if param.Valuesfn != nil {
-				res, _ := param.Valuesfn(params, c)
+			if input.Valuesfn != nil {
+				res, _ := input.Valuesfn(inputs, c)
 				enable = res.(bool)
-				if enable && param.StepInformation != "" {
-					c.Logger.Warningf(param.StepInformation)
+				if enable && input.StepInformation != "" {
+					c.Logger.Warningf(input.StepInformation)
 				}
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-				enable = false
-			}
 			// get the value from user otherwise
-			if param.Value == nil && enable {
-				param.Value = utils.GetConfirmInput(param.Msg)
+			if input.Value == nil && enable {
+				input.Value = utils.GetConfirmInput(input.Msg)
 			}
-			processedParams = append(processedParams, param)
+			processedInputs = append(processedInputs, input)
 		case multiSelectionChoice:
 			// process the values from the function
-			var values []string = param.Values
-			if param.Valuesfn != nil {
-				res, err := param.Valuesfn(params, c)
+			var values []string = input.Values
+			if input.Valuesfn != nil {
+				res, err := input.Valuesfn(inputs, c)
 				if err != nil {
 					return []StepInput{}, err
 				}
 				values = res.([]string)
 			}
-			// get the value from flags
-			val, ok := flagsInput[param.Name]
-			if ok && val != "" {
-				param.Value = val
-			}
 			// get the values from user
-			if param.Value == nil {
-				paramValue, err := utils.GetSelectInput(param.Msg, values)
+			if input.Value == nil {
+				paramValue, err := utils.GetSelectInput(input.Msg, values)
 				if err != nil {
 					return []StepInput{}, err
 				}
-				param.Value = paramValue
+				input.Value = paramValue
 			}
-			processedParams = append(processedParams, param)
+			processedInputs = append(processedInputs, input)
 		default:
-			return []StepInput{}, errors.New("not supported")
+			return []StepInput{}, fmt.Errorf("input not supported: %s", input.Name)
 		}
 	}
-	return processedParams, nil
+	return processedInputs, nil
 }
 
 func defaultOutputStep(params []StepOutput, c *Config) error {
@@ -177,22 +157,25 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
 				return err
 			}
+			c.Logger.Successf("created secret '%s/%s'", secret.Namespace, secret.Name)
 		case typeFile:
+			c.Logger.Actionf("writing file to repo: '%s'", param.Name)
 			file, ok := param.Value.(fileContent)
 			if !ok {
 				return errors.New("unexpected error casting file")
 			}
+			c.Logger.Actionf("cloning flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
 			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
-				return err
+				return fmt.Errorf("cannot clone repo: %v", err)
 			}
-
 			defer func() {
 				err = utils.CleanupRepo()
 				if err != nil {
 					c.Logger.Failuref("failed to cleanup repo!")
 				}
 			}()
+			c.Logger.Successf("cloned flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
 
 			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
