@@ -105,7 +105,7 @@ rbac:
 #### Metrics - Prometheus metrics configuration
 metrics:
   # Enables metrics generation and prometheus endpoint
-  enabled: false
+  enabled: true
   service:
     # -- Port to start the metrics exporter on
     port: 8080

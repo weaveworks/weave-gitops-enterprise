@@ -7,23 +7,15 @@ import (
 )
 
 const (
-	passwordErrorMsg  = "password must have more than 6 characters"
 	inputStringErrMsg = "value can't be empty"
 	blueInfo          = "\x1b[34;1m✔  %s\x1b[0m\n"
 )
 
 // GetPasswordInput prompt to enter password.
 func GetPasswordInput(msg string) (string, error) {
-	validate := func(input string) error {
-		if len(input) < 6 {
-			return errors.New(passwordErrorMsg)
-		}
-		return nil
-	}
 	prompt := promptui.Prompt{
-		Label:    msg,
-		Validate: validate,
-		Mask:     '*',
+		Label: msg,
+		Mask:  '*',
 	}
 
 	result, err := prompt.Run()
