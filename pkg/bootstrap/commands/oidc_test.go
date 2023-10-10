@@ -1,14 +1,21 @@
 package commands
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 
 	"github.com/alecthomas/assert"
+	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
+	"gopkg.in/yaml.v2"
+	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/kubectl/pkg/scheme"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 type authConfigParams struct {
@@ -20,58 +27,85 @@ type authConfigParams struct {
 	ClientSecret string
 }
 
-// TestCreateOIDCConfig tests the CreateOIDCConfig function.
 func TestCreateOIDCConfig(t *testing.T) {
-	test := []struct {
-		name   string
-		input  authConfigParams
-		expect OIDCConfig
-		err    error
-	}{
-		{
-			name: "AuthConfigParams with all fields",
-			input: authConfigParams{
-				DiscoveryURL: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-				UserDomain:   "localhost",
-			},
+
+	_ = helmv2beta1.AddToScheme(scheme.Scheme)
+
+	valuesYAML := `config:
+      oidc:
+        clientCredentialsSecret: oidc-auth
+        enabled: true
+        issuerURL: https://dex.eng-sandbox.weave.works
+        redirectURL: https://eng-sandbox.weave.works/oauth2/callback`
+
+	valuesJSON, err := ConvertYAMLToJSON(valuesYAML)
+	if err != nil {
+		log.Fatalf("Failed to convert YAML to JSON: %v", err)
+	}
+
+	hr := &helmv2beta1.HelmRelease{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "weave-gitops-enterprise",
+			Namespace: "flux-system",
 		},
-		{
-			name: "AuthConfigParams with invalid DiscoveryURL",
-			input: authConfigParams{
-				DiscoveryURL: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration-invalid",
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-				UserDomain:   "localhost",
+		Spec: helmv2beta1.HelmReleaseSpec{
+			Chart: helmv2beta1.HelmChartTemplate{
+				Spec: helmv2beta1.HelmChartTemplateSpec{
+					Chart:   "mccp",
+					Version: ">= 0.0.0-0",
+					SourceRef: helmv2beta1.CrossNamespaceObjectReference{
+						Kind:      "HelmRepository",
+						Name:      "weave-gitops-enterprise-charts",
+						Namespace: "flux-system",
+					},
+				},
+			},
+			Values: &v1.JSON{
+				Raw: valuesJSON,
 			},
 		},
 	}
 
-	for _, tt := range test {
+	tests := []struct {
+		name   string
+		input  []StepInput
+		config *Config
+		expect OIDCConfig
+		err    string
+	}{
+		{
+			name: "Case with all fields",
+			input: []StepInput{
+				{Name: DiscoveryURL, Value: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration"},
+				{Name: ClientID, Value: "client-id"},
+				{Name: ClientSecret, Value: "client-secret"},
+			},
+			config: &Config{
+				UserDomain:       "localhost",
+				KubernetesClient: fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(hr).Build(),
+				Logger:           &logger.CliLogger{},
+			},
+			expect: OIDCConfig{IssuerURL: "https://dex-01.wge.dev.weave.works/", ClientID: "client-id", ClientSecret: "client-secret", RedirectURL: "http://localhost:8000/oauth2/callback"},
+		},
+	}
+
+	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			logger.NewCLILogger(os.Stdout)
-			// config := Config{
-			// 	Logger: logger,
-			// }
 
-			// err := createOIDCConfig()
-			// if err != nil {
-			// 	assert.NotNil(t, err)
-			// 	return
-			// }
-
-			// make sure that a secret with the name oidc exists
-			// secret, err := utils.GetSecret(config.KubernetesClient, "oidc", "flux-system")
-			// if err != nil {
-			// 	assert.NotNil(t, err)
-			// 	return
-			// }
-			//asert secret data contains clientID and clientSecret
-			//assert.Equal(t, tt.expect.ClientID, string(secret.Data["clientID"]), "Expected clientID %s, but got %s", tt.expect.ClientID, string(secret.Data["clientID"]))
+			_, err := createOIDCConfig(tt.input, tt.config)
+			if err != nil {
+				if tt.err == "" {
+					t.Fatalf("expected no error but got: %v", err)
+				}
+				if err.Error() != tt.err {
+					t.Fatalf("expected error '%s' but got: %v", tt.err, err)
+				}
+				return
+			}
 		})
 	}
 }
+
 func TestGetIssuer(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = fmt.Fprintln(w, `{"issuer": "https://example.com/issuer"}`)
@@ -87,63 +121,30 @@ func TestGetIssuer(t *testing.T) {
 	assert.Equal(t, expectedIssuer, issuer, "Expected issuer %s, got %s", expectedIssuer, issuer)
 }
 
-func TestGetOIDCSecrets(t *testing.T) {
-
-	tests := []struct {
-		name   string
-		input  authConfigParams
-		expect OIDCConfig
-		err    error
-	}{
-		{
-			name: "AuthConfigParams with all fields",
-			input: authConfigParams{
-				DiscoveryURL: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-				UserDomain:   "localhost",
-			},
-			expect: OIDCConfig{
-				IssuerURL:    "https://dex-01.wge.dev.weave.works",
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-				RedirectURL:  "http://localhost:8000/oauth2/callback",
-			},
-			err: nil,
-		},
-		{
-			name: "AuthConfigParams with invalid DiscoveryURL",
-			input: authConfigParams{
-				DiscoveryURL: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration-invalid",
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-				UserDomain:   "localhost",
-			},
-			expect: OIDCConfig{
-				IssuerURL:    "https://dex-01.wge.dev.weave.works",
-				ClientID:     "client-id",
-				ClientSecret: "client-secret",
-				RedirectURL:  "http://localhost:8000/oauth2/callback",
-			},
-			err: fmt.Errorf("error: OIDC discovery URL returned status 404"),
-		},
+func ConvertYAMLToJSON(yamlStr string) ([]byte, error) {
+	var parsedYaml interface{}
+	if err := yaml.Unmarshal([]byte(yamlStr), &parsedYaml); err != nil {
+		return nil, err
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			logger.NewCLILogger(os.Stdout)
-			// config := Config{
-			// 	Logger: logger,
-			// }
-
-			// result, err := config.getOIDCSecrets(tt.input)
-			// if err != nil {
-			// 	assert.NotNil(t, err)
-			// 	return
-			// }
-
-			//assert.Equal(t, tt.expect, result)
-		})
+	converted := convertMapInterface(parsedYaml)
+	return json.Marshal(converted)
+}
+func convertMapInterface(m interface{}) interface{} {
+	switch m := m.(type) {
+	case map[interface{}]interface{}:
+		stringMap := make(map[string]interface{})
+		for k, v := range m {
+			key, ok := k.(string)
+			if !ok {
+				continue // Skip this key-value pair if the key isn't a string
+			}
+			stringMap[key] = convertMapInterface(v)
+		}
+		return stringMap
+	case []interface{}:
+		for i, v := range m {
+			m[i] = convertMapInterface(v)
+		}
 	}
-
+	return m
 }
