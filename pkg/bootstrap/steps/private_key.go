@@ -6,6 +6,7 @@ import (
 )
 
 const (
+	privateKeyMsg         = "Private key path and password\nDisclaimer: private key will be used to push WGE resources into the default repository only. It won't be stored or used anywhere else for any reason."
 	privateKeyPathMsg     = "Private key path"
 	privateKeyPasswordMsg = "Private key password"
 )
@@ -15,14 +16,14 @@ var (
 )
 
 var getKeyPath = StepInput{
-	Name:         "PrivateKeyPath",
+	Name:         PrivateKeyPath,
 	Type:         stringInput,
 	Msg:          privateKeyPathMsg,
 	DefaultValue: privateKeyDefaultPath,
 }
 
 var getKeyPassword = StepInput{
-	Name:         "PrivateKeyPassword",
+	Name:         PrivateKeyPassword,
 	Type:         passwordInput,
 	Msg:          privateKeyPasswordMsg,
 	DefaultValue: "",
@@ -36,7 +37,7 @@ func NewAskPrivateKeyStep(config Config) BootstrapStep {
 		inputs = append(inputs, getKeyPassword)
 	}
 	return BootstrapStep{
-		Name:  "ask private key path and password",
+		Name:  privateKeyMsg,
 		Input: inputs,
 		Step:  configurePrivateKey,
 	}
@@ -44,13 +45,13 @@ func NewAskPrivateKeyStep(config Config) BootstrapStep {
 
 func configurePrivateKey(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == "PrivateKeyPath" {
+		if param.Name == PrivateKeyPath {
 			privateKeyPath, ok := param.Value.(string)
 			if ok {
 				c.PrivateKeyPath = privateKeyPath
 			}
 		}
-		if param.Name == "PrivateKeyPassword" {
+		if param.Name == PrivateKeyPassword {
 			privateKeyPassword, ok := param.Value.(string)
 			if ok {
 				c.PrivateKeyPassword = privateKeyPassword

@@ -36,7 +36,6 @@ var CheckEntitlementSecret = BootstrapStep{
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
-
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
 		return []StepOutput{}, err
@@ -44,7 +43,7 @@ func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) 
 
 	return []StepOutput{
 		{
-			Name:  "entitlement success msg",
+			Name:  entitlementCheckConfirmMsg,
 			Type:  successMsg,
 			Value: entitlementCheckConfirmMsg,
 		},

@@ -16,10 +16,14 @@ const (
 
 // inputs names
 const (
-	UserName   = "username"
-	Password   = "password"
-	WGEVersion = "wgeVersion"
-	UserDomain = "userDomain"
+	UserName           = "username"
+	Password           = "password"
+	WGEVersion         = "wgeVersion"
+	UserDomain         = "userDomain"
+	PrivateKeyPath     = "privateKeyPath"
+	PrivateKeyPassword = "privateKeyPassword"
+	existingCreds      = "existingCreds"
+	domainType         = "domainType"
 )
 
 // input/output types
@@ -118,12 +122,12 @@ type Config struct {
 // and checks the requirements for the environmnet.
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
-
+	l.Actionf("Creating client to cluster")
 	kubernetesClient, err := utils.GetKubernetesClient(cb.kubeconfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
-	l.Actionf("created client to cluster")
+	l.Successf("Created client to cluster")
 
 	// TODO this should be part of a verify wge step, potentially select wge version
 	//installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)

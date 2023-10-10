@@ -55,7 +55,7 @@ var getUserDomain = StepInput{
 func NewInstallWGEStep(config Config) BootstrapStep {
 	inputs := []StepInput{}
 
-	if config.UserDomain != "" {
+	if config.UserDomain == "" {
 		inputs = append(inputs, getUserDomain)
 	}
 
@@ -75,20 +75,22 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 			if param.Name == UserDomain {
 				userDomain, ok := param.Value.(string)
 				if !ok {
-					return []StepOutput{}, errors.New("unexpected error occurred. user domain not found")
+					return []StepOutput{}, errors.New("unexpected error occurred. UserDomain not found")
 				}
 				c.UserDomain = userDomain
 			}
 		}
 	}
-
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
+	c.Logger.Actionf("Rendering HelmRepository file")
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
 		return []StepOutput{}, err
 	}
+	c.Logger.Actionf("Rendered HelmRepository file")
 
+	c.Logger.Actionf("Rendering HelmRelease file")
 	gitOpsSetsValues := map[string]interface{}{
 		"enabled": true,
 		"controllerManager": map[string]interface{}{
@@ -129,6 +131,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	if err != nil {
 		return []StepOutput{}, err
 	}
+	c.Logger.Actionf("Rendered HelmRelease file")
 
 	helmrepoFile := fileContent{
 		Name:      wgeHelmrepoFileName,
@@ -141,16 +144,14 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		CommitMsg: wgeHelmReleaseCommitMsg,
 	}
 
-	c.Logger.Actionf("rendered helm release resources")
-
 	return []StepOutput{
 		{
-			Name:  "helmrepo file",
+			Name:  wgeHelmrepoFileName,
 			Type:  typeFile,
 			Value: helmrepoFile,
 		},
 		{
-			Name:  "helmrelease file",
+			Name:  wgeHelmReleaseFileName,
 			Type:  typeFile,
 			Value: helmreleaseFile,
 		},
