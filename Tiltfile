@@ -54,7 +54,7 @@ if 'gitopssets-controller' in to_edit:
 
 k8s_resource('chart-mccp-cluster-service', new_name='cluster-service', labels=["local"], port_forwards='8000')
 k8s_resource('chart-pipeline-controller', new_name='pipeline-controller', labels=["remote-images"])
-k8s_resource('chart-mccp-cluster-bootstrap-controller', new_name='cluster-bootstrap-controller', labels=cluster_bootstrap_controller_labels)
+k8s_resource('cluster-bootstrap-controller-manager', new_name='cluster-bootstrap-controller', labels=cluster_bootstrap_controller_labels)
 k8s_resource('cluster-controller-manager', new_name='cluster-controller', labels=cluster_controller_labels)
 k8s_resource('gitopssets-controller-manager', new_name='gitopssets-controller', labels=gitopssets_controller_labels)
 k8s_resource('policy-agent', labels=["remote-images"])
