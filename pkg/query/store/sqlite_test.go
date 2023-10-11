@@ -515,6 +515,132 @@ func TestSQLiteStore_DeleteAllRoles(t *testing.T) {
 	}
 }
 
+func TestSQLiteStore_DeleteRoles(t *testing.T) {
+	g := NewGomegaWithT(t)
+	ctx := context.Background()
+	store, db := createStore(t)
+	sqlDB, err := db.DB()
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name                 string
+		rolesToAdd           []models.Role // objects to add before deleting
+		rolesToDelete        []models.Role // objects to delete
+		deleteClusters       []string
+		expectedNumResources int
+		errPattern           string
+	}{
+		{
+			name:                 "should do nothing for empty request",
+			rolesToAdd:           []models.Role{},
+			rolesToDelete:        []models.Role{},
+			deleteClusters:       []string{},
+			expectedNumResources: 0,
+			errPattern:           "",
+		},
+		{
+			name: "should do nothing if no objects for cluster to delete",
+			rolesToAdd: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			deleteClusters:       []string{"cluster-without-objects"},
+			expectedNumResources: 0,
+			errPattern:           "",
+		},
+		{
+			name: "should have deleted specified roles for a cluster with objects",
+			rolesToAdd: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+				{
+					Name:      "wego-cluster-role2",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+				{
+					Name:      "wego-cluster-role3",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			rolesToDelete: []models.Role{
+				{
+					Name:      "wego-cluster-role",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+				{
+					Name:      "wego-cluster-role3",
+					Cluster:   "flux-system/leaf-cluster-1",
+					Namespace: "",
+					Kind:      "ClusterRole",
+					PolicyRules: []models.PolicyRule{{
+						APIGroups: strings.Join([]string{helmv2.GroupVersion.String()}, ","),
+						Resources: strings.Join([]string{"helmreleases"}, ","),
+						Verbs:     strings.Join([]string{"get", "list", "patch"}, ","),
+					}},
+				},
+			},
+			deleteClusters:       []string{"flux-system/leaf-cluster-1"},
+			expectedNumResources: 1,
+			errPattern:           "",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g.Expect(store.StoreRoles(ctx, tt.rolesToAdd)).To(Succeed())
+			err := store.DeleteRoles(ctx, tt.rolesToDelete)
+			if tt.errPattern != "" {
+				g.Expect(err).To(MatchError(MatchRegexp(tt.errPattern)))
+				return
+			}
+			g.Expect(err).To(BeNil())
+			for _, deleteCluster := range tt.deleteClusters {
+				var numResources int
+				g.Expect(sqlDB.QueryRow("SELECT COUNT(id) FROM roles WHERE cluster = ?", deleteCluster).Scan(&numResources)).To(Succeed())
+				g.Expect(numResources).To(Equal(tt.expectedNumResources))
+			}
+		})
+	}
+}
+
 func TestSQLiteStore_DeleteAllRoleBindings(t *testing.T) {
 	g := NewGomegaWithT(t)
 	ctx := context.Background()

@@ -7,6 +7,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/utils/testutils"
+	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 
@@ -116,16 +117,28 @@ func TestReconciler_Reconcile(t *testing.T) {
 	clusterName := "anyCluster"
 	//setup data
 	createdOrUpdatedHelmRelease := testutils.NewHelmRelease("createdOrUpdatedHelmRelease", clusterName)
-	deleteHelmRelease := testutils.NewHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
+	deletedHelmRelease := testutils.NewHelmRelease("deletedHelmRelease", clusterName, func(hr *v2beta1.HelmRelease) {
 		now := metav1.Now()
 		hr.DeletionTimestamp = &now
 	})
-	objects := []runtime.Object{createdOrUpdatedHelmRelease, deleteHelmRelease}
+	deletedClusterRoleWithRules := testutils.NewClusterRole("deletedClusterRoleWithRules", true, func(cr *rbacv1.ClusterRole) {
+		now := metav1.Now()
+		cr.DeletionTimestamp = &now
+	})
+	deletedClusterRoleWithoutRules := testutils.NewClusterRole("deletedClusterRoleWithoutRules", false, func(cr *rbacv1.ClusterRole) {
+		now := metav1.Now()
+		cr.DeletionTimestamp = &now
+	})
+	deletedClusterRoleManuallyConstructed := testutils.NewClusterRole("deletedClusterRoleManuallyConstructed", false)
+	objects := []runtime.Object{createdOrUpdatedHelmRelease, deletedHelmRelease, deletedClusterRoleWithRules, deletedClusterRoleWithoutRules}
 
 	//setup reconciler
 	s := runtime.NewScheme()
 	if err := v2beta1.AddToScheme(s); err != nil {
 		t.Fatalf("could not add v2beta1 to scheme: %v", err)
+	}
+	if err := rbacv1.AddToScheme(s); err != nil {
+		t.Fatalf("could not add rbacv1 to scheme: %v", err)
 	}
 	fakeClient := fake.NewClientBuilder().WithRuntimeObjects(objects...).WithScheme(s).Build()
 
@@ -159,19 +172,73 @@ func TestReconciler_Reconcile(t *testing.T) {
 		},
 		{
 			name:   "can reconcile delete resource requests",
-			object: deleteHelmRelease,
+			object: deletedHelmRelease,
 			kind:   configuration.HelmReleaseObjectKind,
 			request: ctrl.Request{
 				NamespacedName: types.NamespacedName{
-					Name:      deleteHelmRelease.GetName(),
-					Namespace: deleteHelmRelease.GetNamespace(),
+					Name:      deletedHelmRelease.GetName(),
+					Namespace: deletedHelmRelease.GetNamespace(),
 				},
 			},
 			expectedTx: transaction{
 				clusterName:     "anyCluster",
-				object:          deleteHelmRelease,
+				object:          deletedHelmRelease,
 				transactionType: models.TransactionTypeDelete,
 				config:          configuration.HelmReleaseObjectKind,
+			},
+			errPattern:   "",
+			shouldHaveTX: true,
+		},
+		{
+			name:   "can reconcile delete requests for existing clusterrole with rules",
+			object: deletedClusterRoleWithRules,
+			kind:   configuration.ClusterRoleObjectKind,
+			request: ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name: deletedClusterRoleWithRules.GetName(),
+				},
+			},
+			expectedTx: transaction{
+				clusterName:     "anyCluster",
+				object:          deletedClusterRoleWithRules,
+				transactionType: models.TransactionTypeDelete,
+				config:          configuration.ClusterRoleObjectKind,
+			},
+			errPattern:   "",
+			shouldHaveTX: true,
+		},
+		{
+			name:   "can reconcile delete requests for existing clusterrole without rules",
+			object: deletedClusterRoleWithoutRules,
+			kind:   configuration.ClusterRoleObjectKind,
+			request: ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name: deletedClusterRoleWithoutRules.GetName(),
+				},
+			},
+			expectedTx: transaction{
+				clusterName:     "anyCluster",
+				object:          deletedClusterRoleWithoutRules,
+				transactionType: models.TransactionTypeDelete,
+				config:          configuration.ClusterRoleObjectKind,
+			},
+			errPattern:   "",
+			shouldHaveTX: true,
+		},
+		{
+			name:   "can reconcile delete requests for already deleted clusterrole",
+			object: deletedClusterRoleManuallyConstructed,
+			kind:   configuration.ClusterRoleObjectKind,
+			request: ctrl.Request{
+				NamespacedName: types.NamespacedName{
+					Name: deletedClusterRoleManuallyConstructed.GetName(),
+				},
+			},
+			expectedTx: transaction{
+				clusterName:     "anyCluster",
+				object:          deletedClusterRoleManuallyConstructed,
+				transactionType: models.TransactionTypeDelete,
+				config:          configuration.ClusterRoleObjectKind,
 			},
 			errPattern:   "",
 			shouldHaveTX: true,
@@ -239,12 +306,12 @@ func assertObjectTransaction(t *testing.T, actual models.ObjectTransaction, expe
 	assert.Equal(t, expected.TransactionType(), actual.TransactionType(), "different tx type")
 	assert.Equal(t, expected.Object().GetName(), actual.Object().GetName(), "different object")
 
-	cat, err := expected.Object().GetCategory()
+	cat, err := actual.Object().GetCategory()
 	if err != nil {
 		t.Fatalf("could not get category: %v", err)
 	}
 
-	expectedCat, err := actual.Object().GetCategory()
+	expectedCat, err := expected.Object().GetCategory()
 	if err != nil {
 		t.Fatalf("could not get category: %v", err)
 	}

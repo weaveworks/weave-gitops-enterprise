@@ -365,8 +365,8 @@ func (i *SQLiteStore) DeleteRoles(ctx context.Context, roles []models.Role) (err
 	defer recordMetrics(metrics.DeleteRolesAction, time.Now(), err)
 
 	for _, role := range roles {
-		if err := role.Validate(); err != nil {
-			return fmt.Errorf("invalid role: %w", err)
+		if _, err := role.IsValidID(); err != nil {
+			return fmt.Errorf("invalid role ID: %w", err)
 		}
 
 		where := i.db.Where(
