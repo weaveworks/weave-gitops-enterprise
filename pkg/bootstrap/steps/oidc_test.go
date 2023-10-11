@@ -70,8 +70,8 @@ func TestCreateOIDCConfig(t *testing.T) {
 		name   string
 		input  []StepInput
 		config *Config
-		expect OIDCConfig
-		err    string
+		//expect OIDCConfig
+		err string
 	}{
 		{
 			name: "Case with all fields",
@@ -85,7 +85,7 @@ func TestCreateOIDCConfig(t *testing.T) {
 				KubernetesClient: fake.NewClientBuilder().WithScheme(scheme.Scheme).WithObjects(hr).Build(),
 				Logger:           &logger.CliLogger{},
 			},
-			expect: OIDCConfig{IssuerURL: "https://dex-01.wge.dev.weave.works/", ClientID: "client-id", ClientSecret: "client-secret", RedirectURL: "http://localhost:8000/oauth2/callback"},
+			//expect: OIDCConfig{IssuerURL: "https://dex-01.wge.dev.weave.works/", ClientID: "client-id", ClientSecret: "client-secret", RedirectURL: "http://localhost:8000/oauth2/callback"},
 		},
 	}
 

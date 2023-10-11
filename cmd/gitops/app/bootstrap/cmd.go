@@ -40,6 +40,9 @@ type bootstrapFlags struct {
 	domain             string
 	privateKeyPath     string
 	privateKeyPassword string
+	discoveryURL       string
+	clientID           string
+	clientSecret       string
 }
 
 var flags bootstrapFlags
@@ -61,6 +64,9 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "indicate the domain to use in case of using `externaldns`")
 	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
 	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "Private key password. If the private key is encrypted using password")
+	cmd.Flags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
+	cmd.Flags().StringVarP(&flags.clientID, "client-id", "i", "", "OIDC client ID")
+	cmd.Flags().StringVarP(&flags.clientSecret, "client-secret", "s", "", "OIDC client secret")
 	return cmd
 }
 
@@ -79,6 +85,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
+			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret).
 			WithPromptedForDiscoveryURL(true).
 			Build()
 

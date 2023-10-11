@@ -37,6 +37,31 @@ const (
 	oidcSecretName = "oidc-auth"
 )
 
+var discoveryUrlStep = StepInput{
+	Name:            DiscoveryURL,
+	Type:            stringInput,
+	Msg:             oidcDiscoverUrlMsg,
+	DefaultValue:    "",
+	Valuesfn:        canAskForConfig,
+	StepInformation: oidcConfigInfoMsg,
+}
+
+var clientIDStep = StepInput{
+	Name:         ClientID,
+	Type:         stringInput,
+	Msg:          oidcClientIDMsg,
+	DefaultValue: "",
+	Valuesfn:     canAskForConfig,
+}
+
+var clientSecretStep = StepInput{
+	Name:         ClientSecret,
+	Type:         passwordInput,
+	Msg:          oidcClientSecretMsg,
+	DefaultValue: "",
+	Valuesfn:     canAskForConfig,
+}
+
 func OIDCConfigStep(config Config) BootstrapStep {
 
 	inputs := []StepInput{
@@ -57,32 +82,15 @@ func OIDCConfigStep(config Config) BootstrapStep {
 		},
 	}
 
-	steps := []StepInput{
-		{
-			Name:            DiscoveryURL,
-			Type:            stringInput,
-			Msg:             oidcDiscoverUrlMsg,
-			DefaultValue:    "",
-			Valuesfn:        canAskForConfig,
-			StepInformation: oidcConfigInfoMsg,
-		},
-		{
-			Name:         ClientID,
-			Type:         stringInput,
-			Msg:          oidcClientIDMsg,
-			DefaultValue: "",
-			Valuesfn:     canAskForConfig,
-		},
-		{
-			Name:         ClientSecret,
-			Type:         passwordInput,
-			Msg:          oidcClientSecretMsg,
-			DefaultValue: "",
-			Valuesfn:     canAskForConfig,
-		},
+	if config.DiscoveryURL == "" {
+		inputs = append(inputs, discoveryUrlStep)
 	}
-
-	inputs = append(inputs, steps...)
+	if config.ClientID == "" {
+		inputs = append(inputs, clientIDStep)
+	}
+	if config.ClientSecret == "" {
+		inputs = append(inputs, clientSecretStep)
+	}
 
 	return BootstrapStep{
 		Name:  "OIDC Configuration",
@@ -96,30 +104,29 @@ func OIDCConfigStep(config Config) BootstrapStep {
 // If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
 func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 
-	oidcConfig := OIDCConfig{}
+	//oidcConfig := OIDCConfig{}
 
 	continueWithExistingConfigs := confirmYes
 
 	for _, param := range input {
 
 		if param.Name == DiscoveryURL && param.Value != nil {
-			issuerUrl, err := getIssuerFromDiscoveryUrl(param, c)
-			if err != nil {
-				return []StepOutput{}, err
+			if val, ok := param.Value.(string); ok {
+				c.DiscoveryURL = val
+			} else {
+				return []StepOutput{}, errors.New("DiscoveryURL not found")
 			}
-			oidcConfig.IssuerURL = issuerUrl[0].Value.(string)
 		}
-
 		if param.Name == ClientID && param.Value != nil {
 			if val, ok := param.Value.(string); ok {
-				oidcConfig.ClientID = val
+				c.ClientID = val
 			} else {
 				return []StepOutput{}, errors.New("ClientID not found")
 			}
 		}
 		if param.Name == ClientSecret && param.Value != nil {
 			if val, ok := param.Value.(string); ok {
-				oidcConfig.ClientSecret = val
+				c.ClientSecret = val
 			} else {
 				return []StepOutput{}, errors.New("ClientSecret not found")
 			}
@@ -131,6 +138,12 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 			}
 		}
 	}
+	//get issuer url from discovery url
+	issuerUrl, err := getIssuerFromDiscoveryUrl(c)
+	if err != nil {
+		return []StepOutput{}, err
+	}
+	c.IssuerURL = issuerUrl[0].Value.(string)
 
 	if existing, _ := checkExistingOIDCConfig(input, c); existing.(bool) {
 		if continueWithExistingConfigs != confirmYes {
@@ -142,23 +155,23 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 			if err != nil {
 				return []StepOutput{}, err
 			}
-			oidcConfig.IssuerURL = string(secret.Data["issuerURL"])
-			oidcConfig.ClientID = string(secret.Data["clientID"])
-			oidcConfig.ClientSecret = string(secret.Data["clientSecret"])
+			c.IssuerURL = string(secret.Data["issuerURL"])
+			c.ClientID = string(secret.Data["clientID"])
+			c.ClientSecret = string(secret.Data["clientSecret"])
 		}
 	}
 
 	if strings.Contains(c.UserDomain, domainTypeLocalhost) {
-		oidcConfig.RedirectURL = "http://localhost:8000/oauth2/callback"
+		c.RedirectURL = "http://localhost:8000/oauth2/callback"
 	} else {
-		oidcConfig.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", c.UserDomain)
+		c.RedirectURL = fmt.Sprintf("https://%s/oauth2/callback", c.UserDomain)
 	}
 
 	oidcSecretData := map[string][]byte{
-		"issuerURL":    []byte(oidcConfig.IssuerURL),
-		"clientID":     []byte(oidcConfig.ClientID),
-		"clientSecret": []byte(oidcConfig.ClientSecret),
-		"redirectURL":  []byte(oidcConfig.RedirectURL),
+		"issuerURL":    []byte(c.IssuerURL),
+		"clientID":     []byte(c.ClientID),
+		"clientSecret": []byte(c.ClientSecret),
+		"redirectURL":  []byte(c.RedirectURL),
 	}
 
 	//if secret doesn't exist, create it
@@ -168,7 +181,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	values := constructOIDCValues(oidcConfig)
+	values := constructOIDCValues(c)
 
 	c.Logger.Waitingf(oidcInstallInfoMsg)
 
@@ -181,11 +194,11 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 }
 
 // constructOIDCValues construct the OIDC values
-func constructOIDCValues(oidcConfig OIDCConfig) map[string]interface{} {
+func constructOIDCValues(c *Config) map[string]interface{} {
 	values := map[string]interface{}{
 		"enabled":                 true,
-		"issuerURL":               oidcConfig.IssuerURL,
-		"redirectURL":             oidcConfig.RedirectURL,
+		"issuerURL":               c.IssuerURL,
+		"redirectURL":             c.RedirectURL,
 		"clientCredentialsSecret": oidcSecretName,
 	}
 
@@ -244,31 +257,26 @@ func canAskOIDCPrompot(input []StepInput, c *Config) (interface{}, error) {
 }
 
 // func to get issuer url from discovery url
-func getIssuerFromDiscoveryUrl(param StepInput, c *Config) ([]StepOutput, error) {
+func getIssuerFromDiscoveryUrl(c *Config) ([]StepOutput, error) {
 
 	// check if discovery url is valid, try for 3 times if not valid
 	issuerURLErrCount := 0
 	for {
-		if val, ok := param.Value.(string); ok {
-			issuerURL, err := getIssuer(val)
-			if err != nil {
-				issuerURLErrCount++
-				// if we fail to get issuer url after 3 attempts, we will return an error
-				if issuerURLErrCount > 3 {
-					return []StepOutput{}, errors.New("Failed to retrieve IssuerURL after multiple attempts. Please verify the DiscoveryURL and try again.")
-				}
-				c.Logger.Warningf("Failed to retrieve IssuerURL. Please verify the DiscoveryURL and try again.")
-				// ask for discovery url again
-				val, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
-				if err != nil {
-					return []StepOutput{}, err
-				}
-				param.Value = val
-				continue
+		issuerURL, err := getIssuer(c.DiscoveryURL)
+		if err != nil {
+			issuerURLErrCount++
+			// if we fail to get issuer url after 3 attempts, we will return an error
+			if issuerURLErrCount > 3 {
+				return []StepOutput{}, errors.New("Failed to retrieve IssuerURL after multiple attempts. Please verify the DiscoveryURL and try again.")
 			}
-			return []StepOutput{{Name: "issuerURL", Value: issuerURL}}, nil
-		} else {
-			return []StepOutput{}, errors.New("DiscoveryURL not found")
+			c.Logger.Warningf("Failed to retrieve IssuerURL. Please verify the DiscoveryURL and try again.")
+			// ask for discovery url again
+			c.DiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
+			if err != nil {
+				return []StepOutput{}, err
+			}
+			continue
 		}
+		return []StepOutput{{Name: "issuerURL", Value: issuerURL}}, nil
 	}
 }

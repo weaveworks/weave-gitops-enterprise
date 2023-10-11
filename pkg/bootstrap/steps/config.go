@@ -55,6 +55,9 @@ type ConfigBuilder struct {
 	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
+	discoveryURL            string
+	clientID                string
+	clientSecret            string
 	PromptedForDiscoveryURL bool
 }
 
@@ -105,6 +108,13 @@ func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword
 	return c
 }
 
+func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string) *ConfigBuilder {
+	c.discoveryURL = discoveryURL
+	c.clientID = clientID
+	c.clientSecret = clientSecret
+	return c
+}
+
 func (c *ConfigBuilder) WithPromptedForDiscoveryURL(prompted bool) *ConfigBuilder {
 	c.PromptedForDiscoveryURL = prompted
 	return c
@@ -128,6 +138,11 @@ type Config struct {
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
+	DiscoveryURL            string
+	IssuerURL               string
+	ClientID                string
+	ClientSecret            string
+	RedirectURL             string
 	PromptedForDiscoveryURL bool
 }
 
@@ -176,6 +191,9 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		UserDomain:              cb.domain,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
+		DiscoveryURL:            cb.discoveryURL,
+		ClientID:                cb.clientID,
+		ClientSecret:            cb.clientSecret,
 		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 	}, nil
 
@@ -250,9 +268,9 @@ type chartEntry struct {
 }
 
 // OIDCConfig store the OIDC config
-type OIDCConfig struct {
-	IssuerURL    string `json:"issuerURL"`
-	ClientID     string `json:"clientID"`
-	ClientSecret string `json:"clientSecret"`
-	RedirectURL  string `json:"redirectURL"`
-}
+// type OIDCConfig struct {
+// 	IssuerURL    string `json:"issuerURL"`
+// 	ClientID     string `json:"clientID"`
+// 	ClientSecret string `json:"clientSecret"`
+// 	RedirectURL  string `json:"redirectURL"`
+// }
