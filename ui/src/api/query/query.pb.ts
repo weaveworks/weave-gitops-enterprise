@@ -12,6 +12,7 @@ export enum EnabledComponent {
   sources = "sources",
   gitopssets = "gitopssets",
   templates = "templates",
+  clusterdiscovery = "clusterdiscovery",
 }
 
 export type DoQueryRequest = {

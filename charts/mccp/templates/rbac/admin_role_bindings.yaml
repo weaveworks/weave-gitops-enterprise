@@ -25,6 +25,19 @@ roleRef:
   name: gitops-templates-reader
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: wego-admin-read-automatedclusterdiscoveries
+subjects:
+- kind: User
+  name: "wego-admin"
+  apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: ClusterRole
+  name: gitops-automatedclusterdiscoveries-reader
+  apiGroup: rbac.authorization.k8s.io
+---
 {{- if .Values.config.capi.clusters.namespace }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding

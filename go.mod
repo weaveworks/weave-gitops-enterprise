@@ -23,7 +23,7 @@ require (
 	k8s.io/apimachinery v0.27.7
 	k8s.io/cli-runtime v0.27.2
 	k8s.io/client-go v1.5.2
-	sigs.k8s.io/controller-runtime v0.15.1
+	sigs.k8s.io/controller-runtime v0.15.2
 )
 
 require (
@@ -63,7 +63,8 @@ require (
 	github.com/spf13/pflag v1.0.5
 	github.com/spf13/viper v1.16.0
 	github.com/tonglil/buflogr v1.0.1
-	github.com/weaveworks/cluster-controller v1.5.2
+	github.com/weaveworks/cluster-controller v1.5.5-0.20231109120053-8d9b8827acaf
+	github.com/weaveworks/cluster-reflector-controller v0.0.8-0.20231109120707-55c5023f803d
 	github.com/weaveworks/gitopssets-controller v0.16.4
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac
@@ -80,7 +81,7 @@ require (
 	helm.sh/helm/v3 v3.11.3
 	k8s.io/apiextensions-apiserver v0.27.4
 	k8s.io/kubernetes v1.26.3
-	sigs.k8s.io/cluster-api v1.5.1
+	sigs.k8s.io/cluster-api v1.5.2
 	sigs.k8s.io/kustomize/kyaml v0.14.1
 	sigs.k8s.io/yaml v1.3.0
 )
@@ -187,7 +188,7 @@ require (
 	github.com/shurcooL/graphql v0.0.0-20181231061246-d48a9a75455f // indirect
 	github.com/skeema/knownhosts v1.2.0 // indirect
 	go.mozilla.org/gopgagent v0.0.0-20170926210634-4d7ea76ff71a // indirect
-	golang.org/x/tools v0.12.0 // indirect
+	golang.org/x/tools v0.14.0 // indirect
 	gorm.io/gorm v1.24.0
 )
 
@@ -221,7 +222,7 @@ require (
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.40.0 // indirect
 	go.opentelemetry.io/otel v1.14.0 // indirect
 	go.opentelemetry.io/otel/trace v1.14.0 // indirect
-	golang.org/x/mod v0.12.0 // indirect
+	golang.org/x/mod v0.13.0 // indirect
 )
 
 require (
@@ -359,7 +360,7 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.17.0
-	golang.org/x/sync v0.3.0
+	golang.org/x/sync v0.4.0
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0
@@ -399,7 +400,7 @@ replace (
 	github.com/opencontainers/go-digest => github.com/opencontainers/go-digest v1.0.1-0.20220411205349-bde1400a84be
 
 	// un-comment for local dev
-	//github.com/weaveworks/weave-gitops => ../weave-gitops
+	// github.com/weaveworks/weave-gitops => ../weave-gitops
 
 	github.com/weaveworks/weave-gitops-enterprise/common => ./common
 
