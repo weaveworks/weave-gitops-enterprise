@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -51,7 +50,7 @@ func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
 	assert.NoError(t, err)
 
 	//serialize config
-	expectedSecret := &v1.Secret{
+	expectedSecret := &corev1.Secret{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      secretName,
 			Namespace: corev1.NamespaceDefault,

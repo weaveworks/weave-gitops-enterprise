@@ -7,7 +7,6 @@ import (
 
 	"github.com/weaveworks/weave-gitops/core/logger"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -150,7 +149,7 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
-	_, err := client.CoreV1().ServiceAccounts(namespace).Create(ctx, &v1.ServiceAccount{
+	_, err := client.CoreV1().ServiceAccounts(namespace).Create(ctx, &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceAccountName,
 			Namespace: namespace,
