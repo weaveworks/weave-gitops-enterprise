@@ -152,6 +152,9 @@ func TestBootstrapCmd(t *testing.T) {
 				"--domain-type=localhost",
 				"--private-key=/Users/enekofb/.ssh/id_ed25519",
 				"--private-key-password=\"\"",
+				"--discover-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+				"--client-id=weave-gitops-enterprise",
+				"--client-secret=2JPIcb5IvO1isJ3Zii7jvjqbUtLtTC",
 			},
 			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
