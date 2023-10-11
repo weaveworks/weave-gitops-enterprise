@@ -25,6 +25,8 @@ import {
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import ProximaNova from 'url:./fonts/proximanova-regular.woff';
+import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
@@ -42,8 +44,6 @@ import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import QueryServiceProvider from './contexts/QueryService';
 import RequestContextProvider from './contexts/Request';
 import { TerraformProvider } from './contexts/Terraform';
-import ProximaNova from 'url:./fonts/proximanova-regular.woff';
-import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
 import { addTFSupport } from './utils/request';
