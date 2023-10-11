@@ -8,10 +8,10 @@ import (
 
 // user messages
 const (
-	fluxBoostrapCheckMsg     = "Checking Flux is bootstrapped"
-	fluxExistingInstallMsg   = "Flux is installed"
-	fluxExistingBootstrapMsg = "Flux is bootstrapped"
-	fluxRecoverMsg           = "Please bootstrap Flux into your cluster. Refer to https://fluxcd.io/flux/installation/ for more info."
+	fluxBoostrapCheckMsg     = "checking flux"
+	fluxExistingInstallMsg   = "flux is installed"
+	fluxExistingBootstrapMsg = "flux is bootstrapped"
+	fluxRecoverMsg           = "please bootstrap Flux into your cluster. Refer to https://fluxcd.io/flux/installation/ for more info."
 )
 
 // VerifyFluxInstallation checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
@@ -24,14 +24,14 @@ var VerifyFluxInstallation = BootstrapStep{
 func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) {
 	var runner runner.CLIRunner
 
-	c.Logger.Actionf("Verifying flux installation")
+	c.Logger.Actionf("verifying flux installation")
 	out, err := runner.Run("flux", "check")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("flux installed error: %v. %s", string(out), fluxRecoverMsg)
 	}
 	c.Logger.Successf(fluxExistingInstallMsg)
 
-	c.Logger.Actionf("Verifying flux reconcillation")
+	c.Logger.Actionf("verifying flux reconcillation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxRecoverMsg)

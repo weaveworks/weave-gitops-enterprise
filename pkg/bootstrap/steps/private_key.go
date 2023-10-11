@@ -6,9 +6,9 @@ import (
 )
 
 const (
-	privateKeyMsg         = "Private key path and password\nDisclaimer: private key will be used to push WGE resources into the default repository only. It won't be stored or used anywhere else for any reason."
-	privateKeyPathMsg     = "Private key path"
-	privateKeyPasswordMsg = "Private key password"
+	privateKeyMsg         = "private key path and password\nDisclaimer: private key will be used to push WGE resources into the default repository only. It won't be stored or used anywhere else for any reason."
+	privateKeyPathMsg     = "private key path"
+	privateKeyPasswordMsg = "private key password"
 )
 
 var (

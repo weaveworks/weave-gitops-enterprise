@@ -51,13 +51,13 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRun(opts),
 	}
 
-	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
-	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
-	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install")
+	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "dashboard admin username")
+	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "dashboard admin password")
+	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
 	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "indicate the domain to use in case of using `externaldns`")
-	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
-	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "Private key password. If the private key is encrypted using password")
+	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
+	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "private key password. If the private key is encrypted using password")
 	return cmd
 }
 

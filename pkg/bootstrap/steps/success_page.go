@@ -9,7 +9,7 @@ import (
 )
 
 var CheckUIDomainStep = BootstrapStep{
-	Name: "Preparing dashboard domain",
+	Name: "preparing dashboard domain",
 	Step: checkUIDomain,
 }
 
@@ -19,21 +19,12 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 		return []StepOutput{}, err
 	}
 	if !strings.Contains(c.UserDomain, domainTypeLocalhost) {
-		return []StepOutput{
-			{
-				Name:  "domain msg",
-				Type:  successMsg,
-				Value: fmt.Sprintf(installSuccessMsg, c.WGEVersion, c.UserDomain),
-			},
-		}, nil
+		c.Logger.Successf(installSuccessMsg, c.WGEVersion, c.UserDomain)
+		return []StepOutput{}, nil
 	}
 
+	c.Logger.Successf(localInstallSuccessMsg, c.WGEVersion)
 	return []StepOutput{
-		{
-			Name:  "localhost msg",
-			Type:  successMsg,
-			Value: fmt.Sprintf(localInstallSuccessMsg, c.WGEVersion),
-		},
 		{
 			Name:  "portforward",
 			Type:  typePortforward,

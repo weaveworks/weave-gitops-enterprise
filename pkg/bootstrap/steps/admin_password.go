@@ -12,11 +12,11 @@ import (
 
 const (
 	adminUsernameMsg           = "dashboard admin username (default: wego-admin)"
-	adminPasswordMsg           = "dashboard admin password (Minimum characters: 6)"
-	secretConfirmationMsg      = "Admin login credentials has been created successfully!"
-	adminSecretExistsMsgFormat = "Admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again."
-	existingCredsMsg           = "Do you want to continue using existing credentials"
-	existingCredsExitMsg       = "If you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap..."
+	adminPasswordMsg           = "dashboard admin password (minimum characters: 6)"
+	secretConfirmationMsg      = "admin login credentials has been created successfully!"
+	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again."
+	existingCredsMsg           = "do you want to continue using existing credentials"
+	existingCredsExitMsg       = "if you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap..."
 )
 
 const (
@@ -67,7 +67,7 @@ func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 	}
 
 	return BootstrapStep{
-		Name:  "User Authentication",
+		Name:  "user authentication",
 		Input: inputs,
 		Step:  createCredentials,
 	}
@@ -115,7 +115,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		"username": []byte(c.Username),
 		"password": encryptedPassword,
 	}
-	c.Logger.Actionf("Dashboard admin username: %s", c.Username)
+	c.Logger.Actionf("dashboard admin username: %s", c.Username)
 
 	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
@@ -125,12 +125,9 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		Data: data,
 	}
 
+	c.Logger.Successf(secretConfirmationMsg)
+
 	return []StepOutput{
-		{
-			Name:  "admin secret is created",
-			Type:  successMsg,
-			Value: secretConfirmationMsg,
-		},
 		{
 			Name:  adminSecretName,
 			Type:  typeSecret,

@@ -15,12 +15,12 @@ import (
 )
 
 const (
-	externalDNSWarningMsg = `Please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.
+	externalDNSWarningMsg = `please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.
 For more information about external DNS, please refer to: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
 `
-	clusterDomainMsg = "Please enter your cluster domain"
+	clusterDomainMsg = "please enter your cluster domain"
 
-	wgeInstallMsg          = "Installing v%s ... It may take a few minutes."
+	wgeInstallMsg          = "installing v%s ... It may take a few minutes."
 	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
 	localInstallSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at http://localhost:8000/"
 )
@@ -60,7 +60,7 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 	}
 
 	return BootstrapStep{
-		Name:   "Install Weave Gitops Enterprise",
+		Name:   "install Weave Gitops Enterprise",
 		Input:  inputs,
 		Step:   installWge,
 		Output: []StepOutput{},
@@ -83,14 +83,12 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
-	c.Logger.Actionf("Rendering HelmRepository file")
 	wgehelmRepo, err := constructWgeHelmRepository()
 	if err != nil {
 		return []StepOutput{}, err
 	}
-	c.Logger.Actionf("Rendered HelmRepository file")
+	c.Logger.Actionf("rendered HelmRepository file")
 
-	c.Logger.Actionf("Rendering HelmRelease file")
 	gitOpsSetsValues := map[string]interface{}{
 		"enabled": true,
 		"controllerManager": map[string]interface{}{
@@ -131,7 +129,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	if err != nil {
 		return []StepOutput{}, err
 	}
-	c.Logger.Actionf("Rendered HelmRelease file")
+	c.Logger.Actionf("rendered HelmRelease file")
 
 	helmrepoFile := fileContent{
 		Name:      wgeHelmrepoFileName,
