@@ -111,7 +111,6 @@ func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string)
 			Name: name,
 			Labels: map[string]string{
 				"app.kubernetes.io/managed-by": "cluster-connector",
-				// "clusters.weave.works/connect-cluster-hub-api": hubClusterAPIPath,
 			},
 		},
 		Subjects: []rbacv1.Subject{
@@ -157,7 +156,6 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 			Namespace: namespace,
 			Labels: map[string]string{
 				"app.kubernetes.io/managed-by": "cluster-connector",
-				// "clusters.weave.works/connect-cluster-hub-api": hubClusterAPIPath,
 			},
 		},
 	}, metav1.CreateOptions{})

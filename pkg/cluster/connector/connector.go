@@ -205,8 +205,6 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 	// load hub kubeconfig
 	hubClusterConfig, err := configForContext(ctx, pathOpts, "")
 	if err != nil {
-		// ConnectCluster connects a cluster to a spoke cluster given its name and context
-		// Given ClusterOptions, a Service account, Cluster Role, Cluster Role binding and secret are created in the remote cluster and token is used to access
 		return err
 	}
 
@@ -220,7 +218,6 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 		return err
 	}
 
-	// ReconcileServiceAccount to create the ServiceAccount/ClusterRole/ClusterRoleBinding/Secret
 	spokeKubernetesClient, err := kubernetes.NewForConfig(spokeClusterConfig)
 	if err != nil {
 		return err
@@ -260,3 +257,4 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 
 	return nil
 }
+  
