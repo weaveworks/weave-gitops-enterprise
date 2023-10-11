@@ -33,7 +33,7 @@ func TestPayload(t *testing.T) {
 	defer httpmock.DeactivateAndReset()
 	httpmock.RegisterResponder(
 		http.MethodDelete,
-		"http://localhost:8000/v1/clusters",
+		"http://localhost:8000/v1/templates/deletion-pull-request",
 		func(r *http.Request) (*http.Response, error) {
 			var f interface{}
 			err := json.NewDecoder(r.Body).Decode(&f)
@@ -75,7 +75,7 @@ func TestGitProviderToken(t *testing.T) {
 
 	httpmock.RegisterResponder(
 		http.MethodDelete,
-		"http://localhost:8000/v1/clusters",
+		"http://localhost:8000/v1/templates/deletion-pull-request",
 		func(r *http.Request) (*http.Response, error) {
 			h, ok := r.Header["Git-Provider-Token"]
 			assert.True(t, ok)

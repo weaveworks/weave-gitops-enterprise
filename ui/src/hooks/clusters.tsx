@@ -78,7 +78,7 @@ const useClusters = () => {
     (data: DeleteClustersPRRequestEnriched, token: string | null) => {
       setLoading(true);
       return api
-        .DeleteClustersPullRequest(data, {
+        .CreateDeletionPullRequest(data, {
           headers: new Headers({ 'Git-Provider-Token': `token ${token}` }),
         })
         .finally(() => setLoading(false));

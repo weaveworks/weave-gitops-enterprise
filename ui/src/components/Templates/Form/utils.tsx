@@ -3,16 +3,16 @@ import {
   GitRepository,
   Source,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
+import GitUrlParse from 'git-url-parse';
+import styled from 'styled-components';
+import URI from 'urijs';
+import { GitRepositoryEnriched } from '.';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { GitopsClusterEnriched } from '../../../types/custom';
-import { Resource } from '../Edit/EditButton';
-import GitUrlParse from 'git-url-parse';
-import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
-import { GitRepositoryEnriched } from '.';
-import styled from 'styled-components';
+import { GitopsClusterEnriched } from '../../../types/custom';
+import { Resource } from '../Edit/EditButton';
 
 const yamlConverter = require('js-yaml');
 
@@ -153,16 +153,11 @@ export function getDefaultGitRepo(
 
 export const FormWrapper = styled.form`
   width: 80%;
-  .preview-cta,
-  .create-cta {
-    padding: ${({ theme }) => theme.spacing.small};
-    button {
-      width: 200px;
+  .gitops-cta {
+    padding: ${({ theme }) => theme.spacing.medium};
+    button:first-of-type {
+      margin-right: ${({ theme }) => theme.spacing.base};
     }
-  }
-  .preview-loading,
-  .create-loading {
-    padding: ${({ theme }) => theme.spacing.base};
   }
   div[class*='MuiInput-root'] {
     border: 1px solid ${props => props.theme.colors.neutral20};

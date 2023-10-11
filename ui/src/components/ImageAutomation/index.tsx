@@ -1,10 +1,8 @@
 import { Alert } from '@material-ui/lab';
-import { Flex } from '@weaveworks/weave-gitops';
-import { useCheckCRDInstalled } from '../../contexts/ImageAutomation';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import ImageAutomation from './ImageAutomation';
-import OnboardingImageAutomationMessage from './OnboardingMessage';
+import { Flex, ImageAutomation, useCheckCRDInstalled } from '@weaveworks/weave-gitops';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import OnboardingImageAutomationMessage from './OnboardingMessage';
 const crdName = 'imageupdateautomations.image.toolkit.fluxcd.io';
 
 function ImageAutomationPage() {

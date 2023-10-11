@@ -65,7 +65,6 @@ ui/.uptodate: ui/*
 		--build-arg=version=$(WEAVE_GITOPS_VERSION) \
 		--build-arg=revision=$(GIT_REVISION) \
 		--build-arg=GITHUB_TOKEN=$(GITHUB_BUILD_TOKEN) \
-		--build-arg=REACT_APP_DISABLE_PROGRESSIVE_DELIVERY=$(REACT_APP_DISABLE_PROGRESSIVE_DELIVERY) \
 		--build-arg=now=$(TIME_NOW) \
 		--tag $(UI_SERVER) \
 		--file ui/Dockerfile \
@@ -206,10 +205,10 @@ CALENDAR_VERSION=$(shell date +"%Y-%m")
 
 .PHONY: node_modules
 node_modules: package.json yarn.lock
-	yarn config set network-timeout 300000 && yarn install --prod --frozen-lockfile
+	yarn config set network-timeout 300000 && yarn install --frozen-lockfile
 
 ui-build: node_modules $(shell find ui/src -type f)
-	REACT_APP_DISABLE_PROGRESSIVE_DELIVERY="$(REACT_APP_DISABLE_PROGRESSIVE_DELIVERY)" REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
+	REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build
 
 # This job assumes that the weave-gitops repo located next to this repo in the filesystem
 core-ui:

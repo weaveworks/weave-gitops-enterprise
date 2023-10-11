@@ -11,6 +11,8 @@ import (
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
+	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
+	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -29,6 +31,7 @@ const (
 	CategorySource     ObjectCategory = "source"
 	CategoryEvent      ObjectCategory = "event"
 	CategoryGitopsSet  ObjectCategory = "gitopsset"
+	CategoryTemplate   ObjectCategory = "template"
 )
 
 type ObjectKind struct {
@@ -233,6 +236,46 @@ var (
 		MessageFunc:     defaultFluxObjectMessageFunc,
 		Category:        CategoryGitopsSet,
 	}
+
+	GitopsTemplateObjectKind = ObjectKind{
+		Gvk: gapiv1.GroupVersion.WithKind(gapiv1.Kind),
+		NewClientObjectFunc: func() client.Object {
+			return &gapiv1.GitOpsTemplate{}
+		},
+		AddToSchemeFunc: gapiv1.AddToScheme,
+		StatusFunc: func(obj client.Object) ObjectStatus {
+			return NoStatus
+		},
+		MessageFunc: func(obj client.Object) string {
+			e, ok := obj.(*gapiv1.GitOpsTemplate)
+			if !ok {
+				return ""
+			}
+
+			return e.Spec.Description
+		},
+		Category: CategoryTemplate,
+	}
+
+	CapiTemplateObjectKind = ObjectKind{
+		Gvk: capiv1.GroupVersion.WithKind(capiv1.Kind),
+		NewClientObjectFunc: func() client.Object {
+			return &capiv1.CAPITemplate{}
+		},
+		AddToSchemeFunc: capiv1.AddToScheme,
+		StatusFunc: func(obj client.Object) ObjectStatus {
+			return NoStatus
+		},
+		MessageFunc: func(obj client.Object) string {
+			e, ok := obj.(*capiv1.CAPITemplate)
+			if !ok {
+				return ""
+			}
+
+			return e.Spec.Description
+		},
+		Category: CategoryTemplate,
+	}
 )
 
 // SupportedObjectKinds list with the default supported Object resources to query.
@@ -246,6 +289,8 @@ var SupportedObjectKinds = []ObjectKind{
 	BucketObjectKind,
 	PolicyAgentAuditEventObjectKind,
 	GitOpsSetsObjectKind,
+	GitopsTemplateObjectKind,
+	CapiTemplateObjectKind,
 }
 
 // SupportedRbacKinds list with the default supported RBAC resources.
@@ -313,31 +358,7 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 		return t, nil
 	case *gitopssets.GitOpsSet:
 		return t, nil
-	case *corev1.Event:
-		e, ok := obj.(*corev1.Event)
-		if !ok {
-			return nil, fmt.Errorf("failed to cast object to event")
-		}
-		return &eventAdapter{e}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)
-}
-
-type EventLike interface {
-	client.Object
-	GetConditions() []metav1.Condition
-}
-
-type eventAdapter struct {
-	*corev1.Event
-}
-
-func (ea *eventAdapter) GetConditions() []metav1.Condition {
-	cond := metav1.Condition{
-		Type:    string(NoStatus),
-		Message: ea.Message,
-		Status:  "True",
-	}
-	return []metav1.Condition{cond}
 }

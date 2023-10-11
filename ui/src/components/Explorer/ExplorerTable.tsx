@@ -26,6 +26,7 @@ type Props = {
   enableBatchSync?: boolean;
   sortField?: string;
   extraColumns?: FieldWithIndex[];
+  linkToObject?: boolean;
 };
 
 function ExplorerTable({
@@ -35,6 +36,7 @@ function ExplorerTable({
   sortField,
   onColumnHeaderClick,
   extraColumns = [],
+  linkToObject = true,
 }: Props) {
   const r: Object[] = _.map(rows, o => ({
     // Doing some things here to make this work with the DataTable.
@@ -59,6 +61,11 @@ function ExplorerTable({
             namespace: o.namespace,
             clusterName: o.cluster,
           });
+        } else if (page === Routes.Templates) {
+          url = formatURL(page, {
+            search: o.name + '_',
+            filters: 'namespace: ' + o.namespace + '_',
+          });
         } else {
           url = formatURL(page, {
             name: o.name,
@@ -67,7 +74,7 @@ function ExplorerTable({
           });
         }
 
-        return <Link to={url}>{o.name}</Link>;
+        return linkToObject ? <Link to={url}>{o.name}</Link> : <>{o.name}</>;
       },
       sortValue: () => 'name',
       defaultSort: sortField === 'name',

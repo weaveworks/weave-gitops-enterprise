@@ -4,7 +4,6 @@ import {
   Flex,
   GitRepository,
   Link,
-  LoadingPage,
   Text,
   useListSources,
   ThemeTypes,
@@ -390,10 +389,6 @@ const CreatePolicyConfig = () => {
                 formError={formError}
               />
             </Flex>
-            <PreviewPRModal
-              formData={formData}
-              getClusterAutomations={getClusterAutomations}
-            />
             <GitOps
               formData={formData}
               setFormData={setFormData}
@@ -402,15 +397,19 @@ const CreatePolicyConfig = () => {
               formError={formError}
               enableGitRepoSelection={true}
             />
-            {loading ? (
-              <LoadingPage className="create-loading" />
-            ) : (
-              <Flex end className="create-cta">
-                <Button type="submit" disabled={!isAuthenticated}>
-                  CREATE PULL REQUEST
-                </Button>
-              </Flex>
-            )}
+            <Flex end className="gitops-cta">
+              <Button
+                loading={loading}
+                type="submit"
+                disabled={!isAuthenticated || loading}
+              >
+                CREATE PULL REQUEST
+              </Button>
+              <PreviewPRModal
+                formData={formData}
+                getClusterAutomations={getClusterAutomations}
+              />
+            </Flex>
           </FormWrapperPolicyConfig>
         </NotificationsWrapper>
       </CallbackStateContextProvider>

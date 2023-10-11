@@ -126,7 +126,6 @@ func TestIndexer_Metrics(t *testing.T) {
 		}
 		assertMetrics(g, metricsUrl, wantMetrics)
 	})
-
 }
 
 func TestIndexer_RemoveByQuery(t *testing.T) {
@@ -200,6 +199,161 @@ func TestIndexer_RemoveByQuery(t *testing.T) {
 			g.Expect(err).NotTo(HaveOccurred())
 
 			all, err = iter.All()
+			g.Expect(err).NotTo(HaveOccurred())
+
+			names := []string{}
+			for _, obj := range all {
+				names = append(names, obj.Name)
+			}
+
+			g.Expect(names).To(Equal(tt.expected))
+
+		})
+	}
+}
+
+func TestIndexer_RemoveByQueryWithPagination(t *testing.T) {
+	g := NewWithT(t)
+	tests := []struct {
+		name     string
+		query    string
+		objects  []models.Object
+		expected []string
+	}{
+		{
+			name:  "removes by cluster",
+			query: "+cluster:management",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Kind:       "Namespace",
+					Name:       "name-1",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+				{
+					Cluster:    "othercluster",
+					Kind:       "Namespace",
+					Name:       "name-2",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+				{
+					Cluster:    "management",
+					Kind:       "Namespace",
+					Name:       "name-3",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+				{
+					Cluster:    "management",
+					Kind:       "Namespace",
+					Name:       "name-4",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+				{
+					Cluster:    "othercluster",
+					Kind:       "Namespace",
+					Name:       "name-5",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+				{
+					Cluster:    "management",
+					Kind:       "Namespace",
+					Name:       "name-6",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+				{
+					Cluster:    "othercluster",
+					Kind:       "Namespace",
+					Name:       "name-7",
+					APIGroup:   "anyGroup",
+					APIVersion: "anyVersion",
+					Category:   "automation",
+					Namespace:  "anyNamespace",
+				},
+			},
+			expected: []string{"name-2", "name-5", "name-7"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			idxFileLocation := filepath.Join(t.TempDir(), indexFile)
+			mapping := bleve.NewIndexMapping()
+
+			index, err := bleve.New(idxFileLocation, mapping)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			s, err := NewStore(StorageBackendSQLite, t.TempDir(), logr.Discard())
+			g.Expect(err).NotTo(HaveOccurred())
+
+			idx := &bleveIndexer{
+				idx:   index,
+				store: s,
+			}
+
+			err = idx.Add(context.Background(), tt.objects)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			err = s.StoreObjects(context.Background(), tt.objects)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			// Ensure things got written to the index.
+			// Iterate through all pages without an initial offset.
+			iter, err := idx.Search(context.Background(), query{}, nil)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			pageObjects, err := iter.Page(3, 0)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(len(pageObjects)).To(Equal(3))
+
+			pageObjects, err = iter.Page(3, 3)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(len(pageObjects)).To(Equal(3))
+
+			pageObjects, err = iter.Page(3, 6)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(len(pageObjects)).To(Equal(1))
+
+			// Iterate through all pages with an initial offset.
+			iter, err = idx.Search(context.Background(), query{}, nil)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			pageObjects, err = iter.Page(2, 2)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(len(pageObjects)).To(Equal(2))
+
+			pageObjects, err = iter.Page(2, 4)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(len(pageObjects)).To(Equal(2))
+
+			pageObjects, err = iter.Page(2, 6)
+			g.Expect(err).NotTo(HaveOccurred())
+			g.Expect(len(pageObjects)).To(Equal(1))
+
+			// Check that required objects were removed.
+			err = idx.RemoveByQuery(context.Background(), tt.query)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			iter, err = idx.Search(context.Background(), query{}, nil)
+			g.Expect(err).NotTo(HaveOccurred())
+
+			all, err := iter.All()
 			g.Expect(err).NotTo(HaveOccurred())
 
 			names := []string{}

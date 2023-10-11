@@ -9,3 +9,4 @@ Information
 - User docs at https://docs.gitops.weave.works
 - Architecture [docs/architecture/](./docs/architecture/)
 - Swagger API is available [here](./cmd/clusters-service/api/cluster_services.swagger.json).
+

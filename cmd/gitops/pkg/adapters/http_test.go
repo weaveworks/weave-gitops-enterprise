@@ -707,14 +707,14 @@ func TestGetClusterKubeconfig(t *testing.T) {
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, s string, err error) {
-				assert.EqualError(t, err, "unable to GET cluster kubeconfig from \"https://weave.works/api/v1/clusters/dev/kubeconfig\": Get \"https://weave.works/api/v1/clusters/dev/kubeconfig\": oops")
+				assert.EqualError(t, err, "unable to GET cluster kubeconfig from \"https://weave.works/api/v1/namespaces/default/clusters/dev/kubeconfig\": Get \"https://weave.works/api/v1/namespaces/default/clusters/dev/kubeconfig\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, s string, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/clusters/dev/kubeconfig\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/namespaces/default/clusters/dev/kubeconfig\" was 400")
 			},
 		},
 		{
@@ -734,7 +734,7 @@ func TestGetClusterKubeconfig(t *testing.T) {
 			client := adapters.NewHTTPClient()
 			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/clusters/dev/kubeconfig", tt.responder)
+			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/namespaces/default/clusters/dev/kubeconfig", tt.responder)
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
@@ -761,21 +761,21 @@ func TestDeleteClusters(t *testing.T) {
 			name:      "service error",
 			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("./testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to Delete cluster and create pull request to \"https://weave.works/api/v1/clusters\": something bad happened")
+				assert.EqualError(t, err, "unable to Delete cluster and create pull request to \"https://weave.works/api/v1/templates/deletion-pull-request\": something bad happened")
 			},
 		},
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to Delete cluster and create pull request to \"https://weave.works/api/v1/clusters\": Delete \"https://weave.works/api/v1/clusters\": oops")
+				assert.EqualError(t, err, "unable to Delete cluster and create pull request to \"https://weave.works/api/v1/templates/deletion-pull-request\": Delete \"https://weave.works/api/v1/templates/deletion-pull-request\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "response status for Delete \"https://weave.works/api/v1/clusters\" was 400")
+				assert.EqualError(t, err, "response status for Delete \"https://weave.works/api/v1/templates/deletion-pull-request\" was 400")
 			},
 		},
 	}
@@ -788,7 +788,7 @@ func TestDeleteClusters(t *testing.T) {
 			client := adapters.NewHTTPClient()
 			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("DELETE", testutils.BaseURI+"/v1/clusters", tt.responder)
+			httpmock.RegisterResponder("DELETE", testutils.BaseURI+"/v1/templates/deletion-pull-request", tt.responder)
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)

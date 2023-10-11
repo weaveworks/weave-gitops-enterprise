@@ -1,0 +1,46 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: weave-gitops-quickstart-main
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  ref:
+    branch: main
+  url: https://github.com/weaveworks/weave-gitops-quickstart
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: kube-prometheus-stack
+  namespace: flux-system
+spec:
+  interval: 10m0s
+  sourceRef:
+    kind: GitRepository
+    name: weave-gitops-quickstart-main
+  path: ./monitoring/kube-prometheus-stack
+  prune: true
+  targetNamespace: monitoring
+  wait: true
+---
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: monitoring-config
+  namespace: flux-system
+spec:
+  interval: 1m0s
+  sourceRef:
+    kind: GitRepository
+    name: weave-gitops-quickstart-main
+  path: ./monitoring/weave-gitops
+  dependsOn:
+    - name: kube-prometheus-stack
+  prune: true
+  targetNamespace: monitoring

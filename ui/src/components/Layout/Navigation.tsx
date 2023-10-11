@@ -143,10 +143,9 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
       disabled: !isFlagEnabled('WEAVE_GITOPS_FEATURE_PIPELINES'),
     },
     {
-      label: 'Delivery ',
+      label: 'Progressive Delivery ',
       link: { value: Routes.Canaries },
       icon: IconType.DeliveryIcon,
-      disabled: process.env.REACT_APP_DISABLE_PROGRESSIVE_DELIVERY === 'true',
     },
     {
       label: 'Flux Runtime',

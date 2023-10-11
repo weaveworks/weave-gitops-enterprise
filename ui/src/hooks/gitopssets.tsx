@@ -30,7 +30,11 @@ import _ from 'lodash';
 const GITOPSSETS_KEY = 'gitopssets';
 const GITOPSSETS_POLL_INTERVAL = 5000;
 
-export function useListGitOpsSets() {
+export function useListGitOpsSets(
+  opts: { enabled: boolean } = {
+    enabled: true,
+  },
+) {
   const { setNotifications } = useNotifications();
 
   const onError = (error: Error) =>
@@ -43,6 +47,7 @@ export function useListGitOpsSets() {
       keepPreviousData: true,
       refetchInterval: GITOPSSETS_POLL_INTERVAL,
       onError,
+      ...opts,
     },
   );
 }

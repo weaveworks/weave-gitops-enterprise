@@ -25,7 +25,6 @@ var _ = Describe("Update Profile(s)", func() {
 				"--cluster", "prod",
 				"--namespace", "test-namespace",
 				"--config-repo", "https://ssh@github:test/test.git",
-				"--auto-merge", "true",
 				"--endpoint", "localhost:8080",
 			})
 

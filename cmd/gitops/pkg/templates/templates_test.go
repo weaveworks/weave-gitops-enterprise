@@ -35,21 +35,21 @@ func TestCreatePullRequestFromTemplate_CAPI(t *testing.T) {
 			name:      "service error",
 			responder: httpmock.NewJsonResponderOrPanic(500, httpmock.File("../adapters/testdata/service_error.json")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/clusters\": something bad happened")
+				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/templates/pull-request\": something bad happened")
 			},
 		},
 		{
 			name:      "error returned",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/clusters\": Post \"https://weave.works/api/v1/clusters\": oops")
+				assert.EqualError(t, err, "unable to POST template and create pull request to \"https://weave.works/api/v1/templates/pull-request\": Post \"https://weave.works/api/v1/templates/pull-request\": oops")
 			},
 		},
 		{
 			name:      "unexpected status code",
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, result string, err error) {
-				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/clusters\" was 400")
+				assert.EqualError(t, err, "response status for POST \"https://weave.works/api/v1/templates/pull-request\" was 400")
 			},
 		},
 	}
@@ -62,7 +62,7 @@ func TestCreatePullRequestFromTemplate_CAPI(t *testing.T) {
 			client := adapters.NewHTTPClient()
 			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/clusters", tt.responder)
+			httpmock.RegisterResponder("POST", testutils.BaseURI+"/v1/templates/pull-request", tt.responder)
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
