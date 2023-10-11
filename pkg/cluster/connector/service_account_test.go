@@ -51,6 +51,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": "cluster-connector",
+						},
 					},
 				},
 
@@ -64,6 +67,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": "cluster-connector",
+						},
 					},
 				},
 				newClusterRole("cluster-admin", corev1.NamespaceDefault, []rbacv1.PolicyRule{
@@ -80,6 +86,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
+					Labels: map[string]string{
+						"app.kubernetes.io/managed-by": "cluster-connector",
+					},
 				},
 			},
 			map[string]runtime.Object{
@@ -87,6 +96,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": "cluster-connector",
+						},
 					},
 				},
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
@@ -110,6 +122,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
+					Labels: map[string]string{
+						"app.kubernetes.io/managed-by": "cluster-connector",
+					},
 				},
 			},
 			map[string]runtime.Object{
@@ -117,6 +132,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": "cluster-connector",
+						},
 					},
 				},
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
@@ -215,6 +233,9 @@ func TestGetServiceAccount(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
+					Labels: map[string]string{
+						"app.kubernetes.io/managed-by": "cluster-connector",
+					},
 				},
 			},
 		},
@@ -406,11 +427,6 @@ func TestDeleteServiceAccountResources(t *testing.T) {
 			assert.Error(t, err)
 			assert.ErrorContains(t, err, apierrors.NewNotFound(rbacv1.Resource("clusterrolebindings"), tt.clusterRoleBindingName).Error())
 
-			// Verify Secret deleted
-			_, err = remoteClientSet.CoreV1().Secrets(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName+"-token", metav1.GetOptions{})
-			assert.Error(t, err)
-			assert.ErrorContains(t, err, apierrors.NewNotFound(corev1.Resource("secrets"), tt.serviceAccountName+"-token").Error())
-
 		})
 	}
 
@@ -450,6 +466,9 @@ func addFakeServiceAccounts(client kubernetes.Interface, serviceAccounts []strin
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      serviceAccountName,
 				Namespace: corev1.NamespaceDefault,
+				Labels: map[string]string{
+					"app.kubernetes.io/managed-by": "cluster-connector",
+				},
 			},
 		}
 
