@@ -3,7 +3,8 @@ package connector
 import (
 	"context"
 	"fmt"
-	"maps"
+
+	"golang.org/x/exp/maps"
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/logger"
@@ -82,7 +83,6 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	if err != nil {
 		return err
 	}
-
 	// Get the context from SpokeClusterContext
 	spokeClusterConfig, err := configForContext(ctx, pathOpts, options.RemoteClusterContext)
 	if err != nil {
@@ -257,4 +257,3 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 
 	return nil
 }
-  
