@@ -226,19 +226,21 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 		return err
 	}
 
-	req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+	managedbyReq, err := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+	if err != nil {
+		return err
+	}
+
 	selector := labels.NewSelector()
-	selector = selector.Add(*req)
-	serviceAccountName, err := getServiceAccountName(ctx, spokeKubernetesClient, options, selector)
+	selector = selector.Add(*managedbyReq)
+	err = checkServiceAccountName(ctx, spokeKubernetesClient, options, selector)
 	if err != nil {
 		return err
 	}
-	options.ServiceAccountName = serviceAccountName
-	clusterRoleBindingName, err := getClusterRoleBindingName(ctx, spokeKubernetesClient, options, selector)
+	err = checkClusterRoleBindingName(ctx, spokeKubernetesClient, options, selector)
 	if err != nil {
 		return err
 	}
-	options.ClusterRoleBindingName = clusterRoleBindingName
 
 	err = DeleteServiceAccountResources(ctx, spokeKubernetesClient, *options)
 	if err != nil {

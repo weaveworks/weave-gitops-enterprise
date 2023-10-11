@@ -240,14 +240,16 @@ func TestGetServiceAccount(t *testing.T) {
 
 }
 
-func TestGetServiceAccountName(t *testing.T) {
+func TestCheckServiceAccountName(t *testing.T) {
 	var tests = []struct {
-		name              string
-		existingResources []runtime.Object
-		expected          string
+		name               string
+		serviceAccountName string
+		existingResources  []runtime.Object
+		expectedError      string
 	}{
 		{
-			"get existing service account name matching label cluster-controller",
+			"check existing service account name matching label cluster-controller and service account name",
+			"test-service-account",
 			[]runtime.Object{
 				&v1.ServiceAccount{
 					ObjectMeta: metav1.ObjectMeta{
@@ -259,7 +261,23 @@ func TestGetServiceAccountName(t *testing.T) {
 					},
 				},
 			},
+			"",
+		},
+		{
+			"check existing service account name not matching label cluster-controller and name provided",
 			"test-service-account",
+			[]runtime.Object{
+				&v1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "other-service-account",
+						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": "cluster-connector",
+						},
+					},
+				},
+			},
+			"service account not found",
 		},
 	}
 
@@ -267,7 +285,8 @@ func TestGetServiceAccountName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			remoteClientSet := fake.NewSimpleClientset()
 			clusterConnectionOpts := ClusterConnectionOptions{
-				GitopsClusterName: types.NamespacedName{Namespace: corev1.NamespaceDefault},
+				GitopsClusterName:  types.NamespacedName{Namespace: corev1.NamespaceDefault},
+				ServiceAccountName: tt.serviceAccountName,
 			}
 
 			addFakeResources(t, remoteClientSet, tt.existingResources...)
@@ -276,27 +295,40 @@ func TestGetServiceAccountName(t *testing.T) {
 			selector := labels.NewSelector()
 			selector = selector.Add(*req)
 
-			serviceAccountName, err := getServiceAccountName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, serviceAccountName, "service account name found doesn't match expected")
+			err := checkServiceAccountName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
+			if tt.expectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.expectedError)
+			}
 
 		})
 	}
 
 }
 
-func TestGetClusterRoleBindingName(t *testing.T) {
+func TestCheckClusterRoleBindingName(t *testing.T) {
 	var tests = []struct {
-		name              string
-		existingResources []runtime.Object
-		expected          string
+		name                   string
+		clusterRoleBindingName string
+		existingResources      []runtime.Object
+		expectedError          string
 	}{
 		{
 			"get existing cluster role binding name matching label cluster-controller",
+			"test-service-account-cluster-role-binding",
 			[]runtime.Object{
 				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
 			},
+			"",
+		},
+		{
+			"check existing cluster role binding name not matching label cluster-controller and name provided",
 			"test-service-account-cluster-role-binding",
+			[]runtime.Object{
+				newClusterRoleBinding("other-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+			},
+			"cluster role binding not found",
 		},
 	}
 
@@ -304,7 +336,8 @@ func TestGetClusterRoleBindingName(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			remoteClientSet := fake.NewSimpleClientset()
 			clusterConnectionOpts := ClusterConnectionOptions{
-				GitopsClusterName: types.NamespacedName{Namespace: corev1.NamespaceDefault},
+				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
+				ClusterRoleBindingName: tt.clusterRoleBindingName,
 			}
 
 			addFakeResources(t, remoteClientSet, tt.existingResources...)
@@ -313,10 +346,12 @@ func TestGetClusterRoleBindingName(t *testing.T) {
 			selector := labels.NewSelector()
 			selector = selector.Add(*req)
 
-			clusterRoleBindingName, err := getClusterRoleBindingName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, clusterRoleBindingName, "cluster role binding name found doesn't match expected")
-
+			err := checkClusterRoleBindingName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
+			if tt.expectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.expectedError)
+			}
 		})
 	}
 

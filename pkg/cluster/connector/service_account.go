@@ -111,6 +111,7 @@ func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string)
 			Name: name,
 			Labels: map[string]string{
 				"app.kubernetes.io/managed-by": "cluster-connector",
+				// "clusters.weave.works/connect-cluster-hub-api": hubClusterAPIPath,
 			},
 		},
 		Subjects: []rbacv1.Subject{
@@ -156,6 +157,7 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 			Namespace: namespace,
 			Labels: map[string]string{
 				"app.kubernetes.io/managed-by": "cluster-connector",
+				// "clusters.weave.works/connect-cluster-hub-api": hubClusterAPIPath,
 			},
 		},
 	}, metav1.CreateOptions{})
@@ -238,26 +240,31 @@ func deleteClusterRoleBinding(ctx context.Context, client kubernetes.Interface, 
 	return nil
 }
 
-func getServiceAccountName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) (string, error) {
+func checkServiceAccountName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) error {
 	serviceAccountList, err := client.CoreV1().ServiceAccounts(options.GitopsClusterName.Namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector.String()})
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	if len(serviceAccountList.Items) > 0 {
-		return serviceAccountList.Items[0].Name, nil
+	for _, serviceAccount := range serviceAccountList.Items {
+		if serviceAccount.Name == options.ServiceAccountName {
+			return nil
+		}
 	}
-	return "", fmt.Errorf("service account not found with label %s", labelSelector.String())
+
+	return fmt.Errorf("service account not found with label %s and name %s", labelSelector.String(), options.ServiceAccountName)
 }
 
-func getClusterRoleBindingName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) (string, error) {
+func checkClusterRoleBindingName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) error {
 	clusterRoleBindingsList, err := client.RbacV1().ClusterRoleBindings().List(ctx, metav1.ListOptions{LabelSelector: labelSelector.String()})
 	if err != nil {
-		return "", err
+		return err
 	}
 
-	if len(clusterRoleBindingsList.Items) > 0 {
-		return clusterRoleBindingsList.Items[0].Name, nil
+	for _, clusterRoleBinding := range clusterRoleBindingsList.Items {
+		if clusterRoleBinding.Name == options.ClusterRoleBindingName {
+			return nil
+		}
 	}
-	return "", fmt.Errorf("cluster role binding not found with label %s", labelSelector.String())
+	return fmt.Errorf("cluster role binding not found with label %s and name %s", labelSelector.String(), options.ClusterRoleBindingName)
 }

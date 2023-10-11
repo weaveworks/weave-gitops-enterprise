@@ -10,9 +10,11 @@ import (
 )
 
 type disconnectOptionsFlags struct {
-	RemoteClusterContext string
-	Namespace            string
-	Debug                string
+	RemoteClusterContext   string
+	ServiceAccountName     string
+	ClusterRoleBindingName string
+	Namespace              string
+	Debug                  string
 }
 
 var disconnectOptionsCmdFlags disconnectOptionsFlags
@@ -33,6 +35,8 @@ gitops disconnect cluster [PARAMS] <CLUSTER_NAME>
 	}
 
 	cmd.Flags().StringVar(&disconnectOptionsCmdFlags.RemoteClusterContext, "connect-context", "", "Context name of the remote cluster")
+	cmd.Flags().StringVar(&disconnectOptionsCmdFlags.ServiceAccountName, "service-account", "weave-gitops-enterprise", "Service account name to be created/used")
+	cmd.Flags().StringVar(&disconnectOptionsCmdFlags.ClusterRoleBindingName, "cluster-role-binding", "weave-gitops-enterprise", "Cluster role binding name to be created/used")
 	cmd.Flags().StringVarP(&disconnectOptionsCmdFlags.Namespace, "namespace", "n", "default", "Namespace of remote cluster")
 	cmd.Flags().StringVarP(&disconnectOptionsCmdFlags.Debug, "debug", "d", "INFO", "Verbose level of logs")
 
@@ -44,9 +48,11 @@ func disconnectClusterCmdRunE(opts *config.Options) func(*cobra.Command, []strin
 		clusterName := args[0]
 
 		options := connector.ClusterConnectionOptions{
-			GitopsClusterName:    types.NamespacedName{Name: clusterName, Namespace: disconnectOptionsCmdFlags.Namespace},
-			RemoteClusterContext: disconnectOptionsCmdFlags.RemoteClusterContext,
-			ConfigPath:           opts.Kubeconfig,
+			GitopsClusterName:      types.NamespacedName{Name: clusterName, Namespace: disconnectOptionsCmdFlags.Namespace},
+			ServiceAccountName:     disconnectOptionsCmdFlags.ServiceAccountName,
+			ClusterRoleBindingName: disconnectOptionsCmdFlags.ClusterRoleBindingName,
+			RemoteClusterContext:   disconnectOptionsCmdFlags.RemoteClusterContext,
+			ConfigPath:             opts.Kubeconfig,
 		}
 
 		newLogger, _ := logger.New(disconnectOptionsCmdFlags.Debug, false)
