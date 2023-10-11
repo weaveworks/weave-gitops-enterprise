@@ -169,7 +169,7 @@ func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) e
 		return err
 	}
 
-	managedbyReq, err := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+	managedbyReq, err := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
 	if err != nil {
 		return err
 	}

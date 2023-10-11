@@ -16,6 +16,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
 
+var managedByLabelName = "weave-gitops"
+
 // ReconcileServiceAccount accepts a client and the name for a service account.
 // A new Service account is created, if one with same name exists that will be used
 // A new cluster role and cluster role binding are created, if already existing those will be used
@@ -96,7 +98,7 @@ func newClusterRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.C
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "cluster-connector",
+				"app.kubernetes.io/managed-by": managedByLabelName,
 			},
 		},
 		Rules: rules,
@@ -109,7 +111,7 @@ func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string)
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
 			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "cluster-connector",
+				"app.kubernetes.io/managed-by": managedByLabelName,
 			},
 		},
 		Subjects: []rbacv1.Subject{
@@ -136,7 +138,7 @@ func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *c
 				corev1.ServiceAccountNameKey: serviceAccountName,
 			},
 			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "cluster-connector",
+				"app.kubernetes.io/managed-by": managedByLabelName,
 			},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
@@ -154,7 +156,7 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 			Name:      serviceAccountName,
 			Namespace: namespace,
 			Labels: map[string]string{
-				"app.kubernetes.io/managed-by": "cluster-connector",
+				"app.kubernetes.io/managed-by": managedByLabelName,
 			},
 		},
 	}, metav1.CreateOptions{})

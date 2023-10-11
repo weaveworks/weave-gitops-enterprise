@@ -52,7 +52,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
 						Labels: map[string]string{
-							"app.kubernetes.io/managed-by": "cluster-connector",
+							"app.kubernetes.io/managed-by": managedByLabelName,
 						},
 					},
 				},
@@ -68,7 +68,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
 						Labels: map[string]string{
-							"app.kubernetes.io/managed-by": "cluster-connector",
+							"app.kubernetes.io/managed-by": managedByLabelName,
 						},
 					},
 				},
@@ -87,7 +87,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": "cluster-connector",
+						"app.kubernetes.io/managed-by": managedByLabelName,
 					},
 				},
 			},
@@ -97,7 +97,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
 						Labels: map[string]string{
-							"app.kubernetes.io/managed-by": "cluster-connector",
+							"app.kubernetes.io/managed-by": managedByLabelName,
 						},
 					},
 				},
@@ -123,7 +123,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": "cluster-connector",
+						"app.kubernetes.io/managed-by": managedByLabelName,
 					},
 				},
 			},
@@ -133,7 +133,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
 						Labels: map[string]string{
-							"app.kubernetes.io/managed-by": "cluster-connector",
+							"app.kubernetes.io/managed-by": managedByLabelName,
 						},
 					},
 				},
@@ -234,7 +234,7 @@ func TestGetServiceAccount(t *testing.T) {
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
 					Labels: map[string]string{
-						"app.kubernetes.io/managed-by": "cluster-connector",
+						"app.kubernetes.io/managed-by": managedByLabelName,
 					},
 				},
 			},
@@ -276,7 +276,7 @@ func TestCheckServiceAccountName(t *testing.T) {
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
 						Labels: map[string]string{
-							"app.kubernetes.io/managed-by": "cluster-connector",
+							"app.kubernetes.io/managed-by": managedByLabelName,
 						},
 					},
 				},
@@ -292,7 +292,7 @@ func TestCheckServiceAccountName(t *testing.T) {
 						Name:      "other-service-account",
 						Namespace: corev1.NamespaceDefault,
 						Labels: map[string]string{
-							"app.kubernetes.io/managed-by": "cluster-connector",
+							"app.kubernetes.io/managed-by": managedByLabelName,
 						},
 					},
 				},
@@ -311,7 +311,7 @@ func TestCheckServiceAccountName(t *testing.T) {
 
 			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
-			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
 			selector := labels.NewSelector()
 			selector = selector.Add(*req)
 
@@ -362,7 +362,7 @@ func TestCheckClusterRoleBindingName(t *testing.T) {
 
 			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
-			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{"cluster-connector"})
+			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
 			selector := labels.NewSelector()
 			selector = selector.Add(*req)
 
@@ -467,7 +467,7 @@ func addFakeServiceAccounts(client kubernetes.Interface, serviceAccounts []strin
 				Name:      serviceAccountName,
 				Namespace: corev1.NamespaceDefault,
 				Labels: map[string]string{
-					"app.kubernetes.io/managed-by": "cluster-connector",
+					"app.kubernetes.io/managed-by": managedByLabelName,
 				},
 			},
 		}
