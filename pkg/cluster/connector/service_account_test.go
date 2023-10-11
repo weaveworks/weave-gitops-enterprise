@@ -144,11 +144,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			remoteClientSet := fake.NewSimpleClientset()
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
 
 			setupFakeSecretToken(t, remoteClientSet, tt.serviceAccountName+"-token", corev1.NamespaceDefault, []byte("usertest"))
-
-			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
 			// Reconcile Service account
 			clusterConnectionOpts := ClusterConnectionOptions{
@@ -303,13 +301,11 @@ func TestCheckServiceAccountName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			remoteClientSet := fake.NewSimpleClientset()
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
 			clusterConnectionOpts := ClusterConnectionOptions{
 				GitopsClusterName:  types.NamespacedName{Namespace: corev1.NamespaceDefault},
 				ServiceAccountName: tt.serviceAccountName,
 			}
-
-			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
 			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
 			selector := labels.NewSelector()
@@ -354,13 +350,11 @@ func TestCheckClusterRoleBindingName(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			remoteClientSet := fake.NewSimpleClientset()
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
 			clusterConnectionOpts := ClusterConnectionOptions{
 				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
 				ClusterRoleBindingName: tt.clusterRoleBindingName,
 			}
-
-			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
 			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
 			selector := labels.NewSelector()
@@ -405,14 +399,12 @@ func TestDeleteServiceAccountResources(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			remoteClientSet := fake.NewSimpleClientset()
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
 			clusterConnectionOpts := ClusterConnectionOptions{
 				ServiceAccountName:     tt.serviceAccountName,
 				ClusterRoleBindingName: tt.clusterRoleBindingName,
 				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
 			}
-
-			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
 			err := deleteServiceAccountResources(context.Background(), remoteClientSet, clusterConnectionOpts)
 			assert.NoError(t, err)
@@ -430,31 +422,6 @@ func TestDeleteServiceAccountResources(t *testing.T) {
 		})
 	}
 
-}
-
-// Add resources of different types to the client based on the type of the resource
-// Valid resources: corev1.ServiceAccount, rbacv1.ClusterRole, rbacv1.ClusterRoleBinding, v1.Secret
-func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...runtime.Object) {
-	for _, resource := range resources {
-		switch resource := resource.(type) {
-		case *corev1.ServiceAccount:
-			_, err := client.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		case *rbacv1.ClusterRole:
-			_, err := client.RbacV1().ClusterRoles().Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		case *rbacv1.ClusterRoleBinding:
-			_, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		case *corev1.Secret:
-			_, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		default:
-			t.Fatalf("invalid resource type %s", resource)
-
-		}
-
-	}
 }
 
 func addFakeServiceAccounts(client kubernetes.Interface, serviceAccounts []string) error {
