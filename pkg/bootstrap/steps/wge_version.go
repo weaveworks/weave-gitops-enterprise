@@ -12,7 +12,7 @@ import (
 
 // user messages
 const (
-	versionStepName = "Select WGE Version"
+	versionStepName = "select WGE version"
 	versionMsg      = "select one of the following"
 )
 
@@ -48,13 +48,8 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	return []StepOutput{
-		{
-			Name:  "version selection msg",
-			Type:  successMsg,
-			Value: fmt.Sprintf("Selected version %s", c.WGEVersion),
-		},
-	}, nil
+	c.Logger.Successf("selected version %s", c.WGEVersion)
+	return []StepOutput{}, nil
 }
 
 func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {

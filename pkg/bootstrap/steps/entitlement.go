@@ -18,7 +18,7 @@ const (
 	nonExistingEntitlementSecretMsg = "entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
 	invalidEntitlementSecretMsg     = "entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
 	expiredEntitlementSecretMsg     = "entitlement file is expired at: %s, please contact *sales@weave.works*"
-	entitlementCheckMsg             = "Verifying Weave GitOps Entitlement File"
+	entitlementCheckMsg             = "verifying Weave GitOps Entitlement File"
 )
 
 // wge consts
@@ -33,23 +33,19 @@ var (
 )
 
 var CheckEntitlementSecret = BootstrapStep{
-	Name: entitlementCheckMsg,
+	Name: "checking entitlement",
 	Step: checkEntitlementSecret,
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
+	c.Logger.Actionf(entitlementCheckMsg)
 	err := verifyEntitlementSecret(c.KubernetesClient)
 	if err != nil {
 		return []StepOutput{}, err
 	}
+	c.Logger.Successf(entitlementCheckConfirmMsg)
 
-	return []StepOutput{
-		{
-			Name:  entitlementCheckConfirmMsg,
-			Type:  successMsg,
-			Value: entitlementCheckConfirmMsg,
-		},
-	}, nil
+	return []StepOutput{}, nil
 }
 
 // verifyEntitlementSecret ensures the entitlement is valid and not expired also verifying username & password

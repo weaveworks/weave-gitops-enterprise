@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	//"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap/auth"
 	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -55,18 +54,17 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRun(opts),
 	}
 
-	//cmd.AddCommand(auth.Command(opts))
-
-	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "Dashboard admin username")
-	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "Dashboard admin password")
-	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "Weave GitOps Enterprise version to install")
+	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "dashboard admin username")
+	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "dashboard admin password")
+	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
 	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "indicate the domain to use in case of using `externaldns`")
-	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "Private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
-	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "Private key password. If the private key is encrypted using password")
+	cmd.Flags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
+	cmd.Flags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "private key password. If the private key is encrypted using password")
 	cmd.Flags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
 	cmd.Flags().StringVarP(&flags.clientID, "client-id", "i", "", "OIDC client ID")
 	cmd.Flags().StringVarP(&flags.clientSecret, "client-secret", "s", "", "OIDC client secret")
+
 	return cmd
 }
 

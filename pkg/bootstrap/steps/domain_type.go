@@ -5,8 +5,8 @@ import (
 )
 
 const (
-	domainStepName = "Dashboard access"
-	domainMsg      = "Please select the domain to be used"
+	domainStepName = "dashboard access"
+	domainMsg      = "select dashboard access domain type"
 )
 const (
 	domainTypeLocalhost   = "localhost"
@@ -52,6 +52,6 @@ func selectDomainType(input []StepInput, c *Config) ([]StepOutput, error) {
 			c.DomainType = domainType
 		}
 	}
-	c.Logger.Successf("Dashboard access domain: %s", c.DomainType)
+	c.Logger.Successf("dashboard access domain: %s", c.DomainType)
 	return []StepOutput{}, nil
 }
