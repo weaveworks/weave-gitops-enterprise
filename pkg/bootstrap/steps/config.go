@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -149,6 +150,10 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		if err != nil {
 			return Config{}, fmt.Errorf("cannot read ssh key: %v", err)
 		}
+	}
+
+	if cb.password != "" && len(cb.password) < 6 {
+		return Config{}, errors.New("password minimum characters should be >= 6")
 	}
 
 	//TODO we should do validations in case invalid values and throw an error early
