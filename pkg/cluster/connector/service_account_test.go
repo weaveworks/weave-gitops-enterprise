@@ -414,7 +414,7 @@ func TestDeleteServiceAccountResources(t *testing.T) {
 
 			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
-			err := DeleteServiceAccountResources(context.Background(), remoteClientSet, clusterConnectionOpts)
+			err := deleteServiceAccountResources(context.Background(), remoteClientSet, clusterConnectionOpts)
 			assert.NoError(t, err)
 
 			// verify service account deleted

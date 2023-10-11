@@ -70,7 +70,7 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 
 }
 
-func DeleteServiceAccountResources(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
+func deleteServiceAccountResources(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
 	// deleting service account deletes associated secret with token
