@@ -52,6 +52,9 @@ func selectDomainType(input []StepInput, c *Config) ([]StepOutput, error) {
 			c.DomainType = domainType
 		}
 	}
+	if c.DomainType == "" {
+		return []StepOutput{}, errors.New("unexpected error occurred. domainType is not found")
+	}
 	c.Logger.Successf("dashboard access domain: %s", c.DomainType)
 	return []StepOutput{}, nil
 }
