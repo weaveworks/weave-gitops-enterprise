@@ -28,9 +28,6 @@ const (
 	oidcConfirmationMsg = "OIDC has been configured successfully!"
 
 	oidcConfigExistWarningMsg = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again."
-
-	adminUserRevertMsg     = "Do you want to revoke admin user login, and only use OIDC for dashboard access"
-	adminUsernameRevertMsg = "Admin user login has been revoked!"
 )
 
 const (

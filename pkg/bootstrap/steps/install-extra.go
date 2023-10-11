@@ -40,8 +40,6 @@ func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerV
 		return err
 	}
 
-	defer utils.CleanupRepo()
-
 	if err := utils.CreateFileToRepo(wgeHelmReleaseFileName, helmRelease, pathInRepo, wgeHelmReleaseCommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword); err != nil {
 		return err
 	}

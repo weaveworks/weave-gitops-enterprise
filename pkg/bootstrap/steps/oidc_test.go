@@ -18,14 +18,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
-type authConfigParams struct {
-	Type         string
-	UserDomain   string
-	WGEVersion   string
-	DiscoveryURL string
-	ClientID     string
-	ClientSecret string
-}
+// type authConfigParams struct {
+// 	Type         string
+// 	UserDomain   string
+// 	WGEVersion   string
+// 	DiscoveryURL string
+// 	ClientID     string
+// 	ClientSecret string
+// }
 
 func TestCreateOIDCConfig(t *testing.T) {
 
