@@ -131,6 +131,7 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 
 dependencies: ## Install build dependencies
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	@go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts
 
 lint:
 	bin/go-lint
