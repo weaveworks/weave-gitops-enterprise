@@ -10,14 +10,14 @@ import {
   YamlView,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
+
 import { Routes } from '../../../utils/nav';
+import ListEvents from '../../ListEvents';
 import { getProgressValue } from '../ListCanaries/Table';
 import CanaryStatus from '../SharedComponent/CanaryStatus';
 import { CanaryMetricsTable } from './Analysis/CanaryMetricsTable';
 import DetailsSection from './Details/DetailsSection';
-import ListEvents from './Events/ListEvents';
 import ListManagedObjects from './ManagedObjects/ListManagedObjects';
-
 
 const CanaryDetailsWrapper = styled.div`
   width: 100%;
