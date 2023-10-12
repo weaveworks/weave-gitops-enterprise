@@ -356,11 +356,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
             rep => rep.name === repo.name && rep.namespace === repo.namespace,
           ),
       );
-      setSelectedHelmRepositories([
-        ...unselectedHelmReposRefs,
-        ...preSelectedHelmReposRefs,
-        ...(callbackState?.state?.selectedHelmRepositories || []),
-      ]);
+      setSelectedHelmRepositories(
+        callbackState?.state?.selectedHelmRepositories > 0
+          ? [...(callbackState?.state?.selectedHelmRepositories || [])]
+          : [...unselectedHelmReposRefs, ...preSelectedHelmReposRefs],
+      );
     }
   }, [
     callbackState?.state?.selectedHelmRepositories,
