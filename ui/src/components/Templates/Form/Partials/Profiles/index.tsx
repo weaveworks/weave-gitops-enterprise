@@ -81,6 +81,7 @@ const Profiles: FC<{
   selectedHelmRepositories,
   setSelectedHelmRepositories,
 }) => {
+  console.log(selectedHelmRepositories);
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,

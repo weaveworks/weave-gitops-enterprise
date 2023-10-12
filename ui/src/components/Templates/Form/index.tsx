@@ -66,6 +66,7 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from './utils';
+import useConfig from '../../../hooks/config';
 
 export interface SelectedHelmRepoRefs {
   name: string;
@@ -257,6 +258,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const { annotations } = template;
   const { setNotifications } = useNotifications();
   const { data } = useListSources();
+  const { data: config } = useConfig();
+  const defaultHelmRepository = config?.defaultHelmRepository;
 
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -276,7 +279,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     random,
     template.name,
   );
-  console.log(initialFormData);
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,
@@ -295,7 +297,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isFlagEnabled('WEAVE_GITOPS_FEATURE_COST_ESTIMATION') &&
     annotations?.['templates.weave.works/cost-estimation-enabled'] !== 'false';
 
-  const helmReposRefs = useMemo(
+  const allHelmReposRefs = useMemo(
     () =>
       helmRepos.map((repo: HelmRepository) => ({
         name: repo.name,
@@ -309,7 +311,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     isProfilesEnabled,
     template,
     resource || undefined,
-    helmReposRefs,
+    allHelmReposRefs,
   );
 
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
@@ -327,16 +329,46 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
   useEffect(() => {
-    if (selectedHelmRepositories.length === 0) {
+    if (
+      selectedHelmRepositories.length === 0 &&
+      Object.values(updatedProfiles).length > 0
+    ) {
+      const preSelectedHelmReposRefs = _.uniqWith(
+        [
+          ...Object.values(updatedProfiles)
+            .filter(profile => profile.selected)
+            .map(profile => ({
+              name: profile.repoName,
+              namespace: profile.repoNamespace,
+              selected: true,
+            })),
+          {
+            name: defaultHelmRepository?.name,
+            namespace: defaultHelmRepository?.namespace,
+            selected: true,
+          },
+        ],
+        _.isEqual,
+      );
+      const unselectedHelmReposRefs = allHelmReposRefs.filter(
+        repo =>
+          !preSelectedHelmReposRefs.find(
+            rep => rep.name === repo.name && rep.namespace === repo.namespace,
+          ),
+      );
       setSelectedHelmRepositories([
-        ...helmReposRefs,
+        ...unselectedHelmReposRefs,
+        ...preSelectedHelmReposRefs,
         ...(callbackState?.state?.selectedHelmRepositories || []),
       ]);
     }
   }, [
     callbackState?.state?.selectedHelmRepositories,
-    helmReposRefs,
     selectedHelmRepositories.length,
+    updatedProfiles,
+    defaultHelmRepository?.name,
+    defaultHelmRepository?.namespace,
+    allHelmReposRefs,
   ]);
 
   const [openPreview, setOpenPreview] = useState(false);
