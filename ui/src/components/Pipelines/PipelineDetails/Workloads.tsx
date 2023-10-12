@@ -1,5 +1,6 @@
 import { Grid } from '@material-ui/core';
 import { Flex, formatURL, Link, Text } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import styled from 'styled-components';
 import {
   Pipeline,
@@ -20,7 +21,6 @@ import {
   WorkloadWrapper,
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
-import _ from 'lodash';
 
 const getStrategy = (promo?: Promotion) => {
   if (!promo) return '-';
