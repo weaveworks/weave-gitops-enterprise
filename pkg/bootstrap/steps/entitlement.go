@@ -24,7 +24,6 @@ const (
 // wge consts
 const (
 	entitlementSecretName = "weave-gitops-enterprise-credentials"
-	HelmVersionProperty   = "version"
 )
 
 var (

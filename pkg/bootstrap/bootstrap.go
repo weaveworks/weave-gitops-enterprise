@@ -27,3 +27,21 @@ func Bootstrap(config steps.Config) error {
 	}
 	return nil
 }
+
+// BootstrapAuth initiated by the command runs the WGE bootstrap auth steps
+func BootstrapAuth(config steps.Config) error {
+	var steps = []steps.BootstrapStep{
+		steps.VerifyFluxInstallation,
+		steps.CheckEntitlementSecret,
+		steps.OIDCConfigStep(config),
+	}
+
+	for _, step := range steps {
+		config.Logger.Waitingf(step.Name)
+		err := step.Execute(&config)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}

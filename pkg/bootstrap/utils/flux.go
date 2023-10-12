@@ -15,6 +15,11 @@ import (
 	k8syaml "sigs.k8s.io/yaml"
 )
 
+const (
+	HelmVersionProperty = "version"
+	HelmDomainProperty  = "domain"
+)
+
 // CreateHelmReleaseYamlString create HelmRelease yaml string to add to file.
 func CreateHelmReleaseYamlString(hr helmv2.HelmRelease) (string, error) {
 	helmRelease := helmv2.HelmRelease{
