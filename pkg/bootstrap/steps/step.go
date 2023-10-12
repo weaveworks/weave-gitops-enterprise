@@ -29,6 +29,7 @@ type StepInput struct {
 	Value           any
 	Values          []string
 	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
+	Required        bool
 }
 
 // StepOutput represents an output generated out of the execution of a step.
@@ -93,7 +94,7 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 			}
 			// get the value from user otherwise
 			if input.Value == nil && enable {
-				paramValue, err := utils.GetPasswordInput(input.Msg)
+				paramValue, err := utils.GetPasswordInput(input.Msg, input.Required)
 				if err != nil {
 					return []StepInput{}, err
 				}

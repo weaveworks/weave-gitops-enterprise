@@ -12,10 +12,17 @@ const (
 )
 
 // GetPasswordInput prompt to enter password.
-func GetPasswordInput(msg string) (string, error) {
+func GetPasswordInput(msg string, required bool) (string, error) {
+	validate := func(input string) error {
+		if required && len(input) < 6 {
+			return errors.New("password must have more than 6 characters")
+		}
+		return nil
+	}
 	prompt := promptui.Prompt{
-		Label: msg,
-		Mask:  '*',
+		Label:    msg,
+		Validate: validate,
+		Mask:     '*',
 	}
 
 	result, err := prompt.Run()

@@ -37,6 +37,7 @@ var getPasswordInput = StepInput{
 	Msg:          adminPasswordMsg,
 	DefaultValue: defaultAdminPassword,
 	Valuesfn:     canAskForCreds,
+	Required:     true,
 }
 
 // NewAskAdminCredsSecretStep asks user about admin username and password.
