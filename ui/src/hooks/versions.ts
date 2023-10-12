@@ -1,10 +1,10 @@
+import { GetVersionResponse } from '@weaveworks/progressive-delivery';
 import { useContext, useEffect, useState } from 'react';
 import { useQuery } from 'react-query';
 import { GetConfigResponse } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
-import { useRequest } from '../contexts/Request';
 import { GitAuth } from '../contexts/GitAuth';
-import { GetVersionResponse } from '@weaveworks/progressive-delivery';
+import { useRequest } from '../contexts/Request';
 
 export function useListVersion() {
   const { requestWithEntitlementHeader } = useRequest();

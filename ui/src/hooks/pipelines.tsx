@@ -1,11 +1,11 @@
+import { Link } from '@weaveworks/weave-gitops';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
 import { useMutation } from 'react-query';
 import {
   ApprovePromotionRequest,
   ApprovePromotionResponse,
   Pipelines,
 } from '../api/pipelines/pipelines.pb';
-import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import { Link } from '@weaveworks/weave-gitops';
 import useNotifications from '../contexts/Notifications';
 import { formatError } from '../utils/formatters';
 export const useApprove = () => {

@@ -8,12 +8,12 @@ import {
 } from '@weaveworks/weave-gitops';
 
 import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
+import styled from 'styled-components';
 import {
   Event,
   ListEventsRequest,
 } from '../cluster-services/cluster_services.pb';
 import { useListEvents } from '../contexts/ProgressiveDelivery';
-import styled from 'styled-components';
 
 const Reason = styled.h2`
   display: flex;

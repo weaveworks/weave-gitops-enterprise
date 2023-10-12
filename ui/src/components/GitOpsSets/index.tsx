@@ -1,4 +1,3 @@
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   DataTable,
   KubeStatusIndicator,
@@ -17,8 +16,9 @@ import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
 import { Condition, computeMessage } from '../../utils/conditions';
 import { Routes } from '../../utils/nav';
-import { Page } from '../Layout/App';
 import Explorer from '../Explorer/Explorer';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
@@ -46,7 +46,7 @@ const GitOpsSets: FC = () => {
 
   const gitopssets = data?.gitopssets;
 
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(gitopssets, 'status', filterByStatusCallback),
     ...filterConfig(gitopssets, 'type'),
     ...filterConfig(gitopssets, 'namespace'),
@@ -54,7 +54,7 @@ const GitOpsSets: FC = () => {
     ...filterConfig(gitopssets, 'clusterName'),
   };
 
-  let fields: Field[] = [
+  const fields: Field[] = [
     {
       label: 'Name',
       value: ({ name, namespace, clusterName }: GitOpsSet) => (
