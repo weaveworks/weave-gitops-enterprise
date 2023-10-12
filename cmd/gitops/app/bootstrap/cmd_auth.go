@@ -88,9 +88,15 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 		}
 
 		//use bootstrapAuth function to bootstrap the authentication
-		err = BootstrapAuth(c)
-		if err != nil {
-			return fmt.Errorf("cannot bootstrap auth: %v", err)
+		switch authFlags.authType {
+		case authOIDC:
+			err = BootstrapAuth(c)
+			if err != nil {
+				return fmt.Errorf("cannot bootstrap auth: %v", err)
+			}
+		default:
+			return fmt.Errorf("authentication type %s is not supported", authFlags.authType)
+
 		}
 
 		return nil
