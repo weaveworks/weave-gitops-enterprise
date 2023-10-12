@@ -10,7 +10,7 @@ const (
 )
 const (
 	domainTypeLocalhost   = "localhost"
-	domainTypeExternalDNS = "external DNS"
+	domainTypeExternalDNS = "externalDNS"
 )
 
 var (
