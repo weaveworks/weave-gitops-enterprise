@@ -19,6 +19,7 @@ type disconnectOptionsFlags struct {
 
 var disconnectOptionsCmdFlags disconnectOptionsFlags
 
+// DisconnectCommand is the command for disconnect clusters and includes all the required flags
 func DisconnectCommand(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "cluster",

@@ -3,9 +3,13 @@ package disconnect
 import (
 	"github.com/spf13/cobra"
 	disconnect "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/disconnect/clusters"
+
+	// "github.com/weaveworks/weave-gitops/cmd/gitops/app"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/app"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
+// Command returns the command for disconnect
 func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "disconnect",
@@ -13,19 +17,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Example: `
 # Disconnect a cluster
 gitops disconnect cluster`,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			names := []string{
-				"endpoint",
-				"password",
-				"username",
-			}
-			flags := cmd.InheritedFlags()
-			for _, name := range names {
-				err := flags.SetAnnotation(name, cobra.BashCompOneRequiredFlag, []string{"false"})
-				return err
-			}
-			return nil
-		},
+		PreRunE: app.DisinheritAPIFlags,
 	}
 
 	cmd.AddCommand(disconnect.DisconnectCommand(opts))
