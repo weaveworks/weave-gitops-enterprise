@@ -412,12 +412,12 @@ func TestDeleteServiceAccountResources(t *testing.T) {
 			// verify service account deleted
 			_, err = remoteClientSet.CoreV1().ServiceAccounts(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName, metav1.GetOptions{})
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, apierrors.NewNotFound(corev1.Resource("serviceaccounts"), tt.serviceAccountName).Error())
+			assert.True(t, apierrors.IsNotFound(err))
 
 			// Verify ClusterRoleBinding deleted
 			_, err = remoteClientSet.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.clusterRoleBindingName, metav1.GetOptions{})
 			assert.Error(t, err)
-			assert.ErrorContains(t, err, apierrors.NewNotFound(rbacv1.Resource("clusterrolebindings"), tt.clusterRoleBindingName).Error())
+			assert.True(t, apierrors.IsNotFound(err))
 
 		})
 	}

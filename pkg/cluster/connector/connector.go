@@ -50,7 +50,7 @@ func getDynClientAndScheme(config *rest.Config) (dynamic.Interface, *runtime.Sch
 	if err != nil {
 		return nil, nil, err
 	}
-	scheme, err := NewGitopsClusterScheme()
+	scheme, err := newGitopsClusterScheme()
 	if err != nil {
 		return nil, nil, err
 	}
@@ -119,9 +119,9 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	return nil
 }
 
-// NewGitopsClusterScheme returns a scheme with the GitopsCluster schema
+// newGitopsClusterScheme returns a scheme with the GitopsCluster schema
 // information registered.
-func NewGitopsClusterScheme() (*runtime.Scheme, error) {
+func newGitopsClusterScheme() (*runtime.Scheme, error) {
 	scheme := runtime.NewScheme()
 	err := gitopsv1alpha1.AddToScheme(scheme)
 	if err != nil {

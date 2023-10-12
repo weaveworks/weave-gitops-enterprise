@@ -70,7 +70,7 @@ func TestCreateOrUpdateGitOpsClusterSecret(t *testing.T) {
 }
 
 func newTestScheme(t *testing.T) *runtime.Scheme {
-	scheme, err := NewGitopsClusterScheme()
+	scheme, err := newGitopsClusterScheme()
 	assert.NoError(t, err)
 
 	return scheme
