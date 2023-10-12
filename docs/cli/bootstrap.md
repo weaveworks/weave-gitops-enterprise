@@ -155,10 +155,7 @@ For sharing progress with the user, the following levels are used:
 
 ### How can I add a global behaviour around input management?
 
-For example `silent` flag that affects how we resolve inputs: if silent, the we take defaults and we dont ask 
-the user. if not silent and no configuration exists, we ask via input the user. 
-
-// TBD
+For example `silent` flag that affects how we resolve inputs. To be added out of the work in https://github.com/weaveworks/weave-gitops-enterprise/issues/3465
 
 ### How can I add a global behaviour around output management?
 See the following examples:
