@@ -3,6 +3,7 @@ package steps
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -27,16 +28,19 @@ func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerV
 
 	version, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WGEHelmReleaseName, WGEDefaultNamespace, "version")
 	if err != nil {
+		fmt.Println("error getting helm release version: ", err)
 		return err
 	}
 
 	helmRelease, err := constructWGEhelmRelease(values, version)
 	if err != nil {
+		fmt.Println("error constructing helm release: ", err)
 		return err
 	}
 
 	pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 	if err != nil {
+		fmt.Println("error cloning repo: ", err)
 		return err
 	}
 

@@ -54,6 +54,8 @@ func Command(opts *config.Options) *cobra.Command {
 		RunE:    getBootstrapCmdRun(opts),
 	}
 
+	cmd.AddCommand(AuthCommand(opts))
+
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "dashboard admin password")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")

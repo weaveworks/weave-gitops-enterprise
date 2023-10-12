@@ -183,6 +183,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	c.Logger.Waitingf(oidcInstallInfoMsg)
 
 	if err := updateHelmReleaseValues(c, oidcValuesName, values); err != nil {
+		fmt.Println("error updating helm release values:  ", err)
 		return []StepOutput{}, err
 	}
 	c.Logger.Successf(oidcConfirmationMsg)
