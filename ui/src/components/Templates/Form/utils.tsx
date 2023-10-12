@@ -3,16 +3,16 @@ import {
   GitRepository,
   Source,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
+import GitUrlParse from 'git-url-parse';
+import styled from 'styled-components';
+import URI from 'urijs';
+import { GitRepositoryEnriched } from '.';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { GitopsClusterEnriched } from '../../../types/custom';
-import { Resource } from '../Edit/EditButton';
-import GitUrlParse from 'git-url-parse';
-import URI from 'urijs';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
-import { GitRepositoryEnriched } from '.';
-import styled from 'styled-components';
+import { GitopsClusterEnriched } from '../../../types/custom';
+import { Resource } from '../Edit/EditButton';
 
 const yamlConverter = require('js-yaml');
 

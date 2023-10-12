@@ -30,7 +30,8 @@ func NewHelmRelease(name string, namespace string, opts ...func(*v2beta1.HelmRel
 }
 
 var (
-	roleTypeMeta = typeMeta("Role", "rbac.authorization.k8s.io/v1")
+	roleTypeMeta        = typeMeta("Role", "rbac.authorization.k8s.io/v1")
+	clusterRoleTypeMeta = typeMeta("ClusterRole", "rbac.authorization.k8s.io/v1")
 )
 
 func typeMeta(kind, apiVersion string) metav1.TypeMeta {
@@ -40,8 +41,18 @@ func typeMeta(kind, apiVersion string) metav1.TypeMeta {
 	}
 }
 
-// NewRole creates a test helm release out of the parameters.It uses a decorator pattern to add custom configuration.
-func NewRole(name string, namespace string, opts ...func(*rbacv1.Role)) *rbacv1.Role {
+// NewRole creates a test Role out of the parameters.It uses a decorator pattern to add custom configuration.
+func NewRole(name string, namespace string, hasRules bool, opts ...func(*rbacv1.Role)) *rbacv1.Role {
+	var rules []rbacv1.PolicyRule
+	if hasRules {
+		rules = []rbacv1.PolicyRule{
+			{
+				APIGroups: []string{"kustomize.toolkit.fluxcd.io"},
+				Resources: []string{"kustomizations"},
+				Verbs:     []string{"get"},
+			},
+		}
+	}
 
 	role := &rbacv1.Role{
 		TypeMeta: roleTypeMeta,
@@ -49,13 +60,35 @@ func NewRole(name string, namespace string, opts ...func(*rbacv1.Role)) *rbacv1.
 			Name:      name,
 			Namespace: namespace,
 		},
-		Rules: []rbacv1.PolicyRule{
+		Rules: rules,
+	}
+
+	for _, opt := range opts {
+		opt(role)
+	}
+
+	return role
+}
+
+// NewClusterRole creates a test ClusterRole out of the parameters.It uses a decorator pattern to add custom configuration.
+func NewClusterRole(name string, hasRules bool, opts ...func(*rbacv1.ClusterRole)) *rbacv1.ClusterRole {
+	var rules []rbacv1.PolicyRule
+	if hasRules {
+		rules = []rbacv1.PolicyRule{
 			{
 				APIGroups: []string{"kustomize.toolkit.fluxcd.io"},
 				Resources: []string{"kustomizations"},
 				Verbs:     []string{"get"},
 			},
+		}
+	}
+
+	role := &rbacv1.ClusterRole{
+		TypeMeta: clusterRoleTypeMeta,
+		ObjectMeta: metav1.ObjectMeta{
+			Name: name,
 		},
+		Rules: rules,
 	}
 
 	for _, opt := range opts {
