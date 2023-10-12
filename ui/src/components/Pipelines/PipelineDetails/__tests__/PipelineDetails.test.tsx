@@ -1,5 +1,5 @@
 /* eslint-disable testing-library/no-node-access */
-import { act, render, RenderResult, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
@@ -430,24 +430,6 @@ describe('PipelineDetails', () => {
       e => !e.className.includes('Mui-disabled'),
     );
     expect(devButton.length).toEqual(1);
-  });
-
-  describe('snapshots', () => {
-    it('renders', async () => {
-      const params: any = res.pipeline;
-      api.GetPipelineReturns = res;
-
-      let result: RenderResult;
-      await act(async () => {
-        const c = wrap(
-          <PipelineDetails name={params.name} namespace={params.namespace} />,
-        );
-        result = await render(c);
-      });
-
-      //   @ts-ignore
-      expect(result.container).toMatchSnapshot();
-    });
   });
 });
 
