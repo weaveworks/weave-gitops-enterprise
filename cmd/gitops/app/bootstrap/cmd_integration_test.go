@@ -93,7 +93,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name:             "should fail without flux bootstrapped",
 			flags:            []string{},
-			expectedErrorStr: "please bootstrap Flux in `flux-system` namespace: more info https://fluxcd.io/flux/installation",
+			expectedErrorStr: "please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation",
 		},
 		{
 			name:  "should fail without entitlements",
