@@ -760,7 +760,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 @media (min-width:600px) {
-<<<<<<< HEAD
   .c29 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
     min-width: auto;
   }
@@ -768,9 +767,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 @media (min-width:1440px) {
   .c29 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
-=======
-  .c26 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
->>>>>>> 4968b22f (....sigh....snapshots)
     min-width: 132px;
   }
 }
