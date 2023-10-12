@@ -3,6 +3,7 @@ package connect
 import (
 	"github.com/spf13/cobra"
 	connect "github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/connect/clusters"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/app"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 )
 
@@ -13,19 +14,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Example: `
 # Connect a cluster
 gitops connect cluster`,
-		PreRunE: func(cmd *cobra.Command, args []string) error {
-			names := []string{
-				"endpoint",
-				"password",
-				"username",
-			}
-			flags := cmd.InheritedFlags()
-			for _, name := range names {
-				err := flags.SetAnnotation(name, cobra.BashCompOneRequiredFlag, []string{"false"})
-				return err
-			}
-			return nil
-		},
+		PreRunE: app.DisinheritAPIFlags,
 	}
 
 	cmd.AddCommand(connect.ConnectCommand(opts))

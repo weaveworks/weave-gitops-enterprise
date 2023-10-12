@@ -14,6 +14,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/connect"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/delete"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/disconnect"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/generate"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/get"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/remove"
@@ -142,6 +143,7 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(generate.Command())
 	rootCmd.AddCommand(bootstrap.Command(options))
 	rootCmd.AddCommand(connect.Command(options))
+	rootCmd.AddCommand(disconnect.Command(options))
 
 	return rootCmd
 }
