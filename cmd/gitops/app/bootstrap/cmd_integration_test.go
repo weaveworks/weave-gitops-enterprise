@@ -170,24 +170,6 @@ func TestBootstrapCmd(t *testing.T) {
 			},
 			expectedErrorStr: "cannot process input 'dashboard access'",
 		},
-		//{
-		//	name: "should install with ssh repo",
-		//	flags: []string{"--version=0.33.0",
-		//		"--username=admin", "--password=admin123",
-		//		"--domain-type=externalDNS", "--domain=www.mydomain.com",
-		//		privateKeyArg, "--private-key-password=\"\"",
-		//	},
-		//	setup: func(t *testing.T) {
-		//		//bootstrapFluxSsh(g)
-		//		//createEntitlements(t, testLog)
-		//	},
-		//	reset: func(t *testing.T) {
-		//		//deleteClusterUser(t, testLog)
-		//		//deleteEntitlements(t, testLog)
-		//		//uninstallFlux(g)
-		//	},
-		//	expectedErrorStr: "",
-		//},
 	}
 	for _, tt := range tests {
 		lock.Lock()
