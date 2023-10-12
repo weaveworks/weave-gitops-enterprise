@@ -76,6 +76,10 @@ func TestBootstrapCmd(t *testing.T) {
 
 	lock := sync.Mutex{}
 
+	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
+	g.Expect(privateKeyFile).NotTo(BeEmpty())
+	privateKeyArg := fmt.Sprintf("--private-key=%s", privateKeyFile)
+
 	// ensure flux-system ns exists
 	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
 
@@ -86,101 +90,86 @@ func TestBootstrapCmd(t *testing.T) {
 		setup            func(t *testing.T)
 		reset            func(t *testing.T)
 	}{
-		//{
-		//	name:             "should fail without entitlements",
-		//	flags:            []string{},
-		//	expectedErrorStr: "entitlement file is not found",
-		//},
-		//{
-		//	name:  "should fail without flux bootstrapped",
-		//	flags: []string{},
-		//	setup: func(t *testing.T) {
-		//		createEntitlements(t, testLog)
-		//	},
-		//	reset: func(t *testing.T) {
-		//		deleteEntitlements(t, testLog)
-		//	},
-		//
-		//	expectedErrorStr: "Please bootstrap Flux into your cluster",
-		//},
-		//{
-		//	name:  "should fail without selected wge version",
-		//	flags: []string{},
-		//	setup: func(t *testing.T) {
-		//		createEntitlements(t, testLog)
-		//		bootstrapFluxHttps(g)
-		//	},
-		//	reset: func(t *testing.T) {
-		//		uninstallFlux(g)
-		//		deleteEntitlements(t, testLog)
-		//	},
-		//	expectedErrorStr: "cannot process input 'Select WGE Version'",
-		//},
-		//{
-		//	name:  "should fail without user authentication",
-		//	flags: []string{"--version=0.33.0"},
-		//	setup: func(t *testing.T) {
-		//		createEntitlements(t, testLog)
-		//		bootstrapFluxHttps(g)
-		//	},
-		//	reset: func(t *testing.T) {
-		//		uninstallFlux(g)
-		//		deleteEntitlements(t, testLog)
-		//	},
-		//	expectedErrorStr: "cannot process input 'User Authentication'",
-		//},
-		//{
-		//	name: "should fail without dashboard access",
-		//	flags: []string{"--version=0.33.0",
-		//		"--username=admin",
-		//		"--password=admin"},
-		//	setup: func(t *testing.T) {
-		//		createEntitlements(t, testLog)
-		//		bootstrapFluxHttps(g)
-		//	},
-		//	reset: func(t *testing.T) {
-		//		uninstallFlux(g)
-		//		deleteClusterUser(t, testLog)
-		//		deleteEntitlements(t, testLog)
-		//	},
-		//	expectedErrorStr: "cannot process input 'Dashboard access'",
-		//},
 		{
-			name: "should install with ssh repo",
-			flags: []string{"--version=0.33.0",
-				"--username=admin", "--password=admin",
-				"--domain-type=localhost",
-				"--private-key=/Users/enekofb/.ssh/id_ed25519",
-				"--private-key-password=\"\"",
-			},
+			name:             "should fail without flux bootstrapped",
+			flags:            []string{},
+			expectedErrorStr: "please bootstrap Flux in `flux-system` namespace: more info https://fluxcd.io/flux/installation",
+		},
+		{
+			name:  "should fail without entitlements",
+			flags: []string{},
 			setup: func(t *testing.T) {
-				createEntitlements(t, testLog)
 				bootstrapFluxSsh(g)
 			},
 			reset: func(t *testing.T) {
 				uninstallFlux(g)
+			},
+
+			expectedErrorStr: "entitlement file is not found",
+		},
+		{
+			name:  "should fail without private key",
+			flags: []string{},
+			setup: func(t *testing.T) {
+				bootstrapFluxSsh(g)
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				uninstallFlux(g)
+			},
+			expectedErrorStr: "cannot process input 'private key path and password",
+		},
+		{
+			name: "should fail without selected wge version",
+			flags: []string{
+				privateKeyArg,
+				"--private-key-password=\"\"",
+			},
+			setup: func(t *testing.T) {
+				bootstrapFluxSsh(g)
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				uninstallFlux(g)
+			},
+			expectedErrorStr: "cannot process input 'select WGE version'",
+		},
+		{
+			name: "should fail without user authentication",
+			flags: []string{"--version=0.33.0",
+				privateKeyArg,
+				"--private-key-password=\"\"",
+			},
+			setup: func(t *testing.T) {
+				bootstrapFluxSsh(g)
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				uninstallFlux(g)
+			},
+			expectedErrorStr: "cannot process input 'user authentication'",
+		},
+		{
+			name: "should fail without dashboard access",
+			flags: []string{"--version=0.33.0",
+				privateKeyArg,
+				"--private-key-password=\"\"",
+				"--username=admin",
+				"--password=admin123"},
+			setup: func(t *testing.T) {
+				bootstrapFluxSsh(g)
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
 				deleteClusterUser(t, testLog)
 				deleteEntitlements(t, testLog)
+				uninstallFlux(g)
 			},
-			expectedErrorStr: "",
+			expectedErrorStr: "cannot process input 'dashboard access'",
 		},
-		//{
-		//	name: "should install with https repo",
-		//	flags: []string{"--version=0.33.0",
-		//		"--username=admin", "--password=admin",
-		//		"--domain=localhost",
-		//	},
-		//	setup: func(t *testing.T) {
-		//		createEntitlements(t, testLog)
-		//		bootstrapFluxHttps(g)
-		//	},
-		//	reset: func(t *testing.T) {
-		//		//uninstallFlux(g)
-		//		deleteClusterUser(t, testLog)
-		//		deleteEntitlements(t, testLog)
-		//	},
-		//	expectedErrorStr: "",
-		//},
 	}
 	for _, tt := range tests {
 		lock.Lock()
@@ -231,23 +220,6 @@ func bootstrapFluxSsh(g *WithT) {
 	fmt.Println(string(s))
 	g.Expect(err).To(BeNil())
 
-}
-
-func bootstrapFluxHttps(g *WithT) {
-	var runner runner.CLIRunner
-
-	repoUrl := os.Getenv("GIT_URL_HTTPS")
-	g.Expect(repoUrl).NotTo(BeEmpty())
-
-	username := os.Getenv("GITHUB_USER")
-	g.Expect(username).NotTo(BeEmpty())
-	password := os.Getenv("GITHUB_TOKEN")
-	g.Expect(password).NotTo(BeEmpty())
-
-	args := []string{"bootstrap", "git", "-s", "--token-auth", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--username=%s", username), fmt.Sprintf("--password=%s", password), "--path=clusters/management"}
-	s, err := runner.Run("flux", args...)
-	fmt.Println(string(s))
-	g.Expect(err).To(BeNil())
 }
 
 func uninstallFlux(g *WithT) {
