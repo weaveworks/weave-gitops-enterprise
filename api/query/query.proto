@@ -120,7 +120,7 @@ message Facet {
 }
 
 enum EnabledComponent {
-    unkown       = 0;
+    unknown      = 0;
     applications = 1;
     sources      = 2;
 }

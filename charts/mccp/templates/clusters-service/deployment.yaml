@@ -53,11 +53,10 @@ spec:
             {{ if .Values.explorer.cleaner.disabled }}
             - --explorer-cleaner-disabled=true
             {{- end }}
-            {{ if .Values.explorer.enabledFor }}
-              {{- range .Values.explorer.enabledFor }}
-              - --explorer-enabled-for={{ . }}
-              {{- end }}
-            {{- end }}
+          
+            # {{- if .Values.explorer.enabledFor }}
+            - --explorer-enabled-for=applications,sources
+            # {{- end }}
           imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:

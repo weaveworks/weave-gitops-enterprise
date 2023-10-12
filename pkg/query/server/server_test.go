@@ -107,8 +107,10 @@ func TestListEnabledComponents(t *testing.T) {
 	}
 
 	srv, stop, err := NewServer(opts)
-	defer stop()
-	g.Expect(err).To(BeNil())
+	defer func() {
+		err := stop()
+		g.Expect(err).To(BeNil())
+	}()
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
 		pb.RegisterQueryServer(s, srv)
@@ -152,8 +154,10 @@ func TestListEnabledComponents_Invalid(t *testing.T) {
 	}
 
 	srv, stop, err := NewServer(opts)
-	defer stop()
-	g.Expect(err).To(BeNil())
+	defer func() {
+		err := stop()
+		g.Expect(err).To(BeNil())
+	}()
 
 	conn := grpctesting.Setup(t, func(s *grpc.Server) {
 		pb.RegisterQueryServer(s, srv)
