@@ -1,19 +1,20 @@
 import {
   Button,
   DataTable,
+  filterConfig,
   Icon,
   IconType,
   Link,
-  filterConfig,
-  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
 import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
+import { EnabledComponent } from '../../api/query/query.pb';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
+import { useIsEnabledForComponent } from '../../hooks/query';
 import useTemplates from '../../hooks/templates';
 import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
@@ -34,12 +35,11 @@ const DocsLink = styled(Link)`
 const TemplatesDashboard: FC<{
   location: { state: { notification: NotificationData[] } };
 }> = ({ location }) => {
-  const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.templates,
   );
   const { templates, isLoading } = useTemplates({
-    enabled: !useQueryServiceBackend,
+    enabled: !isExplorerEnabled,
   });
   const { setNotifications } = useNotifications();
   const history = useHistory();
@@ -79,7 +79,7 @@ const TemplatesDashboard: FC<{
       ]}
     >
       <NotificationsWrapper>
-        {useQueryServiceBackend ? (
+        {isExplorerEnabled ? (
           <Explorer
             category="template"
             enableBatchSync={false}

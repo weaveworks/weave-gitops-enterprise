@@ -195,7 +195,9 @@
       "enum": [
         "unkown",
         "applications",
-        "sources"
+        "sources",
+        "gitopssets",
+        "templates"
       ],
       "default": "unkown"
     },

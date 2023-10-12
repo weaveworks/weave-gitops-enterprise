@@ -10,6 +10,8 @@ export enum EnabledComponent {
   unkown = "unkown",
   applications = "applications",
   sources = "sources",
+  gitopssets = "gitopssets",
+  templates = "templates",
 }
 
 export type QueryRequest = {

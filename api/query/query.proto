@@ -123,6 +123,8 @@ enum EnabledComponent {
     unknown      = 0;
     applications = 1;
     sources      = 2;
+    gitopssets   = 3;
+    templates    = 4;
 }
 
 message ListEnabledComponentsRequest {

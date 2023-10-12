@@ -225,4 +225,6 @@ explorer:
   enabledFor:
     - applications
     - sources
+    - gitopssets
+    - templates
 
