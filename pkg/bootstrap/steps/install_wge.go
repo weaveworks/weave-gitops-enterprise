@@ -2,7 +2,6 @@ package steps
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -65,18 +64,25 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.UserDomain = domainTypeLocalhost
-	if c.DomainType == domainTypeExternalDNS {
-		for _, param := range input {
-			if param.Name == UserDomain {
-				userDomain, ok := param.Value.(string)
-				if !ok {
-					return []StepOutput{}, errors.New("unexpected error occurred. UserDomain not found")
+	switch c.DomainType {
+	case domainTypeLocalhost:
+		c.UserDomain = domainTypeLocalhost
+	case domainTypeExternalDNS:
+		if c.UserDomain == "" {
+			for _, param := range input {
+				if param.Name == UserDomain {
+					userDomain, ok := param.Value.(string)
+					if !ok {
+						return []StepOutput{}, fmt.Errorf("unexpected error occurred. UserDomain not found")
+					}
+					c.UserDomain = userDomain
 				}
-				c.UserDomain = userDomain
 			}
 		}
+	default:
+		return []StepOutput{}, fmt.Errorf("unsupported domain type:%s", c.DomainType)
 	}
+
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
 	wgehelmRepo, err := constructWgeHelmRepository()

@@ -11,7 +11,7 @@ const (
 	fluxBoostrapCheckMsg     = "checking flux"
 	fluxExistingInstallMsg   = "flux is installed"
 	fluxExistingBootstrapMsg = "flux is bootstrapped"
-	fluxRecoverMsg           = "please bootstrap Flux into your cluster. Refer to https://fluxcd.io/flux/installation/ for more info."
+	fluxRecoverMsg           = "please bootstrap Flux in `flux-system` namespace: more info https://fluxcd.io/flux/installation"
 )
 
 // VerifyFluxInstallation checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.

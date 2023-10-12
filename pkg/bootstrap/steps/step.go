@@ -141,6 +141,10 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 	return processedInputs, nil
 }
 
+var (
+	UnexpectedErrorString = "unexpected error, please contact support."
+)
+
 func defaultOutputStep(params []StepOutput, c *Config) error {
 	for _, param := range params {
 		switch param.Type {
@@ -152,18 +156,18 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			name := secret.ObjectMeta.Name
 			namespace := secret.ObjectMeta.Namespace
 			data := secret.Data
-			c.Logger.Actionf("creating secret: '%s/%s'", namespace, name)
+			c.Logger.Actionf("creating secret: %s/%s", namespace, name)
 			if err := utils.CreateSecret(c.KubernetesClient, name, namespace, data); err != nil {
 				return err
 			}
-			c.Logger.Successf("created secret '%s/%s'", secret.Namespace, secret.Name)
+			c.Logger.Successf("created secret %s/%s", secret.Namespace, secret.Name)
 		case typeFile:
-			c.Logger.Actionf("writing file to repo: '%s'", param.Name)
+			c.Logger.Actionf("write file to repo: %s", param.Name)
 			file, ok := param.Value.(fileContent)
 			if !ok {
 				panic("unexpected internal error casting file")
 			}
-			c.Logger.Actionf("cloning flux git repo: '%s/%s'", WGEDefaultNamespace, WGEDefaultRepoName)
+			c.Logger.Actionf("cloning flux git repo: %s/%s", WGEDefaultNamespace, WGEDefaultRepoName)
 			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
@@ -174,13 +178,13 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 					c.Logger.Failuref("failed to cleanup repo!")
 				}
 			}()
-			c.Logger.Successf("cloned flux git repo: '%s/%s'", WGEDefaultRepoName, WGEDefaultRepoName)
+			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
 
 			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
 				return err
 			}
-			c.Logger.Successf("file '%s' is written to repo: '%s'", file.Name, WGEDefaultRepoName)
+			c.Logger.Successf("file committed to repo: %s", file.Name)
 
 			c.Logger.Waitingf("reconciling changes")
 			if err := utils.ReconcileFlux(); err != nil {

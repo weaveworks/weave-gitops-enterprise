@@ -133,17 +133,6 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	}
 	l.Successf("created client to cluster %s", context)
 
-	// TODO this should be part of a verify wge step, potentially select wge version
-	//installedVersion, err := utils.GetHelmReleaseVersion(kubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
-	//if err != nil {
-	//	if !errors.IsNotFound(err) {
-	//		return Config{}, fmt.Errorf("unexpected error finding weave gitops helm release: %w", err)
-	//	}
-	//	l.Successf("weave gitops not found in the cluster")
-	//} else if installedVersion != "" {
-	//	return Config{}, fmt.Errorf("cannot config bootstrap: weave gitops `%s` exists in the cluster", installedVersion)
-	//}
-
 	// validate ssh keys
 	if cb.privateKeyPath != "" {
 		_, err = os.ReadFile(cb.privateKeyPath)
