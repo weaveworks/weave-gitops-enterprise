@@ -141,10 +141,6 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 	return processedInputs, nil
 }
 
-var (
-	UnexpectedErrorString = "unexpected error, please contact support."
-)
-
 func defaultOutputStep(params []StepOutput, c *Config) error {
 	for _, param := range params {
 		switch param.Type {
