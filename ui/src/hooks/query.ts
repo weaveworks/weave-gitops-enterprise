@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
-import { QueryResponse } from '../api/query/query.pb';
+import { EnabledComponent, QueryResponse } from '../api/query/query.pb';
 import { QueryServiceContext } from '../contexts/QueryService';
 
 type QueryOpts = {
@@ -92,4 +92,20 @@ export function useListFacets() {
     refetchIntervalInBackground: true,
     refetchInterval: 10000,
   });
+}
+
+function useListEnabledComponents() {
+  const api = useContext(QueryServiceContext);
+
+  return useQuery(['enabledComponents'], () => api.ListEnabledComponents({}));
+}
+
+export function useIsEnabledForComponent(cmp: EnabledComponent) {
+  const { data } = useListEnabledComponents();
+
+  if (!data) {
+    return false;
+  }
+
+  return data?.components?.includes(cmp);
 }

@@ -46,6 +46,13 @@ service Query {
             get: "/v1/debug/access-rules"
         };
     }
+
+    rpc ListEnabledComponents(ListEnabledComponentsRequest)
+        returns (ListEnabledComponentsResponse) {
+        option (google.api.http) = {
+            get: "/v1/enabled-components"
+        };
+    }
 }
 
 message QueryRequest {
@@ -111,3 +118,18 @@ message Facet {
     string field = 1;
     repeated string values = 2;
 }
+
+enum EnabledComponent {
+    unkown       = 0;
+    applications = 1;
+    sources      = 2;
+}
+
+message ListEnabledComponentsRequest {
+
+}
+
+message ListEnabledComponentsResponse {
+    repeated EnabledComponent components = 1;
+}
+

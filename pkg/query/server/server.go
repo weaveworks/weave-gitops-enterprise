@@ -38,6 +38,7 @@ type server struct {
 
 	cancelCollection context.CancelFunc
 	cleaner          cleaner.ObjectCleaner
+	enabledFor       []string
 }
 
 func (s *server) StopCollection() error {
@@ -69,6 +70,7 @@ type ServerOpts struct {
 	ObjectKinds         []configuration.ObjectKind
 	ServiceAccount      collector.ImpersonateServiceAccount
 	EnableObjectCleaner bool
+	EnabledFor          []string
 }
 
 func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
@@ -105,6 +107,27 @@ func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb
 
 	return &pb.ListFacetsResponse{
 		Facets: convertToPbFacet(facets),
+	}, nil
+}
+
+func (s *server) ListEnabledComponents(ctx context.Context, msg *pb.ListEnabledComponentsRequest) (*pb.ListEnabledComponentsResponse, error) {
+	enabledFor := []pb.EnabledComponent{}
+
+	for _, cmp := range s.enabledFor {
+
+		key := pb.EnabledComponent_value[cmp]
+
+		if key == int32(pb.EnabledComponent_unkown) {
+			// Weird case were if we have an invalid component, we get the zero value of an int32,
+			// which means we get the first enum value.
+			// Protobufs require the first element of an enum to be 0.
+			continue
+		}
+		enabledFor = append(enabledFor, pb.EnabledComponent(key))
+	}
+
+	return &pb.ListEnabledComponentsResponse{
+		Components: enabledFor,
 	}, nil
 }
 
@@ -191,7 +214,10 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 	}
 	debug.Info("query service created")
 
-	serv := &server{qs: qs}
+	serv := &server{
+		qs:         qs,
+		enabledFor: opts.EnabledFor,
+	}
 
 	if !opts.SkipCollection {
 		if len(opts.ObjectKinds) == 0 {
@@ -250,6 +276,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
 		serv.cancelCollection = cancel
+
 		debug.Info("collectors started")
 	}
 	debug.Info("query server created")

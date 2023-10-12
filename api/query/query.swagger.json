@@ -39,6 +39,28 @@
         ]
       }
     },
+    "/v1/enabled-components": {
+      "get": {
+        "operationId": "Query_ListEnabledComponents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEnabledComponentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      }
+    },
     "/v1/facets": {
       "get": {
         "operationId": "Query_ListFacets",
@@ -168,6 +190,15 @@
         }
       }
     },
+    "v1EnabledComponent": {
+      "type": "string",
+      "enum": [
+        "unkown",
+        "applications",
+        "sources"
+      ],
+      "default": "unkown"
+    },
     "v1Facet": {
       "type": "object",
       "properties": {
@@ -178,6 +209,17 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListEnabledComponentsResponse": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1EnabledComponent"
           }
         }
       }

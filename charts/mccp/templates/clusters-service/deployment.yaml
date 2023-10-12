@@ -53,6 +53,11 @@ spec:
             {{ if .Values.explorer.cleaner.disabled }}
             - --explorer-cleaner-disabled=true
             {{- end }}
+            {{ if .Values.explorer.enabledFor }}
+              {{- range .Values.explorer.enabledFor }}
+              - --explorer-enabled-for={{ . }}
+              {{- end }}
+            {{- end }}
           imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:
@@ -95,10 +100,6 @@ spec:
             {{- end }}
             {{- if .Values.enableTerraformUI }}
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
-              value: "true"
-            {{- end }}
-            {{- if .Values.useQueryServiceBackend }}
-            - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
               value: "true"
             {{- end }}
             {{- if .Values.enableRunUI }}
