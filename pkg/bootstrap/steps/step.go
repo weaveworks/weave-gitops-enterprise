@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -148,7 +147,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 		case typeSecret:
 			secret, ok := param.Value.(v1.Secret)
 			if !ok {
-				return errors.New("unexpected error casting secret")
+				panic("unexpected internal error casting secret")
 			}
 			name := secret.ObjectMeta.Name
 			namespace := secret.ObjectMeta.Namespace
@@ -162,7 +161,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			c.Logger.Actionf("writing file to repo: '%s'", param.Name)
 			file, ok := param.Value.(fileContent)
 			if !ok {
-				return errors.New("unexpected error casting file")
+				panic("unexpected internal error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: '%s/%s'", WGEDefaultNamespace, WGEDefaultRepoName)
 			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
@@ -191,7 +190,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 		case typePortforward:
 			portforward, ok := param.Value.(func() error)
 			if !ok {
-				return errors.New("unexpected error for function casting")
+				panic("unexpected internal error for function casting")
 			}
 			err := portforward()
 			if err != nil {
