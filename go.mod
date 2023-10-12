@@ -92,6 +92,7 @@ require (
 	github.com/fluxcd/pkg/tar v0.2.0 // indirect
 	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/google/go-containerregistry v0.12.0 // indirect
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 )
 
 require (
@@ -120,7 +121,6 @@ require (
 	github.com/mschoch/smat v0.2.0 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
-	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0 // indirect
 	google.golang.org/api v0.126.0 // indirect
 	google.golang.org/genproto v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect

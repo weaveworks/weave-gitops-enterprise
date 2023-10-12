@@ -7,11 +7,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
@@ -23,7 +24,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 		name                   string
 		existingResources      []runtime.Object
 		serviceAccountName     string
-		expectedServiceAccount v1.ServiceAccount
+		expectedServiceAccount corev1.ServiceAccount
 		expectedResources      map[string]runtime.Object // Should include expected ServiceAccount,ClusterRole, ClusterRoleBinding
 	}{
 		{
@@ -39,17 +40,20 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 			},
 			"test-service-account",
-			v1.ServiceAccount{
+			corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
 				},
 			},
 			map[string]runtime.Object{
-				"ServiceAccount": &v1.ServiceAccount{
+				"ServiceAccount": &corev1.ServiceAccount{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": managedByLabelName,
+						},
 					},
 				},
 
@@ -59,10 +63,13 @@ func TestReconcileServiceAccount(t *testing.T) {
 		{
 			"existing service account",
 			[]runtime.Object{
-				&v1.ServiceAccount{
+				&corev1.ServiceAccount{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": managedByLabelName,
+						},
 					},
 				},
 				newClusterRole("cluster-admin", corev1.NamespaceDefault, []rbacv1.PolicyRule{
@@ -75,17 +82,23 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 			},
 			"test-service-account",
-			v1.ServiceAccount{
+			corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
+					Labels: map[string]string{
+						"app.kubernetes.io/managed-by": managedByLabelName,
+					},
 				},
 			},
 			map[string]runtime.Object{
-				"ServiceAccount": &v1.ServiceAccount{
+				"ServiceAccount": &corev1.ServiceAccount{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": managedByLabelName,
+						},
 					},
 				},
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
@@ -105,17 +118,23 @@ func TestReconcileServiceAccount(t *testing.T) {
 				}),
 			},
 			"test-service-account",
-			v1.ServiceAccount{
+			corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
+					Labels: map[string]string{
+						"app.kubernetes.io/managed-by": managedByLabelName,
+					},
 				},
 			},
 			map[string]runtime.Object{
-				"ServiceAccount": &v1.ServiceAccount{
+				"ServiceAccount": &corev1.ServiceAccount{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "test-service-account",
 						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": managedByLabelName,
+						},
 					},
 				},
 				"ClusterRoleBinding": newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
@@ -125,11 +144,9 @@ func TestReconcileServiceAccount(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			remoteClientSet := fake.NewSimpleClientset()
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
 
 			setupFakeSecretToken(t, remoteClientSet, tt.serviceAccountName+"-token", corev1.NamespaceDefault, []byte("usertest"))
-
-			addFakeResources(t, remoteClientSet, tt.existingResources...)
 
 			// Reconcile Service account
 			clusterConnectionOpts := ClusterConnectionOptions{
@@ -146,7 +163,7 @@ func TestReconcileServiceAccount(t *testing.T) {
 			// Verify Service account created/exists
 			serviceAccount, err := remoteClientSet.CoreV1().ServiceAccounts(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), "test-service-account", metav1.GetOptions{})
 			assert.NoError(t, err)
-			expectedServiceAccount := tt.expectedResources["ServiceAccount"].(*v1.ServiceAccount)
+			expectedServiceAccount := tt.expectedResources["ServiceAccount"].(*corev1.ServiceAccount)
 			assert.Equal(t, expectedServiceAccount, serviceAccount, "service account found doesn't match expected")
 
 			// Verify ClusterRoleBinding created/exists
@@ -202,7 +219,7 @@ func TestGetServiceAccount(t *testing.T) {
 		name               string
 		serviceAccountName string
 		serviceAccounts    []string
-		expected           v1.ServiceAccount
+		expected           corev1.ServiceAccount
 	}{
 		{
 			"get existing service account",
@@ -210,10 +227,13 @@ func TestGetServiceAccount(t *testing.T) {
 			[]string{
 				"test-service-account",
 			},
-			v1.ServiceAccount{
+			corev1.ServiceAccount{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "test-service-account",
 					Namespace: corev1.NamespaceDefault,
+					Labels: map[string]string{
+						"app.kubernetes.io/managed-by": managedByLabelName,
+					},
 				},
 			},
 		},
@@ -238,29 +258,170 @@ func TestGetServiceAccount(t *testing.T) {
 
 }
 
-// Add resources of different types to the client based on the type of the resource
-// Valid resources: v1.ServiceAccount, rbacv1.ClusterRole, rbacv1.ClusterRoleBinding, v1.Secret
-func addFakeResources(t *testing.T, client kubernetes.Interface, resources ...runtime.Object) {
-	for _, resource := range resources {
-		switch resource := resource.(type) {
-		case *v1.ServiceAccount:
-			_, err := client.CoreV1().ServiceAccounts(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		case *rbacv1.ClusterRole:
-			_, err := client.RbacV1().ClusterRoles().Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		case *rbacv1.ClusterRoleBinding:
-			_, err := client.RbacV1().ClusterRoleBindings().Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		case *v1.Secret:
-			_, err := client.CoreV1().Secrets(corev1.NamespaceDefault).Create(context.Background(), resource, metav1.CreateOptions{})
-			assert.NoError(t, err)
-		default:
-			t.Fatalf("invalid resource type %s", resource)
-
-		}
-
+func TestCheckServiceAccountName(t *testing.T) {
+	var tests = []struct {
+		name               string
+		serviceAccountName string
+		existingResources  []runtime.Object
+		expectedError      string
+	}{
+		{
+			"check existing service account name matching label cluster-controller and service account name",
+			"test-service-account",
+			[]runtime.Object{
+				&corev1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-service-account",
+						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": managedByLabelName,
+						},
+					},
+				},
+			},
+			"",
+		},
+		{
+			"check existing service account name not matching label cluster-controller and name provided",
+			"test-service-account",
+			[]runtime.Object{
+				&corev1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "other-service-account",
+						Namespace: corev1.NamespaceDefault,
+						Labels: map[string]string{
+							"app.kubernetes.io/managed-by": managedByLabelName,
+						},
+					},
+				},
+			},
+			"service account not found",
+		},
 	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
+			clusterConnectionOpts := ClusterConnectionOptions{
+				GitopsClusterName:  types.NamespacedName{Namespace: corev1.NamespaceDefault},
+				ServiceAccountName: tt.serviceAccountName,
+			}
+
+			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
+			selector := labels.NewSelector()
+			selector = selector.Add(*req)
+
+			err := checkServiceAccountName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
+			if tt.expectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.expectedError)
+			}
+
+		})
+	}
+
+}
+
+func TestCheckClusterRoleBindingName(t *testing.T) {
+	var tests = []struct {
+		name                   string
+		clusterRoleBindingName string
+		existingResources      []runtime.Object
+		expectedError          string
+	}{
+		{
+			"get existing cluster role binding name matching label cluster-controller",
+			"test-service-account-cluster-role-binding",
+			[]runtime.Object{
+				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+			},
+			"",
+		},
+		{
+			"check existing cluster role binding name not matching label cluster-controller and name provided",
+			"test-service-account-cluster-role-binding",
+			[]runtime.Object{
+				newClusterRoleBinding("other-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+			},
+			"cluster role binding not found",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
+			clusterConnectionOpts := ClusterConnectionOptions{
+				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
+				ClusterRoleBindingName: tt.clusterRoleBindingName,
+			}
+
+			req, _ := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
+			selector := labels.NewSelector()
+			selector = selector.Add(*req)
+
+			err := checkClusterRoleBindingName(context.Background(), remoteClientSet, &clusterConnectionOpts, selector)
+			if tt.expectedError == "" {
+				assert.NoError(t, err)
+			} else {
+				assert.ErrorContains(t, err, tt.expectedError)
+			}
+		})
+	}
+
+}
+
+func TestDeleteServiceAccountResources(t *testing.T) {
+	var tests = []struct {
+		name                   string
+		existingResources      []runtime.Object
+		serviceAccountName     string
+		clusterRoleBindingName string
+		expectedResources      map[string]runtime.Object
+	}{
+		{
+			"delete service account resources",
+			[]runtime.Object{
+				&corev1.ServiceAccount{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "test-service-account",
+						Namespace: corev1.NamespaceDefault,
+					},
+				},
+				newClusterRoleBinding("test-service-account-cluster-role-binding", corev1.NamespaceDefault, "cluster-admin", "test-service-account"),
+				newServiceAccountTokenSecret("test-service-account-token", "test-service-account", corev1.NamespaceDefault),
+			},
+			"test-service-account",
+			"test-service-account-cluster-role-binding",
+			map[string]runtime.Object{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			remoteClientSet := fake.NewSimpleClientset(tt.existingResources...)
+			clusterConnectionOpts := ClusterConnectionOptions{
+				ServiceAccountName:     tt.serviceAccountName,
+				ClusterRoleBindingName: tt.clusterRoleBindingName,
+				GitopsClusterName:      types.NamespacedName{Namespace: corev1.NamespaceDefault},
+			}
+
+			err := deleteServiceAccountResources(context.Background(), remoteClientSet, clusterConnectionOpts)
+			assert.NoError(t, err)
+
+			// verify service account deleted
+			_, err = remoteClientSet.CoreV1().ServiceAccounts(clusterConnectionOpts.GitopsClusterName.Namespace).Get(context.Background(), tt.serviceAccountName, metav1.GetOptions{})
+			assert.Error(t, err)
+			assert.True(t, apierrors.IsNotFound(err))
+
+			// Verify ClusterRoleBinding deleted
+			_, err = remoteClientSet.RbacV1().ClusterRoleBindings().Get(context.Background(), tt.clusterRoleBindingName, metav1.GetOptions{})
+			assert.Error(t, err)
+			assert.True(t, apierrors.IsNotFound(err))
+
+		})
+	}
+
 }
 
 func addFakeServiceAccounts(client kubernetes.Interface, serviceAccounts []string) error {
@@ -268,10 +429,13 @@ func addFakeServiceAccounts(client kubernetes.Interface, serviceAccounts []strin
 		return nil
 	}
 	for _, serviceAccountName := range serviceAccounts {
-		serviceAccount := &v1.ServiceAccount{
+		serviceAccount := &corev1.ServiceAccount{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      serviceAccountName,
 				Namespace: corev1.NamespaceDefault,
+				Labels: map[string]string{
+					"app.kubernetes.io/managed-by": managedByLabelName,
+				},
 			},
 		}
 
