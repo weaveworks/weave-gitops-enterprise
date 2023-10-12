@@ -88,8 +88,8 @@ func (i *SQLiteStore) DeleteAllObjects(ctx context.Context, clusters []string) (
 func NewSQLiteStore(db *gorm.DB, log logr.Logger) (*SQLiteStore, error) {
 	return &SQLiteStore{
 		db:    db,
-		log:   log.WithName("sqllite"),
-		debug: log.WithName("sqllite").V(logger.LogLevelDebug),
+		log:   log.WithName("sqlite"),
+		debug: log.WithName("sqlite").V(logger.LogLevelDebug),
 	}, nil
 }
 
