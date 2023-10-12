@@ -20,7 +20,7 @@ interface Props {
 }
 
 export const PolicyConfigsTable: FC<Props> = ({ PolicyConfigs }) => {
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(PolicyConfigs, 'name'),
   };
 

@@ -1,5 +1,9 @@
 import { Alert } from '@material-ui/lab';
-import { Flex, ImageAutomation, useCheckCRDInstalled } from '@weaveworks/weave-gitops';
+import {
+  Flex,
+  ImageAutomation,
+  useCheckCRDInstalled,
+} from '@weaveworks/weave-gitops';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import OnboardingImageAutomationMessage from './OnboardingMessage';

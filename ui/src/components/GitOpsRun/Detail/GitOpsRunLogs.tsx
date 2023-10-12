@@ -110,7 +110,7 @@ function GitOpsRunLogs({ className, name, namespace }: Props) {
     const tempLogs = logs.length ? [...data.logs, ...logs] : data.logs;
     //sort and filter
     const sorted = sortBy(tempLogs, e => e.sortingKey);
-    let filtered = sortedUniqBy(sorted, 'sortingKey');
+    const filtered = sortedUniqBy(sorted, 'sortingKey');
     setLogs(reverseSort ? filtered.reverse() : filtered);
     setToken(data.nextToken);
     setLogSources(uniq([...(data?.logSources || []), ...logSources]));

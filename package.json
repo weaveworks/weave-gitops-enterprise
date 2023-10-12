@@ -40,7 +40,8 @@
     "dotenv-expand": "^5.1.0",
     "eslint": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",
-    "git-url-parse": "12.0.0",
+    "eslint-webpack-plugin": "^3.1.1",
+    "git-url-parse": "13.1.0",
     "http-proxy-middleware": "^2.0.0",
     "jest": "^27.4.3",
     "jest-resolve": "^27.4.2",
@@ -86,7 +87,8 @@
   "scripts": {
     "start": "parcel serve ui/index.html --port 3000 --dist-dir build --hmr-port 1234",
     "build": "parcel build ui/index.html --dist-dir build",
-    "test": "node ui/scripts/test.js"
+    "test": "node ui/scripts/test.js",
+    "lint": "eslint ui/src -c eslintrc.json --max-warnings=0"
   },
   "eslintConfig": {
     "extends": [

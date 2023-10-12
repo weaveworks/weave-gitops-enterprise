@@ -6,15 +6,14 @@ import {
 import GitUrlParse from 'git-url-parse';
 import styled from 'styled-components';
 import URI from 'urijs';
-import { GitRepositoryEnriched } from '.';
+import * as yamlConverter from 'yaml';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
-
-const yamlConverter = require('js-yaml');
+import { GitRepositoryEnriched } from '.';
 
 export const maybeParseJSON = (data: string) => {
   try {
@@ -44,8 +43,8 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
         ];
       case 'Terraform':
       case 'Pipeline':
-        return yamlConverter.load(
-          (resource as GetTerraformObjectResponse | Pipeline)?.yaml,
+        return yamlConverter.parse(
+          (resource as GetTerraformObjectResponse | Pipeline)?.yaml || '',
         )?.metadata?.annotations?.['templates.weave.works/create-request'];
       default:
         return '';
@@ -106,12 +105,12 @@ export function useGetInitialGitRepo(
   // if no result, parse it and check for the protocol; if ssh, convert it to https and try again to compare it to the gitrepos links
   // createPRRepo signals that this refers to a pre-existing resource
   if (initialUrl) {
-    for (var repo of gitRepos) {
-      let repoUrl = repo?.obj?.spec?.url;
+    for (const repo of gitRepos) {
+      const repoUrl = repo?.obj?.spec?.url;
       if (repoUrl === initialUrl) {
         return { ...repo, createPRRepo: true };
       }
-      let parsedRepolUrl = GitUrlParse(repoUrl);
+      const parsedRepolUrl = GitUrlParse(repoUrl);
       if (parsedRepolUrl?.protocol === 'ssh') {
         if (
           initialUrl === parsedRepolUrl.href.replace('ssh://git@', 'https://')
