@@ -5,7 +5,6 @@ import (
 )
 
 // Bootstrap initiated by the command runs the WGE bootstrap workflow
-
 func Bootstrap(config steps.Config) error {
 	// TODO have a single workflow source of truth and documented in https://docs.gitops.weave.works/docs/0.33.0/enterprise/getting-started/install-enterprise/
 	var steps = []steps.BootstrapStep{
