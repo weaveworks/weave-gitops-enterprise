@@ -2,6 +2,9 @@ package steps
 
 import (
 	"errors"
+	"os"
+
+	"k8s.io/utils/strings/slices"
 )
 
 const (
@@ -30,6 +33,11 @@ var getDomainType = StepInput{
 
 func NewSelectDomainType(config Config) BootstrapStep {
 	inputs := []StepInput{}
+
+	if config.DomainType != "" && !slices.Contains(domainTypes, config.DomainType) {
+		config.Logger.Failuref("domain-type: %s must be one of: %s", config.DomainType, domainTypes)
+		os.Exit(1)
+	}
 
 	if config.DomainType == "" {
 		inputs = append(inputs, getDomainType)
