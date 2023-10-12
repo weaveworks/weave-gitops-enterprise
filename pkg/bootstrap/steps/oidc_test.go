@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/alecthomas/assert"
@@ -85,7 +86,15 @@ func TestCreateOIDCConfig(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			createOIDCConfig(tt.input, tt.config)
+			_, err = createOIDCConfig(tt.input, tt.config)
+			if err != nil {
+				//fire the errors except it's related to 'no kind is registered for the type v1beta2.GitRepository in scheme'
+				//because it's out of the scope of this test to add all the required objects to the fake client
+				//check if the error contains the above string and if not, fail the test
+				if !strings.Contains(err.Error(), "no kind is registered for the type v1beta2.GitRepository in scheme") {
+					t.Fatalf("unexpected error: %v", err)
+				}
+			}
 
 			//validate oidc-auth secret is created, use getSecret function to get the secret and validate the secret data
 			secret, err := utils.GetSecret(tt.config.KubernetesClient, "oidc-auth", "flux-system")
