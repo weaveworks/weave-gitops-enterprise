@@ -187,17 +187,8 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				return err
 			}
 			c.Logger.Successf("changes are reconciled successfully!")
-		case typePortforward:
-			portforward, ok := param.Value.(func() error)
-			if !ok {
-				panic("unexpected internal error for function casting")
-			}
-			err := portforward()
-			if err != nil {
-				return err
-			}
 		default:
-			return fmt.Errorf("not supported")
+			return fmt.Errorf("unsupported param type: %s", param.Type)
 		}
 	}
 	return nil

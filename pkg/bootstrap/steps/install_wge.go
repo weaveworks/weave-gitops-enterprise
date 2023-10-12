@@ -18,9 +18,7 @@ const (
 	externalDNSWarningMsg = `please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.`
 	clusterDomainMsg      = "please enter your cluster domain"
 
-	wgeInstallMsg          = "installing v%s ... It may take a few minutes."
-	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
-	localInstallSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at http://localhost:8000/"
+	wgeInstallMsg = "installing v%s ... It may take a few minutes."
 )
 
 const (
