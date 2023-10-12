@@ -13,7 +13,8 @@ import (
 
 const (
 	cmdName             = "bootstrap"
-	cmdShortDescription = `gitops bootstrap installs Weave GitOps Enterprise in simple steps:
+	cmdShortDescription = "Installs Weave GitOps Enterprise in simple steps"
+	cmdLongDescription  = `Installs Weave GitOps Enterprise in simple steps:
 - Entitlements: check that you have valid entitlements.
 - Flux: check or bootstrap Flux. 
 - Weave Gitops: check or install a supported Weave GitOps version with default configuration.
@@ -47,6 +48,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cmdName,
 		Short:   cmdShortDescription,
+		Long:    cmdLongDescription,
 		Example: cmdExamples,
 		RunE:    getBootstrapCmdRun(opts),
 	}
