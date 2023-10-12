@@ -143,10 +143,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   align-items: center;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
 .c12 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -163,12 +159,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c17 {
-<<<<<<< HEAD
-=======
-.c16 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -187,15 +177,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c20 {
-=======
-.c19 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c20 {
->>>>>>> e94fd011 (rebase)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -215,15 +197,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c22 {
-=======
-.c21 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c22 {
->>>>>>> e94fd011 (rebase)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -242,10 +216,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
 .c28 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -268,12 +238,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c41 {
-<<<<<<< HEAD
-=======
-.c38 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -292,15 +256,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   justify-content: space-between;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c43 {
-=======
-.c40 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c43 {
->>>>>>> e94fd011 (rebase)
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -336,15 +292,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #1a1a1a;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c31 {
-=======
-.c28 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c31 {
->>>>>>> e94fd011 (rebase)
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -353,15 +301,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #00b3ec;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c32 {
-=======
-.c29 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c32 {
->>>>>>> e94fd011 (rebase)
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 12px;
   font-weight: 400;
@@ -370,15 +310,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   color: #737373;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c47 {
-=======
-.c44 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c47 {
->>>>>>> e94fd011 (rebase)
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 800;
@@ -441,114 +373,50 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: 32px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c15 svg {
-=======
-.c14 svg {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c15 svg {
->>>>>>> e94fd011 (rebase)
   height: 24px;
   width: 24px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
 .c15 svg path.path-fill,
 .c15 svg line.path-fill,
 .c15 svg polygon.path-fill,
 .c15 svg rect.path-fill,
 .c15 svg circle.path-fill,
 .c15 svg polyline.path-fill {
-<<<<<<< HEAD
-=======
-.c14 svg path.path-fill,
-.c14 svg line.path-fill,
-.c14 svg polygon.path-fill,
-.c14 svg rect.path-fill,
-.c14 svg circle.path-fill,
-.c14 svg polyline.path-fill {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
 .c15 svg path.stroke-fill,
 .c15 svg line.stroke-fill,
 .c15 svg polygon.stroke-fill,
 .c15 svg rect.stroke-fill,
 .c15 svg circle.stroke-fill,
 .c15 svg polyline.stroke-fill {
-<<<<<<< HEAD
-=======
-.c14 svg path.stroke-fill,
-.c14 svg line.stroke-fill,
-.c14 svg polygon.stroke-fill,
-.c14 svg rect.stroke-fill,
-.c14 svg circle.stroke-fill,
-.c14 svg polyline.stroke-fill {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c15 svg rect.rect-height {
-=======
-.c14 svg rect.rect-height {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c15 svg rect.rect-height {
->>>>>>> e94fd011 (rebase)
   height: 24px;
   width: 24px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c15.downward {
-=======
-.c14.downward {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c15.downward {
->>>>>>> e94fd011 (rebase)
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c15.upward {
-=======
-.c14.upward {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c15.upward {
->>>>>>> e94fd011 (rebase)
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c15 .c6 {
   margin-left: 4px;
 }
@@ -558,184 +426,70 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c46 svg {
-=======
-.c14 .c6 {
-=======
-.c15 .c6 {
->>>>>>> e94fd011 (rebase)
-  margin-left: 4px;
-}
-
-.c15 img {
-  width: 24px;
-}
-
-<<<<<<< HEAD
-.c43 svg {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c46 svg {
->>>>>>> e94fd011 (rebase)
   fill: #27AE60;
   height: 16px;
   width: 16px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
 .c46 svg path.path-fill,
 .c46 svg line.path-fill,
 .c46 svg polygon.path-fill,
 .c46 svg rect.path-fill,
 .c46 svg circle.path-fill,
 .c46 svg polyline.path-fill {
-<<<<<<< HEAD
-=======
-.c43 svg path.path-fill,
-.c43 svg line.path-fill,
-.c43 svg polygon.path-fill,
-.c43 svg rect.path-fill,
-.c43 svg circle.path-fill,
-.c43 svg polyline.path-fill {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
   fill: #27AE60 !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
 .c46 svg path.stroke-fill,
 .c46 svg line.stroke-fill,
 .c46 svg polygon.stroke-fill,
 .c46 svg rect.stroke-fill,
 .c46 svg circle.stroke-fill,
 .c46 svg polyline.stroke-fill {
-<<<<<<< HEAD
-=======
-.c43 svg path.stroke-fill,
-.c43 svg line.stroke-fill,
-.c43 svg polygon.stroke-fill,
-.c43 svg rect.stroke-fill,
-.c43 svg circle.stroke-fill,
-.c43 svg polyline.stroke-fill {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
   stroke: #27AE60 !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c46 svg rect.rect-height {
-=======
-.c43 svg rect.rect-height {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c46 svg rect.rect-height {
->>>>>>> e94fd011 (rebase)
   height: 16px;
   width: 16px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c46.downward {
-=======
-.c43.downward {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c46.downward {
->>>>>>> e94fd011 (rebase)
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c46.upward {
-=======
-.c43.upward {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c46.upward {
->>>>>>> e94fd011 (rebase)
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c46 .c6 {
-=======
-.c43 .c6 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c46 .c6 {
->>>>>>> e94fd011 (rebase)
   margin-left: 4px;
   color: #27AE60;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c46 img {
   width: 16px;
 }
 
 .c45 .c8 .c6 {
-=======
-.c43 img {
-  width: 16px;
-}
-
-.c42 .c8 .c6 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c46 img {
-  width: 16px;
-}
-
-.c45 .c8 .c6 {
->>>>>>> e94fd011 (rebase)
   color: #1a1a1a;
   font-weight: 400;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-.c30 {
-  padding: 8px;
-}
-
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
 .c5 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c26.MuiButton-root {
-=======
-.c25.MuiButton-root {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c26.MuiButton-root {
->>>>>>> e94fd011 (rebase)
   height: 32px;
   font-size: 12px;
   -webkit-letter-spacing: 1px;
@@ -747,8 +501,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 600;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c26.MuiButton-outlined {
   padding: 8px 12px;
 }
@@ -783,48 +535,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-block-end: 3px solid #00b3ec;
 }
 
-=======
-.c25.MuiButton-outlined {
-=======
-.c26.MuiButton-outlined {
->>>>>>> e94fd011 (rebase)
-  padding: 8px 12px;
-}
-
-.c30.active-tab {
-  background: #00b3ec19;
-}
-
-<<<<<<< HEAD
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c29 .horizontal-tabs {
-  min-height: 32px;
-  width: 100%;
-}
-
-.c29 .horizontal-tabs .MuiTabs-flexContainer {
-  border-bottom: 3px solid #d8d8d8;
-}
-
-.c29 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
-  line-height: 1;
-  -webkit-letter-spacing: 1px;
-  -moz-letter-spacing: 1px;
-  -ms-letter-spacing: 1px;
-  letter-spacing: 1px;
-  min-height: 32px;
-  width: -webkit-fit-content;
-  width: -moz-fit-content;
-  width: fit-content;
-}
-
-.c29 .horizontal-tabs .MuiTabs-indicator {
-  height: 0;
-  border-block-end: 3px solid #00b3ec;
-}
-
->>>>>>> e94fd011 (rebase)
 .c11 {
   max-width: 400px;
   white-space: nowrap;
@@ -832,73 +542,27 @@ exports[`PipelineDetails snapshots renders 1`] = `
   text-overflow: ellipsis;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c13 .MuiSwitch-thumb {
-=======
-.c12 .MuiSwitch-thumb {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c13 .MuiSwitch-thumb {
->>>>>>> e94fd011 (rebase)
   color: #fff;
   background-image: url(data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20id%3D%22Capa_29%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%3E%3Cdefs%3E%3Cstyle%3E.cls-1%20%7B%0A%20%20fill%3A%20%2300b3ec%3B%0A%7D%0A%0A.cls-2%20%7B%0A%20%20fill%3A%20none%3B%0A%20%20stroke%3A%20%2300b3ec%3B%0A%20%20stroke-linecap%3A%20round%3B%0A%20%20stroke-miterlimit%3A%2010%3B%0A%7D%0A%0A%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cpath%20class%3D%22cls-1%22%20d%3D%22m10%2C5.97c-1.06%2C0-2.08.42-2.83%2C1.17-.75.75-1.17%2C1.77-1.17%2C2.83s.42%2C2.08%2C1.17%2C2.83c.75.75%2C1.77%2C1.17%2C2.83%2C1.17s2.08-.42%2C2.83-1.17c.75-.75%2C1.17-1.77%2C1.17-2.83%2C0-2.21-1.79-4-4-4Z%22%3E%3C%2Fpath%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2210%22%20y1%3D%223.5%22%20x2%3D%2210%22%20y2%3D%224.5%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%225.41%22%20y1%3D%225.4%22%20x2%3D%226.11%22%20y2%3D%226.1%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%223.5%22%20y1%3D%229.99%22%20x2%3D%224.5%22%20y2%3D%229.99%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%225.4%22%20y1%3D%2214.58%22%20x2%3D%226.1%22%20y2%3D%2213.87%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%229.99%22%20y1%3D%2216.49%22%20x2%3D%229.99%22%20y2%3D%2215.49%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2214.58%22%20y1%3D%2214.59%22%20x2%3D%2213.87%22%20y2%3D%2213.88%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2216.49%22%20y1%3D%2210%22%20x2%3D%2215.49%22%20y2%3D%2210%22%3E%3C%2Fline%3E%3Cline%20class%3D%22cls-2%22%20x1%3D%2214.59%22%20y1%3D%225.41%22%20x2%3D%2213.88%22%20y2%3D%226.11%22%3E%3C%2Fline%3E%3C%2Fsvg%3E%0A);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c13 .MuiSwitch-track {
   background-color: #00b3ec;
 }
 
 .c14.MuiIconButton-root {
   padding: 8px;
-=======
-.c12 .MuiSwitch-track {
-  background-color: #00b3ec;
-}
-
-.c13 {
-  height: 40px;
-  width: 40px;
-}
-
-.c13.MuiIconButton-root {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c13 .MuiSwitch-track {
-  background-color: #00b3ec;
-}
-
-.c14.MuiIconButton-root {
-  padding: 8px;
->>>>>>> e94fd011 (rebase)
   background-color: #F6F7F9;
   color: #737373;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c14.MuiIconButton-root:hover {
-=======
-.c13.MuiIconButton-root:hover {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c14.MuiIconButton-root:hover {
->>>>>>> e94fd011 (rebase)
   background-color: #fff;
   color: #009CCC;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c16 {
-=======
-.c15 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c16 {
->>>>>>> e94fd011 (rebase)
   height: 100%;
   width: calc(100% - 48px);
   padding: 0 24px;
@@ -917,15 +581,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   overflow: hidden;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c18 {
-=======
-.c17 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c18 {
->>>>>>> e94fd011 (rebase)
   background-color: #fff;
   border-radius: 10px;
   box-sizing: border-box;
@@ -933,15 +589,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   min-height: 100%;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c21 {
-=======
-.c20 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c21 {
->>>>>>> e94fd011 (rebase)
   width: calc(100% - 48px);
   padding: 24px;
   height: 100%;
@@ -956,8 +604,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   padding: 0 32px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c19 .MuiAlert-root {
   width: 100%;
 }
@@ -967,74 +613,24 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c25 {
-=======
-.c18 .MuiAlert-root {
-=======
-.c19 .MuiAlert-root {
->>>>>>> e94fd011 (rebase)
-  width: 100%;
-}
-
-.c24 {
-  font-weight: bold;
-}
-
-<<<<<<< HEAD
-.c24 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c25 {
->>>>>>> e94fd011 (rebase)
   text-overflow: ellipsis;
   overflow: hidden !important;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c23 {
   width: 100%;
 }
 
 .c23 tr {
-=======
-.c22 {
-  width: 100%;
-}
-
-.c22 tr {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c23 {
-  width: 100%;
-}
-
-.c23 tr {
->>>>>>> e94fd011 (rebase)
   height: 72px;
   border-bottom: none;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c27 span {
   margin-right: 0px;
 }
 
 .c36 {
-=======
-.c26 span {
-  margin-right: 0px;
-}
-
-.c33 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c27 span {
-  margin-right: 0px;
-}
-
-.c36 {
->>>>>>> e94fd011 (rebase)
   font-size: 20px;
   margin-bottom: 12px;
   text-overflow: ellipsis;
@@ -1043,15 +639,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
   width: calc(250px - 32px);
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c35 {
-=======
-.c32 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c35 {
->>>>>>> e94fd011 (rebase)
   background: #fff;
   padding: 12px;
   margin-bottom: 8px;
@@ -1060,35 +648,17 @@ exports[`PipelineDetails snapshots renders 1`] = `
   font-weight: 600;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c37 {
-=======
-.c34 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c37 {
->>>>>>> e94fd011 (rebase)
   font-size: 14px;
   color: #1a1a1a;
   font-weight: 400;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c38 {
-=======
-.c35 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c38 {
->>>>>>> e94fd011 (rebase)
   margin-bottom: 12px;
   line-height: 24px;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c38 a > span {
   font-size: 20px;
 }
@@ -1106,32 +676,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
 }
 
 .c48 {
-=======
-.c35 a > span {
-=======
-.c38 a > span {
->>>>>>> e94fd011 (rebase)
-  font-size: 20px;
-}
-
-.c39 {
-  font-size: 14px;
-}
-
-.c40 {
-  position: relative;
-}
-
-.c40 .version {
-  margin-left: 4px;
-}
-
-<<<<<<< HEAD
-.c45 {
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-.c48 {
->>>>>>> e94fd011 (rebase)
   color: #737373;
   font-size: 14px;
   border: 1px solid #d8d8d8;
@@ -1139,8 +683,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
   border-radius: 50%;
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
 .c42 {
   font-size: 20px;
 }
@@ -1164,51 +706,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
 
 @media (min-width:600px) {
   .c29 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
-    min-width: auto;
-  }
-}
-
-@media (min-width:1440px) {
-  .c29 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
     min-width: 132px;
   }
 }
 
-=======
-.c39 {
-=======
-.c42 {
->>>>>>> e94fd011 (rebase)
-  font-size: 20px;
-}
-
-.c42 .c44 span {
-  display: none;
-}
-
-.c42 .c8 img {
-  width: 16px;
-}
-
-.c34 {
-  height: 40px;
-  padding: 12px 0;
-}
-
-.c33 .MuiGrid-item {
-  background: #F6F7F9;
-}
-
-<<<<<<< HEAD
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-@media (min-width:600px) {
-  .c29 .horizontal-tabs .MuiTabs-flexContainer .MuiTab-root {
-    min-width: 132px;
-  }
-}
-
->>>>>>> e94fd011 (rebase)
 <div>
   <div
     class="c0 c1"
@@ -1263,8 +764,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
         </div>
       </div>
       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
         class="c12 "
       >
         <span
@@ -1273,37 +772,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
           <span
             aria-disabled="false"
             class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-134 MuiSwitch-switchBase MuiSwitch-colorPrimary"
-=======
-        class=""
-=======
-        class="c12 "
->>>>>>> e94fd011 (rebase)
-      >
-        <span
-          class="MuiSwitch-root c13 $7335ba1b890ac032$var$DarkModeSwitch"
-        >
-          <span
-            aria-disabled="false"
-<<<<<<< HEAD
-            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-92 MuiSwitch-switchBase MuiSwitch-colorPrimary"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-134 MuiSwitch-switchBase MuiSwitch-colorPrimary"
->>>>>>> e94fd011 (rebase)
           >
             <span
               class="MuiIconButton-label"
             >
               <input
-<<<<<<< HEAD
-<<<<<<< HEAD
                 class="PrivateSwitchBase-input-137 MuiSwitch-input"
-=======
-                class="PrivateSwitchBase-input-95 MuiSwitch-input"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                class="PrivateSwitchBase-input-137 MuiSwitch-input"
->>>>>>> e94fd011 (rebase)
                 type="checkbox"
                 value=""
               />
@@ -1319,10 +793,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiSwitch-track"
           />
         </span>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
         <a
           aria-disabled="false"
           class="MuiButtonBase-root MuiIconButton-root c14 c5 $8405a4f7caf64b1d$var$Link"
@@ -1354,20 +824,9 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiTouchRipple-root"
           />
         </a>
-<<<<<<< HEAD
         <button
           aria-haspopup="true"
           class="MuiButtonBase-root MuiIconButton-root c14"
-=======
-        <button
-          aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c13"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-        <button
-          aria-haspopup="true"
-          class="MuiButtonBase-root MuiIconButton-root c14"
->>>>>>> e94fd011 (rebase)
           tabindex="0"
           title="Account settings"
           type="button"
@@ -1376,15 +835,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-<<<<<<< HEAD
-<<<<<<< HEAD
               class="c4 c8 c15"
-=======
-              class="c4 c8 c14"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-              class="c4 c8 c15"
->>>>>>> e94fd011 (rebase)
             >
               <svg
                 aria-hidden="true"
@@ -1405,8 +856,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
       </div>
     </div>
     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
       class="c16"
     >
       <div
@@ -1414,29 +863,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
       >
         <div
           class="c20 c21"
-=======
-      class="c15"
-=======
-      class="c16"
->>>>>>> e94fd011 (rebase)
-    >
-      <div
-        class="c17 c18 c19"
-      >
-        <div
-<<<<<<< HEAD
-          class="c19 c20"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-          class="c20 c21"
->>>>>>> e94fd011 (rebase)
         >
           <div
             style="width: 100%;"
           >
             <div
-<<<<<<< HEAD
-<<<<<<< HEAD
               class="MuiBox-root MuiBox-root-138"
               style="width: 100%;"
             />
@@ -1448,26 +879,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
               >
                 <div
                   class="c23 KeyValueTable"
-=======
-              class="MuiBox-root MuiBox-root-96"
-=======
-              class="MuiBox-root MuiBox-root-138"
->>>>>>> e94fd011 (rebase)
-              style="width: 100%;"
-            />
-            <div
-              class="MuiBox-root MuiBox-root-139"
-            >
-              <div
-                class="c22"
-              >
-                <div
-<<<<<<< HEAD
-                  class="c22 KeyValueTable"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                  class="c23 KeyValueTable"
->>>>>>> e94fd011 (rebase)
                   role="list"
                 >
                   <div
@@ -1477,40 +888,16 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="MuiBox-root MuiBox-root-140 "
                       >
                         <div
                           aria-label="Automated"
                           class="c24"
-=======
-                        class="MuiBox-root MuiBox-root-98 "
-                      >
-                        <div
-                          aria-label="Automated"
-                          class="c23"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="MuiBox-root MuiBox-root-140 "
-                      >
-                        <div
-                          aria-label="Automated"
-                          class="c24"
->>>>>>> e94fd011 (rebase)
                         >
                           Automated
                         </div>
                         <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c25"
-=======
-                          class="c24"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c25"
->>>>>>> e94fd011 (rebase)
                         >
                           True
                         </div>
@@ -1520,40 +907,16 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="MuiBox-root MuiBox-root-141 "
                       >
                         <div
                           aria-label="Strategy"
                           class="c24"
-=======
-                        class="MuiBox-root MuiBox-root-99 "
-                      >
-                        <div
-                          aria-label="Strategy"
-                          class="c23"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="MuiBox-root MuiBox-root-141 "
-                      >
-                        <div
-                          aria-label="Strategy"
-                          class="c24"
->>>>>>> e94fd011 (rebase)
                         >
                           Strategy
                         </div>
                         <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c25"
-=======
-                          class="c24"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c25"
->>>>>>> e94fd011 (rebase)
                         >
                           Notification
                         </div>
@@ -1563,40 +926,16 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="MuiBox-root MuiBox-root-142 "
                       >
                         <div
                           aria-label="URL"
                           class="c24"
-=======
-                        class="MuiBox-root MuiBox-root-100 "
-                      >
-                        <div
-                          aria-label="URL"
-                          class="c23"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="MuiBox-root MuiBox-root-142 "
-                      >
-                        <div
-                          aria-label="URL"
-                          class="c24"
->>>>>>> e94fd011 (rebase)
                         >
                           URL
                         </div>
                         <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c25"
-=======
-                          class="c24"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c25"
->>>>>>> e94fd011 (rebase)
                         >
                           <span
                             style="margin-left: 2px;"
@@ -1610,40 +949,16 @@ exports[`PipelineDetails snapshots renders 1`] = `
                       class="MuiGrid-root MuiGrid-item"
                     >
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="MuiBox-root MuiBox-root-143 "
                       >
                         <div
                           aria-label="Branch"
                           class="c24"
-=======
-                        class="MuiBox-root MuiBox-root-101 "
-                      >
-                        <div
-                          aria-label="Branch"
-                          class="c23"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="MuiBox-root MuiBox-root-143 "
-                      >
-                        <div
-                          aria-label="Branch"
-                          class="c24"
->>>>>>> e94fd011 (rebase)
                         >
                           Branch
                         </div>
                         <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c25"
-=======
-                          class="c24"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c25"
->>>>>>> e94fd011 (rebase)
                         >
                           <span
                             style="margin-left: 2px;"
@@ -1661,24 +976,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     style="pointer-events: none;"
                   >
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="makeStyles-editButton-133"
                     >
                       <button
                         class="MuiButtonBase-root MuiButton-root MuiButton-outlined c26 c27 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
-=======
-                      class="makeStyles-editButton-91"
-                    >
-                      <button
-                        class="MuiButtonBase-root MuiButton-root MuiButton-outlined c25 c26 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-editButton-133"
-                    >
-                      <button
-                        class="MuiButtonBase-root MuiButton-root MuiButton-outlined c26 c27 MuiButton-outlinedPrimary MuiButton-disableElevation Mui-disabled Mui-disabled"
->>>>>>> e94fd011 (rebase)
                         disabled=""
                         tabindex="-1"
                         type="button"
@@ -1708,15 +1009,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
               </div>
             </div>
             <div
-<<<<<<< HEAD
-<<<<<<< HEAD
               class="c28 c29 $66f9bbb72ea3c190$var$SubRouterTabs"
-=======
-              class="c19 $66f9bbb72ea3c190$var$SubRouterTabs"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-              class="c28 c29 $66f9bbb72ea3c190$var$SubRouterTabs"
->>>>>>> e94fd011 (rebase)
             >
               <div
                 class="MuiTabs-root horizontal-tabs"
@@ -1731,44 +1024,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <a
                       aria-disabled="false"
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c30 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
-=======
-                      class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c27 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c30 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
->>>>>>> e94fd011 (rebase)
                       href="/pipelines/details/status"
                       role="tab"
                       tabindex="-1"
                     >
                       <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c6 c31"
-=======
-                        class="c6 c28"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c6 c31"
->>>>>>> e94fd011 (rebase)
                         color="primary"
                       >
                         <span
                           class="MuiTab-wrapper"
                         >
                           <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="c6 c32"
-=======
-                            class="c6 c29"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="c6 c32"
->>>>>>> e94fd011 (rebase)
                             color="neutral30"
                           >
                             Status
@@ -1781,44 +1050,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                     <a
                       aria-disabled="false"
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c30 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
-=======
-                      class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c27 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c30 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
->>>>>>> e94fd011 (rebase)
                       href="/pipelines/details/yaml"
                       role="tab"
                       tabindex="-1"
                     >
                       <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c6 c31"
-=======
-                        class="c6 c28"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c6 c31"
->>>>>>> e94fd011 (rebase)
                         color="primary"
                       >
                         <span
                           class="MuiTab-wrapper"
                         >
                           <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="c6 c32"
-=======
-                            class="c6 c29"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="c6 c32"
->>>>>>> e94fd011 (rebase)
                             color="neutral30"
                           >
                             Yaml
@@ -1831,44 +1076,20 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                     <a
                       aria-disabled="false"
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c30 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
-=======
-                      class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c27 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c5 MuiButtonBase-root MuiTab-root MuiTab-textColorInherit c30 $f59ecea4231521c0$var$MuiTabfalse $8405a4f7caf64b1d$var$Link"
->>>>>>> e94fd011 (rebase)
                       href="/pipelines/details/pullrequests"
                       role="tab"
                       tabindex="-1"
                     >
                       <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c6 c31"
-=======
-                        class="c6 c28"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c6 c31"
->>>>>>> e94fd011 (rebase)
                         color="primary"
                       >
                         <span
                           class="MuiTab-wrapper"
                         >
                           <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="c6 c32"
-=======
-                            class="c6 c29"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="c6 c32"
->>>>>>> e94fd011 (rebase)
                             color="neutral30"
                           >
                             Pull Requests
@@ -1881,22 +1102,12 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </a>
                   </div>
                   <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                     class="PrivateTabIndicator-root-144 PrivateTabIndicator-colorPrimary-145 MuiTabs-indicator"
-=======
-                    class="PrivateTabIndicator-root-102 PrivateTabIndicator-colorPrimary-103 MuiTabs-indicator"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                    class="PrivateTabIndicator-root-144 PrivateTabIndicator-colorPrimary-145 MuiTabs-indicator"
->>>>>>> e94fd011 (rebase)
                     style="left: 0px; width: 0px;"
                   />
                 </div>
               </div>
               <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                 class="MuiGrid-root makeStyles-gridWrapper-128 c33 MuiGrid-container MuiGrid-spacing-xs-4"
               >
                 <div
@@ -1908,57 +1119,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       class="makeStyles-title-129"
-=======
-                class="c30"
-              />
-              <div
-                class="MuiGrid-root makeStyles-gridWrapper-86 c31 MuiGrid-container MuiGrid-spacing-xs-4"
-=======
-                class="MuiGrid-root makeStyles-gridWrapper-128 c33 MuiGrid-container MuiGrid-spacing-xs-4"
->>>>>>> e94fd011 (rebase)
-              >
-                <div
-                  class="MuiGrid-root makeStyles-gridContainer-127 MuiGrid-item MuiGrid-grid-xs-true"
-                  id="dev"
-                >
-                  <div
-                    class="makeStyles-mbSmall-131"
-                  >
-                    <div
-<<<<<<< HEAD
-                      class="makeStyles-title-87"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-title-129"
->>>>>>> e94fd011 (rebase)
                     >
                       dev
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="makeStyles-subtitle-130"
-=======
-                      class="makeStyles-subtitle-88"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-subtitle-130"
->>>>>>> e94fd011 (rebase)
                     >
                       1
                        Targets
                     </div>
                   </div>
                   <div
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
                     class="c34"
                   />
                   <div
                     class="c35"
-<<<<<<< HEAD
                     role="targeting"
                   >
                     <div
@@ -1966,35 +1141,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     >
                       <div
                         class="c37"
-=======
-                    class="c32"
-=======
->>>>>>> e94fd011 (rebase)
-                    role="targeting"
-                  >
-                    <div
-                      class="c36 workloadTarget"
-                    >
-                      <div
-<<<<<<< HEAD
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Cluster
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c38 cluster-name"
-=======
-                        class="c35 cluster-name"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c38 cluster-name"
->>>>>>> e94fd011 (rebase)
                       >
                         <a
                           href="/cluster?clusterName=dev&namespace="
@@ -2003,51 +1154,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         </a>
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c37"
-=======
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Namespace
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c39 workload-namespace"
-=======
-                        class="c36 workload-namespace"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c39 workload-namespace"
->>>>>>> e94fd011 (rebase)
                       >
                         podinfo-02-dev
                       </div>
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c40"
                     >
                       <div
                         class="c41"
-=======
-                      class="c37"
-                    >
-                      <div
-                        class="c38"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c40"
-                    >
-                      <div
-                        class="c41"
->>>>>>> e94fd011 (rebase)
                       >
                         <div
                           class="automation"
@@ -2057,27 +1178,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-dev"
                           >
                             <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                               class="c6 c31"
                               color="primary"
                             >
                               <div
                                 class="c42 WorkloadStatus"
-=======
-                              class="c6 c28"
-                              color="primary"
-                            >
-                              <div
-                                class="c39 WorkloadStatus"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                              class="c6 c31"
-                              color="primary"
-                            >
-                              <div
-                                class="c42 WorkloadStatus"
->>>>>>> e94fd011 (rebase)
                               >
                                 <div
                                   class="c4"
@@ -2086,24 +1191,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     style="margin-right: 4px;"
                                   >
                                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                                       class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                     >
                                       <div
                                         class="c4 c8 c46"
-=======
-                                      class="c40 c41 c42 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c43"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                      class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c46"
->>>>>>> e94fd011 (rebase)
                                       >
                                         <svg
                                           aria-hidden="true"
@@ -2116,15 +1207,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                           />
                                         </svg>
                                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                                           class="c6 c47"
-=======
-                                          class="c6 c44"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                          class="c6 c47"
->>>>>>> e94fd011 (rebase)
                                           color="successOriginal"
                                         >
                                           Ready
@@ -2140,15 +1223,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
-=======
-                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
->>>>>>> e94fd011 (rebase)
                           >
                             <span>
                               Specification:
@@ -2161,23 +1236,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
                           </div>
                         </div>
                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c48 last-applied-version"
-=======
-                          class="c45 last-applied-version"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c48 last-applied-version"
->>>>>>> e94fd011 (rebase)
                         >
                           v6.2.1
                         </span>
                       </div>
                     </div>
                   </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
                 </div>
                 <div
                   class="MuiGrid-root makeStyles-gridContainer-127 MuiGrid-item MuiGrid-grid-xs-true"
@@ -2188,53 +1253,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       class="makeStyles-title-129"
-=======
-                  
-=======
->>>>>>> e94fd011 (rebase)
-                </div>
-                <div
-                  class="MuiGrid-root makeStyles-gridContainer-127 MuiGrid-item MuiGrid-grid-xs-true"
-                  id="test"
-                >
-                  <div
-                    class="makeStyles-mbSmall-131"
-                  >
-                    <div
-<<<<<<< HEAD
-                      class="makeStyles-title-87"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-title-129"
->>>>>>> e94fd011 (rebase)
                     >
                       test
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="makeStyles-subtitle-130"
-=======
-                      class="makeStyles-subtitle-88"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-subtitle-130"
->>>>>>> e94fd011 (rebase)
                     >
                       2
                        Targets
                     </div>
                   </div>
                   <div
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
                     class="c34"
                   />
                   <div
                     class="c35"
-<<<<<<< HEAD
                     role="targeting"
                   >
                     <div
@@ -2242,35 +1275,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     >
                       <div
                         class="c37"
-=======
-                    class="c32"
-=======
->>>>>>> e94fd011 (rebase)
-                    role="targeting"
-                  >
-                    <div
-                      class="c36 workloadTarget"
-                    >
-                      <div
-<<<<<<< HEAD
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Cluster
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c38 cluster-name"
-=======
-                        class="c35 cluster-name"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c38 cluster-name"
->>>>>>> e94fd011 (rebase)
                       >
                         <a
                           href="/cluster?clusterName=dev&namespace="
@@ -2279,51 +1288,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         </a>
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c37"
-=======
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Namespace
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c39 workload-namespace"
-=======
-                        class="c36 workload-namespace"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c39 workload-namespace"
->>>>>>> e94fd011 (rebase)
                       >
                         podinfo-02-qa
                       </div>
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c40"
                     >
                       <div
                         class="c41"
-=======
-                      class="c37"
-                    >
-                      <div
-                        class="c38"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c40"
-                    >
-                      <div
-                        class="c41"
->>>>>>> e94fd011 (rebase)
                       >
                         <div
                           class="automation"
@@ -2333,27 +1312,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-qa"
                           >
                             <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                               class="c6 c31"
                               color="primary"
                             >
                               <div
                                 class="c42 WorkloadStatus"
-=======
-                              class="c6 c28"
-                              color="primary"
-                            >
-                              <div
-                                class="c39 WorkloadStatus"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                              class="c6 c31"
-                              color="primary"
-                            >
-                              <div
-                                class="c42 WorkloadStatus"
->>>>>>> e94fd011 (rebase)
                               >
                                 <div
                                   class="c4"
@@ -2362,24 +1325,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     style="margin-right: 4px;"
                                   >
                                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                                       class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                     >
                                       <div
                                         class="c4 c8 c46"
-=======
-                                      class="c40 c41 c42 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c43"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                      class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c46"
->>>>>>> e94fd011 (rebase)
                                       >
                                         <svg
                                           aria-hidden="true"
@@ -2392,15 +1341,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                           />
                                         </svg>
                                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                                           class="c6 c47"
-=======
-                                          class="c6 c44"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                          class="c6 c47"
->>>>>>> e94fd011 (rebase)
                                           color="successOriginal"
                                         >
                                           Ready
@@ -2416,15 +1357,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
-=======
-                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
->>>>>>> e94fd011 (rebase)
                           >
                             <span>
                               Specification:
@@ -2437,15 +1370,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                           </div>
                         </div>
                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c48 last-applied-version"
-=======
-                          class="c45 last-applied-version"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c48 last-applied-version"
->>>>>>> e94fd011 (rebase)
                         >
                           v6.1.8
                         </span>
@@ -2453,8 +1378,6 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     </div>
                   </div>
                   <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                     class="c35"
                     role="targeting"
                   >
@@ -2463,36 +1386,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     >
                       <div
                         class="c37"
-=======
-                    class="c32"
-=======
-                    class="c35"
->>>>>>> e94fd011 (rebase)
-                    role="targeting"
-                  >
-                    <div
-                      class="c36 workloadTarget"
-                    >
-                      <div
-<<<<<<< HEAD
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Cluster
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c38 cluster-name"
-=======
-                        class="c35 cluster-name"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c38 cluster-name"
->>>>>>> e94fd011 (rebase)
                       >
                         <a
                           href="/cluster?clusterName=dev&namespace="
@@ -2501,51 +1399,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         </a>
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c37"
-=======
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Namespace
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c39 workload-namespace"
-=======
-                        class="c36 workload-namespace"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c39 workload-namespace"
->>>>>>> e94fd011 (rebase)
                       >
                         podinfo-02-perf
                       </div>
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c40"
                     >
                       <div
                         class="c41"
-=======
-                      class="c37"
-                    >
-                      <div
-                        class="c38"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c40"
-                    >
-                      <div
-                        class="c41"
->>>>>>> e94fd011 (rebase)
                       >
                         <div
                           class="automation"
@@ -2555,27 +1423,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             href="/helm_release/details?clusterName=flux-system%2Fdev&name=podinfo&namespace=podinfo-02-perf"
                           >
                             <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                               class="c6 c31"
                               color="primary"
                             >
                               <div
                                 class="c42 WorkloadStatus"
-=======
-                              class="c6 c28"
-                              color="primary"
-                            >
-                              <div
-                                class="c39 WorkloadStatus"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                              class="c6 c31"
-                              color="primary"
-                            >
-                              <div
-                                class="c42 WorkloadStatus"
->>>>>>> e94fd011 (rebase)
                               >
                                 <div
                                   class="c4"
@@ -2584,24 +1436,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     style="margin-right: 4px;"
                                   >
                                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                                       class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                     >
                                       <div
                                         class="c4 c8 c46"
-=======
-                                      class="c40 c41 c42 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c43"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                      class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c46"
->>>>>>> e94fd011 (rebase)
                                       >
                                         <svg
                                           aria-hidden="true"
@@ -2614,15 +1452,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                           />
                                         </svg>
                                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                                           class="c6 c47"
-=======
-                                          class="c6 c44"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                          class="c6 c47"
->>>>>>> e94fd011 (rebase)
                                           color="successOriginal"
                                         >
                                           Ready
@@ -2638,15 +1468,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
-=======
-                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
->>>>>>> e94fd011 (rebase)
                           >
                             <span>
                               Specification:
@@ -2659,23 +1481,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
                           </div>
                         </div>
                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c48 last-applied-version"
-=======
-                          class="c45 last-applied-version"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c48 last-applied-version"
->>>>>>> e94fd011 (rebase)
                         >
                           v6.1.8
                         </span>
                       </div>
                     </div>
                   </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
                 </div>
                 <div
                   class="MuiGrid-root makeStyles-gridContainer-127 MuiGrid-item MuiGrid-grid-xs-true"
@@ -2686,53 +1498,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                   >
                     <div
                       class="makeStyles-title-129"
-=======
-                  
-=======
->>>>>>> e94fd011 (rebase)
-                </div>
-                <div
-                  class="MuiGrid-root makeStyles-gridContainer-127 MuiGrid-item MuiGrid-grid-xs-true"
-                  id="prod"
-                >
-                  <div
-                    class="makeStyles-mbSmall-131"
-                  >
-                    <div
-<<<<<<< HEAD
-                      class="makeStyles-title-87"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-title-129"
->>>>>>> e94fd011 (rebase)
                     >
                       prod
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="makeStyles-subtitle-130"
-=======
-                      class="makeStyles-subtitle-88"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="makeStyles-subtitle-130"
->>>>>>> e94fd011 (rebase)
                     >
                       1
                        Targets
                     </div>
                   </div>
                   <div
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> e94fd011 (rebase)
                     class="c34"
                   />
                   <div
                     class="c35"
-<<<<<<< HEAD
                     role="targeting"
                   >
                     <div
@@ -2740,35 +1520,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                     >
                       <div
                         class="c37"
-=======
-                    class="c32"
-=======
->>>>>>> e94fd011 (rebase)
-                    role="targeting"
-                  >
-                    <div
-                      class="c36 workloadTarget"
-                    >
-                      <div
-<<<<<<< HEAD
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Cluster
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c38 cluster-name"
-=======
-                        class="c35 cluster-name"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c38 cluster-name"
->>>>>>> e94fd011 (rebase)
                       >
                         <a
                           href="/cluster?clusterName=prod&namespace="
@@ -2777,51 +1533,21 @@ exports[`PipelineDetails snapshots renders 1`] = `
                         </a>
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c37"
-=======
-                        class="c34"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c37"
->>>>>>> e94fd011 (rebase)
                       >
                         Namespace
                       </div>
                       <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                         class="c39 workload-namespace"
-=======
-                        class="c36 workload-namespace"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                        class="c39 workload-namespace"
->>>>>>> e94fd011 (rebase)
                       >
                         podinfo-02-prod
                       </div>
                     </div>
                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                       class="c40"
                     >
                       <div
                         class="c41"
-=======
-                      class="c37"
-                    >
-                      <div
-                        class="c38"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                      class="c40"
-                    >
-                      <div
-                        class="c41"
->>>>>>> e94fd011 (rebase)
                       >
                         <div
                           class="automation"
@@ -2831,27 +1557,11 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             href="/helm_release/details?clusterName=default%2Fprod&name=podinfo&namespace=podinfo-02-prod"
                           >
                             <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                               class="c6 c31"
                               color="primary"
                             >
                               <div
                                 class="c42 WorkloadStatus"
-=======
-                              class="c6 c28"
-                              color="primary"
-                            >
-                              <div
-                                class="c39 WorkloadStatus"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                              class="c6 c31"
-                              color="primary"
-                            >
-                              <div
-                                class="c42 WorkloadStatus"
->>>>>>> e94fd011 (rebase)
                               >
                                 <div
                                   class="c4"
@@ -2860,24 +1570,10 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                     style="margin-right: 4px;"
                                   >
                                     <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                                       class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
                                     >
                                       <div
                                         class="c4 c8 c46"
-=======
-                                      class="c40 c41 c42 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c43"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                      class="c43 c44 c45 $43649dcb1d1d1221$var$KubeStatusIndicator"
-                                    >
-                                      <div
-                                        class="c4 c8 c46"
->>>>>>> e94fd011 (rebase)
                                       >
                                         <svg
                                           aria-hidden="true"
@@ -2890,15 +1586,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                                           />
                                         </svg>
                                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                                           class="c6 c47"
-=======
-                                          class="c6 c44"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                                          class="c6 c47"
->>>>>>> e94fd011 (rebase)
                                           color="successOriginal"
                                         >
                                           Ready
@@ -2914,15 +1602,7 @@ exports[`PipelineDetails snapshots renders 1`] = `
                             </span>
                           </a>
                           <div
-<<<<<<< HEAD
-<<<<<<< HEAD
                             class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
-=======
-                            class="makeStyles-subtitle-88 makeStyles-subtitleColor-90"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                            class="makeStyles-subtitle-130 makeStyles-subtitleColor-132"
->>>>>>> e94fd011 (rebase)
                           >
                             <span>
                               Specification:
@@ -2935,28 +1615,13 @@ exports[`PipelineDetails snapshots renders 1`] = `
                           </div>
                         </div>
                         <span
-<<<<<<< HEAD
-<<<<<<< HEAD
                           class="c48 last-applied-version"
-=======
-                          class="c45 last-applied-version"
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
-                          class="c48 last-applied-version"
->>>>>>> e94fd011 (rebase)
                         >
                           v6.1.6
                         </span>
                       </div>
                     </div>
                   </div>
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-                  
->>>>>>> b6c04fdc (Added react-hooks plugin to eslint)
-=======
->>>>>>> e94fd011 (rebase)
                 </div>
               </div>
             </div>
