@@ -2,7 +2,6 @@ package steps
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"golang.org/x/crypto/bcrypt"
@@ -14,9 +13,9 @@ const (
 	adminUsernameMsg           = "dashboard admin username (default: wego-admin)"
 	adminPasswordMsg           = "dashboard admin password (minimum characters: 6)"
 	secretConfirmationMsg      = "admin login credentials has been created successfully!"
-	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again."
+	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again"
 	existingCredsMsg           = "do you want to continue using existing credentials"
-	existingCredsExitMsg       = "if you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap..."
+	existingCredsExitMsg       = "if you want to reset admin credentials please remove secret '%s' in namespace '%s', then try again.\nExiting gitops bootstrap"
 )
 
 const (
@@ -38,6 +37,7 @@ var getPasswordInput = StepInput{
 	Msg:          adminPasswordMsg,
 	DefaultValue: defaultAdminPassword,
 	Valuesfn:     canAskForCreds,
+	Required:     true,
 }
 
 // NewAskAdminCredsSecretStep asks user about admin username and password.
@@ -99,8 +99,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	if existing, _ := isExistingAdminSecret(input, c); existing.(bool) {
 		if continueWithExistingCreds != confirmYes {
-			c.Logger.Warningf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
-			os.Exit(0)
+			return []StepOutput{}, fmt.Errorf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
 		} else {
 			return []StepOutput{}, nil
 		}
@@ -124,7 +123,6 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 		},
 		Data: data,
 	}
-
 	c.Logger.Successf(secretConfirmationMsg)
 
 	return []StepOutput{

@@ -1,17 +1,23 @@
 package steps
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
-	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
-var CheckUIDomainStep = BootstrapStep{
-	Name: "preparing dashboard domain",
-	Step: checkUIDomain,
-}
+const (
+	installSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
+	portforwardMsg    = "WGE v%s is installed successfully. To access the dashboard, run the following command to create portforward to the dasboard local domain http://localhost:8000"
+	portforwardCmdMsg = "kubectl -n %s port-forward svc/clusters-service 8000:8000"
+)
+
+var (
+	CheckUIDomainStep = BootstrapStep{
+		Name: "preparing dashboard domain",
+		Step: checkUIDomain,
+	}
+)
 
 // checkUIDomain display the message to be for external dns or localhost.
 func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
@@ -23,21 +29,7 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 		return []StepOutput{}, nil
 	}
 
-	c.Logger.Successf(localInstallSuccessMsg, c.WGEVersion)
-	return []StepOutput{
-		{
-			Name:  "portforward",
-			Type:  typePortforward,
-			Value: createPortforward,
-		},
-	}, nil
-}
-
-func createPortforward() error {
-	var runner runner.CLIRunner
-	out, err := runner.Run("kubectl", "-n", "flux-system", "port-forward", "svc/clusters-service", "8000:8000")
-	if err != nil {
-		return fmt.Errorf("failed to create portforward 8000: %s", string(out))
-	}
-	return nil
+	c.Logger.Successf(portforwardMsg, c.WGEVersion)
+	c.Logger.Println(portforwardCmdMsg, WGEDefaultNamespace)
+	return []StepOutput{}, nil
 }

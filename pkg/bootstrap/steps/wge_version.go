@@ -5,9 +5,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"gopkg.in/yaml.v2"
+	"k8s.io/utils/strings/slices"
 )
 
 // user messages
@@ -25,6 +27,19 @@ var getVersionInput = StepInput{
 
 func NewSelectWgeVersionStep(config Config) BootstrapStep {
 	inputs := []StepInput{}
+
+	// validate value by user
+	if config.WGEVersion != "" {
+		versions, err := getWgeVersions(inputs, &config)
+		if err != nil {
+			config.Logger.Failuref("couldn't get WGE helm chart: %v", err)
+			os.Exit(1)
+		}
+		if versions, ok := versions.([]string); !ok || !slices.Contains(versions, config.WGEVersion) {
+			config.Logger.Failuref("invalid version: %v. available versions: %s", config.WGEVersion, versions)
+			os.Exit(1)
+		}
+	}
 
 	if config.WGEVersion == "" {
 		inputs = append(inputs, getVersionInput)

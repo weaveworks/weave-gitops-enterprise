@@ -1,7 +1,6 @@
 package steps
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -29,6 +28,7 @@ type StepInput struct {
 	Value           any
 	Values          []string
 	Valuesfn        func(input []StepInput, c *Config) (interface{}, error)
+	Required        bool
 }
 
 // StepOutput represents an output generated out of the execution of a step.
@@ -93,7 +93,7 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 			}
 			// get the value from user otherwise
 			if input.Value == nil && enable {
-				paramValue, err := utils.GetPasswordInput(input.Msg)
+				paramValue, err := utils.GetPasswordInput(input.Msg, input.Required)
 				if err != nil {
 					return []StepInput{}, err
 				}
@@ -147,7 +147,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 		case typeSecret:
 			secret, ok := param.Value.(v1.Secret)
 			if !ok {
-				return errors.New("unexpected error casting secret")
+				panic("unexpected internal error casting secret")
 			}
 			name := secret.ObjectMeta.Name
 			namespace := secret.ObjectMeta.Namespace
@@ -161,7 +161,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			c.Logger.Actionf("writing file to repo: '%s'", param.Name)
 			file, ok := param.Value.(fileContent)
 			if !ok {
-				return errors.New("unexpected error casting file")
+				panic("unexpected internal error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: '%s/%s'", WGEDefaultNamespace, WGEDefaultRepoName)
 			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
@@ -187,17 +187,8 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				return err
 			}
 			c.Logger.Successf("changes are reconciled successfully!")
-		case typePortforward:
-			portforward, ok := param.Value.(func() error)
-			if !ok {
-				return errors.New("unexpected error for function casting")
-			}
-			err := portforward()
-			if err != nil {
-				return err
-			}
 		default:
-			return fmt.Errorf("not supported")
+			return fmt.Errorf("unsupported param type: %s", param.Type)
 		}
 	}
 	return nil

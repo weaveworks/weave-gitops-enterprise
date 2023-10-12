@@ -70,13 +70,18 @@ func configForContext(ctx context.Context, pathOpts *clientcmd.PathOptions, cont
 // named context and configured user credentials from the provided token.
 func kubeConfigWithToken(ctx context.Context, config *rest.Config, context string, token []byte) (*clientcmdapi.Config, error) {
 	lgr := log.FromContext(ctx)
-	clusterName := context + "-cluster"
+	contextName := context
+	if contextName == "" {
+		contextName = "default"
+	}
+
+	clusterName := contextName + "-cluster"
 	username := clusterName + "-user"
 
 	cfg := clientcmdapi.NewConfig()
 	cfg.Kind = ""       // legacy field
 	cfg.APIVersion = "" // legacy field
-	cfg.Clusters[context] = &clientcmdapi.Cluster{
+	cfg.Clusters[contextName] = &clientcmdapi.Cluster{
 		Server:                   config.Host,
 		CertificateAuthorityData: config.CAData,
 		InsecureSkipTLSVerify:    config.Insecure,
@@ -84,11 +89,11 @@ func kubeConfigWithToken(ctx context.Context, config *rest.Config, context strin
 	cfg.AuthInfos[username] = &clientcmdapi.AuthInfo{
 		Token: string(token),
 	}
-	cfg.Contexts[context] = &clientcmdapi.Context{
-		Cluster:  context,
+	cfg.Contexts[contextName] = &clientcmdapi.Context{
+		Cluster:  contextName,
 		AuthInfo: username,
 	}
-	cfg.CurrentContext = context
+	cfg.CurrentContext = contextName
 	lgr.V(logger.LogLevelDebug).Info("kubeconfig with token generated successfully")
 
 	return cfg, nil

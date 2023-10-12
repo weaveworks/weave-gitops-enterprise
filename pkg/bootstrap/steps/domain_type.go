@@ -2,6 +2,9 @@ package steps
 
 import (
 	"errors"
+	"os"
+
+	"k8s.io/utils/strings/slices"
 )
 
 const (
@@ -10,7 +13,7 @@ const (
 )
 const (
 	domainTypeLocalhost   = "localhost"
-	domainTypeExternalDNS = "external DNS"
+	domainTypeExternalDNS = "externalDNS"
 )
 
 var (
@@ -30,6 +33,11 @@ var getDomainType = StepInput{
 
 func NewSelectDomainType(config Config) BootstrapStep {
 	inputs := []StepInput{}
+
+	if config.DomainType != "" && !slices.Contains(domainTypes, config.DomainType) {
+		config.Logger.Failuref("domain-type: %s must be one of: %s", config.DomainType, domainTypes)
+		os.Exit(1)
+	}
 
 	if config.DomainType == "" {
 		inputs = append(inputs, getDomainType)
@@ -51,6 +59,9 @@ func selectDomainType(input []StepInput, c *Config) ([]StepOutput, error) {
 			}
 			c.DomainType = domainType
 		}
+	}
+	if c.DomainType == "" {
+		return []StepOutput{}, errors.New("unexpected error occurred. domainType is not found")
 	}
 	c.Logger.Successf("dashboard access domain: %s", c.DomainType)
 	return []StepOutput{}, nil
