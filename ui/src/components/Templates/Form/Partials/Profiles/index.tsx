@@ -108,7 +108,6 @@ const Profiles: FC<{
 
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
-  // Showing helm repositories in autocomplete as name:namespace as there could be multiple repositories with same name in different namespaces
 
   const nameNamespaceHelmRepos = selectedHelmRepositories?.map(
     hr => `${hr.namespace}/${hr.name}`,
@@ -119,7 +118,9 @@ const Profiles: FC<{
   ) => {
     const newlySelected = selectedNameNamespaceHelmRepos.map(
       (selectedHelmRepo: string) => {
-        const [name, namespace] = selectedHelmRepo.split(':');
+        const [namespace, name] = selectedHelmRepo.split('/');
+        console.log(namespace, name);
+        console.log(selectedHelmRepositories);
         return selectedHelmRepositories?.find(hr => {
           if (hr.name === name && hr.namespace === namespace) {
             hr.selected = true;
