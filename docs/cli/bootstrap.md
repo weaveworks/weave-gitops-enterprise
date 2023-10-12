@@ -112,24 +112,43 @@ type Config struct {
 
 ## Error management 
 
-// TBD with waleed
+A bootstrapping error received by the platform engineer shoudl allow:
 
-- Errors should provide the user with
-   - step that failed
-   - reason of the failure
-   - how the user could recover from the failure
-- Return the error in the method
-- if the error is meaningless create a custom one that provides the user:
-```go
-if err != nil {
-	return errors.New(fluxInstallationErrorMsgFormat)
-}
+1. understand the step that has failed
+2. the reason and context of the failure
+3. the actions to take to recover
+
+To achieve this:
+
+1) At internal layers like `util`, return the err. For example `CreateSecret`:
+```
+	err := client.Create(context.Background(), secret, &k8s_client.CreateOptions{})
+	if err != nil {
+		return err
+	}
+
+```
+2) At step implementation: wrapping error with convenient error message in the step implementation for user like invalidEntitlementMsg. 
+These messages will provide extra information that's not provided by errors like contacting sales / information about flux download:
+
+```
+	ent, err := entitlement.VerifyEntitlement(strings.NewReader(string(publicKey)), string(secret.Data["entitlement"]))
+	if err != nil || time.Now().Compare(ent.IssuedAt) <= 0 {
+		return fmt.Errorf("%s: %v", invalidEntitlementSecretMsg, err)
+	}
 
 ```
 
+Use custom errors when required for better handling like [this](https://github.com/weaveworks/weave-gitops-enterprise/blob/6b1c1db9dc0512a9a5c8dd03ddb2811a897849e6/pkg/bootstrap/steps/entitlement.go#L65)
+
 ## Logging Actions
 
-// TBD with waleed
+For sharing progress with the user, the following levels are used:
+
+- `c.Logger.Waitingf()`: to identify the step. or a subtask that's taking a long time. like reconciliation
+- `c.Logger.Actionf()`: to identify subtask of a step. like Writing file to repo.
+- `c.Logger.Warningf`: to show warnings. like admin creds already existed.
+- `c.Logger.Successf`: to show that subtask/step is done successfully.
 
 
 ## How to 
