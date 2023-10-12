@@ -15,10 +15,8 @@ import (
 )
 
 const (
-	externalDNSWarningMsg = `please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.
-For more information about external DNS, please refer to: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-configuring.html
-`
-	clusterDomainMsg = "please enter your cluster domain"
+	externalDNSWarningMsg = `please make sure to have the external DNS service installed in your cluster, or you have a domain that points to your cluster.`
+	clusterDomainMsg      = "please enter your cluster domain"
 
 	wgeInstallMsg          = "installing v%s ... It may take a few minutes."
 	installSuccessMsg      = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
