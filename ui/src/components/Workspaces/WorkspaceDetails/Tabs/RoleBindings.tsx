@@ -1,4 +1,8 @@
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  YamlView,
+  createYamlCommand,
+} from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { WorkspaceRoleBindingSubject } from '../../../../cluster-services/cluster_services.pb';
 import { useGetWorkspaceRoleBinding } from '../../../../contexts/Workspaces';
@@ -38,11 +42,8 @@ export const RoleBindingsTab = ({
                       content={
                         <YamlView
                           yaml={manifest}
-                          object={{
-                            kind: kind,
-                            name: name,
-                            namespace: namespace,
-                          }}
+                          type={kind}
+                          header={createYamlCommand(kind, name, namespace)}
                         />
                       }
                       title="RoleBinding Manifest"
