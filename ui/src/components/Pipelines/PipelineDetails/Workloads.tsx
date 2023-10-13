@@ -49,9 +49,9 @@ function Workloads({
           : getStrategy(pipeline.promotion);
 
         return (
-          <EnvironmentContainer key={index} tall column>
+          <EnvironmentContainer key={index} tall column gap="16">
             <PromotionInfo targets={status} />
-            <EnvironmentCard>
+            <EnvironmentCard background={index}>
               <Flex column gap="8" wide>
                 <Flex between align wide>
                   <Text bold capitalize size="large">
@@ -80,7 +80,7 @@ function Workloads({
               </PromotionContainer>
             </EnvironmentCard>
             {status.map((target, indx) => (
-              <Target key={indx} target={target} />
+              <Target key={indx} target={target} background={index} />
             ))}
           </EnvironmentContainer>
         );
