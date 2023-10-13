@@ -28,7 +28,7 @@ const deletionColor = '#814a1c';
 const updateColor = '#787118';
 
 function CodeView({ code, object, className, kind, colorizeChanges }: Props) {
-  let headerText = createYamlCommand(
+  const headerText = createYamlCommand(
     kind || '',
     object?.name || '',
     object?.namespace || '',

@@ -2,13 +2,13 @@ import {
   AutomationsTable,
   Button,
   Flex,
+  formatURL,
   Icon,
   IconType,
   Link,
-  V2Routes,
-  formatURL,
   useFeatureFlags,
   useListAutomations,
+  V2Routes,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import React, { FC } from 'react';

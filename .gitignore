@@ -81,3 +81,5 @@ __pycache__
 
 *.db
 *.bolt
+
+.parcel-cache

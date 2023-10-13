@@ -1,3 +1,4 @@
+import { Box } from '@material-ui/core';
 import {
   Button,
   Flex,
@@ -5,7 +6,6 @@ import {
   Link,
   useListSources,
 } from '@weaveworks/weave-gitops';
-import { Box } from '@material-ui/core';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, {
@@ -86,7 +86,7 @@ function getInitialData(
   callbackState: { state: { formData: FormData } } | null,
   random: string,
 ) {
-  let defaultFormData = {
+  const defaultFormData = {
     repo: null,
     provider: '',
     branchName: `add-application-branch-${random}`,
@@ -217,11 +217,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
       'name',
     ).filter(p => p.selected);
     if (formData.source_type === 'HelmRepository') {
-      for (let kustomization of formData.clusterAutomations) {
-        for (let profile of selectedProfilesList) {
-          let values: string = '';
-          let version: string = '';
-          for (let value of profile.values) {
+      for (const kustomization of formData.clusterAutomations) {
+        for (const profile of selectedProfilesList) {
+          let values = '';
+          let version = '';
+          for (const value of profile.values) {
             if (value.selected === true) {
               version = value.version;
               values = value.yaml;

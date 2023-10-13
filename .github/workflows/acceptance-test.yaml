@@ -128,12 +128,6 @@ on:
       GCP_SA_KEY:
         description: "Google Cloud service account key"
         required: false
-      WGE_EKS_AWS_ACCESS_KEY_ID:
-        description: "AWS user access key id"
-        required: false
-      WGE_EKS_AWS_SECRET_ACCESS_KEY:
-        description: "AWS user access key secret"
-        required: false
 
 env:
   GO_CACHE_NAME: cache-go-modules
@@ -185,19 +179,6 @@ jobs:
         uses: actions/setup-go@v4
         with:
           go-version: 1.20.x
-      - name: setup aws credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      - name: Install eksctl
-        if: ${{ inputs.management-cluster-kind == 'eks' }}
-        run: |
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-          eksctl version
-          eksctl get clusters
       - name: Install flux
         run: |
           curl --silent --location https://github.com/fluxcd/flux2/releases/download/v2.0.0/flux_2.0.0_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp

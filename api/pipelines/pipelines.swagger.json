@@ -288,6 +288,9 @@
             "type": "object",
             "$ref": "#/definitions/v1Target"
           }
+        },
+        "promotion": {
+          "$ref": "#/definitions/v1Promotion"
         }
       }
     },

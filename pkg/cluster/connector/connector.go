@@ -5,7 +5,10 @@ import (
 
 	gitopsv1alpha1 "github.com/weaveworks/cluster-controller/api/v1alpha1"
 	"github.com/weaveworks/weave-gitops/core/logger"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
@@ -42,12 +45,20 @@ type ClusterConnectionOptions struct {
 	GitopsClusterName types.NamespacedName
 }
 
-func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *ClusterConnectionOptions) (string, error) {
+func getDynClientAndScheme(config *rest.Config) (dynamic.Interface, *runtime.Scheme, error) {
 	dynClient, err := dynamic.NewForConfig(config)
 	if err != nil {
-		return "", err
+		return nil, nil, err
 	}
-	scheme, err := NewGitopsClusterScheme()
+	scheme, err := newGitopsClusterScheme()
+	if err != nil {
+		return nil, nil, err
+	}
+	return dynClient, scheme, nil
+}
+
+func getSecretNameForConfig(ctx context.Context, config *rest.Config, options *ClusterConnectionOptions) (string, error) {
+	dynClient, scheme, err := getDynClientAndScheme(config)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +79,6 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	if err != nil {
 		return err
 	}
-
 	// Get the context from SpokeClusterContext
 	spokeClusterConfig, err := configForContext(ctx, pathOpts, options.RemoteClusterContext)
 	if err != nil {
@@ -109,9 +119,9 @@ func ConnectCluster(ctx context.Context, options *ClusterConnectionOptions) erro
 	return nil
 }
 
-// NewGitopsClusterScheme returns a scheme with the GitopsCluster schema
+// newGitopsClusterScheme returns a scheme with the GitopsCluster schema
 // information registered.
-func NewGitopsClusterScheme() (*runtime.Scheme, error) {
+func newGitopsClusterScheme() (*runtime.Scheme, error) {
 	scheme := runtime.NewScheme()
 	err := gitopsv1alpha1.AddToScheme(scheme)
 	if err != nil {
@@ -119,4 +129,77 @@ func NewGitopsClusterScheme() (*runtime.Scheme, error) {
 	}
 
 	return scheme, nil
+}
+
+func deleteGitOpsClusterSecret(ctx context.Context, client kubernetes.Interface, secretName, namespace string) error {
+	lgr := log.FromContext(ctx)
+	err := client.CoreV1().Secrets(namespace).Delete(ctx, secretName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("gitops cluster secret deleted successfully!", "secret", secretName, "namespace", namespace)
+	return nil
+}
+
+// DisconnectCluster disconnects a cluster from a spoke cluster given its name and context
+// The Service account, Cluster Role binding and secret are deleted in the remote cluster and secret containing token in hub cluster is deleted
+func DisconnectCluster(ctx context.Context, options *ClusterConnectionOptions) error {
+	lgr := log.FromContext(ctx)
+	pathOpts := clientcmd.NewDefaultPathOptions()
+	pathOpts.LoadingRules.ExplicitPath = options.ConfigPath
+
+	// load hub kubeconfig
+	hubClusterConfig, err := configForContext(ctx, pathOpts, "")
+	if err != nil {
+		return err
+	}
+
+	// Get the context from SpokeClusterContext
+	spokeClusterConfig, err := configForContext(ctx, pathOpts, options.RemoteClusterContext)
+	if err != nil {
+		return err
+	}
+	secretName, err := getSecretNameForConfig(ctx, hubClusterConfig, options)
+	if err != nil {
+		return err
+	}
+
+	spokeKubernetesClient, err := kubernetes.NewForConfig(spokeClusterConfig)
+	if err != nil {
+		return err
+	}
+
+	managedbyReq, err := labels.NewRequirement("app.kubernetes.io/managed-by", selection.Equals, []string{managedByLabelName})
+	if err != nil {
+		return err
+	}
+
+	selector := labels.NewSelector()
+	selector = selector.Add(*managedbyReq)
+	err = checkServiceAccountName(ctx, spokeKubernetesClient, options, selector)
+	if err != nil {
+		return err
+	}
+	err = checkClusterRoleBindingName(ctx, spokeKubernetesClient, options, selector)
+	if err != nil {
+		return err
+	}
+
+	err = deleteServiceAccountResources(ctx, spokeKubernetesClient, *options)
+	if err != nil {
+		return err
+	}
+
+	hubKubernetesClient, err := kubernetes.NewForConfig(hubClusterConfig)
+	if err != nil {
+		return err
+	}
+	err = deleteGitOpsClusterSecret(ctx, hubKubernetesClient, secretName, options.GitopsClusterName.Namespace)
+	if err != nil {
+		return err
+	}
+
+	lgr.V(logger.LogLevelInfo).Info("Successfully disconnected cluster and deleted resources", "cluster", options.GitopsClusterName)
+
+	return nil
 }

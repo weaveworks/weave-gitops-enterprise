@@ -1,15 +1,12 @@
-import {
-  act,
-  fireEvent, render,
-  screen
-} from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import PolicyConfigsList from '..';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
-  defaultContexts, PolicyConfigsClientMock,
+  defaultContexts,
+  PolicyConfigsClientMock,
   TestFilterableTable,
-  withContext
+  withContext,
 } from '../../../utils/test-utils';
 
 const listPolicyConfigsResponse = {
@@ -164,6 +161,6 @@ describe('ListPolicyConfigs', () => {
       const c = wrap(<PolicyConfigsList />);
       render(c);
     });
-    expect(await screen.getByTestId(`warning-icon-${name}`)).toBeTruthy()
+    expect(screen.getByTestId(`warning-icon-${name}`)).toBeTruthy();
   });
 });

@@ -15,9 +15,9 @@ import {
   PolicyParam,
 } from '@weaveworks/weave-gitops/ui/lib/api/core/core.pb';
 import { Dispatch, useState } from 'react';
-import { ReactComponent as ErrorIcon } from '../../../../../assets/img/error.svg';
 import { useListPolicies } from '../../../../../contexts/PolicyViolations';
 import { Input } from '../../../../../utils/form';
+import { ErrorIcon } from '../../../../RemoteSVGIcon';
 import {
   ErrorSection,
   PolicyDetailsCardWrapper,
@@ -39,9 +39,9 @@ export const SelectedPolicies = ({
 }: SelectSecretStoreProps) => {
   const { data } = useListPolicies({});
 
-  let policiesList = data?.policies || [];
+  const policiesList = data?.policies || [];
   const keys = Object.keys(formData.policies);
-  let selected: PolicyObj[] =
+  const selected: PolicyObj[] =
     policiesList.filter(({ id }) => id && keys.includes(id)) || [];
 
   const [selectedPolicies, setSelectedPolicies] =
@@ -91,7 +91,7 @@ export const SelectedPolicies = ({
     const item = formData.policies || {};
     if (Object.keys(item).length !== 0) delete item[id];
 
-    let updateSelected = selectedPolicies?.filter(p => p.id !== id);
+    const updateSelected = selectedPolicies?.filter(p => p.id !== id);
     setSelectedPolicies(updateSelected);
   };
   const getValue = (id: string, param: PolicyParam) => {

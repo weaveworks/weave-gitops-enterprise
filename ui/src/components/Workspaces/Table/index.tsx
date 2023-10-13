@@ -14,7 +14,7 @@ interface Props {
 }
 
 export const WorkspacesTable: FC<Props> = ({ workspaces }) => {
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(workspaces, 'clusterName'),
     ...filterConfig(workspaces, 'name'),
   };
