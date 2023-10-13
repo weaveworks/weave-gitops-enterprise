@@ -26,6 +26,7 @@ import {
   RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
+import useConfig from '../../../hooks/config';
 import {
   expiredTokenNotification,
   useIsAuthenticated,
@@ -66,7 +67,6 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from './utils';
-import useConfig from '../../../hooks/config';
 
 export interface SelectedHelmRepoRefs {
   name: string;

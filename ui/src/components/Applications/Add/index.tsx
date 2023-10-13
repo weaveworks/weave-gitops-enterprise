@@ -21,6 +21,7 @@ import {
   CreateAutomationsPullRequestRequest,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -38,6 +39,7 @@ import { getGitRepos } from '../../Clusters';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import { SelectedHelmRepoRefs } from '../../Templates/Form';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
@@ -47,8 +49,6 @@ import {
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
 import AppFields from './form/Partials/AppFields';
-import { SelectedHelmRepoRefs } from '../../Templates/Form';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 interface FormData {
   repo: GitRepository | null;

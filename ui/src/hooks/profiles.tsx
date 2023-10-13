@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import { useContext } from 'react';
-import { useDeepCompareMemo } from 'use-deep-compare';
 import { useQueries, useQuery } from 'react-query';
+import { useDeepCompareMemo } from 'use-deep-compare';
 import {
   GetConfigResponse,
   HelmRepositoryRef,

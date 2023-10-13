@@ -1,9 +1,11 @@
 import { Checkbox, TextField } from '@material-ui/core';
+import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
 import { DataTable, Flex } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import React, { Dispatch, FC } from 'react';
 import styled from 'styled-components';
+import { SelectedHelmRepoRefs } from '../..';
 import {
   ClusterNamespacedName,
   RepositoryRef,
@@ -11,8 +13,6 @@ import {
 import { ProfilesIndex, UpdatedProfile } from '../../../../../types/custom';
 import { Loader } from '../../../../Loader';
 import ProfilesListItem from './ProfileListItem';
-import { CheckBoxOutlineBlank, CheckBox } from '@material-ui/icons';
-import { SelectedHelmRepoRefs } from '../..';
 
 const icon = <CheckBoxOutlineBlank fontSize="small" />;
 const checkedIcon = <CheckBox fontSize="small" />;
