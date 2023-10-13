@@ -435,6 +435,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 <Preview
                   setFormError={setFormError}
                   clusterAutomations={getKustomizations()}
+                  sourceType={formData.source_type}
                 />
               </GitOps>
             </FormWrapper>

@@ -12,9 +12,11 @@ import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 export const Preview = ({
   clusterAutomations,
   setFormError,
+  sourceType,
 }: {
   clusterAutomations: ClusterAutomation[];
   setFormError: Dispatch<React.SetStateAction<string>>;
+  sourceType: string;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -59,9 +61,11 @@ export const Preview = ({
       </Button>
       {!previewLoading && openPreview && prPreview ? (
         <PreviewModal
+          context="app"
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
           prPreview={prPreview}
+          sourceType={sourceType}
         />
       ) : null}
     </>
