@@ -74,6 +74,8 @@ export const Preview = ({
     kustomizations,
   ]);
 
+  console.log(prPreview);
+
   return (
     <>
       <Button

@@ -66,6 +66,7 @@ import {
   ListPolicyConfigsResponse,
   ListTemplatesResponse,
   ListWorkspacesResponse,
+  RenderTemplateResponse,
 } from '../cluster-services/cluster_services.pb';
 
 import {
@@ -285,6 +286,19 @@ export class ApplicationsClientMock {
     return promisify(this.ValidateProviderTokenReturn);
   }
 }
+
+export class ClustersServiceClientMock {
+  constructor() {
+    this.RenderTemplate = this.RenderTemplate.bind(this);
+  }
+
+  RenderTemplateReturns: RenderTemplateResponse = {};
+
+  RenderTemplate() {
+    return promisify(this.RenderTemplateReturns);
+  }
+}
+
 export class ProgressiveDeliveryMock implements ProgressiveDeliveryService {
   constructor() {
     this.ListCanaries = this.ListCanaries.bind(this);
