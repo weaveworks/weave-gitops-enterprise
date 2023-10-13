@@ -279,6 +279,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     random,
     template.name,
   );
+
   const [formData, setFormData] = useState<any>(initialFormData);
   const [infraCredential, setInfraCredential] = useState<Credential | null>(
     initialInfraCredentials,
@@ -302,7 +303,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       helmRepos.map((repo: HelmRepository) => ({
         name: repo.name,
         namespace: repo.namespace,
-        selected: false,
       })),
     [helmRepos],
   );
@@ -329,9 +329,22 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   }, [callbackState?.state?.updatedProfiles, profiles]);
 
   useEffect(() => {
+    if (selectedHelmRepositories.length === 0 && resourceData) {
+      setSelectedHelmRepositories(
+        _.uniqWith(
+          resourceData?.values.map((value: any) => {
+            return { ...value.helm_repository, selected: true };
+          }),
+          _.isEqual,
+        ),
+      );
+    }
+    console.log('updatedprofiles', updatedProfiles);
+    console.log('allHelmReposRefs', allHelmReposRefs);
     if (
       selectedHelmRepositories.length === 0 &&
-      Object.values(updatedProfiles).length > 0
+      Object.values(updatedProfiles).length > 0 &&
+      allHelmReposRefs.length > 0
     ) {
       const preSelectedHelmReposRefs = _.uniqWith(
         [
@@ -369,6 +382,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     defaultHelmRepository?.name,
     defaultHelmRepository?.namespace,
     allHelmReposRefs,
+    resourceData,
   ]);
 
   const [openPreview, setOpenPreview] = useState(false);
