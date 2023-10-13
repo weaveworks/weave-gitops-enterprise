@@ -1,7 +1,5 @@
 import { Button } from '@weaveworks/weave-gitops';
 import { Dispatch, useCallback, useState } from 'react';
-import useTemplates from '../../../../hooks/templates';
-import { TemplateEnriched } from '../../../../types/custom';
 import {
   ProfileValues,
   RenderTemplateResponse,
@@ -9,8 +7,10 @@ import {
   Kustomization,
 } from '../../../../cluster-services/cluster_services.pb';
 import useNotifications from '../../../../contexts/Notifications';
-import PreviewModal from './PreviewModal';
+import useTemplates from '../../../../hooks/templates';
+import { TemplateEnriched } from '../../../../types/custom';
 import { validateFormData } from '../../../../utils/form';
+import PreviewModal from './PreviewModal';
 
 export const Preview = ({
   template,

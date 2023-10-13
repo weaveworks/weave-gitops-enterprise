@@ -1,13 +1,13 @@
 import { Button } from '@weaveworks/weave-gitops';
 import { Dispatch, useCallback, useContext, useState } from 'react';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
-import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 import {
   ClusterAutomation,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
 import { validateFormData } from '../../../utils/form';
+import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 
 export const Preview = ({
   clusterAutomations,

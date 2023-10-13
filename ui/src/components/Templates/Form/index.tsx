@@ -53,6 +53,7 @@ import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
 import GitOps from './Partials/GitOps';
+import { Preview } from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
@@ -61,7 +62,6 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from './utils';
-import { Preview } from './Partials/Preview';
 
 export interface GitRepositoryEnriched extends GitRepository {
   createPRRepo: boolean;

@@ -6,6 +6,7 @@ import {
 } from '../../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
+import { validateFormData } from '../../../utils/form';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 import {
   ExternalSecret,
@@ -14,7 +15,6 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
-import { validateFormData } from '../../../utils/form';
 
 export enum SecretType {
   SOPS,

@@ -21,7 +21,6 @@ import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
 import ListKustomizations from '../Shared/ListKustomizations';
 import { Preview } from '../Shared/Preview';
-import SecretData from './SecretData';
 import {
   getFormattedPayload,
   scrollToAlertSection,
@@ -30,6 +29,7 @@ import {
   SOPS,
   FormWrapperSecret,
 } from '../Shared/utils';
+import SecretData from './SecretData';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();

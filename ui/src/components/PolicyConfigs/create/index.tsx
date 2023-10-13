@@ -39,8 +39,8 @@ import {
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-import { Preview } from './Preview';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
+import { Preview } from './Preview';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {

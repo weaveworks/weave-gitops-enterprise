@@ -2,7 +2,6 @@ import { createStyles, Grid, makeStyles } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { Button } from '@weaveworks/weave-gitops';
 import React, { Dispatch, FC, useCallback, useEffect, useState } from 'react';
-import { TemplateEnriched } from '../../../../types/custom';
 import {
   Kustomization,
   ProfileValues,
@@ -10,6 +9,7 @@ import {
 } from '../../../../cluster-services/cluster_services.pb';
 import useNotifications from '../../../../contexts/Notifications';
 import useTemplates from '../../../../hooks/templates';
+import { TemplateEnriched } from '../../../../types/custom';
 import { validateFormData } from '../../../../utils/form';
 import { getFormattedCostEstimate } from '../../../../utils/formatters';
 
