@@ -6,7 +6,9 @@ import {
 import GitUrlParse from 'git-url-parse';
 import styled from 'styled-components';
 import URI from 'urijs';
-import * as yamlConverter from 'yaml';
+// Importing this solves a problem with the YAML library not being found.
+// @ts-ignore
+import * as YAML from 'yaml/browser/dist/index.js';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
@@ -43,7 +45,7 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
         ];
       case 'Terraform':
       case 'Pipeline':
-        return yamlConverter.parse(
+        return YAML.parse(
           (resource as GetTerraformObjectResponse | Pipeline)?.yaml || '',
         )?.metadata?.annotations?.['templates.weave.works/create-request'];
       default:
