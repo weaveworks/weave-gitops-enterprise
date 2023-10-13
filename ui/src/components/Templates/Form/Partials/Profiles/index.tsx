@@ -118,8 +118,6 @@ const Profiles: FC<{
     const newlySelected = selectedNameNamespaceHelmRepos.map(
       (selectedHelmRepo: string) => {
         const [namespace, name] = selectedHelmRepo.split('/');
-        console.log(namespace, name);
-        console.log(selectedHelmRepositories);
         return selectedHelmRepositories?.find(hr => {
           if (hr.name === name && hr.namespace === namespace) {
             hr.selected = true;

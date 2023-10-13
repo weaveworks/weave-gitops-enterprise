@@ -339,8 +339,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         ),
       );
     }
-    console.log('updatedprofiles', updatedProfiles);
-    console.log('allHelmReposRefs', allHelmReposRefs);
     if (
       selectedHelmRepositories.length === 0 &&
       Object.values(updatedProfiles).length > 0 &&
