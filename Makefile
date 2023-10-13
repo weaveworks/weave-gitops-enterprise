@@ -131,6 +131,7 @@ godeps=$(shell go list -deps -f '{{if not .Standard}}{{$$dep := .}}{{range .GoFi
 
 dependencies: ## Install build dependencies
 	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/dependencies.toml
+	@go install github.com/grpc-ecosystem/protoc-gen-grpc-gateway-ts
 
 lint:
 	bin/go-lint
@@ -205,7 +206,7 @@ CALENDAR_VERSION=$(shell date +"%Y-%m")
 
 .PHONY: node_modules
 node_modules: package.json yarn.lock
-	yarn config set network-timeout 300000 && yarn install --prod --frozen-lockfile
+	yarn config set network-timeout 300000 && yarn install --frozen-lockfile
 
 ui-build: node_modules $(shell find ui/src -type f)
 	REACT_APP_VERSION="$(CALENDAR_VERSION) $(VERSION)" yarn build

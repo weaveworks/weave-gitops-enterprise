@@ -21,34 +21,19 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 		},
 	}
 
-	if p.Spec.Promotion != nil {
-
-		r.Promotion.Manual = p.Spec.Promotion.Manual
-
-		if p.Spec.Promotion.Strategy.SecretRef != nil {
-			r.Promotion.Strategy.SecretRef = &pb.LocalObjectReference{
-				Name: p.Spec.Promotion.Strategy.SecretRef.Name,
-			}
-		}
-
-		if p.Spec.Promotion.Strategy.PullRequest != nil {
-			r.Promotion.Strategy.PullRequest = &pb.PullRequestPromotion{
-				Type:   string(p.Spec.Promotion.Strategy.PullRequest.Type),
-				Url:    p.Spec.Promotion.Strategy.PullRequest.URL,
-				Branch: p.Spec.Promotion.Strategy.PullRequest.BaseBranch,
-			}
-		}
-
-		if p.Spec.Promotion.Strategy.Notification != nil {
-			r.Promotion.Strategy.Notification = &pb.Notification{}
-		}
-	}
+	r.Promotion = makePromotion(p.Spec.Promotion)
 
 	for _, e := range p.Spec.Environments {
 		env := &pb.Environment{
 			Name:    e.Name,
 			Targets: []*pb.Target{},
+			Promotion: &pb.Promotion{
+
+				Strategy: &pb.Strategy{},
+			},
 		}
+
+		env.Promotion = makePromotion(e.Promotion)
 
 		for _, t := range e.Targets {
 			var clusterRef pb.ClusterRef
@@ -68,6 +53,35 @@ func PipelineToProto(p ctrl.Pipeline) *pb.Pipeline {
 
 		r.Environments = append(r.Environments, env)
 
+	}
+	return r
+}
+
+func makePromotion(p *ctrl.Promotion) *pb.Promotion {
+	r := &pb.Promotion{
+		Strategy: &pb.Strategy{},
+	}
+	if p != nil {
+
+		r.Manual = p.Manual
+
+		if p.Strategy.SecretRef != nil {
+			r.Strategy.SecretRef = &pb.LocalObjectReference{
+				Name: p.Strategy.SecretRef.Name,
+			}
+		}
+
+		if p.Strategy.PullRequest != nil {
+			r.Strategy.PullRequest = &pb.PullRequestPromotion{
+				Type:   string(p.Strategy.PullRequest.Type),
+				Url:    p.Strategy.PullRequest.URL,
+				Branch: p.Strategy.PullRequest.BaseBranch,
+			}
+		}
+
+		if p.Strategy.Notification != nil {
+			r.Strategy.Notification = &pb.Notification{}
+		}
 	}
 	return r
 }

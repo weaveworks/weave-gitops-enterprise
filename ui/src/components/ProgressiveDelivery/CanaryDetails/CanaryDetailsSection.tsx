@@ -1,4 +1,8 @@
 import {
+  Automation,
+  Canary,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import {
   Flex,
   RouterTab,
   SubRouterTabs,
@@ -7,10 +11,6 @@ import {
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
-import {
-  Automation,
-  Canary,
-} from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Routes } from '../../../utils/nav';
 import ListEvents from '../../ListEvents';
 import { getProgressValue } from '../ListCanaries/Table';

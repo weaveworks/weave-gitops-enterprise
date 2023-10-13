@@ -12,6 +12,7 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import { maybeParseJSON } from '../components/Templates/Form/utils';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
+import useNotifications from '../contexts/Notifications';
 import {
   GitopsClusterEnriched,
   ProfilesIndex,
@@ -20,7 +21,6 @@ import {
 } from '../types/custom';
 import { maybeFromBase64 } from '../utils/base64';
 import { formatError } from '../utils/formatters';
-import useNotifications from '../contexts/Notifications';
 
 interface AnnotationData {
   commit_message: string;
@@ -88,7 +88,7 @@ const toUpdatedProfiles = (
         profileName.values.push(value);
       } else {
         accumulator.push({
-          name: profile.name!,
+          name: profile.name || '',
           values: [value],
           required: false,
           layer: profile.layer,
@@ -146,12 +146,12 @@ const setVersionAndValuesFromCluster = (
 ) => {
   const profilesIndex = _.keyBy(profiles, 'name');
 
-  let clusterProfiles: ProfilesIndex = {};
+  const clusterProfiles: ProfilesIndex = {};
   if (clusterData?.values) {
-    for (let clusterDataProfile of clusterData.values) {
-      const profile = profilesIndex[clusterDataProfile.name!];
+    for (const clusterDataProfile of clusterData.values) {
+      const profile = profilesIndex[clusterDataProfile.name || ''];
       if (profile) {
-        clusterProfiles[clusterDataProfile.name!] = {
+        clusterProfiles[clusterDataProfile.name || ''] = {
           ...profile,
           selected: true,
           namespace: clusterDataProfile.namespace!,
@@ -161,7 +161,7 @@ const setVersionAndValuesFromCluster = (
               ? {
                   ...v,
                   selected: true,
-                  yaml: maybeFromBase64(clusterDataProfile.values!),
+                  yaml: maybeFromBase64(clusterDataProfile.values || ''),
                 }
               : v,
           ),

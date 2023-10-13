@@ -116,7 +116,7 @@ describe('Explorer', () => {
 
     //  @ts-ignore
     const container = result.container;
-
+    //  @eslint-disable-next-line
     const input = queryByLabelText(
       container,
       'Kustomization',

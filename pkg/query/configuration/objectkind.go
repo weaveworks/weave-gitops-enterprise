@@ -32,6 +32,7 @@ const (
 	CategoryEvent      ObjectCategory = "event"
 	CategoryGitopsSet  ObjectCategory = "gitopsset"
 	CategoryTemplate   ObjectCategory = "template"
+	CategoryRBAC       ObjectCategory = "rbac"
 )
 
 type ObjectKind struct {
@@ -165,6 +166,7 @@ var (
 			return &rbacv1.Role{}
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
+		Category:        CategoryRBAC,
 	}
 	ClusterRoleObjectKind = ObjectKind{
 		Gvk: rbacv1.SchemeGroupVersion.WithKind("ClusterRole"),
@@ -172,6 +174,7 @@ var (
 			return &rbacv1.ClusterRole{}
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
+		Category:        CategoryRBAC,
 	}
 	RoleBindingObjectKind = ObjectKind{
 		Gvk: rbacv1.SchemeGroupVersion.WithKind("RoleBinding"),
@@ -179,6 +182,7 @@ var (
 			return &rbacv1.RoleBinding{}
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
+		Category:        CategoryRBAC,
 	}
 	ClusterRoleBindingObjectKind = ObjectKind{
 		Gvk: rbacv1.SchemeGroupVersion.WithKind("ClusterRoleBinding"),
@@ -186,6 +190,7 @@ var (
 			return &rbacv1.ClusterRoleBinding{}
 		},
 		AddToSchemeFunc: rbacv1.AddToScheme,
+		Category:        CategoryRBAC,
 	}
 
 	PolicyAgentAuditEventObjectKind = ObjectKind{

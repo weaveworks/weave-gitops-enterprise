@@ -1,9 +1,9 @@
 import { DataTable, YamlView } from '@weaveworks/weave-gitops';
-import { TableWrapper } from '../../../Shared';
-import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
 import moment from 'moment';
-import { RulesListWrapper } from '../../WorkspaceStyles';
 import { WorkspaceRoleRule } from '../../../../cluster-services/cluster_services.pb';
+import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
+import { TableWrapper } from '../../../Shared';
+import { RulesListWrapper } from '../../WorkspaceStyles';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 

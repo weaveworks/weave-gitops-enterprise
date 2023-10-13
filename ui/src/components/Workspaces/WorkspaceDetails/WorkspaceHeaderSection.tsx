@@ -1,9 +1,9 @@
 import { Button, Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
 import { Workspace } from '../../../cluster-services/cluster_services.pb';
 import { toFilterQueryString } from '../../../utils/FilterQueryString';
 import RowHeader from '../../RowHeader';
-import styled from 'styled-components';
 
 const Header = styled(Flex)`
   margin-bottom: ${props => props.theme.spacing.medium};
