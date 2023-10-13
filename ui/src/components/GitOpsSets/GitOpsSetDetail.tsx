@@ -2,6 +2,7 @@ import { Box } from '@material-ui/core';
 import {
   AppContext,
   Button,
+  createYamlCommand,
   filterByStatusCallback,
   filterConfig,
   Flex,
@@ -24,6 +25,7 @@ import styled from 'styled-components';
 // Importing this solves a problem with the YAML library not being found.
 // @ts-ignore
 import * as YAML from 'yaml/browser/dist/index.js';
+import { getInventory } from '.';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
@@ -39,7 +41,6 @@ import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
-import { getInventory } from '.';
 
 type Props = {
   className?: string;
@@ -251,11 +252,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={YAML.stringify(JSON.parse(gs?.yaml || ('' as string)))}
-              object={{
-                kind: gs?.type,
-                name: gs?.name,
-                namespace: gs?.namespace,
-              }}
+              type="GitOpsSet"
+              header={createYamlCommand(gs?.type, gs?.name, gs?.namespace)}
             />
           </RouterTab>
         </SubRouterTabs>
