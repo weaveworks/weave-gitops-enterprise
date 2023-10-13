@@ -80,14 +80,16 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 				return fmt.Errorf("cannot create role: %w", err)
 			}
 
-			if len(role.GetRules()) == 0 {
-				// Certain roles have no policy rules for some reason.
-				// Possibly related to the rbac.authorization.k8s.io/aggregate-to-gitops-reader label?
+			if obj.TransactionType() == models.TransactionTypeDelete {
+				rolesToDelete = append(rolesToDelete, role.ToModel())
 				continue
 			}
 
-			if obj.TransactionType() == models.TransactionTypeDelete {
-				rolesToDelete = append(rolesToDelete, role.ToModel())
+			// Explorer should support aggregated clusteroles.
+			// Related issue: https://github.com/weaveworks/weave-gitops-enterprise/issues/3443
+			if len(role.GetRules()) == 0 {
+				// Certain roles have no policy rules for some reason.
+				// Possibly related to the rbac.authorization.k8s.io/aggregate-to-gitops-reader label?
 				continue
 			}
 

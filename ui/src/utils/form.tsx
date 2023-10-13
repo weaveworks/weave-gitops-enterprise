@@ -1,11 +1,11 @@
 import {
-  InputAdornment,
-  MenuItem,
   Divider as MuiDivider,
   FormControl as MuiFormControl,
   FormHelperText as MuiFormHelperText,
+  InputAdornment,
   InputBase as MuiInputBase,
   InputLabel as MuiInputLabel,
+  MenuItem,
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
 } from '@material-ui/core';
@@ -14,7 +14,7 @@ import { Theme, withStyles } from '@material-ui/core/styles';
 import { debounce } from 'lodash';
 import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
+import { ErrorIcon } from '../components/RemoteSVGIcon';
 
 const FormControl = withStyles((theme: Theme) => ({
   root: {

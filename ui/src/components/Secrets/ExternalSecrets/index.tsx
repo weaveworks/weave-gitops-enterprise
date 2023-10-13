@@ -1,6 +1,7 @@
 import { Flex, GitRepository, Link, Page } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import {
@@ -12,6 +13,7 @@ import { InputDebounced, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
@@ -26,8 +28,6 @@ import {
 } from '../Shared/utils';
 import ListSecretsStore from './ListSecretsStore';
 import { SecretProperty } from './SecretProperty';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const CreateExternalSecret = () => {
   const callbackState = useCallbackState();
@@ -183,7 +183,9 @@ const CreateExternalSecret = () => {
                   name="secretStoreType"
                   label="SECRET STORE TYPE"
                   value={formData.secretStoreType}
-                  handleFormData={val => {}}
+                  handleFormData={val => {
+                    return;
+                  }}
                   disabled={true}
                   error={validateForm && !formData.secretStoreType}
                 />

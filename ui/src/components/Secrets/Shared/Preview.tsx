@@ -1,5 +1,10 @@
 import { Button } from '@weaveworks/weave-gitops';
 import { Dispatch, useCallback, useContext, useState } from 'react';
+import {
+  ClustersService,
+  RenderAutomationResponse,
+} from '../../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
 import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 import {
@@ -9,11 +14,6 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
-import {
-  ClustersService,
-  RenderAutomationResponse,
-} from '../../../cluster-services/cluster_services.pb';
 import { validateFormData } from '../../../utils/form';
 
 export enum SecretType {

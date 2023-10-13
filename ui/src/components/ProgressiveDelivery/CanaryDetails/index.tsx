@@ -1,8 +1,8 @@
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { useGetCanaryDetails } from '../../../contexts/ProgressiveDelivery';
-import CanaryDetailsSection from './CanaryDetailsSection';
 import { Routes } from '../../../utils/nav';
 import { Page } from '../../Layout/App';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
+import CanaryDetailsSection from './CanaryDetailsSection';
 
 type Props = {
   name: string;

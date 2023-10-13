@@ -1,0 +1,73 @@
+{
+  "root": true,
+  "plugins": ["react-hooks"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/errors",
+    "plugin:import/warnings",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:import/typescript"
+  ],
+  "rules": {
+    "import/default": [0],
+    "import/no-named-as-default-member": [0],
+    "import/no-named-as-default": [0],
+    "import/no-unresolved": [0],
+    "import/order": [
+      2,
+      {
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index",
+          "object",
+          "type"
+        ]
+      }
+    ],
+    "@typescript-eslint/explicit-module-boundary-types": [0],
+    "@typescript-eslint/no-unused-vars": [0],
+    "@typescript-eslint/ban-types": [
+      "error",
+      {
+        "types": {
+          "Object": false,
+          "{}": false
+        },
+        "extendDefaults": true
+      }
+    ],
+    "@typescript-eslint/no-explicit-any": [0],
+    "@typescript-eslint/ban-ts-comment": [0],
+    "@typescript-eslint/switch-exhaustiveness-check": [2],
+
+    "testing-library/no-node-access": [0],
+    "testing-library/no-unnecessary-act": [0],
+    "testing-library/render-result-naming-convention": [0],
+    "testing-library/prefer-screen-queries": [0],
+    "@typescript-eslint/no-non-null-assertion": [0]
+  },
+  "ignorePatterns": [
+    "rpc",
+    "api",
+    "assets",
+    "cluster-services",
+    "fonts",
+    "node_modules",
+    ".d.ts",
+    ".pb.ts",
+    "setupProxy.js",
+    "test-utils.tsx",
+    "reportWebVitals.ts"
+  ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  }
+}

@@ -20,9 +20,9 @@ import {
   bitbucketServerOAuthRedirectURI,
   gitlabOAuthRedirectURI,
 } from '../../utils/formatters';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { getCallbackState, storeProviderToken } from './utils';
-import { Page } from '../Layout/App';
 
 type Props = {
   code: string;

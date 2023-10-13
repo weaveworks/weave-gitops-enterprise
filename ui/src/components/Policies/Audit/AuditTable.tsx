@@ -18,10 +18,10 @@ import { useListFacets } from '../../../hooks/query';
 import { RequestError } from '../../../types/custom';
 import FilterDrawer from '../../Explorer/FilterDrawer';
 import Filters from '../../Explorer/Filters';
+import { QueryState, columnHeaderHandler } from '../../Explorer/hooks';
 import PaginationControls from '../../Explorer/PaginationControls';
 import QueryInput from '../../Explorer/QueryInput';
 import QueryStateChips from '../../Explorer/QueryStateChips';
-import { QueryState, columnHeaderHandler } from '../../Explorer/hooks';
 
 type AuditProps = {
   objects: Object[];

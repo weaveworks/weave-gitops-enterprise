@@ -14,11 +14,13 @@ import _ from 'lodash';
 import moment from 'moment';
 import React, { FC } from 'react';
 import styled from 'styled-components';
-import { ReactComponent as ABIcon } from '../../../../assets/img/ab.svg';
-import { ReactComponent as BlueGreenIcon } from '../../../../assets/img/blue-green.svg';
-import { ReactComponent as CanaryIcon } from '../../../../assets/img/canary.svg';
-import { ReactComponent as MirroringIcon } from '../../../../assets/img/mirroring.svg';
 import { Routes } from '../../../../utils/nav';
+import {
+  ABIcon,
+  BlueGreenIcon,
+  CanaryIcon,
+  MirroringIcon,
+} from '../../../RemoteSVGIcon';
 import { TableWrapper } from '../../../Shared';
 import CanaryStatus from '../../SharedComponent/CanaryStatus';
 interface Props {

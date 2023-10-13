@@ -1,4 +1,3 @@
-import Applications from '../';
 
 import { MuiThemeProvider } from '@material-ui/core';
 import { act, render, RenderResult, screen } from '@testing-library/react';
@@ -12,6 +11,7 @@ import {
 import { QueryClient, QueryClientProvider } from 'react-query';
 import { MemoryRouter } from 'react-router-dom';
 import { ThemeProvider } from 'styled-components';
+import Applications from '../';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import NotificationsProvider from '../../../contexts/Notifications/Provider';

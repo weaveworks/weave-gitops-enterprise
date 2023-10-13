@@ -2,13 +2,20 @@ import { MenuItem } from '@material-ui/core';
 import { Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
+import {
+  expiredTokenNotification,
+  useIsAuthenticated,
+} from '../../../hooks/gitprovider';
 import { useCallbackState } from '../../../utils/callback-state';
 import { InputDebounced, Select, validateFormData } from '../../../utils/form';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
+import { Page } from '../../Layout/App';
+import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
@@ -23,13 +30,6 @@ import {
   SOPS,
   FormWrapperSecret,
 } from '../Shared/utils';
-import {
-  expiredTokenNotification,
-  useIsAuthenticated,
-} from '../../../hooks/gitprovider';
-import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { Page } from '../../Layout/App';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 
 const CreateSOPS = () => {
   const callbackState = useCallbackState();

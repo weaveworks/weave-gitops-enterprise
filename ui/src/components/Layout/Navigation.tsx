@@ -8,9 +8,9 @@ import {
 } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import { Dispatch, FC, SetStateAction, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import styled from 'styled-components';
 import { Routes } from '../../utils/nav';
-import { useLocation } from 'react-router-dom';
 
 function getParentNavRouteValueExtended(
   route: string,

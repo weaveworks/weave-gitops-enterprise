@@ -34,7 +34,7 @@ const ListKustomizations = ({
         value={value}
         error={validateForm && !value}
       >
-        {!!data?.kustomizations?.length ? (
+        {data?.kustomizations?.length ? (
           data?.kustomizations?.map((k, index: number) => {
             return (
               <MenuItem key={index} value={`${k.name}/${k.namespace}`}>

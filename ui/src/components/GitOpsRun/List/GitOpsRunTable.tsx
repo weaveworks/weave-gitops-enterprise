@@ -60,7 +60,7 @@ interface Props {
 }
 
 const GitOpsRunTable: FC<Props> = ({ sessions }) => {
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(
       sessions,
       'CLI Version',

@@ -21,8 +21,9 @@ message Target {
 }
 
 message Environment {
-    string name = 1;
+    string          name = 1;
     repeated Target targets = 2;
+    Promotion       promotion = 3;
 }
 
 message ObjectRef {
