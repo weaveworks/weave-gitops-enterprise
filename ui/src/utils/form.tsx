@@ -198,13 +198,16 @@ export const Select: FC<SelectProps> = ({
 );
 
 export const validateFormData = (
-  event: any,
+  event: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
 ) => {
   event.preventDefault();
 
-  const onClickFormData = event.target.form || event.target.parentElement.form;
+  const onClickFormData =
+    (event?.target as HTMLFormElement | HTMLButtonElement).form ||
+    ((event?.target as HTMLButtonElement).parentElement as HTMLButtonElement)
+      ?.form;
 
   const requiredButEmptyInputs = Array.from(
     event.type === 'submit' ? event.target : onClickFormData,
