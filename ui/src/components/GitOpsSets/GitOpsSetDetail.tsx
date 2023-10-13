@@ -25,7 +25,6 @@ import styled from 'styled-components';
 // Importing this solves a problem with the YAML library not being found.
 // @ts-ignore
 import * as YAML from 'yaml/browser/dist/index.js';
-import { getInventory } from '.';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
@@ -41,6 +40,7 @@ import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
+import { getInventory } from '.';
 
 type Props = {
   className?: string;
