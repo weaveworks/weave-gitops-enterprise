@@ -5,6 +5,7 @@ import {
   RouterTab,
   SubRouterTabs,
   YamlView,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
@@ -70,11 +71,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={data?.pipeline?.yaml || ''}
-              object={{
-                kind: 'Pipeline',
-                name: data?.pipeline?.name,
-                namespace: data?.pipeline?.namespace,
-              }}
+              type="Pipeline"
+              header={createYamlCommand(
+                'Pipeline',
+                data?.pipeline?.name,
+                data?.pipeline?.namespace,
+              )}
             />
           </RouterTab>
           <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
