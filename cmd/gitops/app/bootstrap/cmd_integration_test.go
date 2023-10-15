@@ -76,6 +76,10 @@ func TestBootstrapCmd(t *testing.T) {
 
 	lock := sync.Mutex{}
 
+	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
+	g.Expect(privateKeyFile).NotTo(BeEmpty())
+	privateKeyArg := fmt.Sprintf("--private-key=%s", privateKeyFile)
+
 	// ensure flux-system ns exists
 	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
 
@@ -216,23 +220,6 @@ func bootstrapFluxSsh(g *WithT) {
 	fmt.Println(string(s))
 	g.Expect(err).To(BeNil())
 
-}
-
-func bootstrapFluxHttps(g *WithT) {
-	var runner runner.CLIRunner
-
-	repoUrl := os.Getenv("GIT_URL_HTTPS")
-	g.Expect(repoUrl).NotTo(BeEmpty())
-
-	username := os.Getenv("GITHUB_USER")
-	g.Expect(username).NotTo(BeEmpty())
-	password := os.Getenv("GITHUB_TOKEN")
-	g.Expect(password).NotTo(BeEmpty())
-
-	args := []string{"bootstrap", "git", "-s", "--token-auth", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--username=%s", username), fmt.Sprintf("--password=%s", password), "--path=clusters/management"}
-	s, err := runner.Run("flux", args...)
-	fmt.Println(string(s))
-	g.Expect(err).To(BeNil())
 }
 
 func uninstallFlux(g *WithT) {
