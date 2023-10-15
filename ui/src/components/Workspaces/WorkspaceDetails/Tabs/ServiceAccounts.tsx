@@ -1,7 +1,11 @@
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
-import { TableWrapper } from '../../../Shared';
-import { useGetWorkspaceServiceAccount } from '../../../../contexts/Workspaces';
+import {
+  DataTable,
+  YamlView,
+  createYamlCommand,
+} from '@weaveworks/weave-gitops';
 import moment from 'moment';
+import { useGetWorkspaceServiceAccount } from '../../../../contexts/Workspaces';
+import { TableWrapper } from '../../../Shared';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 
@@ -37,11 +41,8 @@ export const ServiceAccountsTab = ({
                       content={
                         <YamlView
                           yaml={manifest}
-                          object={{
-                            kind: kind,
-                            name: name,
-                            namespace: namespace,
-                          }}
+                          type={kind}
+                          header={createYamlCommand(kind, name, namespace)}
                         />
                       }
                       title="Service Accounts Manifest"

@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
@@ -105,19 +104,18 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 }
 
 func addWGEFlags(opts *config.Options) error {
-
 	//get kubernetes client
 	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
 	if err != nil {
 		return err
 	}
 
-	authFlags.wgeVersion, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WGEHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
+	authFlags.wgeVersion, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
 	if err != nil {
 		return err
 	}
 
-	authFlags.domain, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WGEHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmDomainProperty)
+	authFlags.domain, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmDomainProperty)
 	if err != nil {
 		return err
 	}

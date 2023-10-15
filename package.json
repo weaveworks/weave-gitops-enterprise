@@ -26,7 +26,7 @@
     "@types/styled-components": "^5.1.9",
     "@types/urijs": "^1.19.19",
     "@weaveworks/progressive-delivery": "0.0.0-rc13",
-    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.33.0-42-gce54bed1",
+    "@weaveworks/weave-gitops": "npm:@weaveworks/weave-gitops-main@0.34.0-2-gd858858e",
     "babel-jest": "^27.4.2",
     "babel-plugin-named-asset-import": "^0.3.8",
     "babel-preset-react-app": "^10.0.1",
@@ -40,6 +40,7 @@
     "dotenv-expand": "^5.1.0",
     "eslint": "^8.3.0",
     "eslint-config-react-app": "^7.0.1",
+    "eslint-webpack-plugin": "^3.1.1",
     "git-url-parse": "12.0.0",
     "http-proxy-middleware": "^2.0.0",
     "jest": "^27.4.3",
@@ -47,7 +48,6 @@
     "jest-svg-transformer": "^1.0.0",
     "jest-watch-typeahead": "^1.0.0",
     "js-file-download": "^0.4.12",
-    "js-yaml": "^4.1.0",
     "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "mini-css-extract-plugin": "^2.4.5",
@@ -86,7 +86,8 @@
   "scripts": {
     "start": "parcel serve ui/index.html --port 3000 --dist-dir build --hmr-port 1234",
     "build": "parcel build ui/index.html --dist-dir build",
-    "test": "node ui/scripts/test.js"
+    "test": "node ui/scripts/test.js",
+    "lint": "eslint ui/src -c eslintrc.json --max-warnings=0"
   },
   "eslintConfig": {
     "extends": [

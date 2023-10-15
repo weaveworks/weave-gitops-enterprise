@@ -13,7 +13,8 @@ import (
 
 const (
 	cmdName             = "bootstrap"
-	cmdShortDescription = `gitops bootstrap installs Weave GitOps Enterprise in simple steps:
+	cmdShortDescription = "Installs Weave GitOps Enterprise in simple steps"
+	cmdLongDescription  = `Installs Weave GitOps Enterprise in simple steps:
 - Entitlements: check that you have valid entitlements.
 - Flux: check or bootstrap Flux. 
 - Weave Gitops: check or install a supported Weave GitOps version with default configuration.
@@ -50,6 +51,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     cmdName,
 		Short:   cmdShortDescription,
+		Long:    cmdLongDescription,
 		Example: cmdExamples,
 		RunE:    getBootstrapCmdRun(opts),
 	}
@@ -99,4 +101,23 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 		}
 		return nil
 	}
+}
+
+// BootstrapAuth initiated by the command runs the WGE bootstrap auth steps
+func BootstrapAuth(config steps.Config) error {
+	var steps = []steps.BootstrapStep{
+		steps.VerifyFluxInstallation,
+		steps.CheckEntitlementSecret,
+		steps.NewAskPrivateKeyStep(config),
+		steps.OIDCConfigStep(config),
+	}
+
+	for _, step := range steps {
+		config.Logger.Waitingf(step.Name)
+		err := step.Execute(&config)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

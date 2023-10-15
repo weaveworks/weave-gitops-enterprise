@@ -1,16 +1,17 @@
 import {
+  Automation,
+  Canary,
+} from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import {
   Flex,
   RouterTab,
   SubRouterTabs,
   Text,
   YamlView,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
-import {
-  Automation,
-  Canary,
-} from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { Routes } from '../../../utils/nav';
 import ListEvents from '../../ListEvents';
 import { getProgressValue } from '../ListCanaries/Table';
@@ -85,11 +86,12 @@ function CanaryDetailsSection({
           <CanaryDetailsWrapper>
             <YamlView
               yaml={canary.yaml || ''}
-              object={{
-                kind: 'Canary',
-                name: canary?.name,
-                namespace: canary?.namespace,
-              }}
+              type="Canary"
+              header={createYamlCommand(
+                'Canary',
+                canary.name,
+                canary.namespace,
+              )}
             />
           </CanaryDetailsWrapper>
         </RouterTab>

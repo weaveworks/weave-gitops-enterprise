@@ -17,8 +17,10 @@ const DetailsSection = ({
   canary: Canary;
   automation?: Automation;
 }) => {
-  const { conditions, ...restStatus } = canary?.status || { conditions: [] };
-  const { lastTransitionTime, ...restConditionObj } = conditions![0] || {
+  const { conditions = [], ...restStatus } = canary?.status || {
+    conditions: [],
+  };
+  const { lastTransitionTime, ...restConditionObj } = conditions[0] || {
     lastTransitionTime: '',
   };
 

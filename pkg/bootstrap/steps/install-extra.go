@@ -16,7 +16,7 @@ const (
 
 // updateHelmReleaseValues add the extra HelmRelease values.
 func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerValues map[string]interface{}) error {
-	values, err := getCurrentValuesForHelmRelease(c.KubernetesClient, WGEHelmReleaseName, WGEDefaultNamespace)
+	values, err := getCurrentValuesForHelmRelease(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return err
 	}
@@ -26,7 +26,7 @@ func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerV
 		values.Config.OIDC = controllerValues
 	}
 
-	version, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WGEHelmReleaseName, WGEDefaultNamespace, "version")
+	version, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, "version")
 	if err != nil {
 		fmt.Println("error getting helm release version: ", err)
 		return err
@@ -51,7 +51,7 @@ func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerV
 	if err := utils.ReconcileFlux(); err != nil {
 		return err
 	}
-	if err := utils.ReconcileHelmRelease(WGEHelmReleaseName); err != nil {
+	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
 		return err
 	}
 

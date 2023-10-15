@@ -71,7 +71,7 @@ export const ListApplications = ({
     });
   };
 
-  return !!cluster ? (
+  return cluster ? (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {applicationsList?.result.length && applications.length ? (
         <FormGroup>

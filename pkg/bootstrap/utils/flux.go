@@ -3,7 +3,6 @@ package utils
 import (
 	"context"
 	"encoding/json"
-
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"

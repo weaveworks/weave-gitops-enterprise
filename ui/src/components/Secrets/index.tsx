@@ -1,11 +1,11 @@
-import { useListSecrets } from '../../contexts/Secrets';
-import { SecretsTable } from './Table';
 import { Button, Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
-import { useHistory } from 'react-router-dom';
 import { useCallback } from 'react';
+import { useHistory } from 'react-router-dom';
+import { useListSecrets } from '../../contexts/Secrets';
 import { Routes } from '../../utils/nav';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { SecretsTable } from './Table';
 
 const SecretsList = () => {
   const { data, isLoading } = useListSecrets({});

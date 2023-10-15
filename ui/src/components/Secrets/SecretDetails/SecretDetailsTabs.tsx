@@ -6,11 +6,12 @@ import {
   SubRouterTabs,
   Text,
   YamlView,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
 import { GetExternalSecretResponse } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
-import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import ListEvents from '../../ListEvents';
+import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 
 const SecretDetailsTabs = ({
   clusterName,
@@ -110,11 +111,12 @@ const SecretDetailsTabs = ({
       <RouterTab name="Yaml" path={`${path}/yaml`}>
         <YamlView
           yaml={secretObj.yaml}
-          object={{
-            kind: 'ExternalSecret',
-            name: externalSecretName,
+          type="ExternalSecret"
+          header={createYamlCommand(
+            'ExternalSecret',
+            externalSecretName,
             namespace,
-          }}
+          )}
         />
       </RouterTab>
     </SubRouterTabs>

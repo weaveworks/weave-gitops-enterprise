@@ -1,8 +1,8 @@
-import { act, fireEvent, render } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { withContext } from '../../../utils/test-utils';
 import Filters from '../Filters';
-import { QueryStateManager } from '../QueryStateManager';
 import { QueryState, QueryStateProvider } from '../hooks';
+import { QueryStateManager } from '../QueryStateManager';
 
 describe('Filters', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -45,8 +45,7 @@ describe('Filters', () => {
     ];
 
     const c = wrap(<Filters facets={facets} />);
-    const { getByText, queryByLabelText, rerender } = render(c);
-
+    const { rerender } = render(c);
     const qs: QueryState = {
       filters: [],
       terms: '',
@@ -58,12 +57,12 @@ describe('Filters', () => {
 
     manager.read = jest.fn(() => qs);
 
-    const input1 = queryByLabelText('Kustomization') as HTMLInputElement;
+    const input1 = screen.queryByLabelText('Kustomization') as HTMLInputElement;
 
     expect(input1?.checked).toBeFalsy();
 
     act(() => {
-      fireEvent.click(getByText('Kustomization'));
+      fireEvent.click(screen.getByText('Kustomization'));
     });
 
     expect(manager.write).toHaveBeenLastCalledWith({
@@ -78,12 +77,12 @@ describe('Filters', () => {
 
     rerender(wrap(<Filters facets={facets} />));
 
-    const input2 = queryByLabelText('Kustomization') as HTMLInputElement;
+    const input2 = screen.queryByLabelText('Kustomization') as HTMLInputElement;
 
     expect(input2?.checked).toBeTruthy();
 
     act(() => {
-      fireEvent.click(getByText('HelmRelease'));
+      fireEvent.click(screen.getByText('HelmRelease'));
     });
 
     expect(manager.write).toHaveBeenLastCalledWith({
@@ -98,12 +97,12 @@ describe('Filters', () => {
 
     rerender(wrap(<Filters facets={facets} />));
 
-    const input3 = queryByLabelText('HelmRelease') as HTMLInputElement;
+    const input3 = screen.queryByLabelText('HelmRelease') as HTMLInputElement;
 
     expect(input3?.checked).toBeTruthy();
 
     act(() => {
-      fireEvent.click(getByText('HelmRelease'));
+      fireEvent.click(screen.getByText('HelmRelease'));
     });
 
     rerender(wrap(<Filters facets={facets} />));
