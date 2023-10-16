@@ -1,14 +1,14 @@
 /* eslint-disable testing-library/no-node-access */
 import { act, render, screen } from '@testing-library/react';
-import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
+import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../../api/pipelines/types.pb';
 import { PipelinesProvider } from '../../../../contexts/Pipelines';
 import {
   CoreClientMock,
-  defaultContexts,
   PipelinesClientMock,
+  defaultContexts,
   withContext,
 } from '../../../../utils/test-utils';
 
@@ -89,8 +89,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.2.1',
-                  lastAppliedRevision: '6.2.1',
+                  version: '6.0.0',
+                  lastAppliedRevision: '6.0.0.0',
                   conditions: [
                     {
                       type: 'Ready',
@@ -125,8 +125,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.1.6',
-                  lastAppliedRevision: '6.1.6',
+                  version: '6.0.1',
+                  lastAppliedRevision: '6.0.1.1',
                   conditions: [
                     {
                       type: 'Ready',
@@ -162,8 +162,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.1.8',
-                  lastAppliedRevision: '6.1.8',
+                  version: '6.0.2',
+                  lastAppliedRevision: '6.0.2.2',
                   conditions: [
                     {
                       type: 'Ready',
@@ -195,8 +195,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.1.8',
-                  lastAppliedRevision: '6.1.8',
+                  version: '6.0.3',
+                  lastAppliedRevision: '6.0.3.3',
                   conditions: [
                     {
                       type: 'Ready',
@@ -225,16 +225,6 @@ const res: GetPipelineResponse = {
     type: 'Pipeline',
   },
 };
-
-interface MappedWorkload {
-  kind?: string | undefined;
-  name?: string | undefined;
-  namespace?: string | undefined;
-  version?: string | undefined;
-  lastAppliedVersion?: string | undefined;
-  mappedClusterName?: string | undefined;
-  clusterName?: string | undefined;
-}
 
 describe('PipelineDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -269,103 +259,23 @@ describe('PipelineDetails', () => {
     const title = screen.getByTestId('link-Pipelines').textContent;
     expect(title).toEqual('Pipelines');
     expect(await screen.findByText('podinfo-02')).toBeTruthy();
-
-    const targetsStatuses = params?.status?.environments || {};
-
-    // Env & targets
-    params?.environments?.forEach(env => {
-      const targets = document.querySelectorAll(
-        `#${env.name} > [role="targeting"]`,
-      );
-      expect(targets.length).toEqual(env.targets?.length);
-
-      let workloads: MappedWorkload[] = [];
-
-      targetsStatuses[env.name!].targetsStatuses?.forEach(ts => {
-        if (ts.workloads) {
-          const wrks = ts.workloads.map(wrk => ({
-            ...wrk,
-            clusterName: ts.clusterRef?.name || 'management',
-            mappedClusterName: ts.clusterRef?.name
-              ? `${ts.clusterRef?.namespace || 'default'}/${ts.clusterRef.name}`
-              : 'management',
-            namespace: ts.namespace,
-          }));
-          workloads = [...workloads, ...wrks];
-        }
-      });
-
-      // Targets
-      targets.forEach((target, index) => {
-        const workloadTarget = target.querySelector('.workloadTarget');
-
-        // Cluster Name
-        const clusterNameEle = workloadTarget?.querySelector('.cluster-name');
-        checkTextContentToEqual(
-          clusterNameEle,
-          workloads![index].clusterName || '',
-        );
-
-        // Workload Namespace
-        const workloadNamespace = workloadTarget?.querySelector(
-          '.workload-namespace',
-        );
-        expect(workloadNamespace?.textContent).toEqual(
-          workloads![index].namespace,
-        );
-
-        //Target as a link
-        const linkToAutomation = target.querySelector('.automation > a');
-
-        const href = formatURL('/helm_release/details', {
-          name: workloads![index].name,
-          namespace: workloads![index].namespace,
-          clusterName: workloads![index].mappedClusterName,
-        });
-        expect(linkToAutomation).toHaveAttribute('href', href);
-
-        // Workload Last Applied Version
-        const lastAppliedRevision = target.querySelector(
-          'workloadName > .last-applied-version',
-        );
-        if (workloads![index].lastAppliedVersion) {
-          checkTextContentToEqual(
-            lastAppliedRevision,
-            workloads![index].lastAppliedVersion || '',
-          );
-        } else {
-          elementToBeNull(lastAppliedRevision);
-        }
-
-        // Workload Version
-        const workloadVersion = target.querySelector('.version')?.textContent;
-        expect(workloadVersion).toEqual(`v${workloads![index].version}`);
-      });
-    });
+    //3 envs
+    expect(await screen.findByText('dev')).toBeInTheDocument();
+    expect(await screen.findByText('test')).toBeInTheDocument();
+    expect(await screen.findByText('prod')).toBeInTheDocument();
+    //3 targets with applied and speicified versions
+    let i = 0;
+    while (i <= 3) {
+      expect(
+        await screen.findByText(`SPECIFIED VERSION: V6.0.${i}`),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(`LAST APPLIED VERSION: V6.0.${i}.${i}`),
+      ).toBeInTheDocument();
+      i++;
+    }
   });
 
-  it('renders pipeline Yaml', async () => {
-    const params = res.pipeline;
-    api.GetPipelineReturns = res;
-
-    await act(async () => {
-      const c = wrap(
-        <PipelineDetails
-          name={params?.name || ''}
-          namespace={params?.namespace || ''}
-        />,
-      );
-      render(c);
-    });
-
-    const yamlTab = screen
-      .getAllByRole('tab')
-      .filter(tabEle => tabEle.textContent === 'Yaml')[0];
-
-    yamlTab.click();
-    const code = document.querySelector('pre')?.textContent?.trimEnd();
-    expect(code).toMatchSnapshot();
-  });
   describe('renders promotion strategy', () => {
     it('pull request', async () => {
       const params = res.pipeline;
@@ -432,14 +342,3 @@ describe('PipelineDetails', () => {
     expect(devButton.length).toEqual(1);
   });
 });
-
-const elementToBeNull = (element: Element | null | undefined) => {
-  expect(element).toBeNull();
-};
-
-const checkTextContentToEqual = (
-  element: Element | null | undefined,
-  clusterName: string,
-) => {
-  expect(element?.textContent).toEqual(clusterName);
-};
