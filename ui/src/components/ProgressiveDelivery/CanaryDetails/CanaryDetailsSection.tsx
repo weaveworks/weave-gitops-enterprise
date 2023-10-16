@@ -8,6 +8,7 @@ import {
   SubRouterTabs,
   Text,
   YamlView,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 
@@ -85,11 +86,12 @@ function CanaryDetailsSection({
           <CanaryDetailsWrapper>
             <YamlView
               yaml={canary.yaml || ''}
-              object={{
-                kind: 'Canary',
-                name: canary?.name,
-                namespace: canary?.namespace,
-              }}
+              type="Canary"
+              header={createYamlCommand(
+                'Canary',
+                canary.name,
+                canary.namespace,
+              )}
             />
           </CanaryDetailsWrapper>
         </RouterTab>

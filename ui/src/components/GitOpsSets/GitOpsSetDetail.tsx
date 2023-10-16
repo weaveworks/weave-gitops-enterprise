@@ -2,6 +2,7 @@ import { Box } from '@material-ui/core';
 import {
   AppContext,
   Button,
+  createYamlCommand,
   filterByStatusCallback,
   filterConfig,
   Flex,
@@ -251,11 +252,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={YAML.stringify(JSON.parse(gs?.yaml || ('' as string)))}
-              object={{
-                kind: gs?.type,
-                name: gs?.name,
-                namespace: gs?.namespace,
-              }}
+              type="GitOpsSet"
+              header={createYamlCommand(gs?.type, gs?.name, gs?.namespace)}
             />
           </RouterTab>
         </SubRouterTabs>
