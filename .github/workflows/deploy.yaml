@@ -182,16 +182,15 @@ jobs:
         slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
 
     playwirght-smoke-tests:
-    runs-on: ubuntu-latest
-    uses: convictional/trigger-workflow-and-wait@v1.6.1
-    with:
-      owner: weaveworks
-      repo: playwright-tests
-      github_token: ${{ secrets.WEAVEWORKS_BOT_TOKEN }}
-      workflow_file_name: nightly.yaml
-      ref: main
-      wait_interval: 10
-      propagate_failure: false
-      trigger_workflow: true
-      wait_workflow: true
-
+      runs-on: ubuntu-latest
+      uses: convictional/trigger-workflow-and-wait@v1.6.1
+      with:
+        owner: weaveworks
+        repo: playwright-tests
+        github_token: ${{ secrets.WEAVEWORKS_BOT_TOKEN }}
+        workflow_file_name: nightly.yaml
+        ref: main
+        wait_interval: 10
+        propagate_failure: false
+        trigger_workflow: true
+        wait_workflow: true
