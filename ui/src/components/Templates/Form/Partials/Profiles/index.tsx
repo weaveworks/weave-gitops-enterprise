@@ -254,9 +254,14 @@ const Profiles: FC<{
             {
               label: 'Repository',
               value: (p: UpdatedProfile) => (
-                <span data-profile-repository={p.repoName}>{p.repoName}</span>
+                <span
+                  data-profile-repository={`${p.repoNamespace}/${p.repoName}`}
+                >
+                  {p.repoNamespace}/{p.repoName}
+                </span>
               ),
-              sortValue: ({ repoName }) => repoName,
+              sortValue: ({ repoNamespace, repoName }) =>
+                `${repoNamespace}/${repoName}`,
               maxWidth: 220,
             },
             {

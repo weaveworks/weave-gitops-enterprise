@@ -269,6 +269,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     () => getHelmRepos(data?.result),
     [data?.result],
   );
+
   const resourceData = resource && getCreateRequestAnnotation(resource);
   const initialUrl = resourceData?.repository_url;
   const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
