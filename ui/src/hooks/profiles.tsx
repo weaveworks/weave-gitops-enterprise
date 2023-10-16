@@ -36,8 +36,10 @@ interface AnnotationData {
     namespace: string;
     values: string;
     version: string;
-    repoName: string;
-    repoNamespace: string;
+    helm_repository: {
+      name: string;
+      namespace: string;
+    };
   }[];
 }
 
@@ -155,7 +157,7 @@ const setVersionAndValuesFromCluster = (
   const clusterProfiles: ProfilesIndex = {};
   if (clusterData?.values) {
     for (const clusterDataProfile of clusterData.values) {
-      const index = `${clusterDataProfile.name}/${clusterDataProfile.repoName}/${clusterDataProfile.repoNamespace}`;
+      const index = `${clusterDataProfile.name}/${clusterDataProfile.helm_repository.name}/${clusterDataProfile.helm_repository.namespace}`;
       const profile = profilesIndex[index || ''];
       if (profile) {
         clusterProfiles[index || ''] = {

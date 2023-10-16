@@ -274,6 +274,8 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const initialUrl = resourceData?.repository_url;
   const initialGitRepo = useGetInitialGitRepo(initialUrl, gitRepos);
 
+  console.log(resource);
+
   const { initialFormData, initialInfraCredentials } = getInitialData(
     resource,
     callbackState,
