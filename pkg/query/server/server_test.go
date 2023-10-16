@@ -107,6 +107,7 @@ func TestListEnabledComponents(t *testing.T) {
 	}
 
 	srv, stop, err := NewServer(opts)
+	g.Expect(err).To(BeNil())
 	defer func() {
 		err := stop()
 		g.Expect(err).To(BeNil())
@@ -154,6 +155,7 @@ func TestListEnabledComponents_Invalid(t *testing.T) {
 	}
 
 	srv, stop, err := NewServer(opts)
+	g.Expect(err).To(BeNil())
 	defer func() {
 		err := stop()
 		g.Expect(err).To(BeNil())

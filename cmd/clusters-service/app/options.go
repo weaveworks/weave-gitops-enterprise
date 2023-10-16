@@ -295,8 +295,6 @@ func WithObjectCleaner(enabled bool) Option {
 // ExplorerEnabledFor turns on and off the explorer for different parts of the UI
 func WithExplorerEnabledFor(enabledFor []string) Option {
 	return func(o *Options) {
-		for _, cmp := range enabledFor {
-			o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, cmp)
-		}
+		o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, enabledFor...)
 	}
 }
