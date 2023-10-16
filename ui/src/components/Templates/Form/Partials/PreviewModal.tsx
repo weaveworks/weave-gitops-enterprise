@@ -213,6 +213,7 @@ const Preview: FC<{
               <div key={file.path}>
                 <Typography variant="h6">{file.path}</Typography>
                 <SyntaxHighlighter
+                  data-testid={`tab-content-${index}`}
                   language="yaml"
                   style={darcula}
                   wrapLongLines

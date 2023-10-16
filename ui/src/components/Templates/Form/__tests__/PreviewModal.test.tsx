@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import {
   ClustersServiceClientMock,
   defaultContexts,
@@ -73,6 +73,36 @@ describe('PR Preview when creating resources', () => {
       render(c);
     });
     expect(await screen.findByText('PR Preview')).toBeTruthy();
-    // check tabs and their content
+
+    // enabled tabs
+
+    const tab1Title = screen.getByRole('tab', {
+      name: /Resource Definition/i,
+    });
+    expect(tab1Title).toBeInTheDocument();
+
+    const tab1Content = screen.getByTestId('tab-content-0');
+    expect(tab1Content.textContent).toEqual(
+      api?.RenderTemplateReturns?.renderedTemplates?.[0].content,
+    );
+
+    const tab3Title = screen.getByRole('tab', {
+      name: /Kustomizations/i,
+    });
+    expect(tab3Title).toBeInTheDocument();
+
+    // navigate to the Kustomizations tab
+    tab3Title.click();
+
+    const tab3Content = screen.getByTestId('tab-content-2');
+    expect(tab3Content.textContent).toEqual(
+      api?.RenderTemplateReturns?.kustomizationFiles?.[0].content,
+    );
+
+    // disabled tabs
+
+    expect(screen.getByText(/Profiles/i).closest('button')).toHaveAttribute(
+      'disabled',
+    );
   });
 });
