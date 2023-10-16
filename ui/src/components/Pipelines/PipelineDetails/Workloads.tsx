@@ -18,7 +18,7 @@ const getStrategy = (promo?: Promotion) => {
 };
 
 const EnvironmentContainer = styled(Flex)`
-  background: #dde1e9;
+  background: ${props => props.theme.colors.pipelineGray}};
   border-radius: 8px;
   padding: ${props => props.theme.spacing.small};
 `;
@@ -90,5 +90,7 @@ function Workloads({
 }
 
 export default styled(Workloads)`
+  background: ${props => props.theme.colors.pipelinesBackGray}};
+  padding: ${props => props.theme.spacing.medium};
   overflow-x: auto;
 `;

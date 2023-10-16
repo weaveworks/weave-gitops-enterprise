@@ -6,6 +6,7 @@ import {
   Link,
   Text,
   V2Routes,
+  computeReady,
   formatURL,
 } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
@@ -29,7 +30,6 @@ function Target({ className, target, background }: Props) {
       }`
     : configResponse?.data?.managementClusterName || 'undefined';
 
-  //questions for Monday: clusterRefs empty? Cluster namespace? Multiple workloads?
   return (
     <EnvironmentCard
       className={className}
@@ -39,7 +39,7 @@ function Target({ className, target, background }: Props) {
     >
       <Flex column>
         <Flex gap="4" align>
-          <Icon type={IconType.ClustersIcon} size="medium" color="neutral20" />
+          <Icon type={IconType.ClustersIcon} size="medium" color="black" />
           <Text>Cluster:</Text>
         </Flex>
         <ClusterDashboardLink clusterName={clusterName} />
@@ -65,7 +65,15 @@ function Target({ className, target, background }: Props) {
                 </Link>
               </Flex>
             </Flex>
-            <Text bold size="small">
+            <Text
+              bold
+              size="small"
+              color={
+                computeReady(workload?.conditions || []) === 'Ready'
+                  ? 'successOriginal'
+                  : 'alertOriginal'
+              }
+            >
               LAST APPLIED VERSION: {'V' + workload.lastAppliedRevision || '-'}
             </Text>
             <Text size="small">
