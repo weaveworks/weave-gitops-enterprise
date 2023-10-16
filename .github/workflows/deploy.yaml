@@ -162,7 +162,7 @@ jobs:
         with:
           owner: weaveworks
           repo: weaveworks/playwright-tests
-          github_token: ${{ secrets.WGE_GITHUB_TOKEN }}
+          github_token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
           workflow_file_name: nightly.yaml
           ref: main
           wait_interval: 10
