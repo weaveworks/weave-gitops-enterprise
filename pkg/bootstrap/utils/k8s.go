@@ -111,7 +111,7 @@ func CreateSecret(client k8s_client.Client, name string, namespace string, data 
 		Data: data,
 	}
 
-	err := client.Create(context.Background(), secret, &k8s_client.CreateOptions{})
+	err := client.Create(context.Background(), secret)
 	if err != nil {
 		return err
 	}
@@ -127,7 +127,7 @@ func DeleteSecret(client k8s_client.Client, name string, namespace string) error
 			Namespace: namespace,
 		},
 	}
-	err := client.Delete(context.Background(), secret, &k8s_client.DeleteOptions{})
+	err := client.Delete(context.Background(), secret)
 	if err != nil {
 		return err
 	}
