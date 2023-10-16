@@ -117,7 +117,7 @@ func (s *server) ListEnabledComponents(ctx context.Context, msg *pb.ListEnabledC
 
 		key := pb.EnabledComponent_value[cmp]
 
-		if key == int32(pb.EnabledComponent_unkown) {
+		if key == int32(pb.EnabledComponent_unknown) {
 			// Weird case were if we have an invalid component, we get the zero value of an int32,
 			// which means we get the first enum value.
 			// Protobufs require the first element of an enum to be 0.

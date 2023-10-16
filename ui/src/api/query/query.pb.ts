@@ -7,7 +7,7 @@
 import * as fm from "../../fetch.pb"
 
 export enum EnabledComponent {
-  unkown = "unkown",
+  unknown = "unknown",
   applications = "applications",
   sources = "sources",
   gitopssets = "gitopssets",

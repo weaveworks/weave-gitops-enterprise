@@ -193,13 +193,13 @@
     "v1EnabledComponent": {
       "type": "string",
       "enum": [
-        "unkown",
+        "unknown",
         "applications",
         "sources",
         "gitopssets",
         "templates"
       ],
-      "default": "unkown"
+      "default": "unknown"
     },
     "v1Facet": {
       "type": "object",
