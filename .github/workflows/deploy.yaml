@@ -182,6 +182,7 @@ jobs:
         slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
 
   playwright-smoke-tests:
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Run palywright tests workflow
