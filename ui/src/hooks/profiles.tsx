@@ -36,6 +36,8 @@ interface AnnotationData {
     namespace: string;
     values: string;
     version: string;
+    repoName: string;
+    repoNamespace: string;
   }[];
 }
 
@@ -121,6 +123,8 @@ const setVersionAndValuesFromTemplate = (
         !defaultProfiles.find(
           p =>
             profile.name === p.name &&
+            profile.repoName === p.repoName &&
+            profile.repoNamespace === p.repoNamespace &&
             profile.values.map(value => value.version === p.values[0].version)
               .length !== 0,
         ),
@@ -144,14 +148,17 @@ const setVersionAndValuesFromCluster = (
   profiles: UpdatedProfile[],
   clusterData: AnnotationData,
 ) => {
-  const profilesIndex = _.keyBy(profiles, 'name');
+  const profilesIndex = _.keyBy(profiles, profile => {
+    return `${profile.name}/${profile.repoName}/${profile.repoNamespace}`;
+  });
 
   const clusterProfiles: ProfilesIndex = {};
   if (clusterData?.values) {
     for (const clusterDataProfile of clusterData.values) {
-      const profile = profilesIndex[clusterDataProfile.name || ''];
+      const index = `${clusterDataProfile.name}/${clusterDataProfile.repoName}/${clusterDataProfile.repoNamespace}`;
+      const profile = profilesIndex[index || ''];
       if (profile) {
-        clusterProfiles[clusterDataProfile.name || ''] = {
+        clusterProfiles[index || ''] = {
           ...profile,
           selected: true,
           namespace: clusterDataProfile.namespace!,
@@ -175,7 +182,9 @@ const setVersionAndValuesFromCluster = (
       ...profilesIndex,
       ...clusterProfiles,
     }),
-    'name',
+    profile => {
+      return `${profile.name}/${profile.repoName}/${profile.repoNamespace}`;
+    },
   );
 };
 

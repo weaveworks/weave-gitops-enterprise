@@ -84,7 +84,8 @@ const Profiles: FC<{
   const handleIndividualClick = (
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
-  ) =>
+  ) => {
+    console.log(name);
     setUpdatedProfiles(sp => ({
       ...sp,
       [name]: {
@@ -92,6 +93,7 @@ const Profiles: FC<{
         selected: event.target.checked,
       },
     }));
+  };
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) =>
     setUpdatedProfiles(sp =>
@@ -101,9 +103,12 @@ const Profiles: FC<{
       })),
     );
 
-  const updatedProfilesList = _.sortBy(Object.values(updatedProfiles), [
-    'name',
-  ]);
+  const updatedProfilesList = _.sortBy(
+    Object.values(updatedProfiles),
+    profile => {
+      return `${profile.name}/${profile.repoName}/${profile.repoNamespace}`;
+    },
+  );
 
   const numSelected = updatedProfilesList.filter(up => up.selected).length;
   const rowCount = updatedProfilesList.length || 0;
@@ -222,8 +227,17 @@ const Profiles: FC<{
               ),
               value: (profile: UpdatedProfile) => (
                 <Checkbox
-                  onChange={event => handleIndividualClick(event, profile.name)}
-                  checked={Boolean(updatedProfiles[profile.name]?.selected)}
+                  onChange={event =>
+                    handleIndividualClick(
+                      event,
+                      `${profile.name}/${profile.repoName}/${profile.repoNamespace}`,
+                    )
+                  }
+                  checked={Boolean(
+                    updatedProfiles[
+                      `${profile.name}/${profile.repoName}/${profile.repoNamespace}`
+                    ]?.selected,
+                  )}
                   disabled={profile.required}
                   color={profile.required ? undefined : 'primary'}
                 />

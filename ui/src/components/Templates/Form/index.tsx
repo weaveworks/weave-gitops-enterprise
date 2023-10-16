@@ -323,8 +323,11 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   useEffect(() => clearCallbackState(), []);
 
   useEffect(() => {
+    const profilesIndex = _.keyBy(profiles, profile => {
+      return `${profile.name}/${profile.repoName}/${profile.repoNamespace}`;
+    });
     setUpdatedProfiles({
-      ..._.keyBy(profiles, 'name'),
+      ...profilesIndex,
       ...callbackState?.state?.updatedProfiles,
     });
   }, [callbackState?.state?.updatedProfiles, profiles]);
