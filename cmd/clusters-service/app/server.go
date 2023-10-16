@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/management"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
@@ -98,6 +99,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+
+	"net/http/pprof"
 )
 
 const (
@@ -160,8 +163,10 @@ type Params struct {
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
 	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
 	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
+	ManagementServerEnabled           bool                      `mapstructure:"management-sever-enabled"`
+	ManagementServerBindAddress       string                    `mapstructure:"management-sever-bind-address"`
 	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
-	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
+	ProfilingEnabled                  bool                      `mapstructure:"profiling-enabled"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
 }
@@ -572,7 +577,9 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
-		WithMetrics(p.MetricsEnabled, p.MetricsBindAddress, log),
+		WithManagement(p.ManagementServerEnabled, p.ManagementServerBindAddress, log),
+		WithMetrics(p.MetricsEnabled),
+		WithProfiling(p.ProfilingEnabled),
 		WithObjectCleaner(p.EnableObjectCleaner),
 	)
 }
@@ -823,15 +830,27 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
 	// management server
-	newManagementServer()
-	var metricsServer *http.Server
-	if args.MetricsOptions.Enabled {
-		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions)
-	}
+	var managementServer *http.Server
 
-	var pprofServer *http.Server
-	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
-		pprofServer = profiling.NewPprofServer(args.ProfilingOptions)
+	if args.ManagementOptions.Enabled {
+		managementOptions := args.ManagementOptions
+		handlers := map[string]http.Handler{}
+
+		// metrics configuration
+		if args.MetricsOptions.Enabled {
+			metricsPath, metricsHandler := metrics.NewDefaultPrometheusHandler()
+			handlers[metricsPath] = metricsHandler
+		}
+
+		if args.ProfilingOptions.Enabled {
+			pprofPath, pprofHandler := profiling.NewDefaultPprofHandler()
+			handlers[pprofPath] = pprofHandler
+		}
+
+		managementServer, err = management.NewServer(managementOptions, handlers)
+		if err != nil {
+			return fmt.Errorf("cannot create management server:: %w", err)
+		}
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
@@ -851,6 +870,10 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
+
+	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
+		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
+	}
 
 	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
 
@@ -877,17 +900,11 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
-		if args.MetricsOptions.Enabled && metricsServer != nil {
-			if err := metricsServer.Shutdown(ctx); err != nil {
-				args.Log.Error(err, "Failed to shutdown metrics server")
+		if args.ManagementOptions.Enabled && managementServer != nil {
+			if err := managementServer.Shutdown(ctx); err != nil {
+				args.Log.Error(err, "Failed to shutdown management server")
 			}
 		}
-		if args.ProfilingOptions.Enabled && pprofServer != nil {
-			if err := pprofServer.Shutdown(ctx); err != nil {
-				args.Log.Error(err, "Failed to shutdown pprof server")
-			}
-		}
-
 	}()
 
 	args.Log.Info("Starting to listen and serve", "address", addr)
@@ -897,12 +914,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return err
 	}
 	return nil
-}
-
-type Options struct {
-	Enabled       bool
-	ServerAddress string
-	Log           logr.Logger
 }
 
 func TLSConfig(hosts []string) (*tls.Config, error) {

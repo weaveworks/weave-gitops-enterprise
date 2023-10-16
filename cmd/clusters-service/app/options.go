@@ -9,6 +9,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/management"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
@@ -57,6 +58,7 @@ type Options struct {
 	UIConfig                  string
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
+	ManagementOptions         management.Options
 	MetricsOptions            metrics.Options
 	ProfilingOptions          profiling.Options
 	EnableObjectCleaner       bool
@@ -267,13 +269,31 @@ func WithCollectorServiceAccount(name, namespace string) Option {
 	}
 }
 
-// WithMetrics configures prometheus metrics
-func WithMetrics(enabled bool, address string, log logr.Logger) Option {
+// WithManagement configures management server
+func WithManagement(enabled bool, address string, log logr.Logger) Option {
 	return func(o *Options) {
-		o.MetricsOptions = metrics.Options{
+		o.ManagementOptions = management.Options{
 			Enabled:       enabled,
 			ServerAddress: address,
 			Log:           log,
+		}
+	}
+}
+
+// WithMetrics configures prometheus metrics
+func WithMetrics(enabled bool) Option {
+	return func(o *Options) {
+		o.MetricsOptions = metrics.Options{
+			Enabled: enabled,
+		}
+	}
+}
+
+// WithProfiling configures profiling
+func WithProfiling(enabled bool) Option {
+	return func(o *Options) {
+		o.ProfilingOptions = profiling.Options{
+			Enabled: enabled,
 		}
 	}
 }
