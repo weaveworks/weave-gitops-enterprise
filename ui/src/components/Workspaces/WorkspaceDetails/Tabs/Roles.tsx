@@ -1,4 +1,8 @@
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
+import {
+  DataTable,
+  YamlView,
+  createYamlCommand,
+} from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { WorkspaceRoleRule } from '../../../../cluster-services/cluster_services.pb';
 import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
@@ -66,11 +70,8 @@ export const RolesTab = ({
                       content={
                         <YamlView
                           yaml={manifest}
-                          object={{
-                            kind: kind,
-                            name: name,
-                            namespace: namespace,
-                          }}
+                          type={kind}
+                          header={createYamlCommand(kind, name, namespace)}
                         />
                       }
                       title="Role Manifest"
