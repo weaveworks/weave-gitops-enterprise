@@ -1,20 +1,28 @@
 package metrics
 
 import (
+	"github.com/go-logr/logr"
 	prom "github.com/prometheus/client_golang/prometheus"
+
+	"net/http"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/slok/go-http-metrics/metrics/prometheus"
 	"github.com/slok/go-http-metrics/middleware"
 	"github.com/slok/go-http-metrics/middleware/std"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
-	"net/http"
 )
 
 // DefaultGatherers are the prometheus gatherers to serve metrics from
 var DefaultGatherers = prom.Gatherers{
 	prom.DefaultGatherer,
 	clustersmngr.Registry,
+}
+
+type Options struct {
+	Enabled       bool
+	ServerAddress string
+	Log           logr.Logger
 }
 
 // NewPrometheusServer creates and starts a prometheus metrics server in /metrics path

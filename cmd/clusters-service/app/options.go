@@ -4,14 +4,14 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -58,6 +58,7 @@ type Options struct {
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
 	MetricsOptions            metrics.Options
+	ProfilingOptions          profiling.Options
 	EnableObjectCleaner       bool
 }
 

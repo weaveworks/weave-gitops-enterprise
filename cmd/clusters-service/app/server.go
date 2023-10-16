@@ -24,6 +24,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
@@ -97,8 +98,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	"net/http/pprof"
 )
 
 const (
@@ -824,9 +823,13 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
 	var metricsServer *http.Server
-
 	if args.MetricsOptions.Enabled {
 		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions)
+	}
+
+	var pprofServer *http.Server
+	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
+		pprofServer = profiling.NewPprofServer(args.ProfilingOptions)
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
@@ -846,10 +849,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
-
-	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
-		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
-	}
 
 	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
 
@@ -881,6 +880,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 				args.Log.Error(err, "Failed to shutdown metrics server")
 			}
 		}
+		if args.ProfilingOptions.Enabled && pprofServer != nil {
+			if err := pprofServer.Shutdown(ctx); err != nil {
+				args.Log.Error(err, "Failed to shutdown pprof server")
+			}
+		}
+
 	}()
 
 	args.Log.Info("Starting to listen and serve", "address", addr)
