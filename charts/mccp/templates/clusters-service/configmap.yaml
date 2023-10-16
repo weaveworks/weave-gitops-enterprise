@@ -54,5 +54,7 @@ data:
   UI_CONFIG: {{ .Values.config.ui | toJson | quote }}
   COLLECTOR_SERVICEACCOUNT_NAME: {{ .Values.explorer.collector.serviceAccount.name | quote }}
   COLLECTOR_SERVICEACCOUNT_NAMESPACE: {{ .Values.explorer.collector.serviceAccount.namespace | quote }}
+  MANAGEMENT_SERVER_ENABLED: {{ .Values.managementServer.enabled | quote }}
+  MANAGEMENT_SERVER_BIND_ADDRESS: ":{{ .Values.managementServer.port }}"
   METRICS_ENABLED: {{ .Values.metrics.enabled | quote }}
-  METRICS_BIND_ADDRESS: ":{{ .Values.metrics.service.port }}"
+  PROFILING_ENABLED: {{ .Values.profiling.enabled | quote }}
