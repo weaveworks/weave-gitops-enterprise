@@ -1,11 +1,11 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
+import EnterpriseClientProvider from '../../../../contexts/EnterpriseClient/Provider';
 import {
   ClustersServiceClientMock,
   defaultContexts,
   withContext,
 } from '../../../../utils/test-utils';
 import PreviewModal from '../Partials/PreviewModal';
-import EnterpriseClientProvider from '../../../../contexts/EnterpriseClient/Provider';
 
 Object.assign(navigator, {
   clipboard: {
@@ -66,7 +66,7 @@ describe('PR Preview when creating resources', () => {
       const c = wrap(
         <PreviewModal
           openPreview={true}
-          setOpenPreview={() => {}}
+          setOpenPreview={() => console.log('')}
           prPreview={prPreview}
         />,
       );
