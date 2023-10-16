@@ -85,7 +85,6 @@ const Profiles: FC<{
     event: React.ChangeEvent<HTMLInputElement>,
     name: string,
   ) => {
-    console.log(name);
     setUpdatedProfiles(sp => ({
       ...sp,
       [name]: {
