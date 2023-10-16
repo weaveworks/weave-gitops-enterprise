@@ -190,7 +190,7 @@ jobs:
           owner: weaveworks
           repo: weaveworks/playwright-tests
           github_token: ${{ secrets.WGE_GITHUB_TOKEN }}
-          workflow_file_name: nightly.yaml
+          workflow_file_name: .github/workflows/nightly.yaml
           ref: main
           wait_interval: 10
           propagate_failure: false
