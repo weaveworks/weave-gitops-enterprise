@@ -18,6 +18,7 @@ import (
 	"github.com/go-logr/logr"
 	grpc_runtime "github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 	"google.golang.org/grpc/metadata"
 	corev1 "k8s.io/api/core/v1"
@@ -380,4 +381,26 @@ func TestIssueGitProviderCSRFToken_HeaderMissing(t *testing.T) {
 	err := middleware(ctx, w, nil)
 	assert.NoError(t, err)
 	assert.NotContains(t, w.Result().Header, "Set-Cookie")
+}
+
+func Test_newManagementServer(t *testing.T) {
+	t.Run("should create new pprof server", func(t *testing.T) {
+
+		newManagementSer(Options{
+			ServerAddress: "localhost:8080",
+		})
+
+		// Get metrics.
+		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/debug/pprof", nil)
+		require.NoError(err)
+		resp, err := http.DefaultClient.Do(r)
+		require.NoError(err)
+
+		// Check.
+		b, err := io.ReadAll(resp.Body)
+		require.NoError(err)
+		metrics := string(b)
+
+		assert.Contains(metrics, "Types of profiles available")
+	})
 }

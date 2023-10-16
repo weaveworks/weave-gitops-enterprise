@@ -822,6 +822,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
+	// management server
+	newManagementServer()
 	var metricsServer *http.Server
 	if args.MetricsOptions.Enabled {
 		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions)
@@ -895,6 +897,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		return err
 	}
 	return nil
+}
+
+type Options struct {
+	Enabled       bool
+	ServerAddress string
+	Log           logr.Logger
 }
 
 func TLSConfig(hosts []string) (*tls.Config, error) {
