@@ -90,7 +90,8 @@ function Workloads({
 }
 
 export default styled(Workloads)`
-  background: ${props => props.theme.colors.pipelinesBackGray}};
+  background: ${props => props.theme.colors.backGray}};
   padding: ${props => props.theme.spacing.medium};
   overflow-x: auto;
+  box-sizing: border-box;
 `;
