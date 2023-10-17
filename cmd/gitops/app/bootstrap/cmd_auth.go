@@ -26,19 +26,11 @@ gitops bootstrap auth --type=oidc --kubeconfig <your-kubeconfig-location>
 gitops bootstrap auth --type=oidc --client-id <client-id> --client-secret <client-secret> --discovery-url <discovery-url>
 `
 )
-const (
-	authOIDC = "oidc"
-)
+
+const authOIDC = "oidc"
 
 type authConfigFlags struct {
-	authType           string
-	domain             string
-	wgeVersion         string
-	discoveryURL       string
-	clientID           string
-	clientSecret       string
-	privateKeyPath     string
-	privateKeyPassword string
+	authType string
 }
 
 var authFlags authConfigFlags
@@ -58,17 +50,11 @@ func AuthCommand(opts *config.Options) *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&authFlags.authType, "type", "t", "", "type of authentication to be configured")
-	cmd.Flags().StringVarP(&authFlags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
-	cmd.Flags().StringVarP(&authFlags.clientID, "client-id", "i", "", "OIDC client ID")
-	cmd.Flags().StringVarP(&authFlags.clientSecret, "client-secret", "s", "", "OIDC client secret")
-	cmd.Flags().StringVarP(&authFlags.privateKeyPath, "private-key", "", "", "path to the private key used to access the git repository")
-	cmd.Flags().StringVarP(&authFlags.privateKeyPassword, "private-key-password", "", "", "password for the private key used to access the git repository")
 
 	return cmd
 }
 
 func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
-
 	err := addWGEFlags(opts)
 	if err != nil {
 		fmt.Println(err)
@@ -81,10 +67,10 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
-			WithVersion(authFlags.wgeVersion).
-			WithDomain(authFlags.domain).
-			WithPrivateKey(authFlags.privateKeyPath, authFlags.privateKeyPassword).
-			WithOIDCConfig(authFlags.discoveryURL, authFlags.clientID, authFlags.clientSecret, false).
+			WithVersion(flags.version).
+			WithDomain(flags.domain).
+			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
+			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
 			Build()
 
 		if err != nil {
@@ -116,12 +102,12 @@ func addWGEFlags(opts *config.Options) error {
 		return err
 	}
 
-	authFlags.wgeVersion, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
+	flags.version, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
 	if err != nil {
 		return err
 	}
 
-	authFlags.domain, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmDomainProperty)
+	flags.domain, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmDomainProperty)
 	if err != nil {
 		return err
 	}
