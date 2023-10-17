@@ -1,56 +1,50 @@
 package monitoring
 
 import (
-	"io"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/profiling"
 )
 
 func TestNewServer(t *testing.T) {
 	require := require.New(t)
 
 	t.Run("cannot create management server without valid options", func(t *testing.T) {
-		_, err := NewServer(Options{}, nil)
+		_, err := NewServer(Options{})
 		require.Error(err)
 
-		_, err = NewServer(Options{Enabled: false}, nil)
+		_, err = NewServer(Options{Enabled: false})
 		require.Error(err)
 
-		_, err = NewServer(Options{Enabled: true, ServerAddress: ""}, nil)
+		_, err = NewServer(Options{Enabled: true, ServerAddress: ""})
 		require.Error(err)
-
-		_, err = NewServer(Options{Enabled: true, ServerAddress: "localhost:9090"}, nil)
-		require.Error(err)
-
 	})
 
 	t.Run("can create server valid options", func(t *testing.T) {
-		handlers := map[string]http.Handler{"/test": stringHandler("this is my test")}
 		_, err := NewServer(Options{
 			Enabled:       true,
 			ServerAddress: "localhost:8080",
-		}, handlers)
+			MetricsOptions: metrics.Options{
+				Enabled: true,
+			},
+			ProfilingOptions: profiling.Options{
+				Enabled: true,
+			},
+		})
 		require.NoError(err)
 
-		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/test", nil)
+		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
 		require.NoError(err)
-		resp, err := http.DefaultClient.Do(r)
+		_, err = http.DefaultClient.Do(r)
 		require.NoError(err)
 
-		// Check.
-		b, err := io.ReadAll(resp.Body)
+		r, err = http.NewRequest(http.MethodGet, "http://localhost:8080/debug/pprof", nil)
 		require.NoError(err)
-		msg := string(b)
-
-		require.Contains(msg, "this is my test")
+		_, err = http.DefaultClient.Do(r)
+		require.NoError(err)
 	})
 
-}
-
-type stringHandler string
-
-func (s stringHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(s))
 }
