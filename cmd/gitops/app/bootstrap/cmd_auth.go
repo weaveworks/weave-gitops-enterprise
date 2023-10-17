@@ -16,9 +16,15 @@ const (
 	autCmdName             = "auth"
 	autCmdShortDescription = "Generate authentication configuration for Weave GitOps. You can specify the type of authentication using the '--type' flag. Currently, only OIDC is supported."
 	authCmdExamples        = `
-	## Add OIDC configuration to your cluster. 
-	gitops bootstrap auth --type=oidc
-	`
+# Add OIDC configuration to your cluster. 
+gitops bootstrap auth --type=oidc
+
+# Add OIDC configuration from a specific kubeconfig
+gitops bootstrap auth --type=oidc --kubeconfig <your-kubeconfig-location>
+
+# Add OIDC configuration with given oidc configurations 'discoveryURL' 'client-id' 'client-secret'
+gitops bootstrap auth --type=oidc --client-id <client-id> --client-secret <client-secret> --discovery-url <discovery-url>
+`
 )
 const (
 	authOIDC = "oidc"
