@@ -50,7 +50,7 @@ type ConfigBuilder struct {
 	kubeconfig              string
 	username                string
 	password                string
-	wGEVersion              string
+	wgeVersion              string
 	domainType              string
 	domain                  string
 	privateKeyPath          string
@@ -86,7 +86,7 @@ func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
 }
 
 func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
-	c.wGEVersion = version
+	c.wgeVersion = version
 	return c
 }
 
@@ -172,7 +172,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubernetesClient,
-		WGEVersion:              cb.wGEVersion,
+		WGEVersion:              cb.wgeVersion,
 		Username:                cb.username,
 		Password:                cb.password,
 		Logger:                  cb.logger,

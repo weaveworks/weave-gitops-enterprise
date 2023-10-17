@@ -100,13 +100,9 @@ func OIDCConfigStep(config Config) BootstrapStep {
 // createOIDCConfig creates OIDC secrets on the cluster and updates the OIDC values in the helm release.
 // If the OIDC configs already exist, we will ask the user to delete the secret and run the command again.
 func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
-
-	//oidcConfig := OIDCConfig{}
-
 	continueWithExistingConfigs := confirmYes
 
 	for _, param := range input {
-
 		if param.Name == DiscoveryURL && param.Value != nil {
 			if val, ok := param.Value.(string); ok {
 				c.DiscoveryURL = val
@@ -135,6 +131,14 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 			}
 		}
 	}
+	if c.UserDomain == "" {
+		domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
+		if err != nil {
+			return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
+		}
+		c.UserDomain = domain
+	}
+
 	//get issuer url from discovery url
 	issuerUrl, err := getIssuerFromDiscoveryUrl(c)
 	if err != nil {
@@ -265,9 +269,9 @@ func getIssuerFromDiscoveryUrl(c *Config) ([]StepOutput, error) {
 			issuerURLErrCount++
 			// if we fail to get issuer url after 3 attempts, we will return an error
 			if issuerURLErrCount > 3 {
-				return []StepOutput{}, errors.New("Failed to retrieve IssuerURL after multiple attempts. Please verify the DiscoveryURL and try again.")
+				return []StepOutput{}, fmt.Errorf("failed to retrieve IssuerURL after multiple attempts. Please verify the DiscoveryURL and try again")
 			}
-			c.Logger.Warningf("Failed to retrieve IssuerURL. Please verify the DiscoveryURL and try again.")
+			c.Logger.Warningf("Failed to retrieve IssuerURL. Please verify the DiscoveryURL and try again")
 			// ask for discovery url again
 			c.DiscoveryURL, err = utils.GetStringInput(oidcDiscoverUrlMsg, "")
 			if err != nil {

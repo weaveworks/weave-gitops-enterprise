@@ -7,7 +7,6 @@ import (
 	"github.com/spf13/cobra"
 	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/pkg/logger"
 )
@@ -55,20 +54,12 @@ func AuthCommand(opts *config.Options) *cobra.Command {
 }
 
 func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
-	err := addWGEFlags(opts)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
 	return func(cmd *cobra.Command, args []string) error {
 		cliLogger := logger.NewCLILogger(os.Stdout)
 
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
-			WithVersion(flags.version).
-			WithDomain(flags.domain).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
 			Build()
@@ -93,24 +84,4 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 		return nil
 
 	}
-}
-
-func addWGEFlags(opts *config.Options) error {
-	//get kubernetes client
-	kubernetesClient, err := utils.GetKubernetesClient(opts.Kubeconfig)
-	if err != nil {
-		return err
-	}
-
-	flags.version, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmVersionProperty)
-	if err != nil {
-		return err
-	}
-
-	flags.domain, err = utils.GetHelmReleaseProperty(kubernetesClient, steps.WgeHelmReleaseName, steps.WGEDefaultNamespace, utils.HelmDomainProperty)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }

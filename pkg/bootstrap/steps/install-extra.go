@@ -26,7 +26,7 @@ func updateHelmReleaseValues(c *Config, controllerValuesName string, controllerV
 		values.Config.OIDC = controllerValues
 	}
 
-	version, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, "version")
+	version, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
 	if err != nil {
 		fmt.Println("error getting helm release version: ", err)
 		return err
