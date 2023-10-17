@@ -26,8 +26,6 @@ gitops bootstrap auth --type=oidc --client-id <client-id> --client-secret <clien
 `
 )
 
-const authOIDC = "oidc"
-
 type authConfigFlags struct {
 	authType string
 }
@@ -61,7 +59,7 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
-			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
+			WithOIDCConfig(authFlags.authType, flags.discoveryURL, flags.clientID, flags.clientSecret, false).
 			Build()
 
 		if err != nil {
@@ -69,16 +67,9 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 
 		}
 
-		//use bootstrapAuth function to bootstrap the authentication
-		switch authFlags.authType {
-		case authOIDC:
-			err = BootstrapAuth(c)
-			if err != nil {
-				return fmt.Errorf("cannot bootstrap auth: %v", err)
-			}
-		default:
-			return fmt.Errorf("authentication type %s is not supported", authFlags.authType)
-
+		err = BootstrapAuth(c)
+		if err != nil {
+			return fmt.Errorf("cannot bootstrap auth: %v", err)
 		}
 
 		return nil

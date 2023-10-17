@@ -33,14 +33,21 @@ gitops bootstrap --username wego-admin --password=hell0!
 )
 
 type bootstrapFlags struct {
-	version            string
-	domainType         string
-	domain             string
+	// wge version flags
+	version string
+
+	// domain flags
+	domainType string
+	domain     string
+
+	// private key flags
 	privateKeyPath     string
 	privateKeyPassword string
-	discoveryURL       string
-	clientID           string
-	clientSecret       string
+
+	// oidc flags
+	discoveryURL string
+	clientID     string
+	clientSecret string
 }
 
 var flags bootstrapFlags
@@ -83,7 +90,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
-			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
+			WithOIDCConfig(steps.AuthOIDC, flags.discoveryURL, flags.clientID, flags.clientSecret, true).
 			Build()
 
 		if err != nil {

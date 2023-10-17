@@ -10,6 +10,11 @@ import (
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// auth types
+const (
+	AuthOIDC = "oidc"
+)
+
 const (
 	defaultAdminUsername = "wego-admin"
 	defaultAdminPassword = "password"
@@ -55,6 +60,7 @@ type ConfigBuilder struct {
 	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
+	authType                string
 	discoveryURL            string
 	clientID                string
 	clientSecret            string
@@ -108,7 +114,8 @@ func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword
 	return c
 }
 
-func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
+func (c *ConfigBuilder) WithOIDCConfig(authType string, discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
+	c.authType = authType
 	c.discoveryURL = discoveryURL
 	c.clientID = clientID
 	c.clientSecret = clientSecret
@@ -134,6 +141,7 @@ type Config struct {
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
+	AuthType                string
 	DiscoveryURL            string
 	IssuerURL               string
 	ClientID                string
@@ -180,6 +188,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		UserDomain:              cb.domain,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
+		AuthType:                cb.authType,
 		DiscoveryURL:            cb.discoveryURL,
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
