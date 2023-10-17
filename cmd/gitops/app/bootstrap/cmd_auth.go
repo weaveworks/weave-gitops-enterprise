@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
+	. "github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/steps"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"

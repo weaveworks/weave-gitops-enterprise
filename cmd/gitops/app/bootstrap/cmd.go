@@ -101,22 +101,3 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 		return nil
 	}
 }
-
-// BootstrapAuth initiated by the command runs the WGE bootstrap auth steps
-func BootstrapAuth(config steps.Config) error {
-	var steps = []steps.BootstrapStep{
-		steps.VerifyFluxInstallation,
-		steps.CheckEntitlementSecret,
-		steps.NewAskPrivateKeyStep(config),
-		steps.OIDCConfigStep(config),
-	}
-
-	for _, step := range steps {
-		config.Logger.Waitingf(step.Name)
-		err := step.Execute(&config)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
