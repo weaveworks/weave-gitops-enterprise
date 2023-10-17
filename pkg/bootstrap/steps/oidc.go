@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 const (
@@ -27,6 +29,8 @@ const (
 	oidcConfirmationMsg = "OIDC has been configured successfully!"
 
 	oidcConfigExistWarningMsg = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again"
+
+	oidcCommitMsg = "Add OIDC values in WGE HelmRelease yaml file"
 )
 
 const (
@@ -136,13 +140,16 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	// process user domain if not passed
 	if c.UserDomain == "" {
-		domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
-		if err != nil {
-			return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
+		if c.DomainType == domainTypeLocalhost {
+			c.UserDomain = domainTypeLocalhost
+		} else {
+			domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
+			if err != nil {
+				return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
+			}
+			c.Logger.Actionf("setting user domain: %s", domain)
+			c.UserDomain = domain
 		}
-		c.Logger.Actionf("setting user domain: %s", domain)
-		c.UserDomain = domain
-
 	}
 
 	issuerUrl, err := getIssuerFromDiscoveryUrl(c)
@@ -166,21 +173,16 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		"redirectURL":  []byte(c.RedirectURL),
 	}
 
-	c.Logger.Actionf("creating secret %s:%s", WGEDefaultNamespace, oidcSecretName)
-	if err := utils.CreateSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace, oidcSecretData); err != nil {
-		return []StepOutput{}, err
-	}
-	c.Logger.Actionf("created secret %s:%s", WGEDefaultNamespace, oidcSecretName)
-
 	c.Logger.Waitingf(oidcInstallInfoMsg)
-	values, err := utils.GetHelmReleaseValues(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
+	valuesBytes, err := utils.GetHelmReleaseValues(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
 	if err != nil {
 		return []StepOutput{}, err
 	}
+	var wgeValues valuesFile
 
-	wgeValues, ok := values.(valuesFile)
-	if !ok {
-		return []StepOutput{}, fmt.Errorf("failed to parse Weave GitOps Enterprise HelmRelease's values")
+	err = json.Unmarshal(valuesBytes, &wgeValues)
+	if err != nil {
+		return []StepOutput{}, err
 	}
 
 	c.Logger.Actionf("configuring oidc values")
@@ -202,14 +204,28 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	helmreleaseFile := fileContent{
 		Name:      wgeHelmReleaseFileName,
 		Content:   wgeHelmRelease,
-		CommitMsg: wgeHelmReleaseCommitMsg,
+		CommitMsg: oidcCommitMsg,
 	}
 
-	return []StepOutput{{
-		Name:  wgeHelmReleaseFileName,
-		Type:  typeFile,
-		Value: helmreleaseFile,
-	}}, nil
+	secret := corev1.Secret{
+		ObjectMeta: v1.ObjectMeta{
+			Name:      oidcSecretName,
+			Namespace: WGEDefaultNamespace,
+		},
+		Data: oidcSecretData,
+	}
+
+	return []StepOutput{
+		{
+			Name:  oidcSecretName,
+			Type:  typeSecret,
+			Value: secret,
+		},
+		{
+			Name:  wgeHelmReleaseFileName,
+			Type:  typeFile,
+			Value: helmreleaseFile,
+		}}, nil
 }
 
 func getIssuer(oidcDiscoveryURL string) (string, error) {

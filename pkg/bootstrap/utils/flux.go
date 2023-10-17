@@ -149,7 +149,7 @@ func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namesp
 }
 
 // GetHelmReleaseValues gets the current values from a specific helmrelease.
-func GetHelmReleaseValues(client k8s_client.Client, name string, namespace string) (interface{}, error) {
+func GetHelmReleaseValues(client k8s_client.Client, name string, namespace string) ([]byte, error) {
 	helmrelease := &helmv2.HelmRelease{}
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
 		Name:      name,
@@ -158,11 +158,5 @@ func GetHelmReleaseValues(client k8s_client.Client, name string, namespace strin
 		return nil, err
 	}
 
-	var values interface{}
-
-	if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
-		return nil, err
-	}
-
-	return values, nil
+	return helmrelease.Spec.Values.Raw, nil
 }
