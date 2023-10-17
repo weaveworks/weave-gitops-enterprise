@@ -60,6 +60,16 @@ const res: GetPipelineResponse = {
       },
       {
         name: 'prod',
+        promotion: {
+          manual: true,
+          strategy: {
+            pullRequest: {
+              type: 'github',
+              url: 'https://gitlab.com/weaveworks/cool-project',
+              branch: 'main',
+            },
+          },
+        },
         targets: [
           {
             namespace: 'podinfo-02-prod',
@@ -279,20 +289,7 @@ describe('PipelineDetails', () => {
   describe('renders promotion strategy', () => {
     it('pull request', async () => {
       const params = res.pipeline;
-      const withPromotion: Pipeline = {
-        ...res.pipeline,
-        promotion: {
-          manual: true,
-          strategy: {
-            pullRequest: {
-              type: 'github',
-              url: 'https://gitlab.com/weaveworks/cool-project',
-              branch: 'main',
-            },
-          },
-        },
-      };
-      api.GetPipelineReturns = { ...res, pipeline: withPromotion };
+      api.GetPipelineReturns = res;
       core.GetObjectReturns = { object: {} };
 
       await act(async () => {
@@ -304,8 +301,9 @@ describe('PipelineDetails', () => {
         );
         render(c);
       });
-
       expect(screen.getByText('Pull Request')).toBeInTheDocument();
+      expect(screen.getByText('weaveworks/cool-project')).toBeInTheDocument();
+      expect(screen.getByText('main')).toBeInTheDocument();
       expect(screen.getByText('Secret Ref')).toBeInTheDocument();
       expect(screen.getByText('Notification')).toBeInTheDocument();
     });

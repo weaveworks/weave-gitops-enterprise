@@ -1,4 +1,4 @@
-import { Flex, Text } from '@weaveworks/weave-gitops';
+import { Flex, Link, Text } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { Pipeline, Promotion } from '../../../api/pipelines/types.pb';
@@ -23,9 +23,9 @@ const EnvironmentContainer = styled(Flex)`
   padding: ${props => props.theme.spacing.small};
 `;
 
-const PromotionContainer = styled.div`
-  height: 40px;
-  padding: ${props => props.theme.spacing.small} 0;
+const PromotionContainer = styled(Flex)`
+  height: 54px;
+  padding: ${props => props.theme.spacing.xs} 0;
 `;
 
 function Workloads({
@@ -47,11 +47,13 @@ function Workloads({
         const strategy = env.promotion
           ? getStrategy(env.promotion)
           : getStrategy(pipeline.promotion);
+        const { branch = '-', url = '-' } =
+          env.promotion?.strategy?.pullRequest || {};
 
         return (
           <EnvironmentContainer key={index} tall column gap="16">
             <PromotionInfo targets={status} />
-            <EnvironmentCard background={index}>
+            <EnvironmentCard background={index} column>
               <Flex column gap="8" wide>
                 <Flex between align wide>
                   <Text bold capitalize size="large">
@@ -64,7 +66,15 @@ function Workloads({
                   <Text> {strategy}</Text>
                 </Flex>
               </Flex>
-              <PromotionContainer>
+              <PromotionContainer column gap="12" wide>
+                {strategy === 'Pull Request' && (
+                  <Flex gap="8" wide start>
+                    <Text bold>Branch:</Text>
+                    <Text> {branch}</Text>
+                    <Text bold>URL:</Text>
+                    <Link to={url}>{url.split('.com/')[1]}</Link>
+                  </Flex>
+                )}
                 {strategy !== 'Automated' &&
                   index < environments.length - 1 && (
                     <PromotePipeline
@@ -94,4 +104,10 @@ export default styled(Workloads)`
   padding: ${props => props.theme.spacing.medium};
   overflow-x: auto;
   box-sizing: border-box;
+  //for PR url overflow
+  ${Link} {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+  }
 `;

@@ -16,4 +16,5 @@ export const EnvironmentCard = styled(Flex)<{ background?: number }>`
     //use remainder operator to alternate between items in envColors array
     envColors[props.background % envColors.length] || 'white'};
   box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
 `;
