@@ -19,7 +19,7 @@ type Options struct {
 }
 
 // NewSever creates and starts a management server for all endpoints that we need to expose internally. For example metrics or profiling.
-func NewServer(opts Options, handlers map[string]http.Handler) (*http.Server, error) {
+func NewServer(opts Options) (*http.Server, error) {
 	if !opts.Enabled {
 		return nil, fmt.Errorf("cannot create disabled server")
 	}
@@ -27,16 +27,19 @@ func NewServer(opts Options, handlers map[string]http.Handler) (*http.Server, er
 		return nil, fmt.Errorf("cannot create server for empty address")
 	}
 
-	if handlers == nil || len(handlers) == 0 {
-		return nil, fmt.Errorf("cannot create server without handlers")
-	}
-
 	log := opts.Log.WithName("management-server")
 	pprofMux := http.NewServeMux()
+	// metrics configuration
+	if opts.MetricsOptions.Enabled {
+		metricsPath, metricsHandler := metrics.NewDefaultPrometheusHandler()
+		pprofMux.Handle(metricsPath, metricsHandler)
+		log.Info("added metrics handler", "path", metricsPath)
+	}
 
-	for path, handler := range handlers {
-		pprofMux.Handle(path, handler)
-		log.Info("added handler", "path", path)
+	if opts.ProfilingOptions.Enabled {
+		pprofPath, pprofHandler := profiling.NewDefaultPprofHandler()
+		pprofMux.Handle(pprofPath, pprofHandler)
+		log.Info("added profiling handler", "path", pprofPath)
 	}
 
 	server := &http.Server{

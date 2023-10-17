@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
 
@@ -832,20 +832,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 
 	if args.MonitoringOptions.Enabled {
 		managementOptions := args.MonitoringOptions
-		handlers := map[string]http.Handler{}
-
-		// metrics configuration
-		if args.MetricsOptions.Enabled {
-			metricsPath, metricsHandler := metrics.NewDefaultPrometheusHandler()
-			handlers[metricsPath] = metricsHandler
-		}
-
-		if args.ProfilingOptions.Enabled {
-			pprofPath, pprofHandler := profiling.NewDefaultPprofHandler()
-			handlers[pprofPath] = pprofHandler
-		}
-
-		managementServer, err = monitoring.NewServer(managementOptions, handlers)
+		managementServer, err = monitoring.NewServer(managementOptions)
 		if err != nil {
 			return fmt.Errorf("cannot create management server:: %w", err)
 		}
@@ -854,7 +841,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 
-		if args.MetricsOptions.Enabled {
+		if args.MonitoringOptions.MetricsOptions.Enabled {
 			wrapperHandler = metrics.WithHttpMetrics(wrapperHandler)
 		}
 
