@@ -25,7 +25,6 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
