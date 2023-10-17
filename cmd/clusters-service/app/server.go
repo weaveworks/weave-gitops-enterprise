@@ -24,6 +24,7 @@ import (
 
 	"github.com/alexedwards/scs/v2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 
@@ -728,6 +729,12 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		ClientsFactory: args.ClustersManager,
 	}); err != nil {
 		return fmt.Errorf("hydrating gitopssets server: %w", err)
+	}
+
+	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{
+		Logger: args.Log,
+	}); err != nil {
+		return fmt.Errorf("hydrating preview server")
 	}
 
 	// UI
