@@ -87,8 +87,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
-			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret).
-			WithPromptedForDiscoveryURL(true).
+			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
 			Build()
 
 		if err != nil {

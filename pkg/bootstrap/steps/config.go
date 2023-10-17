@@ -108,14 +108,10 @@ func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword
 	return c
 }
 
-func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string) *ConfigBuilder {
+func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
 	c.discoveryURL = discoveryURL
 	c.clientID = clientID
 	c.clientSecret = clientSecret
-	return c
-}
-
-func (c *ConfigBuilder) WithPromptedForDiscoveryURL(prompted bool) *ConfigBuilder {
 	c.PromptedForDiscoveryURL = prompted
 	return c
 }

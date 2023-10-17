@@ -77,8 +77,7 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 			WithVersion(authFlags.wgeVersion).
 			WithDomain(authFlags.domain).
 			WithPrivateKey(authFlags.privateKeyPath, authFlags.privateKeyPassword).
-			WithOIDCConfig(authFlags.discoveryURL, authFlags.clientID, authFlags.clientSecret).
-			WithPromptedForDiscoveryURL(false).
+			WithOIDCConfig(authFlags.discoveryURL, authFlags.clientID, authFlags.clientSecret, false).
 			Build()
 
 		if err != nil {
