@@ -60,7 +60,6 @@ var clientSecretStep = StepInput{
 }
 
 func NewOIDCConfigStep(config Config) BootstrapStep {
-
 	inputs := []StepInput{
 		{
 			Name:         oidcInstalled,
@@ -182,17 +181,39 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
-	values := constructOIDCValues(c)
-
 	c.Logger.Waitingf(oidcInstallInfoMsg)
 
-	if err := updateHelmReleaseValues(c, oidcValuesName, values); err != nil {
-		fmt.Println("error updating helm release values:  ", err)
+	values, err := utils.GetHelmReleaseValues(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
+	if err != nil {
 		return []StepOutput{}, err
 	}
+
+	wgeValues, ok := values.(valuesFile)
+	if !ok {
+		return []StepOutput{}, fmt.Errorf("failed to parse Weave GitOps Enterprise HelmRelease's values")
+	}
+
+	wgeValues.Config.OIDC = constructOIDCValues(c)
+
+	wgeHelmRelease, err := constructWGEhelmRelease(wgeValues, c.WGEVersion)
+	if err != nil {
+		return []StepOutput{}, err
+	}
+	c.Logger.Actionf("rendered HelmRelease file")
+
+	helmreleaseFile := fileContent{
+		Name:      wgeHelmReleaseFileName,
+		Content:   wgeHelmRelease,
+		CommitMsg: wgeHelmReleaseCommitMsg,
+	}
+
 	c.Logger.Successf(oidcConfirmationMsg)
 
-	return []StepOutput{}, nil
+	return []StepOutput{{
+		Name:  wgeHelmReleaseFileName,
+		Type:  typeFile,
+		Value: helmreleaseFile,
+	}}, nil
 }
 
 // constructOIDCValues construct the OIDC values
