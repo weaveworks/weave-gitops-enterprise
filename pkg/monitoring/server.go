@@ -27,7 +27,7 @@ func NewServer(opts Options) (*http.Server, error) {
 		return nil, fmt.Errorf("cannot create server for empty address")
 	}
 
-	log := opts.Log.WithName("management-server")
+	log := opts.Log.WithName("monitoring-server")
 	pprofMux := http.NewServeMux()
 	// metrics configuration
 	if opts.MetricsOptions.Enabled {
@@ -48,13 +48,11 @@ func NewServer(opts Options) (*http.Server, error) {
 	}
 
 	go func() {
-		log.Info("starting pprof server", "address", server.Addr)
+		log.Info("starting server", "address", server.Addr)
 		if err := server.ListenAndServe(); err != nil {
 			log.Error(err, "could not start metrics server")
 		}
 	}()
 
-	log.Info("server created")
 	return server, nil
-
 }

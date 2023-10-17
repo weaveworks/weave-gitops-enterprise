@@ -99,8 +99,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	"net/http/pprof"
 )
 
 const (
@@ -272,9 +270,11 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.Bool("explorer-cleaner-disabled", false, "Enables the Explorer object cleaner that manages retaining objects")
 
-	// Metrics
-	cmdFlags.Bool("metrics-enabled", false, "creates prometheus metrics endpoint")
-	cmdFlags.String("metrics-bind-address", "", "The address the metric endpoint binds to.")
+	// Monitoring
+	cmdFlags.Bool("monitoring-enabled", false, "creates monitoring server")
+	cmdFlags.String("monitoring-bind-address", "", "monitoring server binding address")
+	cmdFlags.Bool("monitoring-metrics-enabled", false, "exposes metrics endpoint in monitoring server. requires monitoring enabled.")
+	cmdFlags.Bool("monitoring-profiling-enabled", false, "exposes profiling endpoint in monitoring server. requires monitoring enabled.")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -828,14 +828,16 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
 	// management server
-	var managementServer *http.Server
-
+	var monitoringServer *http.Server
+	args.Log.Info("i am in server monitoring", "monitoring", args.MonitoringOptions)
 	if args.MonitoringOptions.Enabled {
-		managementOptions := args.MonitoringOptions
-		managementServer, err = monitoring.NewServer(managementOptions)
+		monitoringServer, err = monitoring.NewServer(args.MonitoringOptions)
 		if err != nil {
-			return fmt.Errorf("cannot create management server:: %w", err)
+			return fmt.Errorf("cannot create monitoring server: %w", err)
 		}
+		args.Log.Info("monitoring server started")
+	} else {
+		args.Log.Info("monitoring-server-disabled")
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
@@ -855,10 +857,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
-
-	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
-		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
-	}
 
 	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
 
@@ -885,8 +883,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
-		if args.MonitoringOptions.Enabled && managementServer != nil {
-			if err := managementServer.Shutdown(ctx); err != nil {
+		if args.MonitoringOptions.Enabled && monitoringServer != nil {
+			if err := monitoringServer.Shutdown(ctx); err != nil {
 				args.Log.Error(err, "Failed to shutdown management server")
 			}
 		}

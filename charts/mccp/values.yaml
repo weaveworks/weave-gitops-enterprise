@@ -107,7 +107,7 @@ rbac:
 monitoring:
   enabled: true
   service:
-    name: http-metrics # TODO change name
+    name: monitoring
     port: 8080
   metrics:
     enabled: true
