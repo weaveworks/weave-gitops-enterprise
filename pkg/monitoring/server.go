@@ -1,4 +1,4 @@
-package management
+package monitoring
 
 import (
 	"fmt"
@@ -6,12 +6,16 @@ import (
 	"net/http"
 
 	"github.com/go-logr/logr"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/profiling"
 )
 
 type Options struct {
-	Enabled       bool
-	ServerAddress string
-	Log           logr.Logger
+	Enabled          bool
+	ServerAddress    string
+	Log              logr.Logger
+	MetricsOptions   metrics.Options
+	ProfilingOptions profiling.Options
 }
 
 // NewSever creates and starts a management server for all endpoints that we need to expose internally. For example metrics or profiling.

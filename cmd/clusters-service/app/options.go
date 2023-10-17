@@ -9,9 +9,9 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/management"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
@@ -58,9 +58,7 @@ type Options struct {
 	UIConfig                  string
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
-	ManagementOptions         management.Options
-	MetricsOptions            metrics.Options
-	ProfilingOptions          profiling.Options
+	MonitoringOptions         monitoring.Options
 	EnableObjectCleaner       bool
 }
 
@@ -269,31 +267,19 @@ func WithCollectorServiceAccount(name, namespace string) Option {
 	}
 }
 
-// WithManagement configures management server
-func WithManagement(enabled bool, address string, log logr.Logger) Option {
+// WithMonitoring configures monitoring server
+func WithMonitoring(enabled bool, address string, metricsEnabled bool, profilingEnabled bool, log logr.Logger) Option {
 	return func(o *Options) {
-		o.ManagementOptions = management.Options{
+		o.MonitoringOptions = monitoring.Options{
 			Enabled:       enabled,
 			ServerAddress: address,
 			Log:           log,
-		}
-	}
-}
-
-// WithMetrics configures prometheus metrics
-func WithMetrics(enabled bool) Option {
-	return func(o *Options) {
-		o.MetricsOptions = metrics.Options{
-			Enabled: enabled,
-		}
-	}
-}
-
-// WithProfiling configures profiling
-func WithProfiling(enabled bool) Option {
-	return func(o *Options) {
-		o.ProfilingOptions = profiling.Options{
-			Enabled: enabled,
+			MetricsOptions: metrics.Options{
+				Enabled: metricsEnabled,
+			},
+			ProfilingOptions: profiling.Options{
+				Enabled: profilingEnabled,
+			},
 		}
 	}
 }

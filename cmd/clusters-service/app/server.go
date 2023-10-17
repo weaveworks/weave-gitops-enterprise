@@ -23,8 +23,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/management"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/profiling"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
 
@@ -163,10 +163,10 @@ type Params struct {
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
 	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
 	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
-	ManagementServerEnabled           bool                      `mapstructure:"management-sever-enabled"`
-	ManagementServerBindAddress       string                    `mapstructure:"management-sever-bind-address"`
-	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
-	ProfilingEnabled                  bool                      `mapstructure:"profiling-enabled"`
+	MonitoringEnabled                 bool                      `mapstructure:"monitoring-enabled"`
+	MonitoringBindAddress             string                    `mapstructure:"monitoring-bind-address"`
+	MetricsEnabled                    bool                      `mapstructure:"monitoring-metrics-enabled"`
+	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
 }
@@ -577,9 +577,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
-		WithManagement(p.ManagementServerEnabled, p.ManagementServerBindAddress, log),
-		WithMetrics(p.MetricsEnabled),
-		WithProfiling(p.ProfilingEnabled),
+		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
 		WithObjectCleaner(p.EnableObjectCleaner),
 	)
 }
@@ -832,8 +830,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// management server
 	var managementServer *http.Server
 
-	if args.ManagementOptions.Enabled {
-		managementOptions := args.ManagementOptions
+	if args.MonitoringOptions.Enabled {
+		managementOptions := args.MonitoringOptions
 		handlers := map[string]http.Handler{}
 
 		// metrics configuration
@@ -847,7 +845,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			handlers[pprofPath] = pprofHandler
 		}
 
-		managementServer, err = management.NewServer(managementOptions, handlers)
+		managementServer, err = monitoring.NewServer(managementOptions, handlers)
 		if err != nil {
 			return fmt.Errorf("cannot create management server:: %w", err)
 		}
@@ -900,7 +898,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
-		if args.ManagementOptions.Enabled && managementServer != nil {
+		if args.MonitoringOptions.Enabled && managementServer != nil {
 			if err := managementServer.Shutdown(ctx); err != nil {
 				args.Log.Error(err, "Failed to shutdown management server")
 			}

@@ -102,15 +102,17 @@ rbac:
   adminUserRoleBindings:
     create: true
 
-#### Management Server
-#### Configures management server behaviour and its related services
-managementServer:
+#### Monitoring Server
+#### Configures monitoring server and related services
+monitoring:
   enabled: true
-  port: 8080
-metrics:
-  enabled: true
-profiling:
-  enabled: false
+  service:
+    name: http-metrics # TODO change name
+    port: 8080
+  metrics:
+    enabled: true
+  profiling:
+    enabled: false
 
 service:
   type: ClusterIP
