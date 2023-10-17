@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync/atomic"
 	"testing"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 
 	"github.com/go-logr/logr"
 	"github.com/go-logr/logr/testr"
@@ -184,9 +185,9 @@ func TestClusterWatcher_Watch(t *testing.T) {
 
 	c := makeValidFakeCluster("testcluster")
 
-	metrics.NewPrometheusServer(metrics.Options{
-		ServerAddress: "localhost:8080",
-	})
+	_, h := metrics.NewDefaultPrometheusHandler()
+	ts := httptest.NewServer(h)
+	defer ts.Close()
 
 	tests := []struct {
 		name       string
@@ -219,7 +220,7 @@ func TestClusterWatcher_Watch(t *testing.T) {
 					s, err := collector.Status(tt.cluster.GetName())
 					return err == nil && s == ClusterWatchingStarted
 				}, "2s", "0.2s").Should(BeTrue())
-				assertMetrics(g, []string{
+				assertMetrics(g, ts, []string{
 					`collector_cluster_watcher{collector="objects",status="starting"} 0`,
 					`collector_cluster_watcher{collector="objects",status="started"} 1`,
 				})
@@ -228,10 +229,8 @@ func TestClusterWatcher_Watch(t *testing.T) {
 	}
 }
 
-func assertMetrics(g *WithT, expMetrics []string) {
-	req, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
-	g.Expect(err).NotTo(HaveOccurred())
-	resp, err := http.DefaultClient.Do(req)
+func assertMetrics(g *WithT, ts *httptest.Server, expMetrics []string) {
+	resp, err := http.Get(ts.URL)
 	g.Expect(err).NotTo(HaveOccurred())
 	b, err := io.ReadAll(resp.Body)
 	g.Expect(err).NotTo(HaveOccurred())
@@ -248,9 +247,9 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 	log := testr.New(t)
 	clusterName := "testCluster"
 
-	metrics.NewPrometheusServer(metrics.Options{
-		ServerAddress: "localhost:8080",
-	})
+	_, h := metrics.NewDefaultPrometheusHandler()
+	ts := httptest.NewServer(h)
+	defer ts.Close()
 
 	tests := []struct {
 		name        string
@@ -314,7 +313,7 @@ func TestClusterWatcher_Unwatch(t *testing.T) {
 				_, err := collector.Status(tt.clusterName)
 				g.Expect(err).To(HaveOccurred())
 
-				assertMetrics(g, []string{
+				assertMetrics(g, ts, []string{
 					`collector_cluster_watcher{collector="objects",status="starting"} 0`,
 					`collector_cluster_watcher{collector="objects",status="started"} 0`,
 				})

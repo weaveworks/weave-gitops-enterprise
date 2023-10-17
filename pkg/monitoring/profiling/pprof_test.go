@@ -3,33 +3,27 @@ package profiling
 import (
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewPprofServer(t *testing.T) {
-	require := require.New(t)
-	assert := assert.New(t)
+func TestNewDefaultPprofHandler(t *testing.T) {
 
-	t.Run("should create new pprof server", func(t *testing.T) {
+	t.Run("should create pprof handler", func(t *testing.T) {
+		_, h := NewDefaultPprofHandler()
 
-		NewPprofServer(Options{
-			ServerAddress: "localhost:8080",
-		})
+		ts := httptest.NewServer(h)
+		defer ts.Close()
 
-		// Get metrics.
-		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/debug/pprof", nil)
-		require.NoError(err)
-		resp, err := http.DefaultClient.Do(r)
-		require.NoError(err)
-
-		// Check.
+		resp, err := http.Get(ts.URL)
+		require.NoError(t, err)
 		b, err := io.ReadAll(resp.Body)
-		require.NoError(err)
+		require.NoError(t, err)
 		metrics := string(b)
 
-		assert.Contains(metrics, "Types of profiles available")
+		assert.Contains(t, metrics, "/debug/pprof")
 	})
 }
