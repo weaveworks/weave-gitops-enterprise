@@ -59,7 +59,7 @@ var clientSecretStep = StepInput{
 	Valuesfn:     canAskForConfig,
 }
 
-func OIDCConfigStep(config Config) BootstrapStep {
+func NewOIDCConfigStep(config Config) BootstrapStep {
 
 	inputs := []StepInput{
 		{

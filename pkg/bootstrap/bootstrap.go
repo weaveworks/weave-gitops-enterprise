@@ -15,7 +15,7 @@ func Bootstrap(config steps.Config) error {
 		steps.NewAskAdminCredsSecretStep(config),
 		steps.NewSelectDomainType(config),
 		steps.NewInstallWGEStep(config),
-		steps.OIDCConfigStep(config),
+		steps.NewOIDCConfigStep(config),
 		steps.CheckUIDomainStep,
 	}
 
