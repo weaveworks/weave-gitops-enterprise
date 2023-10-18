@@ -270,7 +270,6 @@ func WithCollectorServiceAccount(name, namespace string) Option {
 // WithMonitoring configures monitoring server
 func WithMonitoring(enabled bool, address string, metricsEnabled bool, profilingEnabled bool, log logr.Logger) Option {
 	return func(o *Options) {
-
 		o.MonitoringOptions = monitoring.Options{
 			Enabled:       enabled,
 			ServerAddress: address,
@@ -282,7 +281,6 @@ func WithMonitoring(enabled bool, address string, metricsEnabled bool, profiling
 				Enabled: profilingEnabled,
 			},
 		}
-		log.Info("i am in with monitoring", "monitoring", o.MonitoringOptions)
 	}
 }
 

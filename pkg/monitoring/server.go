@@ -29,7 +29,7 @@ func NewServer(opts Options) (*http.Server, error) {
 
 	log := opts.Log.WithName("monitoring-server")
 	pprofMux := http.NewServeMux()
-	// metrics configuration
+
 	if opts.MetricsOptions.Enabled {
 		metricsPath, metricsHandler := metrics.NewDefaultPrometheusHandler()
 		pprofMux.Handle(metricsPath, metricsHandler)

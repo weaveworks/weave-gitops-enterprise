@@ -826,17 +826,14 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
-	// management server
+	// monitoring server
 	var monitoringServer *http.Server
-	args.Log.Info("i am in server monitoring", "monitoring", args.MonitoringOptions)
 	if args.MonitoringOptions.Enabled {
 		monitoringServer, err = monitoring.NewServer(args.MonitoringOptions)
 		if err != nil {
 			return fmt.Errorf("cannot create monitoring server: %w", err)
 		}
 		args.Log.Info("monitoring server started")
-	} else {
-		args.Log.Info("monitoring-server-disabled")
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
