@@ -48,7 +48,7 @@ service Terraform {
     rpc SyncTerraformObjects(SyncTerraformObjectsRequest)
         returns (SyncTerraformObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/terraform-objects/sync"
+            patch : "/v1/terraform-objects/sync"
             body: "*"
         };  
     }
@@ -57,7 +57,7 @@ service Terraform {
     rpc ToggleSuspendTerraformObjects(ToggleSuspendTerraformObjectsRequest)
         returns (ToggleSuspendTerraformObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/terraform-objects/suspend"
+            patch : "/v1/terraform-objects/suspend"
             body: "*"
         }; 
     }

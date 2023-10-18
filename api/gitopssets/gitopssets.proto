@@ -7,6 +7,7 @@ syntax = "proto3";
 package gitopssets.v1;
 
 import "google/api/annotations.proto";
+import "google/api/visibility.proto";
 import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/gitopssets/types.proto";
@@ -46,14 +47,14 @@ service GitOpsSets {
     rpc ToggleSuspendGitOpsSet(ToggleSuspendGitOpsSetRequest)
         returns (ToggleSuspendGitOpsSetResponse) {
         option (google.api.http) = {
-            post : "/v1/namespaces/{namespace}/gitopssets/{name}/suspend"
+            patch : "/v1/namespaces/{namespace}/gitopssets/{name}/suspend"
             body: "*"
         }; 
     }
 
     // Get the reconciled objects for a GitOpsSet
-    rpc GetReconciledObjects(GetReconciledObjectsRequest)
-        returns (GetReconciledObjectsResponse) {
+    rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
+        option (google.api.method_visibility).restriction = "INTERNAL";
         option (google.api.http) = {
             // FIXME: can we make this a GET request?
             post: "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects"
@@ -61,13 +62,46 @@ service GitOpsSets {
         };
     };
 
+    // Get the inventory of a GitOpsSet
+    //
+    //
+    rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
+        option (google.api.http) = {
+            get: "/v1/namespaces/{namespace}/gitopssets/{name}/inventory"
+        };
+    }
+
     // Trigger reconciliation of a GitOpsSet
     rpc SyncGitOpsSet(SyncGitOpsSetRequest) returns (SyncGitOpsSetResponse) {
         option (google.api.http) = {
-            post : "/v1/namespaces/{namespace}/gitopssets/{name}/sync"
+            patch : "/v1/namespaces/{namespace}/gitopssets/{name}/sync"
             body: "*"
         };  
     }    
+}
+
+message InventoryEntry {
+    string payload = 1;
+    string tenant = 2;
+    string cluster_name = 3;
+    HealthStatus health = 4;
+    repeated InventoryEntry children = 5;
+}
+
+message HealthStatus {
+    string status = 1;
+    string message = 2;
+}
+
+message GetInventoryRequest {
+    string name         = 2;
+    string namespace    = 3;
+    string cluster_name  = 4;
+    bool   with_children = 5;
+}
+
+message GetInventoryResponse {
+    repeated InventoryEntry entries = 1;
 }
 
 message ListGitOpsSetsRequest {

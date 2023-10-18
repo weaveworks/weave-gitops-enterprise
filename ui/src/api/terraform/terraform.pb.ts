@@ -76,10 +76,10 @@ export class Terraform {
     return fm.fetchReq<GetTerraformObjectRequest, GetTerraformObjectResponse>(`/v1/namespaces/${req["namespace"]}/terraform-objects/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static SyncTerraformObjects(req: SyncTerraformObjectsRequest, initReq?: fm.InitReq): Promise<SyncTerraformObjectsResponse> {
-    return fm.fetchReq<SyncTerraformObjectsRequest, SyncTerraformObjectsResponse>(`/v1/terraform-objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<SyncTerraformObjectsRequest, SyncTerraformObjectsResponse>(`/v1/terraform-objects/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }
   static ToggleSuspendTerraformObjects(req: ToggleSuspendTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectsResponse> {
-    return fm.fetchReq<ToggleSuspendTerraformObjectsRequest, ToggleSuspendTerraformObjectsResponse>(`/v1/terraform-objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<ToggleSuspendTerraformObjectsRequest, ToggleSuspendTerraformObjectsResponse>(`/v1/terraform-objects/suspend`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }
   static GetTerraformObjectPlan(req: GetTerraformObjectPlanRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectPlanResponse> {
     return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/namespaces/${req["namespace"]}/terraform-objects/${req["name"]}/plan?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})

@@ -6,6 +6,30 @@
 
 import * as fm from "../../fetch.pb"
 import * as GitopssetsV1Types from "./types.pb"
+export type InventoryEntry = {
+  payload?: string
+  tenant?: string
+  clusterName?: string
+  health?: HealthStatus
+  children?: InventoryEntry[]
+}
+
+export type HealthStatus = {
+  status?: string
+  message?: string
+}
+
+export type GetInventoryRequest = {
+  name?: string
+  namespace?: string
+  clusterName?: string
+  withChildren?: boolean
+}
+
+export type GetInventoryResponse = {
+  entries?: InventoryEntry[]
+}
+
 export type ListGitOpsSetsRequest = {
   namespace?: string
 }
@@ -65,12 +89,15 @@ export class GitOpsSets {
     return fm.fetchReq<GetGitOpsSetRequest, GetGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ToggleSuspendGitOpsSet(req: ToggleSuspendGitOpsSetRequest, initReq?: fm.InitReq): Promise<ToggleSuspendGitOpsSetResponse> {
-    return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<ToggleSuspendGitOpsSetRequest, ToggleSuspendGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/suspend`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
+  static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
+    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/inventory?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
+  }
   static SyncGitOpsSet(req: SyncGitOpsSetRequest, initReq?: fm.InitReq): Promise<SyncGitOpsSetResponse> {
-    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }
 }
