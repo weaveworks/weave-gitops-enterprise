@@ -136,4 +136,3 @@ jobs:
         run: yarn lint
       - name: Run Front-end Unit Tests
         run: yarn test
-  
