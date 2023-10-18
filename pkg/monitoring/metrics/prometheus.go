@@ -18,11 +18,14 @@ var DefaultGatherers = prom.Gatherers{
 	clustersmngr.Registry,
 }
 
+// Options structure to configure metrics behaviour. For example 'Enabled' acts a feature flag to control whether to enable metrics.
 type Options struct {
 	Enabled bool
 }
 
-func NewDefaultPrometheusHandler() (string, http.Handler) {
+// NewDefaultPprofHandler creates a default http handler for prometheus metrics https://prometheus.io/
+// 'p' is the default path to expose the handler with value '/metrics'
+func NewDefaultPrometheusHandler() (p string, h http.Handler) {
 	return "/metrics", promhttp.HandlerFor(DefaultGatherers, promhttp.HandlerOpts{})
 }
 
