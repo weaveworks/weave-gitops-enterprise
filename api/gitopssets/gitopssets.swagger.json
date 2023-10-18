@@ -299,6 +299,54 @@
           "GitOpsSets"
         ]
       }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/inventory": {
+      "get": {
+        "operationId": "GitOpsSets_GetInventory",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetInventoryResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "clusterName",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          },
+          {
+            "name": "withChildren",
+            "in": "query",
+            "required": false,
+            "type": "boolean"
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
     }
   },
   "definitions": {
