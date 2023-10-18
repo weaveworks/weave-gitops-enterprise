@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1beta2
+kind: Bucket
+metadata:
+  name: podinfo
+  namespace: flux-system
+spec:
+  bucketName: test
+  endpoint: minio.example.com
+  interval: 1m0s
+  provider: generic
+  secretRef:
+    name: minio-bucket-secret
