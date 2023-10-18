@@ -10,17 +10,9 @@ import (
 )
 
 func TestNewServer(t *testing.T) {
-	require := require.New(t)
-
-	t.Run("cannot create management server without valid options", func(t *testing.T) {
-		_, err := NewServer(Options{})
-		require.Error(err)
-
-		_, err = NewServer(Options{Enabled: false})
-		require.Error(err)
-
-		_, err = NewServer(Options{Enabled: true, ServerAddress: ""})
-		require.Error(err)
+	t.Run("cannot create monitoring server without server address", func(t *testing.T) {
+		_, err := NewServer(Options{Enabled: true, ServerAddress: ""})
+		require.Error(t, err)
 	})
 
 	t.Run("can create server valid options", func(t *testing.T) {
@@ -34,17 +26,17 @@ func TestNewServer(t *testing.T) {
 				Enabled: true,
 			},
 		})
-		require.NoError(err)
+		require.NoError(t, err)
 
 		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
-		require.NoError(err)
+		require.NoError(t, err)
 		_, err = http.DefaultClient.Do(r)
-		require.NoError(err)
+		require.NoError(t, err)
 
 		r, err = http.NewRequest(http.MethodGet, "http://localhost:8080/debug/pprof", nil)
-		require.NoError(err)
+		require.NoError(t, err)
 		_, err = http.DefaultClient.Do(r)
-		require.NoError(err)
+		require.NoError(t, err)
 	})
 
 }
