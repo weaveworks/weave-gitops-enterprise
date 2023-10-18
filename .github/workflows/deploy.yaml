@@ -164,7 +164,6 @@ jobs:
           github_token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
           workflow_file_name: nightly.yaml
           ref: main
-          wait_interval: 10
           propagate_failure: false
           trigger_workflow: true
           wait_workflow: true
