@@ -24,6 +24,7 @@ import (
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	k8s_json "k8s.io/apimachinery/pkg/runtime/serializer/json"
@@ -196,6 +197,78 @@ func (s *server) ToggleSuspendGitOpsSet(ctx context.Context, msg *pb.ToggleSuspe
 	}
 
 	return &pb.ToggleSuspendGitOpsSetResponse{}, nil
+}
+func (s *server) GetInventory(ctx context.Context, msg *pb.GetInventoryRequest) (*pb.GetInventoryResponse, error) {
+	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
+	if err != nil {
+		return nil, fmt.Errorf("error getting impersonating client: %w", err)
+	}
+
+	client, err := clustersClient.Scoped(msg.ClusterName)
+	if err != nil {
+		return nil, fmt.Errorf("error getting scoped client for cluster=%s: %w", msg.ClusterName, err)
+	}
+
+	// get the gitopssets
+	// read the inventory from it
+	var inventoryRefs []*unstructured.Unstructured
+	inventoryRefs, err = s.getGitOpsSetInventory(ctx, client, msg.Name, msg.Namespace)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting kustomization inventory: %w", err)
+	}
+
+	// go and get all the objects and maybe children of the inventory items
+	objsWithChildren, err := core.GetObjectsWithChildren(ctx, inventoryRefs, client, msg.WithChildren, s.log)
+	if err != nil {
+		return nil, fmt.Errorf("failed getting objects with children: %w", err)
+	}
+
+	// post process it into a response object:
+	// add health data and tenancy data and redact secrets etc
+	clusterUserNamespaces := s.clients.GetUserNamespaces(auth.Principal(ctx))
+	entries, err := unstructuredToInventoryEntry(msg.ClusterName, objsWithChildren, clusterUserNamespaces, cs.healthChecker)
+	if err != nil {
+		return nil, fmt.Errorf("failed converting inventory entry: %w", err)
+	}
+
+	return &pb.GetInventoryResponse{
+		Entries: entries,
+	}, nil
+
+	return nil, nil
+}
+
+func (s *server) getGitOpsSetInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
+	gs := &ctrl.GitOpsSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      name,
+			Namespace: namespace,
+		},
+	}
+
+	if err := k8sClient.Get(ctx, client.ObjectKeyFromObject(gs), gs); err != nil {
+		return nil, fmt.Errorf("failed to get kustomization: %w", err)
+	}
+
+	if gs.Status.Inventory == nil {
+		return nil, nil
+	}
+
+	if gs.Status.Inventory.Entries == nil {
+		return nil, nil
+	}
+
+	objects := []*unstructured.Unstructured{}
+	for _, ref := range gs.Status.Inventory.Entries {
+		obj, err := core.ResourceRefToUnstructured(ref.ID, ref.Version)
+		if err != nil {
+			s.log.Error(err, "failed converting inventory entry", "entry", ref)
+			return nil, err
+		}
+		objects = append(objects, &obj)
+	}
+
+	return objects, nil
 }
 
 func (s *server) GetReconciledObjects(ctx context.Context, msg *pb.GetReconciledObjectsRequest) (*pb.GetReconciledObjectsResponse, error) {
