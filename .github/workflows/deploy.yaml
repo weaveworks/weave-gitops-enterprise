@@ -153,26 +153,10 @@ jobs:
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
-  playwright-smoke-tests:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Run palywright tests workflow
-        uses: convictional/trigger-workflow-and-wait@v1.6.1
-        with:
-          owner: weaveworks
-          repo: playwright-tests
-          github_token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-          workflow_file_name: nightly.yaml
-          ref: main
-          wait_interval: 10
-          propagate_failure: false
-          trigger_workflow: true
-          wait_workflow: true
-
   smoke-test-results:
     if: ${{ always() }}
     needs:
-      [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
+      [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant]
     uses: ./.github/workflows/publish-test-results.yaml
     with:
       runs-on: ubuntu-latest
@@ -185,7 +169,7 @@ jobs:
   notify-failure:
     name: Notify Slack on Failure
     runs-on: ubuntu-latest
-    needs: [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
+    needs: [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant]
     if: ${{ failure() && github.ref == 'refs/heads/main' }}
     steps:
     - name: Send alert
@@ -196,5 +180,3 @@ jobs:
         slack-text: |
           :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep. Then fix the underlying issue and ensure main remains green.
         slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
-
-
