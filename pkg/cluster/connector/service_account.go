@@ -7,14 +7,16 @@ import (
 
 	"github.com/weaveworks/weave-gitops/core/logger"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+var managedByLabelName = "weave-gitops"
 
 // ReconcileServiceAccount accepts a client and the name for a service account.
 // A new Service account is created, if one with same name exists that will be used
@@ -70,11 +72,34 @@ func ReconcileServiceAccount(ctx context.Context, client kubernetes.Interface, c
 
 }
 
+func deleteServiceAccountResources(ctx context.Context, client kubernetes.Interface, clusterConnectionOpts ClusterConnectionOptions) error {
+	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
+
+	// deleting service account deletes associated secret with token
+	serviceAccountName := clusterConnectionOpts.ServiceAccountName
+	err := deleteServiceAccount(ctx, client, serviceAccountName, namespace)
+	if err != nil {
+		return err
+	}
+
+	clusterRoleBindingName := clusterConnectionOpts.ClusterRoleBindingName
+	err = deleteClusterRoleBinding(ctx, client, clusterRoleBindingName)
+	if err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func newClusterRole(name, namespace string, rules []rbacv1.PolicyRule) *rbacv1.ClusterRole {
 	return &rbacv1.ClusterRole{
 		TypeMeta: metav1.TypeMeta{Kind: "ClusterRole", APIVersion: "rbac.authorization.k8s.io/v1"},
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": managedByLabelName,
+			},
 		},
 		Rules: rules,
 	}
@@ -85,6 +110,9 @@ func newClusterRoleBinding(name, namespace, roleName, serviceAccountName string)
 	return &rbacv1.ClusterRoleBinding{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: name,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": managedByLabelName,
+			},
 		},
 		Subjects: []rbacv1.Subject{
 			{
@@ -109,6 +137,9 @@ func newServiceAccountTokenSecret(name, serviceAccountName, namespace string) *c
 			Annotations: map[string]string{
 				corev1.ServiceAccountNameKey: serviceAccountName,
 			},
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": managedByLabelName,
+			},
 		},
 		Type: corev1.SecretTypeServiceAccountToken,
 	}
@@ -120,10 +151,13 @@ func createServiceAccount(ctx context.Context, client kubernetes.Interface, clus
 	serviceAccountName := clusterConnectionOpts.ServiceAccountName
 	namespace := clusterConnectionOpts.GitopsClusterName.Namespace
 
-	_, err := client.CoreV1().ServiceAccounts(namespace).Create(ctx, &v1.ServiceAccount{
+	_, err := client.CoreV1().ServiceAccounts(namespace).Create(ctx, &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      serviceAccountName,
 			Namespace: namespace,
+			Labels: map[string]string{
+				"app.kubernetes.io/managed-by": managedByLabelName,
+			},
 		},
 	}, metav1.CreateOptions{})
 
@@ -182,4 +216,54 @@ func createSecret(ctx context.Context, client kubernetes.Interface, clusterConne
 
 	return secret, nil
 
+}
+
+func deleteServiceAccount(ctx context.Context, client kubernetes.Interface, serviceAccountName, namespace string) error {
+	lgr := log.FromContext(ctx)
+	err := client.CoreV1().ServiceAccounts(namespace).Delete(ctx, serviceAccountName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("service account deleted successfully!", "serviceAccount", serviceAccountName)
+
+	return nil
+}
+
+func deleteClusterRoleBinding(ctx context.Context, client kubernetes.Interface, clusterRoleBindingName string) error {
+	lgr := log.FromContext(ctx)
+	err := client.RbacV1().ClusterRoleBindings().Delete(ctx, clusterRoleBindingName, metav1.DeleteOptions{})
+	if err != nil {
+		return err
+	}
+	lgr.V(logger.LogLevelDebug).Info("cluster role binding deleted successfully!", "clusterRoleBinding", clusterRoleBindingName)
+	return nil
+}
+
+func checkServiceAccountName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) error {
+	serviceAccountList, err := client.CoreV1().ServiceAccounts(options.GitopsClusterName.Namespace).List(ctx, metav1.ListOptions{LabelSelector: labelSelector.String()})
+	if err != nil {
+		return err
+	}
+
+	for _, serviceAccount := range serviceAccountList.Items {
+		if serviceAccount.Name == options.ServiceAccountName {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("service account not found with label %s and name %s", labelSelector.String(), options.ServiceAccountName)
+}
+
+func checkClusterRoleBindingName(ctx context.Context, client kubernetes.Interface, options *ClusterConnectionOptions, labelSelector labels.Selector) error {
+	clusterRoleBindingsList, err := client.RbacV1().ClusterRoleBindings().List(ctx, metav1.ListOptions{LabelSelector: labelSelector.String()})
+	if err != nil {
+		return err
+	}
+
+	for _, clusterRoleBinding := range clusterRoleBindingsList.Items {
+		if clusterRoleBinding.Name == options.ClusterRoleBindingName {
+			return nil
+		}
+	}
+	return fmt.Errorf("cluster role binding not found with label %s and name %s", labelSelector.String(), options.ClusterRoleBindingName)
 }

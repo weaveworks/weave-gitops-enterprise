@@ -132,5 +132,7 @@ jobs:
             ${{ runner.os }}-${{ env.YARN_CACHE_NAME }}-
       - name: Install modules
         run: yarn --pure-lockfile
+      - name: Lint Frontend Code
+        run: yarn lint
       - name: Run Front-end Unit Tests
         run: yarn test

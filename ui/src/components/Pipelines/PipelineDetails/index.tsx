@@ -5,18 +5,17 @@ import {
   RouterTab,
   SubRouterTabs,
   YamlView,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
-import { GetPipelineResponse } from '../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
-import KeyValueTable, { KeyValuePairs } from '../../KeyValueTable';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import { EditButton } from './../../../components/Templates/Edit/EditButton';
 import PipelinePullRequests from './PipelinePullRequests';
-import Workloads from './Workloads';
 import { usePipelineStyles } from './styles';
+import Workloads from './Workloads';
 
 const mappedErrors = (
   errors: Array<string>,
@@ -31,45 +30,6 @@ interface Props {
   name: string;
   namespace: string;
 }
-
-const pipelineStrategyText = (data?: GetPipelineResponse): KeyValuePairs => {
-  const pairs: KeyValuePairs = [];
-
-  if (!data) {
-    return pairs;
-  }
-
-  // Trying to differentiate between null and negative values
-  if (data?.pipeline?.promotion?.manual === null) {
-    pairs.push(['Automated', null]);
-  } else {
-    pairs.push([
-      'Automated',
-      data?.pipeline?.promotion?.manual ? 'False' : 'True',
-    ]);
-  }
-
-  const strat = data?.pipeline?.promotion?.strategy;
-
-  if (strat?.pullRequest === null && strat?.notification === null) {
-    pairs.push(['Strategy', null]);
-  } else {
-    pairs.push([
-      'Strategy',
-      data?.pipeline?.promotion?.strategy?.pullRequest
-        ? 'Pull Request'
-        : 'Notification',
-    ]);
-
-    if (strat?.pullRequest !== null) {
-      const pr = data.pipeline?.promotion?.strategy?.pullRequest;
-      pairs.push(['URL', pr?.url]);
-      pairs.push(['Branch', pr?.branch]);
-    }
-  }
-
-  return pairs;
-};
 
 const PipelineDetails = ({ name, namespace }: Props) => {
   const { isLoading, data } = useGetPipeline({
@@ -97,17 +57,13 @@ const PipelineDetails = ({ name, namespace }: Props) => {
         errors={mappedErrors(data?.errors || [], namespace)}
       >
         <Box marginBottom={2}>
-          <Flex align wide between>
-            <KeyValueTable pairs={pipelineStrategyText(data)} />
-            <div>
-              <EditButton
-                className={classes.editButton}
-                resource={data?.pipeline || ({} as Pipeline)}
-              />
-            </div>
+          <Flex wide end>
+            <EditButton
+              className={classes.editButton}
+              resource={data?.pipeline || ({} as Pipeline)}
+            />
           </Flex>
         </Box>
-
         <SubRouterTabs rootPath={`${path}/status`}>
           <RouterTab name="Status" path={`${path}/status`}>
             <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
@@ -115,11 +71,12 @@ const PipelineDetails = ({ name, namespace }: Props) => {
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
               yaml={data?.pipeline?.yaml || ''}
-              object={{
-                kind: 'Pipeline',
-                name: data?.pipeline?.name,
-                namespace: data?.pipeline?.namespace,
-              }}
+              type="Pipeline"
+              header={createYamlCommand(
+                'Pipeline',
+                data?.pipeline?.name,
+                data?.pipeline?.namespace,
+              )}
             />
           </RouterTab>
           <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>

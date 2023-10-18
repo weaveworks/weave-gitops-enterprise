@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
-	github.com/weaveworks/weave-gitops v0.33.1-0.20231002142414-b5f38d07e345
+	github.com/weaveworks/weave-gitops v0.34.1-0.20231012154759-d858858e0f9b
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -74,6 +74,7 @@ require (
 	github.com/xanzy/go-gitlab v0.83.0
 	go.mozilla.org/sops/v3 v3.7.3
 	golang.org/x/crypto v0.13.0
+	golang.org/x/exp v0.0.0-20230315142452-642cacee5cc0
 	golang.org/x/oauth2 v0.11.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc
 	google.golang.org/grpc v1.55.0
@@ -222,7 +223,7 @@ require (
 
 require (
 	github.com/bufbuild/connect-go v0.2.0 // indirect
-	github.com/chzyer/readline v1.5.0 // indirect
+	github.com/chzyer/readline v1.5.1 // indirect
 	github.com/containerd/typeurl v1.0.2 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.2 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
@@ -235,7 +236,7 @@ require (
 	github.com/jhump/protoreflect v1.12.1-0.20220721211354-060cc04fc18b // indirect
 	github.com/klauspost/cpuid v1.3.1 // indirect
 	github.com/klauspost/pgzip v1.2.5 // indirect
-	github.com/manifoldco/promptui v0.9.0 // indirect
+	github.com/manifoldco/promptui v0.9.0
 	github.com/minio/md5-simd v1.1.0 // indirect
 	github.com/minio/minio-go/v7 v7.0.31 // indirect
 	github.com/minio/sha256-simd v1.0.0 // indirect
@@ -400,14 +401,14 @@ require (
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/square/go-jose.v2 v2.6.0 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v2 v2.4.0
 	gorm.io/driver/sqlite v1.4.4
 	k8s.io/apiserver v0.26.3
 	k8s.io/component-base v0.27.3 // indirect
 	k8s.io/klog/v2 v2.100.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20230501164219-8b0f38b5fd1f // indirect
 	k8s.io/kubectl v0.26.8
-	k8s.io/utils v0.0.0-20230505201702-9f6742963106
+	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 	oras.land/oras-go v1.2.2 // indirect
 	sigs.k8s.io/cli-utils v0.34.0 // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect

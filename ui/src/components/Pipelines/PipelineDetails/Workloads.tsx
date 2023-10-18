@@ -1,9 +1,11 @@
 import { Grid } from '@material-ui/core';
-import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import { Flex, formatURL, Link, Text } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import styled from 'styled-components';
 import {
   Pipeline,
   PipelineTargetStatus,
+  Promotion,
 } from '../../../api/pipelines/types.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
@@ -20,16 +22,20 @@ import {
 } from './styles';
 import WorkloadStatus from './WorkloadStatus';
 
+const getStrategy = (promo?: Promotion) => {
+  if (!promo) return '-';
+  if (!promo.manual) return 'Automated';
+
+  const nonNullStrat = _.map(promo.strategy, (value, key) => {
+    if (value !== null) return key;
+  });
+  return _.startCase(nonNullStrat[0] || '-');
+};
+
 const PromotionContainer = styled.div`
   height: 40px;
   padding: ${props => props.theme.spacing.small} 0;
 `;
-
-const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
-  return targetsStatuses?.reduce((prev, next) => {
-    return prev + (next.workloads?.length || 0);
-  }, 0);
-};
 
 const TargetStatus = ({
   target,
@@ -98,7 +104,6 @@ function Workloads({
   const classes = usePipelineStyles();
   const environments = pipeline?.environments || [];
   const targetsStatuses = pipeline?.status?.environments || {};
-  const manual = pipeline?.promotion?.manual || false;
 
   return (
     <Grid
@@ -110,6 +115,9 @@ function Workloads({
         const status = targetsStatuses[env.name!].targetsStatuses || [];
         const promoteVersion =
           targetsStatuses[env.name!].waitingStatus?.revision || '';
+        const strategy = env.promotion
+          ? getStrategy(env.promotion)
+          : getStrategy(pipeline.promotion);
 
         return (
           <Grid
@@ -119,14 +127,20 @@ function Workloads({
             className={classes.gridContainer}
             id={env.name}
           >
-            <div className={classes.mbSmall}>
-              <div className={classes.title}>{env.name}</div>
-              <div className={classes.subtitle}>
-                {getTargetsCount(status || [])} Targets
-              </div>
-            </div>
+            <Flex column gap="8">
+              <Flex between align wide>
+                <Text bold capitalize size="large">
+                  {env.name}
+                </Text>
+                <Text>{env.targets?.length || '0'} TARGETS</Text>
+              </Flex>
+              <Flex gap="8">
+                <Text bold>Strategy:</Text>
+                <Text> {strategy}</Text>
+              </Flex>
+            </Flex>
             <PromotionContainer>
-              {manual && index < environments.length - 1 && (
+              {strategy !== 'Automated' && index < environments.length - 1 && (
                 <PromotePipeline
                   req={{
                     name: pipeline.name,

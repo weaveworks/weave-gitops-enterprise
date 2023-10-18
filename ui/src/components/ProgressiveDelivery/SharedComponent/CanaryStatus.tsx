@@ -38,6 +38,8 @@ function CanaryStatus({
   return (
     <Flex gap="8" align start>
       {(() => {
+        const current =
+          value.current > value.total ? value.total : value.current;
         switch (status) {
           case CanaryDeploymentStatus.Waiting:
           case CanaryDeploymentStatus.WaitingPromotion:
@@ -65,8 +67,6 @@ function CanaryStatus({
               </>
             );
           case CanaryDeploymentStatus.Progressing:
-            const current =
-              value.current > value.total ? value.total : value.current;
             return (
               <>
                 <MuiLinearProgress

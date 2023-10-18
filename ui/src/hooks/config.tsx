@@ -5,8 +5,8 @@ import {
 } from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 
-import { formatError } from '../utils/formatters';
 import useNotifications from '../contexts/Notifications';
+import { formatError } from '../utils/formatters';
 
 const useConfig = () => {
   const { setNotifications } = useNotifications();

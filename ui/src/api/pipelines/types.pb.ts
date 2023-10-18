@@ -17,6 +17,7 @@ export type Target = {
 export type Environment = {
   name?: string
   targets?: Target[]
+  promotion?: Promotion
 }
 
 export type ObjectRef = {

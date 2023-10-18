@@ -93,10 +93,11 @@ skip_ui = os.getenv("SKIP_UI_BUILD", False)
 # --- ui
 
 if skip_ui:
+   print("Skipping UI build")
    dockerfile = """
    FROM alpine:3.18
    """
-   docker_build("weaveworks/weave-gitops-enterprise-ui-server", "", dockerfile_contents=dockerfile)
+   docker_build("weaveworks/weave-gitops-enterprise-ui-server", "", dockerfile_contents=dockerfile, ignore=["ui", "build", ".parcel-cache"])
 
 elif native_build:
    # Build UI locally
@@ -140,7 +141,8 @@ if native_build:
          './pkg'
       ],
       ignore=[
-         './cmd/clusters-service/bin'
+         './cmd/clusters-service/bin',
+         '.parcel-cache',
       ],
       dir='cmd/clusters-service',
       labels=["local"]
@@ -156,7 +158,9 @@ if native_build:
          sync('cmd/clusters-service/bin', '/app'),
       ],
       ignore=[
-         'cmd/clusters-service/clusters-service'
+         'cmd/clusters-service/clusters-service',
+         './build',
+         '.parcel-cache',
       ],
    )
 else:
@@ -165,7 +169,7 @@ else:
    docker_build(
       'weaveworks/weave-gitops-enterprise-clusters-service',
       '.',
-      ignore=["ui"],
+      ignore=["ui", "build", ".parcel-cache"],
       dockerfile='cmd/clusters-service/Dockerfile',
       build_args={'GITHUB_BUILD_TOKEN': os.getenv('GITHUB_TOKEN'),'image_tag': 'tilt'},
       entrypoint= ["/clusters-service", "--log-level=debug"]

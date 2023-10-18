@@ -2,9 +2,9 @@ import { Switch } from '@material-ui/core';
 import RemoveCircleOutlineIcon from '@material-ui/icons/RemoveCircleOutline';
 import { Button, Flex, Icon, IconType, Text } from '@weaveworks/weave-gitops';
 import { Dispatch } from 'react';
+import styled from 'styled-components';
 import { InputDebounced } from '../../../utils/form';
 import { ExternalSecret } from '../Shared/utils';
-import styled from 'styled-components';
 
 const PropertiesSwitch = styled(Switch)`
   .MuiSwitch-track {

@@ -1,14 +1,14 @@
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
   SecretsClientMock,
-  TestFilterableTable,
   defaultContexts,
   withContext,
 } from '../../../utils/test-utils';
 
 import SecretDetails from '../SecretDetails';
+
 const MockSecretResponse = {
   secretName: 'secret Name',
   externalSecretName: 'external Secret Name',
@@ -22,25 +22,7 @@ const MockSecretResponse = {
   status: 'Ok',
   timestamp: '2022-07-30T11:23:55Z',
 };
-const MockSecretEvents = {
-  events: [
-    {
-      reason: 'Updated Secret to be updated',
-      message: 'Updated Secret',
-      timestamp: '2022-07-30T11:23:55Z',
-      component: 'string',
-      host: 'string',
-      name: 'string',
-      type: 'string',
-    },
-  ],
-  total: 1,
-  errors: [],
-};
 
-const mappedEvents = (events: Array<any>) => {
-  return events.map(e => [e.reason, e.message, moment(e.timestamp).fromNow()]);
-};
 describe('SecretDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: SecretsClientMock;
@@ -67,8 +49,8 @@ describe('SecretDetails', () => {
       render(c);
     });
     //check Tabs
-    expect(await screen.getByTitle(secret.externalSecretName)).toBeTruthy();
-    const tabs = await screen.getAllByRole('tab');
+    expect(screen.getByTitle(secret.externalSecretName)).toBeTruthy();
+    const tabs = screen.getAllByRole('tab');
     expect(secret.clusterName).toBeDefined();
     expect(tabs).toHaveLength(3);
     expect(tabs[0]).toHaveTextContent('Details');
