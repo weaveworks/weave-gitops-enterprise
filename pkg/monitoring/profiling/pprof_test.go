@@ -22,8 +22,8 @@ func TestNewDefaultPprofHandler(t *testing.T) {
 		require.NoError(t, err)
 		b, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
-		metrics := string(b)
+		pprofPage := string(b)
 
-		assert.Contains(t, metrics, "<title>/debug/pprof/</title>")
+		assert.Contains(t, pprofPage, "<title>/debug/pprof/</title>")
 	})
 }

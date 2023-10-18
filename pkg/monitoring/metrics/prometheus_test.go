@@ -52,14 +52,20 @@ type handlerConfig struct {
 
 func TestNewDefaultPprofHandler(t *testing.T) {
 
-	t.Run("should create pprof handler", func(t *testing.T) {
+	t.Run("should create prometheus metrics handler", func(t *testing.T) {
 		_, h := NewDefaultPrometheusHandler()
 
 		ts := httptest.NewServer(h)
 		defer ts.Close()
 
-		_, err := http.Get(ts.URL)
+		resp, err := http.Get(ts.URL)
 		require.NoError(t, err)
+		b, err := io.ReadAll(resp.Body)
+		require.NoError(t, err)
+		metrics := string(b)
+
+		assert.Contains(t, metrics, "# HELP go_gc_duration_seconds")
+
 	})
 }
 
