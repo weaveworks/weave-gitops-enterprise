@@ -20,9 +20,6 @@ type Options struct {
 
 // NewSever creates and starts a management server for all endpoints that we need to expose internally. For example metrics or profiling.
 func NewServer(opts Options) (*http.Server, error) {
-	if !opts.Enabled {
-		return nil, fmt.Errorf("cannot create disabled server")
-	}
 	if opts.ServerAddress == "" {
 		return nil, fmt.Errorf("cannot create server for empty address")
 	}
