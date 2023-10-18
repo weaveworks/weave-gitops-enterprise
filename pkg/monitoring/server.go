@@ -10,11 +10,17 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/profiling"
 )
 
+// Options configuration options for the monitoring server
 type Options struct {
-	Enabled          bool
-	ServerAddress    string
-	Log              logr.Logger
-	MetricsOptions   metrics.Options
+	// Enabled controls whether monitoring server should be enabled
+	Enabled bool
+	// ServerAddress indicate the monitoring server binding address
+	ServerAddress string
+	// Log upstream logger to use for monitoring events
+	Log logr.Logger
+	// MetricsOptions configuration options for metrics endpoints
+	MetricsOptions metrics.Options
+	// ProfilingOptions configuration options for profiling
 	ProfilingOptions profiling.Options
 }
 

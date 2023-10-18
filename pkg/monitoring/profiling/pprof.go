@@ -8,6 +8,7 @@ import (
 
 // Options structure to configure profiling behaviour. For example 'Enabled' acts a feature flag to control whether to enable profiling.
 type Options struct {
+	// Enabled controls whether profiling should be enabled
 	Enabled bool
 }
 

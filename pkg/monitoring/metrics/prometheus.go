@@ -20,6 +20,7 @@ var DefaultGatherers = prom.Gatherers{
 
 // Options structure to configure metrics behaviour. For example 'Enabled' acts a feature flag to control whether to enable metrics.
 type Options struct {
+	// Enabled controls whether metrics should be enabled
 	Enabled bool
 }
 
