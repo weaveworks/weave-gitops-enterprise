@@ -26,6 +26,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
+// EnabledComponent represents a component of the UI that can be enabled or disabled
 type EnabledComponent int32
 
 const (

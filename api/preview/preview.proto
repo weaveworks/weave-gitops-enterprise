@@ -31,8 +31,15 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  */
 service PreviewService {
     rpc GetYAML(GetYAMLRequest) returns (GetYAMLResponse) {
-         option (google.api.http) = {
+        option (google.api.http) = {
             post : "/v1/preview-yaml"
+            body: "*"
+        };
+    }
+
+    rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse){
+        option (google.api.http) = {
+            post : "/v1/pull-requests"
             body: "*"
         };
     }

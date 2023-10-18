@@ -199,7 +199,8 @@
         "gitopssets",
         "templates"
       ],
-      "default": "unknown"
+      "default": "unknown",
+      "title": "EnabledComponent represents a component of the UI that can be enabled or disabled"
     },
     "v1Facet": {
       "type": "object",
