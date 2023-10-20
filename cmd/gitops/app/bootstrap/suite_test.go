@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package bootstrap_test
 
@@ -17,6 +16,8 @@ import (
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"k8s.io/client-go/rest"
+	"k8s.io/client-go/tools/clientcmd"
+	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	"k8s.io/kubectl/pkg/scheme"
 
 	"github.com/onsi/gomega"
@@ -26,6 +27,7 @@ import (
 
 var k8sClient client.Client
 var cfg *rest.Config
+var kubeconfigPath string
 
 func TestMain(m *testing.M) {
 	// setup testEnvironment
@@ -33,21 +35,20 @@ func TestMain(m *testing.M) {
 	repoRoot := strings.TrimSpace(string(cmdOut))
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
-	useExistingCluster := true
+	// enable me for development
+	//useExistingCluster := true
 	testEnv := &envtest.Environment{
-		//CRDDirectoryPaths: []string{
-		//	filepath.Join("testdata", "crds"),
-		//},
-		//ErrorIfCRDPathMissing: true,
-		UseExistingCluster: &useExistingCluster,
+		//UseExistingCluster: &useExistingCluster,
 	}
 
 	cfg, err = testEnv.Start()
 	if err != nil {
 		log.Fatalf("starting test env failed: %s", err)
 	}
-
 	log.Println("environment started")
+
+	kubeconfigPath = CreateKubeconfigFileForRestConfig(*cfg)
+	log.Println("kubeconfig created", kubeconfigPath)
 
 	err = sourcev1beta2.AddToScheme(scheme.Scheme)
 	if err != nil {
@@ -96,4 +97,33 @@ func TestMain(m *testing.M) {
 
 	log.Println("test environment stopped")
 	os.Exit(retCode)
+}
+
+func CreateKubeconfigFileForRestConfig(restConfig rest.Config) string {
+	clusters := make(map[string]*clientcmdapi.Cluster)
+	clusters["default-cluster"] = &clientcmdapi.Cluster{
+		Server:                   restConfig.Host,
+		CertificateAuthorityData: restConfig.CAData,
+	}
+	contexts := make(map[string]*clientcmdapi.Context)
+	contexts["default-context"] = &clientcmdapi.Context{
+		Cluster:  "default-cluster",
+		AuthInfo: "default-user",
+	}
+	authinfos := make(map[string]*clientcmdapi.AuthInfo)
+	authinfos["default-user"] = &clientcmdapi.AuthInfo{
+		ClientCertificateData: restConfig.CertData,
+		ClientKeyData:         restConfig.KeyData,
+	}
+	clientConfig := clientcmdapi.Config{
+		Kind:           "Config",
+		APIVersion:     "v1",
+		Clusters:       clusters,
+		Contexts:       contexts,
+		CurrentContext: "default-context",
+		AuthInfos:      authinfos,
+	}
+	kubeConfigFile, _ := os.CreateTemp("", "kubeconfig")
+	_ = clientcmd.WriteToFile(clientConfig, kubeConfigFile.Name())
+	return kubeConfigFile.Name()
 }

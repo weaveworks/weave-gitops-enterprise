@@ -150,6 +150,38 @@ For sharing progress with the user, the following levels are used:
 - `c.Logger.Warningf`: to show warnings. like admin creds already existed.
 - `c.Logger.Successf`: to show that subtask/step is done successfully.
 
+## Testing
+
+Tend to follow the following levels
+
+### Unit Testing
+
+This level to ensure each component meets their expected contract for the happy and unhappy scenarios. 
+
+### Integration Testing
+
+You could find it in [cmd_integration_test.go](../../cmd/gitops/app/bootstrap/cmd_integration_test.go) with the aim of 
+having a small set of bootstrapping journeys that we code for acceptance and regression on the bootstrapping workflow.
+
+Dependencies are:
+- flux 
+- kube cluster via envtest
+- git
+
+Environment Variables Required:
+
+Entitlement stage
+
+- `WGE_ENTITLEMENT_USERNAME`: entitlements username  to use for creating the entitlement before running the test.
+- `WGE_ENTITLEMENT_PASSWORD`: entitlements password  to use for creating the entitlement before running the test.
+- `WGE_ENTITLEMENT_ENTITLEMENT`: valid entitlements token to use for creating the entitlement before running the test.
+- `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
+- `GIT_URL_SSH`: git ssh url for the repo wge configuration repo.
+
+
+### E2E testing 
+
+Not yet available but ideally will ensure acceptance of the main outcomes: a user have an app bootstrapped that can do XYZ. 
 
 ## How to 
 

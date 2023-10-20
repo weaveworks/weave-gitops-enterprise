@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package bootstrap_test
 
@@ -7,7 +6,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"sync"
 	"testing"
 	"time"
 
@@ -74,13 +72,11 @@ func TestBootstrapCmd(t *testing.T) {
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
 	testLog := testr.New(t)
 
-	lock := sync.Mutex{}
-
 	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
-	privateKeyArg := fmt.Sprintf("--private-key=%s", privateKeyFile)
+	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
+	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
 
-	// ensure flux-system ns exists
 	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
 
 	tests := []struct {
@@ -91,91 +87,28 @@ func TestBootstrapCmd(t *testing.T) {
 		reset            func(t *testing.T)
 	}{
 		{
-			name:             "should fail without flux bootstrapped",
-			flags:            []string{},
-			expectedErrorStr: "please bootstrap Flux in `flux-system` namespace: more info https://fluxcd.io/flux/installation",
-		},
-		{
-			name:  "should fail without entitlements",
-			flags: []string{},
-			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g)
-			},
-			reset: func(t *testing.T) {
-				uninstallFlux(g)
-			},
-
-			expectedErrorStr: "entitlement file is not found",
-		},
-		{
-			name:  "should fail without private key",
-			flags: []string{},
-			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g)
-				createEntitlements(t, testLog)
-			},
-			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-				uninstallFlux(g)
-			},
-			expectedErrorStr: "cannot process input 'private key path and password",
-		},
-		{
-			name: "should fail without selected wge version",
-			flags: []string{
-				privateKeyArg,
-				"--private-key-password=\"\"",
-			},
-			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g)
-				createEntitlements(t, testLog)
-			},
-			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-				uninstallFlux(g)
-			},
-			expectedErrorStr: "cannot process input 'select WGE version'",
-		},
-		{
-			name: "should fail without user authentication",
-			flags: []string{"--version=0.33.0",
-				privateKeyArg,
-				"--private-key-password=\"\"",
-			},
-			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g)
-				createEntitlements(t, testLog)
-			},
-			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-				uninstallFlux(g)
-			},
-			expectedErrorStr: "cannot process input 'user authentication'",
-		},
-		{
-			name: "should fail without dashboard access",
-			flags: []string{"--version=0.33.0",
-				privateKeyArg,
-				"--private-key-password=\"\"",
+			name: "should install with ssh repo",
+			flags: []string{kubeconfigFlag,
+				"--version=0.33.0",
+				privateKeyFlag, "--private-key-password=\"\"",
 				"--username=admin",
-				"--password=admin123"},
+				"--password=admin123",
+				"--domain-type=localhost",
+			},
 			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g)
+				bootstrapFluxSsh(g, kubeconfigFlag)
 				createEntitlements(t, testLog)
 			},
 			reset: func(t *testing.T) {
-				deleteClusterUser(t, testLog)
 				deleteEntitlements(t, testLog)
-				uninstallFlux(g)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
 			},
-			expectedErrorStr: "cannot process input 'dashboard access'",
+			expectedErrorStr: "",
 		},
 	}
 	for _, tt := range tests {
-		lock.Lock()
 		t.Run(tt.name, func(t *testing.T) {
-
-			defer lock.Unlock()
 
 			if tt.setup != nil {
 				tt.setup(t)
@@ -185,8 +118,7 @@ func TestBootstrapCmd(t *testing.T) {
 				defer tt.reset(t)
 			}
 
-			client := adapters.NewHTTPClient()
-			cmd := root.Command(client)
+			cmd := root.Command(adapters.NewHTTPClient())
 			bootstrapCmdArgs := []string{"bootstrap"}
 			bootstrapCmdArgs = append(bootstrapCmdArgs, tt.flags...)
 			cmd.SetArgs(bootstrapCmdArgs)
@@ -202,7 +134,7 @@ func TestBootstrapCmd(t *testing.T) {
 	}
 }
 
-func bootstrapFluxSsh(g *WithT) {
+func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	var runner runner.CLIRunner
 
 	repoUrl := os.Getenv("GIT_URL_SSH")
@@ -213,7 +145,7 @@ func bootstrapFluxSsh(g *WithT) {
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
 	fmt.Println(privateKeyFile)
 
-	args := []string{"bootstrap", "git", "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
+	args := []string{"bootstrap", "git", kubeconfigFlag, "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
 	fmt.Println(args)
 
 	s, err := runner.Run("flux", args...)
@@ -222,9 +154,9 @@ func bootstrapFluxSsh(g *WithT) {
 
 }
 
-func uninstallFlux(g *WithT) {
+func uninstallFlux(g *WithT, kubeconfigFlag string) {
 	var runner runner.CLIRunner
-	args := []string{"uninstall", "-s", "--keep-namespace"}
+	args := []string{"uninstall", kubeconfigFlag, "-s", "--keep-namespace"}
 	_, err := runner.Run("flux", args...)
 	g.Expect(err).To(BeNil())
 }
