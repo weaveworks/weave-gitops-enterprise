@@ -36,9 +36,9 @@ func TestMain(m *testing.M) {
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
 	// enable me for development
-	//useExistingCluster := true
+	useExistingCluster := true
 	testEnv := &envtest.Environment{
-		//UseExistingCluster: &useExistingCluster,
+		UseExistingCluster: &useExistingCluster,
 	}
 
 	cfg, err = testEnv.Start()
