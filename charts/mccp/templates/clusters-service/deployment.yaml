@@ -38,9 +38,9 @@ spec:
             - containerPort: 8000
               name: server
               protocol: TCP
-          {{- if .Values.metrics.enabled }}
-            - name: http-metrics
-              containerPort: {{ .Values.metrics.service.port }}
+          {{- if .Values.monitoring.enabled }}
+            - name: {{ .Values.monitoring.service.name }}
+              containerPort: {{ .Values.monitoring.service.port }}
               protocol: TCP
           {{- end }}
           image: {{ .Values.images.clustersService }}
