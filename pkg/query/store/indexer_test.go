@@ -2,10 +2,11 @@ package store
 
 import (
 	"context"
+	"net/http/httptest"
 	"path/filepath"
 	"testing"
 
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	indexermetrics "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	"github.com/go-logr/logr"
@@ -21,11 +22,9 @@ func TestIndexer_Metrics(t *testing.T) {
 	indexermetrics.IndexerLatencyHistogram.Reset()
 	indexermetrics.IndexerInflightRequests.Reset()
 
-	metrics.NewPrometheusServer(metrics.Options{
-		ServerAddress: "localhost:8080",
-	})
-
-	metricsUrl := "http://localhost:8080/metrics"
+	_, h := metrics.NewDefaultPrometheusHandler()
+	ts := httptest.NewServer(h)
+	defer ts.Close()
 
 	idxFileLocation := filepath.Join(t.TempDir(), indexFile)
 	mapping := bleve.NewIndexMapping()
@@ -71,7 +70,7 @@ func TestIndexer_Metrics(t *testing.T) {
 			`indexer_inflight_requests{action="Add"} 0`,
 			`indexer_latency_seconds_count{action="Add",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have Remove instrumented", func(t *testing.T) {
@@ -83,7 +82,7 @@ func TestIndexer_Metrics(t *testing.T) {
 			`indexer_inflight_requests{action="Remove"} 0`,
 			`indexer_latency_seconds_count{action="Remove",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have RemoveByQuery instrumented", func(t *testing.T) {
@@ -95,7 +94,7 @@ func TestIndexer_Metrics(t *testing.T) {
 			`indexer_inflight_requests{action="RemoveByQuery"} 0`,
 			`indexer_latency_seconds_count{action="RemoveByQuery",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have Search instrumented", func(t *testing.T) {
@@ -107,7 +106,7 @@ func TestIndexer_Metrics(t *testing.T) {
 			`indexer_inflight_requests{action="Search"} 0`,
 			`indexer_latency_seconds_count{action="Search",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 		t.Cleanup(func() {
 			err := it.Close()
 			if err != nil {
@@ -124,7 +123,7 @@ func TestIndexer_Metrics(t *testing.T) {
 			`indexer_inflight_requests{action="ListFacets"} 0`,
 			`indexer_latency_seconds_count{action="ListFacets",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 }
 

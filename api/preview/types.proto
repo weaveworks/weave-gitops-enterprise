@@ -1,0 +1,73 @@
+/*
+ * This file holds the protobuf definitions for messages used in the
+ * Weave GitOps Preview API.
+ */
+
+syntax = "proto3";
+
+package preview.v1;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+
+option go_package = "github.com/weaveworks/weave-gitops-enterprise/preview/api";
+
+message GetYAMLRequest {
+    string type = 1;
+    string resource = 2;
+}
+
+message GetYAMLResponse {
+    string yaml = 1;
+}
+
+message GitRepository {
+    string name = 1;
+    string namespace = 2;
+    string url = 3;
+    google.protobuf.Duration interval = 4;
+    optional string branch = 5;
+    optional string tag = 6;
+    optional string semver = 7;
+    optional string commit = 8;
+    optional string ref_name = 9;
+    optional string secret_ref_name = 10;
+}
+
+message HelmRepository {
+    string name = 1;
+    string namespace = 2;
+    string url = 3;
+    google.protobuf.Duration interval = 4;
+    optional string type = 5;
+    optional string provider = 6;
+    optional string secret_ref_name = 7;
+    optional bool pass_credentials = 8;
+}
+
+message Bucket {
+    string name = 1;
+    string namespace = 2;
+    string bucket_name = 3;
+    string endpoint = 4;
+    google.protobuf.Duration interval = 5;
+    optional string provider = 6;
+    optional string secret_ref_name = 7;
+    optional string region = 8;
+    optional bool insecure = 9;
+}
+
+message OCIRepository {
+    string name = 1;
+    string namespace = 2;
+    string url = 3;
+    google.protobuf.Duration interval = 4;
+    optional string provider = 5;
+    optional string secret_ref_name = 6;
+    optional string service_account_name = 7;
+    optional string cert_secret_ref_name = 8;
+    optional bool insecure = 9;
+    optional string tag = 10;
+    optional string semver = 11;
+    optional string digest = 12;
+}

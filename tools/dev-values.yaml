@@ -33,8 +33,6 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
-  - name: WEAVE_GITOPS_ENABLE_PROFILING
-    value: "true"
 
 extraEnvVarsSecret: ""
 
