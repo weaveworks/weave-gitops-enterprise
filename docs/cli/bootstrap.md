@@ -160,11 +160,15 @@ This level to ensure each component meets their expected contract for the happy 
 
 ### Integration Testing
 
-You could find it in [cmd_integration_test.go](../../cmd/gitops/app/bootstrap/cmd_integration_test.go) with the aim of 
+
+
+### Acceptance testing 
+
+You could find it in [cmd_acceptance_test.go](../../cmd/gitops/app/bootstrap/cmd_acceptance_test.go) with the aim of
 having a small set of bootstrapping journeys that we code for acceptance and regression on the bootstrapping workflow.
 
 Dependencies are:
-- flux 
+- flux
 - kube cluster via envtest
 - git
 
@@ -178,10 +182,7 @@ Entitlement stage
 - `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
 - `GIT_URL_SSH`: git ssh url for the repo wge configuration repo.
 
-
-### E2E testing 
-
-Not yet available but ideally will ensure acceptance of the main outcomes: a user have an app bootstrapped that can do XYZ. 
+Run it via `make cli-acceptance-tests`
 
 ## How to 
 

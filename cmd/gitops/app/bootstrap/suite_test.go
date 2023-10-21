@@ -1,4 +1,4 @@
-//go:build integration
+//go:build acceptance
 
 package bootstrap_test
 
@@ -11,14 +11,10 @@ import (
 	"strings"
 	"testing"
 
-	helmv2beta1 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/clientcmd"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
-	"k8s.io/kubectl/pkg/scheme"
 
 	"github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -30,12 +26,16 @@ var cfg *rest.Config
 var kubeconfigPath string
 
 func TestMain(m *testing.M) {
-	// setup testEnvironment
+	clusterName := "cli-bootstrap-acceptance"
+	kindOutput, err := createKindCluster(clusterName)
+	if err != nil {
+		log.Fatalf("cannot create kind cluster: %s", string(kindOutput))
+	}
+
 	cmdOut, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	repoRoot := strings.TrimSpace(string(cmdOut))
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
-	// enable me for development
 	useExistingCluster := true
 	testEnv := &envtest.Environment{
 		UseExistingCluster: &useExistingCluster,
@@ -50,35 +50,18 @@ func TestMain(m *testing.M) {
 	kubeconfigPath = CreateKubeconfigFileForRestConfig(*cfg)
 	log.Println("kubeconfig created", kubeconfigPath)
 
-	err = sourcev1beta2.AddToScheme(scheme.Scheme)
+	s, err := kube.CreateScheme()
 	if err != nil {
-		log.Fatalf("add helm to schema failed: %s", err)
+		log.Fatalf("cannot create scheme: %v", err)
 	}
-
-	err = sourcev1.AddToScheme(scheme.Scheme)
-	if err != nil {
-		log.Fatalf("add helm to schema failed: %s", err)
-	}
-
-	err = kustomizev1.AddToScheme(scheme.Scheme)
-	if err != nil {
-		log.Fatalf("add helm to schema failed: %s", err)
-	}
-
-	err = helmv2beta1.AddToScheme(scheme.Scheme)
-	if err != nil {
-		log.Fatalf("add helm to schema failed: %s", err)
-	}
-
 	_, cancel := context.WithCancel(context.Background())
 
 	k8sClient, err = client.New(cfg, client.Options{
-		Scheme: scheme.Scheme,
+		Scheme: s,
 	})
 	if err != nil {
 		log.Fatalf("cannot create kubernetes client: %s", err)
 	}
-
 	log.Println("kube client created")
 
 	gomega.RegisterFailHandler(func(message string, skip ...int) {
@@ -86,7 +69,6 @@ func TestMain(m *testing.M) {
 	})
 
 	retCode := m.Run()
-	log.Printf("suite ran with return code: %d", retCode)
 
 	cancel()
 
@@ -94,8 +76,14 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatalf("stoping test env failed: %s", err)
 	}
-
 	log.Println("test environment stopped")
+
+	kindOutput, err = deleteKindCluster(clusterName)
+	if err != nil {
+		log.Fatalf("cannot delete kind cluster: %s", string(kindOutput))
+	}
+	log.Println("cluster deleted")
+
 	os.Exit(retCode)
 }
 

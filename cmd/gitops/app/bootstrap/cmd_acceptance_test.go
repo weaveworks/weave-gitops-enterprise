@@ -1,4 +1,4 @@
-//go:build integration
+//go:build acceptance
 
 package bootstrap_test
 
@@ -152,6 +152,18 @@ func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	fmt.Println(string(s))
 	g.Expect(err).To(BeNil())
 
+}
+
+func createKindCluster(name string) ([]byte, error) {
+	var runner runner.CLIRunner
+	args := []string{"create", "cluster", "-n", name}
+	return runner.Run("kind", args...)
+}
+
+func deleteKindCluster(name string) ([]byte, error) {
+	var runner runner.CLIRunner
+	args := []string{"delete", "cluster", "-n", name}
+	return runner.Run("kind", args...)
 }
 
 func uninstallFlux(g *WithT, kubeconfigFlag string) {
