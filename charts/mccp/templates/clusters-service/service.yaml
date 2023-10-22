@@ -75,9 +75,9 @@ spec:
       nodePort: null
       {{- end }}
     {{- end }}
-    {{- if .Values.metrics.enabled }}
-    - port: {{ .Values.metrics.service.port }}
-      targetPort: {{ .Values.metrics.service.port }}
+    {{- if .Values.monitoring.enabled }}
+    - port: {{ .Values.monitoring.service.port }}
+      targetPort: {{ .Values.monitoring.service.port }}
       protocol: TCP
-      name: http-metrics
+      name: {{ .Values.monitoring.service.name }}
     {{- end }}
