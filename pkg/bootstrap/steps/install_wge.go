@@ -26,7 +26,6 @@ const (
 	wgeChartName                      = "mccp"
 	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
 	WgeHelmReleaseName                = "weave-gitops-enterprise"
-	WGEDefaultNamespace               = "flux-system"
 	WGEDefaultRepoName                = "flux-system"
 	wgeHelmrepoFileName               = "wge-hrepo.yaml"
 	wgeHelmReleaseFileName            = "wge-hrelease.yaml"
@@ -85,7 +84,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	c.Logger.Actionf(wgeInstallMsg, c.WGEVersion)
 
-	wgehelmRepo, err := constructWgeHelmRepository()
+	wgehelmRepo, err := constructWgeHelmRepository(c.Namespace)
 	if err != nil {
 		return []StepOutput{}, err
 	}
@@ -127,7 +126,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		ClusterController: clusterController,
 	}
 
-	wgeHelmRelease, err := constructWGEhelmRelease(values, c.WGEVersion)
+	wgeHelmRelease, err := constructWGEhelmRelease(c.Namespace, values, c.WGEVersion)
 	if err != nil {
 		return []StepOutput{}, err
 	}
@@ -158,11 +157,11 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 	}, nil
 }
 
-func constructWgeHelmRepository() (string, error) {
+func constructWgeHelmRepository(namespace string) (string, error) {
 	wgeHelmRepo := sourcev1.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      wgeHelmRepositoryName,
-			Namespace: WGEDefaultNamespace,
+			Namespace: namespace,
 		},
 		Spec: sourcev1.HelmRepositorySpec{
 			URL: wgeChartUrl,
@@ -201,7 +200,7 @@ func constructIngressValues(userDomain string) map[string]interface{} {
 	return ingressValues
 }
 
-func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string, error) {
+func constructWGEhelmRelease(namespace string, valuesFile valuesFile, chartVersion string) (string, error) {
 	valuesBytes, err := json.Marshal(valuesFile)
 	if err != nil {
 		return "", err
@@ -210,7 +209,7 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	wgeHelmRelease := helmv2.HelmRelease{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      WgeHelmReleaseName,
-			Namespace: WGEDefaultNamespace,
+			Namespace: namespace,
 		}, Spec: helmv2.HelmReleaseSpec{
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
@@ -218,7 +217,7 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      wgeHelmRepositoryName,
-						Namespace: WGEDefaultNamespace,
+						Namespace: namespace,
 					},
 					Version: chartVersion,
 				},

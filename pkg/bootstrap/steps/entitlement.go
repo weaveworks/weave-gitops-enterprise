@@ -18,7 +18,7 @@ const (
 	nonExistingEntitlementSecretMsg = "entitlement file is not found, To get Weave GitOps Entitelment secret, please contact *sales@weave.works* and add it to your cluster"
 	invalidEntitlementSecretMsg     = "entitlement file is invalid, please verify the secret content. If you still facing issues, please contact *sales@weave.works*"
 	expiredEntitlementSecretMsg     = "entitlement file is expired at: %s, please contact *sales@weave.works*"
-	entitlementCheckMsg             = "verifying Weave GitOps Entitlement File"
+	entitlementCheckMsg             = "verifying Weave GitOps Entitlement File in namespace: %s"
 )
 
 // wge consts
@@ -37,8 +37,8 @@ var CheckEntitlementSecret = BootstrapStep{
 }
 
 func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) {
-	c.Logger.Actionf(entitlementCheckMsg)
-	err := verifyEntitlementSecret(c.KubernetesClient)
+	c.Logger.Actionf(entitlementCheckMsg, c.Namespace)
+	err := verifyEntitlementSecret(c.KubernetesClient, c.Namespace)
 	if err != nil {
 		return []StepOutput{}, err
 	}
@@ -51,8 +51,8 @@ func checkEntitlementSecret(input []StepInput, c *Config) ([]StepOutput, error) 
 // verifing entitlement by the public key (private key is used for encrypting and public is for verification)
 // and making sure it's not expired
 // verifying username and password by making http request for downloading charts and ensuring it's authenticated
-func verifyEntitlementSecret(client k8s_client.Client) error {
-	secret, err := utils.GetSecret(client, entitlementSecretName, WGEDefaultNamespace)
+func verifyEntitlementSecret(client k8s_client.Client, namespace string) error {
+	secret, err := utils.GetSecret(client, entitlementSecretName, namespace)
 	if err != nil {
 		return fmt.Errorf("%s: %v", nonExistingEntitlementSecretMsg, err)
 	}

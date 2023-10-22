@@ -68,7 +68,7 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 }
 
 func getWgeVersions(input []StepInput, c *Config) (interface{}, error) {
-	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, WGEDefaultNamespace)
+	entitlementSecret, err := utils.GetSecret(c.KubernetesClient, entitlementSecretName, c.Namespace)
 	if err != nil {
 		return []string{}, err
 	}

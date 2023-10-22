@@ -13,6 +13,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
+const testNamespace = "flux-system"
+
 func TestCreateCredentials(t *testing.T) {
 	tests := []struct {
 		name     string
@@ -47,7 +49,7 @@ func TestCreateCredentials(t *testing.T) {
 					Value: v1.Secret{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      adminSecretName,
-							Namespace: WGEDefaultNamespace,
+							Namespace: testNamespace,
 						},
 						Data: map[string][]byte{
 							"username": []byte("wego-admin"),
@@ -60,7 +62,7 @@ func TestCreateCredentials(t *testing.T) {
 		{
 			name: "secret exist and user refuse to continue",
 			secret: &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: testNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
 					"username": []byte("test-username"),
@@ -87,7 +89,7 @@ func TestCreateCredentials(t *testing.T) {
 		{
 			name: "secret exist and user continue",
 			secret: &v1.Secret{
-				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
+				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: testNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
 					"username": []byte("test-username"),
@@ -116,7 +118,7 @@ func TestCreateCredentials(t *testing.T) {
 					Value: v1.Secret{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      adminSecretName,
-							Namespace: WGEDefaultNamespace,
+							Namespace: testNamespace,
 						},
 						Data: map[string][]byte{
 							"username": []byte("wego-admin"),
@@ -144,6 +146,7 @@ func TestCreateCredentials(t *testing.T) {
 			config := Config{
 				KubernetesClient: fakeClient,
 				Logger:           cliLogger,
+				Namespace:        testNamespace,
 			}
 			out, err := createCredentials(tt.input, &config)
 			if err != nil {

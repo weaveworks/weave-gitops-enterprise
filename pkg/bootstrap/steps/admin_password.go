@@ -54,7 +54,7 @@ func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 			Msg:             existingCredsMsg,
 			DefaultValue:    "",
 			Valuesfn:        isExistingAdminSecret,
-			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
+			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, config.Namespace),
 		},
 	}
 
@@ -99,7 +99,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 
 	if existing, _ := isExistingAdminSecret(input, c); existing.(bool) {
 		if continueWithExistingCreds != confirmYes {
-			return []StepOutput{}, fmt.Errorf(existingCredsExitMsg, adminSecretName, WGEDefaultNamespace)
+			return []StepOutput{}, fmt.Errorf(existingCredsExitMsg, adminSecretName, c.Namespace)
 		} else {
 			return []StepOutput{}, nil
 		}
@@ -119,7 +119,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      adminSecretName,
-			Namespace: WGEDefaultNamespace,
+			Namespace: c.Namespace,
 		},
 		Data: data,
 	}
@@ -139,7 +139,7 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 // returns true if admin secret is already on the cluster
 // returns false if no admin secret on the cluster
 func isExistingAdminSecret(input []StepInput, c *Config) (interface{}, error) {
-	_, err := utils.GetSecret(c.KubernetesClient, adminSecretName, WGEDefaultNamespace)
+	_, err := utils.GetSecret(c.KubernetesClient, adminSecretName, c.Namespace)
 	if err != nil {
 		return false, nil
 	}

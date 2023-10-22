@@ -21,7 +21,7 @@ var (
 
 // checkUIDomain display the message to be for external dns or localhost.
 func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
-	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName); err != nil {
+	if err := utils.ReconcileHelmRelease(WgeHelmReleaseName, c.Namespace); err != nil {
 		return []StepOutput{}, err
 	}
 	if !strings.Contains(c.UserDomain, domainTypeLocalhost) {
@@ -30,6 +30,6 @@ func checkUIDomain(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	c.Logger.Successf(portforwardMsg, c.WGEVersion)
-	c.Logger.Println(portforwardCmdMsg, WGEDefaultNamespace)
+	c.Logger.Println(portforwardCmdMsg, c.Namespace)
 	return []StepOutput{}, nil
 }

@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	wgeDefaultNamespace = "flux-system"
 	cmdName             = "bootstrap"
 	cmdShortDescription = "Installs Weave GitOps Enterprise in simple steps"
 	cmdLongDescription  = `Installs Weave GitOps Enterprise in simple steps:
@@ -29,10 +30,15 @@ gitops bootstrap --kubeconfig <your-kubeconfig-location>
 
 # Start WGE installation with given 'username' and 'password'
 gitops bootstrap --username wego-admin --password=hell0!
+
+# Start WGE installation within different namespace than flux-system
+gitops bootstrap -n test-namespace
+
 `
 )
 
 type bootstrapFlags struct {
+	namespace          string
 	username           string
 	password           string
 	version            string
@@ -52,7 +58,7 @@ func Command(opts *config.Options) *cobra.Command {
 		Example: cmdExamples,
 		RunE:    getBootstrapCmdRun(opts),
 	}
-
+	cmd.PersistentFlags().StringVarP(&flags.namespace, "namespace", "n", wgeDefaultNamespace, "The namespace scope for this operation")
 	cmd.Flags().StringVarP(&flags.username, "username", "u", "", "dashboard admin username")
 	cmd.Flags().StringVarP(&flags.password, "password", "p", "", "dashboard admin password")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
@@ -72,6 +78,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
+			WithNamespace(flags.namespace).
 			WithUsername(flags.username).
 			WithPassword(flags.password).
 			WithVersion(flags.version).

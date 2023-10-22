@@ -43,6 +43,7 @@ const (
 type ConfigBuilder struct {
 	logger             logger.Logger
 	kubeconfig         string
+	namespace          string
 	username           string
 	password           string
 	wGEVersion         string
@@ -58,6 +59,11 @@ func NewConfigBuilder() *ConfigBuilder {
 
 func (c *ConfigBuilder) WithLogWriter(logger logger.Logger) *ConfigBuilder {
 	c.logger = logger
+	return c
+}
+
+func (c *ConfigBuilder) WithNamespace(namespace string) *ConfigBuilder {
+	c.namespace = namespace
 	return c
 }
 
@@ -105,6 +111,8 @@ type Config struct {
 	KubernetesClient k8s_client.Client
 	Logger           logger.Logger
 
+	Namespace string
+
 	ExistsWgeVersion string // existing wge version in the cluster
 	WGEVersion       string // user want this version in the cluster
 
@@ -149,6 +157,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	return Config{
 		KubernetesClient:   kubernetesClient,
 		WGEVersion:         cb.wGEVersion,
+		Namespace:          cb.namespace,
 		Username:           cb.username,
 		Password:           cb.password,
 		Logger:             cb.logger,

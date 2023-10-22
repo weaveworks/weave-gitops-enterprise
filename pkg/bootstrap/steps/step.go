@@ -163,8 +163,8 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			if !ok {
 				panic("unexpected internal error casting file")
 			}
-			c.Logger.Actionf("cloning flux git repo: %s/%s", WGEDefaultNamespace, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.PrivateKeyPath, c.PrivateKeyPassword)
+			c.Logger.Actionf("cloning flux git repo: %s/%s", c.Namespace, WGEDefaultRepoName)
+			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, c.Namespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
 			}
@@ -183,7 +183,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			c.Logger.Successf("file committed to repo: %s", file.Name)
 
 			c.Logger.Waitingf("reconciling changes")
-			if err := utils.ReconcileFlux(); err != nil {
+			if err := utils.ReconcileFlux(c.Namespace); err != nil {
 				return err
 			}
 			c.Logger.Successf("changes are reconciled successfully!")
