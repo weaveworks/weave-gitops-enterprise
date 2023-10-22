@@ -143,6 +143,6 @@ users:
 	_, err = file.WriteString(kubeConfigFileContent)
 	assert.NoError(t, err, "error creating to file")
 
-	_, err = GetKubernetesClient(fakeKubeconfigfile)
+	_, err = GetKubernetesConfig(fakeKubeconfigfile)
 	assert.Error(t, err, "error getting Kubernetes client")
 }
