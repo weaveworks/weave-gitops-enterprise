@@ -1,14 +1,9 @@
 package steps
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
-	v1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 const (
@@ -224,23 +219,16 @@ func TestInstallWge(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scheme := runtime.NewScheme()
-			schemeBuilder := runtime.SchemeBuilder{
-				v1.AddToScheme,
+			testConfig := Config{
+				WGEVersion: "1.0.0",
+				DomainType: tt.domainType,
 			}
-			err := schemeBuilder.AddToScheme(scheme)
-			if err != nil {
-				t.Fatal(err)
-			}
-			fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
-			cliLogger := logger.NewCLILogger(os.Stdout)
 
-			config := Config{
-				KubernetesClient: fakeClient,
-				Logger:           cliLogger,
-				WGEVersion:       "1.0.0",
-				DomainType:       tt.domainType,
+			config, err := MakeTestConfig(t, testConfig)
+			if err != nil {
+				t.Fatalf("error creating config: %v", err)
 			}
+
 			out, err := installWge(tt.input, &config)
 			if err != nil {
 				if tt.err {

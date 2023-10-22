@@ -10,8 +10,6 @@ import (
 	"github.com/loft-sh/vcluster/pkg/util/random"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 // TestGetSecret test TestGetSecret
@@ -19,23 +17,18 @@ func TestGetSecret(t *testing.T) {
 	secretName := "test-secret"
 	secretNamespace := "flux-system"
 	invalidSecretName := "invalid-secret"
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
-	}
-	err := schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(&v1.Secret{
+	fakeClient, err := CreateFakeClient(t, &v1.Secret{
 		ObjectMeta: metav1.ObjectMeta{Name: secretName, Namespace: secretNamespace},
 		Type:       "Opaque",
 		Data: map[string][]byte{
 			"username": []byte("test-username"),
 			"password": []byte("test-password"),
 		},
-	}).Build()
+	})
+	if err != nil {
+		t.Fatalf("error creating fake client: %v", err)
+	}
 
 	secret, err := GetSecret(fakeClient, invalidSecretName, secretNamespace)
 	assert.Error(t, err, "error fetching secret: %v", err)
@@ -60,15 +53,10 @@ func TestCreateSecret(t *testing.T) {
 		"password": []byte("test-password"),
 	}
 
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
-	}
-	err := schemeBuilder.AddToScheme(scheme)
+	fakeClient, err := CreateFakeClient(t)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("error creating fake client: %v", err)
 	}
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
 
 	err = CreateSecret(fakeClient, secretName, secretNamespace, secretData)
 	assert.NoError(t, err, "error creating secret: %v", err)
@@ -92,16 +80,11 @@ func TestDeleteSecret(t *testing.T) {
 		"password": []byte("test-password"),
 	}
 
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		v1.AddToScheme,
-	}
-	err := schemeBuilder.AddToScheme(scheme)
+	fakeClient, err := CreateFakeClient(t)
 	if err != nil {
-		t.Fatal(err)
+		t.Fatalf("error creating fake client: %v", err)
 	}
 
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme).Build()
 	err = CreateSecret(fakeClient, secretName, secretNamespace, secretData)
 	assert.NoError(t, err, "error creating secret: %v", err)
 
