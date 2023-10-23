@@ -126,7 +126,7 @@ func TestCreateCredentials(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config, err := MakeTestConfig(t, Config{}, tt.secret)
+			config, err := makeTestConfig(t, Config{}, tt.secret)
 			if err != nil {
 				t.Fatalf("error creating config: %v", err)
 			}

@@ -7,7 +7,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
-func MakeTestConfig(t *testing.T, config Config, objects ...runtime.Object) (Config, error) {
+func makeTestConfig(t *testing.T, config Config, objects ...runtime.Object) (Config, error) {
 	fakeClient, err := utils.CreateFakeClient(t, objects...)
 	if err != nil {
 		return Config{}, err
