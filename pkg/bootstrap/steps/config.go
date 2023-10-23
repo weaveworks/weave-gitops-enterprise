@@ -113,8 +113,7 @@ type Config struct {
 
 	Namespace string
 
-	ExistsWgeVersion string // existing wge version in the cluster
-	WGEVersion       string // user want this version in the cluster
+	WGEVersion string // user want this version in the cluster
 
 	Username string // cluster user username
 	Password string // cluster user password
