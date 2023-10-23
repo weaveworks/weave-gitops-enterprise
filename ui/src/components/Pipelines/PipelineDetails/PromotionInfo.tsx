@@ -15,6 +15,7 @@ const PromotionInfoContainer = styled(EnvironmentCard)`
 `;
 
 const gatherTargetStatus = (targets: PipelineTargetStatus[]) => {
+  if (!targets.length) return 'No targets found.';
   const reduced = targets.reduce(
     (obj, target) => {
       let ready = true;
