@@ -3,6 +3,7 @@
 package utils
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -17,16 +18,19 @@ func TestGetKubernetesClientIt(t *testing.T) {
 
 	tests := []struct {
 		name        string
-		setup       func() string
+		setup       func() (string, error)
 		reset       func()
 		shouldError bool
 	}{
 		{
 			name: "should create kubernetes http without kubeconfig",
-			setup: func() string {
-				kp := createKubeconfigFileForRestConfig(*cfg)
+			setup: func() (string, error) {
+				kp, err := createKubeconfigFileForRestConfig(*cfg)
+				if err != nil {
+					return "", fmt.Errorf("cannot create kubeconfig: %w", err)
+				}
 				os.Setenv("KUBECONFIG", kp)
-				return ""
+				return "", nil
 			},
 			reset: func() {
 				os.Unsetenv("KUBECONFIG")
@@ -35,8 +39,12 @@ func TestGetKubernetesClientIt(t *testing.T) {
 		},
 		{
 			name: "should create kubernetes http kubeconfig",
-			setup: func() string {
-				return createKubeconfigFileForRestConfig(*cfg)
+			setup: func() (string, error) {
+				kp, err := createKubeconfigFileForRestConfig(*cfg)
+				if err != nil {
+					return "", fmt.Errorf("cannot create kubeconfig: %w", err)
+				}
+				return kp, nil
 			},
 			reset:       func() {},
 			shouldError: false,
@@ -52,7 +60,8 @@ func TestGetKubernetesClientIt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			kubeconfigPath := tt.setup()
+			kubeconfigPath, err := tt.setup()
+			assert.NoError(t, err, "error on setup")
 			defer tt.reset()
 
 			kubehttp, err := GetKubernetesHttp(kubeconfigPath)
@@ -68,7 +77,7 @@ func TestGetKubernetesClientIt(t *testing.T) {
 }
 
 // createKubeconfigFileForRestConfig creates a kubeconfig file so we could use it for calling any command with --kubeconfig pointing to it
-func createKubeconfigFileForRestConfig(restConfig rest.Config) string {
+func createKubeconfigFileForRestConfig(restConfig rest.Config) (string, error) {
 	clusters := make(map[string]*clientcmdapi.Cluster)
 	clusters["default-cluster"] = &clientcmdapi.Cluster{
 		Server:                   restConfig.Host,
@@ -93,6 +102,9 @@ func createKubeconfigFileForRestConfig(restConfig rest.Config) string {
 		AuthInfos:      authinfos,
 	}
 	kubeConfigFile, _ := os.CreateTemp("", "kubeconfig")
-	_ = clientcmd.WriteToFile(clientConfig, kubeConfigFile.Name())
-	return kubeConfigFile.Name()
+	err := clientcmd.WriteToFile(clientConfig, kubeConfigFile.Name())
+	if err != nil {
+		return "", fmt.Errorf("cannot write kubeconfig to file: %w", err)
+	}
+	return kubeConfigFile.Name(), nil
 }
