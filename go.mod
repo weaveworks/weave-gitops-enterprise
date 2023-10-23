@@ -93,7 +93,7 @@ require (
 	github.com/fluxcd/pkg/tar v0.2.0 // indirect
 	github.com/gitops-tools/pkg v0.1.0 // indirect
 	github.com/google/go-containerregistry v0.12.0 // indirect
-	)
+)
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect

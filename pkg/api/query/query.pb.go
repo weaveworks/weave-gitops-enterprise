@@ -11,12 +11,13 @@
 package api
 
 import (
+	reflect "reflect"
+	sync "sync"
+
 	_ "github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2/options"
 	_ "google.golang.org/genproto/googleapis/api/annotations"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
-	reflect "reflect"
-	sync "sync"
 )
 
 const (
@@ -177,6 +178,7 @@ type Object struct {
 	Unstructured string `protobuf:"bytes,10,opt,name=unstructured,proto3" json:"unstructured,omitempty"`
 	Id           string `protobuf:"bytes,11,opt,name=id,proto3" json:"id,omitempty"`
 	Tenant       string `protobuf:"bytes,12,opt,name=tenant,proto3" json:"tenant,omitempty"`
+	Labels       string `protobuf:"bytes,13,opt,name=tenant,proto3" json:"tenant,omitempty"`
 }
 
 func (x *Object) Reset() {
