@@ -4,7 +4,7 @@ import styled from 'styled-components';
 //blue, pink, then yellow
 export const envColors = ['#E5F7FD', '#F6F4FF', '#FFFEF4'];
 
-export const cardHeight = '140px';
+export const cardHeight = '154px';
 
 export const EnvironmentCard = styled(Flex)<{ background?: number }>`
   border-radius: 8px;

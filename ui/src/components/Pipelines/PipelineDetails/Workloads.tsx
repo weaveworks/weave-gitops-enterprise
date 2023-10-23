@@ -68,14 +68,18 @@ function Workloads({
               </Flex>
               <PromotionContainer column gap="12" wide>
                 {strategy === 'Pull Request' && (
-                  <Flex gap="8" wide start>
-                    <Text bold>Branch:</Text>
-                    <Text> {branch}</Text>
-                    <Text bold>URL:</Text>
-                    <Link to={url}>{url.split('.com/')[1]}</Link>
+                  <Flex column gap="8" wide start>
+                    <Flex gap="8" wide start>
+                      <Text bold>Branch:</Text>
+                      <Text> {branch}</Text>
+                    </Flex>
+                    <Flex gap="8" wide start>
+                      <Text bold>URL:</Text>
+                      <Link to={url}>{url}</Link>
+                    </Flex>
                   </Flex>
                 )}
-                {strategy === 'Automated' &&
+                {strategy !== 'Automated' &&
                   index < environments.length - 1 && (
                     <PromotePipeline
                       req={{
