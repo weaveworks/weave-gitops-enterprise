@@ -24,10 +24,8 @@ type Props = {
 
 function Target({ className, target, background }: Props) {
   const configResponse = useListConfigContext();
-  const clusterName = target?.clusterRef?.name
-    ? `${target?.clusterRef?.namespace || 'default'}/${
-        target?.clusterRef?.name
-      }`
+  const clusterName = target.clusterRef?.name
+    ? `${target.clusterRef?.namespace || 'default'}/${target.clusterRef?.name}`
     : configResponse?.data?.managementClusterName || 'undefined';
 
   return (

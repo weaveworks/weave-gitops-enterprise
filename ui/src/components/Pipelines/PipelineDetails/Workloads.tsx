@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { Pipeline, Promotion } from '../../../api/pipelines/types.pb';
 import PromotePipeline from './PromotePipeline';
 import PromotionInfo from './PromotionInfo';
-import { EnvironmentCard } from './styles';
 import Target from './Target';
+import { EnvironmentCard } from './styles';
 
 const getStrategy = (promo?: Promotion) => {
   if (!promo) return '-';
@@ -75,7 +75,7 @@ function Workloads({
                     <Link to={url}>{url.split('.com/')[1]}</Link>
                   </Flex>
                 )}
-                {strategy !== 'Automated' &&
+                {strategy === 'Automated' &&
                   index < environments.length - 1 && (
                     <PromotePipeline
                       req={{
