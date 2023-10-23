@@ -277,10 +277,10 @@ describe('PipelineDetails', () => {
     let i = 0;
     while (i <= 3) {
       expect(
-        await screen.findByText(`SPECIFIED VERSION: V6.0.${i}`),
+        await screen.findByText(`SPECIFIED VERSION: v6.0.${i}`),
       ).toBeInTheDocument();
       expect(
-        await screen.findByText(`LAST APPLIED VERSION: V6.0.${i}.${i}`),
+        await screen.findByText(`LAST APPLIED VERSION: v6.0.${i}.${i}`),
       ).toBeInTheDocument();
       i++;
     }
