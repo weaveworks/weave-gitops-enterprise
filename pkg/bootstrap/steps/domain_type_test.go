@@ -33,12 +33,9 @@ func TestSelectDomainType(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config, err := makeTestConfig(t, Config{})
-			if err != nil {
-				t.Fatalf("error creating config: %v", err)
-			}
+			config := makeTestConfig(t, Config{})
 
-			_, err = selectDomainType(tt.input, &config)
+			_, err := selectDomainType(tt.input, &config)
 			if err != nil {
 				if tt.err {
 					return

@@ -224,10 +224,7 @@ func TestInstallWge(t *testing.T) {
 				DomainType: tt.domainType,
 			}
 
-			config, err := makeTestConfig(t, testConfig)
-			if err != nil {
-				t.Fatalf("error creating config: %v", err)
-			}
+			config := makeTestConfig(t, testConfig)
 
 			out, err := installWge(tt.input, &config)
 			if err != nil {

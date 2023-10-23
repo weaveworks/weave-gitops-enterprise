@@ -5,12 +5,13 @@ import (
 
 	"github.com/alecthomas/assert"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
+	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 // TestGetRepoPath tests the GetRepoPath function
 func TestGetRepoPath(t *testing.T) {
-	fakeClient, err := CreateFakeClient(t, &kustomizev1.Kustomization{
+	fakeClient := utils.CreateFakeClient(t, &kustomizev1.Kustomization{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "flux-system",
 			Namespace: "flux-system",
@@ -18,9 +19,6 @@ func TestGetRepoPath(t *testing.T) {
 		Spec: kustomizev1.KustomizationSpec{
 			Path: "clusters/production",
 		}})
-	if err != nil {
-		t.Fatalf("error creating fake client: %v", err)
-	}
 
 	expectedRepoPath := "clusters/production"
 

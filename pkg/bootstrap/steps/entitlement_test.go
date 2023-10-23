@@ -54,11 +54,8 @@ func TestCheckEntitlementFile(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			config, err := makeTestConfig(t, Config{}, tt.secret)
-			if err != nil {
-				t.Fatalf("error creating config: %v", err)
-			}
-			_, err = checkEntitlementSecret([]StepInput{}, &config)
+			config := makeTestConfig(t, Config{}, tt.secret)
+			_, err := checkEntitlementSecret([]StepInput{}, &config)
 			if err != nil {
 				if tt.err {
 					return
