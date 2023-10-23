@@ -43,6 +43,7 @@ type ObjectKind struct {
 	FilterFunc          FilterFunc
 	StatusFunc          func(obj client.Object) ObjectStatus
 	MessageFunc         func(obj client.Object) string
+	LabelsFunc          func(obj client.Object) string
 	Category            ObjectCategory
 }
 
@@ -75,6 +76,10 @@ func (o ObjectKind) Validate() error {
 
 	if o.MessageFunc == nil {
 		return fmt.Errorf("missing message func")
+	}
+
+	if o.LabelsFunc == nil {
+		return fmt.Errorf("missing labels func")
 	}
 
 	if o.Category == "" {
