@@ -123,11 +123,11 @@ type Config struct {
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
 	l.Actionf("creating client to cluster")
-	config, err := utils.GetKubernetesConfig(cb.kubeconfig)
+	kubeHttp, err := utils.GetKubernetesHttp(cb.kubeconfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
-	l.Successf("created client to cluster: %s", config.ClusterName)
+	l.Successf("created client to cluster: %s", kubeHttp.ClusterName)
 
 	// validate ssh keys
 	if cb.privateKeyPath != "" {
@@ -143,7 +143,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:   config.Client,
+		KubernetesClient:   kubeHttp.Client,
 		WGEVersion:         cb.wGEVersion,
 		Username:           cb.username,
 		Password:           cb.password,

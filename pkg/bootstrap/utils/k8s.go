@@ -12,8 +12,8 @@ import (
 	k8s_config "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-// GetKubernetesconfig creates a kuberentes client from the default kubeconfig.
-func GetKubernetesConfig(kubeconfig string) (*kube.KubeHTTP, error) {
+// GetKubernetesHttp creates a kuberentes client from the default kubeconfig.
+func GetKubernetesHttp(kubeconfig string) (*kube.KubeHTTP, error) {
 	if kubeconfig != "" {
 		err := flag.CommandLine.Set("kubeconfig", kubeconfig)
 		if err != nil {
