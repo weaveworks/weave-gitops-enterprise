@@ -156,11 +156,14 @@ Tend to follow the following levels
 
 ### Unit Testing
 
-This level to ensure each component meets their expected contract for the happy and unhappy scenarios. 
+This level to ensure each component meets their expected contract for the happy and unhappy scenarios.
+You will see them in the expected form `*_test.go`
 
 ### Integration Testing
 
+This level to ensure some integrations with bootstrapping dependencies like flux, git, etc ... 
 
+We currently have a gap to cover in the following features.
 
 ### Acceptance testing 
 

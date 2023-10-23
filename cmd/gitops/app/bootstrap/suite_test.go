@@ -47,7 +47,7 @@ func TestMain(m *testing.M) {
 	}
 	log.Println("environment started")
 
-	kubeconfigPath = CreateKubeconfigFileForRestConfig(*cfg)
+	kubeconfigPath = createKubeconfigFileForRestConfig(*cfg)
 	log.Println("kubeconfig created", kubeconfigPath)
 
 	s, err := kube.CreateScheme()
@@ -87,7 +87,8 @@ func TestMain(m *testing.M) {
 	os.Exit(retCode)
 }
 
-func CreateKubeconfigFileForRestConfig(restConfig rest.Config) string {
+// createKubeconfigFileForRestConfig creates a kubeconfig file so we could use it for calling any command with --kubeconfig pointing to it
+func createKubeconfigFileForRestConfig(restConfig rest.Config) string {
 	clusters := make(map[string]*clientcmdapi.Cluster)
 	clusters["default-cluster"] = &clientcmdapi.Cluster{
 		Server:                   restConfig.Host,
