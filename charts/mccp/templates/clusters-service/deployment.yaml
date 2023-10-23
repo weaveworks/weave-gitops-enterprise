@@ -53,9 +53,6 @@ spec:
             {{ if .Values.explorer.cleaner.disabled }}
             - --explorer-cleaner-disabled=true
             {{- end }}
-            {{- if .Values.explorer.enabledFor }}
-            - --explorer-enabled-for={{ .Values.explorer.enabledFor | join "," }}
-            {{- end }}
           imagePullPolicy: IfNotPresent
           envFrom:
           - configMapRef:
