@@ -1,16 +1,12 @@
 package steps
 
 import (
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/weaveworks/weave-gitops/pkg/logger"
 	"golang.org/x/crypto/bcrypt"
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestCreateCredentials(t *testing.T) {
@@ -130,21 +126,8 @@ func TestCreateCredentials(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			scheme := runtime.NewScheme()
-			schemeBuilder := runtime.SchemeBuilder{
-				v1.AddToScheme,
-			}
-			err := schemeBuilder.AddToScheme(scheme)
-			if err != nil {
-				t.Fatal(err)
-			}
-			fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithRuntimeObjects(tt.secret).Build()
-			cliLogger := logger.NewCLILogger(os.Stdout)
+			config := makeTestConfig(t, Config{}, tt.secret)
 
-			config := Config{
-				KubernetesClient: fakeClient,
-				Logger:           cliLogger,
-			}
 			out, err := createCredentials(tt.input, &config)
 			if err != nil {
 				if tt.err {
