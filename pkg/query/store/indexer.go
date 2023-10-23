@@ -51,7 +51,7 @@ type IndexReader interface {
 }
 
 var indexFile = "index.db"
-var filterFields = []string{"cluster", "namespace", "kind"}
+var filterFields = []string{"cluster", "namespace", "kind", "labels"}
 
 func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
