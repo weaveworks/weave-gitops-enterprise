@@ -16,17 +16,13 @@ import (
 )
 
 var cfg *rest.Config
-var kubeconfigPath string
 
 func TestMain(m *testing.M) {
 	cmdOut, err := exec.Command("git", "rev-parse", "--show-toplevel").Output()
 	repoRoot := strings.TrimSpace(string(cmdOut))
 	envTestPath := fmt.Sprintf("%s/tools/bin/envtest", repoRoot)
 	os.Setenv("KUBEBUILDER_ASSETS", envTestPath)
-	useExistingCluster := false
-	testEnv := &envtest.Environment{
-		UseExistingCluster: &useExistingCluster,
-	}
+	testEnv := &envtest.Environment{}
 
 	cfg, err = testEnv.Start()
 	if err != nil {

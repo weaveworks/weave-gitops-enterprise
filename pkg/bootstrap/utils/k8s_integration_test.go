@@ -14,31 +14,48 @@ import (
 
 // TestGetKubernetesClient test TestGetKubernetesClient
 func TestGetKubernetesClientIt(t *testing.T) {
+
 	tests := []struct {
-		name           string
-		kubeconfigPath string
-		shouldError    bool
+		name        string
+		setup       func() string
+		reset       func()
+		shouldError bool
 	}{
-		//{
-		//	name:           "should create kubernetes http without kubeconfig ",
-		//	kubeconfigPath: "",
-		//	shouldError:    false,
-		//},
 		{
-			name:           "should create kubernetes http kubeconfig ",
-			kubeconfigPath: createKubeconfigFileForRestConfig(*cfg),
-			shouldError:    false,
+			name: "should create kubernetes http without kubeconfig",
+			setup: func() string {
+				kp := createKubeconfigFileForRestConfig(*cfg)
+				os.Setenv("KUBECONFIG", kp)
+				return ""
+			},
+			reset: func() {
+				os.Unsetenv("KUBECONFIG")
+			},
+			shouldError: false,
 		},
 		{
-			name:           "should not create kubernetes http with invalid kubeconfig ",
-			shouldError:    true,
-			kubeconfigPath: "idontexist.yaml",
+			name: "should create kubernetes http kubeconfig",
+			setup: func() string {
+				return createKubeconfigFileForRestConfig(*cfg)
+			},
+			reset:       func() {},
+			shouldError: false,
+		},
+		{
+			name: "should not create kubernetes http with invalid kubeconfig ",
+			setup: func() string {
+				return "idontexist.yaml"
+			},
+			reset:       func() {},
+			shouldError: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			kubeconfigPath := tt.setup()
+			defer tt.reset()
 
-			kubehttp, err := GetKubernetesHttp(tt.kubeconfigPath)
+			kubehttp, err := GetKubernetesHttp(kubeconfigPath)
 			if tt.shouldError {
 				assert.Error(t, err, "error getting Kubernetes client")
 				return
