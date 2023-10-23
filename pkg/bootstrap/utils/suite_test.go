@@ -33,28 +33,8 @@ func TestMain(m *testing.M) {
 		log.Fatalf("starting test env failed: %s", err)
 	}
 	log.Println("environment started")
-	//
-	//s, err := kube.CreateScheme()
-	//if err != nil {
-	//	log.Fatalf("cannot create scheme: %v", err)
-	//}
-	//_, cancel := context.WithCancel(context.Background())
-	//
-	//k8sClient, err = client.New(cfg, client.Options{
-	//	Scheme: s,
-	//})
-	//if err != nil {
-	//	log.Fatalf("cannot create kubernetes client: %s", err)
-	//}
-	//log.Println("kube client created")
-	//
-	//gomega.RegisterFailHandler(func(message string, skip ...int) {
-	//	log.Println(message)
-	//})
 
 	retCode := m.Run()
-
-	//cancel()
 
 	err = testEnv.Stop()
 	if err != nil {

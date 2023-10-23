@@ -14,24 +14,6 @@ import (
 
 // TestGetKubernetesClient test TestGetKubernetesClient
 func TestGetKubernetesClientIt(t *testing.T) {
-	//	kubeConfigFileContent := `apiVersion: v1
-	//kind: Config
-	//clusters:
-	//- cluster:
-	//    server: http://example.com
-	//  name: my-cluster
-	//contexts:
-	//- context:
-	//    cluster: my-cluster
-	//    user: my-user
-	//  name: my-context
-	//current-context: my-context
-	//users:
-	//- name: my-user
-	//  user:
-	//    username: test
-	//    password: test
-	//`
 	tests := []struct {
 		name           string
 		kubeconfigPath string
@@ -55,16 +37,6 @@ func TestGetKubernetesClientIt(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			//fakeKubeconfigfile := filepath.Join(os.TempDir(), fmt.Sprintf("test-kubeconfig-%s.yaml", random.RandomString(6)))
-			//file, err := os.Create(fakeKubeconfigfile)
-			//assert.NoError(t, err, "error creating file")
-			//
-			//defer file.Close()
-			//defer os.Remove(fakeKubeconfigfile)
-			//
-			//_, err = file.WriteString(kubeConfigFileContent)
-			//assert.NoError(t, err, "error creating to file")
 
 			kubehttp, err := GetKubernetesHttp(tt.kubeconfigPath)
 			if tt.shouldError {
