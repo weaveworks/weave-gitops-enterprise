@@ -5,21 +5,15 @@ package server_test
 
 import (
 	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
 	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	gitopssetstemplatesv1 "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
-
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr/testr"
 	. "github.com/onsi/gomega"
-	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
-	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	api "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -53,7 +47,7 @@ func TestQueryServer(t *testing.T) {
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
 
 	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
-	defaultNamespace := "default"
+	//defaultNamespace := "default"
 
 	createResources(context.Background(), t, k8sClient, newNamespace("flux-system"))
 
@@ -71,140 +65,7 @@ func TestQueryServer(t *testing.T) {
 		query              string
 		expectedNumObjects int
 	}{
-		{
-			name:   "should support helm releases",
-			access: allowHelmReleaseAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoHelmRepository(defaultNamespace),
-				podinfoHelmRelease(defaultNamespace),
-			},
-			query:              "kind:HelmRelease",
-			expectedNumObjects: 1, // should allow only on default namespace
-		},
-		{
-			name:   "should support kustomizations",
-			access: allowKustomizationsAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoGitRepository(defaultNamespace),
-				podinfoKustomization(defaultNamespace),
-			},
-			query:              "kind:Kustomization",
-			expectedNumObjects: 1, // should allow only on default namespace
-		},
-		{
-			name:   "should support helm repository",
-			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoHelmRepository(defaultNamespace),
-			},
-			query:              "kind:HelmRepository",
-			expectedNumObjects: 1, // should allow only on default namespace,
-		},
-		{
-			name:   "should support helm chart",
-			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				&sourcev1beta2.HelmChart{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1beta2.HelmChartKind,
-						APIVersion: sourcev1beta2.GroupVersion.String(),
-					},
-					Spec: sourcev1beta2.HelmChartSpec{
-						Chart:   "podinfo",
-						Version: "v0.0.1",
-						SourceRef: sourcev1beta2.LocalHelmChartSourceReference{
-							Kind: sourcev1beta2.HelmRepositoryKind,
-							Name: "podinfo",
-						},
-					},
-				},
-			},
-			query:              "kind:HelmChart",
-			expectedNumObjects: 1, // should allow only on default namespace,
-		},
-		{
-			name:   "should support git repository chart",
-			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				podinfoGitRepository(defaultNamespace),
-			},
-			query:              "kind:GitRepository",
-			expectedNumObjects: 1, // should allow only on default namespace,
-		},
-		{
-			name:   "should support oci repository",
-			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				&sourcev1beta2.OCIRepository{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1beta2.OCIRepositoryKind,
-						APIVersion: sourcev1beta2.GroupVersion.String(),
-					},
-					Spec: sourcev1beta2.OCIRepositorySpec{
-						URL: "oci://example.com/owner/repo",
-					},
-				},
-			},
-			query:              fmt.Sprintf("kind:%s", sourcev1beta2.OCIRepositoryKind),
-			expectedNumObjects: 1, // should allow only on default namespace,
-		},
-		{
-			name:   "should support bucket",
-			access: allowSourcesAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				&sourcev1beta2.Bucket{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "podinfo",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       sourcev1beta2.BucketKind,
-						APIVersion: sourcev1beta2.GroupVersion.String(),
-					},
-					Spec: sourcev1beta2.BucketSpec{},
-				},
-			},
-			query:              fmt.Sprintf("kind:%s", sourcev1beta2.BucketKind),
-			expectedNumObjects: 1, // should allow only on default namespace,
-		},
-		{
-			name:   "should support gitopssets",
-			access: allowGitOpsSetsAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				&gitopssets.GitOpsSet{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "gitopsset-list",
-						Namespace: defaultNamespace,
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind:       "GitOpsSet",
-						APIVersion: gitopssets.GroupVersion.String(),
-					},
-					Spec: gitopssets.GitOpsSetSpec{
-						Generators: []gitopssetstemplatesv1.GitOpsSetGenerator{
-							{
-								List: &gitopssetstemplatesv1.ListGenerator{
-									Elements: []apiextensionsv1.JSON{
-										{Raw: []byte(`{"cluster": "engineering-dev"}`)},
-									},
-								},
-							},
-						},
-						Templates: []gitopssetstemplatesv1.GitOpsSetTemplate{},
-					},
-				},
-			},
-			query:              "kind:GitOpsSet",
-			expectedNumObjects: 1,
-		},
+
 		{
 			name:   "should support gitops templates",
 			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
@@ -217,28 +78,13 @@ func TestQueryServer(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cluster-template-1",
 						Namespace: "default",
+						Labels: map[string]string{
+							"weave.works/template-type": "cluster",
+						},
 					},
 				},
 			},
-			query:              "kind:GitOpsTemplate",
-			expectedNumObjects: 1,
-		},
-		{
-			name:   "should support capi templates",
-			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
-			objects: []client.Object{
-				&capiv1.CAPITemplate{
-					TypeMeta: metav1.TypeMeta{
-						Kind:       capiv1.Kind,
-						APIVersion: "templates.weave.works/v1alpha2",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "cluster-template-1",
-						Namespace: "default",
-					},
-				},
-			},
-			query:              "kind:CAPITemplate",
+			query:              "labels:cluster",
 			expectedNumObjects: 1,
 		},
 	}

@@ -103,6 +103,7 @@ var (
 		AddToSchemeFunc: helmv2beta1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategoryAutomation,
 	}
 	KustomizationObjectKind = ObjectKind{
@@ -113,6 +114,7 @@ var (
 		AddToSchemeFunc: kustomizev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategoryAutomation,
 	}
 	HelmRepositoryObjectKind = ObjectKind{
@@ -123,6 +125,7 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	HelmChartObjectKind = ObjectKind{
@@ -133,6 +136,7 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	GitRepositoryObjectKind = ObjectKind{
@@ -143,6 +147,7 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	OCIRepositoryObjectKind = ObjectKind{
@@ -153,6 +158,7 @@ var (
 		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	BucketObjectKind = ObjectKind{
@@ -163,6 +169,7 @@ var (
 		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	RoleObjectKind = ObjectKind{
@@ -233,7 +240,8 @@ var (
 
 			return e.Message
 		},
-		Category: CategoryEvent,
+		LabelsFunc: defaultFluxObjectLabelsFunc,
+		Category:   CategoryEvent,
 	}
 
 	GitOpsSetsObjectKind = ObjectKind{
@@ -244,6 +252,7 @@ var (
 		AddToSchemeFunc: gitopssets.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
+		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategoryGitopsSet,
 	}
 
@@ -263,6 +272,15 @@ var (
 			}
 
 			return e.Spec.Description
+		},
+		LabelsFunc: func(obj client.Object) string {
+			//TODO refactor me
+			gt, ok := obj.(*gapiv1.GitOpsTemplate)
+			if !ok {
+				return ""
+			}
+			const TemplateTypeLabel = "weave.works/template-type"
+			return gt.Labels[TemplateTypeLabel]
 		},
 		Category: CategoryTemplate,
 	}
@@ -284,7 +302,8 @@ var (
 
 			return e.Spec.Description
 		},
-		Category: CategoryTemplate,
+		LabelsFunc: defaultFluxObjectLabelsFunc,
+		Category:   CategoryTemplate,
 	}
 )
 
@@ -347,6 +366,10 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 		}
 	}
 
+	return ""
+}
+
+func defaultFluxObjectLabelsFunc(obj client.Object) string {
 	return ""
 }
 

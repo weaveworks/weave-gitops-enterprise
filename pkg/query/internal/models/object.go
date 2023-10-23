@@ -27,6 +27,7 @@ type Object struct {
 	KubernetesDeletedAt time.Time                    `json:"kubernetesDeletedAt"`
 	Unstructured        json.RawMessage              `json:"unstructured" gorm:"type:blob"`
 	Tenant              string                       `json:"tenant" gorm:"type:text"`
+	Labels              string                       `json:"labels" gorm:"type:text"`
 }
 
 func (o Object) Validate() error {
@@ -101,6 +102,8 @@ type NormalizedObject interface {
 	GetMessage() (string, error)
 	// GetCategory returns the category of the object, as determined by the ObjectKind Category
 	GetCategory() (configuration.ObjectCategory, error)
+	// GetLabels returns the labels for the object
+	GetRelevantLabels() (string, error)
 	// Raw returns the underlying client.Object
 	Raw() client.Object
 }
@@ -116,6 +119,10 @@ func (n defaultNormalizedObject) GetStatus() (configuration.ObjectStatus, error)
 
 func (n defaultNormalizedObject) GetMessage() (string, error) {
 	return n.config.MessageFunc(n.Object), nil
+}
+
+func (n defaultNormalizedObject) GetRelevantLabels() (string, error) {
+	return n.config.LabelsFunc(n.Object), nil
 }
 
 func (n defaultNormalizedObject) GetCategory() (configuration.ObjectCategory, error) {
