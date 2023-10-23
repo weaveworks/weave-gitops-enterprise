@@ -51,8 +51,8 @@ func TestGetKubernetesClientIt(t *testing.T) {
 		},
 		{
 			name: "should not create kubernetes http with invalid kubeconfig ",
-			setup: func() string {
-				return "idontexist.yaml"
+			setup: func() (string, error) {
+				return "idontexist.yaml", nil
 			},
 			reset:       func() {},
 			shouldError: true,
