@@ -43,6 +43,7 @@ function Target({ className, target, background }: Props) {
         <ClusterDashboardLink clusterName={clusterName} />
       </Flex>
       {_.map(target.workloads, (workload, index) => {
+        const { lastAppliedRevision, version } = workload;
         return (
           <Flex key={index} column gap="8">
             <Flex column>
@@ -72,10 +73,11 @@ function Target({ className, target, background }: Props) {
                   : 'alertOriginal'
               }
             >
-              LAST APPLIED VERSION: {'V' + workload.lastAppliedRevision || '-'}
+              LAST APPLIED VERSION:{' '}
+              {lastAppliedRevision ? 'v' + lastAppliedRevision : '-'}
             </Text>
             <Text size="small">
-              SPECIFIED VERSION: {'V' + workload.version || '-'}
+              SPECIFIED VERSION: {version ? 'v' + version : '-'}
             </Text>
           </Flex>
         );
