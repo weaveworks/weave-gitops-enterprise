@@ -1,19 +1,22 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useState } from 'react';
+import { Dispatch, useCallback, useContext, useState } from 'react';
 import {
   ClusterAutomation,
   RenderAutomationResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
-import Preview from '../../Templates/Form/Partials/Preview';
+import { validateFormData } from '../../../utils/form';
+import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 
-export const PreviewPRModal = ({
+export const Preview = ({
   formData,
   getClusterAutomations,
+  setFormError,
 }: {
   formData: any;
   getClusterAutomations: () => ClusterAutomation[];
+  setFormError: Dispatch<React.SetStateAction<string>>;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -52,14 +55,16 @@ export const PreviewPRModal = ({
   return (
     <>
       <Button
-        onClick={() => handlePRPreview()}
+        onClick={event =>
+          validateFormData(event, handlePRPreview, setFormError)
+        }
         disabled={previewLoading}
         loading={previewLoading}
       >
         PREVIEW PR
       </Button>
       {openPreview && prPreview ? (
-        <Preview
+        <PreviewModal
           context="policyconfig"
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}
