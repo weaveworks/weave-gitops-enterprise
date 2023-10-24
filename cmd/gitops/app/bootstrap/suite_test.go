@@ -11,10 +11,8 @@ import (
 	"strings"
 	"testing"
 
+	testutils "github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
 	"github.com/onsi/gomega"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -22,7 +20,6 @@ import (
 )
 
 var k8sClient client.Client
-var cfg *rest.Config
 var kubeconfigPath string
 
 func TestMain(m *testing.M) {
@@ -41,13 +38,17 @@ func TestMain(m *testing.M) {
 		UseExistingCluster: &useExistingCluster,
 	}
 
-	cfg, err = testEnv.Start()
+	cfg, err := testEnv.Start()
 	if err != nil {
 		log.Fatalf("starting test env failed: %s", err)
 	}
 	log.Println("environment started")
 
-	kubeconfigPath = createKubeconfigFileForRestConfig(*cfg)
+	kubeconfigPath, err = testutils.CreateKubeconfigFileForRestConfig(*cfg)
+	if err != nil {
+		log.Fatalf("cannot create kubeconfig file: %v", err)
+	}
+
 	log.Println("kubeconfig created", kubeconfigPath)
 
 	s, err := kube.CreateScheme()
@@ -85,34 +86,4 @@ func TestMain(m *testing.M) {
 	log.Println("cluster deleted")
 
 	os.Exit(retCode)
-}
-
-// createKubeconfigFileForRestConfig creates a kubeconfig file so we could use it for calling any command with --kubeconfig pointing to it
-func createKubeconfigFileForRestConfig(restConfig rest.Config) string {
-	clusters := make(map[string]*clientcmdapi.Cluster)
-	clusters["default-cluster"] = &clientcmdapi.Cluster{
-		Server:                   restConfig.Host,
-		CertificateAuthorityData: restConfig.CAData,
-	}
-	contexts := make(map[string]*clientcmdapi.Context)
-	contexts["default-context"] = &clientcmdapi.Context{
-		Cluster:  "default-cluster",
-		AuthInfo: "default-user",
-	}
-	authinfos := make(map[string]*clientcmdapi.AuthInfo)
-	authinfos["default-user"] = &clientcmdapi.AuthInfo{
-		ClientCertificateData: restConfig.CertData,
-		ClientKeyData:         restConfig.KeyData,
-	}
-	clientConfig := clientcmdapi.Config{
-		Kind:           "Config",
-		APIVersion:     "v1",
-		Clusters:       clusters,
-		Contexts:       contexts,
-		CurrentContext: "default-context",
-		AuthInfos:      authinfos,
-	}
-	kubeConfigFile, _ := os.CreateTemp("", "kubeconfig")
-	_ = clientcmd.WriteToFile(clientConfig, kubeConfigFile.Name())
-	return kubeConfigFile.Name()
 }
