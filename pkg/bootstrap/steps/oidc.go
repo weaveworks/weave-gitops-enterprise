@@ -26,7 +26,7 @@ const (
 	oidcClientSecretMsg = "Please enter OIDC clientSecret"
 
 	oidcInstallInfoMsg  = "Configuring OIDC"
-	oidcConfirmationMsg = "OIDC has been configured successfully!"
+	oidcConfirmationMsg = "OIDC has been configured successfully! It will be ready to use after reconcillation"
 
 	oidcConfigExistWarningMsg = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again"
 
@@ -156,7 +156,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	if err != nil {
 		return []StepOutput{}, err
 	}
-	c.Logger.Actionf("retrieved issure url: %s", issuerUrl)
+	c.Logger.Actionf("retrieved issuer url: %s", issuerUrl)
 	c.IssuerURL = issuerUrl
 
 	if c.DomainType == domainTypeLocalhost {

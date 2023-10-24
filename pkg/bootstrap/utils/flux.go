@@ -125,6 +125,7 @@ func ReconcileHelmRelease(hrName string) error {
 	return nil
 }
 
+// GetHelmReleaseProperty extract a property from a specific helmrelease values file
 func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namespace string, property string) (string, error) {
 	helmrelease := &helmv2.HelmRelease{}
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{

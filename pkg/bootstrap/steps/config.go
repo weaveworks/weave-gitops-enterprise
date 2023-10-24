@@ -114,8 +114,8 @@ func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword
 	return c
 }
 
-func (c *ConfigBuilder) WithOIDCConfig(authType string, discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
-	c.authType = authType
+func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
+	c.authType = AuthOIDC
 	c.discoveryURL = discoveryURL
 	c.clientID = clientID
 	c.clientSecret = clientSecret
