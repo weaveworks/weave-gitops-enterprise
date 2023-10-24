@@ -1,6 +1,5 @@
 import { MenuItem } from '@material-ui/core';
 import {
-  Button,
   Flex,
   GitRepository,
   Link,
@@ -41,7 +40,7 @@ import {
 } from '../../Templates/Form/utils';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
 import { SelectMatchType } from './Form/Partials/SelectTargetList';
-import { PreviewPRModal } from './PreviewPRModal';
+import { Preview } from './Preview';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
@@ -170,7 +169,7 @@ const CreatePolicyConfig = () => {
     }
   }, [initialGitRepo, formData.repo, clusterName]);
 
-  const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
+  const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
     const clusterDetails = {
@@ -348,7 +347,7 @@ const CreatePolicyConfig = () => {
                 label="CLUSTER"
                 value={selectedCluster || ''}
                 description="Select your cluster"
-                onChange={HandleSelectCluster}
+                onChange={handleSelectCluster}
                 error={formError === 'clusterName' && !clusterName}
               >
                 {!clusters?.length ? (
@@ -390,26 +389,21 @@ const CreatePolicyConfig = () => {
               />
             </Flex>
             <GitOps
+              loading={loading}
+              isAuthenticated={isAuthenticated}
               formData={formData}
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               formError={formError}
               enableGitRepoSelection={true}
-            />
-            <Flex end className="gitops-cta">
-              <Button
-                loading={loading}
-                type="submit"
-                disabled={!isAuthenticated || loading}
-              >
-                CREATE PULL REQUEST
-              </Button>
-              <PreviewPRModal
+            >
+              <Preview
                 formData={formData}
                 getClusterAutomations={getClusterAutomations}
+                setFormError={setFormError}
               />
-            </Flex>
+            </GitOps>
           </FormWrapperPolicyConfig>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
