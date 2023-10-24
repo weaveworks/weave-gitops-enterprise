@@ -29,14 +29,12 @@ const (
 
 // input/output types
 const (
-	failureMsg           = "failureMsg"
 	multiSelectionChoice = "multiSelect"
 	stringInput          = "string"
 	passwordInput        = "password"
 	confirmInput         = "confirm"
 	typeSecret           = "secret"
 	typeFile             = "file"
-	typePortforward      = "portforward"
 )
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
