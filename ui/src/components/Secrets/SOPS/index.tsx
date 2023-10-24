@@ -1,5 +1,5 @@
 import { MenuItem } from '@material-ui/core';
-import { Button, Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
+import { Flex, GitRepository, Link } from '@weaveworks/weave-gitops';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
@@ -20,7 +20,7 @@ import GitOps from '../../Templates/Form/Partials/GitOps';
 import { getRepositoryUrl } from '../../Templates/Form/utils';
 import ListClusters from '../Shared/ListClusters';
 import ListKustomizations from '../Shared/ListKustomizations';
-import { PreviewModal } from '../Shared/PreviewModal';
+import { Preview } from '../Shared/Preview';
 import {
   getFormattedPayload,
   scrollToAlertSection,
@@ -199,23 +199,17 @@ const CreateSOPS = () => {
               validateForm={validateForm}
             />
             <GitOps
+              loading={loading}
+              isAuthenticated={isAuthenticated}
               formData={formData}
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               formError={formError}
               enableGitRepoSelection={true}
-            />
-            <Flex end className="gitops-cta">
-              <Button
-                loading={loading}
-                type="submit"
-                disabled={!isAuthenticated || loading}
-              >
-                CREATE PULL REQUEST
-              </Button>
-              <PreviewModal formData={formData} />
-            </Flex>
+            >
+              <Preview formData={formData} setFormError={setFormError} />
+            </GitOps>
           </FormWrapperSecret>
         </NotificationsWrapper>
       </CallbackStateContextProvider>
