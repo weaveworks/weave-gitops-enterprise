@@ -8,7 +8,7 @@ import (
 	"github.com/alecthomas/assert"
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,7 +24,7 @@ func TestCreateHelmReleaseYamlString(t *testing.T) {
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:             "test-chart",
-					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
+					ReconcileStrategy: sourcev1beta2.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      "test-repo",
 						Namespace: "test-ns",
@@ -77,12 +77,12 @@ status: {}
 }
 
 func TestCreateHelmRepositoryYamlString(t *testing.T) {
-	helmRepo := sourcev1.HelmRepository{
+	helmRepo := sourcev1beta2.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      "test-helm-repo",
 			Namespace: "test-ns",
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1beta2.HelmRepositorySpec{
 			URL: "https://charts.example.com",
 			SecretRef: &meta.LocalObjectReference{
 				Name: "test-secret",
@@ -176,9 +176,9 @@ func TestGetHelmReleaseProperty(t *testing.T) {
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:             "test-chart",
-					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
+					ReconcileStrategy: sourcev1beta2.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind:      sourcev1.HelmRepositoryKind,
+						Kind:      sourcev1beta2.HelmRepositoryKind,
 						Name:      "test-secret-name",
 						Namespace: "test-secret-namespace",
 					},
@@ -243,9 +243,9 @@ func TestGetHelmReleaseValues(t *testing.T) {
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:             "test-chart",
-					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
+					ReconcileStrategy: sourcev1beta2.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
-						Kind:      sourcev1.HelmRepositoryKind,
+						Kind:      sourcev1beta2.HelmRepositoryKind,
 						Name:      "test-secret-name",
 						Namespace: "test-secret-namespace",
 					},

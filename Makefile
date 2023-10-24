@@ -181,6 +181,10 @@ integration-tests:
 	go test -v ./pkg/bootstrap/... -tags=integration
 
 
+cli-acceptance-tests:
+	$(CURRENT_DIR)/tools/download-deps.sh $(CURRENT_DIR)/tools/test-dependencies.toml
+	go test -v ./cmd/gitops/app/... -tags=acceptance
+
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
 	$(SUDO) docker rmi $(patsubst %, %:$(IMAGE_TAG), $(IMAGE_NAMES)) >/dev/null 2>&1 || true
