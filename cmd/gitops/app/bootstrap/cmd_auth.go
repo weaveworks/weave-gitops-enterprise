@@ -59,7 +59,7 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
 			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
-			WithOIDCConfig(authFlags.authType, flags.discoveryURL, flags.clientID, flags.clientSecret, false).
+			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
 			Build()
 
 		if err != nil {
