@@ -17,14 +17,15 @@ const (
 
 // inputs names
 const (
-	UserName           = "username"
-	Password           = "password"
-	WGEVersion         = "wgeVersion"
-	UserDomain         = "userDomain"
-	PrivateKeyPath     = "privateKeyPath"
-	PrivateKeyPassword = "privateKeyPassword"
-	existingCreds      = "existingCreds"
-	domainType         = "domainType"
+	UserName             = "username"
+	Password             = "password"
+	ExistingInstallation = "existingInstallation"
+	WGEVersion           = "wgeVersion"
+	UserDomain           = "userDomain"
+	PrivateKeyPath       = "privateKeyPath"
+	PrivateKeyPassword   = "privateKeyPassword"
+	existingCreds        = "existingCreds"
+	domainType           = "domainType"
 )
 
 // input/output types

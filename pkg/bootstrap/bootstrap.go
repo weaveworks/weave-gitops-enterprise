@@ -11,6 +11,7 @@ func Bootstrap(config steps.Config) error {
 		steps.VerifyFluxInstallation,
 		steps.CheckEntitlementSecret,
 		steps.NewAskPrivateKeyStep(config),
+		steps.NewContinueWithExistingWGEInstallationStep(config),
 		steps.NewSelectWgeVersionStep(config),
 		steps.NewAskAdminCredsSecretStep(config),
 		steps.NewSelectDomainType(config),
