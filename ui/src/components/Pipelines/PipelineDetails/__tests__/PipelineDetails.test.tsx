@@ -302,7 +302,9 @@ describe('PipelineDetails', () => {
         render(c);
       });
       expect(screen.getByText('Pull Request')).toBeInTheDocument();
-      expect(screen.getByText('weaveworks/cool-project')).toBeInTheDocument();
+      expect(
+        screen.getByText('https://gitlab.com/weaveworks/cool-project'),
+      ).toBeInTheDocument();
       expect(screen.getByText('main')).toBeInTheDocument();
       expect(screen.getByText('Secret Ref')).toBeInTheDocument();
       expect(screen.getByText('Notification')).toBeInTheDocument();
