@@ -175,7 +175,7 @@ jobs:
           propagate_failure: false
           trigger_workflow: true
           wait_workflow: true
-          client_payload: '{"CHART_VERSION": "master", "inputs": {"repository": "${{ github.event.inputs.repository }}", "ref": "${{ github.event.inputs.ref }}", "environment": "${{ github.event.inputs.environment }}", "service_to_deploy": "${{ github.event.inputs.service_to_deploy }}"}}'
+          client_payload: '{"CHART_VERSION": "${{ env.CHART_VERSION }}"}'
 
 
 #  smoke-test-results:
