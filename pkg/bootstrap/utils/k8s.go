@@ -2,88 +2,33 @@ package utils
 
 import (
 	"context"
-	"os"
-	"path/filepath"
+	"flag"
 
-	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	kustomizev1 "github.com/fluxcd/kustomize-controller/api/v1"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops/pkg/kube"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/tools/clientcmd"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
+	k8s_config "sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
-// GetKubernetesClient creates a kuberentes client from the default kubeconfig.
-func GetKubernetesClient(kubeconfig string) (k8s_client.Client, error) {
-	kubeconfig, err := getCurrentKubeConfig(kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
-	if err != nil {
-		return nil, err
-	}
-
-	scheme := runtime.NewScheme()
-	schemeBuilder := runtime.SchemeBuilder{
-		corev1.AddToScheme,
-		sourcev1.AddToScheme,
-		kustomizev1.AddToScheme,
-		helmv2.AddToScheme,
-	}
-
-	err = schemeBuilder.AddToScheme(scheme)
-	if err != nil {
-		return nil, err
-	}
-
-	client, err := k8s_client.New(config, k8s_client.Options{Scheme: scheme})
-	if err != nil {
-		return nil, err
-	}
-
-	return client, nil
-}
-
-// GetCurrentContext get the current context and cluster name from the kubeconfig.
-func GetCurrentContext(kubeconfig string) (string, error) {
-	kubeconfig, err := getCurrentKubeConfig(kubeconfig)
-	if err != nil {
-		return "", err
-	}
-
-	config, err := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(
-		&clientcmd.ClientConfigLoadingRules{ExplicitPath: kubeconfig},
-		&clientcmd.ConfigOverrides{}).RawConfig()
-	if err != nil {
-		return "", err
-	}
-
-	return config.CurrentContext, nil
-}
-
-// getCurrentKubeConfig checks for active kubeconfig by the following priority:
-// passed as cli argument, KUBECONFIG env variable and finally $HOME/.kube/config
-func getCurrentKubeConfig(kubeconfig string) (string, error) {
+// GetKubernetesHttp creates a kuberentes client from the default kubeconfig.
+func GetKubernetesHttp(kubeconfig string) (*kube.KubeHTTP, error) {
 	if kubeconfig != "" {
-		return kubeconfig, nil
+		err := flag.CommandLine.Set("kubeconfig", kubeconfig)
+		if err != nil {
+			return nil, err
+		}
+		flag.Parse()
+		k8s_config.RegisterFlags(flag.CommandLine)
 	}
 
-	kubeconfigFromEnv := os.Getenv(clientcmd.RecommendedConfigPathEnvVar)
-	if kubeconfigFromEnv != "" {
-		return kubeconfigFromEnv, nil
-	}
-
-	home, err := os.UserHomeDir()
+	config, err := k8s_config.GetConfig()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return filepath.Join(home, clientcmd.RecommendedHomeDir, clientcmd.RecommendedFileName), nil
+	return kube.NewKubeHTTPClientWithConfig(config, config.Host)
 }
 
 // GetSecret get secret values from kubernetes.

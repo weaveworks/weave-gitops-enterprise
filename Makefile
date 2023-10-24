@@ -178,6 +178,8 @@ integration-tests:
 	go test -v ./cmd/clusters-service/... -tags=integration
 	go test -v ./pkg/git/... -tags=integration
 	go test -v ./pkg/query/... -tags=integration
+	go test -v ./pkg/bootstrap/... -tags=integration
+
 
 clean:
 	$(SUDO) docker rmi $(IMAGE_NAMES) >/dev/null 2>&1 || true
