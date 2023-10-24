@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { Pipeline, Promotion } from '../../../api/pipelines/types.pb';
 import PromotePipeline from './PromotePipeline';
 import PromotionInfo from './PromotionInfo';
-import Target from './Target';
 import { EnvironmentCard } from './styles';
+import Target from './Target';
 
 const getStrategy = (promo?: Promotion) => {
   if (!promo) return '-';
