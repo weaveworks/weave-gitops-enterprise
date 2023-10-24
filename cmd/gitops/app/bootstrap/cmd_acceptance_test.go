@@ -27,16 +27,6 @@ const (
 	defaultInterval = time.Second
 )
 
-var fluxSystemNamespace = corev1.Namespace{
-	TypeMeta: metav1.TypeMeta{
-		Kind:       "Namespace",
-		APIVersion: "v1",
-	},
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "flux-system",
-	},
-}
-
 func createEntitlementSecretFromEnv(t *testing.T, namespace string) corev1.Secret {
 
 	username := os.Getenv("WGE_ENTITLEMENT_USERNAME")
@@ -93,7 +83,17 @@ func TestBootstrapCmd(t *testing.T) {
 		Log:            testLog,
 	}
 
-	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
+	var bootstrappingNamespace = corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+		},
+	}
+
+	_ = k8sClient.Create(context.Background(), &bootstrappingNamespace)
 
 	tests := []struct {
 		name             string
@@ -139,6 +139,7 @@ func TestBootstrapCmd(t *testing.T) {
 			bootstrapCmdArgs := []string{"bootstrap"}
 			bootstrapCmdArgs = append(bootstrapCmdArgs, tt.flags...)
 			cmd.SetArgs(bootstrapCmdArgs)
+			fmt.Println(bootstrapCmdArgs)
 
 			err := cmd.Execute()
 			if tt.expectedErrorStr != "" {
