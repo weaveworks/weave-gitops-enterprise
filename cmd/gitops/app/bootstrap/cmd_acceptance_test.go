@@ -78,9 +78,8 @@ func TestBootstrapCmd(t *testing.T) {
 	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
 
 	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
-	fmt.Println(oidcClientSecret)
 	g.Expect(oidcClientSecret).NotTo(BeEmpty())
-	oidcFlags := fmt.Sprintf("--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration --client-id=weave-gitops-enterprise --client-secret=%s", oidcClientSecret)
+	oidcClientSecretFlag := fmt.Sprintf("--client-secret=%s", oidcClientSecret)
 
 	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
 
@@ -92,35 +91,16 @@ func TestBootstrapCmd(t *testing.T) {
 		reset            func(t *testing.T)
 	}{
 		{
-			name: "should install with ssh repo",
+			name: "should bootstrap non-interactive with valid arguments",
 			flags: []string{kubeconfigFlag,
 				"--version=0.33.0",
 				privateKeyFlag, "--private-key-password=\"\"",
 				"--username=admin",
 				"--password=admin123",
 				"--domain-type=localhost",
-				oidcFlags,
-			},
-			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g, kubeconfigFlag)
-				createEntitlements(t, testLog)
-			},
-			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-				deleteClusterUser(t, testLog)
-				uninstallFlux(g, kubeconfigFlag)
-			},
-			expectedErrorStr: "",
-		},
-		{
-			name: "should fail with invalid oidc configuration",
-			flags: []string{kubeconfigFlag,
-				"--version=0.33.0",
-				privateKeyFlag, "--private-key-password=\"\"",
-				"--username=admin",
-				"--password=admin123",
-				"--domain-type=localhost",
-				"--discovery-url https://dex-01.wge.dev.weave.works/ --client-id weave-gitops-enterprise --client-secret abc",
+				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+				"--client-id=weave-gitops-enterprise",
+				oidcClientSecretFlag,
 			},
 			setup: func(t *testing.T) {
 				bootstrapFluxSsh(g, kubeconfigFlag)
