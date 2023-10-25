@@ -1,27 +1,23 @@
-import {
-  SourcesTable,
-  useFeatureFlags,
-  useListSources,
-} from '@weaveworks/weave-gitops';
+import { SourcesTable, useListSources } from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import styled from 'styled-components';
+import { EnabledComponent } from '../../api/query/query.pb';
 import useNotifications from '../../contexts/Notifications';
+import { useIsEnabledForComponent } from '../../hooks/query';
 import { formatError } from '../../utils/formatters';
 import Explorer from '../Explorer/Explorer';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsSources: FC = ({ className }: any) => {
-  const { isFlagEnabled } = useFeatureFlags();
-  const usingQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
-  );
+  const isExplorerEnabled = useIsEnabledForComponent(EnabledComponent.sources);
+
   const {
     data: sources,
     isLoading,
     error,
   } = useListSources('', '', {
-    enabled: !usingQueryServiceBackend,
+    enabled: !isExplorerEnabled,
     retry: false,
     refetchInterval: 5000,
   });
@@ -35,7 +31,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
 
   return (
     <Page
-      loading={!usingQueryServiceBackend && isLoading}
+      loading={!isExplorerEnabled && isLoading}
       path={[
         {
           label: 'Sources',
@@ -44,7 +40,7 @@ const WGApplicationsSources: FC = ({ className }: any) => {
     >
       <NotificationsWrapper errors={sources?.errors}>
         <div className={className}>
-          {usingQueryServiceBackend ? (
+          {isExplorerEnabled ? (
             <Explorer enableBatchSync category="source" />
           ) : (
             <SourcesTable sources={sources?.result} />

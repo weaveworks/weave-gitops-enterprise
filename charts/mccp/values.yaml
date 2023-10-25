@@ -211,12 +211,8 @@ cluster-controller:
         tag: v1.5.2
 
 #### Explorer
-# Turns on explorer to true
-enableExplorer: false
-# Uses the query service for Applications and Sources views
-useQueryServiceBackend: false
-
 explorer:
+  enabled: false
   collector:
     # ServiceAccount that explorer will use to watch clusters for resources
     serviceAccount:
@@ -224,3 +220,9 @@ explorer:
       namespace: "flux-system"
   cleaner:
     disabled: false
+  enabledFor:
+    - applications
+    - sources
+    - gitopssets
+    - templates
+

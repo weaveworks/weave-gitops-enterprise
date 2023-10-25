@@ -6,7 +6,6 @@ import {
   Icon,
   IconType,
   Link,
-  useFeatureFlags,
   useListAutomations,
   V2Routes,
 } from '@weaveworks/weave-gitops';
@@ -14,7 +13,8 @@ import _ from 'lodash';
 import React, { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { Object } from '../../api/query/query.pb';
+import { EnabledComponent, Object } from '../../api/query/query.pb';
+import { useIsEnabledForComponent } from '../../hooks/query';
 import { Routes } from '../../utils/nav';
 import OpenedPullRequest from '../Clusters/OpenedPullRequest';
 import Explorer from '../Explorer/Explorer';
@@ -22,13 +22,12 @@ import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
-  const { isFlagEnabled } = useFeatureFlags();
-  const usingQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.applications,
   );
 
   const { data: automations, isLoading } = useListAutomations('', {
-    enabled: !usingQueryServiceBackend,
+    enabled: isExplorerEnabled,
     retry: false,
     refetchInterval: 5000,
   });
@@ -39,7 +38,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
 
   return (
     <Page
-      loading={!usingQueryServiceBackend && isLoading}
+      loading={!isExplorerEnabled && isLoading}
       path={[
         {
           label: 'Applications',
@@ -60,7 +59,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
             <OpenedPullRequest />
           </Flex>
           <div className={className}>
-            {usingQueryServiceBackend ? (
+            {isExplorerEnabled ? (
               <Explorer
                 category="automation"
                 enableBatchSync
