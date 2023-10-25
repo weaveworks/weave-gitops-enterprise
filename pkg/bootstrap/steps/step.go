@@ -163,8 +163,8 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			if !ok {
 				panic("unexpected internal error casting file")
 			}
-			c.Logger.Actionf("cloning flux git repo: %s/%s", c.Namespace, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, c.Namespace, c.PrivateKeyPath, c.PrivateKeyPassword)
+			c.Logger.Actionf("cloning flux git repo: %s/%s", c.Namespace, c.Namespace)
+			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, c.Namespace, c.Namespace, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
 			}
@@ -174,7 +174,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 					c.Logger.Failuref("failed to cleanup repo!")
 				}
 			}()
-			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
+			c.Logger.Successf("cloned flux git repo: %s/%s", c.Namespace, c.Namespace)
 
 			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.PrivateKeyPath, c.PrivateKeyPassword)
 			if err != nil {

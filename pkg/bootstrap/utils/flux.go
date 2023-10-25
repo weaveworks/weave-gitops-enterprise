@@ -92,16 +92,16 @@ func CreateHelmRepositoryYamlString(helmRepo sourcev1.HelmRepository) (string, e
 // Reconciliation is important to apply the effect of adding resources to the git repository
 func ReconcileFlux(namespace string) error {
 	var runner runner.CLIRunner
-	out, err := runner.Run("flux", "reconcile", "source", "git", "flux-system", "-n", namespace)
+	out, err := runner.Run("flux", "reconcile", "source", "git", namespace, "-n", namespace)
 	if err != nil {
 		// adding an error message, err is meaningless
-		return fmt.Errorf("failed to reconcile flux source %s:flux-system: %s", namespace, string(out))
+		return fmt.Errorf("failed to reconcile flux source %s:%s: %s", namespace, namespace, string(out))
 	}
 
-	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system", "-n", namespace)
+	out, err = runner.Run("flux", "reconcile", "kustomization", namespace, "-n", namespace)
 	if err != nil {
 		// adding an error message, err is meaningless
-		return fmt.Errorf("failed to reconcile flux kustomization flux-system: %s", string(out))
+		return fmt.Errorf("failed to reconcile flux kustomization %s:%s: %s", namespace, namespace, string(out))
 	}
 
 	return nil

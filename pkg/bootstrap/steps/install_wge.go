@@ -26,7 +26,6 @@ const (
 	wgeChartName                      = "mccp"
 	wgeHelmRepositoryName             = "weave-gitops-enterprise-charts"
 	WgeHelmReleaseName                = "weave-gitops-enterprise"
-	WGEDefaultRepoName                = "flux-system"
 	wgeHelmrepoFileName               = "wge-hrepo.yaml"
 	wgeHelmReleaseFileName            = "wge-hrelease.yaml"
 	wgeChartUrl                       = "https://charts.dev.wkp.weave.works/releases/charts-v3"
