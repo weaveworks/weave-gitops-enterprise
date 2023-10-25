@@ -156,6 +156,12 @@ jobs:
   playwright-smoke-tests:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set CHART_VERSION
+        run: echo "CHART_VERSION=$(git describe --always --abbrev=7 | sed 's/^[^0-9]*//')" >> $GITHUB_ENV
+      - name: Test CHART_VERSION is set
+        run: echo $CHART_VERSION
       - name: Run palywright tests workflow
         uses: convictional/trigger-workflow-and-wait@v1.6.1
         with:
