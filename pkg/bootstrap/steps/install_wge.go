@@ -7,7 +7,7 @@ import (
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1beta2"
+	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -159,12 +159,12 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 }
 
 func constructWgeHelmRepository() (string, error) {
-	wgeHelmRepo := sourcev1.HelmRepository{
+	wgeHelmRepo := sourcev1beta2.HelmRepository{
 		ObjectMeta: v1.ObjectMeta{
 			Name:      wgeHelmRepositoryName,
 			Namespace: WGEDefaultNamespace,
 		},
-		Spec: sourcev1.HelmRepositorySpec{
+		Spec: sourcev1beta2.HelmRepositorySpec{
 			URL: wgeChartUrl,
 			Interval: v1.Duration{
 				Duration: time.Minute,
@@ -215,7 +215,7 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 			Chart: helmv2.HelmChartTemplate{
 				Spec: helmv2.HelmChartTemplateSpec{
 					Chart:             wgeChartName,
-					ReconcileStrategy: sourcev1.ReconcileStrategyChartVersion,
+					ReconcileStrategy: sourcev1beta2.ReconcileStrategyChartVersion,
 					SourceRef: helmv2.CrossNamespaceObjectReference{
 						Name:      wgeHelmRepositoryName,
 						Namespace: WGEDefaultNamespace,
