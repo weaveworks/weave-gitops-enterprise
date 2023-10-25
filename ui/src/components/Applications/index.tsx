@@ -22,12 +22,12 @@ import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGApplicationsDashboard: FC = ({ className }: any) => {
-  const isQueryServiceEnabled = useIsEnabledForComponent(
+  const isExplorerEnabled = useIsEnabledForComponent(
     EnabledComponent.applications,
   );
 
   const { data: automations, isLoading } = useListAutomations('', {
-    enabled: isQueryServiceEnabled,
+    enabled: isExplorerEnabled,
     retry: false,
     refetchInterval: 5000,
   });
@@ -38,7 +38,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
 
   return (
     <Page
-      loading={!isQueryServiceEnabled && isLoading}
+      loading={!isExplorerEnabled && isLoading}
       path={[
         {
           label: 'Applications',
@@ -59,7 +59,7 @@ const WGApplicationsDashboard: FC = ({ className }: any) => {
             <OpenedPullRequest />
           </Flex>
           <div className={className}>
-            {isQueryServiceEnabled ? (
+            {isExplorerEnabled ? (
               <Explorer
                 category="automation"
                 enableBatchSync
