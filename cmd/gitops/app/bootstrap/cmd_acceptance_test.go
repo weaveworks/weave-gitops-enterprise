@@ -27,17 +27,7 @@ const (
 	defaultInterval = time.Second
 )
 
-var fluxSystemNamespace = corev1.Namespace{
-	TypeMeta: metav1.TypeMeta{
-		Kind:       "Namespace",
-		APIVersion: "v1",
-	},
-	ObjectMeta: metav1.ObjectMeta{
-		Name: "flux-system",
-	},
-}
-
-func createEntitlementSecretFromEnv(t *testing.T) corev1.Secret {
+func createEntitlementSecretFromEnv(t *testing.T, namespace string) corev1.Secret {
 
 	username := os.Getenv("WGE_ENTITLEMENT_USERNAME")
 	require.NotEmpty(t, username)
@@ -53,7 +43,7 @@ func createEntitlementSecretFromEnv(t *testing.T) corev1.Secret {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "weave-gitops-enterprise-credentials",
-			Namespace: "flux-system",
+			Namespace: namespace,
 		},
 		Type: corev1.SecretTypeOpaque,
 		Data: map[string][]byte{
@@ -62,6 +52,13 @@ func createEntitlementSecretFromEnv(t *testing.T) corev1.Secret {
 			"entitlement": []byte(entitlement),
 		},
 	}
+}
+
+type testConfig struct {
+	KubeconfigFlag string
+	NamespaceFlag  string
+	Namespace      string
+	Log            logr.Logger
 }
 
 // TestBootstrapCmd is an integration test for bootstrapping command.
@@ -76,8 +73,27 @@ func TestBootstrapCmd(t *testing.T) {
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
 	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
 	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
+	namespace := "acceptance"
+	namespaceFlag := fmt.Sprintf("--namespace=%s", namespace)
 
-	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
+	tc := testConfig{
+		KubeconfigFlag: kubeconfigFlag,
+		NamespaceFlag:  namespaceFlag,
+		Namespace:      namespace,
+		Log:            testLog,
+	}
+
+	var bootstrappingNamespace = corev1.Namespace{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Namespace",
+			APIVersion: "v1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name: namespace,
+		},
+	}
+
+	_ = k8sClient.Create(context.Background(), &bootstrappingNamespace)
 
 	tests := []struct {
 		name             string
@@ -89,6 +105,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "should install with ssh repo",
 			flags: []string{kubeconfigFlag,
+				namespaceFlag,
 				"--version=0.33.0",
 				privateKeyFlag, "--private-key-password=\"\"",
 				"--username=admin",
@@ -96,13 +113,13 @@ func TestBootstrapCmd(t *testing.T) {
 				"--domain-type=localhost",
 			},
 			setup: func(t *testing.T) {
-				bootstrapFluxSsh(g, kubeconfigFlag)
-				createEntitlements(t, testLog)
+				bootstrapFluxSsh(g, tc)
+				createEntitlements(t, tc)
 			},
 			reset: func(t *testing.T) {
-				deleteEntitlements(t, testLog)
-				deleteClusterUser(t, testLog)
-				uninstallFlux(g, kubeconfigFlag)
+				deleteEntitlements(t, tc)
+				deleteClusterUser(t, tc)
+				uninstallFlux(g, tc)
 			},
 			expectedErrorStr: "",
 		},
@@ -122,6 +139,7 @@ func TestBootstrapCmd(t *testing.T) {
 			bootstrapCmdArgs := []string{"bootstrap"}
 			bootstrapCmdArgs = append(bootstrapCmdArgs, tt.flags...)
 			cmd.SetArgs(bootstrapCmdArgs)
+			fmt.Println(bootstrapCmdArgs)
 
 			err := cmd.Execute()
 			if tt.expectedErrorStr != "" {
@@ -134,8 +152,10 @@ func TestBootstrapCmd(t *testing.T) {
 	}
 }
 
-func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
+func bootstrapFluxSsh(g *WithT, tc testConfig) {
 	var runner runner.CLIRunner
+	kubeconfigFlag := tc.KubeconfigFlag
+	namespaceFlag := tc.NamespaceFlag
 
 	repoUrl := os.Getenv("GIT_URL_SSH")
 	g.Expect(repoUrl).NotTo(BeEmpty())
@@ -145,7 +165,7 @@ func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
 	fmt.Println(privateKeyFile)
 
-	args := []string{"bootstrap", "git", kubeconfigFlag, "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
+	args := []string{"bootstrap", "git", kubeconfigFlag, namespaceFlag, "-s", fmt.Sprintf("--url=%s", repoUrl), fmt.Sprintf("--private-key-file=%s", privateKeyFile), "--path=clusters/management"}
 	fmt.Println(args)
 
 	s, err := runner.Run("flux", args...)
@@ -166,30 +186,35 @@ func deleteKindCluster(name string) ([]byte, error) {
 	return runner.Run("kind", args...)
 }
 
-func uninstallFlux(g *WithT, kubeconfigFlag string) {
+func uninstallFlux(g *WithT, tc testConfig) {
+	kubeconfigFlag := tc.KubeconfigFlag
+	namespaceFlag := tc.NamespaceFlag
 	var runner runner.CLIRunner
-	args := []string{"uninstall", kubeconfigFlag, "-s", "--keep-namespace"}
+	args := []string{"uninstall", kubeconfigFlag, namespaceFlag, "-s", "--keep-namespace"}
 	_, err := runner.Run("flux", args...)
 	g.Expect(err).To(BeNil())
 }
 
-func createEntitlements(t *testing.T, testLog logr.Logger) {
-	secret := createEntitlementSecretFromEnv(t)
+func createEntitlements(t *testing.T, tc testConfig) {
+	testLog := tc.Log
+	secret := createEntitlementSecretFromEnv(t, tc.Namespace)
 	objects := []client.Object{
 		&secret,
 	}
 	createResources(testLog, t, k8sClient, objects...)
 }
 
-func deleteEntitlements(t *testing.T, testLog logr.Logger) {
-	secret := createEntitlementSecretFromEnv(t)
+func deleteEntitlements(t *testing.T, tc testConfig) {
+	testLog := tc.Log
+	secret := createEntitlementSecretFromEnv(t, tc.Namespace)
 	objects := []client.Object{
 		&secret,
 	}
 	deleteResources(testLog, t, k8sClient, objects...)
 }
 
-func deleteClusterUser(t *testing.T, testLog logr.Logger) {
+func deleteClusterUser(t *testing.T, tc testConfig) {
+	testLog := tc.Log
 	secret := corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Secret",
