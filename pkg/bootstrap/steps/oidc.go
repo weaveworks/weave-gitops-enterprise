@@ -65,19 +65,19 @@ var clientSecretStep = StepInput{
 func NewOIDCConfigStep(config Config) BootstrapStep {
 	inputs := []StepInput{
 		{
+			Name:         oidcInstalled,
+			Type:         confirmInput,
+			Msg:          oidcInstallMsg,
+			DefaultValue: "",
+			Valuesfn:     canAskOIDCPrompot,
+		},
+		{
 			Name:            existingOIDC,
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
 			DefaultValue:    "",
 			Valuesfn:        isExistingOIDCConfig,
 			StepInformation: fmt.Sprintf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace),
-		},
-		{
-			Name:         oidcInstalled,
-			Type:         confirmInput,
-			Msg:          oidcInstallMsg,
-			DefaultValue: "",
-			Valuesfn:     canAskOIDCPrompot,
 		},
 	}
 

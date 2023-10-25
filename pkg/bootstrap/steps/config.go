@@ -117,6 +117,9 @@ func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, cli
 	c.discoveryURL = discoveryURL
 	c.clientID = clientID
 	c.clientSecret = clientSecret
+	if discoveryURL != "" && clientID != "" && clientSecret != "" {
+		prompted = false
+	}
 	c.PromptedForDiscoveryURL = prompted
 	return c
 }
