@@ -101,6 +101,10 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_RUN_UI
               value: "true"
             {{- end }}
+            {{- if .Values.enableNewPipelines }}
+            - name: WEAVE_GITOPS_FEATURE_NEW_PIPELINES
+              value: "true"
+            {{- end }}
             {{- if .Values.envVars }}
             {{- with .Values.envVars }}
               {{- toYaml . | nindent 12 }}

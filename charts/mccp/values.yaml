@@ -34,6 +34,9 @@ enableTerraformUI: false
 # Turns on UI elements for GitOps Run
 enableRunUI: false
 
+# When set to true, this turns on the new Pipelines UI. This includes deploying the new API and controller.
+enableNewPipelines: false
+
 config:
   logLevel: info
   cluster:

@@ -45,3 +45,5 @@ gitopssets-controller:
 # Re-clarify capiEnabled
 global:
   capiEnabled: true
+
+enableNewPipelines: true
