@@ -1,20 +1,9 @@
-import { Box } from '@material-ui/core';
 import { ListError } from '@weaveworks/progressive-delivery/api/prog/types.pb';
-import {
-  Flex,
-  RouterTab,
-  SubRouterTabs,
-  YamlView,
-  createYamlCommand,
-} from '@weaveworks/weave-gitops';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { useGetPipeline } from '../../../contexts/Pipelines';
 import { Routes } from '../../../utils/nav';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
-import { EditButton } from './../../../components/Templates/Edit/EditButton';
-import PipelinePullRequests from './PipelinePullRequests';
-import { usePipelineStyles } from './styles';
 import Workloads from './Workloads';
 
 const mappedErrors = (
@@ -37,9 +26,6 @@ const PipelineDetails = ({ name, namespace }: Props) => {
     namespace,
   });
 
-  const classes = usePipelineStyles();
-  const path = `/pipelines/details`;
-
   return (
     <Page
       loading={isLoading}
@@ -56,33 +42,7 @@ const PipelineDetails = ({ name, namespace }: Props) => {
       <NotificationsWrapper
         errors={mappedErrors(data?.errors || [], namespace)}
       >
-        <Box marginBottom={2}>
-          <Flex wide end>
-            <EditButton
-              className={classes.editButton}
-              resource={data?.pipeline || ({} as Pipeline)}
-            />
-          </Flex>
-        </Box>
-        <SubRouterTabs rootPath={`${path}/status`}>
-          <RouterTab name="Status" path={`${path}/status`}>
-            <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
-          </RouterTab>
-          <RouterTab name="Yaml" path={`${path}/yaml`}>
-            <YamlView
-              yaml={data?.pipeline?.yaml || ''}
-              type="Pipeline"
-              header={createYamlCommand(
-                'Pipeline',
-                data?.pipeline?.name,
-                data?.pipeline?.namespace,
-              )}
-            />
-          </RouterTab>
-          <RouterTab name="Pull Requests" path={`${path}/pullrequests`}>
-            <PipelinePullRequests pipeline={data?.pipeline} />
-          </RouterTab>
-        </SubRouterTabs>
+        <Workloads pipeline={data?.pipeline || ({} as Pipeline)} />
       </NotificationsWrapper>
     </Page>
   );

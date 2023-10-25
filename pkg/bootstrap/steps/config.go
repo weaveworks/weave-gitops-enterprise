@@ -29,14 +29,12 @@ const (
 
 // input/output types
 const (
-	failureMsg           = "failureMsg"
 	multiSelectionChoice = "multiSelect"
 	stringInput          = "string"
 	passwordInput        = "password"
 	confirmInput         = "confirm"
 	typeSecret           = "secret"
 	typeFile             = "file"
-	typePortforward      = "portforward"
 )
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
@@ -105,8 +103,7 @@ type Config struct {
 	KubernetesClient k8s_client.Client
 	Logger           logger.Logger
 
-	ExistsWgeVersion string // existing wge version in the cluster
-	WGEVersion       string // user want this version in the cluster
+	WGEVersion string // user want this version in the cluster
 
 	Username string // cluster user username
 	Password string // cluster user password
@@ -123,15 +120,11 @@ type Config struct {
 func (cb *ConfigBuilder) Build() (Config, error) {
 	l := cb.logger
 	l.Actionf("creating client to cluster")
-	kubernetesClient, err := utils.GetKubernetesClient(cb.kubeconfig)
+	kubeHttp, err := utils.GetKubernetesHttp(cb.kubeconfig)
 	if err != nil {
 		return Config{}, fmt.Errorf("failed to get kubernetes client. error: %s", err)
 	}
-	context, err := utils.GetCurrentContext(cb.kubeconfig)
-	if err != nil {
-		return Config{}, fmt.Errorf("failed to get kubernetes current context. error: %s", err)
-	}
-	l.Successf("created client to cluster %s", context)
+	l.Successf("created client to cluster: %s", kubeHttp.ClusterName)
 
 	// validate ssh keys
 	if cb.privateKeyPath != "" {
@@ -147,7 +140,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:   kubernetesClient,
+		KubernetesClient:   kubeHttp.Client,
 		WGEVersion:         cb.wGEVersion,
 		Username:           cb.username,
 		Password:           cb.password,

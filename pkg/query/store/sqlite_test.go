@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"strings"
 	"testing"
@@ -13,7 +14,7 @@ import (
 	storemetrics "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -171,11 +172,9 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 	storemetrics.DatastoreLatencyHistogram.Reset()
 	storemetrics.DatastoreInflightRequests.Reset()
 
-	metrics.NewPrometheusServer(metrics.Options{
-		ServerAddress: "localhost:8080",
-	})
-
-	metricsUrl := "http://localhost:8080/metrics"
+	_, h := metrics.NewDefaultPrometheusHandler()
+	ts := httptest.NewServer(h)
+	defer ts.Close()
 
 	addObject := models.Object{
 		Cluster:    "cluster-with-objects",
@@ -193,7 +192,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="StoreObjects"`,
 			`datastore_latency_seconds_count{action="StoreObjects",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	role := models.Role{
@@ -232,7 +231,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="StoreRoles"`,
 			`datastore_latency_seconds_count{action="StoreObjects",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have StoreRoleBindings instrumented", func(t *testing.T) {
@@ -241,7 +240,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="StoreRoleBindings"`,
 			`datastore_latency_seconds_count{action="StoreRoleBindings",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have GetObjects instrumented", func(t *testing.T) {
@@ -255,7 +254,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`# TYPE datastore_latency_seconds histogram`,
 			`datastore_latency_seconds_count{action="GetObjects",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 		t.Cleanup(func() {
 			err := it.Close()
 			if err != nil {
@@ -271,7 +270,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="GetObjectByID"} 0`,
 			`datastore_latency_seconds_count{action="GetObjectByID",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have GetRoles instrumented", func(t *testing.T) {
@@ -281,7 +280,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="GetRoles"} 0`,
 			`datastore_latency_seconds_count{action="GetRoles",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have GetRoleBindings instrumented", func(t *testing.T) {
@@ -291,7 +290,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="GetRoleBindings"} 0`,
 			`datastore_latency_seconds_count{action="GetRoleBindings",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have GetAccessRules instrumented", func(t *testing.T) {
@@ -301,7 +300,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="GetAccessRules"} 0`,
 			`datastore_latency_seconds_count{action="GetAccessRules",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have DeleteAllObjects instrumented", func(t *testing.T) {
@@ -311,7 +310,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="DeleteAllObjects"`,
 			`datastore_latency_seconds_count{action="DeleteAllObjects",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have DeleteAllRoles instrumented", func(t *testing.T) {
@@ -321,7 +320,7 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="DeleteAllRoles"`,
 			`datastore_latency_seconds_count{action="DeleteAllRoles",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 	t.Run("should have DeleteAllRoleBindings instrumented", func(t *testing.T) {
@@ -331,15 +330,13 @@ func TestSQLiteStore_Metrics(t *testing.T) {
 			`datastore_inflight_requests{action="DeleteAllRoleBindings"`,
 			`datastore_latency_seconds_count{action="DeleteAllRoleBindings",status="success"} 1`,
 		}
-		assertMetrics(g, metricsUrl, wantMetrics)
+		assertMetrics(g, ts, wantMetrics)
 	})
 
 }
 
-func assertMetrics(g *WithT, metricsUrl string, expMetrics []string) {
-	req, err := http.NewRequest(http.MethodGet, metricsUrl, nil)
-	g.Expect(err).NotTo(HaveOccurred())
-	resp, err := http.DefaultClient.Do(req)
+func assertMetrics(g *WithT, ts *httptest.Server, expMetrics []string) {
+	resp, err := http.Get(ts.URL)
 	g.Expect(err).NotTo(HaveOccurred())
 	b, err := io.ReadAll(resp.Body)
 	g.Expect(err).NotTo(HaveOccurred())

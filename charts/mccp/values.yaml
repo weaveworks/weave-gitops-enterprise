@@ -102,19 +102,17 @@ rbac:
   adminUserRoleBindings:
     create: true
 
-#### Metrics - Prometheus metrics configuration
-metrics:
-  # Enables metrics generation and prometheus endpoint
+#### Monitoring Server
+#### Configures monitoring server and related services
+monitoring:
   enabled: true
   service:
-    # -- Port to start the metrics exporter on
+    name: monitoring
     port: 8080
-    # -- Annotations to set on the service
-    annotations:
-      prometheus.io/scrape: "false"
-      prometheus.io/path: "/metrics"
-      prometheus.io/port: "8080"
-
+  metrics:
+    enabled: true
+  profiling:
+    enabled: false
 
 service:
   type: ClusterIP
