@@ -179,8 +179,6 @@ jobs:
 #
       - name: Run playwright tests workflow
         uses: convictional/trigger-workflow-and-wait@v1.6.1
-        env:
-          CHART_VERSION: ${{ steps.release_tags.outputs.semver_tag }}
         with:
           owner: weaveworks
           repo: playwright-tests
@@ -191,7 +189,7 @@ jobs:
           propagate_failure: false
           trigger_workflow: true
           wait_workflow: true
-          client_payload: '{"chart_version": "${{ env.CHART_VERSION }}"}'
+          client_payload: '{"chart_version": "${{ steps.release_tags.outputs.zero_filled_tag }}"}'
 
 
 #  smoke-test-results:
