@@ -89,7 +89,7 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_PIPELINES
               value: "true"
             {{- end }}
-            {{- if .Values.enableExplorer }}
+            {{- if .Values.explorer.enabled }}
             - name: WEAVE_GITOPS_FEATURE_EXPLORER
               value: "true"
             {{- end }}
@@ -97,12 +97,12 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
               value: "true"
             {{- end }}
-            {{- if .Values.useQueryServiceBackend }}
-            - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
-              value: "true"
-            {{- end }}
             {{- if .Values.enableRunUI }}
             - name: WEAVE_GITOPS_FEATURE_RUN_UI
+              value: "true"
+            {{- end }}
+            {{- if .Values.enableNewPipelines }}
+            - name: WEAVE_GITOPS_FEATURE_NEW_PIPELINES
               value: "true"
             {{- end }}
             {{- if .Values.envVars }}

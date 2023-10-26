@@ -1,15 +1,20 @@
 package server
 
 import (
+	"context"
+	"testing"
+
 	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
+	"github.com/weaveworks/weave-gitops-enterprise/internal/grpctesting"
+	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/query"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"google.golang.org/grpc"
 	fakediscovery "k8s.io/client-go/discovery/fake"
 	fakeclientset "k8s.io/client-go/kubernetes/fake"
-	"testing"
 )
 
 func TestNewServer(t *testing.T) {
@@ -74,4 +79,96 @@ func TestNewServer(t *testing.T) {
 		})
 	}
 
+}
+
+func TestListEnabledComponents(t *testing.T) {
+	g := NewWithT(t)
+
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
+	cmw := clustersmngr.ClustersWatcher{
+		Updates: make(chan clustersmngr.ClusterListUpdate),
+	}
+	clustersManager.SubscribeReturns(&cmw)
+
+	client := fakeclientset.NewSimpleClientset()
+	fakeDiscovery, _ := client.Discovery().(*fakediscovery.FakeDiscovery)
+
+	opts := ServerOpts{
+		Logger:      logr.Discard(),
+		ObjectKinds: configuration.SupportedObjectKinds,
+		ServiceAccount: collector.ImpersonateServiceAccount{
+			Name:      "collector",
+			Namespace: "flux-system",
+		},
+		DiscoveryClient: fakeDiscovery,
+		ClustersManager: clustersManager,
+		SkipCollection:  true,
+		EnabledFor:      []string{"applications"},
+	}
+
+	srv, stop, err := NewServer(opts)
+	g.Expect(err).To(BeNil())
+	defer func() {
+		err := stop()
+		g.Expect(err).To(BeNil())
+	}()
+
+	conn := grpctesting.Setup(t, func(s *grpc.Server) {
+		pb.RegisterQueryServer(s, srv)
+	})
+
+	qs := pb.NewQueryClient(conn)
+
+	res, err := qs.ListEnabledComponents(context.Background(), &pb.ListEnabledComponentsRequest{})
+	g.Expect(err).To(BeNil())
+
+	g.Expect(res.Components).To(ContainElement(pb.EnabledComponent_applications))
+
+	g.Expect(res.Components).NotTo(ContainElement(pb.EnabledComponent_sources))
+}
+
+func TestListEnabledComponents_Invalid(t *testing.T) {
+	g := NewWithT(t)
+
+	clustersManager := &clustersmngrfakes.FakeClustersManager{}
+	cmw := clustersmngr.ClustersWatcher{
+		Updates: make(chan clustersmngr.ClusterListUpdate),
+	}
+	clustersManager.SubscribeReturns(&cmw)
+
+	client := fakeclientset.NewSimpleClientset()
+	fakeDiscovery, _ := client.Discovery().(*fakediscovery.FakeDiscovery)
+
+	opts := ServerOpts{
+		Logger:      logr.Discard(),
+		ObjectKinds: configuration.SupportedObjectKinds,
+		ServiceAccount: collector.ImpersonateServiceAccount{
+			Name:      "collector",
+			Namespace: "flux-system",
+		},
+		DiscoveryClient: fakeDiscovery,
+		ClustersManager: clustersManager,
+		SkipCollection:  true,
+		// Handling invalid component name to avoid
+		// having the first value of the enum get returned on an unknown string.
+		EnabledFor: []string{"foobar"},
+	}
+
+	srv, stop, err := NewServer(opts)
+	g.Expect(err).To(BeNil())
+	defer func() {
+		err := stop()
+		g.Expect(err).To(BeNil())
+	}()
+
+	conn := grpctesting.Setup(t, func(s *grpc.Server) {
+		pb.RegisterQueryServer(s, srv)
+	})
+
+	qs := pb.NewQueryClient(conn)
+
+	res, err := qs.ListEnabledComponents(context.Background(), &pb.ListEnabledComponentsRequest{})
+	g.Expect(err).To(BeNil())
+
+	g.Expect(res.Components).NotTo(ContainElement(pb.EnabledComponent_applications))
 }

@@ -1,17 +1,18 @@
 import { CircularProgress } from '@material-ui/core';
 import {
+  Button as WeaveButton,
   Flex,
   Icon,
   IconType,
   RouterTab,
   SubRouterTabs,
-  Button as WeaveButton,
-  useFeatureFlags,
   useListSources,
 } from '@weaveworks/weave-gitops';
 import { useEffect, useState } from 'react';
 import { useHistory, useRouteMatch } from 'react-router-dom';
+import { EnabledComponent } from '../../api/query/query.pb';
 import useClusters from '../../hooks/clusters';
+import { useIsEnabledForComponent } from '../../hooks/query';
 import { GitopsClusterEnriched } from '../../types/custom';
 import { toFilterQueryString } from '../../utils/FilterQueryString';
 import { Routes } from '../../utils/nav';
@@ -30,7 +31,6 @@ type Props = {
   clusterName: string;
 };
 
-
 const ClusterDetails = ({ clusterName, namespace }: Props) => {
   const { path } = useRouteMatch();
   const history = useHistory();
@@ -41,9 +41,8 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
   const isClusterWithSources = useIsClusterWithSources(clusterName);
   const { isLoading: loading } = useListSources('', '', { retry: false });
 
-  const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.applications,
   );
 
   useEffect(
@@ -68,7 +67,7 @@ const ClusterDetails = ({ clusterName, namespace }: Props) => {
                 startIcon={<Icon type={IconType.FilterIcon} size="base" />}
                 onClick={() => {
                   const clusterName = `${currentCluster?.namespace}/${currentCluster?.name}`;
-                  if (useQueryServiceBackend) {
+                  if (isExplorerEnabled) {
                     const s = linkToExplorer(`/applications`, {
                       filters: [`Cluster:${clusterName}`],
                     } as QueryState);

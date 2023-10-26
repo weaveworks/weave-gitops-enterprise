@@ -166,6 +166,7 @@ type Params struct {
 	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
+	ExplorerEnabledFor                []string                  `mapstructure:"explorer-enabled-for"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -268,6 +269,7 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.Bool("explorer-cleaner-disabled", false, "Enables the Explorer object cleaner that manages retaining objects")
+	cmdFlags.StringSlice("explorer-enabled-for", []string{}, "List of components that the Explorer is enabled for")
 
 	// Monitoring
 	cmdFlags.Bool("monitoring-enabled", false, "creates monitoring server")
@@ -578,6 +580,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
 		WithObjectCleaner(p.EnableObjectCleaner),
+		WithExplorerEnabledFor(p.ExplorerEnabledFor),
 	)
 }
 
@@ -698,6 +701,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
 			EnableObjectCleaner: args.EnableObjectCleaner,
+			EnabledFor:          args.ExplorerEnabledFor,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating query server: %w", err)
