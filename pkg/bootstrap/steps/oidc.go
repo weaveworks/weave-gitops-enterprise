@@ -146,10 +146,10 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 			c.DomainType = domainTypeLocalhost
 			c.UserDomain = domainTypeLocalhost
 		} else {
-			c.Logger.Actionf("setting user domain: %s", domain)
 			c.DomainType = domainTypeExternalDNS
 			c.UserDomain = domain
 		}
+		c.Logger.Actionf("setting user domain: %s", domain)
 	}
 
 	issuerUrl, err := getIssuerFromDiscoveryUrl(c)
