@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -8,6 +9,8 @@ import (
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
 	"github.com/fluxcd/pkg/apis/meta"
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops-enterprise/test/utils"
+	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -107,4 +110,183 @@ status: {}
 	yamlString, err := CreateHelmRepositoryYamlString(helmRepo)
 	assert.NoError(t, err, "error creating HelmRepository YAML string")
 	assert.Equal(t, expectedYaml, yamlString, "doesn't match expected YAML")
+}
+
+func TestGetHelmReleaseProperty(t *testing.T) {
+
+	tests := []struct {
+		name        string
+		property    string
+		expectedOut string
+		err         bool
+	}{
+		{
+			name:     "property doesn't exist",
+			property: "test",
+			err:      true,
+		},
+		{
+			name:        "property exist",
+			property:    "version",
+			expectedOut: "1.0.0",
+			err:         false,
+		},
+		{
+			name:        "property exist",
+			property:    "domain",
+			expectedOut: "testdomain.com",
+			err:         false,
+		},
+	}
+
+	values := map[string]interface{}{
+		"ingress": map[string]interface{}{
+			"annotations": map[string]string{
+				"external-dns.alpha.kubernetes.io/hostname": "testdomain.com",
+			},
+			"className": "public-nginx",
+			"enabled":   true,
+			"hosts": []map[string]interface{}{
+				{
+					"host": "testdomain.com",
+					"paths": []map[string]string{
+						{
+							"path":     "/",
+							"pathType": "ImplementationSpecific",
+						},
+					},
+				},
+			},
+		},
+	}
+	valuesBytes, err := json.Marshal(values)
+	if err != nil {
+		t.Fatalf("failed to marshal values: %v", err)
+	}
+
+	testHR := &helmv2.HelmRelease{
+		TypeMeta: v1.TypeMeta{
+			Kind:       helmv2.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.Identifier(),
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "wego",
+			Namespace: "flux-system",
+		}, Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart:             "test-chart",
+					ReconcileStrategy: sourcev1beta2.ReconcileStrategyChartVersion,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind:      sourcev1beta2.HelmRepositoryKind,
+						Name:      "test-secret-name",
+						Namespace: "test-secret-namespace",
+					},
+					Version: "1.0.0",
+				},
+			},
+			Values: &apiextensionsv1.JSON{Raw: valuesBytes},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := utils.CreateFakeClient(t, testHR)
+			prop, err := GetHelmReleaseProperty(client, "wego", "flux-system", tt.property)
+			if err != nil {
+				if tt.err {
+					return
+				}
+				t.Fatalf("error getting property: %v", err)
+			}
+			assert.Equal(t, tt.expectedOut, prop, "invalid property")
+		})
+	}
+
+}
+
+func TestGetHelmReleaseValues(t *testing.T) {
+	values := map[string]interface{}{
+		"ingress": map[string]interface{}{
+			"annotations": map[string]string{
+				"external-dns.alpha.kubernetes.io/hostname": "testdomain.com",
+			},
+			"className": "public-nginx",
+			"enabled":   true,
+			"hosts": []map[string]interface{}{
+				{
+					"host": "testdomain.com",
+					"paths": []map[string]string{
+						{
+							"path":     "/",
+							"pathType": "ImplementationSpecific",
+						},
+					},
+				},
+			},
+		},
+	}
+	valuesBytes, err := json.Marshal(values)
+	if err != nil {
+		t.Fatalf("failed to marshal values: %v", err)
+	}
+
+	testHR := &helmv2.HelmRelease{
+		TypeMeta: v1.TypeMeta{
+			Kind:       helmv2.HelmReleaseKind,
+			APIVersion: helmv2.GroupVersion.Identifier(),
+		},
+		ObjectMeta: v1.ObjectMeta{
+			Name:      "wego",
+			Namespace: "flux-system",
+		}, Spec: helmv2.HelmReleaseSpec{
+			Chart: helmv2.HelmChartTemplate{
+				Spec: helmv2.HelmChartTemplateSpec{
+					Chart:             "test-chart",
+					ReconcileStrategy: sourcev1beta2.ReconcileStrategyChartVersion,
+					SourceRef: helmv2.CrossNamespaceObjectReference{
+						Kind:      sourcev1beta2.HelmRepositoryKind,
+						Name:      "test-secret-name",
+						Namespace: "test-secret-namespace",
+					},
+					Version: "1.0.0",
+				},
+			},
+			Values: &apiextensionsv1.JSON{Raw: valuesBytes},
+		},
+	}
+
+	tests := []struct {
+		name           string
+		helmRelease    helmv2.HelmRelease
+		expectedValues []byte
+		err            bool
+	}{
+		{
+			name:           "values exist",
+			helmRelease:    *testHR,
+			expectedValues: valuesBytes,
+			err:            false,
+		},
+		{
+			name:        "values doesn't exist",
+			helmRelease: helmv2.HelmRelease{},
+			err:         true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client := utils.CreateFakeClient(t, &tt.helmRelease)
+			values, err := GetHelmReleaseValues(client, "wego", "flux-system")
+			if err != nil {
+				if tt.err {
+					return
+				}
+				t.Fatalf("error getting helmrelease: %v", err)
+			}
+			assert.Equal(t, tt.expectedValues, values, "invalid values")
+		})
+	}
+
 }
