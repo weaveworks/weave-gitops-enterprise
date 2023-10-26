@@ -6,20 +6,20 @@ on:
 
 name: deploy
 jobs:
-  build:
-    uses: ./.github/workflows/build.yaml
-    with:
-      helmrepo: "charts-v3-r2"
-    secrets:
-      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
-      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
-      WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
-      WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
-      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
-      WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
+#  build:
+#    uses: ./.github/workflows/build.yaml
+#    with:
+#      helmrepo: "charts-v3-r2"
+#    secrets:
+#      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+#      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
+#      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+#      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+#      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+#      WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
+#      WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
+#      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+#      WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
 #
 #  coverage:
 #    runs-on: ubuntu-latest
@@ -159,6 +159,9 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Generate release tags
         id: release_tags
         run: |
