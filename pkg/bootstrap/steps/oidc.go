@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	corev1 "k8s.io/api/core/v1"
@@ -28,9 +29,9 @@ const (
 	oidcInstallInfoMsg  = "Configuring OIDC"
 	oidcConfirmationMsg = "OIDC has been configured successfully! It will be ready to use after reconcillation"
 
-	oidcConfigExistWarningMsg = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again"
-
-	oidcCommitMsg = "Add OIDC values in WGE HelmRelease yaml file"
+	oidcConfigExistWarningMsg  = "OIDC is already configured on the cluster. To reset configurations please remove secret '%s' in namespace '%s' and run 'bootstrap auth --type=oidc' command again"
+	oidcConfigExistContinueMsg = "OIDC is already configured on the cluster. Configurations in secret '%s' in namespace '%s'"
+	oidcCommitMsg              = "Add OIDC values in WGE HelmRelease yaml file"
 )
 
 const (
@@ -131,19 +132,22 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		if continueWithExistingConfigs != confirmYes {
 			c.Logger.Warningf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace)
 		}
+		c.Logger.Warningf(oidcConfigExistContinueMsg, oidcSecretName, WGEDefaultNamespace)
 		return []StepOutput{}, nil
 	}
 
 	// process user domain if not passed
 	if c.UserDomain == "" {
-		if c.DomainType == domainTypeLocalhost {
+		domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
+		if err != nil {
+			return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
+		}
+		if strings.Contains(domain, domainTypeLocalhost) {
+			c.DomainType = domainTypeLocalhost
 			c.UserDomain = domainTypeLocalhost
 		} else {
-			domain, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmDomainProperty)
-			if err != nil {
-				return []StepOutput{}, fmt.Errorf("error getting helm release domain: %v", err)
-			}
 			c.Logger.Actionf("setting user domain: %s", domain)
+			c.DomainType = domainTypeExternalDNS
 			c.UserDomain = domain
 		}
 	}
