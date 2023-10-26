@@ -175,7 +175,7 @@ jobs:
           propagate_failure: false
           trigger_workflow: true
           wait_workflow: true
-          client_payload: '{"CHART_VERSION": "${{ env.CHART_VERSION }}"}'
+          client_payload: '{"chart_version": "${{ env.CHART_VERSION }}"}'
 
 
 #  smoke-test-results:
