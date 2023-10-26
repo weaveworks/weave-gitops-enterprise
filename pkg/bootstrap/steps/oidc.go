@@ -131,8 +131,9 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	if existing, _ := isExistingOIDCConfig(input, c); existing.(bool) {
 		if continueWithExistingConfigs != confirmYes {
 			c.Logger.Warningf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace)
+		} else {
+			c.Logger.Warningf(oidcConfigExistContinueMsg, oidcSecretName, WGEDefaultNamespace)
 		}
-		c.Logger.Warningf(oidcConfigExistContinueMsg, oidcSecretName, WGEDefaultNamespace)
 		return []StepOutput{}, nil
 	}
 
