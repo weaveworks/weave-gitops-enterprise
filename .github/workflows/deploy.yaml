@@ -165,13 +165,14 @@ jobs:
       - name: Generate release tags
         id: release_tags
         run: |
-          TAG=$(git describe --always --match "v*" --abbrev=7)
+          TAG=$(git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//' ) 
           # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
           # Also the `v` is important as helm's and some other semver parsers do not allow the "rc" bit of the tag to start with a zero.
           # It is also important to use 'v' to help with semver sorting. Any character after 'r' (for 'rc' tags) will work. 'v' just makes sense.
           ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-v%05d-g$REF" $N)
           SEMVER_TAG=$(awk -F'^v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
           echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "char=$TAG" >> $GITHUB_OUTPUT
           echo "zero_filled_tag=$ZERO_FILLED_TAG" >> $GITHUB_OUTPUT
           echo "semver_tag=$SEMVER_TAG" >> $GITHUB_OUTPUT
       - name: debug tags
@@ -192,7 +193,7 @@ jobs:
           propagate_failure: false
           trigger_workflow: true
           wait_workflow: true
-          client_payload: '{"chart_version": "${{ steps.release_tags.outputs.semver_tag }}"}'
+          client_payload: '{"chart_version": "${{ steps.release_tags.outputs.tag }}"}'
 
 
 #  smoke-test-results:
