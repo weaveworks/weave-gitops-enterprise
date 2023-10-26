@@ -27,6 +27,7 @@ func bootstrapOIDC(config steps.Config) error {
 		steps.VerifyFluxInstallation,
 		steps.CheckEntitlementSecret,
 		steps.NewAskPrivateKeyStep(config),
+		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
 	}
 

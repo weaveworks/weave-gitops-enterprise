@@ -65,13 +65,6 @@ var clientSecretStep = StepInput{
 func NewOIDCConfigStep(config Config) BootstrapStep {
 	inputs := []StepInput{
 		{
-			Name:         oidcInstalled,
-			Type:         confirmInput,
-			Msg:          oidcInstallMsg,
-			DefaultValue: "",
-			Valuesfn:     canAskOIDCPrompot,
-		},
-		{
 			Name:            existingOIDC,
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
@@ -129,13 +122,16 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 
+	if c.InstallOIDC != confirmYes {
+		return []StepOutput{}, nil
+	}
+
 	// check existing oidc configuration
 	if existing, _ := isExistingOIDCConfig(input, c); existing.(bool) {
 		if continueWithExistingConfigs != confirmYes {
-			return []StepOutput{}, fmt.Errorf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace)
-		} else {
-			return []StepOutput{}, nil
+			c.Logger.Warningf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace)
 		}
+		return []StepOutput{}, nil
 	}
 
 	// process user domain if not passed
@@ -256,6 +252,10 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 // returns false if OIDC is already on the cluster
 // returns true if no OIDC on the cluster
 func isExistingOIDCConfig(input []StepInput, c *Config) (interface{}, error) {
+	if c.InstallOIDC != "y" {
+		return false, nil
+	}
+
 	_, err := utils.GetSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace)
 	if err != nil {
 		return false, nil
@@ -264,14 +264,14 @@ func isExistingOIDCConfig(input []StepInput, c *Config) (interface{}, error) {
 }
 
 func canAskForConfig(input []StepInput, c *Config) (interface{}, error) {
+	if c.InstallOIDC != "y" {
+		return false, nil
+	}
+
 	if ask, _ := isExistingOIDCConfig(input, c); ask.(bool) {
 		return false, nil
 	}
 	return true, nil
-}
-
-func canAskOIDCPrompot(input []StepInput, c *Config) (interface{}, error) {
-	return c.PromptedForDiscoveryURL, nil
 }
 
 // func to get issuer url from discovery url

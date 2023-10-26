@@ -59,6 +59,7 @@ type ConfigBuilder struct {
 	privateKeyPath          string
 	privateKeyPassword      string
 	authType                string
+	installOIDC             string
 	discoveryURL            string
 	clientID                string
 	clientSecret            string
@@ -121,6 +122,7 @@ func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, cli
 		prompted = false
 	}
 	c.PromptedForDiscoveryURL = prompted
+	c.installOIDC = "y" // todo: change to parameter
 	return c
 }
 
@@ -142,6 +144,7 @@ type Config struct {
 	PrivateKeyPassword string
 
 	AuthType                string
+	InstallOIDC             string
 	DiscoveryURL            string
 	IssuerURL               string
 	ClientID                string
@@ -185,6 +188,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
 		AuthType:                cb.authType,
+		InstallOIDC:             cb.installOIDC,
 		DiscoveryURL:            cb.discoveryURL,
 		ClientID:                cb.clientID,
 		ClientSecret:            cb.clientSecret,
