@@ -21,10 +21,10 @@ import useConfig from '../../hooks/config';
 import { useGitRepos } from '../../hooks/gitrepos';
 import { openLinkHandler } from '../../utils/link-checker';
 import {
+  bitbucketReposToHttpsUrl,
   getDefaultGitRepo,
   getProvider,
   getRepositoryUrl,
-  bitbucketReposToHttpsUrl,
 } from '../Templates/Form/utils';
 
 const useStyles = makeStyles(() =>
@@ -74,7 +74,7 @@ export default function OpenedPullRequest() {
 
   const anchorRef = React.useRef<HTMLDivElement>(null);
 
-  const { gitRepos } = useGitRepos();
+  const { gitRepos, isLoading: reposLoading } = useGitRepos();
 
   const Classes = useStyles();
 
@@ -88,8 +88,8 @@ export default function OpenedPullRequest() {
     [gitRepos, config],
   );
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (reposLoading || isLoading) {
+    return null;
   }
 
   if (!config) {

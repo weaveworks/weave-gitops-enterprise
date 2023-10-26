@@ -55,7 +55,6 @@ config:
       content: ''
       hideVersion: false
     logoURL: ''
-enableExplorer: false
 enablePipelines: true
 enableRunUI: false
 enableTerraformUI: false
@@ -67,6 +66,7 @@ envVars:
 - name: WEAVE_GITOPS_USERS_CLIENTS_TTL
   value: 30s
 explorer:
+  enabled: false
   cleaner:
     disabled: false
   collector:

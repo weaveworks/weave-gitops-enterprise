@@ -60,6 +60,7 @@ type Options struct {
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
 	MonitoringOptions         monitoring.Options
 	EnableObjectCleaner       bool
+	ExplorerEnabledFor        []string
 }
 
 type Option func(*Options)
@@ -288,5 +289,12 @@ func WithMonitoring(enabled bool, address string, metricsEnabled bool, profiling
 func WithObjectCleaner(enabled bool) Option {
 	return func(o *Options) {
 		o.EnableObjectCleaner = enabled
+	}
+}
+
+// ExplorerEnabledFor turns on and off the explorer for different parts of the UI
+func WithExplorerEnabledFor(enabledFor []string) Option {
+	return func(o *Options) {
+		o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, enabledFor...)
 	}
 }

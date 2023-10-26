@@ -77,6 +77,10 @@ func TestBootstrapCmd(t *testing.T) {
 	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
 	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
 
+	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
+	g.Expect(oidcClientSecret).NotTo(BeEmpty())
+	oidcClientSecretFlag := fmt.Sprintf("--client-secret=%s", oidcClientSecret)
+
 	_ = k8sClient.Create(context.Background(), &fluxSystemNamespace)
 
 	tests := []struct {
@@ -87,13 +91,16 @@ func TestBootstrapCmd(t *testing.T) {
 		reset            func(t *testing.T)
 	}{
 		{
-			name: "should install with ssh repo",
+			name: "should bootstrap non-interactive with valid arguments",
 			flags: []string{kubeconfigFlag,
 				"--version=0.33.0",
 				privateKeyFlag, "--private-key-password=\"\"",
 				"--username=admin",
 				"--password=admin123",
 				"--domain-type=localhost",
+				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+				"--client-id=weave-gitops-enterprise",
+				oidcClientSecretFlag,
 			},
 			setup: func(t *testing.T) {
 				bootstrapFluxSsh(g, kubeconfigFlag)
@@ -122,6 +129,7 @@ func TestBootstrapCmd(t *testing.T) {
 			bootstrapCmdArgs := []string{"bootstrap"}
 			bootstrapCmdArgs = append(bootstrapCmdArgs, tt.flags...)
 			cmd.SetArgs(bootstrapCmdArgs)
+			fmt.Println("bootstrap args: ", bootstrapCmdArgs)
 
 			err := cmd.Execute()
 			if tt.expectedErrorStr != "" {
