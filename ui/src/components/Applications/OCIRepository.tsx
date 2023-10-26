@@ -1,5 +1,3 @@
-import { FC } from 'react';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   OCIRepositoryDetail,
   Kind,
@@ -7,8 +5,10 @@ import {
   V2Routes,
 } from '@weaveworks/weave-gitops';
 import { OCIRepository } from '@weaveworks/weave-gitops/ui/lib/objects';
-import { EditButton } from '../Templates/Edit/EditButton';
+import { FC } from 'react';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import { EditButton } from '../Templates/Edit/EditButton';
 
 type Props = {
   name: string;

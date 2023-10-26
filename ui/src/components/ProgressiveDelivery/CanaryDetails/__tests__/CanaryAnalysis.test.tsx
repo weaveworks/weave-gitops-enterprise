@@ -1,13 +1,13 @@
 import { act, render, screen } from '@testing-library/react';
-import { CanaryMetricsTable } from '../Analysis/CanaryMetricsTable';
+import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
 import { ProgressiveDeliveryProvider } from '../../../../contexts/ProgressiveDelivery';
 import {
   defaultContexts,
+  findTextByHeading,
   ProgressiveDeliveryMock,
   withContext,
-  findTextByHeading,
 } from '../../../../utils/test-utils';
-import { CanaryMetric } from '@weaveworks/progressive-delivery/api/prog/types.pb';
+import { CanaryMetricsTable } from '../Analysis/CanaryMetricsTable';
 
 describe('CanaryMetricsTable', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -22,7 +22,7 @@ describe('CanaryMetricsTable', () => {
     api.IsFlaggerAvailableReturns = { clusters: { 'my-cluster': true } };
   });
   it('renders metrics table for a canary with metrics', async () => {
-    let canaryAsJson = `
+    const canaryAsJson = `
     {
       "namespace": "canary",
       "name": "canary01",
@@ -44,7 +44,7 @@ describe('CanaryMetricsTable', () => {
         ]
       }
     }`;
-    let canary = JSON.parse(canaryAsJson);
+    const canary = JSON.parse(canaryAsJson);
     api.GetCanaryReturns = {
       canary: canary,
     };

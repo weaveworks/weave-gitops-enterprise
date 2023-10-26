@@ -92,8 +92,6 @@ jobs:
       WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
       WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
       WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
-      WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-      WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
 
   smoke-tests-gitlab-deploy:
     needs: [build, coverage]
@@ -124,8 +122,6 @@ jobs:
       WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
-      WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-      WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
 
   smoke-tests-gitlab-tenant:
     needs: [build, coverage]
@@ -156,8 +152,6 @@ jobs:
       WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
-      WGE_EKS_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-      WGE_EKS_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
 
   smoke-test-results:
     if: ${{ always() }}

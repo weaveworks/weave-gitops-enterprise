@@ -1,7 +1,7 @@
 import React, { useState, useEffect, FC } from 'react';
 import { useLocation } from 'react-router-dom';
-import { NotificationsWrapper } from './Layout/NotificationsWrapper';
 import { Page } from './Layout/App';
+import { NotificationsWrapper } from './Layout/NotificationsWrapper';
 
 interface Props {
   hasError: boolean;

@@ -7,11 +7,11 @@ import { useGetTerraformObjectDetail } from '../../../contexts/Terraform';
 import useClusters from '../../../hooks/clusters';
 import useTemplates from '../../../hooks/templates';
 import { Routes } from '../../../utils/nav';
+import { Page } from '../../Layout/App';
 import { Title, NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import ResourceForm from '../Form';
 import { getCreateRequestAnnotation } from '../Form/utils';
 import { Resource } from './EditButton';
-import { Page } from '../../Layout/App';
 
 const EditResource: FC<{
   resource: Resource;

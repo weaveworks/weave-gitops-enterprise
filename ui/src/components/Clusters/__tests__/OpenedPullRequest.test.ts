@@ -1,6 +1,6 @@
 import { GitRepository } from '@weaveworks/weave-gitops';
-import { getPullRequestUrl } from '../OpenedPullRequest';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
+import { getPullRequestUrl } from '../OpenedPullRequest';
 
 describe('getPullRequestUrl', () => {
   it('should generate the correct url', () => {

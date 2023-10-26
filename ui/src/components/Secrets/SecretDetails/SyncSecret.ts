@@ -1,5 +1,5 @@
-import { ClustersService } from '../../../cluster-services/cluster_services.pb';
 import { QueryClient, useQueryClient } from 'react-query';
+import { ClustersService } from '../../../cluster-services/cluster_services.pb';
 
 interface DetailParams {
   clusterName: string;

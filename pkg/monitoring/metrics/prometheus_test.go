@@ -50,40 +50,31 @@ type handlerConfig struct {
 	NumberRequests int
 }
 
-func TestNewMetricsServer(t *testing.T) {
-	require := require.New(t)
-	assert := assert.New(t)
+func TestNewDefaultPprofHandler(t *testing.T) {
 
-	t.Run("should create new metrics server", func(t *testing.T) {
+	t.Run("should create prometheus metrics handler", func(t *testing.T) {
+		_, h := NewDefaultPrometheusHandler()
 
-		NewPrometheusServer(Options{
-			ServerAddress: "localhost:8080",
-		})
+		ts := httptest.NewServer(h)
+		defer ts.Close()
 
-		// Get metrics.
-		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
-		require.NoError(err)
-		resp, err := http.DefaultClient.Do(r)
-		require.NoError(err)
-
-		// Check.
+		resp, err := http.Get(ts.URL)
+		require.NoError(t, err)
 		b, err := io.ReadAll(resp.Body)
-		require.NoError(err)
+		require.NoError(t, err)
 		metrics := string(b)
 
-		assert.Contains(metrics, "# HELP go_gc_duration_seconds")
+		assert.Contains(t, metrics, "# HELP go_gc_duration_seconds")
+
 	})
 }
 
 func TestWithMetrics(t *testing.T) {
-	require := require.New(t)
-	assert := assert.New(t)
 	t.Run("should record metrics for http server", func(t *testing.T) {
-
 		// create metrics server
-		NewPrometheusServer(Options{
-			ServerAddress: "localhost:8080",
-		})
+		_, h := NewDefaultPrometheusHandler()
+		ts := httptest.NewServer(h)
+		defer ts.Close()
 
 		// create http server with metrics recorder
 		next := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
@@ -98,29 +89,25 @@ func TestWithMetrics(t *testing.T) {
 		for _, config := range expReqs {
 			for i := 0; i < config.NumberRequests; i++ {
 				r, err := http.NewRequest(config.Method, s.URL()+config.Path, nil)
-				require.NoError(err)
+				require.NoError(t, err)
 				resp, err := http.DefaultClient.Do(r)
-				require.NoError(err)
-
-				assert.Equal(config.Code, resp.StatusCode)
+				require.NoError(t, err)
+				assert.Equal(t, config.Code, resp.StatusCode)
 				b, err := io.ReadAll(resp.Body)
-				require.NoError(err)
-				assert.Equal(config.ReturnData, string(b))
+				require.NoError(t, err)
+				assert.Equal(t, config.ReturnData, string(b))
 			}
 		}
 
 		// assert metrics has been created included the previous generated http requests
-		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
-		require.NoError(err)
-		resp, err := http.DefaultClient.Do(r)
-		require.NoError(err)
-
+		resp, err := http.Get(ts.URL)
+		require.NoError(t, err)
 		b, err := io.ReadAll(resp.Body)
-		require.NoError(err)
+		require.NoError(t, err)
 		metrics := string(b)
 
 		for _, expMetric := range expMetrics {
-			assert.Contains(metrics, expMetric)
+			assert.Contains(t, metrics, expMetric)
 		}
 	})
 }

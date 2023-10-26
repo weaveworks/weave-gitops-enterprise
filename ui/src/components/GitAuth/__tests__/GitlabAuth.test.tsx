@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import { CoreClientContextProvider, Kind } from '@weaveworks/weave-gitops';
 import { GitProvider } from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
@@ -12,11 +13,12 @@ import {
   withContext,
 } from '../../../utils/test-utils';
 import { RepoInputWithAuth } from '../RepoInputWithAuth';
-import { CoreClientContextProvider, Kind } from '@weaveworks/weave-gitops';
 
 Object.assign(navigator, {
   clipboard: {
-    writeText: () => {},
+    writeText: () => {
+      return;
+    },
   },
 });
 

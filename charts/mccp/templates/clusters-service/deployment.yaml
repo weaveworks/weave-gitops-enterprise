@@ -38,9 +38,9 @@ spec:
             - containerPort: 8000
               name: server
               protocol: TCP
-          {{- if .Values.metrics.enabled }}
-            - name: http-metrics
-              containerPort: {{ .Values.metrics.service.port }}
+          {{- if .Values.monitoring.enabled }}
+            - name: {{ .Values.monitoring.service.name }}
+              containerPort: {{ .Values.monitoring.service.port }}
               protocol: TCP
           {{- end }}
           image: {{ .Values.images.clustersService }}
@@ -89,7 +89,7 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_PIPELINES
               value: "true"
             {{- end }}
-            {{- if .Values.enableExplorer }}
+            {{- if .Values.explorer.enabled }}
             - name: WEAVE_GITOPS_FEATURE_EXPLORER
               value: "true"
             {{- end }}
@@ -97,12 +97,12 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_TERRAFORM_UI
               value: "true"
             {{- end }}
-            {{- if .Values.useQueryServiceBackend }}
-            - name: WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND
-              value: "true"
-            {{- end }}
             {{- if .Values.enableRunUI }}
             - name: WEAVE_GITOPS_FEATURE_RUN_UI
+              value: "true"
+            {{- end }}
+            {{- if .Values.enableNewPipelines }}
+            - name: WEAVE_GITOPS_FEATURE_NEW_PIPELINES
               value: "true"
             {{- end }}
             {{- if .Values.envVars }}

@@ -1,8 +1,8 @@
 import styled from 'styled-components';
 import { useListTerraformObjects } from '../../contexts/Terraform';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import TerraformListTable from './TerraformListTable';
-import { Page } from '../Layout/App';
 
 type Props = {
   className?: string;

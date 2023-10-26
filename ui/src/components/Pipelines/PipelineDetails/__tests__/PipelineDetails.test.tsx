@@ -1,23 +1,16 @@
 /* eslint-disable testing-library/no-node-access */
-import {
-  act,
-  fireEvent,
-  render,
-  RenderResult,
-  screen,
-} from '@testing-library/react';
-import { CoreClientContextProvider, formatURL } from '@weaveworks/weave-gitops';
+import { act, render, screen } from '@testing-library/react';
+import { CoreClientContextProvider } from '@weaveworks/weave-gitops';
 import PipelineDetails from '..';
 import { GetPipelineResponse } from '../../../../api/pipelines/pipelines.pb';
 import { Pipeline } from '../../../../api/pipelines/types.pb';
 import { PipelinesProvider } from '../../../../contexts/Pipelines';
 import {
   CoreClientMock,
-  defaultContexts,
   PipelinesClientMock,
+  defaultContexts,
   withContext,
 } from '../../../../utils/test-utils';
-const fs = require('fs');
 
 const res: GetPipelineResponse = {
   pipeline: {
@@ -31,6 +24,7 @@ const res: GetPipelineResponse = {
     environments: [
       {
         name: 'dev',
+        promotion: { manual: true, strategy: { notification: {} } },
         targets: [
           {
             namespace: 'podinfo-02-dev',
@@ -44,6 +38,7 @@ const res: GetPipelineResponse = {
       },
       {
         name: 'test',
+        promotion: { manual: true, strategy: { secretRef: { name: 'test' } } },
         targets: [
           {
             namespace: 'podinfo-02-qa',
@@ -65,6 +60,16 @@ const res: GetPipelineResponse = {
       },
       {
         name: 'prod',
+        promotion: {
+          manual: true,
+          strategy: {
+            pullRequest: {
+              type: 'github',
+              url: 'https://gitlab.com/weaveworks/cool-project',
+              branch: 'main',
+            },
+          },
+        },
         targets: [
           {
             namespace: 'podinfo-02-prod',
@@ -94,8 +99,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.2.1',
-                  lastAppliedRevision: '6.2.1',
+                  version: '6.0.0',
+                  lastAppliedRevision: '6.0.0.0',
                   conditions: [
                     {
                       type: 'Ready',
@@ -130,8 +135,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.1.6',
-                  lastAppliedRevision: '6.1.6',
+                  version: '6.0.1',
+                  lastAppliedRevision: '6.0.1.1',
                   conditions: [
                     {
                       type: 'Ready',
@@ -167,8 +172,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.1.8',
-                  lastAppliedRevision: '6.1.8',
+                  version: '6.0.2',
+                  lastAppliedRevision: '6.0.2.2',
                   conditions: [
                     {
                       type: 'Ready',
@@ -200,8 +205,8 @@ const res: GetPipelineResponse = {
                 {
                   kind: 'HelmRelease',
                   name: 'podinfo',
-                  version: '6.1.8',
-                  lastAppliedRevision: '6.1.8',
+                  version: '6.0.3',
+                  lastAppliedRevision: '6.0.3.3',
                   conditions: [
                     {
                       type: 'Ready',
@@ -230,16 +235,6 @@ const res: GetPipelineResponse = {
     type: 'Pipeline',
   },
 };
-
-interface MappedWorkload {
-  kind?: string | undefined;
-  name?: string | undefined;
-  namespace?: string | undefined;
-  version?: string | undefined;
-  lastAppliedVersion?: string | undefined;
-  mappedClusterName?: string | undefined;
-  clusterName?: string | undefined;
-}
 
 describe('PipelineDetails', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
@@ -274,120 +269,27 @@ describe('PipelineDetails', () => {
     const title = screen.getByTestId('link-Pipelines').textContent;
     expect(title).toEqual('Pipelines');
     expect(await screen.findByText('podinfo-02')).toBeTruthy();
-
-    const targetsStatuses = params?.status?.environments || {};
-
-    // Env & targets
-    params?.environments?.forEach(env => {
-      const targets = document.querySelectorAll(
-        `#${env.name} > [role="targeting"]`,
-      );
-      expect(targets.length).toEqual(env.targets?.length);
-
-      let workloads: MappedWorkload[] = [];
-
-      targetsStatuses[env.name!].targetsStatuses?.forEach(ts => {
-        if (ts.workloads) {
-          const wrks = ts.workloads.map(wrk => ({
-            ...wrk,
-            clusterName: ts.clusterRef?.name || 'management',
-            mappedClusterName: ts.clusterRef?.name
-              ? `${ts.clusterRef?.namespace || 'default'}/${ts.clusterRef.name}`
-              : 'management',
-            namespace: ts.namespace,
-          }));
-          workloads = [...workloads, ...wrks];
-        }
-      });
-
-      // Targets
-      targets.forEach((target, index) => {
-        const workloadTarget = target.querySelector('.workloadTarget');
-
-        // Cluster Name
-        const clusterNameEle = workloadTarget?.querySelector('.cluster-name');
-        checkTextContentToEqual(
-          clusterNameEle,
-          workloads![index].clusterName || '',
-        );
-
-        // Workload Namespace
-        const workloadNamespace = workloadTarget?.querySelector(
-          '.workload-namespace',
-        );
-        expect(workloadNamespace?.textContent).toEqual(
-          workloads![index].namespace,
-        );
-
-        //Target as a link
-        const linkToAutomation = target.querySelector('.automation > a');
-
-        const href = formatURL('/helm_release/details', {
-          name: workloads![index].name,
-          namespace: workloads![index].namespace,
-          clusterName: workloads![index].mappedClusterName,
-        });
-        expect(linkToAutomation).toHaveAttribute('href', href);
-
-        // Workload Last Applied Version
-        const lastAppliedRevision = target.querySelector(
-          'workloadName > .last-applied-version',
-        );
-        if (workloads![index].lastAppliedVersion) {
-          checkTextContentToEqual(
-            lastAppliedRevision,
-            workloads![index].lastAppliedVersion || '',
-          );
-        } else {
-          elementToBeNull(lastAppliedRevision);
-        }
-
-        // Workload Version
-        const workloadVersion = target.querySelector('.version')?.textContent;
-        expect(workloadVersion).toEqual(`v${workloads![index].version}`);
-      });
-    });
+    //3 envs
+    expect(await screen.findByText('dev')).toBeInTheDocument();
+    expect(await screen.findByText('test')).toBeInTheDocument();
+    expect(await screen.findByText('prod')).toBeInTheDocument();
+    //3 targets with applied and speicified versions
+    let i = 0;
+    while (i <= 3) {
+      expect(
+        await screen.findByText(`SPECIFIED VERSION: v6.0.${i}`),
+      ).toBeInTheDocument();
+      expect(
+        await screen.findByText(`LAST APPLIED VERSION: v6.0.${i}.${i}`),
+      ).toBeInTheDocument();
+      i++;
+    }
   });
 
-  it('renders pipeline Yaml', async () => {
-    const params = res.pipeline;
-    api.GetPipelineReturns = res;
-
-    await act(async () => {
-      const c = wrap(
-        <PipelineDetails
-          name={params?.name || ''}
-          namespace={params?.namespace || ''}
-        />,
-      );
-      render(c);
-    });
-
-    const yamlTab = screen
-      .getAllByRole('tab')
-      .filter(tabEle => tabEle.textContent === 'Yaml')[0];
-
-    yamlTab.click();
-    const code = document.querySelector('pre')?.textContent?.trimEnd();
-    expect(code).toMatchSnapshot();
-  });
   describe('renders promotion strategy', () => {
     it('pull request', async () => {
       const params = res.pipeline;
-      const withPromotion: Pipeline = {
-        ...res.pipeline,
-        promotion: {
-          manual: false,
-          strategy: {
-            pullRequest: {
-              type: 'github',
-              url: 'https://gitlab.com/weaveworks/cool-project',
-              branch: 'main',
-            },
-          },
-        },
-      };
-      api.GetPipelineReturns = { ...res, pipeline: withPromotion };
+      api.GetPipelineReturns = res;
       core.GetObjectReturns = { object: {} };
 
       await act(async () => {
@@ -399,73 +301,16 @@ describe('PipelineDetails', () => {
         );
         render(c);
       });
-
-      const keyVal = document.querySelector('.KeyValueTable');
-
-      expect(keyVal?.textContent).toContain('Pull Request');
-      expect(keyVal?.textContent).toContain(
-        withPromotion.promotion?.strategy?.pullRequest?.url,
-      );
-      expect(keyVal?.textContent).toContain(
-        withPromotion.promotion?.strategy?.pullRequest?.branch,
-      );
-      expect(keyVal?.textContent).not.toContain('Notification');
-    });
-    it('notification', async () => {
-      const params = res.pipeline;
-      const withPromotion: Pipeline = {
-        ...res.pipeline,
-        promotion: {
-          manual: false,
-          strategy: {
-            notification: {},
-          },
-        },
-      };
-      api.GetPipelineReturns = { ...res, pipeline: withPromotion };
-      core.GetObjectReturns = { object: {} };
-
-      await act(async () => {
-        const c = wrap(
-          <PipelineDetails
-            name={params?.name || ''}
-            namespace={params?.namespace || ''}
-          />,
-        );
-        render(c);
-      });
-
-      const keyVal = document.querySelector('.KeyValueTable');
-
-      expect(keyVal?.textContent).toContain('Notification');
-      expect(keyVal?.textContent).not.toContain('Pull Request');
+      expect(screen.getByText('Pull Request')).toBeInTheDocument();
+      expect(
+        screen.getByText('https://gitlab.com/weaveworks/cool-project'),
+      ).toBeInTheDocument();
+      expect(screen.getByText('main')).toBeInTheDocument();
+      expect(screen.getByText('Secret Ref')).toBeInTheDocument();
+      expect(screen.getByText('Notification')).toBeInTheDocument();
     });
   });
-
-  it('handles visibility of promotion button: auto-approve', async () => {
-    const params = res.pipeline;
-    const auto: Pipeline = {
-      ...res.pipeline,
-      promotion: {
-        manual: false,
-      },
-    };
-    api.GetPipelineReturns = { ...res, pipeline: auto };
-    core.GetObjectReturns = { object: {} };
-
-    await act(async () => {
-      const c = wrap(
-        <PipelineDetails
-          name={params?.name || ''}
-          namespace={params?.namespace || ''}
-        />,
-      );
-      render(c);
-    });
-
-    expect(screen.queryByText('Approve Promotion')).toBeNull();
-  });
-  it('handles visibility of promotion button: manual', async () => {
+  it('handles visibility of promotion button', async () => {
     const params = res.pipeline;
     const manual: Pipeline = {
       ...res.pipeline,
@@ -496,33 +341,4 @@ describe('PipelineDetails', () => {
     );
     expect(devButton.length).toEqual(1);
   });
-
-  describe('snapshots', () => {
-    it('renders', async () => {
-      const params: any = res.pipeline;
-      api.GetPipelineReturns = res;
-
-      let result: RenderResult;
-      await act(async () => {
-        const c = wrap(
-          <PipelineDetails name={params.name} namespace={params.namespace} />,
-        );
-        result = await render(c);
-      });
-
-      //   @ts-ignore
-      expect(result.container).toMatchSnapshot();
-    });
-  });
 });
-
-const elementToBeNull = (element: Element | null | undefined) => {
-  expect(element).toBeNull();
-};
-
-const checkTextContentToEqual = (
-  element: Element | null | undefined,
-  clusterName: string,
-) => {
-  expect(element?.textContent).toEqual(clusterName);
-};

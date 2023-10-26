@@ -1,7 +1,13 @@
 import { Button } from '@weaveworks/weave-gitops';
-import { useCallback, useContext, useState } from 'react';
+import { Dispatch, useCallback, useContext, useState } from 'react';
+import {
+  ClustersService,
+  RenderAutomationResponse,
+} from '../../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import useNotifications from '../../../contexts/Notifications';
-import Preview from '../../Templates/Form/Partials/Preview';
+import { validateFormData } from '../../../utils/form';
+import PreviewModal from '../../Templates/Form/Partials/PreviewModal';
 import {
   ExternalSecret,
   SOPS,
@@ -9,16 +15,12 @@ import {
   getFormattedPayload,
   handleError,
 } from './utils';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
-import {
-  ClustersService,
-  RenderAutomationResponse,
-} from '../../../cluster-services/cluster_services.pb';
 
 export enum SecretType {
   SOPS,
   ES,
 }
+
 const getRender = async (
   api: typeof ClustersService,
   secretType: SecretType,
@@ -49,12 +51,14 @@ const getRender = async (
   }
 };
 
-export const PreviewModal = ({
+export const Preview = ({
   secretType = SecretType.SOPS,
   formData,
+  setFormError,
 }: {
   secretType?: SecretType;
   formData: SOPS | ExternalSecret;
+  setFormError: Dispatch<React.SetStateAction<string>>;
 }) => {
   const [openPreview, setOpenPreview] = useState(false);
   const [previewLoading, setPreviewLoading] = useState<boolean>(false);
@@ -80,14 +84,16 @@ export const PreviewModal = ({
   return (
     <>
       <Button
-        onClick={() => handlePRPreview()}
+        onClick={event =>
+          validateFormData(event, handlePRPreview, setFormError)
+        }
         disabled={previewLoading}
         loading={previewLoading}
       >
         PREVIEW PR
       </Button>
       {!previewLoading && openPreview && prPreview ? (
-        <Preview
+        <PreviewModal
           context={secretType === SecretType.ES ? 'secret' : 'sops'}
           openPreview={openPreview}
           setOpenPreview={setOpenPreview}

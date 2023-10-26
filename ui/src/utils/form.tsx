@@ -198,13 +198,20 @@ export const Select: FC<SelectProps> = ({
 );
 
 export const validateFormData = (
-  event: any,
+  event: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
-  setSubmitType?: Dispatch<React.SetStateAction<string>>,
 ) => {
   event.preventDefault();
-  const requiredButEmptyInputs = Array.from(event.target).filter(
+
+  const onClickFormData =
+    (event?.target as HTMLFormElement | HTMLButtonElement).form ||
+    ((event?.target as HTMLButtonElement).parentElement as HTMLButtonElement)
+      ?.form;
+
+  const requiredButEmptyInputs = Array.from(
+    event.type === 'submit' ? event.target : onClickFormData,
+  ).filter(
     (element: any) =>
       element.type === 'text' && element.required && element.value === '',
   );
@@ -215,7 +222,6 @@ export const validateFormData = (
     (firstEmpty as HTMLInputElement).focus();
     setFormError((firstEmpty as HTMLInputElement).name);
   }
-  setSubmitType && setSubmitType('');
 };
 
 interface InputDebounceProps extends InputProps {

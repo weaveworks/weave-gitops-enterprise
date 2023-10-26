@@ -1,31 +1,31 @@
-import React, { useMemo } from 'react';
+import { createStyles, makeStyles } from '@material-ui/core';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import ClickAwayListener from '@material-ui/core/ClickAwayListener';
+import Grow from '@material-ui/core/Grow';
+import MenuItem from '@material-ui/core/MenuItem';
+import MenuList from '@material-ui/core/MenuList';
+import Paper from '@material-ui/core/Paper';
+import Popper from '@material-ui/core/Popper';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import {
   Button,
   GitRepository,
   Icon,
   IconType,
 } from '@weaveworks/weave-gitops';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
-import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
-import ClickAwayListener from '@material-ui/core/ClickAwayListener';
-import Grow from '@material-ui/core/Grow';
-import Paper from '@material-ui/core/Paper';
-import Popper from '@material-ui/core/Popper';
-import MenuItem from '@material-ui/core/MenuItem';
-import MenuList from '@material-ui/core/MenuList';
-import { createStyles, makeStyles } from '@material-ui/core';
-import { openLinkHandler } from '../../utils/link-checker';
-import useConfig from '../../hooks/config';
+import _ from 'lodash';
+import React, { useMemo } from 'react';
 import { GetConfigResponse } from '../../cluster-services/cluster_services.pb';
+import { useListConfigContext } from '../../contexts/ListConfig';
+import useConfig from '../../hooks/config';
+import { useGitRepos } from '../../hooks/gitrepos';
+import { openLinkHandler } from '../../utils/link-checker';
 import {
+  bitbucketReposToHttpsUrl,
   getDefaultGitRepo,
   getProvider,
   getRepositoryUrl,
-  bitbucketReposToHttpsUrl,
 } from '../Templates/Form/utils';
-import { useGitRepos } from '../../hooks/gitrepos';
-import { useListConfigContext } from '../../contexts/ListConfig';
-import _ from 'lodash';
 
 const useStyles = makeStyles(() =>
   createStyles({
@@ -74,7 +74,7 @@ export default function OpenedPullRequest() {
 
   const anchorRef = React.useRef<HTMLDivElement>(null);
 
-  const { gitRepos } = useGitRepos();
+  const { gitRepos, isLoading: reposLoading } = useGitRepos();
 
   const Classes = useStyles();
 
@@ -88,8 +88,8 @@ export default function OpenedPullRequest() {
     [gitRepos, config],
   );
 
-  if (isLoading) {
-    return <div>Loading...</div>;
+  if (reposLoading || isLoading) {
+    return null;
   }
 
   if (!config) {

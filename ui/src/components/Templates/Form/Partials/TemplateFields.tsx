@@ -28,7 +28,7 @@ const TemplateFields: FC<{
       | React.ChangeEvent<{ name?: string; value: unknown }>,
     fieldName?: string,
   ) => {
-    const { name, value } = event?.target;
+    const { name = '', value = '' } = event.target;
     setFormData({
       ...formData,
       parameterValues: {
@@ -55,6 +55,7 @@ const TemplateFields: FC<{
               onChange={event => handleFormData(event, name)}
               items={options}
               description={param.description}
+              error={formError === name && !parameterValues[name]}
             />
           );
         } else {

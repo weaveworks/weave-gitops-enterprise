@@ -60,7 +60,7 @@ function RemoteSVGIcon({ className, icon, ...rest }: Props) {
       break;
   }
 
-  return <img className={className} {...rest} src={url} />;
+  return <img className={className} {...rest} src={url} alt={icon} />;
 }
 
 export function ErrorIcon(props: IconProps) {
