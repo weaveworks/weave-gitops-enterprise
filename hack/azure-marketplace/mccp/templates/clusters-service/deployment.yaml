@@ -92,7 +92,7 @@ spec:
             - name: WEAVE_GITOPS_FEATURE_PIPELINES
               value: "true"
             {{- end }}
-            {{- if .Values.enableExplorer }}
+            {{- if .Values.explorer.enabled }}
             - name: WEAVE_GITOPS_FEATURE_EXPLORER
               value: "true"
             {{- end }}

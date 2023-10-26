@@ -1,7 +1,12 @@
+import { useFeatureFlags } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
 import { useContext } from 'react';
 import { useQuery } from 'react-query';
-import { QueryResponse } from '../api/query/query.pb';
+import {
+  EnabledComponent,
+  ListEnabledComponentsResponse,
+  QueryResponse,
+} from '../api/query/query.pb';
 import { QueryServiceContext } from '../contexts/QueryService';
 
 type QueryOpts = {
@@ -92,4 +97,23 @@ export function useListFacets() {
     refetchIntervalInBackground: true,
     refetchInterval: 10000,
   });
+}
+
+function useListEnabledComponents() {
+  const api = useContext(QueryServiceContext);
+
+  const { isFlagEnabled } = useFeatureFlags();
+  const isExplorerEnabled = isFlagEnabled('WEAVE_GITOPS_FEATURE_EXPLORER');
+
+  return useQuery<ListEnabledComponentsResponse, Error>(
+    ['enabledComponents', isExplorerEnabled],
+    () => api.ListEnabledComponents({}),
+    { enabled: isExplorerEnabled },
+  );
+}
+
+export function useIsEnabledForComponent(cmp: EnabledComponent) {
+  const { data } = useListEnabledComponents();
+
+  return data?.components?.includes(cmp);
 }

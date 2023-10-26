@@ -58,3 +58,4 @@ data:
   MONITORING_BIND_ADDRESS: ":{{ .Values.monitoring.service.port }}"
   MONITORING_METRICS_ENABLED: {{ .Values.monitoring.metrics.enabled | quote }}
   MONITORING_PROFILING_ENABLED: {{ .Values.monitoring.profiling.enabled | quote }}
+  EXPLORER_ENABLED_FOR: {{ .Values.explorer.enabledFor | join "," | quote }}
