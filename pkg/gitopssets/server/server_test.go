@@ -488,6 +488,58 @@ func TestGetReconciledObjects(t *testing.T) {
 	}
 }
 
+func TestGetInventory(t *testing.T) {
+	// (s *server) GetInventory(ctx context.Context, msg *pb.GetInventoryRequest) (*pb.GetInventoryResponse, error)
+	// request: Name , Namespace, ClusterName , WithChildren
+	// g := NewGomegaWithT(t)
+	// ctx := context.Background()
+
+	tests := []struct {
+		name     string
+		existing []*pb.InventoryEntry
+		request  *pb.GetInventoryRequest
+		expected *pb.GetInventoryResponse
+	}{
+		{
+			name: "get inventory with one resource ",
+			existing: []*pb.InventoryEntry{
+				{
+					Payload:     "{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"creationTimestamp\":\"2023-10-26T10:48:50Z\",\"labels\":{\"templates.weave.works/name\":\"gitopsset-configmaps\",\"templates.weave.works/namespace\":\"default\"},\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:metadata\":{\"f:labels\":{\".\":{},\"f:templates.weave.works/name\":{},\"f:templates.weave.works/namespace\":{}}}},\"manager\":\"manager\",\"operation\":\"Update\",\"time\":\"2023-10-26T10:48:50Z\"}],\"name\":\"production-info-configmap\",\"namespace\":\"default\",\"resourceVersion\":\"16920\",\"uid\":\"b49dbb64-5dfd-4bd6-9817-ed58cd1d303f\"}}\n",
+					Tenant:      "default",
+					ClusterName: "management",
+					Health:      &pb.HealthStatus{Status: "", Message: ""},
+					Children:    []*pb.InventoryEntry{},
+				},
+			},
+			request: &pb.GetInventoryRequest{
+				Name:         "gitopsset-configmaps",
+				Namespace:    "default",
+				ClusterName:  "management",
+				WithChildren: true,
+			},
+			expected: &pb.GetInventoryResponse{},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			k8s := createClient(t)
+			clusterClients := map[string]client.Client{
+				"management": k8s,
+			}
+			c := setup(t, clusterClients)
+
+			// TODO add existing inventory items
+
+			response, err := c.GetInventory(context.Background(), tt.request)
+			assert.NoError(t, err)
+			assert.Equal(t, tt.expected, response)
+
+		})
+	}
+}
+
 func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(opts ServerOpts) ServerOpts) pb.GitOpsSetsClient {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 	clientsPool.ClientsReturns(clusterClients)

@@ -20,6 +20,7 @@ import (
 	"github.com/weaveworks/weave-gitops/core/fluxsync"
 	"github.com/weaveworks/weave-gitops/core/logger"
 	core "github.com/weaveworks/weave-gitops/core/server"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
 	v1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -40,13 +41,15 @@ var (
 type ServerOpts struct {
 	logr.Logger
 	ClientsFactory clustersmngr.ClustersManager
+	HealthChecker  health.HealthChecker
 }
 
 type server struct {
 	pb.UnimplementedGitOpsSetsServer
 
-	log     logr.Logger
-	clients clustersmngr.ClustersManager
+	log           logr.Logger
+	clients       clustersmngr.ClustersManager
+	healthChecker health.HealthChecker
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -57,8 +60,9 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error 
 
 func NewGitOpsSetsServer(opts ServerOpts) pb.GitOpsSetsServer {
 	return &server{
-		log:     opts.Logger,
-		clients: opts.ClientsFactory,
+		log:           opts.Logger,
+		clients:       opts.ClientsFactory,
+		healthChecker: opts.HealthChecker,
 	}
 }
 
@@ -198,6 +202,48 @@ func (s *server) ToggleSuspendGitOpsSet(ctx context.Context, msg *pb.ToggleSuspe
 
 	return &pb.ToggleSuspendGitOpsSetResponse{}, nil
 }
+
+func (s *server) unstructuredToInventoryEntry(ctx context.Context, clusterName string, objWithChildren []*core.ObjectWithChildren, clusterUserNamespaces map[string][]v1.Namespace, healthChecker health.HealthChecker) ([]*pb.InventoryEntry, error) {
+	inventoryEntries := []*pb.InventoryEntry{}
+
+	for _, objWithChildrenEntry := range objWithChildren {
+		unstructuredObj := objWithChildrenEntry.Object
+		children, err := s.unstructuredToInventoryEntry(ctx, clusterName, objWithChildrenEntry.Children, clusterUserNamespaces, healthChecker)
+		if err != nil {
+			return nil, err
+		}
+
+		bytes, err := unstructuredObj.MarshalJSON()
+		if err != nil {
+			return nil, err
+		}
+
+		clusterUserNss := s.clients.GetUserNamespaces(auth.Principal(ctx))
+		tenant := core.GetTenant(unstructuredObj.GetNamespace(), clusterName, clusterUserNss)
+
+		health, err := s.healthChecker.Check(*unstructuredObj)
+		if err != nil {
+			return nil, err
+		}
+
+		entry := &pb.InventoryEntry{
+			Payload:     string(bytes),
+			Tenant:      tenant,
+			ClusterName: clusterName,
+			Children:    children,
+			Health: &pb.HealthStatus{
+				Status:  string(health.Status),
+				Message: health.Message,
+			},
+		}
+
+		inventoryEntries = append(inventoryEntries, entry)
+
+	}
+	return inventoryEntries, nil
+
+}
+
 func (s *server) GetInventory(ctx context.Context, msg *pb.GetInventoryRequest) (*pb.GetInventoryResponse, error) {
 	clustersClient, err := s.clients.GetImpersonatedClient(ctx, auth.Principal(ctx))
 	if err != nil {
@@ -226,7 +272,7 @@ func (s *server) GetInventory(ctx context.Context, msg *pb.GetInventoryRequest) 
 	// post process it into a response object:
 	// add health data and tenancy data and redact secrets etc
 	clusterUserNamespaces := s.clients.GetUserNamespaces(auth.Principal(ctx))
-	entries, err := unstructuredToInventoryEntry(msg.ClusterName, objsWithChildren, clusterUserNamespaces, cs.healthChecker)
+	entries, err := s.unstructuredToInventoryEntry(ctx, msg.ClusterName, objsWithChildren, clusterUserNamespaces, s.healthChecker)
 	if err != nil {
 		return nil, fmt.Errorf("failed converting inventory entry: %w", err)
 	}
@@ -235,7 +281,6 @@ func (s *server) GetInventory(ctx context.Context, msg *pb.GetInventoryRequest) 
 		Entries: entries,
 	}, nil
 
-	return nil, nil
 }
 
 func (s *server) getGitOpsSetInventory(ctx context.Context, k8sClient client.Client, name, namespace string) ([]*unstructured.Unstructured, error) {
