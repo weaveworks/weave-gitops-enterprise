@@ -20,148 +20,147 @@ jobs:
       WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
       WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
       WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
-#
-#  coverage:
-#    runs-on: ubuntu-latest
-#    env:
-#      ARTEFACTS_BASE_DIR: /tmp/workspace/test
-#    steps:
-#      - name: Install Go
-#        uses: actions/setup-go@v4
-#        with:
-#          go-version: 1.20.x
-#      - name: Checkout code
-#        uses: actions/checkout@v3
-#      - name: Configure git for private modules
-#        env:
-#          GITHUB_BUILD_USERNAME: wge-build-bot
-#          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-#        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
-#      - name: Install dependencies
-#        run: |
-#          go mod download
-#          go install github.com/wadey/gocovmerge@latest
-#          go install github.com/jstemmer/go-junit-report@latest
-#          npm install -g junit-report-merger
-#      - name: Run unit tests
-#        run: |
-#          go version
-#          mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
-#
-#          WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
-#          cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
-#          cd ${{ github.workspace }}/cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
-#
-#          cd ${{ github.workspace }}
-#          # Merge all coverage results
-#          gocovmerge .coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles
-#          # Merge all junit test results
-#          jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
-#      - name: Store unit test coverage results
-#        uses: actions/upload-artifact@v3
-#        with:
-#          name: unit-tests-artifacts
-#          path: |
-#            ${{ env.ARTEFACTS_BASE_DIR }}
-#          retention-days: 1
-#
-#  smoke-tests-github:
-#    needs: [build, coverage]
-#    uses: ./.github/workflows/acceptance-test.yaml
-#    with:
-#      runs-on: ubuntu-latest
-#      os-name: linux
-#      timeout-minutes: 60
-#      label-filter: "--label-filter='smoke&&capd'"
-#      kubectl-version: "v1.21.1"
-#      login_user_type: "oidc"
-#      git-provider: github
-#      git-provider_hostname: github.com
-#      cluster_resource_set: true
-#      management-cluster-kind: kind
-#      capi_provider: capd
-#      gitops-bin-path: /usr/local/bin/gitops
-#      test-artifact-name: smoke-tests-github
-#    secrets:
-#      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
-#      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
-#      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
-#      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
-#      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-#      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
-#      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
-#      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
-#      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
-#
-#  smoke-tests-gitlab-deploy:
-#    needs: [build, coverage]
-#    uses: ./.github/workflows/acceptance-test.yaml
-#    with:
-#      runs-on: ubuntu-latest
-#      os-name: linux
-#      timeout-minutes: 60
-#      label-filter: "--label-filter='smoke&&deploy'"
-#      kubectl-version: "v1.22.0"
-#      login_user_type: "cluster-user"
-#      git-provider: gitlab
-#      git-provider_hostname: gitlab.git.dev.weave.works
-#      cluster_resource_set: true
-#      management-cluster-kind: kind
-#      capi_provider: capd
-#      gitops-bin-path: /usr/local/bin/gitops
-#      test-artifact-name: smoke-tests-gitlab-deploy
-#    secrets:
-#      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
-#      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
-#      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
-#      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-#      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
-#      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
-#      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
-#      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
-#      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
-#      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
-#      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
-#
-#  smoke-tests-gitlab-tenant:
-#    needs: [build, coverage]
-#    uses: ./.github/workflows/acceptance-test.yaml
-#    with:
-#      runs-on: ubuntu-latest
-#      os-name: linux
-#      timeout-minutes: 60
-#      label-filter: "--label-filter='smoke&&tenant'"
-#      kubectl-version: "v1.23.3"
-#      login_user_type: "oidc"
-#      git-provider: gitlab
-#      git-provider_hostname: gitlab.git.dev.weave.works
-#      cluster_resource_set: true
-#      management-cluster-kind: kind
-#      capi_provider: capd
-#      gitops-bin-path: /usr/local/bin/gitops
-#      test-artifact-name: smoke-tests-gitlab-tenant
-#    secrets:
-#      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
-#      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
-#      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
-#      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
-#      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
-#      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
-#      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
-#      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
-#      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
-#      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
-#      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
+
+  coverage:
+    runs-on: ubuntu-latest
+    env:
+      ARTEFACTS_BASE_DIR: /tmp/workspace/test
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.20.x
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Configure git for private modules
+        env:
+          GITHUB_BUILD_USERNAME: wge-build-bot
+          GITHUB_BUILD_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+        run: git config --global url."https://${GITHUB_BUILD_USERNAME}:${GITHUB_BUILD_TOKEN}@github.com".insteadOf "https://github.com"
+      - name: Install dependencies
+        run: |
+          go mod download
+          go install github.com/wadey/gocovmerge@latest
+          go install github.com/jstemmer/go-junit-report@latest
+          npm install -g junit-report-merger
+      - name: Run unit tests
+        run: |
+          go version
+          mkdir -p ${{ env.ARTEFACTS_BASE_DIR }}
+
+          WKP_DEBUG=true go test -cover -coverprofile=.coverprofile ./cmd/... ./pkg/... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/test-results.xml
+          cd ${{ github.workspace }}/common && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/common-results.xml
+          cd ${{ github.workspace }}/cmd/clusters-service && go test -cover -coverprofile=.coverprofile ./... | go-junit-report > ${{ env.ARTEFACTS_BASE_DIR }}/clusters-service-results.xml
+
+          cd ${{ github.workspace }}
+          # Merge all coverage results
+          gocovmerge .coverprofile common/.coverprofile  cmd/clusters-service/.coverprofile > ${{ env.ARTEFACTS_BASE_DIR }}/merged-profiles
+          # Merge all junit test results
+          jrm ${{ env.ARTEFACTS_BASE_DIR }}/combined-test-results.xml '${{ env.ARTEFACTS_BASE_DIR }}/*.xml'
+      - name: Store unit test coverage results
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-tests-artifacts
+          path: |
+            ${{ env.ARTEFACTS_BASE_DIR }}
+          retention-days: 1
+
+  smoke-tests-github:
+    needs: [build, coverage]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 60
+      label-filter: "--label-filter='smoke&&capd'"
+      kubectl-version: "v1.21.1"
+      login_user_type: "oidc"
+      git-provider: github
+      git-provider_hostname: github.com
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      capi_provider: capd
+      gitops-bin-path: /usr/local/bin/gitops
+      test-artifact-name: smoke-tests-github
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_GITHUB_PRIVATE_KEY }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GITHUB_ORG: ${{ secrets.WGE_GITHUB_ORG }}
+      WGE_GITHUB_USER: ${{ secrets.WGE_GITHUB_USER }}
+      WGE_GITHUB_PASSWORD: ${{ secrets.WGE_GITHUB_PASSWORD }}
+      WGE_GITHUB_MFA_KEY: ${{ secrets.WGE_GITHUB_MFA_KEY }}
+
+  smoke-tests-gitlab-deploy:
+    needs: [build, coverage]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 60
+      label-filter: "--label-filter='smoke&&deploy'"
+      kubectl-version: "v1.22.0"
+      login_user_type: "cluster-user"
+      git-provider: gitlab
+      git-provider_hostname: gitlab.git.dev.weave.works
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      capi_provider: capd
+      gitops-bin-path: /usr/local/bin/gitops
+      test-artifact-name: smoke-tests-gitlab-deploy
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
+      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
+      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
+      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
+      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
+      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
+
+  smoke-tests-gitlab-tenant:
+    needs: [build, coverage]
+    uses: ./.github/workflows/acceptance-test.yaml
+    with:
+      runs-on: ubuntu-latest
+      os-name: linux
+      timeout-minutes: 60
+      label-filter: "--label-filter='smoke&&tenant'"
+      kubectl-version: "v1.23.3"
+      login_user_type: "oidc"
+      git-provider: gitlab
+      git-provider_hostname: gitlab.git.dev.weave.works
+      cluster_resource_set: true
+      management-cluster-kind: kind
+      capi_provider: capd
+      gitops-bin-path: /usr/local/bin/gitops
+      test-artifact-name: smoke-tests-gitlab-tenant
+    secrets:
+      WGE_CLUSTER_ADMIN_PASSWORD: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD }}"
+      WGE_CLUSTER_ADMIN_PASSWORD_HASH: "${{ secrets.WGE_CLUSTER_ADMIN_PASSWORD_HASH }}"
+      WGE_DEX_CLIENT_SECRET: ${{ secrets.WGE_DEX_CLIENT_SECRET }}
+      WGE_GITHUB_TOKEN: ${{ secrets.WGE_GITHUB_TOKEN }}
+      WGE_GIT_PROVIDER_PRIVATE_KEY: ${{ secrets.WGE_ON_PREM_GITLAB_PRIVATE_KEY }}
+      WGE_GITLAB_TOKEN: ${{ secrets.WGE_ON_PREM_GITLAB_TOKEN }}
+      WGE_GITLAB_ORG: ${{ secrets.WGE_ON_PREM_GITLAB_ORG }}
+      WGE_GITLAB_USER: ${{ secrets.WGE_ON_PREM_GITLAB_USER }}
+      WGE_GITLAB_PASSWORD: ${{ secrets.WGE_ON_PREM_GITLAB_PASSWORD }}
+      WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
+      WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
   playwright-smoke-tests:
-    needs: [build]
+    needs: [build, coverage]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Generate release tags
         id: release_tags
         run: |
@@ -181,33 +180,32 @@ jobs:
           wait_workflow: true
           client_payload: '{"chart_version": "${{ steps.release_tags.outputs.tag }}"}'
 
+  smoke-test-results:
+    if: ${{ always() }}
+    needs:
+      [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
+    uses: ./.github/workflows/publish-test-results.yaml
+    with:
+      runs-on: ubuntu-latest
+      junit-results-glob-pattern: "*smoke-tests*.xml"
+      check-name: "Smoke Tests"
+      slack-notification: false
+    secrets:
+      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
-#  smoke-test-results:
-#    if: ${{ always() }}
-#    needs:
-#      [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
-#    uses: ./.github/workflows/publish-test-results.yaml
-#    with:
-#      runs-on: ubuntu-latest
-#      junit-results-glob-pattern: "*smoke-tests*.xml"
-#      check-name: "Smoke Tests"
-#      slack-notification: false
-#    secrets:
-#      SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-#
-#  notify-failure:
-#    name: Notify Slack on Failure
-#    runs-on: ubuntu-latest
-#    needs: [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
-#    if: ${{ failure() && github.ref == 'refs/heads/main' }}
-#    steps:
-#    - name: Send alert
-#      uses: archive/github-actions-slack@d9dae40827adf93bddf939db6552d1e392259d7d # v2.7.0
-#      with:
-#        slack-bot-user-oauth-access-token: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
-#        slack-channel: C01M1BJQ7AT # weave-gitops-dev
-#        slack-text: |
-#          :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep. Then fix the underlying issue and ensure main remains green.
-#        slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
+  notify-failure:
+    name: Notify Slack on Failure
+    runs-on: ubuntu-latest
+    needs: [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
+    if: ${{ failure() && github.ref == 'refs/heads/main' }}
+    steps:
+    - name: Send alert
+      uses: archive/github-actions-slack@d9dae40827adf93bddf939db6552d1e392259d7d # v2.7.0
+      with:
+        slack-bot-user-oauth-access-token: ${{ secrets.WEAVEWORKS_SLACK_GENERICBOT_TOKEN }}
+        slack-channel: C01M1BJQ7AT # weave-gitops-dev
+        slack-text: |
+          :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep. Then fix the underlying issue and ensure main remains green.
+        slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
 
 
