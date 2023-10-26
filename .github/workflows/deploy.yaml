@@ -169,7 +169,7 @@ jobs:
           owner: weaveworks
           repo: playwright-tests
           github_token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-          workflow_file_name: nightly.yaml
+          workflow_file_name: nightlyversion.yaml
           ref: main
           wait_interval: 10
           propagate_failure: false
