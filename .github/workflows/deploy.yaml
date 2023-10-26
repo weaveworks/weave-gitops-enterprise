@@ -6,20 +6,20 @@ on:
 
 name: deploy
 jobs:
-#  build:
-#    uses: ./.github/workflows/build.yaml
-#    with:
-#      helmrepo: "charts-v3-r2"
-#    secrets:
-#      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
-#      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
-#      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
-#      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
-#      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
-#      WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
-#      WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
-#      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
-#      WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
+  build:
+    uses: ./.github/workflows/build.yaml
+    with:
+      helmrepo: "charts-v3-r2"
+    secrets:
+      BUILD_BOT_PERSONAL_ACCESS_TOKEN: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+      WGE_DOCKER_IO_USER: ${{ secrets.WGE_DOCKER_IO_USER }}
+      WGE_DOCKER_IO_PASSWORD: ${{ secrets.WGE_DOCKER_IO_PASSWORD }}
+      WGE_S3_AWS_ACCESS_KEY_ID: ${{ secrets.WGE_S3_AWS_ACCESS_KEY_ID }}
+      WGE_S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.WGE_S3_AWS_SECRET_ACCESS_KEY }}
+      WGE_HELM_REPO_USERNAME: ${{ secrets.WGE_HELM_REPO_USERNAME }}
+      WGE_HELM_REPO_PASSWORD: ${{ secrets.WGE_HELM_REPO_PASSWORD }}
+      WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_WORKLOAD_IDENTITY_PROVIDER }}
+      WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT: ${{ secrets.WEAVE_GITOPS_CLUSTERS_GITHUB_SERVICE_ACCOUNT }}
 #
 #  coverage:
 #    runs-on: ubuntu-latest
@@ -162,6 +162,10 @@ jobs:
       - name: Generate release tags
         id: release_tags
         run: |
+          TAG=$(git describe --always --match "v*" --abbrev=7)
+          # Zero fill out the number of commits since the last tag. This allows helm to do a proper sorting of semver rc tags which are sorted alphanumerically.
+          # Also the `v` is important as helm's and some other semver parsers do not allow the "rc" bit of the tag to start with a zero.
+          # It is also important to use 'v' to help with semver sorting. Any character after 'r' (for 'rc' tags) will work. 'v' just makes sense.
           ZERO_FILLED_TAG=$(LAST_TAG=$(git describe --abbrev=0); N=$(git rev-list "$LAST_TAG".. --count); REF=$(git rev-parse --short=8 HEAD); printf "$LAST_TAG-v%05d-g$REF" $N)
           SEMVER_TAG=$(awk -F'^v|-g' '{print $2}' <<< $ZERO_FILLED_TAG)
           echo "tag=$TAG" >> $GITHUB_OUTPUT
