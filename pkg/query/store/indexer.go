@@ -85,29 +85,20 @@ func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 		objMapping.AddFieldMappingsAt(field, facetMapping)
 	}
 
+	templateTypeField := "Object.metadata.labels.templateType"
+
 	// mapping labels
+	fieldMapping := bleve.NewTextFieldMapping()
+	fieldMapping.Analyzer = "keyword"
+	objMapping.AddFieldMappingsAt(templateTypeField, fieldMapping)
 
-	labelsMapping := bleve.NewDocumentMapping()
-
-	keyFieldMapping := bleve.NewTextFieldMapping()
-	keyFieldMapping.Analyzer = "keyword"
-	labelsMapping.AddFieldMappingsAt("key", keyFieldMapping)
-
-	valueFieldMapping := bleve.NewTextFieldMapping()
-	valueFieldMapping.Analyzer = "keyword"
-	labelsMapping.AddFieldMappingsAt("value", valueFieldMapping)
-
-	keyFacetMapping := bleve.NewTextFieldMapping()
-	keyFacetMapping.Name = "key" + facetSuffix
-	keyFacetMapping.Analyzer = "keyword"
-	labelsMapping.AddFieldMappingsAt("key", keyFacetMapping)
-
-	valueFacetMapping := bleve.NewTextFieldMapping()
-	valueFacetMapping.Name = "value" + facetSuffix
-	valueFacetMapping.Analyzer = "keyword"
-	labelsMapping.AddFieldMappingsAt("value", valueFacetMapping)
-
-	objMapping.AddSubDocumentMapping("labels", labelsMapping)
+	// This adds the facets so the UI can be built around the correct values,
+	// without changing how things are searched.
+	facetMapping := bleve.NewTextFieldMapping()
+	facetMapping.Name = templateTypeField + facetSuffix
+	// Setting analyzer to keyword gives us the exact value of the field.
+	facetMapping.Analyzer = "keyword"
+	objMapping.AddFieldMappingsAt(templateTypeField, facetMapping)
 
 	indexMapping.AddDocumentMapping("object", objMapping)
 

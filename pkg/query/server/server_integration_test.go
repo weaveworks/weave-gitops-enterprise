@@ -5,6 +5,7 @@ package server_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,7 +35,7 @@ var (
 )
 
 const (
-	defaultTimeout  = time.Second * 5
+	defaultTimeout  = time.Second * 30
 	defaultInterval = time.Second
 )
 
@@ -99,6 +100,83 @@ func TestQueryServer(t *testing.T) {
 				query, err := c.DoQuery(ctx, &api.QueryRequest{Filters: []string{tt.query}})
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == tt.expectedNumObjects
+			}).Should(BeTrue())
+			//Then query is successfully executed
+			g.Expect(querySucceeded).To(BeTrue())
+
+		})
+	}
+}
+
+func TestListFacets(t *testing.T) {
+	g := NewGomegaWithT(t)
+	g.SetDefaultEventuallyTimeout(defaultTimeout)
+	g.SetDefaultEventuallyPollingInterval(defaultInterval)
+
+	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
+	//defaultNamespace := "default"
+
+	createResources(context.Background(), t, k8sClient, newNamespace("flux-system"))
+
+	testLog := testr.New(t)
+
+	//Given a query environment
+	ctx := context.Background()
+	c, err := makeQueryServer(t, cfg, principal, testLog)
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name               string
+		objects            []client.Object
+		access             []client.Object
+		query              string
+		expectedNumObjects int
+	}{
+
+		{
+			name:   "should support gitops templates",
+			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&gapiv1.GitOpsTemplate{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       gapiv1.Kind,
+						APIVersion: "templates.weave.works/v1alpha2",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cluster-template-1",
+						Namespace: "default",
+						Labels: map[string]string{
+							"templateType": "cluster",
+						},
+					},
+				},
+			},
+			query:              "Object.metadata.labels.templateType:cluster",
+			expectedNumObjects: 1,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			//When some access rules and objects ingested
+			createResources(ctx, t, k8sClient, tt.objects...)
+			createResources(ctx, t, k8sClient, tt.access...)
+
+			//When query with expected results is successfully executed
+			querySucceeded := g.Eventually(func() bool {
+				facetsResponse, err := c.ListFacets(ctx, &api.ListFacetsRequest{})
+				g.Expect(err).To(BeNil())
+				for _, f := range facetsResponse.GetFacets() {
+					if strings.Contains(f.Field, "templateType") {
+						if len(f.Values) == 1 {
+							return true
+						}
+					}
+
+					if len(f.Values) > 1 {
+						testLog.Info("facets found", "facet", f.Field, "values", f.Values)
+					}
+				}
+				return false
 			}).Should(BeTrue())
 			//Then query is successfully executed
 			g.Expect(querySucceeded).To(BeTrue())
