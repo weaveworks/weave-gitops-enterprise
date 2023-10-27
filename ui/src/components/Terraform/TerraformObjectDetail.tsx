@@ -14,6 +14,7 @@ import {
   SubRouterTabs,
   YamlView,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import { useState } from 'react';
 import { useLocation, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
@@ -236,6 +237,13 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                       object?.driftDetectionResult ? 'True' : 'False',
                     ],
                     ['Suspended', object?.suspended ? 'True' : 'False'],
+                    [
+                      'Last Applied',
+                      _.get(
+                        _.find(object?.conditions, { type: 'Apply' }),
+                        'timestamp' || '-',
+                      ),
+                    ],
                   ]}
                 />
                 <Metadata

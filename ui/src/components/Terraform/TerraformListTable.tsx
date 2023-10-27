@@ -8,9 +8,9 @@ import {
   statusSortHelper,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
-import { computeMessage } from '../../utils/conditions';
 import { getKindRoute, Routes } from '../../utils/nav';
 
 type Props = {
@@ -86,8 +86,9 @@ function TerraformListTable({ className, rows }: Props) {
           sortValue: statusSortHelper,
         },
         {
-          value: (tf: TerraformObject) => computeMessage(tf.conditions as any),
-          label: 'Message',
+          value: (tf: TerraformObject) =>
+            _.get(_.find(tf.conditions, { type: 'Apply' }), 'timestamp') || '-',
+          label: 'Last Applied',
         },
       ]}
       rows={rows}
