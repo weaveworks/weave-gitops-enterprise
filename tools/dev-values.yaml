@@ -28,7 +28,7 @@ enablePipelines: true
 
 # Turns on explorer globally. See the explorer.enabledFor option to enable it for specific components.
 explorer:
-  enabled: false
+  enabled: true
 
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
