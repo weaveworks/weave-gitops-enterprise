@@ -74,7 +74,12 @@ message Object {
     string unstructured = 10;
     string id           = 11;
     string tenant       = 12;
-    string labels       = 13;
+    repeated Label labels = 13;
+}
+
+message Label {
+    string key      = 1;
+    string value    = 2;
 }
 
 message DebugGetAccessRulesRequest {

@@ -43,7 +43,7 @@ type ObjectKind struct {
 	FilterFunc          FilterFunc
 	StatusFunc          func(obj client.Object) ObjectStatus
 	MessageFunc         func(obj client.Object) string
-	LabelsFunc          func(obj client.Object) string
+	Labels              []string
 	Category            ObjectCategory
 }
 
@@ -78,10 +78,6 @@ func (o ObjectKind) Validate() error {
 		return fmt.Errorf("missing message func")
 	}
 
-	if o.LabelsFunc == nil {
-		return fmt.Errorf("missing labels func")
-	}
-
 	if o.Category == "" {
 		return fmt.Errorf("missing category")
 	}
@@ -103,8 +99,8 @@ var (
 		AddToSchemeFunc: helmv2beta1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
-		Category:        CategoryAutomation,
+
+		Category: CategoryAutomation,
 	}
 	KustomizationObjectKind = ObjectKind{
 		Gvk: kustomizev1.GroupVersion.WithKind(kustomizev1.KustomizationKind),
@@ -114,8 +110,8 @@ var (
 		AddToSchemeFunc: kustomizev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
-		Category:        CategoryAutomation,
+
+		Category: CategoryAutomation,
 	}
 	HelmRepositoryObjectKind = ObjectKind{
 		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmRepositoryKind),
@@ -125,8 +121,8 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
-		Category:        CategorySource,
+
+		Category: CategorySource,
 	}
 	HelmChartObjectKind = ObjectKind{
 		Gvk: sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmChartKind),
@@ -136,8 +132,8 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
-		Category:        CategorySource,
+
+		Category: CategorySource,
 	}
 	GitRepositoryObjectKind = ObjectKind{
 		Gvk: sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind),
@@ -147,7 +143,6 @@ var (
 		AddToSchemeFunc: sourcev1.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	OCIRepositoryObjectKind = ObjectKind{
@@ -158,7 +153,6 @@ var (
 		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	BucketObjectKind = ObjectKind{
@@ -169,7 +163,6 @@ var (
 		AddToSchemeFunc: sourcev1beta2.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
 		Category:        CategorySource,
 	}
 	RoleObjectKind = ObjectKind{
@@ -240,8 +233,7 @@ var (
 
 			return e.Message
 		},
-		LabelsFunc: defaultFluxObjectLabelsFunc,
-		Category:   CategoryEvent,
+		Category: CategoryEvent,
 	}
 
 	GitOpsSetsObjectKind = ObjectKind{
@@ -252,8 +244,8 @@ var (
 		AddToSchemeFunc: gitopssets.AddToScheme,
 		StatusFunc:      defaultFluxObjectStatusFunc,
 		MessageFunc:     defaultFluxObjectMessageFunc,
-		LabelsFunc:      defaultFluxObjectLabelsFunc,
-		Category:        CategoryGitopsSet,
+
+		Category: CategoryGitopsSet,
 	}
 
 	GitopsTemplateObjectKind = ObjectKind{
@@ -273,18 +265,11 @@ var (
 
 			return e.Spec.Description
 		},
-		LabelsFunc: func(obj client.Object) string {
-			//TODO refactor me
-			gt, ok := obj.(*gapiv1.GitOpsTemplate)
-			if !ok {
-				return ""
-			}
-			const TemplateTypeLabel = "weave.works/template-type"
-			return gt.Labels[TemplateTypeLabel]
+		Labels: []string{
+			"templateType",
 		},
 		Category: CategoryTemplate,
 	}
-
 	CapiTemplateObjectKind = ObjectKind{
 		Gvk: capiv1.GroupVersion.WithKind(capiv1.Kind),
 		NewClientObjectFunc: func() client.Object {
@@ -302,8 +287,7 @@ var (
 
 			return e.Spec.Description
 		},
-		LabelsFunc: defaultFluxObjectLabelsFunc,
-		Category:   CategoryTemplate,
+		Category: CategoryTemplate,
 	}
 )
 
@@ -366,10 +350,6 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 		}
 	}
 
-	return ""
-}
-
-func defaultFluxObjectLabelsFunc(obj client.Object) string {
 	return ""
 }
 

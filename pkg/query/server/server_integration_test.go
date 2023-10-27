@@ -79,12 +79,12 @@ func TestQueryServer(t *testing.T) {
 						Name:      "cluster-template-1",
 						Namespace: "default",
 						Labels: map[string]string{
-							"weave.works/template-type": "cluster",
+							"templateType": "cluster",
 						},
 					},
 				},
 			},
-			query:              "labels:cluster",
+			query:              "Object.metadata.labels.templateType:cluster",
 			expectedNumObjects: 1,
 		},
 	}

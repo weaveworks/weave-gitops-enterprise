@@ -12,6 +12,11 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+type Label struct {
+	Key   string `json:"key" gorm:"type:text"`
+	Value string `json:"value" gorm:"type:text"`
+}
+
 type Object struct {
 	gorm.Model
 	ID                  string                       `gorm:"primaryKey;autoIncrement:false"`
@@ -27,7 +32,7 @@ type Object struct {
 	KubernetesDeletedAt time.Time                    `json:"kubernetesDeletedAt"`
 	Unstructured        json.RawMessage              `json:"unstructured" gorm:"type:blob"`
 	Tenant              string                       `json:"tenant" gorm:"type:text"`
-	Labels              string                       `json:"labels" gorm:"type:text"`
+	Labels              []Label                      `json:"labels" gorm:"-"`
 }
 
 func (o Object) Validate() error {
@@ -103,7 +108,7 @@ type NormalizedObject interface {
 	// GetCategory returns the category of the object, as determined by the ObjectKind Category
 	GetCategory() (configuration.ObjectCategory, error)
 	// GetLabels returns the labels for the object
-	GetRelevantLabels() (string, error)
+	GetRelevantLabels() []Label
 	// Raw returns the underlying client.Object
 	Raw() client.Object
 }
@@ -121,8 +126,16 @@ func (n defaultNormalizedObject) GetMessage() (string, error) {
 	return n.config.MessageFunc(n.Object), nil
 }
 
-func (n defaultNormalizedObject) GetRelevantLabels() (string, error) {
-	return n.config.LabelsFunc(n.Object), nil
+// GetRelevantLabels returns the object labels that have been configured to be selected.
+func (n defaultNormalizedObject) GetRelevantLabels() []Label {
+	labels := []Label{}
+	objectLabels := n.GetLabels()
+	for _, labelKey := range n.config.Labels {
+		if objectLabels[labelKey] != "" {
+			labels = append(labels, Label{Key: labelKey, Value: objectLabels[labelKey]})
+		}
+	}
+	return labels
 }
 
 func (n defaultNormalizedObject) GetCategory() (configuration.ObjectCategory, error) {

@@ -92,25 +92,5 @@ func TestObjectKind_Validate(t *testing.T) {
 		}
 		g.Expect(kind.Validate().Error()).To(Equal("missing message func"))
 	})
-	t.Run("should return error if labels func is missing", func(t *testing.T) {
-		kind := ObjectKind{
-			Gvk: schema.GroupVersionKind{
-				Kind: "test",
-			},
-			AddToSchemeFunc: func(*runtime.Scheme) error {
-				return nil
-			},
-			NewClientObjectFunc: func() client.Object {
-				return nil
-			},
-			StatusFunc: func(obj client.Object) ObjectStatus {
-				return Success
-			},
-			MessageFunc: func(obj client.Object) string {
-				return ""
-			},
-		}
-		g.Expect(kind.Validate().Error()).To(Equal("missing labels func"))
-	})
 
 }

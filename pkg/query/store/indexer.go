@@ -9,10 +9,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	bleve "github.com/blevesearch/bleve/v2"
-	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/blevesearch/bleve/v2/search"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -51,15 +51,67 @@ type IndexReader interface {
 }
 
 var indexFile = "index.db"
-var filterFields = []string{"cluster", "namespace", "kind", "labels"}
+var commonFilterFields = []string{"cluster", "namespace", "kind"}
+var filterFields = []string{}
 
 func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
-	mapping := bleve.NewIndexMapping()
+	indexMapping := bleve.NewIndexMapping()
+	filterFields = append(filterFields, commonFilterFields...)
 
-	addFieldMappings(mapping, filterFields)
+	// mapping labels
+	for _, objectKind := range configuration.SupportedObjectKinds {
+		// adding labels as filter category for those configured
+		filterFields = append(filterFields, objectKind.Labels...)
+	}
+	filterFields = append(filterFields, "Object.metadata.labels.templateType")
 
-	index, err := bleve.New(idxFileLocation, mapping)
+	objMapping := bleve.NewDocumentMapping()
+
+	// mapping common filters
+	for _, field := range commonFilterFields {
+		// This mapping allows us to do query-string queries on the field.
+		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
+		fieldMapping := bleve.NewTextFieldMapping()
+		fieldMapping.Analyzer = "keyword"
+		objMapping.AddFieldMappingsAt(field, fieldMapping)
+
+		// This adds the facets so the UI can be built around the correct values,
+		// without changing how things are searched.
+		facetMapping := bleve.NewTextFieldMapping()
+		facetMapping.Name = field + facetSuffix
+		// Setting analyzer to keyword gives us the exact value of the field.
+		facetMapping.Analyzer = "keyword"
+		objMapping.AddFieldMappingsAt(field, facetMapping)
+	}
+
+	// mapping labels
+
+	labelsMapping := bleve.NewDocumentMapping()
+
+	keyFieldMapping := bleve.NewTextFieldMapping()
+	keyFieldMapping.Analyzer = "keyword"
+	labelsMapping.AddFieldMappingsAt("key", keyFieldMapping)
+
+	valueFieldMapping := bleve.NewTextFieldMapping()
+	valueFieldMapping.Analyzer = "keyword"
+	labelsMapping.AddFieldMappingsAt("value", valueFieldMapping)
+
+	keyFacetMapping := bleve.NewTextFieldMapping()
+	keyFacetMapping.Name = "key" + facetSuffix
+	keyFacetMapping.Analyzer = "keyword"
+	labelsMapping.AddFieldMappingsAt("key", keyFacetMapping)
+
+	valueFacetMapping := bleve.NewTextFieldMapping()
+	valueFacetMapping.Name = "value" + facetSuffix
+	valueFacetMapping.Analyzer = "keyword"
+	labelsMapping.AddFieldMappingsAt("value", valueFacetMapping)
+
+	objMapping.AddSubDocumentMapping("labels", labelsMapping)
+
+	indexMapping.AddDocumentMapping("object", objMapping)
+
+	index, err := bleve.New(idxFileLocation, indexMapping)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create indexer: %w", err)
 	}
@@ -72,28 +124,6 @@ func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 }
 
 var facetSuffix = ".facet"
-
-func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
-	objMapping := bleve.NewDocumentMapping()
-
-	for _, field := range fields {
-		// This mapping allows us to do query-string queries on the field.
-		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
-		mapping := bleve.NewTextFieldMapping()
-		mapping.Analyzer = "keyword"
-		objMapping.AddFieldMappingsAt(field, mapping)
-
-		// This adds the facets so the UI can be built around the correct values,
-		// without changing how things are searched.
-		facetMapping := bleve.NewTextFieldMapping()
-		facetMapping.Name = field + facetSuffix
-		// Setting analyzer to keyword gives us the exact value of the field.
-		facetMapping.Analyzer = "keyword"
-		objMapping.AddFieldMappingsAt(field, facetMapping)
-	}
-
-	index.AddDocumentMapping("object", objMapping)
-}
 
 type bleveIndexer struct {
 	idx   bleve.Index

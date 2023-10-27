@@ -111,12 +111,6 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			continue
 		}
 
-		labels, err := o.GetRelevantLabels()
-		if err != nil {
-			log.Error(err, fmt.Sprintf("failed to get labels from object %s/%s/%s", objTx.ClusterName(), o.GetNamespace(), o.GetName()))
-			continue
-		}
-
 		object := models.Object{
 			Cluster:             objTx.ClusterName(),
 			Name:                objTx.Object().GetName(),
@@ -130,7 +124,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			KubernetesDeletedAt: modelTs,
 			Unstructured:        raw,
 			Tenant:              o.GetLabels()[tenantLabel],
-			Labels:              labels,
+			Labels:              o.GetRelevantLabels(),
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {
