@@ -267,6 +267,8 @@ var (
 		},
 		Labels: []string{
 			"templateType",
+			"weave.works/template-type",
+			"weave.works/templatetype",
 		},
 		Category: CategoryTemplate,
 	}

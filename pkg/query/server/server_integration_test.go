@@ -146,6 +146,8 @@ func TestListFacets(t *testing.T) {
 						Namespace: "default",
 						Labels: map[string]string{
 							"templateType": "cluster",
+							//"weave.works/template-type":  "cluster",
+							//"weave.works\\/templatetype": "cluster",
 						},
 					},
 				},
@@ -164,7 +166,7 @@ func TestListFacets(t *testing.T) {
 				facetsResponse, err := c.ListFacets(ctx, &api.ListFacetsRequest{})
 				g.Expect(err).To(BeNil())
 				for _, f := range facetsResponse.GetFacets() {
-					if strings.Contains(f.Field, "templateType") {
+					if strings.Contains(f.Field, "template") {
 						if len(f.Values) == tt.expectedNumObjects {
 							return true
 						}
