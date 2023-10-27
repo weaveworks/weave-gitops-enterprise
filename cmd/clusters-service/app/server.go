@@ -535,6 +535,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 	coreCfg, err := core_core.NewCoreConfig(
 		log, rest, clusterName, clustersManager, healthChecker,
 	)
+	coreCfg.PrimaryKinds.Add("GitOpsSet", gitopssetsv1alpha1.GroupVersion.WithKind("GitOpsSet"))
 	if err != nil {
 		return fmt.Errorf("could not create core config: %w", err)
 	}
