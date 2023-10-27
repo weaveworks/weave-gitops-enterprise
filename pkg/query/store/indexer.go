@@ -64,12 +64,11 @@ func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 		// adding labels as filter category for those configured
 		filterFields = append(filterFields, objectKind.Labels...)
 	}
-	filterFields = append(filterFields, "Object.metadata.labels.templateType")
 
 	objMapping := bleve.NewDocumentMapping()
 
 	// mapping common filters
-	for _, field := range commonFilterFields {
+	for _, field := range filterFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
 		fieldMapping := bleve.NewTextFieldMapping()
@@ -84,21 +83,6 @@ func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 		facetMapping.Analyzer = "keyword"
 		objMapping.AddFieldMappingsAt(field, facetMapping)
 	}
-
-	templateTypeField := "Object.metadata.labels.templateType"
-
-	// mapping labels
-	fieldMapping := bleve.NewTextFieldMapping()
-	fieldMapping.Analyzer = "keyword"
-	objMapping.AddFieldMappingsAt(templateTypeField, fieldMapping)
-
-	// This adds the facets so the UI can be built around the correct values,
-	// without changing how things are searched.
-	facetMapping := bleve.NewTextFieldMapping()
-	facetMapping.Name = templateTypeField + facetSuffix
-	// Setting analyzer to keyword gives us the exact value of the field.
-	facetMapping.Analyzer = "keyword"
-	objMapping.AddFieldMappingsAt(templateTypeField, facetMapping)
 
 	indexMapping.AddDocumentMapping("object", objMapping)
 
@@ -312,6 +296,8 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	query := bleve.NewMatchAllQuery()
 
 	req := bleve.NewSearchRequest(query)
+
+	req.AddFacet("Object.metadata.labels.templateType", bleve.NewFacetRequest("Object.metadata.labels.templateType", 100))
 
 	for _, f := range filterFields {
 		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))

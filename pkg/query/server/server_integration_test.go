@@ -35,7 +35,7 @@ var (
 )
 
 const (
-	defaultTimeout  = time.Second * 30
+	defaultTimeout  = time.Second * 5
 	defaultInterval = time.Second
 )
 
@@ -129,7 +129,6 @@ func TestListFacets(t *testing.T) {
 		name               string
 		objects            []client.Object
 		access             []client.Object
-		query              string
 		expectedNumObjects int
 	}{
 
@@ -151,7 +150,6 @@ func TestListFacets(t *testing.T) {
 					},
 				},
 			},
-			query:              "Object.metadata.labels.templateType:cluster",
 			expectedNumObjects: 1,
 		},
 	}
@@ -167,7 +165,7 @@ func TestListFacets(t *testing.T) {
 				g.Expect(err).To(BeNil())
 				for _, f := range facetsResponse.GetFacets() {
 					if strings.Contains(f.Field, "templateType") {
-						if len(f.Values) == 1 {
+						if len(f.Values) == tt.expectedNumObjects {
 							return true
 						}
 					}
