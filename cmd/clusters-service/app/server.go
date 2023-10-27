@@ -58,7 +58,6 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
-	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
@@ -734,14 +733,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		}); err != nil {
 			return fmt.Errorf("hydrating terraform server: %w", err)
 		}
-	}
-
-	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
-		Logger:         args.Log,
-		ClientsFactory: args.ClustersManager,
-		HealthChecker:  args.CoreServerConfig.HealthChecker,
-	}); err != nil {
-		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
 
 	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{
