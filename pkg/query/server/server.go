@@ -171,11 +171,17 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 
 	authz := rbac.NewAuthorizer(kindToResourceMap)
 
-	idxDir, err := os.MkdirTemp("", "index")
+	//idxDir, err := os.MkdirTemp("", "index")
+	//if err != nil {
+	//	return nil, nil, fmt.Errorf("cannot create index dir: %w", err)
+	//}
+	//fmt.Println("idxDir:", idxDir)
+
+	idxDir := "/Users/enekofb/projects/github.com/blevesearch/bleve-explorer/data"
+	err = os.RemoveAll(idxDir)
 	if err != nil {
 		return nil, nil, fmt.Errorf("cannot create index dir: %w", err)
 	}
-	fmt.Println("idxDir:", idxDir)
 
 	idx, err := store.NewIndexer(s, idxDir, opts.Logger.WithName("indexer"))
 	if err != nil {

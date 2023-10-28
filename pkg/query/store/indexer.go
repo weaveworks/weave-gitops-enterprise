@@ -298,8 +298,8 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	req := bleve.NewSearchRequest(query)
 
 	//TODO we find tempplate filters because of this!
-	req.AddFacet("Object.metadata.labels.templateType", bleve.NewFacetRequest("Object.metadata.labels.templateType", 100))
-	//req.AddFacet("Object.metadata.labels.weave.works/template-type", bleve.NewFacetRequest("Object.metadata.labels.weave.works/template-type", 100))
+	//req.AddFacet("Object.metadata.labels.templateType", bleve.NewFacetRequest("Object.metadata.labels.templateType", 100))
+	req.AddFacet("Object.metadata.labels.weave.works/template-type", bleve.NewFacetRequest("Object.metadata.labels.weave.works/template-type", 100))
 	//req.AddFacet("Object.metadata.labels.weave.works\\/templatetype", bleve.NewFacetRequest("Object.metadata.labels.weave.works\\/templatetype", 100))
 
 	for _, f := range filterFields {

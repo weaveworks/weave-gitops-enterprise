@@ -126,10 +126,11 @@ func TestListFacets(t *testing.T) {
 	g.Expect(err).To(BeNil())
 
 	tests := []struct {
-		name               string
-		objects            []client.Object
-		access             []client.Object
-		expectedNumObjects int
+		name          string
+		objects       []client.Object
+		access        []client.Object
+		expectedValue string
+		expectedFacet string
 	}{
 
 		{
@@ -145,14 +146,15 @@ func TestListFacets(t *testing.T) {
 						Name:      "cluster-template-1",
 						Namespace: "default",
 						Labels: map[string]string{
-							"templateType": "cluster",
-							//"weave.works/template-type":  "cluster",
+							"templateType":              "cluster",
+							"weave.works/template-type": "cluster",
 							//"weave.works\\/templatetype": "cluster",
 						},
 					},
 				},
 			},
-			expectedNumObjects: 1,
+			expectedFacet: "Object.metadata.labels.weave.works/template-type",
+			expectedValue: "cluster",
 		},
 	}
 	for _, tt := range tests {
@@ -166,12 +168,11 @@ func TestListFacets(t *testing.T) {
 				facetsResponse, err := c.ListFacets(ctx, &api.ListFacetsRequest{})
 				g.Expect(err).To(BeNil())
 				for _, f := range facetsResponse.GetFacets() {
-					if strings.Contains(f.Field, "template") {
-						if len(f.Values) == tt.expectedNumObjects {
+					if strings.Contains(f.Field, tt.expectedFacet) {
+						if len(f.Values) == 1 && f.Values[0] == tt.expectedValue {
 							return true
 						}
 					}
-
 					if len(f.Values) > 1 {
 						testLog.Info("facets found", "facet", f.Field, "values", f.Values)
 					}
