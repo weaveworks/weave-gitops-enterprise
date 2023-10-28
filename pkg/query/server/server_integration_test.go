@@ -80,12 +80,12 @@ func TestQueryServer(t *testing.T) {
 						Name:      "cluster-template-1",
 						Namespace: "default",
 						Labels: map[string]string{
-							"templateType": "cluster",
+							"weave.works/template-type": "cluster",
 						},
 					},
 				},
 			},
-			query:              "Object.metadata.labels.templateType:cluster",
+			query:              "Weave.works/template-type:cluster",
 			expectedNumObjects: 1,
 		},
 	}
@@ -154,7 +154,7 @@ func TestListFacets(t *testing.T) {
 					},
 				},
 			},
-			expectedFacet: "weave.works/template-type",
+			expectedFacet: "Object.metadata.labels.weave.works/template-type",
 			expectedValue: "cluster",
 		},
 	}
