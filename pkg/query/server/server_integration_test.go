@@ -85,7 +85,7 @@ func TestQueryServer(t *testing.T) {
 					},
 				},
 			},
-			query:              "Weave.works/template-type:cluster",
+			query:              "Object.metadata.labels.weave.works/template-type:cluster",
 			expectedNumObjects: 1,
 		},
 	}
