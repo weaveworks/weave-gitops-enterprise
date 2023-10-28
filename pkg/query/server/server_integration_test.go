@@ -145,10 +145,11 @@ func TestListFacets(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cluster-template-1",
 						Namespace: "default",
+						Annotations: map[string]string{
+							"annotationKey": "annotationValue",
+						},
 						Labels: map[string]string{
-							"templateType":              "cluster",
 							"weave.works/template-type": "cluster",
-							//"weave.works\\/templatetype": "cluster",
 						},
 					},
 				},

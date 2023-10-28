@@ -51,24 +51,16 @@ type IndexReader interface {
 }
 
 var indexFile = "index.db"
-var commonFilterFields = []string{"cluster", "namespace", "kind"}
-var filterFields = []string{}
+var commonFields = []string{"cluster", "namespace", "kind"}
 
 func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
 	indexMapping := bleve.NewIndexMapping()
-	filterFields = append(filterFields, commonFilterFields...)
-
-	// mapping labels
-	for _, objectKind := range configuration.SupportedObjectKinds {
-		// adding labels as filter category for those configured
-		filterFields = append(filterFields, objectKind.Labels...)
-	}
 
 	objMapping := bleve.NewDocumentMapping()
 
 	// mapping common filters
-	for _, field := range filterFields {
+	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
 		fieldMapping := bleve.NewTextFieldMapping()
@@ -293,17 +285,21 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	metrics.IndexerAddInflightRequests(metrics.ListFacetsAction, 1)
 	defer recordIndexerMetrics(metrics.ListFacetsAction, time.Now(), err)
 
+	// TODO do not build me each time but reuse me
 	query := bleve.NewMatchAllQuery()
-
 	req := bleve.NewSearchRequest(query)
 
-	//TODO we find tempplate filters because of this!
-	//req.AddFacet("Object.metadata.labels.templateType", bleve.NewFacetRequest("Object.metadata.labels.templateType", 100))
-	req.AddFacet("Object.metadata.labels.weave.works/template-type", bleve.NewFacetRequest("Object.metadata.labels.weave.works/template-type", 100))
-	//req.AddFacet("Object.metadata.labels.weave.works\\/templatetype", bleve.NewFacetRequest("Object.metadata.labels.weave.works\\/templatetype", 100))
-
-	for _, f := range filterFields {
+	// adding facets for common fields
+	for _, f := range commonFields {
 		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))
+	}
+
+	// adding facets for labels
+	for _, objectKind := range configuration.SupportedObjectKinds {
+		for _, label := range objectKind.Labels {
+			labelFacet := fmt.Sprintf("Object.metadata.labels.%s", label)
+			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))
+		}
 	}
 
 	searchResults, err := i.idx.Search(req)
