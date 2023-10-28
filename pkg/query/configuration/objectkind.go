@@ -266,9 +266,7 @@ var (
 			return e.Spec.Description
 		},
 		Labels: []string{
-			//"templateType",
 			"weave.works/template-type",
-			//"weave.works/templatetype",
 		},
 		Category: CategoryTemplate,
 	}

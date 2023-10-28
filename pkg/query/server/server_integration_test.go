@@ -154,7 +154,7 @@ func TestListFacets(t *testing.T) {
 					},
 				},
 			},
-			expectedFacet: "Object.metadata.labels.weave.works/template-type",
+			expectedFacet: "weave.works/template-type",
 			expectedValue: "cluster",
 		},
 	}
