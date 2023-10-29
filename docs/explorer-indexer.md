@@ -329,6 +329,35 @@ PASS
 
 #### Explorer ui offers filtering by label
 
+Explorer offers pre-defined filters by using bleve feature facets
+https://blevesearch.com/docs/Result-Faceting/
+
+>Facets allow you to include aggregated information about the documents matching your query.
+
+Facets are just indexed fields that shows its dictionary term so it could be 
+use to create key-value queries for particular <indexed field , term>
+
+Explorer UI calculates the faces by using `ListFacets` api endpoint. We could 
+get the label as facet by adding them to the kind configuration and requesting 
+for them during `ListFacets` request as follows:
+
+```
+	// adding facets for labels
+	for _, objectKind := range configuration.SupportedObjectKinds {
+		for _, label := range objectKind.Labels {
+			labelFacet := fmt.Sprintf("Object.metadata.labels.%s", label)
+			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))
+		}
+	}
+```
+Then we could see the fields showing as facet 
+
+![explorer-label-facet.png](imgs%2Fexplorer-label-facet.png)
+
+
+
+
+
 
 
 
