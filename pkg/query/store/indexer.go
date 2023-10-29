@@ -297,7 +297,12 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	// adding facets for labels
 	for _, objectKind := range configuration.SupportedObjectKinds {
 		for _, label := range objectKind.Labels {
+			// field from unstructured
 			labelFacet := fmt.Sprintf("Object.metadata.labels.%s", label)
+			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))
+
+			// field from normalised
+			labelFacet = fmt.Sprintf("labels.%s", label)
 			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))
 		}
 	}

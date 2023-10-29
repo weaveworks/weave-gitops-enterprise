@@ -373,8 +373,26 @@ the solution:
  - add the label to the normalised schema 
  - add a field mapping for `label` has as `indexed field id` = `label-key`
 
-// TRY THIS OUT 
+**solution by normalised**:
 
+Added labels to object struct as map 
+
+```
+...
+	Tenant              string                       `json:"tenant" gorm:"type:text"`
+	Labels              map[string]string            `json:"labels" gorm:"-"`
+}
+```
+Now we have the same situation as before for unstructured with indexed field like `labels.labelKey` 
+
+```
+ ✗ bleve dictionary /Users/enekofb/projects/github.com/blevesearch/bleve-explorer/data/index.db labels.weave.works/template-type
+cluster - 1
+```
+
+and we could filter and querying using the label 
+
+![explorer-label-facet-normalised.png](imgs%2Fexplorer-label-facet-normalised.png)
 
 ## Querying: how querying looks like for satisfying those searches
 
