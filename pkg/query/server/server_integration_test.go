@@ -68,7 +68,7 @@ func TestQueryServer(t *testing.T) {
 	}{
 
 		{
-			name:   "should support gitops templates",
+			name:   "should support gitops templates by label",
 			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				&gapiv1.GitOpsTemplate{
