@@ -104,17 +104,6 @@
       },
       "additionalProperties": {}
     },
-    "queryv1Label": {
-      "type": "object",
-      "properties": {
-        "key": {
-          "type": "string"
-        },
-        "value": {
-          "type": "string"
-        }
-      }
-    },
     "rpcStatus": {
       "type": "object",
       "properties": {
@@ -245,10 +234,9 @@
           "type": "string"
         },
         "labels": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/queryv1Label"
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
           }
         }
       }

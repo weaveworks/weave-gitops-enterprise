@@ -32,7 +32,7 @@ type Object struct {
 	KubernetesDeletedAt time.Time                    `json:"kubernetesDeletedAt"`
 	Unstructured        json.RawMessage              `json:"unstructured" gorm:"type:blob"`
 	Tenant              string                       `json:"tenant" gorm:"type:text"`
-	Labels              []Label                      `json:"labels" gorm:"-"`
+	Labels              map[string]string            `json:"labels" gorm:"-"`
 }
 
 func (o Object) Validate() error {
@@ -108,7 +108,7 @@ type NormalizedObject interface {
 	// GetCategory returns the category of the object, as determined by the ObjectKind Category
 	GetCategory() (configuration.ObjectCategory, error)
 	// GetLabels returns the labels for the object
-	GetRelevantLabels() []Label
+	GetRelevantLabels() map[string]string
 	// Raw returns the underlying client.Object
 	Raw() client.Object
 }
@@ -127,12 +127,12 @@ func (n defaultNormalizedObject) GetMessage() (string, error) {
 }
 
 // GetRelevantLabels returns the object labels that have been configured to be selected.
-func (n defaultNormalizedObject) GetRelevantLabels() []Label {
-	labels := []Label{}
+func (n defaultNormalizedObject) GetRelevantLabels() map[string]string {
+	labels := map[string]string{}
 	objectLabels := n.GetLabels()
 	for _, labelKey := range n.config.Labels {
 		if objectLabels[labelKey] != "" {
-			labels = append(labels, Label{Key: labelKey, Value: objectLabels[labelKey]})
+			labels[labelKey] = objectLabels[labelKey]
 		}
 	}
 	return labels

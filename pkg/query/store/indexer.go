@@ -59,7 +59,7 @@ func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 
 	objMapping := bleve.NewDocumentMapping()
 
-	// mapping common filters
+	// field mapping common filters
 	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.

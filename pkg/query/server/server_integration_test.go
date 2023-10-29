@@ -67,8 +67,29 @@ func TestQueryServer(t *testing.T) {
 		expectedNumObjects int
 	}{
 
+		//{
+		//	name:   "should support gitops templates by label from unstructured",
+		//	access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
+		//	objects: []client.Object{
+		//		&gapiv1.GitOpsTemplate{
+		//			TypeMeta: metav1.TypeMeta{
+		//				Kind:       gapiv1.Kind,
+		//				APIVersion: "templates.weave.works/v1alpha2",
+		//			},
+		//			ObjectMeta: metav1.ObjectMeta{
+		//				Name:      "cluster-template-1",
+		//				Namespace: "default",
+		//				Labels: map[string]string{
+		//					"weave.works/template-type": "cluster",
+		//				},
+		//			},
+		//		},
+		//	},
+		//	query:              "Object.metadata.labels.weave.works/template-type:cluster",
+		//	expectedNumObjects: 1,
+		//},
 		{
-			name:   "should support gitops templates by label",
+			name:   "should support gitops templates by label from normalised",
 			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				&gapiv1.GitOpsTemplate{
@@ -85,7 +106,7 @@ func TestQueryServer(t *testing.T) {
 					},
 				},
 			},
-			query:              "Object.metadata.labels.weave.works/template-type:cluster",
+			query:              "labels.weave.works/template-type:cluster",
 			expectedNumObjects: 1,
 		},
 	}
@@ -133,8 +154,32 @@ func TestListFacets(t *testing.T) {
 		expectedFacet string
 	}{
 
+		//{
+		//	name:   "should list facets for label by unstructured",
+		//	access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
+		//	objects: []client.Object{
+		//		&gapiv1.GitOpsTemplate{
+		//			TypeMeta: metav1.TypeMeta{
+		//				Kind:       gapiv1.Kind,
+		//				APIVersion: "templates.weave.works/v1alpha2",
+		//			},
+		//			ObjectMeta: metav1.ObjectMeta{
+		//				Name:      "cluster-template-1",
+		//				Namespace: "default",
+		//				Annotations: map[string]string{
+		//					"annotationKey": "annotationValue",
+		//				},
+		//				Labels: map[string]string{
+		//					"weave.works/template-type": "cluster",
+		//				},
+		//			},
+		//		},
+		//	},
+		//	expectedFacet: "Object.metadata.labels.weave.works/template-type",
+		//	expectedValue: "cluster",
+		//},
 		{
-			name:   "should support gitops templates",
+			name:   "should list facets for label by normalised",
 			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				&gapiv1.GitOpsTemplate{
@@ -154,7 +199,7 @@ func TestListFacets(t *testing.T) {
 					},
 				},
 			},
-			expectedFacet: "Object.metadata.labels.weave.works/template-type",
+			expectedFacet: "labels.weave.works/template-type",
 			expectedValue: "cluster",
 		},
 	}

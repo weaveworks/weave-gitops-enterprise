@@ -32,10 +32,9 @@ import (
 type server struct {
 	pb.UnimplementedQueryServer
 
-	debug logr.Logger
-	qs    query.QueryService
-	arc   collector.Collector
-	objs  collector.Collector
+	qs   query.QueryService
+	arc  collector.Collector
+	objs collector.Collector
 
 	cancelCollection context.CancelFunc
 	cleaner          cleaner.ObjectCleaner
@@ -80,7 +79,7 @@ func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryRe
 	}
 
 	return &pb.QueryResponse{
-		Objects: convertToPbObject(objs, s.debug),
+		Objects: convertToPbObject(objs),
 	}, nil
 }
 
@@ -199,10 +198,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 	}
 	debug.Info("query service created")
 
-	serv := &server{
-		qs:    qs,
-		debug: debug,
-	}
+	serv := &server{qs: qs}
 
 	if !opts.SkipCollection {
 		if len(opts.ObjectKinds) == 0 {
@@ -276,12 +272,11 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) (func(
 	return stop, pb.RegisterQueryHandlerServer(ctx, mux, s)
 }
 
-func convertToPbObject(obj []models.Object, debug logr.Logger) []*pb.Object {
+func convertToPbObject(obj []models.Object) []*pb.Object {
 	pbObjects := []*pb.Object{}
 
 	for _, o := range obj {
-
-		p := &pb.Object{
+		pbObjects = append(pbObjects, &pb.Object{
 			Kind:         o.Kind,
 			Name:         o.Name,
 			Namespace:    o.Namespace,
@@ -294,16 +289,8 @@ func convertToPbObject(obj []models.Object, debug logr.Logger) []*pb.Object {
 			Unstructured: string(o.Unstructured),
 			Id:           o.GetID(),
 			Tenant:       o.Tenant,
-		}
-
-		for _, s := range o.Labels {
-			p.Labels = append(p.Labels, &pb.Label{
-				Key:   s.Key,
-				Value: s.Value,
-			})
-		}
-
-		pbObjects = append(pbObjects, p)
+			Labels:       o.Labels,
+		})
 	}
 
 	return pbObjects
