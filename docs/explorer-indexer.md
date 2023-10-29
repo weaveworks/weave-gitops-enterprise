@@ -354,21 +354,26 @@ Then we could see the fields showing as facet
 
 ![explorer-label-facet.png](imgs%2Fexplorer-label-facet.png)
 
+The current limitation is that the visualization shows
+the field name completely `Object.metadata.labels.weave.works/template-type`
+where the user should see `weave.works/template-type`
 
+the reasons are:
 
+1) we are using unstructured so we have the full indexed field that includes the path 
+2) we are not using the non-unstructured
 
+the solution:
 
+1) **by unstructured**: the api should do a mapping between indexed fields and api fields in and out from api queries
+- for an api query request -> we add the indexed field path
+- for an api query response -> we delete the indexed field path
 
+2) **by normalised**: add `label` as part of the normalised object. this would likely require to:
+ - add the label to the normalised schema 
+ - add a field mapping for `label` has as `indexed field id` = `label-key`
 
-
-
-
-
-
-
-
-
-
+// TRY THIS OUT 
 
 
 ## Querying: how querying looks like for satisfying those searches
