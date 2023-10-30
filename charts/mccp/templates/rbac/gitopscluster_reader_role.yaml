@@ -7,7 +7,7 @@ rules:
     resources: ["gitopsclusters"]
     verbs: ["get", "watch", "list"]
 
-{{- if .Values.enableExplorer }}
+{{- if .Values.explorer.enabled }}
   - apiGroups: ["rbac.authorization.k8s.io"]
     resources: ["clusterroles", "clusterrolebindings", "roles", "rolebindings"]
     verbs: ["get", "watch", "list"]

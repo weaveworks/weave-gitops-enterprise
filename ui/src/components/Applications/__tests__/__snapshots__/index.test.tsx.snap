@@ -201,7 +201,7 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c10.MuiIconButton-root:hover {
-  background-color: #fff;
+  background-color: #ffffff;
   color: #009CCC;
 }
 
@@ -225,7 +225,7 @@ exports[`Applications index test snapshots loading 1`] = `
 }
 
 .c15 {
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;
@@ -979,7 +979,7 @@ exports[`Applications index test snapshots success 1`] = `
 .c33 {
   position: absolute;
   overflow: hidden;
-  background: #fff;
+  background: #ffffff;
   height: 0px;
   -webkit-transition-property: height;
   transition-property: height;
@@ -1189,7 +1189,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c10.MuiIconButton-root:hover {
-  background-color: #fff;
+  background-color: #ffffff;
   color: #009CCC;
 }
 
@@ -1213,7 +1213,7 @@ exports[`Applications index test snapshots success 1`] = `
 }
 
 .c15 {
-  background-color: #fff;
+  background-color: #ffffff;
   border-radius: 10px;
   box-sizing: border-box;
   margin: 0 auto;

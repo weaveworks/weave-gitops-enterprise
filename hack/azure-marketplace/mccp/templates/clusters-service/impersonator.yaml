@@ -6,7 +6,7 @@ rules:
   - apiGroups: [""]
     resources: ["users", "groups"]
     verbs: ["impersonate"]
-{{- if .Values.enableExplorer }}
+{{- if .Values.explorer.enabled }}
   - apiGroups: [ "" ]
     resources: [ "serviceaccounts" ]
     verbs: [ "impersonate" ]

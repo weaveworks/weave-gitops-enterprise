@@ -1,7 +1,6 @@
 import { Divider, useMediaQuery } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import {
-  Button,
   Flex,
   GitRepository,
   HelmRepository,
@@ -23,7 +22,6 @@ import {
   CreatePullRequestRequest,
   Kustomization,
   ProfileValues,
-  RenderTemplateResponse,
 } from '../../../cluster-services/cluster_services.pb';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useConfig from '../../../hooks/config';
@@ -46,7 +44,6 @@ import {
   FLUX_BOOSTRAP_KUSTOMIZATION_NAMESPACE,
 } from '../../../utils/config';
 import { validateFormData } from '../../../utils/form';
-import { getFormattedCostEstimate } from '../../../utils/formatters';
 import { Routes } from '../../../utils/nav';
 import { removeToken } from '../../../utils/request';
 import { getGitRepos, getHelmRepos } from '../../Clusters';
@@ -58,7 +55,7 @@ import { ApplicationsWrapper } from './Partials/ApplicationsWrapper';
 import CostEstimation from './Partials/CostEstimation';
 import Credentials from './Partials/Credentials';
 import GitOps from './Partials/GitOps';
-import Preview from './Partials/Preview';
+import { Preview } from './Partials/Preview';
 import Profiles from './Partials/Profiles';
 import TemplateFields from './Partials/TemplateFields';
 import {
@@ -253,7 +250,7 @@ interface ResourceFormProps {
 const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const callbackState = useCallbackState();
   const classes = useStyles();
-  const { renderTemplate, addResource } = useTemplates();
+  const { addResource } = useTemplates();
   const random = useMemo(() => Math.random().toString(36).substring(7), []);
   const { annotations } = template;
   const { setNotifications } = useNotifications();
@@ -395,92 +392,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
   const authRedirectPage = resource
     ? editLink
     : `/templates/create?name=${template.name}&namespace=${template.namespace}`;
-  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [prPreview, setPRPreview] = useState<RenderTemplateResponse | null>(
-    null,
-  );
   const [loading, setLoading] = useState<boolean>(false);
-  const [costEstimationLoading, setCostEstimationLoading] =
-    useState<boolean>(false);
-  const [costEstimate, setCostEstimate] = useState<string>('00.00 USD');
-  const [costEstimateMessage, setCostEstimateMessage] = useState<string>('');
+
   const [formError, setFormError] = useState<string>('');
-
-  const handlePRPreview = useCallback(() => {
-    const { parameterValues } = formData;
-    setPreviewLoading(true);
-    return renderTemplate({
-      templateName: template.name,
-      templateNamespace: template.namespace,
-      values: parameterValues,
-      profiles: encodedProfiles(updatedProfiles),
-      credentials: infraCredential || undefined,
-      kustomizations: getKustomizations(formData),
-      templateKind: template.templateKind,
-    })
-      .then(data => {
-        setOpenPreview(true);
-        setPRPreview(data);
-      })
-      .catch(err =>
-        setNotifications([
-          {
-            message: { text: err.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]),
-      )
-      .finally(() => setPreviewLoading(false));
-  }, [
-    formData,
-    setOpenPreview,
-    renderTemplate,
-    infraCredential,
-    template.name,
-    template.namespace,
-    template.templateKind,
-    updatedProfiles,
-    setNotifications,
-  ]);
-
-  const handleCostEstimation = useCallback(() => {
-    const { parameterValues } = formData;
-    setCostEstimationLoading(true);
-    return renderTemplate({
-      templateName: template.name,
-      templateNamespace: template.namespace,
-      values: parameterValues,
-      profiles: encodedProfiles(updatedProfiles),
-      credentials: infraCredential || undefined,
-      kustomizations: getKustomizations(formData),
-      templateKind: template.templateKind,
-    })
-      .then(data => {
-        const { costEstimate } = data;
-        setCostEstimate(getFormattedCostEstimate(costEstimate));
-        setCostEstimateMessage(costEstimate?.message || '');
-      })
-      .catch(err =>
-        setNotifications([
-          {
-            message: { text: err.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]),
-      )
-      .finally(() => setCostEstimationLoading(false));
-  }, [
-    formData,
-    renderTemplate,
-    infraCredential,
-    template.name,
-    template.templateKind,
-    template.namespace,
-    updatedProfiles,
-    setNotifications,
-  ]);
 
   const token = getProviderToken(formData.provider);
 
@@ -509,7 +423,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
       .then(() =>
         addResource(payload, getProviderToken(formData.provider))
           .then(response => {
-            setPRPreview(null);
             history.push(Routes.Templates);
             setNotifications([
               {
@@ -546,7 +459,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     addResource,
     formData,
     infraCredential,
-    setPRPreview,
     template.name,
     template.namespace,
     template.templateKind,
@@ -576,28 +488,6 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     }
   }, [initialGitRepo, formData.repo]);
 
-  useEffect(() => {
-    setCostEstimate('00.00 USD');
-  }, [formData.parameterValues]);
-
-  const [submitType, setSubmitType] = useState<string>('');
-
-  const getSubmitFunction = useCallback(
-    (submitType?: string) => {
-      switch (submitType) {
-        case 'PR Preview':
-          return handlePRPreview;
-        case 'Create resource':
-          return handleAddResource;
-        case 'Get cost estimation':
-          return handleCostEstimation;
-        default:
-          return;
-      }
-    },
-    [handleAddResource, handleCostEstimation, handlePRPreview],
-  );
-
   return useMemo(() => {
     return (
       <CallbackStateContextProvider
@@ -614,12 +504,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
         <FormWrapper
           noValidate
           onSubmit={event =>
-            validateFormData(
-              event,
-              getSubmitFunction(submitType),
-              setFormError,
-              setSubmitType,
-            )
+            validateFormData(event, handleAddResource, setFormError)
           }
         >
           <CredentialsWrapper align>
@@ -669,15 +554,17 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           ) : null}
           {isCostEstimationEnabled ? (
             <CostEstimation
-              handleCostEstimation={handleCostEstimation}
-              costEstimate={costEstimate}
-              isCostEstimationLoading={costEstimationLoading}
-              costEstimateMessage={costEstimateMessage}
+              template={template}
+              formData={formData}
               setFormError={setFormError}
-              setSubmitType={setSubmitType}
+              profiles={encodedProfiles(updatedProfiles)}
+              credentials={infraCredential || undefined}
+              kustomizations={getKustomizations(formData)}
             />
           ) : null}
           <GitOps
+            loading={loading}
+            isAuthenticated={isAuthenticated}
             formData={formData}
             setFormData={setFormData}
             showAuthDialog={showAuthDialog}
@@ -689,32 +576,16 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
                 (initialGitRepo as GitRepositoryEnriched)?.createPRRepo
               )
             }
-          />
-          <Flex end className="gitops-cta">
-            <Button
-              loading={loading}
-              type="submit"
-              onClick={() => setSubmitType('Create resource')}
-              disabled={!isAuthenticated || loading}
-            >
-              CREATE PULL REQUEST
-            </Button>
-            <Button
-              loading={previewLoading}
-              disabled={previewLoading}
-              type="submit"
-              onClick={() => setSubmitType('PR Preview')}
-            >
-              PREVIEW PR
-            </Button>
-            {openPreview && prPreview ? (
-              <Preview
-                openPreview={openPreview}
-                setOpenPreview={setOpenPreview}
-                prPreview={prPreview}
-              />
-            ) : null}
-          </Flex>
+          >
+            <Preview
+              template={template}
+              formData={formData}
+              profiles={encodedProfiles(updatedProfiles)}
+              credentials={infraCredential || undefined}
+              kustomizations={getKustomizations(formData)}
+              setFormError={setFormError}
+            />
+          </GitOps>
         </FormWrapper>
       </CallbackStateContextProvider>
     );
@@ -724,29 +595,21 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     formData,
     infraCredential,
     classes,
-    openPreview,
-    prPreview,
     profilesIsLoading,
     isLargeScreen,
     showAuthDialog,
     setUpdatedProfiles,
     updatedProfiles,
-    previewLoading,
     loading,
-    costEstimationLoading,
-    handleCostEstimation,
-    costEstimate,
-    costEstimateMessage,
     isCredentialEnabled,
     isCostEstimationEnabled,
     isKustomizationsEnabled,
     isProfilesEnabled,
     formError,
-    submitType,
-    getSubmitFunction,
     resource,
     initialGitRepo,
     isAuthenticated,
+    handleAddResource,
     selectedHelmRepositories,
   ]);
 };
