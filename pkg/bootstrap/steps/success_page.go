@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	installSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/"
-	portforwardMsg    = "WGE v%s is installed successfully. To access the dashboard, run the following command to create portforward to the dasboard local domain http://localhost:8000"
+	installSuccessMsg = "WGE v%s is installed successfully\nYou can visit the UI at https://%s/ . admin username: `wego-admin`"
+	portforwardMsg    = "WGE v%s is installed successfully. To access the dashboard, run the following command to create portforward to the dasboard local domain http://localhost:8000 . admin username: `wego-admin`"
 	portforwardCmdMsg = "kubectl -n %s port-forward svc/clusters-service 8000:8000"
 )
 

@@ -95,7 +95,6 @@ func TestBootstrapCmd(t *testing.T) {
 			flags: []string{kubeconfigFlag,
 				"--version=0.33.0",
 				privateKeyFlag, "--private-key-password=\"\"",
-				"--username=admin",
 				"--password=admin123",
 				"--domain-type=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
