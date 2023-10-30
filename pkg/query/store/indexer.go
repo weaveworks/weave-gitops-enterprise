@@ -216,18 +216,19 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	// The query iterator will handle limiting the page size.
 	req.Size = int(count)
 
-	sortBy := "name"
-	tmpl := "-%v"
+	orders := search.SortOrder{}
 
 	if opts != nil {
-		// `-` reverses the order
-		if !opts.GetAscending() {
-			tmpl = "%v"
-		}
-
 		sort := opts.GetOrderBy()
 		if sort != "" {
-			sortBy = sort
+			orders = append(orders, &search.SortField{
+				Field: sort,
+				Type:  search.SortFieldAsString,
+			})
+		}
+
+		if !opts.GetAscending() {
+			req.Sort.Reverse()
 		}
 
 		if opts.GetOffset() > 0 {
@@ -236,7 +237,13 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 
 	}
 
-	req.SortBy([]string{fmt.Sprintf(tmpl, sortBy)})
+	// We order by score here so that we can get the most relevant results first.
+	orders = append(orders, &search.SortField{
+		Field: "_score",
+		Type:  search.SortFieldAuto,
+	})
+
+	req.SortByCustom(orders)
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {

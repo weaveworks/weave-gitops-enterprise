@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
 	. "github.com/onsi/gomega"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -684,6 +685,82 @@ func TestQueryIteration(t *testing.T) {
 
 	g.Expect(got).To(HaveLen(3))
 	g.Expect(got).To(HaveEach(HaveField("Namespace", "namespace-a")), "all be in namespace-a")
+}
+
+func TestQueryOrdering_Realistic(t *testing.T) {
+	g := NewGomegaWithT(t)
+
+	dir, err := os.MkdirTemp("", "test")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	db, err := store.CreateSQLiteDB(dir)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	s, err := store.NewSQLiteStore(db, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	idx, err := store.NewIndexer(s, dir, logr.Discard())
+	g.Expect(err).NotTo(HaveOccurred())
+
+	ctx := auth.WithPrincipal(context.Background(), &auth.UserPrincipal{
+		ID: "test",
+	})
+
+	ex, err := os.Getwd()
+	g.Expect(err).NotTo(HaveOccurred())
+
+	data, err := os.ReadFile(ex + "/../../test/utils/data/explorer/sort_fixture.json")
+	g.Expect(err).NotTo(HaveOccurred())
+
+	objects := []models.Object{}
+
+	if err := json.Unmarshal(data, &objects); err != nil {
+		t.Fatal(err)
+	}
+
+	g.Expect(store.SeedObjects(db, objects)).To(Succeed())
+	g.Expect(idx.Add(context.Background(), objects)).To(Succeed())
+
+	q := &qs{
+		log:        logr.Discard(),
+		debug:      logr.Discard(),
+		r:          s,
+		index:      idx,
+		authorizer: allowAll,
+	}
+
+	qy := &query{
+		terms:     "",
+		limit:     10,
+		orderBy:   "name",
+		ascending: true,
+	}
+
+	got, err := q.RunQuery(ctx, qy, qy)
+	g.Expect(err).NotTo(HaveOccurred())
+
+	expected := []string{
+		"flux-dashboards",
+		"flux-system",
+		"kube-prometheus-stack",
+		"kube-prometheus-stack",
+		"monitoring-config",
+		"podinfo",
+		"podinfo",
+		"podinfo",
+		"podinfo",
+	}
+
+	actual := []string{}
+	for _, o := range got {
+		actual = append(actual, o.Name)
+	}
+
+	diff := cmp.Diff(expected, actual)
+
+	if diff != "" {
+		t.Fatalf("unexpected result (-want +got):\n%s", diff)
+	}
 }
 
 type query struct {
