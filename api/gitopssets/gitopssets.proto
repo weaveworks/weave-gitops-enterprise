@@ -54,22 +54,11 @@ service GitOpsSets {
 
     // Get the reconciled objects for a GitOpsSet
     rpc GetReconciledObjects(GetReconciledObjectsRequest) returns (GetReconciledObjectsResponse) {
-        option (google.api.method_visibility).restriction = "INTERNAL";
         option (google.api.http) = {
-            // FIXME: can we make this a GET request?
             post: "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects"
             body: "*"
         };
     };
-
-    // Get the inventory of a GitOpsSet
-    //
-    //
-    rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
-        option (google.api.http) = {
-            get: "/v1/namespaces/{namespace}/gitopssets/{name}/inventory"
-        };
-    }
 
     // Trigger reconciliation of a GitOpsSet
     rpc SyncGitOpsSet(SyncGitOpsSetRequest) returns (SyncGitOpsSetResponse) {

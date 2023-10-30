@@ -94,9 +94,6 @@ export class GitOpsSets {
   static GetReconciledObjects(req: GetReconciledObjectsRequest, initReq?: fm.InitReq): Promise<GetReconciledObjectsResponse> {
     return fm.fetchReq<GetReconciledObjectsRequest, GetReconciledObjectsResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/reconciled-objects`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
-  static GetInventory(req: GetInventoryRequest, initReq?: fm.InitReq): Promise<GetInventoryResponse> {
-    return fm.fetchReq<GetInventoryRequest, GetInventoryResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/inventory?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
-  }
   static SyncGitOpsSet(req: SyncGitOpsSetRequest, initReq?: fm.InitReq): Promise<SyncGitOpsSetResponse> {
     return fm.fetchReq<SyncGitOpsSetRequest, SyncGitOpsSetResponse>(`/v1/namespaces/${req["namespace"]}/gitopssets/${req["name"]}/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }

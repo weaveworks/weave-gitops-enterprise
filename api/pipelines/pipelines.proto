@@ -36,7 +36,7 @@ service Pipelines {
 
     rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse) {
         option (google.api.http) = {
-            get : "/v1/namespaces/{namespace}/pipelines/{name}"
+            get : "/v1/pipelines/{name}"
         };
     }
 
@@ -51,7 +51,7 @@ service Pipelines {
     rpc ListPullRequests(ListPullRequestsRequest)
         returns (ListPullRequestsResponse) {
         option (google.api.http) = {
-            post : "/v1/pipelines/list-prs/{pipeline_name}"
+            post : "/v1/pipelines/list_prs/{pipelineName}"
             body: "*"
         };
     }
@@ -93,8 +93,8 @@ message ListError {
 }
 
 message ListPullRequestsRequest {
-    string pipeline_name = 1;
-    string pipeline_namespace = 2;
+    string pipelineName = 1;
+    string pipelineNamespace = 2;
 }
 
 message ListPullRequestsResponse {
