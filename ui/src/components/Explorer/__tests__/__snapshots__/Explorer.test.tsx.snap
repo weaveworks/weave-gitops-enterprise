@@ -1,6 +1,25 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Explorer snapshots renders 1`] = `
+.c27 {
+  display: -webkit-box;
+  display: -webkit-flex;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-flex-direction: row;
+  -ms-flex-direction: row;
+  flex-direction: row;
+  -webkit-align-items: start;
+  -webkit-box-align: start;
+  -ms-flex-align: start;
+  align-items: start;
+  width: 100%;
+  -webkit-box-pack: center;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
 .c1 {
   display: -webkit-box;
   display: -webkit-flex;
@@ -118,25 +137,6 @@ exports[`Explorer snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c27 {
-  display: -webkit-box;
-  display: -webkit-flex;
-  display: -ms-flexbox;
-  display: flex;
-  -webkit-flex-direction: row;
-  -ms-flex-direction: row;
-  flex-direction: row;
-  -webkit-align-items: start;
-  -webkit-box-align: start;
-  -ms-flex-align: start;
-  align-items: start;
-  width: 100%;
-  -webkit-box-pack: center;
-  -webkit-justify-content: center;
-  -ms-flex-pack: center;
-  justify-content: center;
-}
-
 .c17 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
@@ -249,49 +249,6 @@ exports[`Explorer snapshots renders 1`] = `
   width: 16px;
 }
 
-.c28 .c16 {
-  margin-left: 4px;
-  color: #d8d8d8;
-}
-
-.c25 svg path.path-fill,
-.c25 svg line.path-fill,
-.c25 svg polygon.path-fill,
-.c25 svg rect.path-fill,
-.c25 svg circle.path-fill,
-.c25 svg polyline.path-fill {
-  fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c25 svg path.stroke-fill,
-.c25 svg line.stroke-fill,
-.c25 svg polygon.stroke-fill,
-.c25 svg rect.stroke-fill,
-.c25 svg circle.stroke-fill,
-.c25 svg polyline.stroke-fill {
-  stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c25.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
-  transform: rotate(180deg);
-}
-
-.c25.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
-  transform: initial;
-}
-
-.c25 .c16 {
-  margin-left: 4px;
-}
-
 .c20 svg {
   fill: #BC3B1D;
 }
@@ -333,6 +290,44 @@ exports[`Explorer snapshots renders 1`] = `
 .c20 .c16 {
   margin-left: 4px;
   color: #BC3B1D;
+}
+
+.c25 svg path.path-fill,
+.c25 svg line.path-fill,
+.c25 svg polygon.path-fill,
+.c25 svg rect.path-fill,
+.c25 svg circle.path-fill,
+.c25 svg polyline.path-fill {
+  fill: !important;
+  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c25 svg path.stroke-fill,
+.c25 svg line.stroke-fill,
+.c25 svg polygon.stroke-fill,
+.c25 svg rect.stroke-fill,
+.c25 svg circle.stroke-fill,
+.c25 svg polyline.stroke-fill {
+  stroke: !important;
+  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
+}
+
+.c25.downward {
+  -webkit-transform: rotate(180deg);
+  -ms-transform: rotate(180deg);
+  transform: rotate(180deg);
+}
+
+.c25.upward {
+  -webkit-transform: initial;
+  -ms-transform: initial;
+  transform: initial;
+}
+
+.c25 .c16 {
+  margin-left: 4px;
 }
 
 .c14 {
@@ -908,7 +903,7 @@ exports[`Explorer snapshots renders 1`] = `
                         class="c4"
                       >
                         <div
-                          class="MuiBox-root MuiBox-root-31"
+                          class="MuiBox-root MuiBox-root-29"
                         >
                           <div
                             class="c4 c20"
@@ -954,7 +949,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="c23"
           >
             <div
-              class="MuiBox-root MuiBox-root-29"
+              class="MuiBox-root MuiBox-root-30"
             >
               <div>
                 <h2>
@@ -1019,13 +1014,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-31 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-35"
+                                class="PrivateSwitchBase-input-34"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1058,13 +1053,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-31 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-35"
+                                class="PrivateSwitchBase-input-34"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1097,13 +1092,13 @@ exports[`Explorer snapshots renders 1`] = `
                         >
                           <span
                             aria-disabled="false"
-                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-32 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
+                            class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-31 MuiCheckbox-root MuiCheckbox-colorSecondary MuiIconButton-colorSecondary"
                           >
                             <span
                               class="MuiIconButton-label"
                             >
                               <input
-                                class="PrivateSwitchBase-input-35"
+                                class="PrivateSwitchBase-input-34"
                                 data-indeterminate="false"
                                 type="checkbox"
                                 value=""
@@ -1143,7 +1138,7 @@ exports[`Explorer snapshots renders 1`] = `
       class="c27 PaginationControls"
     >
       <div
-        class="MuiBox-root MuiBox-root-30"
+        class="MuiBox-root MuiBox-root-35"
       >
         <button
           class="MuiButtonBase-root MuiIconButton-root Mui-disabled Mui-disabled"

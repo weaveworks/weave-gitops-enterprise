@@ -19,12 +19,12 @@ tls:
 # Turns on pipelines features when using Tilt.
 enablePipelines: true
 
-enableExplorer: true
+# Turns on explorer globally. See the explorer.enabledFor option to enable it for specific components.
+explorer:
+  enabled: true
 
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
-
-useQueryServiceBackend: false
 
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
@@ -46,3 +46,4 @@ gitopssets-controller:
 global:
   capiEnabled: true
 
+enableNewPipelines: true

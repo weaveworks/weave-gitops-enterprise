@@ -23,8 +23,9 @@ func (obj TerraformObjectAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return tfctrl.GroupVersion.WithKind(tfctrl.TerraformKind)
 }
 
-func (obj TerraformObjectAdapter) SetSuspended(suspend bool) {
+func (obj TerraformObjectAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj TerraformObjectAdapter) DeepCopyClientObject() client.Object {

@@ -10,6 +10,11 @@ import (
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
 
+// auth types
+const (
+	AuthOIDC = "oidc"
+)
+
 const (
 	defaultAdminUsername = "wego-admin"
 	defaultAdminPassword = "password"
@@ -26,31 +31,40 @@ const (
 	PrivateKeyPassword   = "privateKeyPassword"
 	existingCreds        = "existingCreds"
 	domainType           = "domainType"
+	DiscoveryURL         = "discoveryURL"
+	ClientID             = "clientID"
+	ClientSecret         = "clientSecret"
+	oidcInstalled        = "oidcInstalled"
+	existingOIDC         = "existingOIDC"
 )
 
 // input/output types
 const (
-	failureMsg           = "failureMsg"
 	multiSelectionChoice = "multiSelect"
 	stringInput          = "string"
 	passwordInput        = "password"
 	confirmInput         = "confirm"
 	typeSecret           = "secret"
 	typeFile             = "file"
-	typePortforward      = "portforward"
 )
 
 // ConfigBuilder contains all the different configuration options that a user can introduce
 type ConfigBuilder struct {
-	logger             logger.Logger
-	kubeconfig         string
-	username           string
-	password           string
-	wGEVersion         string
-	domainType         string
-	domain             string
-	privateKeyPath     string
-	privateKeyPassword string
+	logger                  logger.Logger
+	kubeconfig              string
+	username                string
+	password                string
+	wgeVersion              string
+	domainType              string
+	domain                  string
+	privateKeyPath          string
+	privateKeyPassword      string
+	authType                string
+	installOIDC             string
+	discoveryURL            string
+	clientID                string
+	clientSecret            string
+	PromptedForDiscoveryURL bool
 }
 
 func NewConfigBuilder() *ConfigBuilder {
@@ -78,7 +92,7 @@ func (c *ConfigBuilder) WithKubeconfig(kubeconfig string) *ConfigBuilder {
 }
 
 func (c *ConfigBuilder) WithVersion(version string) *ConfigBuilder {
-	c.wGEVersion = version
+	c.wgeVersion = version
 	return c
 }
 
@@ -100,6 +114,19 @@ func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword
 	return c
 }
 
+func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, clientSecret string, prompted bool) *ConfigBuilder {
+	c.authType = AuthOIDC
+	c.discoveryURL = discoveryURL
+	c.clientID = clientID
+	c.clientSecret = clientSecret
+	if discoveryURL != "" && clientID != "" && clientSecret != "" {
+		prompted = false
+	}
+	c.PromptedForDiscoveryURL = prompted
+	c.installOIDC = "y" // todo: change to parameter
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -116,6 +143,15 @@ type Config struct {
 
 	PrivateKeyPath     string
 	PrivateKeyPassword string
+
+	AuthType                string
+	InstallOIDC             string
+	DiscoveryURL            string
+	IssuerURL               string
+	ClientID                string
+	ClientSecret            string
+	RedirectURL             string
+	PromptedForDiscoveryURL bool
 }
 
 // Builds creates a valid config so boostrap could be executed. It uses values introduced
@@ -143,15 +179,21 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
-		KubernetesClient:   kubeHttp.Client,
-		WGEVersion:         cb.wGEVersion,
-		Username:           cb.username,
-		Password:           cb.password,
-		Logger:             cb.logger,
-		DomainType:         cb.domainType,
-		UserDomain:         cb.domain,
-		PrivateKeyPath:     cb.privateKeyPath,
-		PrivateKeyPassword: cb.privateKeyPassword,
+		KubernetesClient:        kubeHttp.Client,
+		WGEVersion:              cb.wgeVersion,
+		Username:                cb.username,
+		Password:                cb.password,
+		Logger:                  cb.logger,
+		DomainType:              cb.domainType,
+		UserDomain:              cb.domain,
+		PrivateKeyPath:          cb.privateKeyPath,
+		PrivateKeyPassword:      cb.privateKeyPassword,
+		AuthType:                cb.authType,
+		InstallOIDC:             cb.installOIDC,
+		DiscoveryURL:            cb.discoveryURL,
+		ClientID:                cb.clientID,
+		ClientSecret:            cb.clientSecret,
+		PromptedForDiscoveryURL: cb.PromptedForDiscoveryURL,
 	}, nil
 
 }

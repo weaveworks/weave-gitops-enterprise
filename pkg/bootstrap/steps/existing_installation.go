@@ -51,7 +51,7 @@ func continueWithExistingInstallation(input []StepInput, c *Config) ([]StepOutpu
 
 func askContinueWithExistingVersion(input []StepInput, c *Config) (interface{}, error) {
 	c.Logger.Actionf(checkMsg, WGEDefaultNamespace)
-	installedVersion, err := utils.GetHelmReleaseVersion(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace)
+	installedVersion, err := utils.GetHelmReleaseProperty(c.KubernetesClient, WgeHelmReleaseName, WGEDefaultNamespace, utils.HelmVersionProperty)
 	if err != nil {
 		if !apierrors.IsNotFound(err) {
 			c.Logger.Failuref("unexpected error finding existing WGE helm release: %v", err)
