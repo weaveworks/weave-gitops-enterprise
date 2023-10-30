@@ -12,9 +12,9 @@ import {
   Metadata,
   RouterTab,
   SubRouterTabs,
+  Timestamp,
   YamlView,
 } from '@weaveworks/weave-gitops';
-import _ from 'lodash';
 import { useState } from 'react';
 import { useLocation, useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
@@ -39,6 +39,7 @@ import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
+import { getLastApplied } from './TerraformListTable';
 import TerraformPlanView from './TerraformPlanView';
 
 type Props = {
@@ -239,10 +240,7 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                     ['Suspended', object?.suspended ? 'True' : 'False'],
                     [
                       'Last Applied',
-                      _.get(
-                        _.find(object?.conditions, { type: 'Apply' }),
-                        'timestamp' || '-',
-                      ),
+                      <Timestamp time={getLastApplied(object || {})} />,
                     ],
                   ]}
                 />
