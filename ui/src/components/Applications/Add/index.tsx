@@ -1,11 +1,5 @@
 import { Box } from '@material-ui/core';
-import {
-  Button,
-  Flex,
-  GitRepository,
-  Link,
-  useListSources,
-} from '@weaveworks/weave-gitops';
+import { GitRepository, Link, useListSources } from '@weaveworks/weave-gitops';
 import { PageRoute } from '@weaveworks/weave-gitops/ui/lib/types';
 import _ from 'lodash';
 import React, {
@@ -19,7 +13,6 @@ import { useHistory } from 'react-router-dom';
 import {
   ClusterAutomation,
   CreateAutomationsPullRequestRequest,
-  RenderAutomationResponse,
   RepositoryRef,
 } from '../../../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
@@ -41,7 +34,6 @@ import { clearCallbackState, getProviderToken } from '../../GitAuth/utils';
 import { Page } from '../../Layout/App';
 import { NotificationsWrapper } from '../../Layout/NotificationsWrapper';
 import GitOps from '../../Templates/Form/Partials/GitOps';
-import Preview from '../../Templates/Form/Partials/Preview';
 import Profiles from '../../Templates/Form/Partials/Profiles';
 import {
   FormWrapper,
@@ -49,6 +41,7 @@ import {
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
 import AppFields from './form/Partials/AppFields';
+import { Preview } from './Preview';
 
 interface FormData {
   repo: GitRepository | null;
@@ -180,11 +173,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     helmRepo,
   );
   const [updatedProfiles, setUpdatedProfiles] = useState<ProfilesIndex>({});
-  const [openPreview, setOpenPreview] = useState(false);
-  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
-  const [prPreview, setPRPreview] = useState<RenderAutomationResponse | null>(
-    null,
-  );
   const { data } = useListSources();
   const gitRepos = React.useMemo(
     () => getGitRepos(data?.result),
@@ -301,28 +289,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     }
   }, [initialGitRepo, formData.repo]);
 
-  const handlePRPreview = useCallback(() => {
-    setPreviewLoading(true);
-    return api
-      .RenderAutomation({
-        clusterAutomations: getKustomizations(),
-      })
-      .then(data => {
-        setOpenPreview(true);
-        setPRPreview(data);
-      })
-      .catch(err =>
-        setNotifications([
-          {
-            message: { text: err.message },
-            severity: 'error',
-            display: 'bottom',
-          },
-        ]),
-      )
-      .finally(() => setPreviewLoading(false));
-  }, [api, setOpenPreview, getKustomizations, setNotifications]);
-
   const token = getProviderToken(formData.provider);
 
   const { isAuthenticated, validateToken } = useIsAuthenticated(
@@ -352,7 +318,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             }),
           })
           .then(response => {
-            setPRPreview(null);
             history.push(Routes.Applications);
             setNotifications([
               {
@@ -393,8 +358,6 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     validateToken,
   ]);
 
-  const [submitType, setSubmitType] = useState<string>('');
-
   return useMemo(() => {
     return (
       <Page
@@ -419,14 +382,7 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
             <FormWrapper
               noValidate
               onSubmit={event =>
-                validateFormData(
-                  event,
-                  submitType === 'PR Preview'
-                    ? handlePRPreview
-                    : handleAddApplication,
-                  setFormError,
-                  setSubmitType,
-                )
+                validateFormData(event, handleAddApplication, setFormError)
               }
             >
               {formData.clusterAutomations.map(
@@ -467,40 +423,21 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
                 />
               ) : null}
               <GitOps
+                loading={loading}
+                isAuthenticated={isAuthenticated}
                 formData={formData}
                 setFormData={setFormData}
                 showAuthDialog={showAuthDialog}
                 setShowAuthDialog={setShowAuthDialog}
                 formError={formError}
                 enableGitRepoSelection={true}
-              />
-              <Flex end className="gitops-cta">
-                <Button
-                  loading={loading}
-                  type="submit"
-                  onClick={() => setSubmitType('Create app')}
-                  disabled={!isAuthenticated || loading}
-                >
-                  CREATE PULL REQUEST
-                </Button>
-                <Button
-                  loading={previewLoading}
-                  disabled={previewLoading}
-                  type="submit"
-                  onClick={() => setSubmitType('PR Preview')}
-                >
-                  PREVIEW PR
-                </Button>
-                {openPreview && prPreview ? (
-                  <Preview
-                    context="app"
-                    openPreview={openPreview}
-                    setOpenPreview={setOpenPreview}
-                    prPreview={prPreview}
-                    sourceType={formData.source_type}
-                  />
-                ) : null}
-              </Flex>
+              >
+                <Preview
+                  setFormError={setFormError}
+                  clusterAutomations={getKustomizations()}
+                  sourceType={formData.source_type}
+                />
+              </GitOps>
             </FormWrapper>
           </NotificationsWrapper>
         </CallbackStateContextProvider>
@@ -515,15 +452,11 @@ const AddApplication = ({ clusterName }: { clusterName?: string }) => {
     updatedProfiles,
     setUpdatedProfiles,
     showAuthDialog,
-    prPreview,
-    openPreview,
-    handlePRPreview,
-    previewLoading,
     clusterName,
     helmRepo,
     formError,
-    submitType,
     isAuthenticated,
+    getKustomizations,
   ]);
 };
 

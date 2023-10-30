@@ -23,7 +23,8 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
@@ -97,8 +98,6 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
-
-	"net/http/pprof"
 )
 
 const (
@@ -161,10 +160,13 @@ type Params struct {
 	GitProviderCSRFCookieDuration     time.Duration             `mapstructure:"git-provider-csrf-cookie-duration"`
 	CollectorServiceAccountName       string                    `mapstructure:"collector-serviceaccount-name"`
 	CollectorServiceAccountNamespace  string                    `mapstructure:"collector-serviceaccount-namespace"`
-	MetricsEnabled                    bool                      `mapstructure:"metrics-enabled"`
-	MetricsBindAddress                string                    `mapstructure:"metrics-bind-address"`
+	MonitoringEnabled                 bool                      `mapstructure:"monitoring-enabled"`
+	MonitoringBindAddress             string                    `mapstructure:"monitoring-bind-address"`
+	MetricsEnabled                    bool                      `mapstructure:"monitoring-metrics-enabled"`
+	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
 	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
+	ExplorerEnabledFor                []string                  `mapstructure:"explorer-enabled-for"`
 }
 
 type OIDCAuthenticationOptions struct {
@@ -267,10 +269,13 @@ func NewAPIServerCommand() *cobra.Command {
 	cmdFlags.String("collector-serviceaccount-name", "", "name of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.String("collector-serviceaccount-namespace", "", "namespace of the serviceaccount that collector impersonates to watch leaf clusters.")
 	cmdFlags.Bool("explorer-cleaner-disabled", false, "Enables the Explorer object cleaner that manages retaining objects")
+	cmdFlags.StringSlice("explorer-enabled-for", []string{}, "List of components that the Explorer is enabled for")
 
-	// Metrics
-	cmdFlags.Bool("metrics-enabled", false, "creates prometheus metrics endpoint")
-	cmdFlags.String("metrics-bind-address", "", "The address the metric endpoint binds to.")
+	// Monitoring
+	cmdFlags.Bool("monitoring-enabled", false, "creates monitoring server")
+	cmdFlags.String("monitoring-bind-address", "", "monitoring server binding address")
+	cmdFlags.Bool("monitoring-metrics-enabled", false, "exposes metrics endpoint in monitoring server. requires monitoring enabled.")
+	cmdFlags.Bool("monitoring-profiling-enabled", false, "exposes profiling endpoint in monitoring server. requires monitoring enabled.")
 
 	cmdFlags.VisitAll(func(fl *flag.Flag) {
 		if strings.HasPrefix(fl.Name, "cost-estimation") {
@@ -573,8 +578,9 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithUIConfig(p.UIConfig),
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
-		WithMetrics(p.MetricsEnabled, p.MetricsBindAddress, log),
+		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
 		WithObjectCleaner(p.EnableObjectCleaner),
+		WithExplorerEnabledFor(p.ExplorerEnabledFor),
 	)
 }
 
@@ -695,6 +701,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
 			EnableObjectCleaner: args.EnableObjectCleaner,
+			EnabledFor:          args.ExplorerEnabledFor,
 		})
 		if err != nil {
 			return fmt.Errorf("hydrating query server: %w", err)
@@ -823,16 +830,20 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
-	var metricsServer *http.Server
-
-	if args.MetricsOptions.Enabled {
-		metricsServer = metrics.NewPrometheusServer(args.MetricsOptions)
+	// monitoring server
+	var monitoringServer *http.Server
+	if args.MonitoringOptions.Enabled {
+		monitoringServer, err = monitoring.NewServer(args.MonitoringOptions)
+		if err != nil {
+			return fmt.Errorf("cannot create monitoring server: %w", err)
+		}
+		args.Log.Info("monitoring server started")
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
 		wrapperHandler := middleware.WithProviderToken(args.ApplicationsConfig.JwtClient, mux, args.Log)
 
-		if args.MetricsOptions.Enabled {
+		if args.MonitoringOptions.MetricsOptions.Enabled {
 			wrapperHandler = metrics.WithHttpMetrics(wrapperHandler)
 		}
 
@@ -846,10 +857,6 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	mux.Handle("/v1/", commonMiddleware(grpcHttpHandler))
-
-	if os.Getenv("WEAVE_GITOPS_ENABLE_PROFILING") == "true" {
-		mux.Handle("/debug/pprof/", http.HandlerFunc(pprof.Index))
-	}
 
 	staticAssetsWithGz := gziphandler.GzipHandler(staticAssets)
 
@@ -876,9 +883,9 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 		if err := s.Shutdown(context.Background()); err != nil {
 			args.Log.Error(err, "Failed to shutdown http gateway server")
 		}
-		if args.MetricsOptions.Enabled && metricsServer != nil {
-			if err := metricsServer.Shutdown(ctx); err != nil {
-				args.Log.Error(err, "Failed to shutdown metrics server")
+		if args.MonitoringOptions.Enabled && monitoringServer != nil {
+			if err := monitoringServer.Shutdown(ctx); err != nil {
+				args.Log.Error(err, "Failed to shutdown management server")
 			}
 		}
 	}()

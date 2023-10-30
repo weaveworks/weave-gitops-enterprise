@@ -23,9 +23,10 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	Query_DoQuery_FullMethodName             = "/query.v1.Query/DoQuery"
-	Query_ListFacets_FullMethodName          = "/query.v1.Query/ListFacets"
-	Query_DebugGetAccessRules_FullMethodName = "/query.v1.Query/DebugGetAccessRules"
+	Query_DoQuery_FullMethodName               = "/query.v1.Query/DoQuery"
+	Query_ListFacets_FullMethodName            = "/query.v1.Query/ListFacets"
+	Query_DebugGetAccessRules_FullMethodName   = "/query.v1.Query/DebugGetAccessRules"
+	Query_ListEnabledComponents_FullMethodName = "/query.v1.Query/ListEnabledComponents"
 )
 
 // QueryClient is the client API for Query service.
@@ -41,6 +42,7 @@ type QueryClient interface {
 	//
 	// Get debug access rules
 	DebugGetAccessRules(ctx context.Context, in *DebugGetAccessRulesRequest, opts ...grpc.CallOption) (*DebugGetAccessRulesResponse, error)
+	ListEnabledComponents(ctx context.Context, in *ListEnabledComponentsRequest, opts ...grpc.CallOption) (*ListEnabledComponentsResponse, error)
 }
 
 type queryClient struct {
@@ -78,6 +80,15 @@ func (c *queryClient) DebugGetAccessRules(ctx context.Context, in *DebugGetAcces
 	return out, nil
 }
 
+func (c *queryClient) ListEnabledComponents(ctx context.Context, in *ListEnabledComponentsRequest, opts ...grpc.CallOption) (*ListEnabledComponentsResponse, error) {
+	out := new(ListEnabledComponentsResponse)
+	err := c.cc.Invoke(ctx, Query_ListEnabledComponents_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // QueryServer is the server API for Query service.
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
@@ -91,6 +102,7 @@ type QueryServer interface {
 	//
 	// Get debug access rules
 	DebugGetAccessRules(context.Context, *DebugGetAccessRulesRequest) (*DebugGetAccessRulesResponse, error)
+	ListEnabledComponents(context.Context, *ListEnabledComponentsRequest) (*ListEnabledComponentsResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }
 
@@ -106,6 +118,9 @@ func (UnimplementedQueryServer) ListFacets(context.Context, *ListFacetsRequest) 
 }
 func (UnimplementedQueryServer) DebugGetAccessRules(context.Context, *DebugGetAccessRulesRequest) (*DebugGetAccessRulesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DebugGetAccessRules not implemented")
+}
+func (UnimplementedQueryServer) ListEnabledComponents(context.Context, *ListEnabledComponentsRequest) (*ListEnabledComponentsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListEnabledComponents not implemented")
 }
 func (UnimplementedQueryServer) mustEmbedUnimplementedQueryServer() {}
 
@@ -174,6 +189,24 @@ func _Query_DebugGetAccessRules_Handler(srv interface{}, ctx context.Context, de
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Query_ListEnabledComponents_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListEnabledComponentsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(QueryServer).ListEnabledComponents(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Query_ListEnabledComponents_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(QueryServer).ListEnabledComponents(ctx, req.(*ListEnabledComponentsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Query_ServiceDesc is the grpc.ServiceDesc for Query service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -192,6 +225,10 @@ var Query_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DebugGetAccessRules",
 			Handler:    _Query_DebugGetAccessRules_Handler,
+		},
+		{
+			MethodName: "ListEnabledComponents",
+			Handler:    _Query_ListEnabledComponents_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

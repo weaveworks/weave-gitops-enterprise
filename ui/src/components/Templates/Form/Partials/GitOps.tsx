@@ -1,3 +1,4 @@
+import { Button, Flex } from '@weaveworks/weave-gitops';
 import React, { ChangeEvent, Dispatch, FC, useCallback } from 'react';
 import styled from 'styled-components';
 import { Input } from '../../../../utils/form';
@@ -10,6 +11,8 @@ const GitOpsWrapper = styled.div`
 `;
 
 const GitOps: FC<{
+  loading: boolean;
+  isAuthenticated: boolean | undefined;
   formData: any;
   setFormData: Dispatch<React.SetStateAction<any>>;
   showAuthDialog: boolean;
@@ -17,12 +20,15 @@ const GitOps: FC<{
   formError?: string;
   enableGitRepoSelection?: boolean;
 }> = ({
+  loading,
+  isAuthenticated,
   formData,
   setFormData,
   showAuthDialog,
   setShowAuthDialog,
   formError,
   enableGitRepoSelection,
+  children,
 }) => {
   const {
     branchName,
@@ -119,6 +125,16 @@ const GitOps: FC<{
         setShowAuthDialog={setShowAuthDialog}
         enableGitRepoSelection={enableGitRepoSelection}
       />
+      <Flex end className="gitops-cta">
+        <Button
+          loading={loading}
+          type="submit"
+          disabled={!isAuthenticated || loading}
+        >
+          CREATE PULL REQUEST
+        </Button>
+        {children}
+      </Flex>
     </GitOpsWrapper>
   );
 };

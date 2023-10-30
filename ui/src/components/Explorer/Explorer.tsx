@@ -1,5 +1,5 @@
 // @ts-ignore
-import { IconButton } from '@material-ui/core';
+import { CircularProgress, IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
@@ -48,7 +48,7 @@ function Explorer({
   const queryState = manager.read();
   const setQueryState = manager.write;
 
-  const { data, error } = useQueryService({
+  const { data, error, isLoading } = useQueryService({
     terms: queryState.terms,
     filters: queryState.filters,
     limit: queryState.limit,
@@ -66,6 +66,13 @@ function Explorer({
 
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
 
+  if (isLoading) {
+    return (
+      <Flex wide center>
+        <CircularProgress />
+      </Flex>
+    );
+  }
   return (
     <QueryStateProvider manager={manager}>
       <div className={className}>

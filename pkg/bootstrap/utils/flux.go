@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	helmv2 "github.com/fluxcd/helm-controller/api/v2beta1"
@@ -11,6 +12,11 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 	k8syaml "sigs.k8s.io/yaml"
+)
+
+const (
+	HelmVersionProperty = "version"
+	HelmDomainProperty  = "domain"
 )
 
 // CreateHelmReleaseYamlString create HelmRelease yaml string to add to file.
@@ -119,8 +125,8 @@ func ReconcileHelmRelease(hrName string) error {
 	return nil
 }
 
-// GetHelmReleaseVersion return the chart version for the release `releaseName` in `namespace`
-func GetHelmReleaseVersion(client k8s_client.Client, releaseName string, namespace string) (string, error) {
+// GetHelmReleaseProperty extract a property from a specific helmrelease values file
+func GetHelmReleaseProperty(client k8s_client.Client, releaseName string, namespace string, property string) (string, error) {
 	helmrelease := &helmv2.HelmRelease{}
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
 		Namespace: namespace,
@@ -129,5 +135,29 @@ func GetHelmReleaseVersion(client k8s_client.Client, releaseName string, namespa
 		return "", err
 	}
 
-	return helmrelease.Spec.Chart.Spec.Version, nil
+	switch property {
+	case "version":
+		return helmrelease.Spec.Chart.Spec.Version, nil
+	case "domain":
+		values := map[string]interface{}{}
+		if err := json.Unmarshal(helmrelease.Spec.Values.Raw, &values); err != nil {
+			return "", err
+		}
+		return values["ingress"].(map[string]interface{})["hosts"].([]interface{})[0].(map[string]interface{})["host"].(string), nil
+	default:
+		return "", fmt.Errorf("unsupported property: %s", property)
+	}
+}
+
+// GetHelmReleaseValues gets the current values from a specific helmrelease.
+func GetHelmReleaseValues(client k8s_client.Client, name string, namespace string) ([]byte, error) {
+	helmrelease := &helmv2.HelmRelease{}
+	if err := client.Get(context.Background(), k8s_client.ObjectKey{
+		Name:      name,
+		Namespace: namespace,
+	}, helmrelease); err != nil {
+		return nil, err
+	}
+
+	return helmrelease.Spec.Values.Raw, nil
 }
