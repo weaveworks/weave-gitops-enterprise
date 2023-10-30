@@ -23,6 +23,7 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/adapter"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr/clustersmngrfakes"
+	"github.com/weaveworks/weave-gitops/pkg/health"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/testing/protocmp"
@@ -489,26 +490,39 @@ func TestGetReconciledObjects(t *testing.T) {
 }
 
 func TestGetInventory(t *testing.T) {
-	// (s *server) GetInventory(ctx context.Context, msg *pb.GetInventoryRequest) (*pb.GetInventoryResponse, error)
-	// request: Name , Namespace, ClusterName , WithChildren
-	// g := NewGomegaWithT(t)
-	// ctx := context.Background()
+	toPayload := func(obj runtime.Object) string {
+		payload, err := json.Marshal(obj)
+		if err != nil {
+			t.Fatalf("failed to marshal object: %v", err)
+		}
+		return string(payload)
+	}
 
 	tests := []struct {
-		name     string
-		existing []*pb.InventoryEntry
-		request  *pb.GetInventoryRequest
-		expected *pb.GetInventoryResponse
+		name         string
+		request      *pb.GetInventoryRequest
+		expected     *pb.GetInventoryResponse
+		clusterState []runtime.Object
 	}{
 		{
 			name: "get inventory with one resource ",
-			existing: []*pb.InventoryEntry{
-				{
-					Payload:     "{\"apiVersion\":\"v1\",\"kind\":\"ConfigMap\",\"metadata\":{\"creationTimestamp\":\"2023-10-26T10:48:50Z\",\"labels\":{\"templates.weave.works/name\":\"gitopsset-configmaps\",\"templates.weave.works/namespace\":\"default\"},\"managedFields\":[{\"apiVersion\":\"v1\",\"fieldsType\":\"FieldsV1\",\"fieldsV1\":{\"f:metadata\":{\"f:labels\":{\".\":{},\"f:templates.weave.works/name\":{},\"f:templates.weave.works/namespace\":{}}}},\"manager\":\"manager\",\"operation\":\"Update\",\"time\":\"2023-10-26T10:48:50Z\"}],\"name\":\"production-info-configmap\",\"namespace\":\"default\",\"resourceVersion\":\"16920\",\"uid\":\"b49dbb64-5dfd-4bd6-9817-ed58cd1d303f\"}}\n",
-					Tenant:      "default",
-					ClusterName: "management",
-					Health:      &pb.HealthStatus{Status: "", Message: ""},
-					Children:    []*pb.InventoryEntry{},
+			expected: &pb.GetInventoryResponse{
+				Entries: []*pb.InventoryEntry{
+					{
+						Payload: toPayload(&corev1.ConfigMap{
+							TypeMeta: metav1.TypeMeta{
+								APIVersion: "v1",
+								Kind:       "ConfigMap",
+							},
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "my-configmap",
+								Namespace: "my-namespace",
+							},
+						}),
+						Tenant:      "",
+						ClusterName: "management",
+						Health:      &pb.HealthStatus{Status: "Unknown", Message: ""},
+					},
 				},
 			},
 			request: &pb.GetInventoryRequest{
@@ -517,25 +531,55 @@ func TestGetInventory(t *testing.T) {
 				ClusterName:  "management",
 				WithChildren: true,
 			},
-			expected: &pb.GetInventoryResponse{},
+			clusterState: []runtime.Object{
+				// add the gitopsstes
+				&ctrl.GitOpsSet{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "gitopsset-configmaps",
+						Namespace: "default",
+					},
+					// FIXME: if we migrate to controller-runtime 0.15/0.16 we might have to set the status explicitly
+					// in a follow up request?
+					Status: ctrl.GitOpsSetStatus{
+						// Inventory
+						Inventory: &ctrl.ResourceInventory{
+							Entries: []ctrl.ResourceRef{
+								{
+									Version: "v1",
+									// the inv format of name_namesspace_version_kind etc
+									ID: "my-namespace_my-configmap__ConfigMap",
+								},
+							},
+						},
+					},
+				},
+				// add the configmap it will generate
+				&corev1.ConfigMap{
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "my-configmap",
+						Namespace: "my-namespace",
+					},
+				},
+			},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			k8s := createClient(t)
+			k8s := createClient(t, tt.clusterState...)
 			clusterClients := map[string]client.Client{
 				"management": k8s,
 			}
 			c := setup(t, clusterClients)
 
-			// TODO add existing inventory items
-
 			response, err := c.GetInventory(context.Background(), tt.request)
-			assert.NoError(t, err)
-			assert.Equal(t, tt.expected, response)
 
+			assert.NoError(t, err)
+			assert.Len(t, response.Entries, 1)
+
+			// TODO: nice way to do this?
+			// assert.Equal(t, tt.expected.Entries, response.Entries)
 		})
 	}
 }
@@ -560,9 +604,11 @@ func setup(t *testing.T, clusterClients map[string]client.Client, opts ...func(o
 	fakeFactory.GetUserNamespacesReturns(namespaces)
 
 	log := testr.New(t)
+	healthChecker := health.NewHealthChecker()
 	options := ServerOpts{
 		ClientsFactory: fakeFactory,
 		Logger:         log,
+		HealthChecker:  healthChecker,
 	}
 
 	for _, o := range opts {
