@@ -2,9 +2,9 @@
 
 Here we document the Indexer component in Explorer based on the following questions:
 
-- why an indexer
-- what indexer uses explorer
-- how indexer for explorer works
+- Why an indexer
+- What indexer uses explorer
+- How indexer for explorer works
 
 # Glossary
 
@@ -12,8 +12,11 @@ Based on https://blevesearch.com/docs/Terminology/
 
 >Term:A term is a sequence of unicode characters. Typically the word “term” is reserved for uses describing the things we write into indexes or the things we’re looking for in indexes. For example, the text “mary had a little lamb”, might result in 3 terms being inserted into the index: “mary”, “little”, and “lamb”.
 
-
 # Why an indexer
+
+Indexed searching enables a flexible and powerful searching approach to enable users find information. We use it in explorer
+to have a richer search api that provided by an sql-like and as well to enable full text search for enabling the user 
+decide what and where to search. 
 
 # What indexer uses explorer
 
@@ -65,11 +68,11 @@ We could compose those searches with multiple `key\value` and `full-text` with t
 
 Given that we know now the queries we want to serve lets look at 
 
-- indexing: how the document and indexing looks like to serve those queries
-- querying: how querying looks like for satisfying those searches
-- navigation: how the user would traverse the collection and or filter 
+- Indexing: how the document and indexing looks like to serve those queries
+- Querying or Search: how querying looks like for satisfying those searches
+- Navigation: how the user would traverse the collection and or filter 
 
-## Indexing: how the document and indexing looks like to serve those queries
+## Indexing: how get documents in
 
 We index in https://github.com/weaveworks/weave-gitops-enterprise/blob/2fdb9b9455787f5a0c5469556f366f72ddbba890/pkg/query/store/indexer.go#L109
 
@@ -94,67 +97,17 @@ type Object struct {
 }
 ```
 
-And the indexer is created https://github.com/weaveworks/weave-gitops-enterprise/blob/2fdb9b9455787f5a0c5469556f366f72ddbba890/pkg/query/store/indexer.go#L56 
+The indexer is created https://github.com/weaveworks/weave-gitops-enterprise/blob/2fdb9b9455787f5a0c5469556f366f72ddbba890/pkg/query/store/indexer.go#L56
 
-with 
+When you index a document, you create an inverted index to the document where the key is the field. Notice that a `field` here is an `indexed field`.
+It is important to remark this as search operations by fields should be done referencing to `indexed fields` and not `object fields`
 
-```go
-
-var indexFile = "index.db"
-var filterFields = []string{"cluster", "namespace", "kind"}
-
-func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
-	idxFileLocation := filepath.Join(path, indexFile)
-	mapping := bleve.NewIndexMapping()
-
-	addFieldMappings(mapping, filterFields)
-```
-
-:warning: 
-
-https://blevesearch.com/docs/Index-Mapping/
-
->IndexMappings contain DocumentMappings for each of the different types of documents you want to support. Further, it contains a DefaultDocumentMapping that will be used for any type which does not have an explicit mapping.
-
-Do we need different document mappings?
-
-- no for normalised objects -> we have a single type 
-- might be for denormalized object -> as the indexing category will depend on
-
-An example here is what we want to do with templates:
-
-- a gitopstemplate has a type that comes from a label that would require a document mapping itself
-- other resources would be fine 
-
->FieldMappings
->Documents are hierarchical and contain named fields. These fields could be values or nested sub-documents. We customize the behavior for a named field by setting a DocumentMapping for it. Once we have a DocumentMapping for the named field, we can attach 0 or more FieldMappings to it. The FieldMappings describe how we want the field to be interpreted and what we want inserted into the index.
-
-An strategy: 
-- have a default documentmapping for json documents that allows 
-
-
-https://github.com/weaveworks/weave-gitops-private/pull/132#issuecomment-1773001598
-
-
-## Indexed Search 
-
-You could do two type of searches:
-
-- key-value: when you want to search those documents whose `field` (key) has a given `value`
-- full-text: when you want to search anywhere in the index for `terms`
-
-
-### Key-Value searches
-
-
-Notice that a field here is an indexed field. For example 
-
-Using the cli https://blevesearch.com/docs/bleve/ 
-
-You could list the fields an index knows: 
+You could understand this difference by for example using [bleve cli](https://blevesearch.com/docs/bleve/) that has 
+features to list the indexed fields:
 
 ```
 ✗ bleve fields /var/folders/9b/bkrspzws5xgd7x_ldtc880pr0000gn/T/index735061655/index.db
+
 0 - Object.spec.renderType
 1 - Object.metadata.labels.templateType
 2 - Object.kind
@@ -196,9 +149,7 @@ You could list the fields an index knows:
 
 In our case they came from two documents:
 
-//TODO we should understand whether we could just have the unstructured
-
-1. object document 
+1. `object` document
 
 ```
         if err := batch.Index(obj.GetID(), obj); err != nil {
@@ -215,7 +166,7 @@ whose field mapping creates fields like:
 26 - kind
 ```
 
-2. unstructured field
+2. `object.unstructured` field
 
 ```
             if err := batch.Index(obj.GetID()+unstructuredSuffix, data); err != nil {
@@ -229,6 +180,18 @@ whose field mapping creates fields like:
 ```
 2 - Object.kind
 ```
+
+
+
+## Search: how we consume the data 
+
+You could do two type of searches:
+
+- `key-value`: when you want to search those documents whose `field` (key) has a given `value`
+- `full-text`: when you want to search anywhere in the index for `terms`
+
+### Key-Value searches
+
 
 Querying for those fields would give us the same values
 
