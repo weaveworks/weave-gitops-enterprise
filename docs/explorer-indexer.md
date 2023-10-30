@@ -158,7 +158,7 @@ In our case they came from two documents:
 		}
 ```
 
-whose field mapping creates fields like:
+Whose field mapping creates fields like:
 
 ```
 7 - kind.facet
@@ -181,9 +181,7 @@ whose field mapping creates fields like:
 2 - Object.kind
 ```
 
-
-
-## Search: how we consume the data 
+## Search: how we find data 
 
 You could do two type of searches:
 
@@ -192,16 +190,29 @@ You could do two type of searches:
 
 ### Key-Value searches
 
+Key-value searches are supported by the indexer where:
+- `key` is the path of an indexed field
+- `value` is the dictionary term to search for the indexed field
 
-Querying for those fields would give us the same values
+Querying for those fields would give us the same values. For example:
 
 ![query-object.png](imgs%2Fquery-object.png)
 ![query-object-unstructured.png](imgs%2Fquery-object-unstructured.png)
 
-## Explorer Search Features
+### Full-text search or term search
 
-We have a look on some of the features provides by explorer as part of the indexed
-search and how they are implemented
+Happens when you don't indicate the field to use but the whole index.
+
+
+![query-object-term.png](imgs%2Fquery-object-term.png)
+
+## Navigation: how traverse a collection
+
+TBA
+
+## Explorer Search Features
+With indexing and search we are able to explore some of the features that we would provide or think 
+to provide in explorer and how they could be brought on.
 
 ### Search by labels
 
@@ -209,10 +220,11 @@ This is the case requested for templates where the type is a label `weave.works/
 
 Searching by label means that:
 
-1. explorer api accepts searches by label 
-2. explorer ui offers filtering by label 
+1. Explorer api accepts searches by label 
+2. Explorer ui offers filtering by label
+3. Explorer UI offers customisation for better user experience
 
-we will be using the following template:
+We will be using the following template:
 
 ```go
     &gapiv1.GitOpsTemplate{
@@ -239,8 +251,8 @@ To offer that we require that:
 
 **Labels are indexed**
 
-As we have seen earlier, any unstructured fields is indexed that includes the label so 
-we meet this point
+As we have seen earlier, any unstructured fields is indexed that includes the label, so 
+we meet this point:
 
 ```
 10 - ID
@@ -256,9 +268,9 @@ if we get the values for that field
 bleve dictionary /var/folders/9b/bkrspzws5xgd7x_ldtc880pr0000gn/T/index735061655/index.db Object.metadata.labels.weave.works/template-type
 cluster - 1
 ```
-** query api endpoint accepts label-based-fields queries **
+**Query api endpoint accepts label-based-fields queries**
 
-We have create a test case in `server_integration_test.go` for doing where a query like `Object.metadata.labels.weave.works/template-type:cluster`
+We have created a test case in `server_integration_test.go` for doing where a query like `Object.metadata.labels.weave.works/template-type:cluster`
 
 ```go
 {
@@ -297,8 +309,7 @@ https://blevesearch.com/docs/Result-Faceting/
 
 >Facets allow you to include aggregated information about the documents matching your query.
 
-Facets are just indexed fields that shows its dictionary term so it could be 
-use to create key-value queries for particular <indexed field , term>
+Facets are just indexed fields that shows its dictionary term, so it could be used to create key-value queries for particular <indexed field , term>
 
 Explorer UI calculates the faces by using `ListFacets` api endpoint. We could 
 get the label as facet by adding them to the kind configuration and requesting 
@@ -357,24 +368,6 @@ and we could filter and querying using the label
 
 ![explorer-label-facet-normalised.png](imgs%2Fexplorer-label-facet-normalised.png)
 
-## Querying: how querying looks like for satisfying those searches
+#### Explorer UI offers customisation for better user experience
 
-### key-value search 
-
-For normalised filter 
-
-- Give me all resources by name. For example `name=shopping-cart` where name is the key and shopping-cart is the value. 
-
-Navigation via It comes as part of the sear
-
-For denormalized filter 
-
-- Give me all resources by label. For example `app=shopping-cart` where app is the key and shopping-cart is the value.
-
-### Simple full-text
-
-- Give me all resources with commitId. For example `74c60a927c7588900c28960d37ff2e5118d0eedf` that is the commitId that could appear in any part of the document. 
-
-### Simple
-
-## Navigation: how the user would traverse the collection and or filter
+To be discussed within Tangerine if the previous looks fine
