@@ -107,7 +107,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 			}
 			templatesList := namespacedList.List.(*gapiv1.GitOpsTemplateList)
 			for _, t := range templatesList.Items {
-				templates = append(templates, ToTemplateResponse(&t))
+				templates = append(templates, ToTemplateResponse(&t, s.profileHelmRepository))
 			}
 		}
 	}
@@ -129,7 +129,7 @@ func (s *server) ListTemplates(ctx context.Context, msg *capiv1_proto.ListTempla
 			}
 			templatesList := namespacedList.List.(*capiv1.CAPITemplateList)
 			for _, t := range templatesList.Items {
-				templates = append(templates, ToTemplateResponse(&t))
+				templates = append(templates, ToTemplateResponse(&t, s.profileHelmRepository))
 			}
 		}
 	}
@@ -160,7 +160,7 @@ func (s *server) GetTemplate(ctx context.Context, msg *capiv1_proto.GetTemplateR
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	t := ToTemplateResponse(tm)
+	t := ToTemplateResponse(tm, s.profileHelmRepository)
 	if t.Error != "" {
 		return nil, fmt.Errorf("error reading template %v, %v", msg.TemplateName, t.Error)
 	}
@@ -176,7 +176,7 @@ func (s *server) ListTemplateParams(ctx context.Context, msg *capiv1_proto.ListT
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	t := ToTemplateResponse(tm)
+	t := ToTemplateResponse(tm, s.profileHelmRepository)
 	if t.Error != "" {
 		return nil, fmt.Errorf("error looking up template params for %v, %v", msg.TemplateName, t.Error)
 	}
@@ -193,17 +193,12 @@ func (s *server) ListTemplateProfiles(ctx context.Context, msg *capiv1_proto.Lis
 	if err != nil {
 		return nil, fmt.Errorf("error looking up template %v: %v", msg.TemplateName, err)
 	}
-	t := ToTemplateResponse(tm)
+	t := ToTemplateResponse(tm, s.profileHelmRepository)
 	if t.Error != "" {
 		return nil, fmt.Errorf("error looking up template annotations for %v, %v", msg.TemplateName, t.Error)
 	}
 
-	profiles, err := templates.GetProfilesFromTemplate(tm)
-	if err != nil {
-		return nil, fmt.Errorf("error getting profiles from template %v, %v", msg.TemplateName, err)
-	}
-
-	return &capiv1_proto.ListTemplateProfilesResponse{Profiles: profiles, Objects: t.Objects}, err
+	return &capiv1_proto.ListTemplateProfilesResponse{Objects: t.Objects, Profiles: t.Profiles}, err
 }
 
 func toCommitFileProtos(file []git.CommitFile) []*capiv1_proto.CommitFile {
@@ -405,7 +400,7 @@ func GetFiles(
 		kustomizationFiles = append(kustomizationFiles, *commonKustomization)
 	}
 
-	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
+	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl, msg.DefaultHelmRepository)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}

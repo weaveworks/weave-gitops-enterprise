@@ -8,6 +8,7 @@ import (
 
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/yaml"
 )
 
@@ -36,14 +37,25 @@ type profileAnnotation struct {
 // GetProfilesFromAnnotations returns a list of profiles defined in the template.
 // Both the annotations and the spec are used to determine the profiles.
 // spec.Charts takes precedence over annotations if both are defined for the same profile.
-func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateProfile, error) {
-	profilesIndex, err := getProfilesFromAnnotations(tl)
+func GetProfilesFromTemplate(tl templatesv1.Template, defaultRepo types.NamespacedName) ([]*capiv1_proto.TemplateProfile, error) {
+	profilesIndex, err := getProfilesFromAnnotations(tl, defaultRepo)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get profiles from annotations: %w", err)
 	}
 
 	// Override anything that was still in the index with the profiles from the spec
 	for _, v := range tl.GetSpec().Charts.Items {
+		sourceRef := &capiv1_proto.SourceRef{
+			Name:      v.SourceRef.Name,
+			Namespace: v.SourceRef.Namespace,
+		}
+		if sourceRef.Name == "" || sourceRef.Namespace == "" {
+			sourceRef = &capiv1_proto.SourceRef{
+				Name:      defaultRepo.Name,
+				Namespace: defaultRepo.Namespace,
+			}
+		}
+
 		profile := capiv1_proto.TemplateProfile{
 			Name:      v.Chart,
 			Version:   v.Version,
@@ -51,10 +63,7 @@ func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 			Layer:     v.Layer,
 			Required:  v.Required,
 			Editable:  v.Editable,
-			SourceRef: &capiv1_proto.SourceRef{
-				Name:      v.SourceRef.Name,
-				Namespace: v.SourceRef.Namespace,
-			},
+			SourceRef: sourceRef,
 		}
 
 		if v.Values != nil {
@@ -85,7 +94,7 @@ func GetProfilesFromTemplate(tl templatesv1.Template) ([]*capiv1_proto.TemplateP
 	return profiles, nil
 }
 
-func getProfilesFromAnnotations(tl templatesv1.Template) (map[string]*capiv1_proto.TemplateProfile, error) {
+func getProfilesFromAnnotations(tl templatesv1.Template, defaultRepo types.NamespacedName) (map[string]*capiv1_proto.TemplateProfile, error) {
 	profilesIndex := map[string]*capiv1_proto.TemplateProfile{}
 	for _, v := range ProfileAnnotations(tl) {
 		profile := profileAnnotation{}
@@ -109,6 +118,10 @@ func getProfilesFromAnnotations(tl templatesv1.Template) (map[string]*capiv1_pro
 			Required:  required,
 			Editable:  profile.Editable,
 			Values:    profile.Values,
+			SourceRef: &capiv1_proto.SourceRef{
+				Name:      defaultRepo.Name,
+				Namespace: defaultRepo.Namespace,
+			},
 		}
 	}
 
@@ -119,8 +132,8 @@ func getProfilesFromAnnotations(tl templatesv1.Template) (map[string]*capiv1_pro
 // Note: Its an implicit system requirement that annotations are valid JSON before being
 // rendered, so we can determine button status in the UI etc. This fn will raise an error on
 // invalid JSON and thats ok, users need to fix their templates.
-func TemplateHasRequiredProfiles(tl templatesv1.Template) (bool, error) {
-	profiles, err := GetProfilesFromTemplate(tl)
+func TemplateHasRequiredProfiles(tl templatesv1.Template, defaultRepo types.NamespacedName) (bool, error) {
+	profiles, err := GetProfilesFromTemplate(tl, defaultRepo)
 	if err != nil {
 		return false, fmt.Errorf("failed to get profiles from template: %w", err)
 	}

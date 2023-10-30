@@ -744,13 +744,17 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 
 	var installs []charts.ChartInstall
 
-	requiredProfiles, err := templates.GetProfilesFromTemplate(tmpl)
+	requiredProfiles, err := templates.GetProfilesFromTemplate(tmpl, args.defaultHelmRepository)
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve default profiles: %w", err)
 	}
 
 	profilesIndex := map[string]*capiv1_proto.ProfileValues{}
 	for _, v := range args.profileValues {
+		if _, ok := profilesIndex[v.Name]; ok {
+			return nil, fmt.Errorf("installing multiple profiles of the same name is not supported: %q", v.Name)
+		}
+
 		profilesIndex[v.Name] = v
 	}
 
@@ -784,8 +788,8 @@ func generateProfileFiles(ctx context.Context, tmpl templatesv1.Template, cluste
 				Namespace: requiredProfile.Namespace,
 				Layer:     requiredProfile.Layer,
 				HelmRepository: &capiv1_proto.HelmRepositoryRef{
-					Name:      args.defaultHelmRepository.Name,
-					Namespace: args.defaultHelmRepository.Namespace,
+					Name:      requiredProfile.SourceRef.Name,
+					Namespace: requiredProfile.SourceRef.Namespace,
 				},
 			}
 		}

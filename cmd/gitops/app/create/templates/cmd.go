@@ -261,7 +261,7 @@ func (c *localHelmRepoFetcher) GetHelmRepository(ctx context.Context, helmRepo t
 }
 
 func generateFilesLocally(tmpl *gapiv1.GitOpsTemplate, params map[string]string, helmRepoName string, profiles []*capiv1_proto.ProfileValues, settings *cli.EnvSettings, log logr.Logger) ([]git.CommitFile, error) {
-	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl)
+	templateHasRequiredProfiles, err := templates.TemplateHasRequiredProfiles(tmpl, types.NamespacedName{})
 	if err != nil {
 		return nil, fmt.Errorf("failed to check if template has required profiles: %w", err)
 	}

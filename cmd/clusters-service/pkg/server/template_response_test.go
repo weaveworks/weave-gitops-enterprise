@@ -6,6 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"google.golang.org/protobuf/testing/protocmp"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
 	templatesv1 "github.com/weaveworks/templates-controller/apis/core"
@@ -158,6 +159,10 @@ func TestToTemplate(t *testing.T) {
 						Version:  "0.0.7",
 						Values:   "installCRDs: ${INSTALL_CRDS}",
 						Required: true,
+						SourceRef: &capiv1_protos.SourceRef{
+							Name:      "foo",
+							Namespace: "test-ns",
+						},
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
@@ -197,6 +202,10 @@ func TestToTemplate(t *testing.T) {
 						Version:  "0.0.7",
 						Values:   "installCRDs: {{ .params.INSTALL_CRDS }}",
 						Required: true,
+						SourceRef: &capiv1_protos.SourceRef{
+							Name:      "foo",
+							Namespace: "test-ns",
+						},
 					},
 				},
 				Parameters: []*capiv1_protos.Parameter{
@@ -234,7 +243,10 @@ func TestToTemplate(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			result := ToTemplateResponse(tt.value)
+			result := ToTemplateResponse(tt.value, types.NamespacedName{
+				Name:      "foo",
+				Namespace: "test-ns",
+			})
 			if diff := cmp.Diff(tt.expected, result, protocmp.Transform()); diff != "" {
 				t.Fatalf("templates didn't match expected:\n%s", diff)
 			}

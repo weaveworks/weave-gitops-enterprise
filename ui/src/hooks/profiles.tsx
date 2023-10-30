@@ -4,16 +4,14 @@ import { useQueries, useQuery } from 'react-query';
 import { useDeepCompareMemo } from 'use-deep-compare';
 import {
   GetConfigResponse,
-  HelmRepositoryRef,
   ListChartsForRepositoryResponse,
-  RepositoryChart,
   RepositoryRef,
-  Template,
 } from '../cluster-services/cluster_services.pb';
 import { maybeParseJSON } from '../components/Templates/Form/utils';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import {
+  EnhancedRepositoryChart,
   GitopsClusterEnriched,
   ProfilesIndex,
   TemplateEnriched,
@@ -48,9 +46,8 @@ const getProfileLayer = (profiles: UpdatedProfile[], name: string) => {
 };
 
 const getDefaultProfiles = (
-  template: Template,
+  template: TemplateEnriched,
   profiles: UpdatedProfile[],
-  defaultHelmRepository?: HelmRepositoryRef,
 ) => {
   const defaultProfiles: UpdatedProfile[] =
     template.profiles?.map(
@@ -66,9 +63,8 @@ const getDefaultProfiles = (
           ],
           selected: true,
           layer: profile.layer || getProfileLayer(profiles, profile.name!),
-          repoName: profile.sourceRef?.name || defaultHelmRepository?.name,
-          repoNamespace:
-            profile.sourceRef?.namespace || defaultHelmRepository?.namespace,
+          repoName: profile.sourceRef.name,
+          repoNamespace: profile.sourceRef.namespace,
         } as UpdatedProfile),
     ) || [];
 
@@ -76,8 +72,7 @@ const getDefaultProfiles = (
 };
 
 const toUpdatedProfiles = (
-  profiles?: RepositoryChart[],
-  defaultHelmRepository?: HelmRepositoryRef,
+  profiles?: EnhancedRepositoryChart[],
 ): UpdatedProfile[] => {
   const accumulator: UpdatedProfile[] = [];
   profiles?.flatMap(profile =>
@@ -96,9 +91,8 @@ const toUpdatedProfiles = (
           values: [value],
           required: false,
           layer: profile.layer,
-          repoName: profile.repoName || defaultHelmRepository?.name,
-          repoNamespace:
-            profile.repoNamespace || defaultHelmRepository?.namespace,
+          repoName: profile.repoName,
+          repoNamespace: profile.repoNamespace,
         });
       }
     }),
@@ -109,14 +103,9 @@ const toUpdatedProfiles = (
 const setVersionAndValuesFromTemplate = (
   profiles: UpdatedProfile[],
   template: TemplateEnriched,
-  defaultHelmRepository?: HelmRepositoryRef,
 ) => {
   // get default / required profiles for the active template
-  let defaultProfiles = getDefaultProfiles(
-    template,
-    profiles,
-    defaultHelmRepository,
-  );
+  let defaultProfiles = getDefaultProfiles(template, profiles);
 
   // get the optional profiles by excluding the default profiles from the /v1/profiles response
   const optionalProfiles =
@@ -194,17 +183,12 @@ const mergeClusterAndTemplate = (
   data: ListChartsForRepositoryResponse[],
   template: TemplateEnriched | undefined,
   clusterData: AnnotationData,
-  defaultHelmRepository?: HelmRepositoryRef,
 ) => {
   let profiles = data?.flatMap(d =>
-    toUpdatedProfiles(d?.charts, defaultHelmRepository),
+    toUpdatedProfiles(d?.charts as EnhancedRepositoryChart[]),
   );
   if (template) {
-    profiles = setVersionAndValuesFromTemplate(
-      profiles,
-      template,
-      defaultHelmRepository,
-    );
+    profiles = setVersionAndValuesFromTemplate(profiles, template);
   }
   if (clusterData) {
     profiles = setVersionAndValuesFromCluster(profiles, clusterData);
@@ -228,8 +212,6 @@ const useProfiles = (
   const getConfigResponse = useQuery<GetConfigResponse, Error>('config', () =>
     api.GetConfig({}),
   );
-
-  const defaultHelmRepository = getConfigResponse?.data?.defaultHelmRepository;
 
   const hrQueries = helmReposRefs.map(helmRepo => {
     return {
@@ -271,7 +253,6 @@ const useProfiles = (
         data,
         template,
         maybeParseJSON(clusterData || ''),
-        defaultHelmRepository,
       ),
     [isLoading, data, template, clusterData],
   );

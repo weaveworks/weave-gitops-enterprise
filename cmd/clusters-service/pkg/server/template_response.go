@@ -8,11 +8,12 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	capiv1_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/templates"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 const TemplateTypeLabel = "weave.works/template-type"
 
-func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
+func ToTemplateResponse(t apitemplates.Template, defaultRepo types.NamespacedName) *capiv1_proto.Template {
 	var annotation string
 	templateKind := t.GetObjectKind().GroupVersionKind().Kind
 	switch templateKind {
@@ -60,7 +61,7 @@ func ToTemplateResponse(t apitemplates.Template) *capiv1_proto.Template {
 		})
 	}
 
-	res.Profiles, err = templates.GetProfilesFromTemplate(t)
+	res.Profiles, err = templates.GetProfilesFromTemplate(t, defaultRepo)
 	if err != nil {
 		res.Error = fmt.Sprintf("Couldn't load profiles from template: %s", err.Error())
 		return res

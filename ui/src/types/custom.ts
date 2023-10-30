@@ -1,7 +1,10 @@
 import {
   CreateDeletionPullRequestRequest,
   GitopsCluster,
+  RepositoryChart,
+  SourceRef,
   Template,
+  TemplateProfile,
 } from '../cluster-services/cluster_services.pb';
 
 //
@@ -82,14 +85,15 @@ export type Profile = {
 
 export type UpdatedProfile = {
   name: Profile['name'];
-  editable?: boolean;
+  repoName: string;
+  repoNamespace: string;
   values: { version: string; yaml: string; selected?: boolean }[];
+  // optional stuff
+  editable?: boolean;
   required: boolean;
   layer?: string;
   namespace?: string;
   selected?: boolean;
-  repoName?: string;
-  repoNamespace?: string;
 };
 
 export interface CAPICluster {
@@ -103,11 +107,25 @@ export interface GitopsClusterEnriched extends GitopsCluster {
   updatedAt: string;
 }
 
-export type TemplateEnriched = WithRequired<Template, 'name' | 'templateKind'>;
+export interface TemplateProfilesEnriched extends TemplateProfile {
+  name: string;
+  sourceRef: WithRequired<SourceRef, 'name' | 'namespace'>;
+}
+
+export interface TemplateEnriched extends Template {
+  name: string;
+  templateKind: string;
+  profiles?: TemplateProfilesEnriched[];
+}
 
 export type DeleteClustersPRRequestEnriched = WithRequired<
   CreateDeletionPullRequestRequest,
   'headBranch' | 'title' | 'commitMessage' | 'description'
+>;
+
+export type EnhancedRepositoryChart = WithRequired<
+  RepositoryChart,
+  'name' | 'repoName' | 'repoNamespace'
 >;
 
 export type PRDefaults = {

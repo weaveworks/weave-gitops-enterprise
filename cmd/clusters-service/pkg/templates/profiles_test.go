@@ -13,9 +13,19 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 )
 
+var defaultHelmRepository = types.NamespacedName{
+	Name:      "weaveworks-charts",
+	Namespace: "test-ns",
+}
+
 func TestGetProfilesFromTemplate(t *testing.T) {
+	defaultSourceRef := &capiv1_protos.SourceRef{
+		Name:      "weaveworks-charts",
+		Namespace: "test-ns",
+	}
 	t.Run("base case", func(t *testing.T) {
 		annotations := map[string]string{
 			"capi.weave.works/profile-0": "{\"name\": \"k8s-rbac-permissions\", \"version\": \"0.0.8\",  \"values\": \"adminGroups: weaveworks\"}",
@@ -24,15 +34,15 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		}
 
 		expected := []*capiv1_protos.TemplateProfile{
-			{Name: "cert-manager", Version: "2.0.1", Required: true},
-			{Name: "external-dns", Version: "0.0.8", Editable: true, Required: true},
-			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks", Required: true},
+			{Name: "cert-manager", Version: "2.0.1", Required: true, SourceRef: defaultSourceRef},
+			{Name: "external-dns", Version: "0.0.8", Editable: true, Required: true, SourceRef: defaultSourceRef},
+			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks", Required: true, SourceRef: defaultSourceRef},
 		}
 
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 			c.Annotations = annotations
 		})
-		result, err := GetProfilesFromTemplate(tm)
+		result, err := GetProfilesFromTemplate(tm, defaultHelmRepository)
 
 		assert.NoError(t, err)
 
@@ -48,7 +58,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 			c.Annotations = annotations
 		})
-		_, err := GetProfilesFromTemplate(tm)
+		_, err := GetProfilesFromTemplate(tm, defaultHelmRepository)
 		assert.Error(t, err)
 		assert.Regexp(t, "profile name is required", err.Error())
 	})
@@ -60,7 +70,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
 			c.Annotations = annotations
 		})
-		_, err := GetProfilesFromTemplate(tm)
+		_, err := GetProfilesFromTemplate(tm, defaultHelmRepository)
 		assert.Error(t, err)
 		assert.Regexp(t, "failed to unmarshal profiles: unexpected end of JSON input", err.Error())
 	})
@@ -74,16 +84,22 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 
 		// profiles in template.spec.profiles
 		profiles := []templatesv1.Chart{
-			{Chart: "cert-manager", Version: "2.0.1", SourceRef: corev1.ObjectReference{Name: "charts", Namespace: "default"}},
-			{Chart: "external-dns", Version: "0.0.8", Editable: true},
+			{Chart: "cert-manager", Version: "2.0.1", SourceRef: corev1.ObjectReference{
+				Name:      defaultHelmRepository.Name,
+				Namespace: defaultHelmRepository.Namespace,
+			}},
+			{Chart: "external-dns", Version: "0.0.8", Editable: true, SourceRef: corev1.ObjectReference{
+				Name:      defaultHelmRepository.Name,
+				Namespace: defaultHelmRepository.Namespace,
+			}},
 		}
 
 		expected := []*capiv1_protos.TemplateProfile{
 			// spec
-			{Name: "cert-manager", Version: "2.0.1", SourceRef: &capiv1_protos.SourceRef{Name: "charts", Namespace: "default"}},
-			{Name: "external-dns", Version: "0.0.8", Editable: true, SourceRef: &capiv1_protos.SourceRef{Name: "", Namespace: ""}},
+			{Name: "cert-manager", Version: "2.0.1", SourceRef: defaultSourceRef},
+			{Name: "external-dns", Version: "0.0.8", Editable: true, SourceRef: defaultSourceRef},
 			// annotations
-			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks", Required: true},
+			{Name: "k8s-rbac-permissions", Version: "0.0.8", Values: "adminGroups: weaveworks", Required: true, SourceRef: defaultSourceRef},
 		}
 
 		tm := makeCAPITemplate(t, func(c *capiv1.CAPITemplate) {
@@ -91,7 +107,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 			c.Spec.Charts.Items = profiles
 		})
 
-		result, err := GetProfilesFromTemplate(tm)
+		result, err := GetProfilesFromTemplate(tm, defaultHelmRepository)
 		assert.NoError(t, err)
 		if diff := cmp.Diff(expected, result, protocmp.Transform()); diff != "" {
 			t.Fatalf("template params didn't match expected:\n%s", diff)
@@ -144,7 +160,7 @@ func TestGetProfilesFromTemplate(t *testing.T) {
 			c.Spec.Charts.Items = profiles
 		})
 
-		result, err := GetProfilesFromTemplate(tm)
+		result, err := GetProfilesFromTemplate(tm, defaultHelmRepository)
 		// no error
 		assert.NoError(t, err)
 		assert.Equal(t, expected, result)
@@ -155,7 +171,7 @@ func TestTemplateHasRequiredProfiles(t *testing.T) {
 	// no profiles
 	t.Run("no profiles", func(t *testing.T) {
 		tm := makeCAPITemplate(t)
-		hasRequiredProfiles, err := TemplateHasRequiredProfiles(tm)
+		hasRequiredProfiles, err := TemplateHasRequiredProfiles(tm, defaultHelmRepository)
 		assert.NoError(t, err)
 		assert.False(t, hasRequiredProfiles)
 	})
@@ -166,7 +182,7 @@ func TestTemplateHasRequiredProfiles(t *testing.T) {
 				"capi.weave.works/profile-0": `{"name": "demo-profile", "version": "0.0.1" }`,
 			})
 		})
-		hasRequiredPrfiles, err := TemplateHasRequiredProfiles(tm)
+		hasRequiredPrfiles, err := TemplateHasRequiredProfiles(tm, defaultHelmRepository)
 		assert.NoError(t, err)
 		assert.True(t, hasRequiredPrfiles)
 	})
