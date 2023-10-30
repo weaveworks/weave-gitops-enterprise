@@ -490,12 +490,17 @@ func TestGetReconciledObjects(t *testing.T) {
 }
 
 func TestGetInventory(t *testing.T) {
+	toConfigMapPayload := func(obj corev1.ConfigMap) string {
+		data, err := json.Marshal(obj)
+		assert.NoError(t, err)
+		return string(data)
+	}
+
 	tests := []struct {
-		name             string
-		request          *pb.GetInventoryRequest
-		expected         *pb.GetInventoryResponse
-		expectedPayloads []corev1.ConfigMap
-		clusterState     []runtime.Object
+		name         string
+		request      *pb.GetInventoryRequest
+		expected     *pb.GetInventoryResponse
+		clusterState []runtime.Object
 	}{
 		{
 			name: "get inventory with one resource ",
@@ -505,18 +510,16 @@ func TestGetInventory(t *testing.T) {
 						Tenant:      "",
 						ClusterName: "management",
 						Health:      &pb.HealthStatus{Status: "Unknown", Message: ""},
-					},
-				},
-			},
-			expectedPayloads: []corev1.ConfigMap{
-				{
-					TypeMeta: metav1.TypeMeta{
-						APIVersion: "v1",
-						Kind:       "ConfigMap",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "my-configmap",
-						Namespace: "my-namespace",
+						Payload: toConfigMapPayload(corev1.ConfigMap{
+							TypeMeta: metav1.TypeMeta{
+								APIVersion: "v1",
+								Kind:       "ConfigMap",
+							},
+							ObjectMeta: metav1.ObjectMeta{
+								Name:      "my-configmap",
+								Namespace: "my-namespace",
+							},
+						}),
 					},
 				},
 			},
@@ -571,18 +574,29 @@ func TestGetInventory(t *testing.T) {
 			response, err := c.GetInventory(context.Background(), tt.request)
 
 			assert.NoError(t, err)
-			assert.Len(t, response.Entries, 1)
+			assert.Len(t, response.Entries, len(tt.expected.Entries))
 
-			// unmarshal payload to object for each entry, then compare it against expected
 			for i, entry := range response.Entries {
+				assert.Equal(t, tt.expected.Entries[i].Tenant, entry.Tenant)
+				assert.Equal(t, tt.expected.Entries[i].ClusterName, entry.ClusterName)
+				assert.Equal(t, tt.expected.Entries[i].Health, entry.Health)
+
+				// unmarshal response entry payload to ConfigMap
 				var obj corev1.ConfigMap
 				err := json.Unmarshal([]byte(entry.Payload), &obj)
 				if err != nil {
 					t.Fatalf("failed to unmarshal payload: %v", err)
 				}
-				// Don't care about resource version
 				obj.ResourceVersion = ""
-				expectedObj := tt.expectedPayloads[i]
+
+				// unmarshal expected response to ConfigMap
+				var expectedObj corev1.ConfigMap
+				err = json.Unmarshal([]byte(tt.expected.Entries[i].Payload), &expectedObj)
+				if err != nil {
+					t.Fatalf("failed to unmarshal payload: %v", err)
+				}
+
+				// Compare!
 				if !assert.ObjectsAreEqual(obj, expectedObj) {
 					t.Errorf("expected:\n%+v\nbut got:\n%+v", expectedObj, obj)
 				}
