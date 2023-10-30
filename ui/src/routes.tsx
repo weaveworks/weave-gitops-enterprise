@@ -27,8 +27,7 @@ import ClusterDetails from './components/Clusters/ClusterDetails';
 import Explorer from './components/Explorer';
 import ObjectViewerPage from './components/Explorer/ObjectViewerPage';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
-import GitOpsRunDetail from './components/GitOpsRun/Detail';
-import GitOpsRun from './components/GitOpsRun/List';
+
 import GitOpsSets from './components/GitOpsSets';
 import GitOpsSetDetail from './components/GitOpsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
@@ -107,11 +106,6 @@ const AppRoutes = () => {
         component={withSearchParams(PolicyViolationPage)}
         exact
         path={V2Routes.PolicyViolationDetails}
-      />
-      <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
-      <Route
-        component={withSearchParams(GitOpsRunDetail)}
-        path={Routes.GitOpsRunDetail}
       />
       <Route
         component={(props: any) => <WGApplicationsDashboard {...props} />}
