@@ -497,11 +497,10 @@ func TestGetInventory(t *testing.T) {
 	}
 
 	tests := []struct {
-		name             string
-		request          *pb.GetInventoryRequest
-		expected         *pb.GetInventoryResponse
-		expectedPayloads []corev1.ConfigMap
-		clusterState     []runtime.Object
+		name         string
+		request      *pb.GetInventoryRequest
+		expected     *pb.GetInventoryResponse
+		clusterState []runtime.Object
 	}{
 		{
 			name: "get inventory with one resource ",
@@ -521,18 +520,6 @@ func TestGetInventory(t *testing.T) {
 								Namespace: "my-namespace",
 							},
 						}),
-					},
-				},
-			},
-			expectedPayloads: []corev1.ConfigMap{
-				{
-					TypeMeta: metav1.TypeMeta{
-						APIVersion: "v1",
-						Kind:       "ConfigMap",
-					},
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "my-configmap",
-						Namespace: "my-namespace",
 					},
 				},
 			},
