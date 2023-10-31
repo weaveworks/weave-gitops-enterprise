@@ -1,5 +1,4 @@
 import '@fortawesome/fontawesome-free/css/all.css';
-import 'react-toastify/dist/ReactToastify.css';
 import { MuiThemeProvider } from '@material-ui/core/styles';
 import { ProgressiveDeliveryService } from '@weaveworks/progressive-delivery';
 import {
@@ -24,6 +23,7 @@ import {
 } from 'react-query';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
 import ProximaNova from 'url:./fonts/proximanova-regular.woff';
 import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
@@ -148,6 +148,16 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   const { settings } = React.useContext(AppContext);
   const mode = settings.theme;
   const appliedTheme = theme(mode);
+
+  // Related to: https://github.com/weaveworks/weave-gitops-enterprise/issues/3555
+  // The `<body>` element is set to use `colors.black`. We need to invert it for dark mode.
+  if (mode === ThemeTypes.Dark) {
+    appliedTheme.colors = {
+      ...appliedTheme.colors,
+      black: appliedTheme.colors.white,
+    };
+  }
+
   return (
     <ThemeProvider theme={appliedTheme}>
       <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>
