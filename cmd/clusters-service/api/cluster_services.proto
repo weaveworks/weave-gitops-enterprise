@@ -459,7 +459,7 @@ message CreatePullRequestRequest {
   // The values for each profile that will be installed.
   repeated ProfileValues values = 10;
   // The repo api url.
-  string repository_api_url = 11;
+  string repository_api_url = 11 [deprecated = true];
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
   string template_namespace = 14;
@@ -536,7 +536,7 @@ message CreateDeletionPullRequestRequest {
   // Credentials
   Credential credentials = 8;
   // The repo api url.
-  string repository_api_url = 9;
+  string repository_api_url = 9 [deprecated = true];
   repeated ClusterNamespacedName cluster_namespaced_names = 10;
 }
 message CreateDeletionPullRequestResponse {
@@ -681,7 +681,7 @@ message CreateAutomationsPullRequestRequest {
   // The commit message
   string commit_message = 6;
   // The repo api url.
-  string repository_api_url = 7;
+  string repository_api_url = 7 [deprecated = true];
   // A list of cluster and kustomization
   repeated ClusterAutomation cluster_automations = 8;
 }
