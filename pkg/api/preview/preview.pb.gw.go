@@ -113,7 +113,7 @@ func RegisterPreviewServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/preview.v1.PreviewService/GetYAML", runtime.WithHTTPPathPattern("/v1/preview-yaml"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/preview.v1.PreviewService/GetYAML", runtime.WithHTTPPathPattern("/v1/preview/yaml"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -138,7 +138,7 @@ func RegisterPreviewServiceHandlerServer(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/preview.v1.PreviewService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/pull-requests"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/preview.v1.PreviewService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/preview/pull-requests"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -202,7 +202,7 @@ func RegisterPreviewServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/preview.v1.PreviewService/GetYAML", runtime.WithHTTPPathPattern("/v1/preview-yaml"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/preview.v1.PreviewService/GetYAML", runtime.WithHTTPPathPattern("/v1/preview/yaml"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -224,7 +224,7 @@ func RegisterPreviewServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/preview.v1.PreviewService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/pull-requests"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/preview.v1.PreviewService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/preview/pull-requests"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -244,9 +244,9 @@ func RegisterPreviewServiceHandlerClient(ctx context.Context, mux *runtime.Serve
 }
 
 var (
-	pattern_PreviewService_GetYAML_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "preview-yaml"}, ""))
+	pattern_PreviewService_GetYAML_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "preview", "yaml"}, ""))
 
-	pattern_PreviewService_CreatePullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "pull-requests"}, ""))
+	pattern_PreviewService_CreatePullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "preview", "pull-requests"}, ""))
 )
 
 var (

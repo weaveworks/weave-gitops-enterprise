@@ -17,39 +17,7 @@
     "application/json"
   ],
   "paths": {
-    "/v1/preview-yaml": {
-      "post": {
-        "operationId": "PreviewService_GetYAML",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetYAMLResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetYAMLRequest"
-            }
-          }
-        ],
-        "tags": [
-          "PreviewService"
-        ]
-      }
-    },
-    "/v1/pull-requests": {
+    "/v1/preview/pull-requests": {
       "post": {
         "operationId": "PreviewService_CreatePullRequest",
         "responses": {
@@ -73,6 +41,38 @@
             "required": true,
             "schema": {
               "$ref": "#/definitions/v1CreatePullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PreviewService"
+        ]
+      }
+    },
+    "/v1/preview/yaml": {
+      "post": {
+        "operationId": "PreviewService_GetYAML",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetYAMLResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1GetYAMLRequest"
             }
           }
         ],
