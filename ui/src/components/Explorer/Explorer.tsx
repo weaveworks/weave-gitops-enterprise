@@ -12,8 +12,8 @@ import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
 import FilterDrawer from './FilterDrawer';
 import Filters from './Filters';
 import {
-  QueryStateProvider,
   columnHeaderHandler,
+  QueryStateProvider,
   useGetUnstructuredObjects,
 } from './hooks';
 import PaginationControls from './PaginationControls';
