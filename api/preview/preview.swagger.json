@@ -17,7 +17,39 @@
     "application/json"
   ],
   "paths": {
-    "/v1/preview-yaml": {
+    "/v1/preview/pull-requests": {
+      "post": {
+        "operationId": "PreviewService_CreatePullRequest",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/v1CreatePullRequestRequest"
+            }
+          }
+        ],
+        "tags": [
+          "PreviewService"
+        ]
+      }
+    },
+    "/v1/preview/yaml": {
       "post": {
         "operationId": "PreviewService_GetYAML",
         "responses": {
@@ -81,24 +113,92 @@
         }
       }
     },
+    "v1CreatePullRequestRequest": {
+      "type": "object",
+      "properties": {
+        "repositoryUrl": {
+          "type": "string",
+          "description": "The repository to use."
+        },
+        "headBranch": {
+          "type": "string",
+          "description": "The new branch that will be created."
+        },
+        "baseBranch": {
+          "type": "string",
+          "description": "The target branch."
+        },
+        "title": {
+          "type": "string",
+          "description": "The title of the pull request."
+        },
+        "description": {
+          "type": "string",
+          "title": "The description of the pull request"
+        },
+        "commitMessage": {
+          "type": "string",
+          "title": "The commit message"
+        },
+        "path": {
+          "type": "string",
+          "title": "The path in the repository"
+        },
+        "resource": {
+          "$ref": "#/definitions/v1TypedObject"
+        }
+      }
+    },
+    "v1CreatePullRequestResponse": {
+      "type": "object",
+      "properties": {
+        "webUrl": {
+          "type": "string",
+          "description": "The url of the new pull request."
+        }
+      }
+    },
     "v1GetYAMLRequest": {
       "type": "object",
       "properties": {
-        "type": {
+        "path": {
           "type": "string"
         },
         "resource": {
-          "type": "string"
+          "$ref": "#/definitions/v1TypedObject"
         }
       }
     },
     "v1GetYAMLResponse": {
       "type": "object",
       "properties": {
-        "yaml": {
+        "file": {
+          "$ref": "#/definitions/v1PathContent"
+        }
+      }
+    },
+    "v1PathContent": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "content": {
           "type": "string"
         }
       }
+    },
+    "v1TypedObject": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        }
+      },
+      "description": "TypedObject is used as a replacement for [Any](https://protobuf.dev/programming-guides/proto3/#any) \nbecause the TypeScript generator we use (protoc-gen-grpc-gateway-ts) does not serialise it correctly.\nThe `object` field holds a JSON object/protobuf message and the `type` field holds that object's type."
     }
   }
 }

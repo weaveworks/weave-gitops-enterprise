@@ -22,16 +22,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/alexedwards/scs/v2"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
-
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
-
-	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
-
 	"github.com/NYTimes/gziphandler"
+	"github.com/alexedwards/scs/v2"
 	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/pricing"
 	esv1beta1 "github.com/external-secrets/external-secrets/apis/externalsecrets/v1beta1"
@@ -53,7 +45,7 @@ import (
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	tfctrl "github.com/weaveworks/tf-controller/api/v1alpha1"
 	ent "github.com/weaveworks/weave-gitops-enterprise-credentials/pkg/entitlement"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
+	csgit "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	capi_proto "github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/protos"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/server"
@@ -63,11 +55,17 @@ import (
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/fetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/namespaces"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
 	gitauth_server "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	gitopssets "github.com/weaveworks/weave-gitops-enterprise/pkg/gitopssets/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm/indexer"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	pipelines "github.com/weaveworks/weave-gitops-enterprise/pkg/pipelines/server"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/preview"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
+	queryserver "github.com/weaveworks/weave-gitops-enterprise/pkg/query/server"
 	tfserver "github.com/weaveworks/weave-gitops-enterprise/pkg/terraform"
 	wge_version "github.com/weaveworks/weave-gitops-enterprise/pkg/version"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/cmderrors"
@@ -553,7 +551,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		}),
 		WithKubernetesClient(kubeClient),
 		WithDiscoveryClient(discoveryClient),
-		WithGitProvider(git.NewGitProviderService(log)),
+		WithGitProvider(csgit.NewGitProviderService(log)),
 		WithApplicationsConfig(appsConfig),
 		WithCoreConfig(coreCfg),
 		WithGrpcRuntimeOptions(
@@ -739,7 +737,8 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	}
 
 	if err := preview.Hydrate(ctx, grpcMux, preview.ServerOpts{
-		Logger: args.Log,
+		Logger:          args.Log,
+		ProviderCreator: git.NewFactory(args.Log),
 	}); err != nil {
 		return fmt.Errorf("hydrating preview server")
 	}

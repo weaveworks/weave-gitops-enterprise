@@ -14,13 +14,23 @@ type OneOf<T> =
       (K extends string & keyof T ? { [k in K]: T[K] } & Absent<T, K>
         : never)
     : never);
-export type GetYAMLRequest = {
+export type PathContent = {
+  path?: string
+  content?: string
+}
+
+export type TypedObject = {
   type?: string
-  resource?: string
+  object?: string
+}
+
+export type GetYAMLRequest = {
+  path?: string
+  resource?: TypedObject
 }
 
 export type GetYAMLResponse = {
-  yaml?: string
+  file?: PathContent
 }
 
 
@@ -85,3 +95,18 @@ export type OCIRepository = BaseOCIRepository
   & OneOf<{ tag: string }>
   & OneOf<{ semver: string }>
   & OneOf<{ digest: string }>
+
+export type CreatePullRequestRequest = {
+  repositoryUrl?: string
+  headBranch?: string
+  baseBranch?: string
+  title?: string
+  description?: string
+  commitMessage?: string
+  path?: string
+  resource?: TypedObject
+}
+
+export type CreatePullRequestResponse = {
+  webUrl?: string
+}

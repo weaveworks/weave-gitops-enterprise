@@ -258,15 +258,14 @@ func (s *server) CreatePullRequest(ctx context.Context, msg *capiv1_proto.Create
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:       *gp,
-		RepositoryURL:     repositoryURL,
-		ReposistoryAPIURL: msg.RepositoryApiUrl,
-		HeadBranch:        msg.HeadBranch,
-		BaseBranch:        baseBranch,
-		Title:             msg.Title,
-		Description:       msg.Description,
-		CommitMessage:     msg.CommitMessage,
-		Files:             files,
+		GitProvider:   *gp,
+		RepositoryURL: repositoryURL,
+		HeadBranch:    msg.HeadBranch,
+		BaseBranch:    baseBranch,
+		Title:         msg.Title,
+		Description:   msg.Description,
+		CommitMessage: msg.CommitMessage,
+		Files:         files,
 	})
 
 	if err != nil {
@@ -380,15 +379,14 @@ func (s *server) CreateDeletionPullRequest(ctx context.Context, msg *capiv1_prot
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:       *gp,
-		RepositoryURL:     repositoryURL,
-		ReposistoryAPIURL: msg.RepositoryApiUrl,
-		HeadBranch:        msg.HeadBranch,
-		BaseBranch:        baseBranch,
-		Title:             msg.Title,
-		Description:       msg.Description,
-		CommitMessage:     msg.CommitMessage,
-		Files:             filesList,
+		GitProvider:   *gp,
+		RepositoryURL: repositoryURL,
+		HeadBranch:    msg.HeadBranch,
+		BaseBranch:    baseBranch,
+		Title:         msg.Title,
+		Description:   msg.Description,
+		CommitMessage: msg.CommitMessage,
+		Files:         filesList,
 	})
 	if err != nil {
 		s.log.Error(err, "Failed to create pull request")
