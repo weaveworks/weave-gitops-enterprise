@@ -732,6 +732,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	if err := gitopssets.Hydrate(ctx, grpcMux, gitopssets.ServerOpts{
 		Logger:         args.Log,
 		ClientsFactory: args.ClustersManager,
+		HealthChecker:  args.CoreServerConfig.HealthChecker,
 	}); err != nil {
 		return fmt.Errorf("hydrating gitopssets server: %w", err)
 	}
