@@ -20,6 +20,12 @@ const (
 	defaultAdminPassword = "password"
 )
 
+// gitAuthTypes
+const (
+	httpsAuthType = "https"
+	sshAuthType   = "ssh"
+)
+
 // inputs names
 const (
 	UserName           = "username"
@@ -30,11 +36,19 @@ const (
 	PrivateKeyPassword = "privateKeyPassword"
 	existingCreds      = "existingCreds"
 	domainType         = "domainType"
+	gitAuthType        = "gitAuthType"
 	DiscoveryURL       = "discoveryURL"
 	ClientID           = "clientID"
 	ClientSecret       = "clientSecret"
 	oidcInstalled      = "oidcInstalled"
 	existingOIDC       = "existingOIDC"
+	sshRepoURL         = "sshRepoURL"
+	httpsRepoURL       = "httpsRepoURL"
+	branch             = "branch"
+	repoPath           = "repoPath"
+	gitUserName        = "username"
+	gitToken           = "gitToken"
+	bootstrapFlux      = "bootstrapFlux"
 )
 
 // input/output types
@@ -56,8 +70,15 @@ type ConfigBuilder struct {
 	wgeVersion              string
 	domainType              string
 	domain                  string
+	gitAuthType             string
+	sshRepoURL              string
 	privateKeyPath          string
 	privateKeyPassword      string
+	gitUsername             string
+	gitToken                string
+	httpsRepoURL            string
+	branch                  string
+	repoPath                string
 	authType                string
 	installOIDC             string
 	discoveryURL            string
@@ -107,9 +128,17 @@ func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
 
 }
 
-func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword string) *ConfigBuilder {
+func (c *ConfigBuilder) WithGitAuthentication(gitAuthType, privateKeyPath, privateKeyPassword, sshRepoURL, httpsRepoURL, gitUsername, gitToken, branch, repoPath string) *ConfigBuilder {
+	c.gitAuthType = gitAuthType
+	c.branch = branch
+	c.repoPath = repoPath
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
+	c.sshRepoURL = sshRepoURL
+	c.httpsRepoURL = httpsRepoURL
+	c.gitUsername = gitUsername
+	c.gitToken = gitToken
+
 	return c
 }
 
@@ -140,8 +169,19 @@ type Config struct {
 	DomainType string
 	UserDomain string
 
+	GitAuthType string
+
+	FluxInstallated    bool
+	SSHRepoURL         string
 	PrivateKeyPath     string
 	PrivateKeyPassword string
+
+	GitUsername  string
+	GitToken     string
+	HttpsRepoURL string
+
+	Branch   string
+	RepoPath string
 
 	AuthType                string
 	InstallOIDC             string
@@ -185,8 +225,15 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		Logger:                  cb.logger,
 		DomainType:              cb.domainType,
 		UserDomain:              cb.domain,
+		GitAuthType:             cb.gitAuthType,
+		Branch:                  cb.branch,
+		RepoPath:                cb.repoPath,
+		SSHRepoURL:              cb.sshRepoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
+		GitUsername:             cb.username,
+		GitToken:                cb.gitToken,
+		HttpsRepoURL:            cb.httpsRepoURL,
 		AuthType:                cb.authType,
 		InstallOIDC:             cb.installOIDC,
 		DiscoveryURL:            cb.discoveryURL,

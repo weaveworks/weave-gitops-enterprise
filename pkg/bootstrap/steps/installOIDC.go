@@ -7,7 +7,7 @@ func NewInstallOIDCStep(config Config) BootstrapStep {
 		Type:         confirmInput,
 		Msg:          oidcInstallMsg,
 		DefaultValue: "",
-		Valuesfn:     canAskOIDCPrompot,
+		Enabled:      canAskOIDCPrompot,
 	}
 
 	return BootstrapStep{
@@ -33,6 +33,6 @@ func setInstallOIDCFlag(input []StepInput, c *Config) ([]StepOutput, error) {
 	return []StepOutput{}, nil
 }
 
-func canAskOIDCPrompot(input []StepInput, c *Config) (interface{}, error) {
-	return c.PromptedForDiscoveryURL, nil
+func canAskOIDCPrompot(input []StepInput, c *Config) bool {
+	return c.PromptedForDiscoveryURL
 }

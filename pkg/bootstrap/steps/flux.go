@@ -2,7 +2,9 @@ package steps
 
 import (
 	"fmt"
+	"strings"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -27,16 +29,31 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	c.Logger.Actionf("verifying flux installation")
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		return []StepOutput{}, fmt.Errorf("flux installed error: %v. %s", string(out), fluxRecoverMsg)
+		c.Logger.Failuref("flux installed error: %v. %s", string(out), fluxRecoverMsg)
+		return []StepOutput{}, nil
 	}
 	c.Logger.Successf(fluxExistingInstallMsg)
 
 	c.Logger.Actionf("verifying flux reconcillation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxRecoverMsg)
+		c.Logger.Failuref("flux bootstrapped error: %v. %s", string(out), fluxRecoverMsg)
+		return []StepOutput{}, nil
 	}
 	c.Logger.Successf(fluxExistingBootstrapMsg)
+
+	repo, err := utils.GetGitRepositoryObject(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("failed to get flux repository: %v", err)
+	}
+
+	if strings.Contains(repo.Spec.URL, sshAuthType) {
+		c.GitAuthType = sshAuthType
+	} else {
+		c.GitAuthType = httpsAuthType
+	}
+	c.Logger.Successf("set git authentication method to: %s", c.GitAuthType)
+	c.FluxInstallated = true
 
 	return []StepOutput{}, nil
 }

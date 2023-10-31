@@ -43,7 +43,7 @@ var discoveryUrlStep = StepInput{
 	Type:            stringInput,
 	Msg:             oidcDiscoverUrlMsg,
 	DefaultValue:    "",
-	Valuesfn:        canAskForConfig,
+	Enabled:         canAskForConfig,
 	StepInformation: oidcConfigInfoMsg,
 }
 
@@ -52,7 +52,7 @@ var clientIDStep = StepInput{
 	Type:         stringInput,
 	Msg:          oidcClientIDMsg,
 	DefaultValue: "",
-	Valuesfn:     canAskForConfig,
+	Enabled:      canAskForConfig,
 }
 
 var clientSecretStep = StepInput{
@@ -60,7 +60,7 @@ var clientSecretStep = StepInput{
 	Type:         passwordInput,
 	Msg:          oidcClientSecretMsg,
 	DefaultValue: "",
-	Valuesfn:     canAskForConfig,
+	Enabled:      canAskForConfig,
 }
 
 func NewOIDCConfigStep(config Config) BootstrapStep {
@@ -70,7 +70,7 @@ func NewOIDCConfigStep(config Config) BootstrapStep {
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
 			DefaultValue:    "",
-			Valuesfn:        isExistingOIDCConfig,
+			Enabled:         isExistingOIDCConfig,
 			StepInformation: fmt.Sprintf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace),
 		},
 	}
@@ -84,7 +84,6 @@ func NewOIDCConfigStep(config Config) BootstrapStep {
 	if config.ClientSecret == "" {
 		inputs = append(inputs, clientSecretStep)
 	}
-
 	return BootstrapStep{
 		Name:  "OIDC Configuration",
 		Input: inputs,
@@ -128,7 +127,7 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	// check existing oidc configuration
-	if existing, _ := isExistingOIDCConfig(input, c); existing.(bool) {
+	if existing := isExistingOIDCConfig(input, c); existing {
 		if continueWithExistingConfigs != confirmYes {
 			c.Logger.Warningf(oidcConfigExistWarningMsg, oidcSecretName, WGEDefaultNamespace)
 		} else {
@@ -256,27 +255,21 @@ func getIssuer(oidcDiscoveryURL string) (string, error) {
 // isExistingOIDCConfig checks for OIDC secret on management cluster
 // returns false if OIDC is already on the cluster
 // returns true if no OIDC on the cluster
-func isExistingOIDCConfig(input []StepInput, c *Config) (interface{}, error) {
+func isExistingOIDCConfig(input []StepInput, c *Config) bool {
 	if c.InstallOIDC != "y" {
-		return false, nil
+		return false
 	}
 
 	_, err := utils.GetSecret(c.KubernetesClient, oidcSecretName, WGEDefaultNamespace)
-	if err != nil {
-		return false, nil
-	}
-	return true, nil
+	return err == nil
 }
 
-func canAskForConfig(input []StepInput, c *Config) (interface{}, error) {
+func canAskForConfig(input []StepInput, c *Config) bool {
 	if c.InstallOIDC != "y" {
-		return false, nil
+		return false
 	}
 
-	if ask, _ := isExistingOIDCConfig(input, c); ask.(bool) {
-		return false, nil
-	}
-	return true, nil
+	return !isExistingOIDCConfig(input, c)
 }
 
 // func to get issuer url from discovery url

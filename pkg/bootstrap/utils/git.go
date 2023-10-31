@@ -2,6 +2,7 @@ package utils
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 	"time"
@@ -11,6 +12,8 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"github.com/go-git/go-git/v5/plumbing/transport"
+	gitHttp "github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 	k8s_client "sigs.k8s.io/controller-runtime/pkg/client"
 )
@@ -19,10 +22,12 @@ const (
 	workingDir      = "/tmp/bootstrap-flux"
 	fluxGitUserName = "Flux Bootstrap CLI"
 	fluxGitEmail    = "bootstrap@weave.works"
+	sshAuth         = "ssh"
+	httpsAuth       = "https"
 )
 
-// getGitRepositoryObject get the default source git repository object to be used in cloning
-func getGitRepositoryObject(client k8s_client.Client, repoName string, namespace string) (*sourcev1.GitRepository, error) {
+// GetGitRepositoryObject get the default source git repository object to be used in cloning
+func GetGitRepositoryObject(client k8s_client.Client, repoName string, namespace string) (*sourcev1.GitRepository, error) {
 	gitRepo := &sourcev1.GitRepository{}
 
 	if err := client.Get(context.Background(), k8s_client.ObjectKey{
@@ -72,12 +77,20 @@ func getGitAuth(privateKeyPath, privateKeyPassword string) (*ssh.PublicKeys, err
 }
 
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
-func CloneRepo(client k8s_client.Client, repoName string, namespace string, privateKeyPath string, privateKeyPassword string) (string, error) {
+func CloneRepo(client k8s_client.Client,
+	repoName string,
+	namespace string,
+	authType string,
+	privateKeyPath string,
+	privateKeyPassword string,
+	username string,
+	token string,
+) (string, error) {
 	if err := CleanupRepo(); err != nil {
 		return "", err
 	}
 
-	gitRepo, err := getGitRepositoryObject(client, repoName, namespace)
+	gitRepo, err := GetGitRepositoryObject(client, repoName, namespace)
 	if err != nil {
 		return "", err
 	}
@@ -90,10 +103,19 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string, priv
 		return "", err
 	}
 
-	authMethod, err := getGitAuth(privateKeyPath, privateKeyPassword)
-	if err != nil {
-		return "", err
+	var authMethod transport.AuthMethod
+	switch authType {
+	case sshAuth:
+		authMethod, err = getGitAuth(privateKeyPath, privateKeyPassword)
+		if err != nil {
+			return "", err
+		}
+	case httpsAuth:
+		authMethod = &gitHttp.BasicAuth{Username: username, Password: token}
+	default:
+		return "", fmt.Errorf("unsupported authentication type: %s", authType)
 	}
+
 	_, err = git.PlainClone(workingDir, false, &git.CloneOptions{
 		Auth:          authMethod,
 		URL:           repoUrl,
@@ -109,7 +131,7 @@ func CloneRepo(client k8s_client.Client, repoName string, namespace string, priv
 }
 
 // CreateFileToRepo create a file and add to the repo.
-func CreateFileToRepo(filename, filecontent, path, commitmsg, privateKeyPath, privateKeyPassword string) error {
+func CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateKeyPath, privateKeyPassword, username, token string) error {
 	repo, err := git.PlainOpen(workingDir)
 	if err != nil {
 		return err
@@ -146,10 +168,19 @@ func CreateFileToRepo(filename, filecontent, path, commitmsg, privateKeyPath, pr
 		return err
 	}
 
-	authMethod, err := getGitAuth(privateKeyPath, privateKeyPassword)
-	if err != nil {
-		return err
+	var authMethod transport.AuthMethod
+	switch authType {
+	case sshAuth:
+		authMethod, err = getGitAuth(privateKeyPath, privateKeyPassword)
+		if err != nil {
+			return err
+		}
+	case httpsAuth:
+		authMethod = &gitHttp.BasicAuth{Username: username, Password: token}
+	default:
+		return fmt.Errorf("unsupported authentication type: %s", authType)
 	}
+
 	if err := repo.Push(&git.PushOptions{
 		Auth: authMethod,
 	}); err != nil {

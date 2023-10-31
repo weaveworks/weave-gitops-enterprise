@@ -43,9 +43,21 @@ type bootstrapFlags struct {
 	domainType string
 	domain     string
 
-	// private key flags
+	// git auth type
+	gitAuthType string
+
+	// private key (ssh-auth) flags
 	privateKeyPath     string
 	privateKeyPassword string
+	sshRepoURL         string
+
+	// https git auth flags
+	gitUsername  string
+	gitToken     string
+	httpsRepoURL string
+
+	branch   string
+	repoPath string
 
 	// oidc flags
 	discoveryURL string
@@ -67,6 +79,13 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "indicate the domain to use in case of using `externaldns`")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
+	cmd.PersistentFlags().StringVarP(&flags.gitAuthType, "git-auth-type", "g", "", "git authentication type. choose between (ssh, https)")
+	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
+	cmd.PersistentFlags().StringVarP(&flags.gitToken, "git-token", "", "", "git token used in https authentication type")
+	cmd.PersistentFlags().StringVarP(&flags.branch, "git-branch", "b", "", "git branch for your flux repository (example: main)")
+	cmd.PersistentFlags().StringVarP(&flags.repoPath, "git-repo-path", "r", "", "git path for your flux repository (example: clusters/my-cluster)")
+	cmd.PersistentFlags().StringVarP(&flags.sshRepoURL, "ssh-repo-url", "", "", "ssh git url for you flux repository (example: ssh://git@github.com/my-org-name/my-repo-name)")
+	cmd.PersistentFlags().StringVarP(&flags.sshRepoURL, "https-repo-url", "", "", "https git url for you flux repository (example: https://github.com/my-org-name/my-repo-name)")
 	cmd.PersistentFlags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
 	cmd.PersistentFlags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "private key password. If the private key is encrypted using password")
 	cmd.PersistentFlags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
@@ -92,7 +111,16 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithVersion(flags.version).
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
-			WithPrivateKey(flags.privateKeyPath, flags.privateKeyPassword).
+			WithGitAuthentication(flags.gitAuthType,
+				flags.privateKeyPath,
+				flags.privateKeyPassword,
+				flags.sshRepoURL,
+				flags.httpsRepoURL,
+				flags.gitUsername,
+				flags.gitToken,
+				flags.branch,
+				flags.repoPath,
+			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
 			Build()
 

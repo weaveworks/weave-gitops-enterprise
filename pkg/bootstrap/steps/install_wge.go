@@ -44,7 +44,7 @@ var getUserDomain = StepInput{
 	Type:         stringInput,
 	Msg:          clusterDomainMsg,
 	DefaultValue: "",
-	Valuesfn:     isUserDomainEnabled,
+	Enabled:      isUserDomainEnabled,
 }
 
 func NewInstallWGEStep(config Config) BootstrapStep {
@@ -239,10 +239,10 @@ func constructWGEhelmRelease(valuesFile valuesFile, chartVersion string) (string
 	return utils.CreateHelmReleaseYamlString(wgeHelmRelease)
 }
 
-func isUserDomainEnabled(input []StepInput, c *Config) (interface{}, error) {
+func isUserDomainEnabled(input []StepInput, c *Config) bool {
 	if c.DomainType == domainTypeExternalDNS {
 		c.Logger.L().Info(externalDNSWarningMsg)
-		return true, nil
+		return true
 	}
-	return false, nil
+	return false
 }
