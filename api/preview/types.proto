@@ -12,62 +12,98 @@ import "google/protobuf/duration.proto";
 
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/preview/api";
 
+message PathContent {
+  string path = 1;
+  string content = 2;
+}
+
+// TypedObject is used as a replacement for [Any](https://protobuf.dev/programming-guides/proto3/#any) 
+// because the TypeScript generator we use (protoc-gen-grpc-gateway-ts) does not serialise it correctly.
+// The `object` field holds a JSON object/protobuf message and the `type` field holds that object's type.
+message TypedObject {
+  string type = 1;
+  string object = 2;
+}
+
 message GetYAMLRequest {
-    string type = 1;
-    string resource = 2;
+  string path = 1;
+  TypedObject resource = 2;
 }
 
 message GetYAMLResponse {
-    string yaml = 1;
+  PathContent file = 1;
 }
 
 message GitRepository {
-    string name = 1;
-    string namespace = 2;
-    string url = 3;
-    google.protobuf.Duration interval = 4;
-    optional string branch = 5;
-    optional string tag = 6;
-    optional string semver = 7;
-    optional string commit = 8;
-    optional string ref_name = 9;
-    optional string secret_ref_name = 10;
+  string name = 1;
+  string namespace = 2;
+  string url = 3;
+  google.protobuf.Duration interval = 4;
+  optional string branch = 5;
+  optional string tag = 6;
+  optional string semver = 7;
+  optional string commit = 8;
+  optional string ref_name = 9;
+  optional string secret_ref_name = 10;
 }
 
 message HelmRepository {
-    string name = 1;
-    string namespace = 2;
-    string url = 3;
-    google.protobuf.Duration interval = 4;
-    optional string type = 5;
-    optional string provider = 6;
-    optional string secret_ref_name = 7;
-    optional bool pass_credentials = 8;
+  string name = 1;
+  string namespace = 2;
+  string url = 3;
+  google.protobuf.Duration interval = 4;
+  optional string type = 5;
+  optional string provider = 6;
+  optional string secret_ref_name = 7;
+  optional bool pass_credentials = 8;
 }
 
 message Bucket {
-    string name = 1;
-    string namespace = 2;
-    string bucket_name = 3;
-    string endpoint = 4;
-    google.protobuf.Duration interval = 5;
-    optional string provider = 6;
-    optional string secret_ref_name = 7;
-    optional string region = 8;
-    optional bool insecure = 9;
+  string name = 1;
+  string namespace = 2;
+  string bucket_name = 3;
+  string endpoint = 4;
+  google.protobuf.Duration interval = 5;
+  optional string provider = 6;
+  optional string secret_ref_name = 7;
+  optional string region = 8;
+  optional bool insecure = 9;
 }
 
 message OCIRepository {
-    string name = 1;
-    string namespace = 2;
-    string url = 3;
-    google.protobuf.Duration interval = 4;
-    optional string provider = 5;
-    optional string secret_ref_name = 6;
-    optional string service_account_name = 7;
-    optional string cert_secret_ref_name = 8;
-    optional bool insecure = 9;
-    optional string tag = 10;
-    optional string semver = 11;
-    optional string digest = 12;
+  string name = 1;
+  string namespace = 2;
+  string url = 3;
+  google.protobuf.Duration interval = 4;
+  optional string provider = 5;
+  optional string secret_ref_name = 6;
+  optional string service_account_name = 7;
+  optional string cert_secret_ref_name = 8;
+  optional bool insecure = 9;
+  optional string tag = 10;
+  optional string semver = 11;
+  optional string digest = 12;
+}
+
+message CreatePullRequestRequest {
+  // The repository to use.
+  string repository_url = 1;
+  // The new branch that will be created.
+  string head_branch = 2;
+  // The target branch.
+  string base_branch = 3;
+  // The title of the pull request.
+  string title = 4;
+  // The description of the pull request
+  string description = 5;
+  // The commit message
+  string commit_message = 6;
+  // The path in the repository
+  string path = 7;
+  TypedObject resource = 8;
+}
+
+message CreatePullRequestResponse {
+  // The url of the new pull request.
+  string web_url = 1;
 }

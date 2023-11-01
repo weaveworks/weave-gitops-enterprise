@@ -69,10 +69,7 @@ function getParentNavRouteValueExtended(
     //Policy Configs
     case Routes.PolicyConfigs:
       return Routes.PolicyConfigs;
-    //GitOps Run
-    case Routes.GitOpsRun:
-    case Routes.GitOpsRunDetail:
-      return Routes.GitOpsRun;
+
     //GitOps Sets
     case Routes.GitOpsSets:
     case Routes.GitOpsSetDetail:
@@ -178,11 +175,6 @@ function getNavItems(isFlagEnabled: (flag: string) => boolean): NavItem[] {
     },
     {
       label: 'Developer Ex.',
-    },
-    {
-      label: 'GitOps Run',
-      link: { value: Routes.GitOpsRun },
-      icon: IconType.GitOpsRunIcon,
     },
     {
       label: 'Notifications',
