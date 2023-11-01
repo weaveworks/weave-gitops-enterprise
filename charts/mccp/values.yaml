@@ -95,6 +95,13 @@ tls:
 
 clusterBootstrapController:
   enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 100Mi
+    requests:
+      cpu: 100m
+      memory: 20Mi
 
 rbac:
   userRoles:
