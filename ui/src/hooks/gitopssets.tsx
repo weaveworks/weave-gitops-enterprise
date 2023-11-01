@@ -129,17 +129,18 @@ export const getChildren = async (
   namespace: string,
   kinds: GroupVersionKind[],
   clusterName: string,
+  withChildren = true,
 ): Promise<FluxObject[]> => {
-  const { objects } = await client.GetReconciledObjects({
+  const { entries } = await client.GetInventory({
     name,
     namespace,
-    kinds,
     clusterName,
+    withChildren,
   });
-  const length = objects?.length || 0;
+  const length = entries?.length || 0;
   const result = [];
   for (let o = 0; o < length; o++) {
-    const obj = convertResponse('', objects?.[o] || ({} as ResponseObject));
+    const obj = convertResponse('', entries?.[o] || ({} as ResponseObject));
     await getChildrenRecursive(
       core,
       namespace,
