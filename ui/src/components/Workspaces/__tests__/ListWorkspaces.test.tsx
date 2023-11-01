@@ -44,6 +44,8 @@ const mappedWorkspaces = (workspaces: Array<any>) => {
     e.clusterName,
   ]);
 };
+const filterTable = new TestFilterableTable('workspaces-list', fireEvent);
+
 describe('ListWorkspaces', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: WorkspaceClientMock;
@@ -89,9 +91,7 @@ describe('ListWorkspaces', () => {
     expect(errorCount?.textContent).toEqual('2');
   });
   it('renders a list of workspaces', async () => {
-    const filterTable = new TestFilterableTable('workspaces-list', fireEvent);
     api.ListWorkspacesReturns = listWorkspacesResponse;
-
     await act(async () => {
       const c = wrap(<WorkspacesList />);
       render(c);
@@ -114,9 +114,16 @@ describe('ListWorkspaces', () => {
 
     const sortRowsByName = mappedWorkspaces(
       listWorkspacesResponse.workspaces.sort((a, b) =>
-        b.name.localeCompare(a.name),
+        a.name.localeCompare(b.name),
       ),
     );
     filterTable.testSorthTableByColumn('Name', sortRowsByName);
+
+    const reverseSortRowsByName = mappedWorkspaces(
+      listWorkspacesResponse.workspaces.sort((a, b) =>
+        b.name.localeCompare(a.name),
+      ),
+    );
+    filterTable.testSorthTableByColumn('Name', reverseSortRowsByName);
   });
 });

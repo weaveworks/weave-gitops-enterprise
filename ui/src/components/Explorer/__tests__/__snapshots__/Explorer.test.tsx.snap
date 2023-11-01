@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`Explorer snapshots renders 1`] = `
-.c27 {
+.c25 {
   display: -webkit-box;
   display: -webkit-flex;
   display: -ms-flexbox;
@@ -131,13 +131,14 @@ exports[`Explorer snapshots renders 1`] = `
   -webkit-box-align: center;
   -ms-flex-align: center;
   align-items: center;
+  gap: 4px;
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
   -ms-flex-pack: start;
   justify-content: flex-start;
 }
 
-.c17 {
+.c15 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -145,7 +146,7 @@ exports[`Explorer snapshots renders 1`] = `
   font-style: normal;
 }
 
-.c19 {
+.c17 {
   font-family: 'proxima-nova',Helvetica,Arial,sans-serif;
   font-size: 14px;
   font-weight: 400;
@@ -192,149 +193,93 @@ exports[`Explorer snapshots renders 1`] = `
   transform: initial;
 }
 
-.c5 .c16 {
+.c5 .c14 {
   margin-left: 4px;
   color: #737373;
 }
 
-.c15 svg {
-  height: 16px;
-  width: 16px;
-}
-
-.c15 svg path.path-fill,
-.c15 svg line.path-fill,
-.c15 svg polygon.path-fill,
-.c15 svg rect.path-fill,
-.c15 svg circle.path-fill,
-.c15 svg polyline.path-fill {
-  fill: !important;
-  -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c15 svg path.stroke-fill,
-.c15 svg line.stroke-fill,
-.c15 svg polygon.stroke-fill,
-.c15 svg rect.stroke-fill,
-.c15 svg circle.stroke-fill,
-.c15 svg polyline.stroke-fill {
-  stroke: !important;
-  -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-  transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
-}
-
-.c15 svg rect.rect-height {
-  height: 16px;
-  width: 16px;
-}
-
-.c15.downward {
-  -webkit-transform: rotate(180deg);
-  -ms-transform: rotate(180deg);
-  transform: rotate(180deg);
-}
-
-.c15.upward {
-  -webkit-transform: initial;
-  -ms-transform: initial;
-  transform: initial;
-}
-
-.c15 .c16 {
-  margin-left: 4px;
-}
-
-.c15 img {
-  width: 16px;
-}
-
-.c20 svg {
+.c18 svg {
   fill: #BC3B1D;
 }
 
-.c20 svg path.path-fill,
-.c20 svg line.path-fill,
-.c20 svg polygon.path-fill,
-.c20 svg rect.path-fill,
-.c20 svg circle.path-fill,
-.c20 svg polyline.path-fill {
+.c18 svg path.path-fill,
+.c18 svg line.path-fill,
+.c18 svg polygon.path-fill,
+.c18 svg rect.path-fill,
+.c18 svg circle.path-fill,
+.c18 svg polyline.path-fill {
   fill: #BC3B1D !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c20 svg path.stroke-fill,
-.c20 svg line.stroke-fill,
-.c20 svg polygon.stroke-fill,
-.c20 svg rect.stroke-fill,
-.c20 svg circle.stroke-fill,
-.c20 svg polyline.stroke-fill {
+.c18 svg path.stroke-fill,
+.c18 svg line.stroke-fill,
+.c18 svg polygon.stroke-fill,
+.c18 svg rect.stroke-fill,
+.c18 svg circle.stroke-fill,
+.c18 svg polyline.stroke-fill {
   stroke: #BC3B1D !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c20.downward {
+.c18.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c20.upward {
+.c18.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c20 .c16 {
+.c18 .c14 {
   margin-left: 4px;
   color: #BC3B1D;
 }
 
-.c25 svg path.path-fill,
-.c25 svg line.path-fill,
-.c25 svg polygon.path-fill,
-.c25 svg rect.path-fill,
-.c25 svg circle.path-fill,
-.c25 svg polyline.path-fill {
+.c23 svg path.path-fill,
+.c23 svg line.path-fill,
+.c23 svg polygon.path-fill,
+.c23 svg rect.path-fill,
+.c23 svg circle.path-fill,
+.c23 svg polyline.path-fill {
   fill: !important;
   -webkit-transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: fill 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c25 svg path.stroke-fill,
-.c25 svg line.stroke-fill,
-.c25 svg polygon.stroke-fill,
-.c25 svg rect.stroke-fill,
-.c25 svg circle.stroke-fill,
-.c25 svg polyline.stroke-fill {
+.c23 svg path.stroke-fill,
+.c23 svg line.stroke-fill,
+.c23 svg polygon.stroke-fill,
+.c23 svg rect.stroke-fill,
+.c23 svg circle.stroke-fill,
+.c23 svg polyline.stroke-fill {
   stroke: !important;
   -webkit-transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
   transition: stroke 200ms cubic-bezier(0.4,0,0.2,1) 0ms;
 }
 
-.c25.downward {
+.c23.downward {
   -webkit-transform: rotate(180deg);
   -ms-transform: rotate(180deg);
   transform: rotate(180deg);
 }
 
-.c25.upward {
+.c23.upward {
   -webkit-transform: initial;
   -ms-transform: initial;
   transform: initial;
 }
 
-.c25 .c16 {
+.c23 .c14 {
   margin-left: 4px;
 }
 
-.c14 {
-  padding: 4px;
-}
-
-.c18 {
+.c16 {
   -webkit-text-decoration: none;
   text-decoration: none;
 }
@@ -464,7 +409,7 @@ exports[`Explorer snapshots renders 1`] = `
   justify-content: flex-start;
 }
 
-.c22 {
+.c20 {
   position: relative;
   height: 100%;
   -webkit-transition-property: width,left;
@@ -481,36 +426,36 @@ exports[`Explorer snapshots renders 1`] = `
   left: 24px;
 }
 
-.c22.open {
+.c20.open {
   left: 0;
   width: 360px;
 }
 
-.c23 {
+.c21 {
   height: 100%;
   width: 100%;
   border-left: 2px solid #d8d8d8;
   padding-left: 32px;
 }
 
-.c21 {
+.c19 {
   overflow: hidden;
   white-space: nowrap;
 }
 
-.c26 ul {
+.c24 ul {
   padding: 0px 8px;
 }
 
-.c26 h2 {
+.c24 h2 {
   margin-top: 0;
 }
 
-.c26 h3 {
+.c24 h3 {
   margin-bottom: 0;
 }
 
-.c24 {
+.c22 {
   position: relative;
 }
 
@@ -567,9 +512,6 @@ exports[`Explorer snapshots renders 1`] = `
         class="c7 c8 c9 ExplorerTable"
       >
         <div
-          class=""
-        />
-        <div
           class="c1 c10"
         />
         <div
@@ -579,7 +521,6 @@ exports[`Explorer snapshots renders 1`] = `
             class="MuiTableContainer-root"
           >
             <table
-              aria-label="simple table"
               class="MuiTable-root"
             >
               <thead
@@ -604,7 +545,7 @@ exports[`Explorer snapshots renders 1`] = `
                           class="MuiButton-label"
                         >
                           <h2
-                            class="selected"
+                            class=""
                           >
                             Name
                           </h2>
@@ -614,22 +555,8 @@ exports[`Explorer snapshots renders 1`] = `
                         />
                       </button>
                       <div
-                        class="c14"
+                        style="width: 16px;"
                       />
-                      <div
-                        class="c4 c15 downward"
-                      >
-                        <svg
-                          aria-hidden="true"
-                          class="MuiSvgIcon-root"
-                          focusable="false"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            d="M4 12l1.41 1.41L11 7.83V20h2V7.83l5.58 5.59L20 12l-8-8-8 8z"
-                          />
-                        </svg>
-                      </div>
                     </div>
                   </th>
                   <th
@@ -657,9 +584,6 @@ exports[`Explorer snapshots renders 1`] = `
                           class="MuiTouchRipple-root"
                         />
                       </button>
-                      <div
-                        class="c14"
-                      />
                       <div
                         style="width: 16px;"
                       />
@@ -691,9 +615,6 @@ exports[`Explorer snapshots renders 1`] = `
                         />
                       </button>
                       <div
-                        class="c14"
-                      />
-                      <div
                         style="width: 16px;"
                       />
                     </div>
@@ -723,9 +644,6 @@ exports[`Explorer snapshots renders 1`] = `
                           class="MuiTouchRipple-root"
                         />
                       </button>
-                      <div
-                        class="c14"
-                      />
                       <div
                         style="width: 16px;"
                       />
@@ -757,9 +675,6 @@ exports[`Explorer snapshots renders 1`] = `
                         />
                       </button>
                       <div
-                        class="c14"
-                      />
-                      <div
                         style="width: 16px;"
                       />
                     </div>
@@ -789,9 +704,6 @@ exports[`Explorer snapshots renders 1`] = `
                           class="MuiTouchRipple-root"
                         />
                       </button>
-                      <div
-                        class="c14"
-                      />
                       <div
                         style="width: 16px;"
                       />
@@ -823,9 +735,6 @@ exports[`Explorer snapshots renders 1`] = `
                         />
                       </button>
                       <div
-                        class="c14"
-                      />
-                      <div
                         style="width: 16px;"
                       />
                     </div>
@@ -842,14 +751,14 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       <a
-                        class="c18 $8405a4f7caf64b1d$var$Link"
+                        class="c16 $8405a4f7caf64b1d$var$Link"
                         href="/kustomization?name=flux-system&namespace=flux-system"
                       >
                         <span
-                          class="c16 c19"
+                          class="c14 c17"
                           color="primary"
                         >
                           flux-system
@@ -861,7 +770,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       Kustomization
                     </span>
@@ -870,7 +779,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       flux-system
                     </span>
@@ -879,7 +788,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       -
                     </span>
@@ -888,7 +797,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       -
                     </span>
@@ -897,7 +806,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       <div
                         class="c4"
@@ -906,7 +815,7 @@ exports[`Explorer snapshots renders 1`] = `
                           class="MuiBox-root MuiBox-root-29"
                         >
                           <div
-                            class="c4 c20"
+                            class="c4 c18"
                           >
                             <svg
                               aria-hidden="true"
@@ -928,7 +837,7 @@ exports[`Explorer snapshots renders 1`] = `
                     class="MuiTableCell-root MuiTableCell-body"
                   >
                     <span
-                      class="c16 c17"
+                      class="c14 c15"
                     >
                       -
                     </span>
@@ -940,13 +849,13 @@ exports[`Explorer snapshots renders 1`] = `
         </div>
       </div>
       <div
-        class="c21 FilterDrawer"
+        class="c19 FilterDrawer"
       >
         <div
-          class="c22"
+          class="c20"
         >
           <div
-            class="c23"
+            class="c21"
           >
             <div
               class="MuiBox-root MuiBox-root-30"
@@ -958,13 +867,13 @@ exports[`Explorer snapshots renders 1`] = `
               </div>
               <div>
                 <div
-                  class="c6 c24 QueryInput"
+                  class="c6 c22 QueryInput"
                 >
                   <div
                     class="c4"
                   >
                     <div
-                      class="c4 c25"
+                      class="c4 c23"
                     >
                       <svg
                         aria-hidden="true"
@@ -999,7 +908,7 @@ exports[`Explorer snapshots renders 1`] = `
                   </div>
                 </div>
                 <div
-                  class="c26 Filters"
+                  class="c24 Filters"
                 >
                   <div>
                     <h3>
@@ -1135,7 +1044,7 @@ exports[`Explorer snapshots renders 1`] = `
       </div>
     </div>
     <div
-      class="c27 PaginationControls"
+      class="c25 PaginationControls"
     >
       <div
         class="MuiBox-root MuiBox-root-35"
@@ -1150,7 +1059,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c4 c25"
+              class="c4 c23"
             >
               <svg
                 aria-hidden="true"
@@ -1175,7 +1084,7 @@ exports[`Explorer snapshots renders 1`] = `
             class="MuiIconButton-label"
           >
             <div
-              class="c4 c25"
+              class="c4 c23"
             >
               <svg
                 aria-hidden="true"
