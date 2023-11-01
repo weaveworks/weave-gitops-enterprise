@@ -337,7 +337,8 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 	}
 
 	for _, c := range fo.GetConditions() {
-		if c.Message != "" {
+		// Generally, the Ready message has the most useful error message
+		if c.Type == "Ready" || c.Type == "Available" {
 			return c.Message
 		}
 	}
