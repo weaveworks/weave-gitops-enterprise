@@ -40,6 +40,7 @@ export type Object = {
   unstructured?: string
   id?: string
   tenant?: string
+  labels?: {[key: string]: string}
 }
 
 export type DebugGetAccessRulesRequest = {
