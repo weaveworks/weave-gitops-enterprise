@@ -9,10 +9,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/blevesearch/bleve/v2/mapping"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/metrics"
 
 	bleve "github.com/blevesearch/bleve/v2"
-	"github.com/blevesearch/bleve/v2/mapping"
 	"github.com/blevesearch/bleve/v2/search"
 	"github.com/go-logr/logr"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
@@ -51,13 +52,13 @@ type IndexReader interface {
 }
 
 var indexFile = "index.db"
-var filterFields = []string{"cluster", "namespace", "kind"}
+var commonFields = []string{"cluster", "namespace", "kind"}
 
 func NewIndexer(s Store, path string, log logr.Logger) (Indexer, error) {
 	idxFileLocation := filepath.Join(path, indexFile)
 	mapping := bleve.NewIndexMapping()
 
-	addFieldMappings(mapping, filterFields)
+	addFieldMappings(mapping, commonFields)
 
 	index, err := bleve.New(idxFileLocation, mapping)
 	if err != nil {
@@ -76,12 +77,12 @@ var facetSuffix = ".facet"
 func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 	objMapping := bleve.NewDocumentMapping()
 
-	for _, field := range fields {
+	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
-		mapping := bleve.NewTextFieldMapping()
-		mapping.Analyzer = "keyword"
-		objMapping.AddFieldMappingsAt(field, mapping)
+		fieldMapping := bleve.NewTextFieldMapping()
+		fieldMapping.Analyzer = "keyword"
+		objMapping.AddFieldMappingsAt(field, fieldMapping)
 
 		// This adds the facets so the UI can be built around the correct values,
 		// without changing how things are searched.
@@ -289,12 +290,9 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	defer recordIndexerMetrics(metrics.ListFacetsAction, time.Now(), err)
 
 	query := bleve.NewMatchAllQuery()
-
 	req := bleve.NewSearchRequest(query)
 
-	for _, f := range filterFields {
-		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))
-	}
+	addDefaultFacets(req)
 
 	searchResults, err := i.idx.Search(req)
 	if err != nil {
@@ -302,7 +300,6 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	}
 
 	facets := map[string][]string{}
-
 	for k, v := range searchResults.Facets {
 		facets[k] = []string{}
 
@@ -312,6 +309,23 @@ func (i *bleveIndexer) ListFacets(ctx context.Context) (fcs Facets, err error) {
 	}
 
 	return facets, nil
+}
+
+// addDefaultFacets adds a set of defaault facets to facets search requests. Default facets are comprised of a set
+// of common fields like cluster and set of objectkind specific fields like labels
+func addDefaultFacets(req *bleve.SearchRequest) {
+	// adding facets for common fields
+	for _, f := range commonFields {
+		req.AddFacet(f, bleve.NewFacetRequest(f+facetSuffix, 100))
+	}
+
+	// adding facets for labels
+	for _, objectKind := range configuration.SupportedObjectKinds {
+		for _, label := range objectKind.Labels {
+			labelFacet := fmt.Sprintf("labels.%s", label)
+			req.AddFacet(labelFacet, bleve.NewFacetRequest(labelFacet, 100))
+		}
+	}
 }
 
 type indexerIterator struct {

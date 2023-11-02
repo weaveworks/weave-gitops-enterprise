@@ -119,6 +119,7 @@ require (
 	github.com/google/s2a-go v0.1.4 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
+	github.com/stretchr/objx v0.5.0 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect
 	go.opentelemetry.io/otel/metric v0.37.0 // indirect
 	google.golang.org/api v0.126.0 // indirect

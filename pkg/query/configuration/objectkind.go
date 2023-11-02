@@ -35,15 +35,27 @@ const (
 	CategoryRBAC       ObjectCategory = "rbac"
 )
 
+// ObjectKind is the main structur for a object that explorer is able to manage. It includes all the configuration and
+// behaviour that is required for both collection and querying.
 type ObjectKind struct {
-	Gvk                 schema.GroupVersionKind     `json:"groupVersionKind"`
-	NewClientObjectFunc func() client.Object        `json:"-"`
-	AddToSchemeFunc     func(*runtime.Scheme) error `json:"-"`
-	RetentionPolicy     RetentionPolicy             `json:"-"`
-	FilterFunc          FilterFunc
-	StatusFunc          func(obj client.Object) ObjectStatus
-	MessageFunc         func(obj client.Object) string
-	Category            ObjectCategory
+	// Gvk is the GroupVersionKind of the objectKind
+	Gvk schema.GroupVersionKind `json:"groupVersionKind"`
+	// NewClientObjectFunc is a function that returns a new kuberentes object for the objectKind.
+	NewClientObjectFunc func() client.Object `json:"-"`
+	// AddToSchemeFunc is a function that adds the objectKind to the kubernetes scheme.
+	AddToSchemeFunc func(*runtime.Scheme) error `json:"-"`
+	// RetentionPolicy is a function to define retention for objects of this objectkind. For example for event to be retained for 24 hours.
+	RetentionPolicy RetentionPolicy `json:"-"`
+	// FilterFunc is a function to filter objects of this objectkind. For example to only retain events from a particular source.
+	FilterFunc FilterFunc
+	// StatusFunc is a function to get the status of an object of this objectkind. It allows to customise status resolution by objectkind.
+	StatusFunc func(obj client.Object) ObjectStatus
+	// MessageFunc is a function to get the message of an object of this objectkind. It allows to customise message resolution by objectkind.
+	MessageFunc func(obj client.Object) string
+	// Labels defines a list of labels that you are interested to collect and query for the object kind. For example, templates, defines templateType as label.
+	Labels []string
+	// Category defines the category of the objectkind. It allows to group objectkinds in the UI.
+	Category ObjectCategory
 }
 
 type ObjectStatus string
@@ -259,9 +271,11 @@ var (
 
 			return e.Spec.Description
 		},
+		Labels: []string{
+			"weave.works/template-type",
+		},
 		Category: CategoryTemplate,
 	}
-
 	CapiTemplateObjectKind = ObjectKind{
 		Gvk: capiv1.GroupVersion.WithKind(capiv1.Kind),
 		NewClientObjectFunc: func() client.Object {
@@ -337,7 +351,8 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 	}
 
 	for _, c := range fo.GetConditions() {
-		if c.Message != "" {
+		// Generally, the Ready message has the most useful error message
+		if c.Type == "Ready" || c.Type == "Available" {
 			return c.Message
 		}
 	}

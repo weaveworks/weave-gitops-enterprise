@@ -450,13 +450,6 @@ exports[`Explorer snapshots renders 1`] = `
   width: 100%;
 }
 
-.c9 td:nth-child(6),
-.c9 td:nth-child(7) {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
-  word-wrap: break-word;
-}
-
 .c9 > div:first-child {
   -webkit-box-pack: start;
   -webkit-justify-content: flex-start;
@@ -926,6 +919,7 @@ exports[`Explorer snapshots renders 1`] = `
                   </td>
                   <td
                     class="MuiTableCell-root MuiTableCell-body"
+                    style="max-width: 600px;"
                   >
                     <span
                       class="c16 c17"

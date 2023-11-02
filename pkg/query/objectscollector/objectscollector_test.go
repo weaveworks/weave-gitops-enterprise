@@ -85,6 +85,7 @@ func TestObjectsCollector_defaultProcessRecords(t *testing.T) {
 				Kind:       "HelmRelease",
 				Tenant:     "my-tenant",
 				Status:     "Failed",
+				Labels:     map[string]string{},
 			}},
 		},
 	}

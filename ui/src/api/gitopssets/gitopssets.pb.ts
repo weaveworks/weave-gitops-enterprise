@@ -6,30 +6,6 @@
 
 import * as fm from "../../fetch.pb"
 import * as GitopssetsV1Types from "./types.pb"
-export type InventoryEntry = {
-  payload?: string
-  tenant?: string
-  clusterName?: string
-  health?: HealthStatus
-  children?: InventoryEntry[]
-}
-
-export type HealthStatus = {
-  status?: string
-  message?: string
-}
-
-export type GetInventoryRequest = {
-  name?: string
-  namespace?: string
-  clusterName?: string
-  withChildren?: boolean
-}
-
-export type GetInventoryResponse = {
-  entries?: InventoryEntry[]
-}
-
 export type ListGitOpsSetsRequest = {
   namespace?: string
 }
