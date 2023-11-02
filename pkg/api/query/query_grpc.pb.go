@@ -33,8 +33,14 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type QueryClient interface {
+	//
+	// Query for resources across clusters
 	DoQuery(ctx context.Context, in *QueryRequest, opts ...grpc.CallOption) (*QueryResponse, error)
+	//
+	// List facets available for querying
 	ListFacets(ctx context.Context, in *ListFacetsRequest, opts ...grpc.CallOption) (*ListFacetsResponse, error)
+	//
+	// Get debug access rules
 	DebugGetAccessRules(ctx context.Context, in *DebugGetAccessRulesRequest, opts ...grpc.CallOption) (*DebugGetAccessRulesResponse, error)
 	ListEnabledComponents(ctx context.Context, in *ListEnabledComponentsRequest, opts ...grpc.CallOption) (*ListEnabledComponentsResponse, error)
 }
@@ -87,8 +93,14 @@ func (c *queryClient) ListEnabledComponents(ctx context.Context, in *ListEnabled
 // All implementations must embed UnimplementedQueryServer
 // for forward compatibility
 type QueryServer interface {
+	//
+	// Query for resources across clusters
 	DoQuery(context.Context, *QueryRequest) (*QueryResponse, error)
+	//
+	// List facets available for querying
 	ListFacets(context.Context, *ListFacetsRequest) (*ListFacetsResponse, error)
+	//
+	// Get debug access rules
 	DebugGetAccessRules(context.Context, *DebugGetAccessRulesRequest) (*DebugGetAccessRulesResponse, error)
 	ListEnabledComponents(context.Context, *ListEnabledComponentsRequest) (*ListEnabledComponentsResponse, error)
 	mustEmbedUnimplementedQueryServer()

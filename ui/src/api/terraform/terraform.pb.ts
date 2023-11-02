@@ -21,6 +21,7 @@ export type GetTerraformObjectRequest = {
   clusterName?: string
   name?: string
   namespace?: string
+  clusterNamespace?: string
 }
 
 export type GetTerraformObjectResponse = {
@@ -69,21 +70,21 @@ export type ReplanTerraformObjectResponse = {
 
 export class Terraform {
   static ListTerraformObjects(req: ListTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ListTerraformObjectsResponse> {
-    return fm.fetchReq<ListTerraformObjectsRequest, ListTerraformObjectsResponse>(`/v1/terraform_objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListTerraformObjectsRequest, ListTerraformObjectsResponse>(`/v1/terraform-objects?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetTerraformObject(req: GetTerraformObjectRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectResponse> {
-    return fm.fetchReq<GetTerraformObjectRequest, GetTerraformObjectResponse>(`/v1/terraform_objects/${req["name"]}?${fm.renderURLSearchParams(req, ["name"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetTerraformObjectRequest, GetTerraformObjectResponse>(`/v1/namespaces/${req["namespace"]}/terraform-objects/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static SyncTerraformObjects(req: SyncTerraformObjectsRequest, initReq?: fm.InitReq): Promise<SyncTerraformObjectsResponse> {
-    return fm.fetchReq<SyncTerraformObjectsRequest, SyncTerraformObjectsResponse>(`/v1/terraform_objects/sync`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<SyncTerraformObjectsRequest, SyncTerraformObjectsResponse>(`/v1/terraform-objects/sync`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }
   static ToggleSuspendTerraformObjects(req: ToggleSuspendTerraformObjectsRequest, initReq?: fm.InitReq): Promise<ToggleSuspendTerraformObjectsResponse> {
-    return fm.fetchReq<ToggleSuspendTerraformObjectsRequest, ToggleSuspendTerraformObjectsResponse>(`/v1/terraform_objects/suspend`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<ToggleSuspendTerraformObjectsRequest, ToggleSuspendTerraformObjectsResponse>(`/v1/terraform-objects/suspend`, {...initReq, method: "PATCH", body: JSON.stringify(req, fm.replacer)})
   }
   static GetTerraformObjectPlan(req: GetTerraformObjectPlanRequest, initReq?: fm.InitReq): Promise<GetTerraformObjectPlanResponse> {
-    return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/terraform_objects/plan?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetTerraformObjectPlanRequest, GetTerraformObjectPlanResponse>(`/v1/namespaces/${req["namespace"]}/terraform-objects/${req["name"]}/plan?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ReplanTerraformObject(req: ReplanTerraformObjectRequest, initReq?: fm.InitReq): Promise<ReplanTerraformObjectResponse> {
-    return fm.fetchReq<ReplanTerraformObjectRequest, ReplanTerraformObjectResponse>(`/v1/terraform_objects/replan`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<ReplanTerraformObjectRequest, ReplanTerraformObjectResponse>(`/v1/namespaces/${req["namespace"]}/terraform-objects/${req["name"]}/replan`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

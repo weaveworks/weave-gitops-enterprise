@@ -17,41 +17,9 @@
     "application/json"
   ],
   "paths": {
-    "/v1/gitops_reconciled_objects": {
-      "post": {
-        "summary": "GetReconciledObjects returns a list of objects\nthat were created as a result a Flux automation.\nThis list is derived by looking at the Kustomization\nor HelmRelease specified in the request body.",
-        "operationId": "GitOpsSets_GetReconciledObjects",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1GetReconciledObjectsRequest"
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
     "/v1/gitopssets": {
       "get": {
+        "summary": "List GitOpsSets across all clusters",
         "operationId": "GitOpsSets_ListGitOpsSets",
         "responses": {
           "200": {
@@ -80,72 +48,9 @@
         ]
       }
     },
-    "/v1/gitopssets/suspend": {
-      "post": {
-        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetRequest"
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
-    "/v1/gitopssets/sync": {
-      "post": {
-        "operationId": "GitOpsSets_SyncGitOpsSet",
-        "responses": {
-          "200": {
-            "description": "A successful response.",
-            "schema": {
-              "$ref": "#/definitions/v1SyncGitOpsSetResponse"
-            }
-          },
-          "default": {
-            "description": "An unexpected error response.",
-            "schema": {
-              "$ref": "#/definitions/rpcStatus"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/v1SyncGitOpsSetRequest"
-            }
-          }
-        ],
-        "tags": [
-          "GitOpsSets"
-        ]
-      }
-    },
-    "/v1/gitopssets/{name}": {
+    "/v1/namespaces/{namespace}/gitopssets/{name}": {
       "get": {
+        "summary": "Get a GitOpsSet",
         "operationId": "GitOpsSets_GetGitOpsSet",
         "responses": {
           "200": {
@@ -163,15 +68,15 @@
         },
         "parameters": [
           {
-            "name": "name",
+            "name": "namespace",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
-            "name": "namespace",
-            "in": "query",
-            "required": false,
+            "name": "name",
+            "in": "path",
+            "required": true,
             "type": "string"
           },
           {
@@ -179,6 +84,169 @@
             "in": "query",
             "required": false,
             "type": "string"
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/reconciled-objects": {
+      "post": {
+        "summary": "Get the reconciled objects for a GitOpsSet",
+        "operationId": "GitOpsSets_GetReconciledObjects",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1GetReconciledObjectsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "automationKind": {
+                  "type": "string"
+                },
+                "kinds": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "$ref": "#/definitions/v1GroupVersionKind"
+                  }
+                },
+                "clusterName": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/suspend": {
+      "patch": {
+        "summary": "Toggle suspend on a GitOpsSet",
+        "operationId": "GitOpsSets_ToggleSuspendGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ToggleSuspendGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "clusterName": {
+                  "type": "string"
+                },
+                "suspend": {
+                  "type": "boolean"
+                }
+              }
+            }
+          }
+        ],
+        "tags": [
+          "GitOpsSets"
+        ]
+      }
+    },
+    "/v1/namespaces/{namespace}/gitopssets/{name}/sync": {
+      "patch": {
+        "summary": "Trigger reconciliation of a GitOpsSet",
+        "operationId": "GitOpsSets_SyncGitOpsSet",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1SyncGitOpsSetResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "type": "object",
+              "properties": {
+                "clusterName": {
+                  "type": "string"
+                }
+              }
+            }
           }
         ],
         "tags": [
@@ -241,30 +309,6 @@
       "properties": {
         "gitopsSet": {
           "$ref": "#/definitions/v1GitOpsSet"
-        }
-      }
-    },
-    "v1GetReconciledObjectsRequest": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "automationKind": {
-          "type": "string"
-        },
-        "kinds": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1GroupVersionKind"
-          }
-        },
-        "clusterName": {
-          "type": "string"
         }
       }
     },
@@ -436,41 +480,10 @@
         }
       }
     },
-    "v1SyncGitOpsSetRequest": {
-      "type": "object",
-      "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        }
-      }
-    },
     "v1SyncGitOpsSetResponse": {
       "type": "object",
       "properties": {
         "success": {
-          "type": "boolean"
-        }
-      }
-    },
-    "v1ToggleSuspendGitOpsSetRequest": {
-      "type": "object",
-      "properties": {
-        "clusterName": {
-          "type": "string"
-        },
-        "name": {
-          "type": "string"
-        },
-        "namespace": {
-          "type": "string"
-        },
-        "suspend": {
           "type": "boolean"
         }
       }

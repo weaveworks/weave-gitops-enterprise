@@ -28,54 +28,60 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  * Weave GitOps Terraform service definition
  */
 service Terraform {
+    // List terraform objects across all clusters
     rpc ListTerraformObjects(ListTerraformObjectsRequest)
         returns (ListTerraformObjectsResponse) {
         option (google.api.http) = {
-            get : "/v1/terraform_objects"
+            get : "/v1/terraform-objects"
         };
     }
 
+    // Get a terraform object
     rpc GetTerraformObject(GetTerraformObjectRequest)
         returns (GetTerraformObjectResponse) {
         option (google.api.http) = {
-            get : "/v1/terraform_objects/{name}"
+            get : "/v1/namespaces/{namespace}/terraform-objects/{name}"
         };
     }
 
+    // Sync multiple terraform objects
     rpc SyncTerraformObjects(SyncTerraformObjectsRequest)
         returns (SyncTerraformObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/terraform_objects/sync"
+            patch : "/v1/terraform-objects/sync"
             body: "*"
         };  
     }
 
+    // Toggle suspend on multiple terraform objects
     rpc ToggleSuspendTerraformObjects(ToggleSuspendTerraformObjectsRequest)
         returns (ToggleSuspendTerraformObjectsResponse) {
         option (google.api.http) = {
-            post : "/v1/terraform_objects/suspend"
+            patch : "/v1/terraform-objects/suspend"
             body: "*"
         }; 
     }
 
+    // Get the plan for a terraform object
     rpc GetTerraformObjectPlan(GetTerraformObjectPlanRequest)
         returns (GetTerraformObjectPlanResponse) {
         option (google.api.http) = {
-            get : "/v1/terraform_objects/plan"
+            get : "/v1/namespaces/{namespace}/terraform-objects/{name}/plan"
         };
     }
 
+    // Replan a terraform object
     rpc ReplanTerraformObject(ReplanTerraformObjectRequest)
         returns (ReplanTerraformObjectResponse) {
         option (google.api.http) = {
-            post : "/v1/terraform_objects/replan"
+            post : "/v1/namespaces/{namespace}/terraform-objects/{name}/replan"
             body: "*"
         };  
     }
 }
 
 message ListTerraformObjectsRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
     string namespace   = 2;
 
     Pagination pagination = 3;
@@ -87,9 +93,10 @@ message ListTerraformObjectsResponse {
 }
 
 message GetTerraformObjectRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
     string name        = 2;
     string namespace   = 3;
+    string cluster_namespace = 4;
 }
 
 message GetTerraformObjectResponse {
@@ -116,7 +123,7 @@ message ToggleSuspendTerraformObjectsResponse {
 }
 
 message GetTerraformObjectPlanRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
     string name        = 2;
     string namespace   = 3;
 }
@@ -128,7 +135,7 @@ message  GetTerraformObjectPlanResponse {
 }
 
 message ReplanTerraformObjectRequest {
-    string clusterName = 1;
+    string cluster_name = 1;
     string name        = 2;
     string namespace   = 3;
 }

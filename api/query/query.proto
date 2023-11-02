@@ -27,6 +27,9 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  * Weave GitOps Query service definition
  */
 service Query {
+    /*
+     * Query for resources across clusters
+     */
     rpc DoQuery(QueryRequest) returns (QueryResponse) {
         option (google.api.http) = {
             post: "/v1/query"
@@ -34,12 +37,18 @@ service Query {
         };
     }
 
+    /*
+     * List facets available for querying
+     */
     rpc ListFacets(ListFacetsRequest) returns (ListFacetsResponse) {
         option (google.api.http) = {
             get: "/v1/facets"
         };
     }
 
+    /*
+     * Get debug access rules
+     */
     rpc DebugGetAccessRules(DebugGetAccessRulesRequest)
         returns (DebugGetAccessRulesResponse) {
         option (google.api.http) = {
@@ -60,7 +69,7 @@ message QueryRequest {
     repeated string filters = 2;
     int32    offset         = 3;
     int32    limit          = 4;
-    string   orderBy        = 5;
+    string   order_by        = 5;
     bool     ascending      = 6;
 }
 
@@ -74,8 +83,8 @@ message Object {
     string kind         = 3;
     string name         = 4;
     string status       = 5;
-    string apiGroup     = 6;
-    string apiVersion   = 7;
+    string api_group     = 6;
+    string api_version   = 7;
     string message      = 8;
     string category     = 9;
     string unstructured = 10;
@@ -96,10 +105,10 @@ message AccessRule {
     string   cluster                = 1;
     string   principal              = 2;
     string   namespace              = 3;
-    repeated string accessibleKinds = 4;
+    repeated string accessible_kinds = 4;
     repeated Subject subjects       = 5;
-    string   providedByRole         = 6;
-    string   providedByBinding      = 7;
+    string   provided_by_role         = 6;
+    string   provided_by_binding      = 7;
 }
 
 message Subject {

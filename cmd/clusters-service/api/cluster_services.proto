@@ -77,7 +77,7 @@ service ClustersService {
   rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      post : "/v1/templates/pull-request"
+      post : "/v1/namespaces/{template_namespace}/templates/{template_name}/pull-request"
       body : "*"
     };
   }
@@ -117,13 +117,18 @@ service ClustersService {
     };
   }
 
-  // List available credentials
+  // List available CAPI identities
   //
-  // These templates can be used when renderer certain templates
+  // Search the cluster for available CAPI identities:
+  // - `AWSClusterStaticIdentity`
+  // - `AWSClusterRoleIdentity`
+  // - `AzureClusterIdentity`
+  // - `VSphereClusterIdentity`
+  // 
   rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/credentials"
+      get : "/v1/templates/capi-identities"
     };
   }
 
@@ -284,7 +289,7 @@ service ClustersService {
   rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
-      post : "/v1/external-secrets/sync"
+      patch : "/v1/external-secrets/sync"
       body : "*"
     };
   }
