@@ -1,11 +1,11 @@
 package models
 
 import (
-	"reflect"
 	"testing"
 	"time"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/google/go-cmp/cmp"
 	gapiv1 "github.com/weaveworks/templates-controller/apis/gitops/v1alpha2"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -110,9 +110,8 @@ func TestGetRelevantLabels(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
-			if got := tt.object.GetRelevantLabels(); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("GetRelevantLabels() = %v, want %v", got, tt.want)
+			if diff := cmp.Diff(tt.want, tt.object.GetRelevantLabels()); diff != "" {
+				t.Fatalf("failed to get relevant label:\n%s", diff)
 			}
 		})
 	}

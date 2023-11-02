@@ -4,7 +4,7 @@ You are here cause you want to understand a bit more on the indexer component in
 
 - Why an Indexer
 - What Indexer uses Explorer
-- How Indexer for explorer works
+- How Indexer for Explorer works
 
 # Glossary
 
@@ -14,18 +14,18 @@ Based on https://blevesearch.com/docs/Terminology/
 
 # Why an indexer
 
-Index-based searching is at core of any modern search experience as it provides a performance, flexible and powerful searching
-approach. Before introducing an indexer, explorer was querying based on sql-like semantics which evident issues when 
+Index-based searching is at core of any modern search experience as it provides performant, flexible and powerful searching
+approach. Before introducing an indexer, Explorer was querying based on SQL-like semantics which has evident issues when 
 used as search engine. 
 
-# What indexer uses explorer
+# What indexer uses Explorer
 
 Given an index is there for fast queries, we want to ensure that the indexer is designed on purposes for those queries. Therefore,
 we are going to start by selecting a set of query scenarios that matters to us to drive the rest of the understanding.
 
-1) As developer, you own the application `shopping-cart` and you want to assess the health of all the resources for your application
-across the platform. To discover resources you have for compliance to use a label `app=<application-name>` for each resource, so would 
-like to introduce `app=shopping-cart` and to show you all the application like  
+1) As a developer, you own the application `shopping-cart` and you want to assess the health of all the resources belonging to it. 
+To discover resources, you have annotated your resources with the label `app=shopping-cart`, so you would like Explorer to provide
+you with a feature similar to kubectl of filtering by label:  
 
 ```bash 
 k get all -l app=registry -A                                                                                                                          
@@ -45,28 +45,25 @@ NAMESPACE   NAME                                                  REFERENCE     
 gitlab      horizontalpodautoscaler.autoscaling/gitlab-registry   Deployment/gitlab-registry   <unknown>/75%   1         1         1          40m
 ```
 
-This case applies where the user knows the dimension to search as key, and value or likely value to search. this is the scenario of key/value search. to any search whether the user knows a key and value to search  
+This case applies where the user knows the dimension to search (key) and value.  
 
-2) As platform engineer, you want to discover all applications you are doing support and have been notified of an incident about deployment failures. You 
-want to discover deployment failure across the platform searching for `failed`. 
+2) As a platform engineer, you are doing on-call. You have been notified that are deployment failures. You 
+want to discover deployment failure across the platform searching for `failed`. In this case you want to search by the term across any dimension. 
+This is the case for full-text search. Other examples of this type of scenario could be:
 
-Or As compliance, you want to find which ocirpositoreis are verified or not https://fluxcd.io/flux/components/source/ocirepositories/#verification,
-so you are going to search for `verified`.
+- You want to find which OCI repositories are verified or not https://fluxcd.io/flux/components/source/ocirepositories/#verification, so you are going to search for `verified`.
+- You want to find all apps with a commitID `74c60a927c7588900c28960d37ff2e5118d0eedf`.
 
-Or all apps with a commitID `74c60a927c7588900c28960d37ff2e5118d0eedf`
- 
-In this case you want to search by the term across any dimension: this is the case for full text search
+These two cases set the type of queries that we want to support:
 
-Therefore, we have a set of type of queries:
-
-- `key/value`: `app=shopping-cart`
-- `full-text`: search all `failed`, `verified` or `74c60a927c7588900c28960d37ff2e5118d0eedf`
+1. `key/value`: `app=shopping-cart`
+2. `full-text`: search all `failed`, `verified` or `74c60a927c7588900c28960d37ff2e5118d0eedf`
 
 We could compose those searches with multiple `key\value` and `full-text` with the results as the intersection of all the queries.
 
 In Explorer, we use https://blevesearch.com/ as indexing library.
 
-# How indexer for explorer works
+# How indexer for Explorer works
 
 Given that we know now the queries we want to serve lets look at: 
 
@@ -211,7 +208,7 @@ TBA
 
 ## Explorer Search Features
 With indexing and search we are able to explore some of the features that we would provide or think 
-to provide in explorer and how they could be brought on.
+to provide in Explorer and how they could be brought on.
 
 ### Search by labels
 
@@ -325,7 +322,7 @@ for them during `ListFacets` request as follows:
 ```
 Then we could see the fields showing as facet 
 
-![explorer-label-facet.png](imgs%2Fexplorer-label-facet.png)
+![Explorer-label-facet.png](imgs%2Fexplorer-label-facet.png)
 
 The current limitation is that the visualization shows
 the field name completely `Object.metadata.labels.weave.works/template-type`
@@ -359,13 +356,13 @@ Added labels to object struct as map
 Now we have the same situation as before for unstructured with indexed field like `labels.labelKey` 
 
 ```
- ✗ bleve dictionary /Users/enekofb/projects/github.com/blevesearch/bleve-explorer/data/index.db labels.weave.works/template-type
+ ✗ bleve dictionary /Users/enekofb/projects/github.com/blevesearch/bleve-Explorer/data/index.db labels.weave.works/template-type
 cluster - 1
 ```
 
 and we could filter and querying using the label 
 
-![explorer-label-facet-normalised.png](imgs%2Fexplorer-label-facet-normalised.png)
+![Explorer-label-facet-normalised.png](imgs%2Fexplorer-label-facet-normalised.png)
 
 #### Explorer UI offers customisation for better user experience
 
