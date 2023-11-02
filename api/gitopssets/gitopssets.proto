@@ -84,7 +84,6 @@ message GetInventoryRequest {
     string name         = 1;
     string namespace    = 2;
     string clusterName  = 3;
-
     bool   withChildren = 4;
 }
 
