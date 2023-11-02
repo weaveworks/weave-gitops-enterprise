@@ -69,30 +69,6 @@ service GitOpsSets {
     }    
 }
 
-message InventoryEntry {
-    string payload = 1;
-    string tenant = 2;
-    string cluster_name = 3;
-    HealthStatus health = 4;
-    repeated InventoryEntry children = 5;
-}
-
-message HealthStatus {
-    string status = 1;
-    string message = 2;
-}
-
-message GetInventoryRequest {
-    string name         = 2;
-    string namespace    = 3;
-    string cluster_name  = 4;
-    bool   with_children = 5;
-}
-
-message GetInventoryResponse {
-    repeated InventoryEntry entries = 1;
-}
-
 message ListGitOpsSetsRequest {
     string namespace   = 1;
 }
