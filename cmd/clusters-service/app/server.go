@@ -19,6 +19,7 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
@@ -829,14 +830,23 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 	// Secure `/v1` and `/gitops/api` API routes
 	grpcHttpHandler = auth.WithAPIAuth(grpcHttpHandler, srv, EnterprisePublicRoutes(), args.SessionManager)
 
-	// monitoring server
 	var monitoringServer *http.Server
 	if args.MonitoringOptions.Enabled {
 		monitoringServer, err = monitoring.NewServer(args.MonitoringOptions)
 		if err != nil {
 			return fmt.Errorf("cannot create monitoring server: %w", err)
 		}
-		args.Log.Info("monitoring server started")
+		wg := sync.WaitGroup{}
+		wg.Add(1)
+		go func() {
+			args.Log.Info("starting server", "address", monitoringServer.Addr)
+			wg.Done()
+			if err := monitoringServer.ListenAndServe(); err != nil {
+				args.Log.Error(err, "could not start metrics server")
+				return
+			}
+		}()
+		wg.Wait()
 	}
 
 	commonMiddleware := func(mux http.Handler) http.Handler {
