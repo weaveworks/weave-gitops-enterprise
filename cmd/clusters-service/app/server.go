@@ -476,7 +476,9 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		return fmt.Errorf("could not create mgmt cluster: %w", err)
 	}
 
-	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") != "false" {
+	// To be removed when Pendo is completely removed.
+	// This leaves it still possible to enable Telemetry.
+	if featureflags.Get("WEAVE_GITOPS_FEATURE_TELEMETRY") == "force" {
 		err := telemetry.InitTelemetry(ctx, mgmtCluster)
 		if err != nil {
 			// If there's an error turning on telemetry, that's not a
