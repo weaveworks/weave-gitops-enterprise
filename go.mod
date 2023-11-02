@@ -19,8 +19,8 @@ require (
 	github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2
 	github.com/weaveworks/weave-gitops-enterprise/common v0.0.0
 	gopkg.in/yaml.v3 v3.0.1 // indirect
-	k8s.io/api v0.27.4
-	k8s.io/apimachinery v0.27.4
+	k8s.io/api v0.27.7
+	k8s.io/apimachinery v0.27.7
 	k8s.io/cli-runtime v0.27.2
 	k8s.io/client-go v1.5.2
 	sigs.k8s.io/controller-runtime v0.15.1
@@ -420,12 +420,12 @@ replace (
 	//
 	// And the project won't build anymore.
 	//
-	k8s.io/api => k8s.io/api v0.26.3
+	k8s.io/api => k8s.io/api v0.27.7
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.26.3
-	k8s.io/apimachinery => k8s.io/apimachinery v0.27.3
+	k8s.io/apimachinery => k8s.io/apimachinery v0.27.7
 	k8s.io/apiserver => k8s.io/apiserver v0.26.3
-	k8s.io/cli-runtime => k8s.io/cli-runtime v0.26.8
-	k8s.io/client-go => k8s.io/client-go v0.26.3
+	k8s.io/cli-runtime => k8s.io/cli-runtime v0.27.7
+	k8s.io/client-go => k8s.io/client-go v0.27.7
 	k8s.io/component-base => k8s.io/component-base v0.26.3
 	k8s.io/component-helpers => k8s.io/component-helpers v0.26.3
 	k8s.io/kubectl => k8s.io/kubectl v0.26.3
