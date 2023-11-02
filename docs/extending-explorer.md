@@ -19,7 +19,7 @@ kind manages to meet the [FluxObject interface](https://github.com/weaveworks/we
 
 ### Support for labels
 
-Add the labels that you want to have available for searching in Explorer. See [GitopsTemplate]((https://github.com/weaveworks/weave-gitops-enterprise/blob/253256c16c777b0d488ca0ba8068b8f80b1b4c07/pkg/query/configuration/objectkind.go) as an example. 
+Add the labels that you want to have available for searching in Explorer. See [GitopsTemplate](https://github.com/weaveworks/weave-gitops-enterprise/blob/01c5017a4032374487af27fd50dfacd38a4593b2/pkg/query/configuration/objectkind.go#L275) as an example. 
 - Searching works by filtering by label indexed field which is `labels.labelKey`.
 - Further support to map indexed fields to api field will be added so you could be abstracted of the indexer details. 
 
