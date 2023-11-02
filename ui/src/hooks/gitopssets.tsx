@@ -111,12 +111,12 @@ export function useToggleSuspendGitOpsSet(params: DetailParams) {
 export function useGetReconciledTree(
   name: string,
   namespace: string,
-  kinds: GroupVersionKind[],
+  type: 'GitOpsSet',
   clusterName = 'Default',
   withChildren = true,
 ) {
   return useQuery<any[], RequestError>(
-    ['inventory', { name, namespace, type, kinds }],
+    ['inventory', { name, namespace, type }],
     () =>
       getChildren(
         // coreClient,
