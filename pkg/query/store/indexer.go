@@ -225,20 +225,28 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	if opts != nil {
 		sort := opts.GetOrderBy()
 		if sort != "" {
-			orders = append(orders, &search.SortField{
+			sf := &search.SortField{
 				Field: sort,
 				Type:  search.SortFieldAsString,
-			})
-		}
+				// Desc behaves oddly in bleve. Setting .Desc to `true` will reverse the default order (descending).
+				Desc: opts.GetDescending(),
+			}
 
-		if !opts.GetAscending() {
-			req.Sort.Reverse()
+			orders = append(orders, sf)
 		}
 
 		if opts.GetOffset() > 0 {
 			req.From = int(opts.GetOffset())
 		}
+	} else {
+		// Sort by name by default
+		sf := &search.SortField{
+			Field: "name",
+			Type:  search.SortFieldAsString,
+			Desc:  true,
+		}
 
+		orders = append(orders, sf)
 	}
 
 	// We order by score here so that we can get the most relevant results first.
