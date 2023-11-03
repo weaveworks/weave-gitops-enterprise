@@ -180,21 +180,21 @@ message GetGithubDeviceCodeRequest {
 
 message GetGithubDeviceCodeResponse {
     // The Github Device Flow code that will be shown to the user
-    string userCode      = 1;
-    string deviceCode    = 2; // A code that uniquely identifies a device
+    string user_code      = 1;
+    string device_code    = 2; // A code that uniquely identifies a device
     // The URI that the user will visit to complete the flow
-    string validationURI = 3;
+    string validation_uri = 3;
     int32  interval      = 4; // How often the client should retry the request
 }
 
 message GetGithubAuthStatusRequest {
     // The deviceCode returned from a GetGithubDeviceCodeResponse
-    string deviceCode = 1;
+    string device_code = 1;
 }
 
 message GetGithubAuthStatusResponse {
     // An access token that can be used to interact with the Weave GitOps API.
-    string accessToken = 1;
+    string access_token = 1;
     string error       = 2; // An error message.
 }
 
@@ -222,7 +222,7 @@ message ParseRepoURLResponse {
 
 message GetGitlabAuthURLRequest {
     // The URI that GitLab will use to send users back to GitOps.
-    string redirectUri = 1;
+    string redirect_uri = 1;
 }
 
 message GetGitlabAuthURLResponse {
@@ -233,7 +233,7 @@ message GetGitlabAuthURLResponse {
 message AuthorizeGitlabRequest {
     // The challenge code obtained from the OAuth callback
     string code        = 1;
-    string redirectUri = 2; // The redirect URI that originated the OAuth flow
+    string redirect_uri = 2; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeGitlabResponse {
@@ -251,7 +251,7 @@ message ValidateProviderTokenResponse {
 
 message GetBitbucketServerAuthURLRequest {
     // The URI that Bitbucket Server will use to send users back to GitOps.
-    string redirectUri = 1;
+    string redirect_uri = 1;
 }
 
 message GetBitbucketServerAuthURLResponse {
@@ -265,7 +265,7 @@ message AuthorizeBitbucketServerRequest {
     string code        = 1;
     // The state parameter provided in the authorization URL
     string state       = 2; 
-    string redirectUri = 3; // The redirect URI that originated the OAuth flow
+    string redirect_uri = 3; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeBitbucketServerResponse {
@@ -275,7 +275,7 @@ message AuthorizeBitbucketServerResponse {
 
 message GetAzureDevOpsAuthURLRequest {
     // The URI that Azure DevOps will use to send users back to GitOps.
-    string redirectUri = 1;
+    string redirect_uri = 1;
 }
 
 message GetAzureDevOpsAuthURLResponse {
@@ -288,7 +288,7 @@ message AuthorizeAzureDevOpsRequest {
     string code        = 1;
     // The state parameter provided in the authorization URL
     string state       = 2;
-    string redirectUri = 3; // The redirect URI that originated the OAuth flow
+    string redirect_uri = 3; // The redirect URI that originated the OAuth flow
 }
 
 message AuthorizeAzureDevOpsResponse {

@@ -10,7 +10,7 @@ package terraform.v1;
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
 
 message SourceRef {
-    string apiVersion = 1;
+    string api_version = 1;
     string kind       = 2;
     string name       = 3;
     string namespace  = 4;
@@ -34,7 +34,7 @@ message NamespacedObjectReference {
 }
 
 message ObjectRef {
-    string clusterName = 1;
+    string cluster_name = 1;
     string name        = 2;
     string namespace   = 3;
     string kind        = 4;
@@ -43,34 +43,34 @@ message ObjectRef {
 message TerraformObject {
     string name        = 1;
     string namespace   = 2;
-    string clusterName = 3;
+    string cluster_name = 3;
     string type        = 4;
     string uid         = 5;
 
-    SourceRef sourceRef            = 6;
+    SourceRef source_ref            = 6;
 
-    string    appliedRevision      = 7;
+    string    applied_revision      = 7;
     string    path                 = 8;
     Interval  interval             = 9;
-    string    lastUpdatedAt        = 10;
-    bool      driftDetectionResult = 11;
+    string    last_updated_at        = 10;
+    bool      drift_detection_result = 11;
     
     repeated ResourceRef               inventory   = 12;
     repeated Condition                 conditions  = 13;
     map<string, string>                labels      = 14;
     map<string, string>                annotations = 15;
-    repeated NamespacedObjectReference dependsOn   = 16;
+    repeated NamespacedObjectReference depends_on   = 16;
 
     bool suspended = 17;
 }
 
 message Pagination {
-    int32  pageSize  = 1;
-    string pageToken = 2;
+    int32  page_size  = 1;
+    string page_token = 2;
 }
 
 message TerraformListError {
-    string clusterName = 1;
+    string cluster_name = 1;
     string namespace   = 2;
     string message     = 3;
 }

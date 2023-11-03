@@ -14,7 +14,7 @@ export enum EnabledComponent {
   templates = "templates",
 }
 
-export type QueryRequest = {
+export type DoQueryRequest = {
   terms?: string
   filters?: string[]
   offset?: number
@@ -23,7 +23,7 @@ export type QueryRequest = {
   ascending?: boolean
 }
 
-export type QueryResponse = {
+export type DoQueryResponse = {
   objects?: Object[]
 }
 
@@ -85,8 +85,8 @@ export type ListEnabledComponentsResponse = {
 }
 
 export class Query {
-  static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
-    return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  static DoQuery(req: DoQueryRequest, initReq?: fm.InitReq): Promise<DoQueryResponse> {
+    return fm.fetchReq<DoQueryRequest, DoQueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ListFacets(req: ListFacetsRequest, initReq?: fm.InitReq): Promise<ListFacetsResponse> {
     return fm.fetchReq<ListFacetsRequest, ListFacetsResponse>(`/v1/facets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

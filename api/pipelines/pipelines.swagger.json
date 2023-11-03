@@ -237,7 +237,7 @@
     "v1ApprovePromotionResponse": {
       "type": "object",
       "properties": {
-        "pullRequestURL": {
+        "pullRequestUrl": {
           "type": "string"
         }
       }

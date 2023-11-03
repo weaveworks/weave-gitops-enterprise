@@ -21,13 +21,13 @@ message GitOpsSet {
     bool                  suspended                = 9;
     int64                 observed_generation      = 10;
     string                yaml                     = 11;
-    ObjectRef             objectRef                = 12;
+    ObjectRef             object_ref                = 12;
 }
 
 message GitOpsSetListError {
     string namespace = 1;
     string message = 2;
-    string clusterName = 3;
+    string cluster_name = 3;
 }
 
 message ResourceRef {
@@ -57,7 +57,7 @@ message GroupVersionKind {
 
 message Object {
     string   payload                    = 1;
-    string   clusterName                = 2;
+    string   cluster_name               = 2;
     string   tenant                     = 3;
     string   uid                        = 4;
     repeated GroupVersionKind inventory = 5;
@@ -67,5 +67,5 @@ message ObjectRef {
     string kind          = 1;
     string name          = 2;
     string namespace     = 3;
-    string clusterName   = 4;
+    string cluster_name  = 4;
 }

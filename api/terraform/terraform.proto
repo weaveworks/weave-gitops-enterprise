@@ -130,7 +130,7 @@ message GetTerraformObjectPlanRequest {
 
 message  GetTerraformObjectPlanResponse {
     string plan              = 1;
-    bool   enablePlanViewing = 2;
+    bool   enable_plan_viewing = 2;
     string error             = 3;
 }
 
@@ -141,5 +141,5 @@ message ReplanTerraformObjectRequest {
 }
 
 message  ReplanTerraformObjectResponse {
-    bool replanRequested = 1;
+    bool replan_requested = 1;
 }

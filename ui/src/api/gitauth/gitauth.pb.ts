@@ -29,7 +29,7 @@ export type GetGithubDeviceCodeRequest = {
 export type GetGithubDeviceCodeResponse = {
   userCode?: string
   deviceCode?: string
-  validationURI?: string
+  validationUri?: string
   interval?: number
 }
 
