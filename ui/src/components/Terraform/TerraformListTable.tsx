@@ -6,16 +6,23 @@ import {
   KubeStatusIndicator,
   Link,
   statusSortHelper,
+  Timestamp,
   useFeatureFlags,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import styled from 'styled-components';
 import { TerraformObject } from '../../api/terraform/types.pb';
-import { computeMessage } from '../../utils/conditions';
 import { getKindRoute, Routes } from '../../utils/nav';
 
 type Props = {
   className?: string;
   rows?: TerraformObject[];
+};
+
+export const getLastApplied = (tf: TerraformObject) => {
+  const timestamp = _.find(tf?.conditions, { type: 'Apply' })?.timestamp;
+  if (!timestamp) return '-';
+  return new Date(timestamp).toISOString();
 };
 
 function TerraformListTable({ className, rows }: Props) {
@@ -86,8 +93,10 @@ function TerraformListTable({ className, rows }: Props) {
           sortValue: statusSortHelper,
         },
         {
-          value: (tf: TerraformObject) => computeMessage(tf.conditions as any),
-          label: 'Message',
+          value: (tf: TerraformObject) => (
+            <Timestamp time={getLastApplied(tf)} />
+          ),
+          label: 'Last Applied',
         },
       ]}
       rows={rows}
