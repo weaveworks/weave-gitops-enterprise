@@ -33,9 +33,13 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PipelinesClient interface {
+	// FIXME
 	ListPipelines(ctx context.Context, in *ListPipelinesRequest, opts ...grpc.CallOption) (*ListPipelinesResponse, error)
+	// FIXME
 	GetPipeline(ctx context.Context, in *GetPipelineRequest, opts ...grpc.CallOption) (*GetPipelineResponse, error)
+	// FIXME
 	ApprovePromotion(ctx context.Context, in *ApprovePromotionRequest, opts ...grpc.CallOption) (*ApprovePromotionResponse, error)
+	// FIXME
 	ListPullRequests(ctx context.Context, in *ListPullRequestsRequest, opts ...grpc.CallOption) (*ListPullRequestsResponse, error)
 }
 
@@ -87,9 +91,13 @@ func (c *pipelinesClient) ListPullRequests(ctx context.Context, in *ListPullRequ
 // All implementations must embed UnimplementedPipelinesServer
 // for forward compatibility
 type PipelinesServer interface {
+	// FIXME
 	ListPipelines(context.Context, *ListPipelinesRequest) (*ListPipelinesResponse, error)
+	// FIXME
 	GetPipeline(context.Context, *GetPipelineRequest) (*GetPipelineResponse, error)
+	// FIXME
 	ApprovePromotion(context.Context, *ApprovePromotionRequest) (*ApprovePromotionResponse, error)
+	// FIXME
 	ListPullRequests(context.Context, *ListPullRequestsRequest) (*ListPullRequestsResponse, error)
 	mustEmbedUnimplementedPipelinesServer()
 }

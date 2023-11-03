@@ -1,5 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import {
+  GetGithubDeviceCodeResponse,
+  GitProvider,
+} from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
   ApplicationsClientMock,
@@ -41,9 +44,9 @@ describe('Github Authenticate', () => {
     api.GetGithubDeviceCodeReturn = {
       userCode: 'D410-08FF',
       deviceCode: 'd725410cbe2431c5fa5dfa93736304db124412b6',
-      validationURI: 'https://github.com/login/device',
+      validationUri: 'https://github.com/login/device',
       interval: 5,
-    };
+    } as GetGithubDeviceCodeResponse;
 
     await act(async () => {
       const c = wrap(

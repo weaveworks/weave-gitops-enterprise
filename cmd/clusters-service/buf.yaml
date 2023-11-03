@@ -7,7 +7,4 @@ build:
   roots:
     - ./api
 lint:
-  except:
-    # allow the proto file to be in a non-package directory structure.
-    - PACKAGE_DIRECTORY_MATCH
-    - PACKAGE_SAME_DIRECTORY
+  # we use .protolint.yaml to lint

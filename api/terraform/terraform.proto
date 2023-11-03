@@ -11,7 +11,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/terraform/types.proto";
 
-// protolint:disable:next MAX_LINE_LENGTH
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/terraform/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -130,7 +129,7 @@ message GetTerraformObjectPlanRequest {
 
 message  GetTerraformObjectPlanResponse {
     string plan              = 1;
-    bool   enablePlanViewing = 2;
+    bool   enable_plan_viewing = 2;
     string error             = 3;
 }
 
@@ -141,5 +140,5 @@ message ReplanTerraformObjectRequest {
 }
 
 message  ReplanTerraformObjectResponse {
-    bool replanRequested = 1;
+    bool replan_requested = 1;
 }

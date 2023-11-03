@@ -30,7 +30,7 @@ service Query {
     /*
      * Query for resources across clusters
      */
-    rpc DoQuery(QueryRequest) returns (QueryResponse) {
+    rpc DoQuery(DoQueryRequest) returns (DoQueryResponse) {
         option (google.api.http) = {
             post: "/v1/query"
             body: "*"
@@ -56,6 +56,7 @@ service Query {
         };
     }
 
+    // FIXME
     rpc ListEnabledComponents(ListEnabledComponentsRequest)
         returns (ListEnabledComponentsResponse) {
         option (google.api.http) = {
@@ -64,7 +65,7 @@ service Query {
     }
 }
 
-message QueryRequest {
+message DoQueryRequest {
     string   terms          = 1;
     repeated string filters = 2;
     int32    offset         = 3;
@@ -73,7 +74,7 @@ message QueryRequest {
     bool     ascending      = 6;
 }
 
-message QueryResponse {
+message DoQueryResponse {
   repeated Object objects = 1;
 }
 
