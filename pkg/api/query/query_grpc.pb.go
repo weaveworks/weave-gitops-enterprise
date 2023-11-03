@@ -42,6 +42,7 @@ type QueryClient interface {
 	//
 	// Get debug access rules
 	DebugGetAccessRules(ctx context.Context, in *DebugGetAccessRulesRequest, opts ...grpc.CallOption) (*DebugGetAccessRulesResponse, error)
+	// FIXME
 	ListEnabledComponents(ctx context.Context, in *ListEnabledComponentsRequest, opts ...grpc.CallOption) (*ListEnabledComponentsResponse, error)
 }
 
@@ -102,6 +103,7 @@ type QueryServer interface {
 	//
 	// Get debug access rules
 	DebugGetAccessRules(context.Context, *DebugGetAccessRulesRequest) (*DebugGetAccessRulesResponse, error)
+	// FIXME
 	ListEnabledComponents(context.Context, *ListEnabledComponentsRequest) (*ListEnabledComponentsResponse, error)
 	mustEmbedUnimplementedQueryServer()
 }

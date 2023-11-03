@@ -42,6 +42,7 @@
     },
     "/v1/enabled-components": {
       "get": {
+        "summary": "FIXME",
         "operationId": "Query_ListEnabledComponents",
         "responses": {
           "200": {

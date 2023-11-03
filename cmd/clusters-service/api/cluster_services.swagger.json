@@ -3049,7 +3049,8 @@
       "type": "object",
       "properties": {
         "apiVersion": {
-          "type": "string"
+          "type": "string",
+          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
         },
         "kind": {
           "type": "string"
@@ -3067,7 +3068,8 @@
           "type": "object",
           "additionalProperties": {
             "type": "string"
-          }
+          },
+          "title": "protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE"
         },
         "type": {
           "type": "string"

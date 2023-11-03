@@ -1197,11 +1197,13 @@ message SopsSecretMetadata {
 }
 
 message SopsSecret {
-  string api_version = 1;
+  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+  string apiVersion = 1;
   string kind = 2;
   SopsSecretMetadata metadata = 3;
   map<string,string> data = 4;
-  map<string,string> string_data = 5;
+  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+  map<string,string> stringData = 5;
   string type = 6;
   bool immutable = 7;
   google.protobuf.Value sops = 8;
