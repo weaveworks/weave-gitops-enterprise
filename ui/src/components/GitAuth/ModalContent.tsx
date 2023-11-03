@@ -6,8 +6,8 @@ import {
   IconType,
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
-import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
 import { GetGithubDeviceCodeResponse } from '../../api/gitauth/gitauth.pb';
+import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
 
 const Pad = styled(Flex)`
   padding: 8px 0;
