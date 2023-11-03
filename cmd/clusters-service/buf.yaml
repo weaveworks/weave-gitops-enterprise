@@ -7,7 +7,6 @@ build:
   roots:
     - ./api
 lint:
-  allow_comment_ignores: true
   except:
     # allow the proto file to be in a non-package directory structure.
     - PACKAGE_DIRECTORY_MATCH
