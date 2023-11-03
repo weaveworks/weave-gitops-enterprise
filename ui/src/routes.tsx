@@ -57,11 +57,13 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
-function withSearchParams(Cmp: any) {
-  return ({ location: { search }, ...rest }: any) => {
+function withSearchParams(Cmp: React.FC<any>) {
+  const ComponentWithParams = ({ location: { search }, ...rest }: any) => {
     const params = qs.parse(search);
     return <Cmp {...rest} {...params} />;
   };
+  ComponentWithParams.displayName = Cmp.displayName + 'WithParams';
+  return ComponentWithParams;
 }
 
 const Page404 = () => (
