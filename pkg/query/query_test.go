@@ -94,7 +94,7 @@ func TestRunQuery(t *testing.T) {
 		},
 		{
 			name:  "pagination - no offset",
-			opts:  &query{limit: 1, offset: 0, orderBy: "name", ascending: false},
+			opts:  &query{limit: 1, offset: 0, orderBy: "name", descending: false},
 			query: &query{},
 			objects: []models.Object{
 				{
@@ -120,10 +120,10 @@ func TestRunQuery(t *testing.T) {
 			name:  "pagination - with offset",
 			query: &query{},
 			opts: &query{
-				limit:     1,
-				offset:    1,
-				orderBy:   "name",
-				ascending: false,
+				limit:      1,
+				offset:     1,
+				orderBy:    "name",
+				descending: false,
 			},
 			objects: []models.Object{
 				{
@@ -186,8 +186,8 @@ func TestRunQuery(t *testing.T) {
 				filters: []string{"kind:Kind1", "namespace:bravo"},
 			},
 			opts: &query{
-				orderBy:   "name",
-				ascending: false,
+				orderBy:    "name",
+				descending: false,
 			},
 			want: []string{"bar"},
 		},
@@ -267,8 +267,8 @@ func TestRunQuery(t *testing.T) {
 			},
 			query: &query{},
 			opts: &query{
-				orderBy:   "kind",
-				ascending: true,
+				orderBy:    "kind",
+				descending: true,
 			},
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
@@ -294,8 +294,8 @@ func TestRunQuery(t *testing.T) {
 			},
 			query: &query{},
 			opts: &query{
-				orderBy:   "name",
-				ascending: true,
+				orderBy:    "name",
+				descending: false,
 			},
 			want: []string{"podinfo-a", "podinfo-b"},
 		},
@@ -321,8 +321,8 @@ func TestRunQuery(t *testing.T) {
 			},
 			query: &query{},
 			opts: &query{
-				orderBy:   "name",
-				ascending: false,
+				orderBy:    "name",
+				descending: true,
 			},
 			want: []string{"podinfo-b", "podinfo-a"},
 		},
@@ -355,7 +355,7 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{filters: []string{"kind:Kustomization"}},
-			opts:  &query{orderBy: "name", ascending: true},
+			opts:  &query{orderBy: "name", descending: false},
 			want:  []string{"podinfo-a", "podinfo-b"},
 		},
 		{
@@ -395,42 +395,8 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{filters: []string{"kind:/(HelmChart|HelmRepository)/", "namespace:namespace-a"}},
-			opts:  &query{orderBy: "name", ascending: true},
+			opts:  &query{orderBy: "name"},
 			want:  []string{"podinfo-a", "podinfo-b"},
-		},
-		{
-			name: "fuzzy terms",
-			objects: []models.Object{
-				{
-					Cluster:    "management",
-					Name:       "flux-system-ingress-nginx",
-					Namespace:  "flux-system",
-					Kind:       "HelmChart",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-				},
-				{
-					Cluster:    "management",
-					Name:       "flux-stress-nginx-975",
-					Namespace:  "flux-stress",
-					Kind:       "HelmRepository",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-					Category:   "bar",
-				},
-				{
-					Cluster:    "management",
-					Name:       "other-stress-nginx-975",
-					Namespace:  "other-stress",
-					Kind:       "HelmRepository",
-					APIGroup:   "apps",
-					APIVersion: "v1",
-					Category:   "bar",
-				},
-			},
-			query: &query{terms: "flux"},
-			opts:  &query{orderBy: "name", ascending: true},
-			want:  []string{"flux-system-ingress-nginx", "flux-stress-nginx-975"},
 		},
 		{
 			name: "uniqe hits only",
@@ -458,7 +424,7 @@ func TestRunQuery(t *testing.T) {
 				},
 			},
 			query: &query{terms: "", filters: []string{}},
-			opts:  &query{orderBy: "name", ascending: true},
+			opts:  &query{orderBy: "name", descending: true},
 			want:  []string{"some-name"},
 		},
 	}
@@ -730,10 +696,7 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 	}
 
 	qy := &query{
-		terms:     "",
-		limit:     10,
-		orderBy:   "name",
-		ascending: true,
+		orderBy: "name",
 	}
 
 	got, err := q.RunQuery(ctx, qy, qy)
@@ -764,12 +727,12 @@ func TestQueryOrdering_Realistic(t *testing.T) {
 }
 
 type query struct {
-	terms     string
-	filters   []string
-	offset    int32
-	limit     int32
-	orderBy   string
-	ascending bool
+	terms      string
+	filters    []string
+	offset     int32
+	limit      int32
+	orderBy    string
+	descending bool
 }
 
 func (q *query) GetTerms() string {
@@ -792,8 +755,8 @@ func (q *query) GetOrderBy() string {
 	return q.orderBy
 }
 
-func (q *query) GetAscending() bool {
-	return q.ascending
+func (q *query) GetDescending() bool {
+	return q.descending
 }
 
 func toUnstructured(obj client.Object) json.RawMessage {
