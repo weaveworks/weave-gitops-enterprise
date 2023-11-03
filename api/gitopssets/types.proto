@@ -6,7 +6,6 @@ syntax = "proto3";
 
 package gitopssets.v1;
 
-// protolint:disable:next MAX_LINE_LENGTH
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/gitopssets/api";
 
 message GitOpsSet {

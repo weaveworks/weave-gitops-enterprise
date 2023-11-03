@@ -6,115 +6,114 @@ syntax = "proto3";
 
 package pipelines.v1;
 
-// protolint:disable:next MAX_LINE_LENGTH
+// protolint:disable:next
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
 
 message ClusterRef {
-    string kind = 1;
-    string name = 2;
-    string namespace = 3;
+  string kind = 1;
+  string name = 2;
+  string namespace = 3;
 }
 
 message Target {
-    string     namespace  = 1;
-    ClusterRef cluster_ref = 2;
+  string namespace = 1;
+  ClusterRef cluster_ref = 2;
 }
 
 message Environment {
-    string          name = 1;
-    repeated Target targets = 2;
-    Promotion       promotion = 3;
+  string name = 1;
+  repeated Target targets = 2;
+  Promotion promotion = 3;
 }
 
 message ObjectRef {
-    string kind      = 1;
-    string name      = 2;
-    string namespace = 3;
+  string kind = 1;
+  string name = 2;
+  string namespace = 3;
 }
 
 message AppRef {
-    string api_version = 1;
-    string kind        = 2;
-    string name        = 3;
+  string api_version = 1;
+  string kind = 2;
+  string name = 3;
 }
 
 message Condition {
-    string type = 1;
-    string status = 2;
-    string reason = 3;
-    string message = 4;
-    string timestamp = 5;
+  string type = 1;
+  string status = 2;
+  string reason = 3;
+  string message = 4;
+  string timestamp = 5;
 }
 
 message WorkloadStatus {
-    string   kind                 = 1;
-    string   name                 = 2;
-    string   version              = 3;
-    string   last_applied_revision  = 4;
-    repeated Condition conditions = 5;
-    bool     suspended            = 6;
+  string kind = 1;
+  string name = 2;
+  string version = 3;
+  string last_applied_revision = 4;
+  repeated Condition conditions = 5;
+  bool suspended = 6;
 }
 
 message PipelineTargetStatus {
-    ClusterRef cluster_ref = 2;
-    string     namespace  = 1;
-    repeated WorkloadStatus workloads = 3;
+  ClusterRef cluster_ref = 2;
+  string namespace = 1;
+  repeated WorkloadStatus workloads = 3;
 }
 
 message WaitingStatus {
-    string revision = 1;
+  string revision = 1;
 }
 
 message PipelineStatus {
-    message EnvironmentStatus {
-        WaitingStatus waiting_status = 1;
-        repeated PipelineTargetStatus targets_statuses = 2;
-    }
+  message EnvironmentStatus {
+    WaitingStatus waiting_status = 1;
+    repeated PipelineTargetStatus targets_statuses = 2;
+  }
 
-    map<string, EnvironmentStatus> environments = 1;
+  map<string, EnvironmentStatus> environments = 1;
 }
 
 message Pipeline {
-    string         name                     = 1;
-    string         namespace                = 2;
-    AppRef         app_ref                  = 3;
-    repeated       Environment environments = 4;
-    repeated       Target targets           = 5;
-    PipelineStatus status                   = 6;
-    string         yaml                     = 7;
-    string         type                     = 8;
-    Promotion      promotion                = 9;
+  string name = 1;
+  string namespace = 2;
+  AppRef app_ref = 3;
+  repeated Environment environments = 4;
+  repeated Target targets = 5;
+  PipelineStatus status = 6;
+  string yaml = 7;
+  string type = 8;
+  Promotion promotion = 9;
 }
 
-
 message PullRequestList {
-    repeated PullRequest pull_requests = 1;
+  repeated PullRequest pull_requests = 1;
 }
 
 message PullRequest {
-    string title = 1;
-    string url   = 2;
+  string title = 1;
+  string url = 2;
 }
 
 message Promotion {
-    bool     manual   = 1;
-    Strategy strategy = 2;
+  bool manual = 1;
+  Strategy strategy = 2;
 }
 
 message Strategy {
-    PullRequestPromotion pull_request  = 1;
-    Notification         notification = 2;
-    LocalObjectReference secret_ref    = 3;
+  PullRequestPromotion pull_request = 1;
+  Notification notification = 2;
+  LocalObjectReference secret_ref = 3;
 }
 
 message PullRequestPromotion {
-    string    type      = 1;
-    string    url       = 2;
-    string    branch    = 3;
+  string type = 1;
+  string url = 2;
+  string branch = 3;
 }
 
 message Notification {}
 
 message LocalObjectReference {
-    string name = 1;
+  string name = 1;
 }

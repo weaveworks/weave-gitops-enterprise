@@ -11,7 +11,6 @@ import "protoc-gen-openapiv2/options/annotations.proto";
 
 import "api/pipelines/types.proto";
 
-// protolint:disable:next MAX_LINE_LENGTH
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
 
 option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
@@ -28,18 +27,21 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  * Weave GitOps Pipelines service definition
  */
 service Pipelines {
+    // FIXME
     rpc ListPipelines(ListPipelinesRequest) returns (ListPipelinesResponse) {
         option (google.api.http) = {
             get : "/v1/pipelines"
         };
     }
 
+    // FIXME
     rpc GetPipeline(GetPipelineRequest) returns (GetPipelineResponse) {
         option (google.api.http) = {
             get : "/v1/pipelines/{name}"
         };
     }
 
+    // FIXME
     rpc ApprovePromotion(ApprovePromotionRequest)
         returns (ApprovePromotionResponse) {
         option (google.api.http) = {
@@ -48,6 +50,7 @@ service Pipelines {
         };
     }
 
+    // FIXME
     rpc ListPullRequests(ListPullRequestsRequest)
         returns (ListPullRequestsResponse) {
         option (google.api.http) = {

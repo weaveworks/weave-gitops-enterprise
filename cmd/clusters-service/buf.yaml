@@ -7,12 +7,4 @@ build:
   roots:
     - ./api
 lint:
-  except:
-    # allow the proto file to be in a non-package directory structure.
-    - PACKAGE_DIRECTORY_MATCH
-    - PACKAGE_SAME_DIRECTORY
-    # FIXME: workspaces validation needs a bit of a rework
-    - RPC_REQUEST_RESPONSE_UNIQUE
-    - RPC_REQUEST_STANDARD_NAME
-    # FIXME: https://github.com/bufbuild/buf/issues/1903
-    - RPC_RESPONSE_STANDARD_NAME
+  # we use .protolint.yaml to lint

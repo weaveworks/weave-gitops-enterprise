@@ -56,6 +56,7 @@ service Query {
         };
     }
 
+    // FIXME
     rpc ListEnabledComponents(ListEnabledComponentsRequest)
         returns (ListEnabledComponentsResponse) {
         option (google.api.http) = {
