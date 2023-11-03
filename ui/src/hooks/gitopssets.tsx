@@ -111,22 +111,13 @@ export function useToggleSuspendGitOpsSet(params: DetailParams) {
 export function useGetReconciledTree(
   name: string,
   namespace: string,
-  type: 'GitOpsSet',
   kinds: GroupVersionKind[],
   clusterName = 'Default',
 ) {
   return useQuery<any[], RequestError>(
-    ['reconciled_objects', { name, namespace, type, kinds }],
+    ['reconciled_objects', { name, namespace, kinds }],
     () =>
-      getChildren(
-        coreClient,
-        GitOpsSets,
-        name,
-        namespace,
-        type,
-        kinds,
-        clusterName,
-      ),
+      getChildren(coreClient, GitOpsSets, name, namespace, kinds, clusterName),
     { retry: false, refetchInterval: 5000 },
   );
 }
@@ -136,14 +127,12 @@ export const getChildren = async (
   client: typeof GitOpsSets,
   name: string,
   namespace: string,
-  automationKind: string,
   kinds: GroupVersionKind[],
   clusterName: string,
 ): Promise<FluxObject[]> => {
   const { objects } = await client.GetReconciledObjects({
     name,
     namespace,
-    automationKind,
     kinds,
     clusterName,
   });

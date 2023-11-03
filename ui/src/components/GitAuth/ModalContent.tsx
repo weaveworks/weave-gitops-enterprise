@@ -7,14 +7,21 @@ import {
 } from '@weaveworks/weave-gitops';
 import styled from 'styled-components';
 import { useGetGithubAuthStatus } from '../../contexts/GitAuth';
+import { GetGithubDeviceCodeResponse } from '../../api/gitauth/gitauth.pb';
 
 const Pad = styled(Flex)`
   padding: 8px 0;
 `;
 
-const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
+interface Props {
+  codeRes: GetGithubDeviceCodeResponse;
+  onSuccess: (token: string) => void;
+  className?: string;
+}
+
+const ModalContent = styled(({ codeRes, onSuccess, className }: Props) => {
   const { data } = useGetGithubAuthStatus(codeRes);
-  if (data) {
+  if (data && data.accessToken) {
     onSuccess(data.accessToken);
   }
   return (
@@ -31,7 +38,7 @@ const ModalContent = styled(({ codeRes, onSuccess, className }: any) => {
         </Flex>
       </Pad>
       <Pad wide center>
-        <a target="_blank" href={codeRes.validationURI} rel="noreferrer">
+        <a target="_blank" href={codeRes.validationUri} rel="noreferrer">
           <Button
             type="button"
             startIcon={<Icon size="base" type={IconType.ExternalTab} />}
