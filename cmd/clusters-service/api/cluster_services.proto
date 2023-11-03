@@ -41,7 +41,7 @@ service ClustersService {
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}/templates/{template_name}"
+      get : "/v1/namespaces/{namespace}/templates/{name}"
     };
   }
 
@@ -50,7 +50,7 @@ service ClustersService {
   rpc ListTemplateParams(ListTemplateParamsRequest) returns (ListTemplateParamsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}/templates/{template_name}/params"
+      get : "/v1/namespaces/{namespace}/templates/{name}/params"
     };
   }
 
@@ -60,7 +60,7 @@ service ClustersService {
   rpc ListTemplateProfiles(ListTemplateProfilesRequest) returns (ListTemplateProfilesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"
+      get : "/v1/namespaces/{namespace}/templates/{name}/profiles"
     };
   }
 
@@ -68,7 +68,7 @@ service ClustersService {
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      post : "/v1/namespaces/{template_namespace}/templates/{template_name}/render"
+      post : "/v1/namespaces/{namespace}/templates/{name}/render"
       body : "*"
     };
   }
@@ -77,7 +77,7 @@ service ClustersService {
   rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      post : "/v1/namespaces/{template_namespace}/templates/{template_name}/pull-request"
+      post : "/v1/namespaces/{namespace}/templates/{name}/pull-request"
       body : "*"
     };
   }
@@ -352,17 +352,17 @@ message ListTemplatesResponse {
 }
 
 message GetTemplateRequest {
-  string template_name = 1;
+  string name = 1;
   string template_kind = 2;
-  string template_namespace = 3;
+  string namespace = 3;
 }
 
 message GetTemplateResponse { Template template = 1; }
 
 message ListTemplateParamsRequest {
-  string template_name = 1;
+  string name = 1;
   string template_kind = 2;
-  string template_namespace = 3;
+  string namespace = 3;
 }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
@@ -370,9 +370,9 @@ message ListTemplateParamsResponse {
 }
 
 message ListTemplateProfilesRequest {
-  string template_name = 1;
+  string name = 1;
   string template_kind = 2;
-  string template_namespace = 3;
+  string namespace = 3;
 }
 message ListTemplateProfilesResponse {
   repeated TemplateProfile profiles = 1;
@@ -380,14 +380,14 @@ message ListTemplateProfilesResponse {
 }
 
 message RenderTemplateRequest {
-  string template_name = 1;
+  string name = 1;
   map<string, string> values = 2;
   Credential credentials = 3;
   string template_kind = 4;
   string cluster_namespace = 5;
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
-  string template_namespace = 8;
+  string namespace = 8;
   repeated ExternalSecret external_secrets = 9;
 }
 
@@ -454,7 +454,7 @@ message CreatePullRequestRequest {
   // The description of the pull request
   string description = 5;
   // The name of the template to create a pull request for.
-  string template_name = 6;
+  string name = 6;
   // The values that populate the template's parameters.
   map<string, string> parameter_values = 7;
   // The commit message
@@ -467,7 +467,7 @@ message CreatePullRequestRequest {
   string repository_api_url = 11 [deprecated = true];
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
-  string template_namespace = 14;
+  string namespace = 14;
   string template_kind = 15;
   PreviousValues previous_values = 16;
   repeated ExternalSecret external_secrets = 17;
@@ -504,14 +504,14 @@ message CreateTfControllerPullRequestRequest {
   // The description of the pull request
   string description = 5;
   // The name of the template to create a pull request for.
-  string template_name = 6;
+  string name = 6;
   // The values that populate the template's parameters.
   map<string, string> parameter_values = 7;
   // The commit message
   string commit_message = 8;
   // The repo api url.
   string repository_api_url = 11;
-  string template_namespace = 12;
+  string namespace = 12;
 }
 message CreateTfControllerPullRequestResponse {
   // The url of the new pull request.

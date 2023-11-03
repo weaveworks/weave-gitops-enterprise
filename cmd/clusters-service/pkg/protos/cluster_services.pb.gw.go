@@ -68,7 +68,7 @@ func local_request_ClustersService_ListTemplates_0(ctx context.Context, marshale
 }
 
 var (
-	filter_ClustersService_GetTemplate_0 = &utilities.DoubleArray{Encoding: map[string]int{"template_namespace": 0, "templateNamespace": 1, "template_name": 2, "templateName": 3}, Base: []int{1, 1, 2, 3, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 1, 2, 3, 4, 5}}
+	filter_ClustersService_GetTemplate_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0, "name": 1}, Base: []int{1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 2, 2, 3, 3}}
 )
 
 func request_ClustersService_GetTemplate_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -82,24 +82,24 @@ func request_ClustersService_GetTemplate_0(ctx context.Context, marshaler runtim
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -125,24 +125,24 @@ func local_request_ClustersService_GetTemplate_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -158,7 +158,7 @@ func local_request_ClustersService_GetTemplate_0(ctx context.Context, marshaler 
 }
 
 var (
-	filter_ClustersService_ListTemplateParams_0 = &utilities.DoubleArray{Encoding: map[string]int{"template_namespace": 0, "templateNamespace": 1, "template_name": 2, "templateName": 3}, Base: []int{1, 1, 2, 3, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 1, 2, 3, 4, 5}}
+	filter_ClustersService_ListTemplateParams_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0, "name": 1}, Base: []int{1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 2, 2, 3, 3}}
 )
 
 func request_ClustersService_ListTemplateParams_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -172,24 +172,24 @@ func request_ClustersService_ListTemplateParams_0(ctx context.Context, marshaler
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -215,24 +215,24 @@ func local_request_ClustersService_ListTemplateParams_0(ctx context.Context, mar
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -248,7 +248,7 @@ func local_request_ClustersService_ListTemplateParams_0(ctx context.Context, mar
 }
 
 var (
-	filter_ClustersService_ListTemplateProfiles_0 = &utilities.DoubleArray{Encoding: map[string]int{"template_namespace": 0, "templateNamespace": 1, "template_name": 2, "templateName": 3}, Base: []int{1, 1, 2, 3, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 1, 1, 2, 3, 4, 5}}
+	filter_ClustersService_ListTemplateProfiles_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0, "name": 1}, Base: []int{1, 2, 4, 0, 0, 0, 0}, Check: []int{0, 1, 1, 2, 2, 3, 3}}
 )
 
 func request_ClustersService_ListTemplateProfiles_0(ctx context.Context, marshaler runtime.Marshaler, client ClustersServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
@@ -262,24 +262,24 @@ func request_ClustersService_ListTemplateProfiles_0(ctx context.Context, marshal
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -305,24 +305,24 @@ func local_request_ClustersService_ListTemplateProfiles_0(ctx context.Context, m
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	if err := req.ParseForm(); err != nil {
@@ -356,24 +356,24 @@ func request_ClustersService_RenderTemplate_0(ctx context.Context, marshaler run
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := client.RenderTemplate(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -400,24 +400,24 @@ func local_request_ClustersService_RenderTemplate_0(ctx context.Context, marshal
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.RenderTemplate(ctx, &protoReq)
@@ -444,24 +444,24 @@ func request_ClustersService_CreatePullRequest_0(ctx context.Context, marshaler 
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := client.CreatePullRequest(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -488,24 +488,24 @@ func local_request_ClustersService_CreatePullRequest_0(ctx context.Context, mars
 		_   = err
 	)
 
-	val, ok = pathParams["template_namespace"]
+	val, ok = pathParams["namespace"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_namespace")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
 	}
 
-	protoReq.TemplateNamespace, err = runtime.String(val)
+	protoReq.Namespace, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_namespace", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
 
-	val, ok = pathParams["template_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "template_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.TemplateName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "template_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.CreatePullRequest(ctx, &protoReq)
@@ -1730,7 +1730,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1755,7 +1755,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/params"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/params"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1780,7 +1780,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/profiles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1805,7 +1805,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/render"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/render"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1830,7 +1830,7 @@ func RegisterClustersServiceHandlerServer(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/pull-request"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/pull-request"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2591,7 +2591,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/GetTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2613,7 +2613,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/params"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateParams", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/params"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2635,7 +2635,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/ListTemplateProfiles", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/profiles"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2657,7 +2657,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/render"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/RenderTemplate", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/render"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -2679,7 +2679,7 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/namespaces/{template_namespace}/templates/{template_name}/pull-request"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/cluster_services.v1.ClustersService/CreatePullRequest", runtime.WithHTTPPathPattern("/v1/namespaces/{namespace}/templates/{name}/pull-request"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -3295,15 +3295,15 @@ func RegisterClustersServiceHandlerClient(ctx context.Context, mux *runtime.Serv
 var (
 	pattern_ClustersService_ListTemplates_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1", "templates"}, ""))
 
-	pattern_ClustersService_GetTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "namespaces", "template_namespace", "templates", "template_name"}, ""))
+	pattern_ClustersService_GetTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "namespaces", "namespace", "templates", "name"}, ""))
 
-	pattern_ClustersService_ListTemplateParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "template_namespace", "templates", "template_name", "params"}, ""))
+	pattern_ClustersService_ListTemplateParams_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "templates", "name", "params"}, ""))
 
-	pattern_ClustersService_ListTemplateProfiles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "template_namespace", "templates", "template_name", "profiles"}, ""))
+	pattern_ClustersService_ListTemplateProfiles_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "templates", "name", "profiles"}, ""))
 
-	pattern_ClustersService_RenderTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "template_namespace", "templates", "template_name", "render"}, ""))
+	pattern_ClustersService_RenderTemplate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "templates", "name", "render"}, ""))
 
-	pattern_ClustersService_CreatePullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "template_namespace", "templates", "template_name", "pull-request"}, ""))
+	pattern_ClustersService_CreatePullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "namespaces", "namespace", "templates", "name", "pull-request"}, ""))
 
 	pattern_ClustersService_CreateDeletionPullRequest_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "templates", "deletion-pull-request"}, ""))
 

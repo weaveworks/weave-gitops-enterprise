@@ -30,9 +30,9 @@ export type ListTemplatesResponse = {
 }
 
 export type GetTemplateRequest = {
-  templateName?: string
+  name?: string
   templateKind?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type GetTemplateResponse = {
@@ -40,9 +40,9 @@ export type GetTemplateResponse = {
 }
 
 export type ListTemplateParamsRequest = {
-  templateName?: string
+  name?: string
   templateKind?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type ListTemplateParamsResponse = {
@@ -51,9 +51,9 @@ export type ListTemplateParamsResponse = {
 }
 
 export type ListTemplateProfilesRequest = {
-  templateName?: string
+  name?: string
   templateKind?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type ListTemplateProfilesResponse = {
@@ -62,14 +62,14 @@ export type ListTemplateProfilesResponse = {
 }
 
 export type RenderTemplateRequest = {
-  templateName?: string
+  name?: string
   values?: {[key: string]: string}
   credentials?: Credential
   templateKind?: string
   clusterNamespace?: string
   profiles?: ProfileValues[]
   kustomizations?: Kustomization[]
-  templateNamespace?: string
+  namespace?: string
   externalSecrets?: ExternalSecret[]
 }
 
@@ -131,7 +131,7 @@ export type CreatePullRequestRequest = {
   baseBranch?: string
   title?: string
   description?: string
-  templateName?: string
+  name?: string
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   credentials?: Credential
@@ -139,7 +139,7 @@ export type CreatePullRequestRequest = {
   repositoryApiUrl?: string
   clusterNamespace?: string
   kustomizations?: Kustomization[]
-  templateNamespace?: string
+  namespace?: string
   templateKind?: string
   previousValues?: PreviousValues
   externalSecrets?: ExternalSecret[]
@@ -167,11 +167,11 @@ export type CreateTfControllerPullRequestRequest = {
   baseBranch?: string
   title?: string
   description?: string
-  templateName?: string
+  name?: string
   parameterValues?: {[key: string]: string}
   commitMessage?: string
   repositoryApiUrl?: string
-  templateNamespace?: string
+  namespace?: string
 }
 
 export type CreateTfControllerPullRequestResponse = {
@@ -856,19 +856,19 @@ export class ClustersService {
     return fm.fetchReq<ListTemplatesRequest, ListTemplatesResponse>(`/v1/templates?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetTemplate(req: GetTemplateRequest, initReq?: fm.InitReq): Promise<GetTemplateResponse> {
-    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetTemplateRequest, GetTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ListTemplateParams(req: ListTemplateParamsRequest, initReq?: fm.InitReq): Promise<ListTemplateParamsResponse> {
-    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/params?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListTemplateParamsRequest, ListTemplateParamsResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/params?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static ListTemplateProfiles(req: ListTemplateProfilesRequest, initReq?: fm.InitReq): Promise<ListTemplateProfilesResponse> {
-    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/profiles?${fm.renderURLSearchParams(req, ["templateNamespace", "templateName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<ListTemplateProfilesRequest, ListTemplateProfilesResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/profiles?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static RenderTemplate(req: RenderTemplateRequest, initReq?: fm.InitReq): Promise<RenderTemplateResponse> {
-    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<RenderTemplateRequest, RenderTemplateResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/render`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreatePullRequest(req: CreatePullRequestRequest, initReq?: fm.InitReq): Promise<CreatePullRequestResponse> {
-    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/namespaces/${req["templateNamespace"]}/templates/${req["templateName"]}/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
+    return fm.fetchReq<CreatePullRequestRequest, CreatePullRequestResponse>(`/v1/namespaces/${req["namespace"]}/templates/${req["name"]}/pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})
   }
   static CreateDeletionPullRequest(req: CreateDeletionPullRequestRequest, initReq?: fm.InitReq): Promise<CreateDeletionPullRequestResponse> {
     return fm.fetchReq<CreateDeletionPullRequestRequest, CreateDeletionPullRequestResponse>(`/v1/templates/deletion-pull-request`, {...initReq, method: "POST", body: JSON.stringify(req)})

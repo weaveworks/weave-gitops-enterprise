@@ -51,8 +51,8 @@ func TestGetListPullRequest(t *testing.T) {
 	serverClient := pipetesting.SetupServer(t, factory, kclient, "management", "", fakeGitProvider)
 
 	res, err := serverClient.ListPullRequests(context.Background(), &pb.ListPullRequestsRequest{
-		PipelineName:      p.Name,
-		PipelineNamespace: pipelineNamespace.Name,
+		Name:      p.Name,
+		Namespace: pipelineNamespace.Name,
 	})
 	require.NoError(t, err)
 
