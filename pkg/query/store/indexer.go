@@ -77,6 +77,10 @@ var facetSuffix = ".facet"
 func addFieldMappings(index *mapping.IndexMappingImpl, fields []string) {
 	objMapping := bleve.NewDocumentMapping()
 
+	nameFieldMapping := bleve.NewTextFieldMapping()
+	nameFieldMapping.Analyzer = "keyword"
+	objMapping.AddFieldMappingsAt("name", nameFieldMapping)
+
 	for _, field := range commonFields {
 		// This mapping allows us to do query-string queries on the field.
 		// For example, we can do `cluster:foo` to get all objects in the `foo` cluster.
