@@ -225,7 +225,7 @@ service ClustersService {
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}"
+      get : "/v1/workspaces/{name}"
     };
   }
 
@@ -233,7 +233,7 @@ service ClustersService {
    rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/roles"
+      get : "/v1/workspaces/{name}/roles"
     };
   }
 
@@ -241,7 +241,7 @@ service ClustersService {
    rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/rolebindings"
+      get : "/v1/workspaces/{name}/rolebindings"
     };
   }
 
@@ -249,7 +249,7 @@ service ClustersService {
    rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/serviceaccounts"
+      get : "/v1/workspaces/{name}/serviceaccounts"
     };
   }
 
@@ -257,7 +257,7 @@ service ClustersService {
   rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/policies"
+      get : "/v1/workspaces/{name}/policies"
     };
   }
 
@@ -987,7 +987,7 @@ message WorkspacePolicy {
 
 message GetWorkspaceRequest{
   string cluster_name = 1;
-  string workspace_name = 2;
+  string name = 2;
 }
 
 message GetWorkspaceResponse{

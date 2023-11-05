@@ -1161,7 +1161,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}": {
+    "/v1/workspaces/{name}": {
       "get": {
         "summary": "Get workspace details",
         "operationId": "ClustersService_GetWorkspace",
@@ -1181,7 +1181,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1198,7 +1198,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/policies": {
+    "/v1/workspaces/{name}/policies": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspacePolicies",
@@ -1218,7 +1218,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1235,7 +1235,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/rolebindings": {
+    "/v1/workspaces/{name}/rolebindings": {
       "get": {
         "summary": "List workspace role bindings",
         "operationId": "ClustersService_GetWorkspaceRoleBindings",
@@ -1255,7 +1255,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1272,7 +1272,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/roles": {
+    "/v1/workspaces/{name}/roles": {
       "get": {
         "summary": "List workspace roles",
         "operationId": "ClustersService_GetWorkspaceRoles",
@@ -1292,7 +1292,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
@@ -1309,7 +1309,7 @@
         ]
       }
     },
-    "/v1/workspaces/{workspaceName}/serviceaccounts": {
+    "/v1/workspaces/{name}/serviceaccounts": {
       "get": {
         "summary": "List workspace service accounts",
         "operationId": "ClustersService_GetWorkspaceServiceAccounts",
@@ -1329,7 +1329,7 @@
         },
         "parameters": [
           {
-            "name": "workspaceName",
+            "name": "name",
             "in": "path",
             "required": true,
             "type": "string"
