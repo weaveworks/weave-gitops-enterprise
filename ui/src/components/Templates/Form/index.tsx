@@ -120,9 +120,7 @@ function getInitialData(
 
   const resourceName =
     (resource as GitopsClusterEnriched | Automation | Source | Pipeline)
-      ?.name ||
-    (resource as GetTerraformObjectResponse)?.object?.name ||
-    resourceData?.objects?.[0].name;
+      ?.name || (resource as GetTerraformObjectResponse)?.object?.name;
 
   const defaultFormData = {
     repo: null,
@@ -150,7 +148,7 @@ function getInitialData(
   };
 
   const initialInfraCredentials = {
-    ...resourceData?.infraCredential,
+    ...resourceData?.credentials,
     ...callbackState?.state?.infraCredential,
   };
 
@@ -204,7 +202,7 @@ const encodedProfiles = (profiles: ProfilesIndex): ProfileValues[] =>
 
 const toPayload = (
   formData: any,
-  infraCredential: any,
+  infraCredential: Credential | undefined,
   name: string,
   namespace: string,
   templateKind: string,
@@ -320,7 +318,7 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
     }
     const payload = toPayload(
       formData,
-      infraCredential,
+      infraCredential || undefined,
       template.name,
       template.namespace!,
       template.templateKind,

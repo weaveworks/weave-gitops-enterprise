@@ -5,13 +5,17 @@ import {
 } from '@weaveworks/weave-gitops/ui/lib/objects';
 import GitUrlParse from 'git-url-parse';
 import styled from 'styled-components';
+import { SnakeCasedPropertiesDeep } from 'type-fest';
 import URI from 'urijs';
 // Importing this solves a problem with the YAML library not being found.
 // @ts-ignore
 import * as YAML from 'yaml/browser/dist/index.js';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
-import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
+import {
+  CreatePullRequestRequest,
+  GetConfigResponse,
+} from '../../../cluster-services/cluster_services.pb';
 import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
@@ -26,34 +30,60 @@ export const maybeParseJSON = (data: string) => {
   }
 };
 
-export const getCreateRequestAnnotation = (resource: Resource) => {
-  const getAnnotation = (resource: Resource) => {
-    switch (resource.type) {
-      case 'GitopsCluster':
-        return (resource as GitopsClusterEnriched)?.annotations?.[
-          'templates.weave.works/create-request'
-        ];
-      case 'GitRepository':
-      case 'Bucket':
-      case 'HelmRepository':
-      case 'HelmChart':
-      case 'Kustomization':
-      case 'HelmRelease':
-      case 'OCIRepository':
-        return (resource as Automation | Source)?.obj?.metadata?.annotations?.[
-          'templates.weave.works/create-request'
-        ];
-      case 'Terraform':
-      case 'Pipeline':
-        return YAML.parse(
-          (resource as GetTerraformObjectResponse | Pipeline)?.yaml || '',
-        )?.metadata?.annotations?.['templates.weave.works/create-request'];
-      default:
-        return '';
-    }
-  };
+type CreateRequestAnnotationV2 =
+  SnakeCasedPropertiesDeep<CreatePullRequestRequest>;
 
-  return maybeParseJSON(getAnnotation(resource));
+// This is the old version before we migrated:
+// - template_name -> name
+// - template_namespace -> namespace
+interface CreateRequestAnnotationV1
+  extends Omit<CreateRequestAnnotationV2, 'name' | 'namespace'> {
+  template_name?: string;
+  template_namespace?: string;
+}
+
+const getAnnotation = (resource: Resource) => {
+  switch (resource.type) {
+    case 'GitopsCluster':
+      return (resource as GitopsClusterEnriched)?.annotations?.[
+        'templates.weave.works/create-request'
+      ];
+    case 'GitRepository':
+    case 'Bucket':
+    case 'HelmRepository':
+    case 'HelmChart':
+    case 'Kustomization':
+    case 'HelmRelease':
+    case 'OCIRepository':
+      return (resource as Automation | Source)?.obj?.metadata?.annotations?.[
+        'templates.weave.works/create-request'
+      ];
+    case 'Terraform':
+    case 'Pipeline':
+      return YAML.parse(
+        (resource as GetTerraformObjectResponse | Pipeline)?.yaml || '',
+      )?.metadata?.annotations?.['templates.weave.works/create-request'];
+    default:
+      return '';
+  }
+};
+
+export const getCreateRequestAnnotation = (resource: Resource) => {
+  const resourceData = maybeParseJSON(getAnnotation(resource)) as
+    | CreateRequestAnnotationV1
+    | CreateRequestAnnotationV2;
+
+  const isV1Annotation = 'template_name' in resourceData;
+
+  if (isV1Annotation) {
+    return {
+      ...resourceData,
+      name: resourceData.template_name,
+      namespace: resourceData.template_namespace,
+    } as CreateRequestAnnotationV2;
+  }
+
+  return resourceData as CreateRequestAnnotationV2;
 };
 
 export function getRepositoryUrl(repo: GitRepository) {
@@ -103,7 +133,7 @@ export function getProvider(repo: GitRepository, config: GetConfigResponse) {
 }
 
 export function useGetInitialGitRepo(
-  initialUrl: string | null,
+  initialUrl: string | null | undefined,
   gitRepos: GitRepository[],
 ) {
   const configResponse = useListConfigContext();

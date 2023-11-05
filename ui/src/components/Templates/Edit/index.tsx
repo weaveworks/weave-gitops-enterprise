@@ -18,7 +18,7 @@ const EditResource: FC<{
 }> = ({ resource }) => {
   const { getTemplate } = useTemplates();
 
-  const templateName = getCreateRequestAnnotation(resource)?.template_name;
+  const templateName = getCreateRequestAnnotation(resource)?.name;
 
   if (!templateName) {
     return (
