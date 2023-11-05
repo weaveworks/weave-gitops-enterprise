@@ -470,7 +470,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/github"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/github"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -495,7 +495,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/github/status"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/github/status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -520,7 +520,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/gitlab"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/gitlab"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -545,7 +545,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetBitbucketServerAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/bitbucketserver"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetBitbucketServerAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/bitbucketserver"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -570,7 +570,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeBitbucketServer", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/bitbucketserver/authorize"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeBitbucketServer", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/bitbucketserver/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -595,7 +595,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/gitlab/authorize"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/gitlab/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -620,7 +620,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/azuredevops"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/azuredevops"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -645,7 +645,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeAzureDevOps", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/azuredevops/authorize"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeAzureDevOps", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/azuredevops/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -670,7 +670,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/gitauth/parse_repo_url"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/gitauth/parse-repo-url"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -695,7 +695,7 @@ func RegisterGitAuthHandlerServer(ctx context.Context, mux *runtime.ServeMux, se
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/gitauth/validate_token"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gitauth.v1.GitAuth/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/gitauth/validate-token"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -781,7 +781,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/github"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubDeviceCode", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/github"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -803,7 +803,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/github/status"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGithubAuthStatus", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/github/status"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -825,7 +825,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/gitlab"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetGitlabAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/gitlab"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -847,7 +847,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetBitbucketServerAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/bitbucketserver"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetBitbucketServerAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/bitbucketserver"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -869,7 +869,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeBitbucketServer", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/bitbucketserver/authorize"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeBitbucketServer", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/bitbucketserver/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -891,7 +891,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/gitlab/authorize"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeGitlab", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/gitlab/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -913,7 +913,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/azuredevops"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/GetAzureDevOpsAuthURL", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/azuredevops"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -935,7 +935,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeAzureDevOps", runtime.WithHTTPPathPattern("/v1/gitauth/auth_providers/azuredevops/authorize"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/AuthorizeAzureDevOps", runtime.WithHTTPPathPattern("/v1/gitauth/auth-providers/azuredevops/authorize"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -957,7 +957,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/gitauth/parse_repo_url"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/ParseRepoURL", runtime.WithHTTPPathPattern("/v1/gitauth/parse-repo-url"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -979,7 +979,7 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/gitauth/validate_token"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gitauth.v1.GitAuth/ValidateProviderToken", runtime.WithHTTPPathPattern("/v1/gitauth/validate-token"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1001,25 +1001,25 @@ func RegisterGitAuthHandlerClient(ctx context.Context, mux *runtime.ServeMux, cl
 var (
 	pattern_GitAuth_Authenticate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2}, []string{"v1", "authenticate", "provider_name"}, ""))
 
-	pattern_GitAuth_GetGithubDeviceCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth_providers", "github"}, ""))
+	pattern_GitAuth_GetGithubDeviceCode_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth-providers", "github"}, ""))
 
-	pattern_GitAuth_GetGithubAuthStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth_providers", "github", "status"}, ""))
+	pattern_GitAuth_GetGithubAuthStatus_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth-providers", "github", "status"}, ""))
 
-	pattern_GitAuth_GetGitlabAuthURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth_providers", "gitlab"}, ""))
+	pattern_GitAuth_GetGitlabAuthURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth-providers", "gitlab"}, ""))
 
-	pattern_GitAuth_GetBitbucketServerAuthURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth_providers", "bitbucketserver"}, ""))
+	pattern_GitAuth_GetBitbucketServerAuthURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth-providers", "bitbucketserver"}, ""))
 
-	pattern_GitAuth_AuthorizeBitbucketServer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth_providers", "bitbucketserver", "authorize"}, ""))
+	pattern_GitAuth_AuthorizeBitbucketServer_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth-providers", "bitbucketserver", "authorize"}, ""))
 
-	pattern_GitAuth_AuthorizeGitlab_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth_providers", "gitlab", "authorize"}, ""))
+	pattern_GitAuth_AuthorizeGitlab_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth-providers", "gitlab", "authorize"}, ""))
 
-	pattern_GitAuth_GetAzureDevOpsAuthURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth_providers", "azuredevops"}, ""))
+	pattern_GitAuth_GetAzureDevOpsAuthURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3}, []string{"v1", "gitauth", "auth-providers", "azuredevops"}, ""))
 
-	pattern_GitAuth_AuthorizeAzureDevOps_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth_providers", "azuredevops", "authorize"}, ""))
+	pattern_GitAuth_AuthorizeAzureDevOps_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 2, 3, 2, 4}, []string{"v1", "gitauth", "auth-providers", "azuredevops", "authorize"}, ""))
 
-	pattern_GitAuth_ParseRepoURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitauth", "parse_repo_url"}, ""))
+	pattern_GitAuth_ParseRepoURL_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitauth", "parse-repo-url"}, ""))
 
-	pattern_GitAuth_ValidateProviderToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitauth", "validate_token"}, ""))
+	pattern_GitAuth_ValidateProviderToken_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1", "gitauth", "validate-token"}, ""))
 )
 
 var (

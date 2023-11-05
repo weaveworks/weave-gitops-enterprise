@@ -143,9 +143,6 @@ service:
   healthCheckNodePort: 0
   annotations: {}
 
-cluster-controller:
-  enabled: true
-
 policy-agent:
   enabled: false
   config:

@@ -32,7 +32,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type PreviewServiceClient interface {
+	// FIXME
 	GetYAML(ctx context.Context, in *GetYAMLRequest, opts ...grpc.CallOption) (*GetYAMLResponse, error)
+	// FIXME
 	CreatePullRequest(ctx context.Context, in *CreatePullRequestRequest, opts ...grpc.CallOption) (*CreatePullRequestResponse, error)
 }
 
@@ -66,7 +68,9 @@ func (c *previewServiceClient) CreatePullRequest(ctx context.Context, in *Create
 // All implementations must embed UnimplementedPreviewServiceServer
 // for forward compatibility
 type PreviewServiceServer interface {
+	// FIXME
 	GetYAML(context.Context, *GetYAMLRequest) (*GetYAMLResponse, error)
+	// FIXME
 	CreatePullRequest(context.Context, *CreatePullRequestRequest) (*CreatePullRequestResponse, error)
 	mustEmbedUnimplementedPreviewServiceServer()
 }

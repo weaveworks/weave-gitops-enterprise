@@ -73,14 +73,14 @@ type ServerOpts struct {
 	EnabledFor          []string
 }
 
-func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
+func (s *server) DoQuery(ctx context.Context, msg *pb.DoQueryRequest) (*pb.DoQueryResponse, error) {
 	objs, err := s.qs.RunQuery(ctx, msg, msg)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}
 
-	return &pb.QueryResponse{
+	return &pb.DoQueryResponse{
 		Objects: convertToPbObject(objs),
 	}, nil
 }
@@ -309,6 +309,7 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 			Unstructured: string(o.Unstructured),
 			Id:           o.GetID(),
 			Tenant:       o.Tenant,
+			Labels:       o.Labels,
 		})
 	}
 

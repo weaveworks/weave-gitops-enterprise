@@ -10,7 +10,6 @@ import {
 } from '../../contexts/ListConfig';
 import { Tooltip } from '../Shared';
 
-
 const HelpLink = styled(Flex)<{
   backgroundColor?: string;
   textColor?: string;
@@ -54,11 +53,9 @@ const Footer = ({ version }: { version: string }) => {
     >
       {uiConfig?.footer?.content ? (
         <div>
-          <ReactMarkdown
-            children={uiConfig?.footer?.content || ''}
-            remarkPlugins={[remarkGfm]}
-            className={classes.editor}
-          />
+          <ReactMarkdown remarkPlugins={[remarkGfm]} className={classes.editor}>
+            {uiConfig?.footer?.content || ''}
+          </ReactMarkdown>
         </div>
       ) : (
         <div>

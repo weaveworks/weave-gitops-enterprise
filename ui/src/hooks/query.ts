@@ -5,7 +5,7 @@ import { useQuery } from 'react-query';
 import {
   EnabledComponent,
   ListEnabledComponentsResponse,
-  QueryResponse,
+  DoQueryResponse,
 } from '../api/query/query.pb';
 import { QueryServiceContext } from '../contexts/QueryService';
 
@@ -64,7 +64,7 @@ export function useQueryService({
     formatted = _.concat(formatted, ['category:' + category]);
   }
 
-  return useQuery<QueryResponse, Error>(
+  return useQuery<DoQueryResponse, Error>(
     ['query', { terms, filters, limit, offset, orderBy, ascending }],
     () => {
       return api.DoQuery({

@@ -33,7 +33,7 @@ export type ApprovePromotionRequest = {
 }
 
 export type ApprovePromotionResponse = {
-  pullRequestURL?: string
+  pullRequestUrl?: string
 }
 
 export type ListError = {
