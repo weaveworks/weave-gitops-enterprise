@@ -28,7 +28,7 @@ const SecretDetailsTabs = ({
   const secretObj = new FluxObject({
     payload: secretDetails?.yaml,
   });
-  const props = secretObj.obj?.spec?.data?.map((d: any) => ({
+  const secretProps = secretObj.obj?.spec?.data?.map((d: any) => ({
     key: d.secretKey,
     value: d.remoteRef.property,
   }));
@@ -81,8 +81,8 @@ const SecretDetailsTabs = ({
                 Properties
               </Text>
               <DataTable
-                key={props?.length}
-                rows={props}
+                key={secretProps?.length}
+                rows={secretProps}
                 fields={[
                   {
                     label: 'PROPERTY',

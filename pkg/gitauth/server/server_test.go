@@ -349,7 +349,7 @@ var _ = Describe("ApplicationsServer", func() {
 				err := pb.RegisterGitAuthHandlerServer(context.Background(), mux, pb.UnimplementedGitAuthServer{})
 				Expect(err).NotTo(HaveOccurred())
 
-				path := "/v1/gitauth/parse_repo_url"
+				path := "/v1/gitauth/parse-repo-url"
 				url := ts.URL + path
 
 				res, err := http.Get(url)
@@ -373,7 +373,7 @@ var _ = Describe("ApplicationsServer", func() {
 
 			It("logs ok requests", func() {
 				// A valid URL for our server
-				path := "/v1/gitauth/parse_repo_url?url=https://github.com/user/repo.git"
+				path := "/v1/gitauth/parse-repo-url?url=https://github.com/user/repo.git"
 				url := ts.URL + path
 
 				res, err := http.Get(url)

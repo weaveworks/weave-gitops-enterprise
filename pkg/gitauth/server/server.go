@@ -119,7 +119,7 @@ func (s *applicationServer) GetGithubDeviceCode(ctx context.Context, msg *pb.Get
 
 	return &pb.GetGithubDeviceCodeResponse{
 		UserCode:      res.UserCode,
-		ValidationURI: res.VerificationURI,
+		ValidationUri: res.VerificationURI,
 		DeviceCode:    res.DeviceCode,
 		Interval:      int32(res.Interval),
 	}, nil
