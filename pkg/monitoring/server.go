@@ -24,7 +24,7 @@ type Options struct {
 	ProfilingOptions profiling.Options
 }
 
-// NewServer creates a new monitoring server for all endpoints that we need to expose internally. For example metrics or profiling.
+// NewSever creates and starts a management server for all endpoints that we need to expose internally. For example metrics or profiling.
 func NewServer(opts Options) (*http.Server, error) {
 	if opts.ServerAddress == "" {
 		return nil, fmt.Errorf("cannot create server for empty address")
@@ -49,6 +49,13 @@ func NewServer(opts Options) (*http.Server, error) {
 		Addr:    opts.ServerAddress,
 		Handler: pprofMux,
 	}
+
+	go func() {
+		log.Info("starting server", "address", server.Addr)
+		if err := server.ListenAndServe(); err != nil {
+			log.Error(err, "could not start metrics server")
+		}
+	}()
 
 	return server, nil
 }

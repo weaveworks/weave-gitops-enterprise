@@ -1,11 +1,11 @@
 package monitoring
 
 import (
+	"context"
 	"net/http"
-	"sync"
+	"net/http/httptest"
 	"testing"
 
-	"github.com/go-logr/logr/testr"
 	"github.com/stretchr/testify/require"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/profiling"
@@ -18,7 +18,6 @@ func TestNewServer(t *testing.T) {
 	})
 
 	t.Run("can create server valid options", func(t *testing.T) {
-		log := testr.New(t)
 		s, err := NewServer(Options{
 			Enabled:       true,
 			ServerAddress: "localhost:8080",
@@ -30,29 +29,21 @@ func TestNewServer(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
+		defer func(s *http.Server, ctx context.Context) {
+			err := s.Shutdown(ctx)
+			require.NoError(t, err)
+		}(s, context.Background())
 
-		// addded waiting group to reduce the chances of consuming the service before it is ready
-		wg := sync.WaitGroup{}
-		wg.Add(1)
-		go func() {
-			log.Info("starting server", "address", s.Addr)
-			wg.Done()
-			if err := s.ListenAndServe(); err != nil {
-				t.Errorf("could not start metrics server: %v", err)
-				return
-			}
-		}()
-		wg.Wait()
+		mockServer := httptest.NewServer(s.Handler)
+		defer mockServer.Close()
 
-		r, err := http.NewRequest(http.MethodGet, "http://localhost:8080/metrics", nil)
+		r, err := http.Get(mockServer.URL + "/metrics") // Adjust the URL path as needed
 		require.NoError(t, err)
-		_, err = http.DefaultClient.Do(r)
-		require.NoError(t, err)
+		require.Equal(t, r.StatusCode, http.StatusOK)
 
-		r, err = http.NewRequest(http.MethodGet, "http://localhost:8080/debug/pprof", nil)
+		r, err = http.Get(mockServer.URL + "/debug/pprof") // Adjust the URL path as needed
 		require.NoError(t, err)
-		_, err = http.DefaultClient.Do(r)
-		require.NoError(t, err)
+		require.Equal(t, r.StatusCode, http.StatusOK)
 	})
 
 }
