@@ -184,7 +184,7 @@ jobs:
   smoke-test-results:
     if: ${{ always() }}
     needs:
-      [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant, playwright-smoke-tests]
+      [smoke-tests-github, smoke-tests-gitlab-deploy, smoke-tests-gitlab-tenant]
     uses: ./.github/workflows/publish-test-results.yaml
     with:
       runs-on: ubuntu-latest
