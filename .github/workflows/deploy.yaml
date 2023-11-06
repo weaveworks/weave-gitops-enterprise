@@ -154,7 +154,7 @@ jobs:
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
   playwright-smoke-tests:
-    needs: [build, coverage]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
