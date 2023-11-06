@@ -37,11 +37,11 @@ func TestNewServer(t *testing.T) {
 		mockServer := httptest.NewServer(s.Handler)
 		defer mockServer.Close()
 
-		r, err := http.Get(mockServer.URL + "/metrics") // Adjust the URL path as needed
+		r, err := http.Get(mockServer.URL + "/metrics")
 		require.NoError(t, err)
 		require.Equal(t, r.StatusCode, http.StatusOK)
 
-		r, err = http.Get(mockServer.URL + "/debug/pprof") // Adjust the URL path as needed
+		r, err = http.Get(mockServer.URL + "/debug/pprof")
 		require.NoError(t, err)
 		require.Equal(t, r.StatusCode, http.StatusOK)
 	})
