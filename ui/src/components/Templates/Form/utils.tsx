@@ -30,7 +30,7 @@ export const maybeParseJSON = (data: string) => {
   }
 };
 
-type CreateRequestAnnotationV2 =
+export type CreateRequestAnnotationV2 =
   SnakeCasedPropertiesDeep<CreatePullRequestRequest>;
 
 // This is the old version before we migrated:
@@ -70,8 +70,13 @@ const getAnnotation = (resource: Resource) => {
 
 export const getCreateRequestAnnotation = (resource: Resource) => {
   const resourceData = maybeParseJSON(getAnnotation(resource)) as
+    | undefined
     | CreateRequestAnnotationV1
     | CreateRequestAnnotationV2;
+
+  if (!resourceData) {
+    return undefined;
+  }
 
   const isV1Annotation = 'template_name' in resourceData;
 

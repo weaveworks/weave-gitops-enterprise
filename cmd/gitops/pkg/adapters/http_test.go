@@ -141,7 +141,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate&template_namespace=default\": oops")
+				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/cluster-template?namespace=default&template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates/cluster-template?namespace=default&template_kind=CAPITemplate\": oops")
 			},
 		},
 		{
@@ -151,7 +151,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			kind:         templates.GitOpsTemplateKind,
 			responder:    httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/terraform-template?template_kind=GitOpsTemplate&template_namespace=default\": oops")
+				assert.EqualError(t, err, "unable to GET template from \"https://weave.works/api/v1/templates/terraform-template?namespace=default&template_kind=GitOpsTemplate\": Get \"https://weave.works/api/v1/templates/terraform-template?namespace=default&template_kind=GitOpsTemplate\": oops")
 			},
 		},
 		{
@@ -161,7 +161,7 @@ func TestRetrieveTemplate(t *testing.T) {
 			kind:         templates.CAPITemplateKind,
 			responder:    httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts *templates.Template, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template?template_kind=CAPITemplate&template_namespace=default\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template?namespace=default&template_kind=CAPITemplate\" was 400")
 			},
 		},
 	}
@@ -282,7 +282,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate&template_namespace=default\": oops")
+				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?namespace=default&template_kind=CAPITemplate\": Get \"https://weave.works/api/v1/templates/cluster-template/params?namespace=default&template_kind=CAPITemplate\": oops")
 			},
 		},
 		{
@@ -291,7 +291,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			kind:      templates.GitOpsTemplateKind,
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=GitOpsTemplate&template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=GitOpsTemplate&template_namespace=default\": oops")
+				assert.EqualError(t, err, "unable to GET template parameters from \"https://weave.works/api/v1/templates/cluster-template/params?namespace=default&template_kind=GitOpsTemplate\": Get \"https://weave.works/api/v1/templates/cluster-template/params?namespace=default&template_kind=GitOpsTemplate\": oops")
 			},
 		},
 		{
@@ -300,7 +300,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			kind:      templates.CAPITemplateKind,
 			responder: httpmock.NewStringResponder(http.StatusBadRequest, ""),
 			assertFunc: func(t *testing.T, ts []templates.TemplateParameter, err error) {
-				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params?template_kind=CAPITemplate&template_namespace=default\" was 400")
+				assert.EqualError(t, err, "response status for GET \"https://weave.works/api/v1/templates/cluster-template/params?namespace=default&template_kind=CAPITemplate\" was 400")
 			},
 		},
 	}
@@ -313,7 +313,7 @@ func TestRetrieveTemplateParameters(t *testing.T) {
 			client := adapters.NewHTTPClient()
 			httpmock.ActivateNonDefault(client.GetBaseClient())
 			defer httpmock.DeactivateAndReset()
-			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params?template_kind="+tt.kind.String()+"&template_namespace="+tt.namespace, tt.responder)
+			httpmock.RegisterResponder("GET", testutils.BaseURI+"/v1/templates/cluster-template/params?namespace="+tt.namespace+"&template_kind="+tt.kind.String(), tt.responder)
 
 			err := client.ConfigureClientWithOptions(opts, os.Stdout)
 			assert.NoError(t, err)
@@ -865,7 +865,7 @@ func TestRetrieveTemplateProfiles(t *testing.T) {
 			namespace: "default",
 			responder: httpmock.NewErrorResponder(errors.New("oops")),
 			assertFunc: func(t *testing.T, fs []templates.Profile, err error) {
-				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles?template_namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles?template_namespace=default\": oops")
+				assert.EqualError(t, err, "unable to GET template profiles from \"https://weave.works/api/v1/templates/cluster-template/profiles?namespace=default\": Get \"https://weave.works/api/v1/templates/cluster-template/profiles?namespace=default\": oops")
 			},
 		},
 	}
