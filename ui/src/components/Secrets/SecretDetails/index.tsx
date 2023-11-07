@@ -1,4 +1,4 @@
-import { Button, Flex } from '@weaveworks/weave-gitops';
+import { Button, Flex, SyncControls } from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { useState } from 'react';
 import useNotifications from '../../../contexts/Notifications';
@@ -72,15 +72,12 @@ const SecretDetails = ({
     >
       <NotificationsWrapper>
         <Flex column gap="16">
-          <Button
-            id="sync-secret"
-            loading={syncing}
-            variant="outlined"
-            onClick={handleSyncClick}
-            style={{ marginRight: 0, textTransform: 'uppercase' }}
-          >
-            Sync
-          </Button>
+          <SyncControls
+            hideSyncOptions
+            hideSuspend
+            syncLoading={syncing}
+            onSyncClick={handleSyncClick}
+          />
           <Flex column gap="8">
             <RowHeaders rows={defaultHeaders} />
           </Flex>

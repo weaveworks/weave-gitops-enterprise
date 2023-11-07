@@ -1,5 +1,4 @@
-import EditIcon from '@material-ui/icons/Edit';
-import { Button, formatURL } from '@weaveworks/weave-gitops';
+import { Button, formatURL, Icon, IconType } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
@@ -71,9 +70,11 @@ export const EditButton: React.FC<{
       <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div className={className}>
           <EditWrapper
+            startIcon={<Icon type={IconType.SettingsIcon} size="base" />}
             disabled={disabled}
-            startIcon={<EditIcon fontSize="small" />}
-          />
+          >
+            Edit
+          </EditWrapper>
         </div>
       </Tooltip>
     </Link>
