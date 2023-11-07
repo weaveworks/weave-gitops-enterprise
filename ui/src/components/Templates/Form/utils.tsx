@@ -9,6 +9,7 @@ import URI from 'urijs';
 // Importing this solves a problem with the YAML library not being found.
 // @ts-ignore
 import * as YAML from 'yaml/browser/dist/index.js';
+import { GitOpsSet } from '../../../api/gitopssets/types.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
@@ -31,6 +32,10 @@ export const getCreateRequestAnnotation = (resource: Resource) => {
     switch (resource.type) {
       case 'GitopsCluster':
         return (resource as GitopsClusterEnriched)?.annotations?.[
+          'templates.weave.works/create-request'
+        ];
+      case 'GitOpsSet':
+        return (resource as GitOpsSet)?.annotations?.[
           'templates.weave.works/create-request'
         ];
       case 'GitRepository':

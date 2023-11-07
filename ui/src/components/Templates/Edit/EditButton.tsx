@@ -1,9 +1,9 @@
-import EditIcon from '@material-ui/icons/Edit';
-import { Button, formatURL } from '@weaveworks/weave-gitops';
+import { Button, formatURL, Icon, IconType } from '@weaveworks/weave-gitops';
 import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
+import { GitOpsSet } from '../../../api/gitopssets/types.pb';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
 import { GitopsClusterEnriched } from '../../../types/custom';
@@ -16,7 +16,8 @@ export type Resource =
   | Automation
   | Source
   | GetTerraformObjectResponse
-  | Pipeline;
+  | Pipeline
+  | GitOpsSet;
 
 export const getLink = (resource: Resource) => {
   switch (resource.type) {
@@ -48,6 +49,13 @@ export const getLink = (resource: Resource) => {
         clusterName: (resource as GetTerraformObjectResponse)?.object
           ?.clusterName,
       });
+    case 'GitOpsSet':
+      return formatURL(Routes.EditResource, {
+        name: (resource as GitOpsSet)?.name,
+        namespace: (resource as GitOpsSet)?.namespace,
+        kind: resource.type,
+        clusterName: (resource as GitOpsSet)?.clusterName,
+      });
     default:
       return '';
   }
@@ -71,9 +79,11 @@ export const EditButton: React.FC<{
       <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div className={className}>
           <EditWrapper
+            startIcon={<Icon type={IconType.SettingsIcon} size="base" />}
             disabled={disabled}
-            startIcon={<EditIcon fontSize="small" />}
-          />
+          >
+            Edit
+          </EditWrapper>
         </div>
       </Tooltip>
     </Link>
