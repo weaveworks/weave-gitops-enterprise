@@ -209,8 +209,8 @@ export type ListCredentialsResponse = {
 }
 
 export type GetKubeconfigRequest = {
-  clusterName?: string
-  clusterNamespace?: string
+  name?: string
+  namespace?: string
 }
 
 export type GetKubeconfigResponse = {
@@ -889,7 +889,7 @@ export class ClustersService {
     return fm.fetchReq<ListGitopsClustersRequest, ListGitopsClustersResponse>(`/v1/clusters?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static GetKubeconfig(req: GetKubeconfigRequest, initReq?: fm.InitReq): Promise<GoogleApiHttpbody.HttpBody> {
-    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/namespaces/${req["clusterNamespace"]}/clusters/${req["clusterName"]}/kubeconfig?${fm.renderURLSearchParams(req, ["clusterNamespace", "clusterName"])}`, {...initReq, method: "GET"})
+    return fm.fetchReq<GetKubeconfigRequest, GoogleApiHttpbody.HttpBody>(`/v1/namespaces/${req["namespace"]}/clusters/${req["name"]}/kubeconfig?${fm.renderURLSearchParams(req, ["namespace", "name"])}`, {...initReq, method: "GET"})
   }
   static GetEnterpriseVersion(req: GetEnterpriseVersionRequest, initReq?: fm.InitReq): Promise<GetEnterpriseVersionResponse> {
     return fm.fetchReq<GetEnterpriseVersionRequest, GetEnterpriseVersionResponse>(`/v1/enterprise/version?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})

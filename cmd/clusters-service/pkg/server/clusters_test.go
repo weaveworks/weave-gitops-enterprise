@@ -1536,7 +1536,7 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte("foo"),
@@ -1552,7 +1552,7 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.Pairs("accept", "application/octet-stream")),
 			expected: []byte("foo"),
@@ -1567,8 +1567,8 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName:      "dev",
-				ClusterNamespace: "testing",
+				Name:      "dev",
+				Namespace: "testing",
 			},
 			wantErr: "unable to get kubeconfig secret for cluster testing/dev",
 		},
@@ -1583,7 +1583,7 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			wantErr: `secret "default/dev-kubeconfig" was found but is missing key "value"`,
 		},
@@ -1598,8 +1598,8 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName:      "dev",
-				ClusterNamespace: "kube-system",
+				Name:      "dev",
+				Namespace: "kube-system",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte("foo"),
@@ -1615,7 +1615,7 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte("foo"),
@@ -1632,7 +1632,7 @@ func TestGetKubeconfig(t *testing.T) {
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte("bar"),
@@ -1656,7 +1656,7 @@ func TestGetKubeconfig(t *testing.T) {
 				}}).Build(),
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte("bar"),
@@ -1691,7 +1691,7 @@ users:
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "dev",
+				Name: "dev",
 			},
 			ctx: metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte(`apiVersion: v1
@@ -1742,7 +1742,7 @@ users:
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "gitops-cluster",
+				Name: "gitops-cluster",
 			},
 			ctx:      metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			expected: []byte("foo"),
@@ -1760,7 +1760,7 @@ users:
 			},
 			clusterObjectsNamespace: "default",
 			req: &capiv1_protos.GetKubeconfigRequest{
-				ClusterName: "gitops-cluster",
+				Name: "gitops-cluster",
 			},
 			ctx:     metadata.NewIncomingContext(context.Background(), metadata.MD{}),
 			wantErr: "failed to load referenced secret default/just-a-test-config for cluster default/gitops-cluster",

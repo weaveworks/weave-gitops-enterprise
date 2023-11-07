@@ -499,7 +499,7 @@ func secretByName(ctx context.Context, cl client.Client, name types.NamespacedNa
 
 // GetKubeconfig returns the Kubeconfig for the given workload cluster
 func (s *server) GetKubeconfig(ctx context.Context, msg *capiv1_proto.GetKubeconfigRequest) (*httpbody.HttpBody, error) {
-	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.ClusterName, Namespace: getClusterNamespace(msg.ClusterNamespace)})
+	val, err := s.kubeConfigForCluster(ctx, types.NamespacedName{Name: msg.Name, Namespace: getClusterNamespace(msg.Namespace)})
 	if err != nil {
 		return nil, err
 	}
