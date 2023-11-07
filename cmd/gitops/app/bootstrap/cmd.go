@@ -32,6 +32,12 @@ gitops bootstrap --password=hell0!
 
 # Start WGE installation using OIDC
 gitops bootstrap --client-id <client-id> --client-secret <client-secret> --discovery-url <discovery-url>
+
+# Start WGE installation with OIDC and flux bootstrap with https
+gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --git-username=<git-username-https> --git-token=<token>--branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=https://<repo-url> --client-secret=<oidc-secret> -s
+
+# Start WGE installation with OIDC and flux bootstrap with ssh
+gitops bootstrap --version=<version> --password=<admin-password> --discovery-url=<oidc-discovery-url> --client-id=<oidc-client-id> --private-key-path=<private-key-path> --private-key-password=<private-key-password> --branch=<git-branch> --repo-path=<path-in-repo-for-management-cluster> --repo-url=ssh://<repo-url> --client-secret=<oidc-secret> -s
 `
 )
 
@@ -43,9 +49,7 @@ type bootstrapFlags struct {
 	domainType string
 	domain     string
 
-	silent bool
-
-	// private key (ssh-auth) flags
+	// ssh git auth flags
 	privateKeyPath     string
 	privateKeyPassword string
 
@@ -53,6 +57,7 @@ type bootstrapFlags struct {
 	gitUsername string
 	gitToken    string
 
+	// git repo flags
 	repoURL  string
 	branch   string
 	repoPath string
@@ -61,6 +66,9 @@ type bootstrapFlags struct {
 	discoveryURL string
 	clientID     string
 	clientSecret string
+
+	// modes flags
+	silent bool
 }
 
 var flags bootstrapFlags
@@ -88,7 +96,6 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
 	cmd.PersistentFlags().StringVarP(&flags.clientID, "client-id", "i", "", "OIDC client ID")
 	cmd.PersistentFlags().StringVarP(&flags.clientSecret, "client-secret", "", "", "OIDC client secret")
-
 	cmd.AddCommand(AuthCommand(opts))
 
 	return cmd
@@ -96,9 +103,7 @@ func Command(opts *config.Options) *cobra.Command {
 
 func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 	return func(cmd *cobra.Command, args []string) error {
-
 		cliLogger := logger.NewCLILogger(os.Stdout)
-
 		// create config from flags
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).

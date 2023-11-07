@@ -64,18 +64,6 @@ func getRepoPath(client k8s_client.Client, repoName string, namespace string) (s
 	return kustomization.Spec.Path, nil
 }
 
-func getSSHGitAuth(privateKeyPath, privateKeyPassword string) (*ssh.PublicKeys, error) {
-	sshKey, err := os.ReadFile(privateKeyPath)
-	if err != nil {
-		return nil, err
-	}
-	pubKey, err := ssh.NewPublicKeys("git", sshKey, privateKeyPassword)
-	if err != nil {
-		return nil, err
-	}
-	return pubKey, nil
-}
-
 // CloneRepo shallow clones the user repo's branch under temp and returns the current path.
 func CloneRepo(client k8s_client.Client,
 	repoName string,
@@ -103,17 +91,9 @@ func CloneRepo(client k8s_client.Client,
 		return "", err
 	}
 
-	var authMethod transport.AuthMethod
-	switch authType {
-	case sshAuth:
-		authMethod, err = getSSHGitAuth(privateKeyPath, privateKeyPassword)
-		if err != nil {
-			return "", err
-		}
-	case httpsAuth:
-		authMethod = &gitHttp.BasicAuth{Username: username, Password: token}
-	default:
-		return "", fmt.Errorf("unsupported authentication type: %s", authType)
+	authMethod, err := getGitAuthMethod(authType, privateKeyPath, privateKeyPassword, username, token)
+	if err != nil {
+		return "", err
 	}
 
 	_, err = git.PlainClone(workingDir, false, &git.CloneOptions{
@@ -168,17 +148,9 @@ func CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateK
 		return err
 	}
 
-	var authMethod transport.AuthMethod
-	switch authType {
-	case sshAuth:
-		authMethod, err = getSSHGitAuth(privateKeyPath, privateKeyPassword)
-		if err != nil {
-			return err
-		}
-	case httpsAuth:
-		authMethod = &gitHttp.BasicAuth{Username: username, Password: token}
-	default:
-		return fmt.Errorf("unsupported authentication type: %s", authType)
+	authMethod, err := getGitAuthMethod(authType, privateKeyPath, privateKeyPassword, username, token)
+	if err != nil {
+		return err
 	}
 
 	if err := repo.Push(&git.PushOptions{
@@ -193,4 +165,28 @@ func CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateK
 // CleanupRepo delete the temp repo.
 func CleanupRepo() error {
 	return os.RemoveAll(workingDir)
+}
+
+func getGitAuthMethod(authType, privateKeyPath, privateKeyPassword, gitUsername, gitToken string) (transport.AuthMethod, error) {
+	var authMethod transport.AuthMethod
+	var err error
+
+	switch authType {
+	case sshAuth:
+		var sshKey []byte
+		sshKey, err = os.ReadFile(privateKeyPath)
+		if err != nil {
+			return nil, err
+		}
+		authMethod, err = ssh.NewPublicKeys("git", sshKey, privateKeyPassword)
+		if err != nil {
+			return nil, err
+		}
+	case httpsAuth:
+		authMethod = &gitHttp.BasicAuth{Username: gitUsername, Password: gitToken}
+	default:
+		return nil, fmt.Errorf("unsupported authentication type: %s", authType)
+	}
+	return authMethod, nil
+
 }

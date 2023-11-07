@@ -15,6 +15,7 @@ var (
 	}
 )
 
+// NewAskBootstrapFluxStep step for asking if user want to install flux using generic method
 func NewAskBootstrapFluxStep(config Config) BootstrapStep {
 	return BootstrapStep{
 		Name: "bootstrap flux",
