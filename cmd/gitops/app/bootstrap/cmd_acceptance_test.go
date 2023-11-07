@@ -93,7 +93,7 @@ func TestBootstrapCmd(t *testing.T) {
 		{
 			name: "should bootstrap non-interactive with valid arguments",
 			flags: []string{kubeconfigFlag,
-				"--version=0.33.0",
+				"--version=0.35.0",
 				privateKeyFlag, "--private-key-password=\"\"",
 				"--password=admin123",
 				"--domain-type=localhost",
