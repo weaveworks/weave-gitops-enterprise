@@ -14,6 +14,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/configuration"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
@@ -426,6 +427,23 @@ func TestRunQuery(t *testing.T) {
 			query: &query{terms: "", filters: []string{}},
 			opts:  &query{orderBy: "name", descending: true},
 			want:  []string{"some-name"},
+		},
+		{
+			name: "exact name matches",
+			objects: []models.Object{
+				{
+					Cluster:    "management",
+					Name:       "kube-prometheus-stack",
+					Namespace:  "namespace-1",
+					Kind:       "HelmChart",
+					APIGroup:   "apps",
+					APIVersion: "v1",
+					Category:   configuration.CategoryAutomation,
+				},
+			},
+			query: &query{terms: "kube-prometheus-stack", filters: []string{}},
+			opts:  &query{orderBy: "name", descending: true, filters: []string{"category:automation"}},
+			want:  []string{"kube-prometheus-stack"},
 		},
 	}
 

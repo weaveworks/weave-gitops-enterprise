@@ -190,7 +190,7 @@ func (i *bleveIndexer) Search(ctx context.Context, q Query, opts QueryOption) (i
 	terms := q.GetTerms()
 
 	if terms != "" {
-		tq := bleve.NewMatchQuery(terms)
+		tq := bleve.NewTermQuery(terms)
 		query.AddQuery(tq)
 	}
 
