@@ -16,13 +16,11 @@ const (
 )
 
 const (
-	defaultAdminUsername = "wego-admin"
 	defaultAdminPassword = "password"
 )
 
 // inputs names
 const (
-	UserName           = "username"
 	Password           = "password"
 	WGEVersion         = "wgeVersion"
 	UserDomain         = "userDomain"
@@ -51,7 +49,6 @@ const (
 type ConfigBuilder struct {
 	logger                  logger.Logger
 	kubeconfig              string
-	username                string
 	password                string
 	wgeVersion              string
 	domainType              string
@@ -72,11 +69,6 @@ func NewConfigBuilder() *ConfigBuilder {
 
 func (c *ConfigBuilder) WithLogWriter(logger logger.Logger) *ConfigBuilder {
 	c.logger = logger
-	return c
-}
-
-func (c *ConfigBuilder) WithUsername(username string) *ConfigBuilder {
-	c.username = username
 	return c
 }
 
@@ -134,7 +126,6 @@ type Config struct {
 
 	WGEVersion string // user want this version in the cluster
 
-	Username string // cluster user username
 	Password string // cluster user password
 
 	DomainType string
@@ -180,7 +171,6 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
 		WGEVersion:              cb.wgeVersion,
-		Username:                cb.username,
 		Password:                cb.password,
 		Logger:                  cb.logger,
 		DomainType:              cb.domainType,
