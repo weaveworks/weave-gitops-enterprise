@@ -43,6 +43,8 @@ type bootstrapFlags struct {
 	domainType string
 	domain     string
 
+	silent bool
+
 	// private key (ssh-auth) flags
 	privateKeyPath     string
 	privateKeyPassword string
@@ -75,6 +77,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.Flags().StringVarP(&flags.domainType, "domain-type", "t", "", "dashboard domain type: could be 'localhost' or 'externaldns'")
 	cmd.Flags().StringVarP(&flags.domain, "domain", "d", "", "the domain to access the dashboard in case of using externaldns")
 	cmd.Flags().StringVarP(&flags.version, "version", "v", "", "version of Weave GitOps Enterprise (should be from the latest 3 versions)")
+	cmd.PersistentFlags().BoolVarP(&flags.silent, "bootstrap-flux", "s", false, "always choose yes for interactive questions")
 	cmd.PersistentFlags().StringVarP(&flags.gitUsername, "git-username", "", "", "git username used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.gitToken, "git-token", "", "", "git token used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.branch, "branch", "b", "", "git branch for your flux repository (example: main)")
@@ -84,7 +87,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "private key password. If the private key is encrypted using password")
 	cmd.PersistentFlags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
 	cmd.PersistentFlags().StringVarP(&flags.clientID, "client-id", "i", "", "OIDC client ID")
-	cmd.PersistentFlags().StringVarP(&flags.clientSecret, "client-secret", "s", "", "OIDC client secret")
+	cmd.PersistentFlags().StringVarP(&flags.clientSecret, "client-secret", "", "", "OIDC client secret")
 
 	cmd.AddCommand(AuthCommand(opts))
 
@@ -114,6 +117,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 				flags.gitToken,
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, true).
+			WithSilentFlag(flags.silent).
 			Build()
 
 		if err != nil {

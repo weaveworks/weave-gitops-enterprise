@@ -68,6 +68,7 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 				flags.gitToken,
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
+			WithSilentFlag(flags.silent).
 			Build()
 
 		if err != nil {

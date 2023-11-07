@@ -67,6 +67,7 @@ type ConfigBuilder struct {
 	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
+	silent                  bool
 	gitUsername             string
 	gitToken                string
 	repoURL                 string
@@ -145,6 +146,11 @@ func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, cli
 	return c
 }
 
+func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
+	c.silent = silent
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -159,6 +165,8 @@ type Config struct {
 	UserDomain string
 
 	GitScheme string
+
+	Silent bool
 
 	FluxInstallated    bool
 	PrivateKeyPath     string
@@ -223,6 +231,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		UserDomain:              cb.domain,
 		GitScheme:               scheme,
 		Branch:                  cb.branch,
+		Silent:                  cb.silent,
 		RepoPath:                cb.repoPath,
 		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,

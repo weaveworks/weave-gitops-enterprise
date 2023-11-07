@@ -110,6 +110,10 @@ func defaultInputStep(inputs []StepInput, c *Config) ([]StepInput, error) {
 			if input.StepInformation != "" {
 				c.Logger.Warningf(input.StepInformation)
 			}
+			// if silent mode is enabled, select yes
+			if c.Silent {
+				input.Value = confirmYes
+			}
 
 			// get the value from user otherwise
 			if input.Value == nil {

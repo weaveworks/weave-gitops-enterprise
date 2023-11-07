@@ -74,8 +74,31 @@ func TestBootstrapCmd(t *testing.T) {
 
 	privateKeyFile := os.Getenv("GIT_PRIVATEKEY_PATH")
 	g.Expect(privateKeyFile).NotTo(BeEmpty())
+
+	repoURLSSH := os.Getenv("GIT_REPO_URL_SSH")
+	g.Expect(repoURLSSH).NotTo(BeEmpty())
+	repoURLHTTPS := os.Getenv("GIT_REPO_URL_HTTPS")
+	g.Expect(repoURLHTTPS).NotTo(BeEmpty())
+	gitUsername := os.Getenv("GIT_USERNAME")
+	g.Expect(gitUsername).NotTo(BeEmpty())
+	gitToken := os.Getenv("GIT_TOKEN")
+	g.Expect(gitToken).NotTo(BeEmpty())
+	gitBranch := os.Getenv("GIT_BRANCH")
+	g.Expect(gitBranch).NotTo(BeEmpty())
+	gitRepoPath := os.Getenv("GIT_REPO_PATH")
+	g.Expect(gitRepoPath).NotTo(BeEmpty())
+
 	privateKeyFlag := fmt.Sprintf("--private-key=%s", privateKeyFile)
 	kubeconfigFlag := fmt.Sprintf("--kubeconfig=%s", kubeconfigPath)
+
+	repoSSHURLFlag := fmt.Sprintf("--repo-url=%s", repoURLSSH)
+	repoHTTPSURLFlag := fmt.Sprintf("--repo-url=%s", repoURLHTTPS)
+
+	gitUsernameFlag := fmt.Sprintf("--git-username=%s", gitUsername)
+	gitTokenFlag := fmt.Sprintf("--git-token=%s", gitToken)
+
+	gitBranchFlag := fmt.Sprintf("--branch=%s", gitBranch)
+	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
 
 	oidcClientSecret := os.Getenv("OIDC_CLIENT_SECRET")
 	g.Expect(oidcClientSecret).NotTo(BeEmpty())
@@ -103,6 +126,50 @@ func TestBootstrapCmd(t *testing.T) {
 			},
 			setup: func(t *testing.T) {
 				bootstrapFluxSsh(g, kubeconfigFlag)
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
+			},
+			expectedErrorStr: "",
+		},
+		{
+			name: "should install wge with flux with provided repo url and detect the scheme type ssh",
+			flags: []string{kubeconfigFlag,
+				"--version=0.35.0",
+				privateKeyFlag, "--private-key-password=\"\"",
+				"--password=admin123",
+				"--domain-type=localhost",
+				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+				"--client-id=weave-gitops-enterprise",
+				repoSSHURLFlag, gitBranchFlag, gitRepoPathFlag,
+				oidcClientSecretFlag, "-s",
+			},
+			setup: func(t *testing.T) {
+				createEntitlements(t, testLog)
+			},
+			reset: func(t *testing.T) {
+				deleteEntitlements(t, testLog)
+				deleteClusterUser(t, testLog)
+				uninstallFlux(g, kubeconfigFlag)
+			},
+			expectedErrorStr: "",
+		},
+		{
+			name: "should install wge with flux with provided repo url and detect the scheme type https",
+			flags: []string{kubeconfigFlag,
+				"--version=0.35.0",
+				"--password=admin123",
+				"--domain-type=localhost",
+				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+				"--client-id=weave-gitops-enterprise",
+				gitUsernameFlag, gitTokenFlag, gitBranchFlag, gitRepoPathFlag,
+				repoHTTPSURLFlag,
+				oidcClientSecretFlag, "-s",
+			},
+			setup: func(t *testing.T) {
 				createEntitlements(t, testLog)
 			},
 			reset: func(t *testing.T) {

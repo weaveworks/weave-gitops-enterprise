@@ -196,8 +196,15 @@ Entitlement stage
 - `WGE_ENTITLEMENT_USERNAME`: entitlements username  to use for creating the entitlement before running the test.
 - `WGE_ENTITLEMENT_PASSWORD`: entitlements password  to use for creating the entitlement before running the test.
 - `WGE_ENTITLEMENT_ENTITLEMENT`: valid entitlements token to use for creating the entitlement before running the test.
+- `OIDC_CLIENT_SECRET`: client secret for oidc flag
 - `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
 - `GIT_URL_SSH`: git ssh url for the repo wge configuration repo.
+- `GIT_URL_HTTPS`: git https url for the repo wge configuration repo.
+- `GIT_USERNAME`: git username for testing https auth
+- `GIT_TOKEN`: git token for testing https auth
+- `GIT_BRANCH`: git branch for testing with flux bootstrap
+- `GIT_REPO_PATH`: git repo path for default cluster for testing with flux bootstrap
+
 
 Run it via `make cli-acceptance-tests`
 
