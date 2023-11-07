@@ -134,7 +134,10 @@ type GitOpsSetsServer interface {
 	// given the gitopsset name and namespace and cluster.
 	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
 	//
-	// Get the reconciled objects for a GitOpsSet
+	// GetReconciledObjects returns a list of objects
+	// that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization
+	// or HelmRelease specified in the request body.
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
 	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
