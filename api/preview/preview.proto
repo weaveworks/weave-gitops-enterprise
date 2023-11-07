@@ -30,9 +30,18 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
  * representations of known Kubernetes resources.
  */
 service PreviewService {
+    // FIXME
     rpc GetYAML(GetYAMLRequest) returns (GetYAMLResponse) {
-         option (google.api.http) = {
-            post : "/v1/preview-yaml"
+        option (google.api.http) = {
+            post : "/v1/preview/yaml"
+            body: "*"
+        };
+    }
+
+    // FIXME
+    rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse){
+        option (google.api.http) = {
+            post : "/v1/preview/pull-requests"
             body: "*"
         };
     }

@@ -1,32 +1,33 @@
 package preview
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"net/url"
+	"os"
 
-	"github.com/fluxcd/pkg/apis/meta"
-	sourcev1 "github.com/fluxcd/source-controller/api/v1"
-	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/spf13/viper"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/preview"
-	"golang.org/x/exp/slices"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"sigs.k8s.io/yaml"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/git"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server/gitproviders"
+	"github.com/weaveworks/weave-gitops/pkg/server/middleware"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+	"k8s.io/utils/ptr"
 )
 
 type ServerOpts struct {
 	logr.Logger
+	git.ProviderCreator
 }
 
 type server struct {
 	pb.UnimplementedPreviewServiceServer
 
-	log logr.Logger
+	log             logr.Logger
+	providerCreator git.ProviderCreator
 }
 
 func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error {
@@ -37,384 +38,157 @@ func Hydrate(ctx context.Context, mux *runtime.ServeMux, opts ServerOpts) error 
 
 func NewPreviewServiceServer(opts ServerOpts) pb.PreviewServiceServer {
 	return &server{
-		log: opts.Logger,
-		// clients: opts.ClientsFactory,
-		// scheme:  opts.Scheme,
+		log:             opts.Logger,
+		providerCreator: opts.ProviderCreator,
 	}
 }
 
 func (s *server) GetYAML(ctx context.Context, msg *pb.GetYAMLRequest) (*pb.GetYAMLResponse, error) {
-	var (
-		yaml string
-		err  error
-	)
-	switch msg.Type {
-	case sourcev1.GitRepositoryKind:
-		var m pb.GitRepository
-		if err := json.Unmarshal([]byte(msg.Resource), &m); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON object: %w", err)
-		}
-		yaml, err = generateGitRepositoryYAML(&m)
-	case sourcev1beta2.HelmRepositoryKind:
-		var m pb.HelmRepository
-		if err := json.Unmarshal([]byte(msg.Resource), &m); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON object: %w", err)
-		}
-		yaml, err = generateHelmRepositoryYAML(&m)
-	case sourcev1beta2.BucketKind:
-		var m pb.Bucket
-		if err := json.Unmarshal([]byte(msg.Resource), &m); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON object: %w", err)
-		}
-		yaml, err = generateBucketYAML(&m)
-	case sourcev1beta2.OCIRepositoryKind:
-		var m pb.OCIRepository
-		if err := json.Unmarshal([]byte(msg.Resource), &m); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal JSON object: %w", err)
-		}
-		yaml, err = generateOCIRepositoryYAML(&m)
-	default:
-		return nil, fmt.Errorf("unsupported type: %v", msg.Type)
+	yamlObj, err := generateYAML(msg.GetResource())
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate YAML for %q: %w", msg.GetResource().GetType(), err)
 	}
 
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate YAML for %q: %w", msg.Type, err)
+	path := msg.GetPath()
+	if path == "" {
+		path = getRepositoryFilePath(yamlObj.name, yamlObj.namespace)
 	}
 
 	return &pb.GetYAMLResponse{
-		Yaml: yaml,
+		File: &pb.PathContent{
+			Path:    path,
+			Content: yamlObj.yaml,
+		},
 	}, nil
 }
 
-func generateGitRepositoryYAML(resource *pb.GitRepository) (string, error) {
-	if resource.GetName() == "" {
-		return "", errors.New("name is required")
+func (s *server) CreatePullRequest(ctx context.Context, msg *pb.CreatePullRequestRequest) (*pb.CreatePullRequestResponse, error) {
+	if msg.GetRepositoryUrl() == "" {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("repository URL is required"))
 	}
 
-	if resource.GetNamespace() == "" {
-		return "", errors.New("namespace is required")
+	if msg.GetHeadBranch() == "" {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("head branch is required"))
 	}
 
-	if resource.GetInterval().IsValid() && resource.GetInterval().Seconds == 0 {
-		return "", errors.New("invalid interval value")
+	if msg.GetBaseBranch() == "" {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("base branch is required"))
 	}
 
-	if resource.GetUrl() == "" {
-		return "", errors.New("url is required")
+	if msg.GetTitle() == "" {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("title is required"))
 	}
-	url, err := url.Parse(resource.GetUrl())
+
+	if msg.GetDescription() == "" {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("description is required"))
+	}
+
+	if msg.GetCommitMessage() == "" {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("commit message is required"))
+	}
+
+	if msg.GetResource() == nil {
+		return nil, fmt.Errorf("failed to create pull request: %w", errors.New("resource is required"))
+	}
+
+	yamlObj, err := generateYAML(msg.GetResource())
 	if err != nil {
-		return "", fmt.Errorf("invalid url value: %w", err)
-	}
-	if url.Scheme != "ssh" && url.Scheme != "http" && url.Scheme != "https" {
-		return "", fmt.Errorf("url scheme %q is not supported", url.Scheme)
+		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
-	gvk := sourcev1.GroupVersion.WithKind(sourcev1.GitRepositoryKind)
-	gitRepository := sourcev1.GitRepository{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       gvk.Kind,
-			APIVersion: gvk.GroupVersion().String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resource.GetName(),
-			Namespace: resource.GetNamespace(),
-		},
-		Spec: sourcev1.GitRepositorySpec{
-			URL: resource.GetUrl(),
-			Interval: metav1.Duration{
-				Duration: resource.GetInterval().AsDuration(),
-			},
-			Reference: &sourcev1.GitRepositoryRef{},
-		},
+	path := msg.GetPath()
+	if path == "" {
+		path = getRepositoryFilePath(yamlObj.name, yamlObj.namespace)
 	}
 
-	if resource.GetBranch() == "" && resource.GetTag() == "" &&
-		resource.GetSemver() == "" && resource.GetCommit() == "" && resource.GetRefName() == "" {
-		return "", errors.New("a Git ref is required")
-	}
-
-	if resource.GetCommit() != "" {
-		gitRepository.Spec.Reference.Commit = resource.GetCommit()
-		gitRepository.Spec.Reference.Branch = resource.GetBranch()
-	} else if resource.GetRefName() != "" {
-		gitRepository.Spec.Reference.Name = resource.GetRefName()
-	} else if resource.GetSemver() != "" {
-		gitRepository.Spec.Reference.SemVer = resource.GetSemver()
-	} else if resource.GetTag() != "" {
-		gitRepository.Spec.Reference.Tag = resource.GetTag()
-	} else {
-		gitRepository.Spec.Reference.Branch = resource.GetBranch()
-	}
-
-	if resource.GetSecretRefName() != "" {
-		gitRepository.Spec.SecretRef = &meta.LocalObjectReference{
-			Name: resource.GetSecretRefName(),
-		}
-	}
-
-	return printExport(&gitRepository)
-}
-
-func generateHelmRepositoryYAML(resource *pb.HelmRepository) (string, error) {
-	if resource.GetName() == "" {
-		return "", errors.New("name is required")
-	}
-
-	if resource.GetNamespace() == "" {
-		return "", errors.New("namespace is required")
-	}
-
-	if resource.GetInterval().IsValid() && resource.GetInterval().Seconds == 0 {
-		return "", errors.New("invalid interval value")
-	}
-
-	gvk := sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.HelmRepositoryKind)
-	helmRepository := sourcev1beta2.HelmRepository{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       gvk.Kind,
-			APIVersion: gvk.GroupVersion().String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resource.GetName(),
-			Namespace: resource.GetNamespace(),
-		},
-		Spec: sourcev1beta2.HelmRepositorySpec{
-			Interval: metav1.Duration{
-				Duration: resource.GetInterval().AsDuration(),
+	var commits []git.Commit
+	commits = append(commits, git.Commit{
+		CommitMessage: msg.GetCommitMessage(),
+		Files: []git.CommitFile{
+			{
+				Path:    path,
+				Content: ptr.To(yamlObj.yaml),
 			},
 		},
-	}
+	})
 
-	if resource.Type != nil {
-		if resource.GetType() == sourcev1beta2.HelmRepositoryTypeDefault || resource.GetType() == sourcev1beta2.HelmRepositoryTypeOCI {
-			helmRepository.Spec.Type = resource.GetType()
-		} else {
-			return "", errors.New("invalid type")
-		}
-	}
-
-	var validProviders = []string{
-		sourcev1beta2.GenericOCIProvider,
-		sourcev1beta2.AmazonOCIProvider,
-		sourcev1beta2.AzureOCIProvider,
-		sourcev1beta2.GoogleOCIProvider,
-	}
-
-	if resource.Provider != nil && !slices.Contains(validProviders, resource.GetProvider()) {
-		return "", errors.New("invalid provider")
-	}
-
-	if resource.GetUrl() == "" {
-		return "", errors.New("url is required")
-	}
-	url, err := url.Parse(resource.Url)
+	providerType, providerHostname, err := getProviderTypeAndHostname(msg.GetRepositoryUrl())
 	if err != nil {
-		return "", fmt.Errorf("invalid url value: %w", err)
+		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
-	helmRepository.Spec.URL = resource.Url
-
-	if url.Scheme == sourcev1beta2.HelmRepositoryTypeOCI {
-		helmRepository.Spec.Type = sourcev1beta2.HelmRepositoryTypeOCI
-		helmRepository.Spec.Provider = resource.GetProvider()
-	}
-
-	if resource.GetSecretRefName() != "" {
-		helmRepository.Spec.SecretRef = &meta.LocalObjectReference{
-			Name: resource.GetSecretRefName(),
-		}
-
-		if resource.PassCredentials != nil {
-			helmRepository.Spec.PassCredentials = resource.GetPassCredentials()
-		} else {
-			helmRepository.Spec.PassCredentials = false
-		}
-	}
-
-	return printExport(&helmRepository)
-}
-
-func generateBucketYAML(resource *pb.Bucket) (string, error) {
-	if resource.GetName() == "" {
-		return "", errors.New("name is required")
-	}
-
-	if resource.GetNamespace() == "" {
-		return "", errors.New("namespace is required")
-	}
-
-	if resource.GetInterval().IsValid() && resource.GetInterval().Seconds == 0 {
-		return "", errors.New("invalid interval value")
-	}
-
-	if resource.GetBucketName() == "" {
-		return "", errors.New("bucket name is required")
-	}
-
-	if resource.GetEndpoint() == "" {
-		return "", errors.New("endpoint is required")
-	}
-
-	gvk := sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.BucketKind)
-	bucket := sourcev1beta2.Bucket{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       gvk.Kind,
-			APIVersion: gvk.GroupVersion().String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resource.GetName(),
-			Namespace: resource.GetNamespace(),
-		},
-		Spec: sourcev1beta2.BucketSpec{
-			Interval: metav1.Duration{
-				Duration: resource.GetInterval().AsDuration(),
-			},
-			BucketName: resource.GetBucketName(),
-			Endpoint:   resource.GetEndpoint(),
-		},
-	}
-
-	var validBucketProviders = []string{
-		sourcev1beta2.GenericBucketProvider,
-		sourcev1beta2.AmazonBucketProvider,
-		sourcev1beta2.AzureBucketProvider,
-		sourcev1beta2.GoogleBucketProvider,
-	}
-
-	if resource.Provider != nil {
-		if !slices.Contains(validBucketProviders, resource.GetProvider()) {
-			return "", errors.New("invalid provider")
-		}
-
-		if resource.GetProvider() == sourcev1beta2.GenericBucketProvider && resource.GetSecretRefName() == "" {
-			return "", errors.New("generic provider requires a secretRef")
-		}
-
-		bucket.Spec.Provider = resource.GetProvider()
-	}
-
-	if resource.Region != nil && resource.GetRegion() != "" {
-		bucket.Spec.Region = resource.GetRegion()
-	}
-
-	if resource.Insecure != nil {
-		bucket.Spec.Insecure = resource.GetInsecure()
-	}
-
-	if resource.GetSecretRefName() != "" {
-		bucket.Spec.SecretRef = &meta.LocalObjectReference{
-			Name: resource.GetSecretRefName(),
-		}
-	}
-
-	return printExport(&bucket)
-}
-
-func generateOCIRepositoryYAML(resource *pb.OCIRepository) (string, error) {
-	if resource.GetName() == "" {
-		return "", errors.New("name is required")
-	}
-
-	if resource.GetNamespace() == "" {
-		return "", errors.New("namespace is required")
-	}
-
-	if resource.GetInterval().IsValid() && resource.GetInterval().Seconds == 0 {
-		return "", errors.New("invalid interval value")
-	}
-
-	if resource.GetUrl() == "" {
-		return "", errors.New("url is required")
-	}
-	url, err := url.Parse(resource.GetUrl())
+	providerToken, providerTokenType, err := getToken(ctx)
 	if err != nil {
-		return "", fmt.Errorf("invalid url value: %w", err)
-	}
-	if url.Scheme != "oci" {
-		return "", fmt.Errorf("url scheme must be set to %q", "oci")
+		return nil, fmt.Errorf("failed to create pull request: %w", err)
 	}
 
-	gvk := sourcev1beta2.GroupVersion.WithKind(sourcev1beta2.OCIRepositoryKind)
-	ociRepository := sourcev1beta2.OCIRepository{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       gvk.Kind,
-			APIVersion: gvk.GroupVersion().String(),
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      resource.GetName(),
-			Namespace: resource.GetNamespace(),
-		},
-		Spec: sourcev1beta2.OCIRepositorySpec{
-			URL: resource.GetUrl(),
-			Interval: metav1.Duration{
-				Duration: resource.GetInterval().AsDuration(),
-			},
-			Reference: &sourcev1beta2.OCIRepositoryRef{},
-		},
+	providerOptions := []git.ProviderWithFn{git.WithDomain(providerHostname)}
+	if providerType == git.AzureDevOpsProviderName {
+		providerOptions = append(providerOptions, git.WithToken(providerTokenType, providerToken))
+	} else if providerType == git.BitBucketServerProviderName {
+		providerOptions = append(providerOptions, git.WithUsername(""))
+		providerOptions = append(providerOptions, git.WithToken(providerTokenType, providerToken))
+	} else if providerType == git.GitHubProviderName {
+		providerOptions = append(providerOptions, git.WithOAuth2Token(providerToken))
+	} else if providerType == git.GitLabProviderName {
+		providerOptions = append(providerOptions, git.WithToken(providerTokenType, providerToken))
 	}
 
-	var validProviders = []string{
-		sourcev1beta2.GenericOCIProvider,
-		sourcev1beta2.AmazonOCIProvider,
-		sourcev1beta2.AzureOCIProvider,
-		sourcev1beta2.GoogleOCIProvider,
-	}
-
-	if resource.Provider != nil {
-		if !slices.Contains(validProviders, resource.GetProvider()) {
-			return "", errors.New("invalid provider")
-		} else {
-			ociRepository.Spec.Provider = resource.GetProvider()
-		}
-	}
-
-	if resource.GetTag() == "" && resource.GetSemver() == "" && resource.GetDigest() == "" {
-		return "", errors.New("ref is required")
-	}
-
-	if resource.GetTag() != "" {
-		ociRepository.Spec.Reference.Tag = resource.GetTag()
-	} else if resource.GetSemver() != "" {
-		ociRepository.Spec.Reference.SemVer = resource.GetSemver()
-	} else {
-		ociRepository.Spec.Reference.Digest = resource.GetDigest()
-	}
-
-	if resource.Insecure != nil {
-		ociRepository.Spec.Insecure = *resource.Insecure
-	}
-
-	if resource.GetServiceAccountName() != "" {
-		ociRepository.Spec.ServiceAccountName = resource.GetServiceAccountName()
-	}
-
-	if resource.GetSecretRefName() != "" {
-		ociRepository.Spec.SecretRef = &meta.LocalObjectReference{
-			Name: resource.GetSecretRefName(),
-		}
-	}
-
-	if resource.GetCertSecretRefName() != "" {
-		ociRepository.Spec.CertSecretRef = &meta.LocalObjectReference{
-			Name: resource.GetCertSecretRefName(),
-		}
-	}
-
-	return printExport(&ociRepository)
-}
-
-func printExport(export interface{}) (string, error) {
-	data, err := yaml.Marshal(export)
+	provider, err := s.providerCreator.Create(providerType, providerOptions...)
 	if err != nil {
-		return "", err
+		return nil, status.Errorf(codes.Unavailable, "error creating pull request: %s", err.Error())
 	}
-	return resourceToString(data), nil
+
+	res, err := provider.CreatePullRequest(ctx, git.PullRequestInput{
+		RepositoryURL: msg.GetRepositoryUrl(),
+		Title:         msg.GetTitle(),
+		Body:          msg.GetDescription(),
+		Head:          msg.GetHeadBranch(),
+		Base:          msg.GetBaseBranch(),
+		Commits:       commits,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("unable to create pull request: %w", err)
+	}
+
+	return &pb.CreatePullRequestResponse{
+		WebUrl: res.Link,
+	}, nil
 }
 
-func resourceToString(data []byte) string {
-	data = bytes.Replace(data, []byte("  creationTimestamp: null\n"), []byte(""), 1)
-	data = bytes.Replace(data, []byte("status: {}\n"), []byte(""), 1)
-	data = bytes.TrimSpace(data)
-	return string(data)
+func getRepositoryFilePath(name, namespace string) string {
+	cluster := os.Getenv("CLUSTER_NAME")
+	return fmt.Sprintf("clusters/%s/namespaces/%s/%s.yaml", cluster, namespace, name)
+}
+
+func getToken(ctx context.Context) (string, string, error) {
+	token := viper.GetString("git-provider-token")
+
+	providerToken, err := middleware.ExtractProviderToken(ctx)
+	if err != nil {
+		// fallback to env token
+		return token, "", nil
+	}
+
+	return providerToken.AccessToken, "oauth2", nil
+}
+
+func getProviderTypeAndHostname(repositoryURL string) (string, string, error) {
+	// read defaults from config
+	providerType := viper.GetString("git-provider-type")
+	providerHostname := viper.GetString("git-provider-hostname")
+
+	// if user supplies a different gitrepo, derive the provider type and host from the URL
+	if repositoryURL != "" {
+		repoURL, err := gitproviders.NewRepoURL(repositoryURL)
+		if err != nil {
+			return "", "", fmt.Errorf("failed to parse repository URL: %w", err)
+		}
+
+		// override defaults
+		providerType = string(repoURL.Provider())
+		providerHostname = repoURL.URL().Host
+	}
+
+	return providerType, providerHostname, nil
 }

@@ -153,6 +153,34 @@ jobs:
       WGE_GITLAB_CLIENT_ID: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_ID }}
       WGE_GITLAB_CLIENT_SECRET: ${{ secrets.WGE_ON_PREM_GITLAB_CLIENT_SECRET }}
 
+  playwright-smoke-tests:
+    needs: [build]
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Generate release tags
+        id: release_tags
+        run: |
+          TAG=$(git describe --always --match "v*" --abbrev=7 | sed 's/^[^0-9]*//' ) 
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+      - name: Run playwright tests workflow
+        uses: convictional/trigger-workflow-and-wait@v1.6.1
+        with:
+          owner: weaveworks
+          repo: playwright-tests
+          github_token: ${{ secrets.BUILD_BOT_PERSONAL_ACCESS_TOKEN }}
+          workflow_file_name: nightly.yaml
+          ref: main
+          wait_interval: 10
+          propagate_failure: false
+          trigger_workflow: true
+          wait_workflow: true
+          client_payload: '{"chart_version": "${{ steps.release_tags.outputs.tag }}"}'
+
   smoke-test-results:
     if: ${{ always() }}
     needs:
@@ -180,3 +208,5 @@ jobs:
         slack-text: |
           :sad-parrot: The <https://github.com/weaveworks/weave-gitops-enterprise/commit/${{ github.sha }}|latest commit> from ${{ github.actor }} is failing on main. <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|Click here> and weep. Then fix the underlying issue and ensure main remains green.
         slack-optional-icon_url: "https://avatars.githubusercontent.com/u/9976052"
+
+

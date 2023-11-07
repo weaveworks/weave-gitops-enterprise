@@ -375,3 +375,16 @@ func (q query) GetTerms() string {
 func (q query) GetFilters() []string {
 	return []string{}
 }
+
+// Test_addDefaultFacets test that we include facets from common fields but also other specific ones like labels
+func Test_addDefaultFacets(t *testing.T) {
+	g := NewGomegaWithT(t)
+	q := bleve.NewMatchAllQuery()
+	req := bleve.NewSearchRequest(q)
+
+	addDefaultFacets(req)
+
+	g.Expect(len(req.Facets) > len(commonFields)).To(BeTrue())
+	g.Expect(req.Facets["cluster"]).NotTo(BeNil())
+	g.Expect(req.Facets["labels.weave.works/template-type"]).NotTo(BeNil())
+}

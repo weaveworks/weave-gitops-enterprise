@@ -57,5 +57,5 @@ func TestApprovePipeline(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	require.Equal(t, "https://github.com/my-project/pulls/1", resp.PullRequestURL)
+	require.Equal(t, "https://github.com/my-project/pulls/1", resp.PullRequestUrl)
 }

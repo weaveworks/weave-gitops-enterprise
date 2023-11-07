@@ -49,15 +49,14 @@ type GitProvider struct {
 }
 
 type WriteFilesToBranchAndCreatePullRequestRequest struct {
-	GitProvider       GitProvider
-	RepositoryURL     string
-	ReposistoryAPIURL string
-	HeadBranch        string
-	BaseBranch        string
-	Title             string
-	Description       string
-	CommitMessage     string
-	Files             []git.CommitFile
+	GitProvider   GitProvider
+	RepositoryURL string
+	HeadBranch    string
+	BaseBranch    string
+	Title         string
+	Description   string
+	CommitMessage string
+	Files         []git.CommitFile
 }
 
 type WriteFilesToBranchAndCreatePullRequestResponse struct {

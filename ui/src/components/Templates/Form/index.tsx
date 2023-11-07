@@ -430,10 +430,9 @@ const ResourceForm: FC<ResourceFormProps> = ({ template, resource }) => {
           {template.description ? (
             <Flex column>
               <div>Description:</div>
-              <Editor
-                children={template.description || ''}
-                remarkPlugins={[remarkGfm]}
-              />
+              <Editor remarkPlugins={[remarkGfm]}>
+                {template.description || ''}
+              </Editor>
             </Flex>
           ) : null}
           <Divider

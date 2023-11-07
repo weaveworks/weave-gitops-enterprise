@@ -12,6 +12,7 @@ import {
   Metadata,
   RouterTab,
   SubRouterTabs,
+  Timestamp,
   YamlView,
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
@@ -38,6 +39,7 @@ import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
+import { getLastApplied } from './TerraformListTable';
 import TerraformPlanView from './TerraformPlanView';
 
 type Props = {
@@ -236,6 +238,10 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                       object?.driftDetectionResult ? 'True' : 'False',
                     ],
                     ['Suspended', object?.suspended ? 'True' : 'False'],
+                    [
+                      'Last Applied',
+                      <Timestamp time={getLastApplied(object || {})} />,
+                    ],
                   ]}
                 />
                 <Metadata
