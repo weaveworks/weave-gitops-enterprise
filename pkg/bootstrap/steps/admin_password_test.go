@@ -24,10 +24,6 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  UserName,
-					Value: "wego-admin",
-				},
-				{
 					Name:  Password,
 					Value: "password",
 				},
@@ -46,7 +42,7 @@ func TestCreateCredentials(t *testing.T) {
 							Namespace: WGEDefaultNamespace,
 						},
 						Data: map[string][]byte{
-							"username": []byte("wego-admin"),
+							"username": []byte(defaultAdminUsername),
 						},
 					},
 				},
@@ -59,16 +55,12 @@ func TestCreateCredentials(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
-					"username": []byte("test-username"),
+					"username": []byte(defaultAdminUsername),
 					"password": []byte("test-password"),
 				},
 			},
 			password: "password",
 			input: []StepInput{
-				{
-					Name:  UserName,
-					Value: "wego-admin",
-				},
 				{
 					Name:  Password,
 					Value: "password",
@@ -86,16 +78,12 @@ func TestCreateCredentials(t *testing.T) {
 				ObjectMeta: metav1.ObjectMeta{Name: adminSecretName, Namespace: WGEDefaultNamespace},
 				Type:       "Opaque",
 				Data: map[string][]byte{
-					"username": []byte("test-username"),
+					"username": []byte(defaultAdminUsername),
 					"password": []byte("test-password"),
 				},
 			},
 			password: "password",
 			input: []StepInput{
-				{
-					Name:  UserName,
-					Value: "wego-admin",
-				},
 				{
 					Name:  Password,
 					Value: "password",
@@ -115,7 +103,7 @@ func TestCreateCredentials(t *testing.T) {
 							Namespace: WGEDefaultNamespace,
 						},
 						Data: map[string][]byte{
-							"username": []byte("wego-admin"),
+							"username": []byte(defaultAdminUsername),
 						},
 					},
 				},
