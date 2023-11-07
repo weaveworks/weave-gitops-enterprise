@@ -43,7 +43,7 @@ var (
 	}
 
 	getGitUsername = StepInput{
-		Name:         UserName,
+		Name:         gitUserName,
 		Type:         stringInput,
 		Msg:          gitUserNameMsg,
 		DefaultValue: "",

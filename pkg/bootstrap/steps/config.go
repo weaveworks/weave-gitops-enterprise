@@ -221,7 +221,7 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		SSHRepoURL:              cb.sshRepoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
-		GitUsername:             cb.username,
+		GitUsername:             cb.gitUsername,
 		GitToken:                cb.gitToken,
 		HttpsRepoURL:            cb.httpsRepoURL,
 		AuthType:                cb.authType,
