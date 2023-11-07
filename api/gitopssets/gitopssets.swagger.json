@@ -302,6 +302,7 @@
     },
     "/v1/namespaces/{namespace}/gitopssets/{name}/inventory": {
       "get": {
+        "summary": "GetInventory reapi/gitopssets/gitopssets.proto  of InventoryEntry\nobjects and children,\ngiven the gitopsset name and namespace and cluster.",
         "operationId": "GitOpsSets_GetInventory",
         "responses": {
           "200": {
