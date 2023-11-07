@@ -168,7 +168,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 				panic("unexpected internal error casting file")
 			}
 			c.Logger.Actionf("cloning flux git repo: %s/%s", WGEDefaultNamespace, WGEDefaultRepoName)
-			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitAuthType, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			pathInRepo, err := utils.CloneRepo(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return fmt.Errorf("cannot clone repo: %v", err)
 			}
@@ -180,7 +180,7 @@ func defaultOutputStep(params []StepOutput, c *Config) error {
 			}()
 			c.Logger.Successf("cloned flux git repo: %s/%s", WGEDefaultRepoName, WGEDefaultRepoName)
 
-			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitAuthType, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
+			err = utils.CreateFileToRepo(file.Name, file.Content, pathInRepo, file.CommitMsg, c.GitScheme, c.PrivateKeyPath, c.PrivateKeyPassword, c.GitUsername, c.GitToken)
 			if err != nil {
 				return err
 			}

@@ -39,7 +39,7 @@ const (
 )
 
 var discoveryUrlStep = StepInput{
-	Name:            DiscoveryURL,
+	Name:            inDiscoveryURL,
 	Type:            stringInput,
 	Msg:             oidcDiscoverUrlMsg,
 	DefaultValue:    "",
@@ -48,7 +48,7 @@ var discoveryUrlStep = StepInput{
 }
 
 var clientIDStep = StepInput{
-	Name:         ClientID,
+	Name:         inClientID,
 	Type:         stringInput,
 	Msg:          oidcClientIDMsg,
 	DefaultValue: "",
@@ -56,7 +56,7 @@ var clientIDStep = StepInput{
 }
 
 var clientSecretStep = StepInput{
-	Name:         ClientSecret,
+	Name:         inClientSecret,
 	Type:         passwordInput,
 	Msg:          oidcClientSecretMsg,
 	DefaultValue: "",
@@ -66,7 +66,7 @@ var clientSecretStep = StepInput{
 func NewOIDCConfigStep(config Config) BootstrapStep {
 	inputs := []StepInput{
 		{
-			Name:            existingOIDC,
+			Name:            inExistingOIDC,
 			Type:            confirmInput,
 			Msg:             existingOIDCMsg,
 			DefaultValue:    "",
@@ -99,22 +99,22 @@ func createOIDCConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	// process params
 	for _, param := range input {
 		switch param.Name {
-		case DiscoveryURL:
+		case inDiscoveryURL:
 			discoveryUrl, ok := param.Value.(string)
 			if ok {
 				c.DiscoveryURL = discoveryUrl
 			}
-		case ClientID:
+		case inClientID:
 			clientId, ok := param.Value.(string)
 			if ok {
 				c.ClientID = clientId
 			}
-		case ClientSecret:
+		case inClientSecret:
 			clientSecret, ok := param.Value.(string)
 			if ok {
 				c.ClientSecret = clientSecret
 			}
-		case existingOIDC:
+		case inExistingOIDC:
 			existing, ok := param.Value.(string)
 			if ok {
 				continueWithExistingConfigs = existing

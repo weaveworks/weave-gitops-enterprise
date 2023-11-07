@@ -64,7 +64,7 @@ func getRepoPath(client k8s_client.Client, repoName string, namespace string) (s
 	return kustomization.Spec.Path, nil
 }
 
-func getGitAuth(privateKeyPath, privateKeyPassword string) (*ssh.PublicKeys, error) {
+func getSSHGitAuth(privateKeyPath, privateKeyPassword string) (*ssh.PublicKeys, error) {
 	sshKey, err := os.ReadFile(privateKeyPath)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func CloneRepo(client k8s_client.Client,
 	var authMethod transport.AuthMethod
 	switch authType {
 	case sshAuth:
-		authMethod, err = getGitAuth(privateKeyPath, privateKeyPassword)
+		authMethod, err = getSSHGitAuth(privateKeyPath, privateKeyPassword)
 		if err != nil {
 			return "", err
 		}
@@ -171,7 +171,7 @@ func CreateFileToRepo(filename, filecontent, path, commitmsg, authType, privateK
 	var authMethod transport.AuthMethod
 	switch authType {
 	case sshAuth:
-		authMethod, err = getGitAuth(privateKeyPath, privateKeyPassword)
+		authMethod, err = getSSHGitAuth(privateKeyPath, privateKeyPassword)
 		if err != nil {
 			return err
 		}

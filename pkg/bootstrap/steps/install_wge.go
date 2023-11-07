@@ -40,7 +40,7 @@ const (
 )
 
 var getUserDomain = StepInput{
-	Name:         UserDomain,
+	Name:         inUserDomain,
 	Type:         stringInput,
 	Msg:          clusterDomainMsg,
 	DefaultValue: "",
@@ -64,13 +64,14 @@ func NewInstallWGEStep(config Config) BootstrapStep {
 
 // InstallWge installs weave gitops enterprise chart.
 func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
+	var ingressValues map[string]interface{}
 	switch c.DomainType {
 	case domainTypeLocalhost:
 		c.UserDomain = domainTypeLocalhost
 	case domainTypeExternalDNS:
 		if c.UserDomain == "" {
 			for _, param := range input {
-				if param.Name == UserDomain {
+				if param.Name == inUserDomain {
 					userDomain, ok := param.Value.(string)
 					if !ok {
 						return []StepOutput{}, fmt.Errorf("unexpected error occurred. UserDomain not found")
@@ -78,6 +79,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 					c.UserDomain = userDomain
 				}
 			}
+			ingressValues = constructIngressValues(c.UserDomain)
 		}
 	default:
 		return []StepOutput{}, fmt.Errorf("unsupported domain type:%s", c.DomainType)
@@ -118,7 +120,7 @@ func installWge(input []StepInput, c *Config) ([]StepOutput, error) {
 		}}
 
 	values := valuesFile{
-		Ingress: constructIngressValues(c.UserDomain),
+		Ingress: ingressValues,
 		TLS: map[string]interface{}{
 			"enabled": false,
 		},

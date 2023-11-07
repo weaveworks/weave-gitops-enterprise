@@ -24,11 +24,11 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: false,
 				},
 			},
@@ -62,11 +62,11 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: "n",
 				},
 			},
@@ -85,11 +85,11 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: "y",
 				},
 			},

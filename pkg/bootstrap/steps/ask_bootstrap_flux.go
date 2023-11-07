@@ -8,10 +8,10 @@ const (
 
 var (
 	bootstrapFLuxQuestion = StepInput{
-		Name:    bootstrapFlux,
+		Name:    inBootstrapFlux,
 		Type:    confirmInput,
 		Msg:     bootstrapFluxMsg,
-		Enabled: canAskForGitConfig,
+		Enabled: canAskForFluxBootstrap,
 	}
 )
 
@@ -26,11 +26,11 @@ func NewAskBootstrapFluxStep(config Config) BootstrapStep {
 }
 
 func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
-	if !canAskForGitConfig(input, c) {
+	if !canAskForFluxBootstrap(input, c) {
 		return []StepOutput{}, nil
 	}
 	for _, param := range input {
-		if param.Name == bootstrapFlux {
+		if param.Name == inBootstrapFlux {
 			fluxBootstrapRes, ok := param.Value.(string)
 			if ok {
 				if fluxBootstrapRes != "y" {
@@ -41,4 +41,9 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 	}
 	return []StepOutput{}, nil
+}
+
+// canAskForGitConfig if fluxInstallation is false, then can ask for git config
+func canAskForFluxBootstrap(input []StepInput, c *Config) bool {
+	return !c.FluxInstallated
 }

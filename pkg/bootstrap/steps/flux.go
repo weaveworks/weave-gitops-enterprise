@@ -2,7 +2,6 @@ package steps
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
@@ -46,13 +45,13 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	if err != nil {
 		return []StepOutput{}, fmt.Errorf("failed to get flux repository: %v", err)
 	}
-
-	if strings.Contains(repo.Spec.URL, sshAuthType) {
-		c.GitAuthType = sshAuthType
-	} else {
-		c.GitAuthType = httpsAuthType
+	scheme, err := parseRepoScheme(repo.Spec.URL)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("failed to parse flux repository: %v", err)
 	}
-	c.Logger.Successf("set git authentication method to: %s", c.GitAuthType)
+	c.GitScheme = scheme
+	c.Logger.Successf("detected git scheme: %s", c.GitScheme)
+
 	c.FluxInstallated = true
 
 	return []StepOutput{}, nil

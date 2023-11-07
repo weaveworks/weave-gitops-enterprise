@@ -10,9 +10,8 @@ func Bootstrap(config steps.Config) error {
 	var steps = []steps.BootstrapStep{
 		steps.VerifyFluxInstallation,
 		steps.NewAskBootstrapFluxStep(config),
-		steps.NewSelectGitAuthType(config),
-		steps.NewBootstrapFluxUsingSSH(config),
-		steps.NewBootstrapFluxUsingHTTPS(config),
+		steps.NewFluxGitRepositoryConfig(config),
+		steps.NewBootstrapFlux(config),
 		steps.CheckEntitlementSecret,
 		steps.NewSelectWgeVersionStep(config),
 		steps.NewAskAdminCredsSecretStep(config),

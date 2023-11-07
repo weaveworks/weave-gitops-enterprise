@@ -147,7 +147,7 @@ func TestInstallWge(t *testing.T) {
 			domainType: "wrongType",
 			input: []StepInput{
 				{
-					Name:  UserDomain,
+					Name:  inUserDomain,
 					Value: "example.com",
 				},
 			},
@@ -158,7 +158,7 @@ func TestInstallWge(t *testing.T) {
 			domainType: domainTypeLocalhost,
 			input: []StepInput{
 				{
-					Name:  UserDomain,
+					Name:  inUserDomain,
 					Value: "localhost",
 				},
 			},
@@ -189,7 +189,7 @@ func TestInstallWge(t *testing.T) {
 			domainType: domainTypeExternalDNS,
 			input: []StepInput{
 				{
-					Name:  UserDomain,
+					Name:  inUserDomain,
 					Value: "example.com",
 				},
 			},

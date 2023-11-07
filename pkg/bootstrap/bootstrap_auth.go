@@ -26,8 +26,7 @@ func bootstrapOIDC(config steps.Config) error {
 	var steps = []steps.BootstrapStep{
 		steps.VerifyFluxInstallation,
 		steps.CheckEntitlementSecret,
-		steps.NewBootstrapFluxUsingSSH(config),
-		steps.NewBootstrapFluxUsingHTTPS(config),
+		steps.NewBootstrapFlux(config),
 		steps.NewInstallOIDCStep(config),
 		steps.NewOIDCConfigStep(config),
 	}

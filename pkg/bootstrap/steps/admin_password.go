@@ -24,7 +24,7 @@ const (
 )
 
 var getPasswordInput = StepInput{
-	Name:         Password,
+	Name:         inPassword,
 	Type:         passwordInput,
 	Msg:          adminPasswordMsg,
 	DefaultValue: defaultAdminPassword,
@@ -41,7 +41,7 @@ var getPasswordInput = StepInput{
 func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 	inputs := []StepInput{
 		{
-			Name:            existingCreds,
+			Name:            inExistingCreds,
 			Type:            confirmInput,
 			Msg:             existingCredsMsg,
 			DefaultValue:    "",
@@ -65,13 +65,13 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	// search for existing admin credentials in secret cluster-user-auth
 	continueWithExistingCreds := confirmYes
 	for _, param := range input {
-		if param.Name == Password {
+		if param.Name == inPassword {
 			password, ok := param.Value.(string)
 			if ok {
 				c.Password = password
 			}
 		}
-		if param.Name == existingCreds {
+		if param.Name == inExistingCreds {
 			existing, ok := param.Value.(string)
 			if ok {
 				continueWithExistingCreds = existing

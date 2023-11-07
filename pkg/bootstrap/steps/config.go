@@ -19,34 +19,32 @@ const (
 	defaultAdminPassword = "password"
 )
 
-// gitAuthTypes
+// git schemes
 const (
-	httpsAuthType = "https"
-	sshAuthType   = "ssh"
+	httpsScheme = "https"
+	sshScheme   = "ssh"
 )
 
 // inputs names
 const (
-	Password           = "password"
-	WGEVersion         = "wgeVersion"
-	UserDomain         = "userDomain"
-	PrivateKeyPath     = "privateKeyPath"
-	PrivateKeyPassword = "privateKeyPassword"
-	existingCreds      = "existingCreds"
-	domainType         = "domainType"
-	gitAuthType        = "gitAuthType"
-	DiscoveryURL       = "discoveryURL"
-	ClientID           = "clientID"
-	ClientSecret       = "clientSecret"
-	oidcInstalled      = "oidcInstalled"
-	existingOIDC       = "existingOIDC"
-	sshRepoURL         = "sshRepoURL"
-	httpsRepoURL       = "httpsRepoURL"
-	branch             = "branch"
-	repoPath           = "repoPath"
-	gitUserName        = "username"
-	gitToken           = "gitToken"
-	bootstrapFlux      = "bootstrapFlux"
+	inPassword           = "password"
+	inWGEVersion         = "wgeVersion"
+	inUserDomain         = "userDomain"
+	inPrivateKeyPath     = "privateKeyPath"
+	inPrivateKeyPassword = "privateKeyPassword"
+	inExistingCreds      = "existingCreds"
+	inDomainType         = "domainType"
+	inDiscoveryURL       = "discoveryURL"
+	inClientID           = "clientID"
+	inClientSecret       = "clientSecret"
+	inOidcInstalled      = "oidcInstalled"
+	inExistingOIDC       = "existingOIDC"
+	inRepoURL            = "repoURL"
+	inBranch             = "branch"
+	inRepoPath           = "repoPath"
+	inGitUserName        = "username"
+	inGitToken           = "gitToken"
+	inBootstrapFlux      = "bootstrapFlux"
 )
 
 // input/output types
@@ -67,13 +65,11 @@ type ConfigBuilder struct {
 	wgeVersion              string
 	domainType              string
 	domain                  string
-	gitAuthType             string
-	sshRepoURL              string
 	privateKeyPath          string
 	privateKeyPassword      string
 	gitUsername             string
 	gitToken                string
-	httpsRepoURL            string
+	repoURL                 string
 	branch                  string
 	repoPath                string
 	authType                string
@@ -120,17 +116,19 @@ func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
 
 }
 
-func (c *ConfigBuilder) WithGitAuthentication(gitAuthType, privateKeyPath, privateKeyPassword, sshRepoURL, httpsRepoURL, gitUsername, gitToken, branch, repoPath string) *ConfigBuilder {
-	c.gitAuthType = gitAuthType
-	c.branch = branch
-	c.repoPath = repoPath
+func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
-	c.sshRepoURL = sshRepoURL
-	c.httpsRepoURL = httpsRepoURL
 	c.gitUsername = gitUsername
 	c.gitToken = gitToken
 
+	return c
+}
+
+func (c *ConfigBuilder) WithFluxGitRepository(repoURL, branch, repoPath string) *ConfigBuilder {
+	c.repoURL = repoURL
+	c.branch = branch
+	c.repoPath = repoPath
 	return c
 }
 
@@ -160,17 +158,16 @@ type Config struct {
 	DomainType string
 	UserDomain string
 
-	GitAuthType string
+	GitScheme string
 
 	FluxInstallated    bool
-	SSHRepoURL         string
 	PrivateKeyPath     string
 	PrivateKeyPassword string
 
-	GitUsername  string
-	GitToken     string
-	HttpsRepoURL string
+	GitUsername string
+	GitToken    string
 
+	RepoURL  string
 	Branch   string
 	RepoPath string
 
@@ -207,6 +204,15 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, errors.New("password minimum characters should be >= 6")
 	}
 
+	// parse repo scheme
+	var scheme string
+	if cb.repoURL != "" {
+		scheme, err = parseRepoScheme(cb.repoURL)
+		if err != nil {
+			return Config{}, err
+		}
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
@@ -215,15 +221,14 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		Logger:                  cb.logger,
 		DomainType:              cb.domainType,
 		UserDomain:              cb.domain,
-		GitAuthType:             cb.gitAuthType,
+		GitScheme:               scheme,
 		Branch:                  cb.branch,
 		RepoPath:                cb.repoPath,
-		SSHRepoURL:              cb.sshRepoURL,
+		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
 		GitUsername:             cb.gitUsername,
 		GitToken:                cb.gitToken,
-		HttpsRepoURL:            cb.httpsRepoURL,
 		AuthType:                cb.authType,
 		InstallOIDC:             cb.installOIDC,
 		DiscoveryURL:            cb.discoveryURL,

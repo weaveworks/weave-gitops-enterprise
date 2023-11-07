@@ -58,15 +58,14 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
-			WithGitAuthentication(flags.gitAuthType,
-				flags.privateKeyPath,
-				flags.privateKeyPassword,
-				flags.sshRepoURL,
-				flags.httpsRepoURL,
-				flags.gitUsername,
-				flags.gitToken,
+			WithFluxGitRepository(flags.repoURL,
 				flags.branch,
 				flags.repoPath,
+			).
+			WithGitAuthentication(flags.privateKeyPath,
+				flags.privateKeyPassword,
+				flags.gitUsername,
+				flags.gitToken,
 			).
 			WithOIDCConfig(flags.discoveryURL, flags.clientID, flags.clientSecret, false).
 			Build()
