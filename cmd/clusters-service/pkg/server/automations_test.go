@@ -730,6 +730,7 @@ spec:
     creationPolicy: Owner
     name: new-secret
 status:
+  binding: {}
   refreshTime: null
 `,
 				},
@@ -811,6 +812,7 @@ spec:
     creationPolicy: Owner
     name: new-secret
 status:
+  binding: {}
   refreshTime: null
 `,
 				},
@@ -876,6 +878,7 @@ spec:
     creationPolicy: Owner
     name: new-secret
 status:
+  binding: {}
   refreshTime: null
 `,
 				},
@@ -1214,6 +1217,7 @@ spec:
     creationPolicy: Owner
     name: new-secret
 status:
+  binding: {}
   refreshTime: null
 `,
 				},

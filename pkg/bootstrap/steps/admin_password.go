@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	adminUsernameMsg           = "dashboard admin username (default: wego-admin)"
 	adminPasswordMsg           = "dashboard admin password (minimum characters: 6)"
 	secretConfirmationMsg      = "admin login credentials has been created successfully!"
 	adminSecretExistsMsgFormat = "admin login credentials already exist on the cluster. To reset admin credentials please remove secret '%s' in namespace '%s', then try again"
@@ -19,17 +18,10 @@ const (
 )
 
 const (
-	adminSecretName = "cluster-user-auth"
-	confirmYes      = "y"
+	adminSecretName      = "cluster-user-auth"
+	confirmYes           = "y"
+	defaultAdminUsername = "wego-admin"
 )
-
-var getUsernameInput = StepInput{
-	Name:         UserName,
-	Type:         stringInput,
-	Msg:          adminUsernameMsg,
-	DefaultValue: defaultAdminUsername,
-	Valuesfn:     canAskForCreds,
-}
 
 var getPasswordInput = StepInput{
 	Name:         Password,
@@ -40,8 +32,8 @@ var getPasswordInput = StepInput{
 	Required:     true,
 }
 
-// NewAskAdminCredsSecretStep asks user about admin username and password.
-// admin username and password are you used for accessing WGE Dashboard
+// NewAskAdminCredsSecretStep asks user about admin  password.
+// admin password are you used for accessing WGE Dashboard
 // for emergency access. OIDC can be used instead.
 // there an option to revert these creds in case OIDC setup is successful
 // if the creds already exist. user will be asked to continue with the current creds
@@ -56,10 +48,6 @@ func NewAskAdminCredsSecretStep(config Config) BootstrapStep {
 			Valuesfn:        isExistingAdminSecret,
 			StepInformation: fmt.Sprintf(adminSecretExistsMsgFormat, adminSecretName, WGEDefaultNamespace),
 		},
-	}
-
-	if config.Username == "" {
-		inputs = append(inputs, getUsernameInput)
 	}
 
 	if config.Password == "" {
@@ -77,12 +65,6 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	// search for existing admin credentials in secret cluster-user-auth
 	continueWithExistingCreds := confirmYes
 	for _, param := range input {
-		if param.Name == UserName {
-			username, ok := param.Value.(string)
-			if ok {
-				c.Username = username
-			}
-		}
 		if param.Name == Password {
 			password, ok := param.Value.(string)
 			if ok {
@@ -111,10 +93,10 @@ func createCredentials(input []StepInput, c *Config) ([]StepOutput, error) {
 	}
 
 	data := map[string][]byte{
-		"username": []byte(c.Username),
+		"username": []byte(defaultAdminUsername),
 		"password": encryptedPassword,
 	}
-	c.Logger.Actionf("dashboard admin username: %s", c.Username)
+	c.Logger.Actionf("dashboard admin username: %s is configured", defaultAdminUsername)
 
 	secret := corev1.Secret{
 		ObjectMeta: v1.ObjectMeta{
