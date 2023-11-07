@@ -74,8 +74,8 @@ import {
   DebugGetAccessRulesResponse,
   ListFacetsRequest,
   ListFacetsResponse,
-  QueryRequest,
-  QueryResponse,
+  DoQueryRequest,
+  DoQueryResponse,
 } from '../api/query/query.pb';
 
 import Compose from '../components/ProvidersCompose';
@@ -441,11 +441,11 @@ export class SecretsClientMock {
 }
 
 export class MockQueryService {
-  DoQueryReturns: QueryResponse = {};
+  DoQueryReturns: DoQueryResponse = {};
   DebugGetAccessRulesReturns: DebugGetAccessRulesResponse = {};
   ListFacetsReturns: ListFacetsResponse = {};
 
-  DoQuery(req: QueryRequest, initReq?: any): Promise<QueryResponse> {
+  DoQuery(req: DoQueryRequest, initReq?: any): Promise<DoQueryResponse> {
     return promisify(this.DoQueryReturns);
   }
 

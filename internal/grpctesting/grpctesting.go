@@ -39,7 +39,7 @@ func BuildScheme() *runtime.Scheme {
 }
 
 func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClustersManager) {
-	k8s := fake.NewClientBuilder().WithScheme(BuildScheme()).WithObjects(objects...).Build()
+	k8s := fake.NewClientBuilder().WithScheme(BuildScheme()).WithObjects(objects...).WithStatusSubresource(&tfctrl.Terraform{}).Build()
 
 	factory := MakeClustersManager(k8s)
 

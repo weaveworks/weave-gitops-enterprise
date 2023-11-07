@@ -127,15 +127,14 @@ func (s *server) CreateAutomationsPullRequest(ctx context.Context, msg *capiv1_p
 	}
 
 	res, err := s.provider.WriteFilesToBranchAndCreatePullRequest(ctx, csgit.WriteFilesToBranchAndCreatePullRequestRequest{
-		GitProvider:       *gp,
-		RepositoryURL:     repositoryURL,
-		ReposistoryAPIURL: msg.RepositoryApiUrl,
-		HeadBranch:        msg.HeadBranch,
-		BaseBranch:        baseBranch,
-		Title:             msg.Title,
-		Description:       msg.Description,
-		CommitMessage:     msg.CommitMessage,
-		Files:             files,
+		GitProvider:   *gp,
+		RepositoryURL: repositoryURL,
+		HeadBranch:    msg.HeadBranch,
+		BaseBranch:    baseBranch,
+		Title:         msg.Title,
+		Description:   msg.Description,
+		CommitMessage: msg.CommitMessage,
+		Files:         files,
 	})
 
 	if err != nil {

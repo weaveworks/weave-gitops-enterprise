@@ -124,6 +124,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 			KubernetesDeletedAt: modelTs,
 			Unstructured:        raw,
 			Tenant:              o.GetLabels()[tenantLabel],
+			Labels:              o.GetRelevantLabels(),
 		}
 
 		if objTx.TransactionType() == models.TransactionTypeDelete {

@@ -23,8 +23,9 @@ func (obj GitOpsSetAdapter) GroupVersionKind() schema.GroupVersionKind {
 	return ctrl.GroupVersion.WithKind("GitOpsSet")
 }
 
-func (obj GitOpsSetAdapter) SetSuspended(suspend bool) {
+func (obj GitOpsSetAdapter) SetSuspended(suspend bool) error {
 	obj.Spec.Suspend = suspend
+	return nil
 }
 
 func (obj GitOpsSetAdapter) DeepCopyClientObject() client.Object {

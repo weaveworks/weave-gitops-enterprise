@@ -35,11 +35,17 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TerraformClient interface {
+	// List terraform objects across all clusters
 	ListTerraformObjects(ctx context.Context, in *ListTerraformObjectsRequest, opts ...grpc.CallOption) (*ListTerraformObjectsResponse, error)
+	// Get a terraform object
 	GetTerraformObject(ctx context.Context, in *GetTerraformObjectRequest, opts ...grpc.CallOption) (*GetTerraformObjectResponse, error)
+	// Sync multiple terraform objects
 	SyncTerraformObjects(ctx context.Context, in *SyncTerraformObjectsRequest, opts ...grpc.CallOption) (*SyncTerraformObjectsResponse, error)
+	// Toggle suspend on multiple terraform objects
 	ToggleSuspendTerraformObjects(ctx context.Context, in *ToggleSuspendTerraformObjectsRequest, opts ...grpc.CallOption) (*ToggleSuspendTerraformObjectsResponse, error)
+	// Get the plan for a terraform object
 	GetTerraformObjectPlan(ctx context.Context, in *GetTerraformObjectPlanRequest, opts ...grpc.CallOption) (*GetTerraformObjectPlanResponse, error)
+	// Replan a terraform object
 	ReplanTerraformObject(ctx context.Context, in *ReplanTerraformObjectRequest, opts ...grpc.CallOption) (*ReplanTerraformObjectResponse, error)
 }
 
@@ -109,11 +115,17 @@ func (c *terraformClient) ReplanTerraformObject(ctx context.Context, in *ReplanT
 // All implementations must embed UnimplementedTerraformServer
 // for forward compatibility
 type TerraformServer interface {
+	// List terraform objects across all clusters
 	ListTerraformObjects(context.Context, *ListTerraformObjectsRequest) (*ListTerraformObjectsResponse, error)
+	// Get a terraform object
 	GetTerraformObject(context.Context, *GetTerraformObjectRequest) (*GetTerraformObjectResponse, error)
+	// Sync multiple terraform objects
 	SyncTerraformObjects(context.Context, *SyncTerraformObjectsRequest) (*SyncTerraformObjectsResponse, error)
+	// Toggle suspend on multiple terraform objects
 	ToggleSuspendTerraformObjects(context.Context, *ToggleSuspendTerraformObjectsRequest) (*ToggleSuspendTerraformObjectsResponse, error)
+	// Get the plan for a terraform object
 	GetTerraformObjectPlan(context.Context, *GetTerraformObjectPlanRequest) (*GetTerraformObjectPlanResponse, error)
+	// Replan a terraform object
 	ReplanTerraformObject(context.Context, *ReplanTerraformObjectRequest) (*ReplanTerraformObjectResponse, error)
 	mustEmbedUnimplementedTerraformServer()
 }

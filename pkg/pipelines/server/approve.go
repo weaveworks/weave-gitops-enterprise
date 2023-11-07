@@ -60,7 +60,7 @@ func (s *server) ApprovePromotion(ctx context.Context, msg *pb.ApprovePromotionR
 	}
 
 	return &pb.ApprovePromotionResponse{
-		PullRequestURL: prURL,
+		PullRequestUrl: prURL,
 	}, nil
 }
 
