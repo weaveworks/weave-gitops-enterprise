@@ -6,6 +6,11 @@ import (
 	"github.com/go-logr/logr"
 )
 
+// ProviderCreator defines the interface for creating a Git provider.
+type ProviderCreator interface {
+	Create(providerName string, opts ...ProviderWithFn) (Provider, error)
+}
+
 // ProviderFactory is used to create and return a
 // concrete git provider.
 type ProviderFactory struct {

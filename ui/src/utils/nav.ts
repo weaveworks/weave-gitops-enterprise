@@ -8,9 +8,6 @@ export enum Routes {
   Pipelines = '/pipelines',
   PipelineDetails = '/pipelines/details',
 
-  GitOpsRun = '/gitopsrun',
-  GitOpsRunDetail = '/gitopsrun/detail',
-
   TerraformObjects = '/terraform',
   TerraformDetail = '/terraform/object',
   Clusters = '/clusters',

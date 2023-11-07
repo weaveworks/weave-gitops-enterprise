@@ -6,7 +6,6 @@ syntax = "proto3";
 
 package pipelines.v1;
 
-// protolint:disable:next MAX_LINE_LENGTH
 option go_package = "github.com/weaveworks/weave-gitops-enterprise/pipelines/api";
 
 message ClusterRef {
@@ -17,7 +16,7 @@ message ClusterRef {
 
 message Target {
     string     namespace  = 1;
-    ClusterRef clusterRef = 2;
+    ClusterRef cluster_ref = 2;
 }
 
 message Environment {
@@ -50,13 +49,13 @@ message WorkloadStatus {
     string   kind                 = 1;
     string   name                 = 2;
     string   version              = 3;
-    string   lastAppliedRevision  = 4;
+    string   last_applied_revision  = 4;
     repeated Condition conditions = 5;
     bool     suspended            = 6;
 }
 
 message PipelineTargetStatus {
-    ClusterRef clusterRef = 2;
+    ClusterRef cluster_ref = 2;
     string     namespace  = 1;
     repeated WorkloadStatus workloads = 3;
 }
@@ -67,8 +66,8 @@ message WaitingStatus {
 
 message PipelineStatus {
     message EnvironmentStatus {
-        WaitingStatus waitingStatus = 1;
-        repeated PipelineTargetStatus targetsStatuses = 2;
+        WaitingStatus waiting_status = 1;
+        repeated PipelineTargetStatus targets_statuses = 2;
     }
 
     map<string, EnvironmentStatus> environments = 1;
@@ -77,7 +76,7 @@ message PipelineStatus {
 message Pipeline {
     string         name                     = 1;
     string         namespace                = 2;
-    AppRef         appRef                   = 3;
+    AppRef         app_ref                  = 3;
     repeated       Environment environments = 4;
     repeated       Target targets           = 5;
     PipelineStatus status                   = 6;
@@ -88,7 +87,7 @@ message Pipeline {
 
 
 message PullRequestList {
-    repeated PullRequest pullRequests = 1;
+    repeated PullRequest pull_requests = 1;
 }
 
 message PullRequest {
@@ -102,9 +101,9 @@ message Promotion {
 }
 
 message Strategy {
-    PullRequestPromotion pullRequest  = 1;
+    PullRequestPromotion pull_request  = 1;
     Notification         notification = 2;
-    LocalObjectReference secretRef    = 3;
+    LocalObjectReference secret_ref    = 3;
 }
 
 message PullRequestPromotion {

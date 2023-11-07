@@ -56,11 +56,11 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 200m
-            memory: 100Mi
+            cpu: {{ .Values.clusterBootstrapController.resources.limits.cpu }}
+            memory: {{ .Values.clusterBootstrapController.resources.limits.memory }}
           requests:
-            cpu: 100m
-            memory: 20Mi
+            cpu: {{ .Values.clusterBootstrapController.resources.requests.cpu }}
+            memory: {{ .Values.clusterBootstrapController.resources.requests.memory }}
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: true

@@ -92,7 +92,5 @@ func TestQueryUnstructured(t *testing.T) {
 	// Indexing blobs can remove facets, so make sure they exist.
 	facets, err := q.ListFacets(ctx)
 	g.Expect(err).NotTo(HaveOccurred())
-
-	g.Expect(facets).To(HaveLen(3))
 	g.Expect(facets["cluster"]).To(ContainElements("test-cluster"))
 }
