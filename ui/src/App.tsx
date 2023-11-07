@@ -107,7 +107,17 @@ const GlobalStyle = createGlobalStyle`
     .MuiFormControl-root {
       min-width: 0px;
     }
-   
+    .MuiPaper-root{
+      background-color: ${props =>
+        props.theme.mode === ThemeTypes.Dark
+          ? props.theme.colors.neutralGray
+          : props.theme.colors.white};
+    }
+    .MuiListItem-button:hover{
+      background-color: ${props =>
+        props.theme.mode === ThemeTypes.Dark
+          ? props.theme.colors.blueWithOpacity
+          : props.theme.colors.neutral10}};
   }
   
   #root {
