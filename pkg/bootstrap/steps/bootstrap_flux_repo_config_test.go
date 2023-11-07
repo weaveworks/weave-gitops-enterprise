@@ -91,7 +91,7 @@ func TestCreateFluxRepositoryConfig(t *testing.T) {
 					assert.Error(t, err, "expected error")
 					return
 				}
-				t.Fatalf("unexpected error occured: %v", err)
+				t.Fatalf("unexpected error occurred: %v", err)
 			}
 			assert.Equal(t, tt.config.RepoURL, config.RepoURL, "wrong repo url")
 			assert.Equal(t, tt.config.RepoPath, config.RepoPath, "wrong repo path")

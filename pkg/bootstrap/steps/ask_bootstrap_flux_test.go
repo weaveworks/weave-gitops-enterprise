@@ -61,7 +61,7 @@ func TestAskBootstrapFlux(t *testing.T) {
 				if tt.err {
 					return
 				}
-				t.Fatalf("unexpected error occured: %v", err)
+				t.Fatalf("unexpected error occurred: %v", err)
 			}
 			ask := canAskForFluxBootstrap(tt.input, tt.config)
 			assert.Equal(t, tt.canAsk, ask, "mismatch result")

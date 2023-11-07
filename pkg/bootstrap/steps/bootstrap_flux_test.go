@@ -67,7 +67,7 @@ func TestConfigureFluxCreds(t *testing.T) {
 					assert.Error(t, err, "expected error")
 					return
 				}
-				t.Fatalf("unexpected error occured: %v", err)
+				t.Fatalf("unexpected error occurred: %v", err)
 			}
 			askhttps := canAskForHTTPSGitConfig(tt.input, tt.config)
 			ashssh := canAskForSSHGitConfig(tt.input, tt.config)
