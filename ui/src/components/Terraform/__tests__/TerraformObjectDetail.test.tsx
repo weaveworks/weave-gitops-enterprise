@@ -63,7 +63,7 @@ describe('TerraformObjectDetail', () => {
       render(c);
     });
 
-    const button = await screen.findByText('Sync');
+    const button = await screen.findByTestId('sync-button');
 
     fireEvent.click(button);
 
@@ -105,7 +105,7 @@ describe('TerraformObjectDetail', () => {
 
     expect(suspendedValue).toEqual('Suspended:False');
 
-    const button = await screen.findByText('Suspend');
+    const button = await screen.findByTestId('suspend-button');
 
     fireEvent.click(button);
 
