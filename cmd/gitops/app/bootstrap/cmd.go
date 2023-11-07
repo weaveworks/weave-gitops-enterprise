@@ -27,8 +27,8 @@ gitops bootstrap
 # Start WGE installation from a specific kubeconfig
 gitops bootstrap --kubeconfig <your-kubeconfig-location>
 
-# Start WGE installation with given 'username' and 'password'
-gitops bootstrap --username wego-admin --password=hell0!
+# Start WGE installation with given admin 'password'
+gitops bootstrap --password=hell0!
 
 # Start WGE installation using OIDC
 gitops bootstrap --client-id <client-id> --client-secret <client-secret> --discovery-url <discovery-url>
@@ -106,7 +106,6 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
-			WithUsername(opts.Username).
 			WithPassword(opts.Password).
 			WithVersion(flags.version).
 			WithDomainType(flags.domainType).
