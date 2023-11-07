@@ -62,16 +62,6 @@ spec:
           - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
       enabled: true
     global: {}
-    ingress:
-      annotations:
-        external-dns.alpha.kubernetes.io/hostname: localhost
-      className: public-nginx
-      enabled: true
-      hosts:
-      - host: localhost
-        paths:
-        - path: /
-          pathType: ImplementationSpecific
     tls:
       enabled: false
 status: {}

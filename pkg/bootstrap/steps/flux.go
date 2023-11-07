@@ -13,6 +13,7 @@ const (
 	fluxExistingInstallMsg   = "flux is installed"
 	fluxExistingBootstrapMsg = "flux is bootstrapped"
 	fluxRecoverMsg           = "please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
+	fluxFatalErrorMsg        = "flux is not bootstrapped successfully, please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
 )
 
 // VerifyFluxInstallation checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
@@ -36,8 +37,7 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	c.Logger.Actionf("verifying flux reconcillation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		c.Logger.Failuref("flux bootstrapped error: %v. %s", string(out), fluxRecoverMsg)
-		return []StepOutput{}, nil
+		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxFatalErrorMsg)
 	}
 	c.Logger.Successf(fluxExistingBootstrapMsg)
 

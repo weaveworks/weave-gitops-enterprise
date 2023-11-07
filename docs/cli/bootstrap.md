@@ -141,6 +141,20 @@ These messages will provide extra information that's not provided by errors like
 
 Use custom errors when required for better handling like [this](https://github.com/weaveworks/weave-gitops-enterprise/blob/6b1c1db9dc0512a9a5c8dd03ddb2811a897849e6/pkg/bootstrap/steps/entitlement.go#L65)
 
+3) Special case for cases where we could recover from the error and don't need to terminate
+
+for example [here](https://github.com/weaveworks/weave-gitops-enterprise/blob/80667a419c286ee7d45178b639e36a2015533cb6/pkg/bootstrap/steps/flux.go#L39)
+
+flux is not bootstrapped, but in the process we can bootstrap flux. in this case we could log the failure and continue the execution
+
+```go
+	out, err := runner.Run("flux", "check")
+	if err != nil {
+		c.Logger.Failuref("flux installed error: %v. %s", string(out), fluxRecoverMsg)
+		return []StepOutput{}, nil
+	}
+```
+
 ## Logging Actions
 
 For sharing progress with the user, the following levels are used:
@@ -204,4 +218,31 @@ See the following examples:
 
 This will be addressed in the following [ticket](https://github.com/weaveworks/weave-gitops-enterprise/issues/3405)
 
+## Enable/Disable one or more input from step inputs
 
+Field [`Enabled`](https://github.com/weaveworks/weave-gitops-enterprise/blob/80667a419c286ee7d45178b639e36a2015533cb6/pkg/bootstrap/steps/ask_bootstrap_flux.go#L14) is added to the step input to allow/disallow this input from being processd
+
+This field should receive a function that takes the step input, config object and returns boolean value 
+
+example:
+
+- step input
+
+	```go
+	var bootstrapFLuxQuestion = StepInput{
+		Name:    inBootstrapFlux,
+		Type:    confirmInput,
+		Msg:     bootstrapFluxMsg,
+		Enabled: canAskForFluxBootstrap,
+	}
+	```
+
+- function
+
+	```go
+	func canAskForFluxBootstrap(input []StepInput, c *Config) bool {
+		return !c.FluxInstallated
+	}
+	```
+
+This input will be processed only if `Enabled` field is equal to `true`
