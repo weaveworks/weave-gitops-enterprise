@@ -77,7 +77,7 @@ service ClustersService {
   rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      post : "/v1/templates/pull-request"
+      post : "/v1/namespaces/{template_namespace}/templates/{template_name}/pull-request"
       body : "*"
     };
   }
@@ -117,13 +117,18 @@ service ClustersService {
     };
   }
 
-  // List available credentials
+  // List available CAPI identities
   //
-  // These templates can be used when renderer certain templates
+  // Search the cluster for available CAPI identities:
+  // - `AWSClusterStaticIdentity`
+  // - `AWSClusterRoleIdentity`
+  // - `AzureClusterIdentity`
+  // - `VSphereClusterIdentity`
+  // 
   rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/credentials"
+      get : "/v1/templates/capi-identities"
     };
   }
 
@@ -284,7 +289,7 @@ service ClustersService {
   rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
-      post : "/v1/external-secrets/sync"
+      patch : "/v1/external-secrets/sync"
       body : "*"
     };
   }
@@ -330,8 +335,8 @@ message ListTemplatesRequest {
 }
 
 message Pagination {
-    int32 pageSize = 1;
-    string pageToken = 2;
+    int32 page_size = 1;
+    string page_token = 2;
 }
 
 message ListError {
@@ -405,7 +410,7 @@ message RenderTemplateResponse {
   repeated CommitFile rendered_templates = 1;
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
-  CostEstimate costEstimate = 4;
+  CostEstimate cost_estimate = 4;
   repeated CommitFile external_secrets_files = 5;
   repeated CommitFile policy_config_files = 6;
   repeated CommitFile sops_secret_files = 7;
@@ -576,8 +581,8 @@ message GitopsCluster {
   map<string, string> annotations = 4;
   map<string, string> labels = 5;
   repeated Condition conditions = 6;
-  GitopsClusterRef capiClusterRef = 7;
-  GitopsClusterRef secretRef = 8;
+  GitopsClusterRef capi_cluster_ref = 7;
+  GitopsClusterRef secret_ref = 8;
   CapiCluster capi_cluster = 9;
   bool control_plane = 10;
   string type = 11;
@@ -754,7 +759,7 @@ message KustomizationSpec {
 
 message Decryption{
   string provider = 1;
-  SecretRef secretRef = 2;
+  SecretRef secret_ref = 2;
 }
 
 message SecretRef{
@@ -859,7 +864,7 @@ message Event {
 
 message ListEventsRequest {
   ObjectRef involved_object = 1;
-  string    clusterName    = 2;
+  string    cluster_name    = 2;
 }
 
 message ListEventsResponse {
@@ -911,7 +916,7 @@ message GetChartsJobResponse {
 
 message Workspace {
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated string namespaces = 3;
 }
 
@@ -1192,11 +1197,13 @@ message SopsSecretMetadata {
 }
 
 message SopsSecret {
+  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
   string apiVersion = 1;
   string kind = 2;
   SopsSecretMetadata metadata = 3;
   map<string,string> data = 4;
-  map<string,string> string_data = 5;
+  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+  map<string,string> stringData = 5;
   string type = 6;
   bool immutable = 7;
   google.protobuf.Value sops = 8;

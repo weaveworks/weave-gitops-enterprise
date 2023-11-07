@@ -6,10 +6,11 @@ import {
   IconType,
   Link,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import { EnabledComponent } from '../../api/query/query.pb';
+import { EnabledComponent, Object } from '../../api/query/query.pb';
 import { Template } from '../../cluster-services/cluster_services.pb';
 import useNotifications, {
   NotificationData,
@@ -32,9 +33,12 @@ const DocsLink = styled(Link)`
   padding-left: ${({ theme }) => theme.spacing.xxs};
 `;
 
-const TemplatesDashboard: FC<{
+type Props = {
+  className?: string;
   location: { state: { notification: NotificationData[] } };
-}> = ({ location }) => {
+};
+
+const TemplatesDashboard: FC<Props> = ({ location, className }) => {
   const isExplorerEnabled = useIsEnabledForComponent(
     EnabledComponent.templates,
   );
@@ -72,6 +76,7 @@ const TemplatesDashboard: FC<{
   return (
     <Page
       loading={isLoading}
+      className={className}
       path={[
         {
           label: 'Templates',
@@ -86,7 +91,13 @@ const TemplatesDashboard: FC<{
             extraColumns={[
               {
                 label: 'Type',
-                value: 'templateType',
+                value: o => {
+                  return _.get(o.parsed, [
+                    'metadata',
+                    'labels',
+                    'weave.works/template-type',
+                  ]);
+                },
                 sortValue: ({ name }) => name,
               },
               {
@@ -101,6 +112,11 @@ const TemplatesDashboard: FC<{
                     USE THIS TEMPLATE
                   </Button>
                 ),
+              },
+              {
+                label: 'Description',
+                value: (o: Object) => o.message || '-',
+                index: 7,
               },
             ]}
             linkToObject={false}
@@ -182,4 +198,16 @@ const TemplatesDashboard: FC<{
   );
 };
 
-export default TemplatesDashboard;
+export default styled(TemplatesDashboard)`
+  ${Explorer} {
+    /* Hiding Status, Message, and Tenant columns */
+    table td:nth-child(5),
+    table th:nth-child(5),
+    table td:nth-child(6),
+    table th:nth-child(6),
+    table td:nth-child(7),
+    table th:nth-child(7) {
+      display: none;
+    }
+  }
+`;

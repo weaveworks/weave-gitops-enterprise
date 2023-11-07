@@ -131,6 +131,7 @@ func TestReconcileDelete(t *testing.T) {
 		makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
 			newTime := metav1.NewTime(time.Now())
 			hr.ObjectMeta.DeletionTimestamp = &newTime
+			hr.Finalizers = append(hr.Finalizers, "finalizers.fluxcd.io")
 		}),
 		&fakeValuesFetcher{nil, nil},
 		fakeCache,
@@ -152,6 +153,7 @@ func TestReconcileDeletingTheCacheFails(t *testing.T) {
 	deletedHelmRepo := makeTestHelmRepo(func(hr *sourcev1beta2.HelmRepository) {
 		newTime := metav1.NewTime(time.Now())
 		hr.ObjectMeta.DeletionTimestamp = &newTime
+		hr.Finalizers = append(hr.Finalizers, "finalizers.fluxcd.io")
 	})
 	fakeErroringCache := helmfakes.NewFakeChartCache(func(fc *helmfakes.FakeChartCache) {
 		fc.DeleteError = errors.New("nope")
@@ -261,7 +263,7 @@ func setupReconcileAndFakes(helmRepo client.Object, fakeFetcher *fakeValuesFetch
 	scheme := runtime.NewScheme()
 	utilruntime.Must(sourcev1beta2.AddToScheme(scheme))
 
-	fakeClient := fake.NewClientBuilder().WithScheme(scheme)
+	fakeClient := fake.NewClientBuilder().WithScheme(scheme).WithStatusSubresource(&sourcev1beta2.HelmRepository{})
 	if helmRepo != nil {
 		fakeClient = fakeClient.WithObjects(helmRepo)
 	}

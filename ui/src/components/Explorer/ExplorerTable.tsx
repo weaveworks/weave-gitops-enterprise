@@ -1,18 +1,18 @@
 import { Box } from '@material-ui/core';
 import {
+  DataTable,
   Flex,
+  formatURL,
   Icon,
   IconType,
   Link,
   V2Routes,
-  formatURL,
-  DataTable,
 } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import styled from 'styled-components';
 import { Object } from '../../api/query/query.pb';
-import { Routes, getKindRoute } from '../../utils/nav';
+import { getKindRoute, Routes } from '../../utils/nav';
 import { QueryState } from './hooks';
 
 export type FieldWithIndex = Field & { index?: number };
@@ -128,6 +128,7 @@ function ExplorerTable({
       label: 'Message',
       value: 'message',
       defaultSort: sortField === 'message',
+      maxWidth: 600,
     },
   ];
 
@@ -157,13 +158,6 @@ function ExplorerTable({
 
 export default styled(ExplorerTable).attrs({ className: ExplorerTable.name })`
   width: 100%;
-
-  td:nth-child(6),
-  td:nth-child(7) {
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-  }
 
   /* Moving the sync/pause buttons to the left */
   & > div:first-child {

@@ -131,7 +131,6 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   } = useGetReconciledTree(
     gs?.name || '',
     gs?.namespace || '',
-    'GitOpsSet',
     (getInventory(gs) as GroupVersionKind[]) || [],
     gs?.clusterName || '',
   );

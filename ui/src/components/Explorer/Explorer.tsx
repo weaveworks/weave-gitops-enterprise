@@ -48,15 +48,21 @@ function Explorer({
   const queryState = manager.read();
   const setQueryState = manager.write;
 
-  const { data, error, isLoading } = useQueryService({
-    terms: queryState.terms,
-    filters: queryState.filters,
-    limit: queryState.limit,
-    offset: queryState.offset,
-    orderBy: queryState.orderBy,
-    ascending: queryState.orderAscending,
-    category,
-  });
+  const { data, error, isLoading, isRefetching, isPreviousData } =
+    useQueryService({
+      terms: queryState.terms,
+      filters: queryState.filters,
+      limit: queryState.limit,
+      offset: queryState.offset,
+      orderBy: queryState.orderBy,
+      ascending: queryState.orderAscending,
+      category,
+    });
+
+  // This will be true when the query has changed, but the data hasn't been fetched yet.
+  // Allows us to animate the table while the query is being worked on.
+  // It will be false on background fetches that happen at a regular interval (without user interaction).
+  const isRespondingToQuery = isRefetching && isPreviousData;
 
   const unst = useGetUnstructuredObjects(data?.objects || []);
   const rows = _.map(data?.objects, (o: any) => ({
@@ -68,23 +74,39 @@ function Explorer({
 
   if (isLoading) {
     return (
-      <Flex wide center>
+      // Set min-width here to fix a weird stuttering issue where the spinner had
+      // inconsistent width while spinning.
+      <Flex wide center style={{ minWidth: '100%' }}>
         <CircularProgress />
       </Flex>
     );
   }
+
   return (
     <QueryStateProvider manager={manager}>
       <div className={className}>
         {error && <Alert severity="error">{error.message}</Alert>}
-        <Flex align wide end>
-          <QueryStateChips />
-          <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
-            <Icon size="normal" type={IconType.FilterIcon} color="neutral30" />
-          </IconButton>
+        <Flex align wide>
+          <div style={{ marginLeft: '0 auto', width: 80 }}>
+            <CircularProgress
+              size={24}
+              style={{ display: isRespondingToQuery ? 'block' : 'none' }}
+            />
+          </div>
+          <Flex align wide end>
+            <QueryStateChips />
+            <IconButton onClick={() => setFilterDrawerOpen(!filterDrawerOpen)}>
+              <Icon
+                size="normal"
+                type={IconType.FilterIcon}
+                color="neutral30"
+              />
+            </IconButton>
+          </Flex>
         </Flex>
         <Flex wide>
-          <ExplorerTable
+          <ExplorerTableWithBusyAnimation
+            busy={isRespondingToQuery}
             queryState={queryState}
             rows={rows}
             onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
@@ -116,6 +138,14 @@ function Explorer({
 
 export default styled(Explorer).attrs({ className: Explorer.name })`
   width: 100%;
+`;
+
+// Gray out the table while we are responding to a query. This is a visual indication to the user the explorer is "thinking".
+// This will animate on query changes (including ordering), but not on refretches.
+const ExplorerTableWithBusyAnimation = styled(ExplorerTable)<{ busy: boolean }>`
+  table tbody {
+    opacity: ${props => (props.busy ? '0.5' : '1')};
+  }
 `;
 
 const categoryKinds = {

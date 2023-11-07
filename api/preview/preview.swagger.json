@@ -19,6 +19,7 @@
   "paths": {
     "/v1/preview/pull-requests": {
       "post": {
+        "summary": "FIXME",
         "operationId": "PreviewService_CreatePullRequest",
         "responses": {
           "200": {
@@ -51,6 +52,7 @@
     },
     "/v1/preview/yaml": {
       "post": {
+        "summary": "FIXME",
         "operationId": "PreviewService_GetYAML",
         "responses": {
           "200": {
