@@ -52,6 +52,11 @@ service GitOpsSets {
         }; 
     }
 
+    /**
+    * GetInventory returns a list of InventoryEntry
+    * objects and children,
+    * given the gitopsset name and namespace and cluster.
+    */
     rpc GetInventory(GetInventoryRequest) returns (GetInventoryResponse) {
         option (google.api.http) = {
             get : "/v1/namespaces/{namespace}/gitopssets/{name}/inventory",

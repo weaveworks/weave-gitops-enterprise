@@ -41,7 +41,16 @@ type GitOpsSetsClient interface {
 	GetGitOpsSet(ctx context.Context, in *GetGitOpsSetRequest, opts ...grpc.CallOption) (*GetGitOpsSetResponse, error)
 	// Toggle suspend on a GitOpsSet
 	ToggleSuspendGitOpsSet(ctx context.Context, in *ToggleSuspendGitOpsSetRequest, opts ...grpc.CallOption) (*ToggleSuspendGitOpsSetResponse, error)
-	// Get the reconciled objects for a GitOpsSet
+	//
+	// GetInventory returns a list of InventoryEntry
+	// objects and children,
+	// given the gitopsset name and namespace and cluster.
+	GetInventory(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects
+	// that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization
+	// or HelmRelease specified in the request body.
 	GetReconciledObjects(ctx context.Context, in *GetReconciledObjectsRequest, opts ...grpc.CallOption) (*GetReconciledObjectsResponse, error)
 	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(ctx context.Context, in *SyncGitOpsSetRequest, opts ...grpc.CallOption) (*SyncGitOpsSetResponse, error)
@@ -119,7 +128,20 @@ type GitOpsSetsServer interface {
 	GetGitOpsSet(context.Context, *GetGitOpsSetRequest) (*GetGitOpsSetResponse, error)
 	// Toggle suspend on a GitOpsSet
 	ToggleSuspendGitOpsSet(context.Context, *ToggleSuspendGitOpsSetRequest) (*ToggleSuspendGitOpsSetResponse, error)
+<<<<<<< HEAD
 	// Get the reconciled objects for a GitOpsSet
+=======
+	//
+	// GetInventory returns a list of InventoryEntry
+	// objects and children,
+	// given the gitopsset name and namespace and cluster.
+	GetInventory(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
+	//
+	// GetReconciledObjects returns a list of objects
+	// that were created as a result a Flux automation.
+	// This list is derived by looking at the Kustomization
+	// or HelmRelease specified in the request body.
+>>>>>>> Update getInventory endpoint description
 	GetReconciledObjects(context.Context, *GetReconciledObjectsRequest) (*GetReconciledObjectsResponse, error)
 	// Trigger reconciliation of a GitOpsSet
 	SyncGitOpsSet(context.Context, *SyncGitOpsSetRequest) (*SyncGitOpsSetResponse, error)
