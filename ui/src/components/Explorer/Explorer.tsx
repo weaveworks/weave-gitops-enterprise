@@ -3,7 +3,7 @@ import { CircularProgress, IconButton } from '@material-ui/core';
 import { Alert } from '@material-ui/lab';
 import { Flex, Icon, IconType } from '@weaveworks/weave-gitops';
 import _ from 'lodash';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
@@ -47,6 +47,7 @@ function Explorer({
   const { data: facetsRes } = useListFacets();
   const queryState = manager.read();
   const setQueryState = manager.write;
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const { data, error, isLoading, isRefetching, isPreviousData } =
     useQueryService({
@@ -54,8 +55,8 @@ function Explorer({
       filters: queryState.filters,
       limit: queryState.limit,
       offset: queryState.offset,
-      orderBy: queryState.orderBy,
-      descending: queryState.orderDescending,
+      orderBy: queryState.orderBy || 'name',
+      descending: queryState.orderDescending || false,
       category,
     });
 
@@ -71,6 +72,18 @@ function Explorer({
   }));
 
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
+
+  useEffect(() => {
+    if (!inputRef.current) {
+      return;
+    }
+    // Focus the input so you can click open and start typing
+    if (filterDrawerOpen) {
+      inputRef.current.focus();
+    } else {
+      inputRef.current.blur();
+    }
+  }, [filterDrawerOpen]);
 
   if (isLoading) {
     return (
@@ -120,7 +133,7 @@ function Explorer({
             onClose={() => setFilterDrawerOpen(false)}
             open={filterDrawerOpen}
           >
-            <QueryInput />
+            <QueryInput innerRef={inputRef} />
 
             <Filters facets={filteredFacets || []} />
           </FilterDrawer>
