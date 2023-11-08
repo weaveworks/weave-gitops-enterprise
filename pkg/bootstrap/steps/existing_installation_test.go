@@ -58,3 +58,49 @@ func TestAskContinueWithExistingVersion(t *testing.T) {
 	}
 
 }
+
+func TestContinueWithExistingInstallation(t *testing.T) {
+
+	tests := []struct {
+		name  string
+		input []StepInput
+		err   bool
+	}{
+		{
+			name: "user input yes to continue with existing installation",
+			input: []StepInput{
+				{
+					Name:  ExistingInstallation,
+					Value: confirmYes,
+				},
+			},
+			err: false,
+		},
+
+		{
+			name: "user input otherwise to continue with existing installation",
+			input: []StepInput{
+				{
+					Name:  ExistingInstallation,
+					Value: "n",
+				},
+			},
+			err: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := makeTestConfig(t, Config{})
+			_, err := continueWithExistingInstallation([]StepInput{}, &config)
+			if err != nil {
+				if tt.err {
+					assert.Error(t, err, "expedted error")
+					return
+				}
+				t.Fatalf("unexpected error: %v", err)
+			}
+		})
+	}
+
+}

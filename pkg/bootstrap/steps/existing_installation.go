@@ -1,6 +1,7 @@
 package steps
 
 import (
+	"errors"
 	"os"
 
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
@@ -23,6 +24,7 @@ var continueUsingCurrentVersionInput = StepInput{
 	Valuesfn: askContinueWithExistingVersion,
 }
 
+// NewContinueWithExistingWGEInstallationStep step to search for existing installation and ask user to continue or no
 func NewContinueWithExistingWGEInstallationStep(config Config) BootstrapStep {
 	return BootstrapStep{
 		Name: versionStepName,
@@ -33,15 +35,14 @@ func NewContinueWithExistingWGEInstallationStep(config Config) BootstrapStep {
 	}
 }
 
-// selectWgeVersion step ask user to select wge version from the latest 3 versions.
+// continueWithExistingInstallation step ask user to if he wish to continue with currently installed WGE
 func continueWithExistingInstallation(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
 		if param.Name == ExistingInstallation {
 			continueExistingInstallationFlag, ok := param.Value.(string)
 			if ok {
 				if continueExistingInstallationFlag != "y" {
-					c.Logger.Println(abortMsg)
-					os.Exit(0)
+					return []StepOutput{}, errors.New(abortMsg)
 				}
 			}
 		}
