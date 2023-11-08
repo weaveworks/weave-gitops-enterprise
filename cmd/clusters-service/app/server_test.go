@@ -215,7 +215,7 @@ func runServer(t *testing.T, ctx context.Context, k client.Client, ns string, ad
 				scs.New(),
 			),
 			app.WithKubernetesClientSet(clientSet),
-			app.WithClustersManager(grpctesting.MakeClustersManager(k)),
+			app.WithClustersManager(grpctesting.MakeClustersManager(k, nil)),
 			app.WithManagemetFetcher(mgmtFetcher),
 		)
 		t.Logf("%v", err)

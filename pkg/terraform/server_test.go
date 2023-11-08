@@ -19,9 +19,11 @@ import (
 	"google.golang.org/grpc"
 	corev1 "k8s.io/api/core/v1"
 	apimeta "k8s.io/apimachinery/pkg/api/meta"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 )
 
 func TestListTerraformObjects(t *testing.T) {
@@ -269,7 +271,14 @@ func TestReplanTerraformObject(t *testing.T) {
 }
 
 func setup(t *testing.T) (pb.TerraformClient, client.Client) {
-	k8s, factory := grpctesting.MakeFactoryWithObjects()
+	k8s := fake.NewClientBuilder().WithScheme(grpctesting.BuildScheme()).WithStatusSubresource(&tfctrl.Terraform{}).Build()
+
+	namespaces := map[string][]corev1.Namespace{
+		"Default": {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "default"}}},
+	}
+
+	factory := grpctesting.MakeClustersManager(k8s, namespaces)
+
 	opts := terraform.ServerOpts{
 		ClientsFactory: factory,
 	}
