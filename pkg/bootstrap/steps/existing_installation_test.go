@@ -9,7 +9,7 @@ import (
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestGetHelmReleaseProperty(t *testing.T) {
+func TestAskContinueWithExistingVersion(t *testing.T) {
 
 	tests := []struct {
 		name        string
