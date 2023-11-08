@@ -15,7 +15,6 @@ func makeTestConfig(t *testing.T, config Config, objects ...runtime.Object) Conf
 		Logger:             cliLogger,
 		WGEVersion:         config.WGEVersion,
 		DomainType:         config.DomainType,
-		Username:           config.UserDomain,
 		Password:           config.Password,
 		UserDomain:         config.UserDomain,
 		PrivateKeyPath:     config.PrivateKeyPath,

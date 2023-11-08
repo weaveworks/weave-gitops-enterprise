@@ -12,6 +12,7 @@ import {
   Metadata,
   RouterTab,
   SubRouterTabs,
+  SyncControls,
   Timestamp,
   YamlView,
 } from '@weaveworks/weave-gitops';
@@ -152,6 +153,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const shouldShowReplanButton =
     pathname.endsWith('/plan') && !isLoadingPlan && enablePlanViewing && !error;
 
+  const suspended = object?.suspended;
+
   return (
     <Page
       loading={isLoading}
@@ -170,27 +173,26 @@ function TerraformObjectDetail({ className, ...params }: Props) {
           <Box paddingBottom={3}>
             <KubeStatusIndicator
               conditions={object?.conditions || []}
-              suspended={object?.suspended}
+              suspended={suspended}
             />
           </Box>
           <Box paddingBottom={3}>
             <Flex wide wrap between gap="8">
               <Flex gap="12">
-                <Button
-                  loading={syncing}
-                  variant="outlined"
-                  onClick={handleSyncClick}
-                >
-                  Sync
-                </Button>
-
-                <Button
-                  loading={suspending}
-                  variant="outlined"
-                  onClick={handleSuspendClick}
-                >
-                  {object?.suspended ? 'Resume' : 'Suspend'}
-                </Button>
+                <SyncControls
+                  syncLoading={syncing}
+                  syncDisabled={suspended}
+                  suspendDisabled={suspending || suspended}
+                  resumeDisabled={suspending || !suspended}
+                  customActions={[
+                    <EditButton
+                      resource={data || ({} as GetTerraformObjectResponse)}
+                    />,
+                  ]}
+                  onSyncClick={handleSyncClick}
+                  onSuspendClick={handleSuspendClick}
+                  onResumeClick={handleSuspendClick}
+                />
 
                 {shouldShowReplanButton && (
                   <Button
@@ -202,10 +204,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                     Plan
                   </Button>
                 )}
-
-                <EditButton
-                  resource={data || ({} as GetTerraformObjectResponse)}
-                />
               </Flex>
               <Flex align gap="4">
                 <LargeInfo
