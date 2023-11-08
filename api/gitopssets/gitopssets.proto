@@ -88,8 +88,8 @@ service GitOpsSets {
 message GetInventoryRequest {
     string name         = 1;
     string namespace    = 2;
-    string clusterName  = 3;
-    bool   withChildren = 4;
+    string cluster_name  = 3;
+    bool   with_children = 4;
 }
 
 message GetInventoryResponse {
@@ -104,7 +104,7 @@ message HealthStatus {
 message InventoryEntry {
     string payload = 1;
     string tenant = 2;
-    string clusterName = 3;
+    string cluster_name = 3;
     HealthStatus health = 4;
     repeated InventoryEntry children = 5;
 }
