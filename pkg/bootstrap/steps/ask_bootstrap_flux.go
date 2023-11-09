@@ -35,7 +35,7 @@ func askBootstrapFlux(input []StepInput, c *Config) ([]StepOutput, error) {
 			fluxBootstrapRes, ok := param.Value.(string)
 			if ok {
 				if fluxBootstrapRes != "y" {
-					return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %s", fluxRecoverMsg)
+					return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %s", fluxFatalErrorMsg)
 				}
 
 			}
