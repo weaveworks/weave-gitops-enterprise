@@ -60,7 +60,7 @@ var (
 	}
 )
 
-// NewSetupFlux step to bootstrap flux and configuring git creds
+// NewBootstrapFlux step to bootstrap flux and configuring git creds
 func NewBootstrapFlux(config Config) BootstrapStep {
 	// create steps
 	inputs := []StepInput{}
