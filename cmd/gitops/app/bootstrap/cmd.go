@@ -112,7 +112,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 			WithVersion(flags.version).
 			WithDomainType(flags.domainType).
 			WithDomain(flags.domain).
-			WithFluxGitRepository(flags.repoURL,
+			WithGitRepository(flags.repoURL,
 				flags.branch,
 				flags.repoPath,
 			).

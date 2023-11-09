@@ -126,7 +126,7 @@ func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword
 	return c
 }
 
-func (c *ConfigBuilder) WithFluxGitRepository(repoURL, branch, repoPath string) *ConfigBuilder {
+func (c *ConfigBuilder) WithGitRepository(repoURL, branch, repoPath string) *ConfigBuilder {
 	c.repoURL = repoURL
 	c.branch = branch
 	c.repoPath = repoPath

@@ -58,7 +58,7 @@ func getAuthCmdRun(opts *config.Options) func(*cobra.Command, []string) error {
 		c, err := steps.NewConfigBuilder().
 			WithLogWriter(cliLogger).
 			WithKubeconfig(opts.Kubeconfig).
-			WithFluxGitRepository(flags.repoURL,
+			WithGitRepository(flags.repoURL,
 				flags.branch,
 				flags.repoPath,
 			).

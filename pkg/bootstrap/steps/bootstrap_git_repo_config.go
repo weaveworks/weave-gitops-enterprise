@@ -42,8 +42,8 @@ var (
 	}
 )
 
-// NewFluxGitRepositoryConfig step to configure the flux git repository
-func NewFluxGitRepositoryConfig(config Config) BootstrapStep {
+// NewGitRepositoryConfig step to configure the flux git repository
+func NewGitRepositoryConfig(config Config) BootstrapStep {
 	// create steps
 	inputs := []StepInput{}
 	if config.RepoURL == "" {
@@ -61,11 +61,11 @@ func NewFluxGitRepositoryConfig(config Config) BootstrapStep {
 	return BootstrapStep{
 		Name:  repoConfigStepName,
 		Input: inputs,
-		Step:  createFluxRepositoryConfig,
+		Step:  createGitRepositoryConfig,
 	}
 }
 
-func createFluxRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
+func createGitRepositoryConfig(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
 		if param.Name == inRepoURL {
 			repoURL, ok := param.Value.(string)

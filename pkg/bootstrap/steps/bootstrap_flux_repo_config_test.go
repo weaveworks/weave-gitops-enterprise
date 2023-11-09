@@ -6,7 +6,7 @@ import (
 	"github.com/alecthomas/assert"
 )
 
-func TestCreateFluxRepositoryConfig(t *testing.T) {
+func TestCreateGitRepositoryConfig(t *testing.T) {
 
 	tests := []struct {
 		name   string
@@ -85,7 +85,7 @@ func TestCreateFluxRepositoryConfig(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			config := makeTestConfig(t, Config{})
 
-			_, err := createFluxRepositoryConfig(tt.input, &config)
+			_, err := createGitRepositoryConfig(tt.input, &config)
 			if err != nil {
 				if tt.err {
 					assert.Error(t, err, "expected error")
