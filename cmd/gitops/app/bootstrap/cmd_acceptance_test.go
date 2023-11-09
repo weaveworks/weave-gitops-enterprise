@@ -188,7 +188,7 @@ func TestBootstrapCmd(t *testing.T) {
 func bootstrapFluxSsh(g *WithT, kubeconfigFlag string) {
 	var runner runner.CLIRunner
 
-	repoUrl := os.Getenv("GIT_URL_SSH")
+	repoUrl := os.Getenv("GIT_REPO_URL_SSH")
 	g.Expect(repoUrl).NotTo(BeEmpty())
 	fmt.Println(repoUrl)
 
