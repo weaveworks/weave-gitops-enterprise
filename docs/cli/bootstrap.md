@@ -110,6 +110,13 @@ type Config struct {
 
 ```
 
+### Style sugestions for steps
+
+**Inputs**
+
+- We usually prefix input names with `in` prefix (short for input) to distinguish these constants from everything else. 
+
+
 ## Error management 
 
 A bootstrapping error received by the platform engineer shoudl allow:
