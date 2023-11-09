@@ -19,7 +19,7 @@ const (
 )
 
 var getVersionInput = StepInput{
-	Name:     WGEVersion,
+	Name:     inWGEVersion,
 	Type:     multiSelectionChoice,
 	Msg:      versionMsg,
 	Valuesfn: getWgeVersions,
@@ -54,7 +54,7 @@ func NewSelectWgeVersionStep(config Config) BootstrapStep {
 // selectWgeVersion step ask user to select wge version from the latest 3 versions.
 func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == WGEVersion {
+		if param.Name == inWGEVersion {
 			version, ok := param.Value.(string)
 			if !ok {
 				return []StepOutput{}, errors.New("unexpected error occurred. WGEVersion is not found")

@@ -11,12 +11,14 @@ import (
 
 func TestCreateCredentials(t *testing.T) {
 	tests := []struct {
-		name     string
-		secret   *v1.Secret
-		input    []StepInput
-		password string
-		output   []StepOutput
-		err      bool
+		name       string
+		secret     *v1.Secret
+		input      []StepInput
+		password   string
+		output     []StepOutput
+		isExisting bool
+		canAsk     bool
+		err        bool
 	}{
 		{
 			name:     "secret doesn't exist",
@@ -24,11 +26,11 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: false,
 				},
 			},
@@ -47,7 +49,9 @@ func TestCreateCredentials(t *testing.T) {
 					},
 				},
 			},
-			err: false,
+			err:        false,
+			isExisting: false,
+			canAsk:     true,
 		},
 		{
 			name: "secret exist and user refuse to continue",
@@ -62,15 +66,17 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: "n",
 				},
 			},
-			err: true,
+			err:        true,
+			isExisting: true,
+			canAsk:     true,
 		},
 		{
 			name: "secret exist and user continue",
@@ -85,11 +91,11 @@ func TestCreateCredentials(t *testing.T) {
 			password: "password",
 			input: []StepInput{
 				{
-					Name:  Password,
+					Name:  inPassword,
 					Value: "password",
 				},
 				{
-					Name:  existingCreds,
+					Name:  inExistingCreds,
 					Value: "y",
 				},
 			},
@@ -108,7 +114,9 @@ func TestCreateCredentials(t *testing.T) {
 					},
 				},
 			},
-			err: false,
+			err:        false,
+			isExisting: true,
+			canAsk:     false,
 		},
 	}
 
@@ -140,6 +148,11 @@ func TestCreateCredentials(t *testing.T) {
 				assert.Equal(t, outSecret.Data["username"], inSecret.Data["username"], "mismatch username")
 				assert.NoError(t, bcrypt.CompareHashAndPassword(outSecret.Data["password"], []byte(tt.password)), "mismatch password")
 			}
+			isExisting := isExistingAdminSecret(tt.input, &config)
+			assert.Equal(t, tt.isExisting, isExisting, "incorrect result")
+
+			canAsk := canAskForCreds(tt.input, &config)
+			assert.Equal(t, tt.canAsk, canAsk, "incorrect result")
 		})
 	}
 }

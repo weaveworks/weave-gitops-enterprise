@@ -104,13 +104,13 @@ func TestCreateOIDCConfig(t *testing.T) {
 			name: "wrong discovery url",
 			input: []StepInput{
 				{
-					Name: DiscoveryURL, Value: "https://wrong-url.com",
+					Name: inDiscoveryURL, Value: "https://wrong-url.com",
 				},
 				{
-					Name: ClientID, Value: "client-id",
+					Name: inClientID, Value: "client-id",
 				},
 				{
-					Name: ClientSecret, Value: "client-secret",
+					Name: inClientSecret, Value: "client-secret",
 				},
 			},
 			helmrelease: hr1,
@@ -120,13 +120,13 @@ func TestCreateOIDCConfig(t *testing.T) {
 			name: "Case with all fields",
 			input: []StepInput{
 				{
-					Name: DiscoveryURL, Value: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
+					Name: inDiscoveryURL, Value: "https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				},
 				{
-					Name: ClientID, Value: "client-id",
+					Name: inClientID, Value: "client-id",
 				},
 				{
-					Name: ClientSecret, Value: "client-secret",
+					Name: inClientSecret, Value: "client-secret",
 				},
 			},
 			err:         false,
