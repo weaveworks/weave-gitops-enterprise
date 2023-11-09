@@ -110,6 +110,13 @@ type Config struct {
 
 ```
 
+### Style sugestions for steps
+
+**Inputs**
+
+- We usually prefix input names with `in` prefix (short for input) to distinguish these constants from everything else. 
+
+
 ## Error management 
 
 A bootstrapping error received by the platform engineer shoudl allow:
@@ -198,8 +205,8 @@ Entitlement stage
 - `WGE_ENTITLEMENT_ENTITLEMENT`: valid entitlements token to use for creating the entitlement before running the test.
 - `OIDC_CLIENT_SECRET`: client secret for oidc flag
 - `GIT_PRIVATEKEY_PATH`: path to the private key to do the git operations.
-- `GIT_URL_SSH`: git ssh url for the repo wge configuration repo.
-- `GIT_URL_HTTPS`: git https url for the repo wge configuration repo.
+- `GIT_REPO_URL_SSH`: git ssh url for the repo wge configuration repo.
+- `GIT_REPO_URL_HTTPS`: git https url for the repo wge configuration repo.
 - `GIT_USERNAME`: git username for testing https auth
 - `GIT_TOKEN`: git token for testing https auth
 - `GIT_BRANCH`: git branch for testing with flux bootstrap
