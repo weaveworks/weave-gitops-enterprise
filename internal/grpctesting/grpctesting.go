@@ -46,6 +46,11 @@ func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersm
 	return k8s, factory
 }
 
+// MakeClustersManager creates a fake ClustersManager for testing
+// Pass in nsMap to give the test "principal" access to more namespaces on clusters e.g.
+// "Default": {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "default"}}}
+// will search for resources in ns: "default" on the "Default" cluster.
+// By default ("nil"), no namespaces will be searched.
 func MakeClustersManager(k8s client.Client, nsMap map[string][]v1.Namespace, clusters ...string) *clustersmngrfakes.FakeClustersManager {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
