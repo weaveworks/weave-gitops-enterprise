@@ -14,7 +14,7 @@ func TestSelectDomainType(t *testing.T) {
 			name: "domain type exist",
 			input: []StepInput{
 				{
-					Name:  domainType,
+					Name:  inDomainType,
 					Value: "localhost",
 				},
 			},

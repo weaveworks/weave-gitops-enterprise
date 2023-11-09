@@ -18,7 +18,7 @@ const (
 )
 
 var continueUsingCurrentVersionInput = StepInput{
-	Name:     ExistingInstallation,
+	Name:     inExistingInstallation,
 	Type:     confirmInput,
 	Msg:      continueExistingInstallation,
 	Valuesfn: askContinueWithExistingVersion,
@@ -38,7 +38,7 @@ func NewContinueWithExistingWGEInstallationStep(config Config) BootstrapStep {
 // continueWithExistingInstallation step ask user to if he wish to continue with currently installed WGE
 func continueWithExistingInstallation(input []StepInput, c *Config) ([]StepOutput, error) {
 	for _, param := range input {
-		if param.Name == ExistingInstallation {
+		if param.Name == inExistingInstallation {
 			continueExistingInstallationFlag, ok := param.Value.(string)
 			if ok {
 				if continueExistingInstallationFlag != "y" {

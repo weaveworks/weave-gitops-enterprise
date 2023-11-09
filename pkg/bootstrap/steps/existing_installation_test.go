@@ -70,7 +70,7 @@ func TestContinueWithExistingInstallation(t *testing.T) {
 			name: "user input yes to continue with existing installation",
 			input: []StepInput{
 				{
-					Name:  ExistingInstallation,
+					Name:  inExistingInstallation,
 					Value: confirmYes,
 				},
 			},
@@ -81,7 +81,7 @@ func TestContinueWithExistingInstallation(t *testing.T) {
 			name: "user input otherwise to continue with existing installation",
 			input: []StepInput{
 				{
-					Name:  ExistingInstallation,
+					Name:  inExistingInstallation,
 					Value: "n",
 				},
 			},
