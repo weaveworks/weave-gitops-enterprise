@@ -18,7 +18,6 @@ export const columnHeaderHandler =
   (queryState: QueryState, setQueryState: (next: QueryState) => void) =>
   (field: Field) => {
     const col = (field as ExplorerField).id;
-    console.log({ col });
     setQueryState({
       ...queryState,
       orderBy: col as string,
