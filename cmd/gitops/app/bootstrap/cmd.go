@@ -90,7 +90,7 @@ func Command(opts *config.Options) *cobra.Command {
 	cmd.PersistentFlags().StringVarP(&flags.gitToken, "git-token", "", "", "git token used in https authentication type")
 	cmd.PersistentFlags().StringVarP(&flags.branch, "branch", "b", "", "git branch for your flux repository (example: main)")
 	cmd.PersistentFlags().StringVarP(&flags.repoPath, "repo-path", "r", "", "git path for your flux repository (example: clusters/my-cluster)")
-	cmd.PersistentFlags().StringVarP(&flags.repoURL, "repo-url", "", "", "git repo url for you flux repository (example: ssh://git@github.com/my-org-name/my-repo-name or https://github.com/my-org-name/my-repo-name)")
+	cmd.PersistentFlags().StringVarP(&flags.repoURL, "repo-url", "", "", "git repo url for your flux repository (example: ssh://git@github.com/my-org-name/my-repo-name or https://github.com/my-org-name/my-repo-name)")
 	cmd.PersistentFlags().StringVarP(&flags.privateKeyPath, "private-key", "k", "", "private key path. This key will be used to push the Weave GitOps Enterprise's resources to the default cluster repository")
 	cmd.PersistentFlags().StringVarP(&flags.privateKeyPassword, "private-key-password", "c", "", "private key password. If the private key is encrypted using password")
 	cmd.PersistentFlags().StringVarP(&flags.discoveryURL, "discovery-url", "", "", "OIDC discovery URL")
