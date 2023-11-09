@@ -204,7 +204,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 	}
 
 	qs, err := query.NewQueryService(query.QueryServiceOpts{
-		Log:         debug,
+		Log:         opts.Logger,
 		StoreReader: s,
 		IndexReader: idx,
 		Authorizer:  authz,

@@ -18,6 +18,7 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
+	gormlog "gorm.io/gorm/logger"
 )
 
 // dbFile is the name of the sqlite3 database file
@@ -412,7 +413,9 @@ func CreateSQLiteDB(path string) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
-	db, err := gorm.Open(sqlite.Open(dbFileLocation), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbFileLocation), &gorm.Config{
+		Logger: gormlog.Discard,
+	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to open database: %w", err)
 	}
