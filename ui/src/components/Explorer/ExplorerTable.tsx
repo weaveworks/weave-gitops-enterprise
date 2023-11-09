@@ -15,18 +15,21 @@ import { Object } from '../../api/query/query.pb';
 import { getKindRoute, Routes } from '../../utils/nav';
 import { QueryState } from './hooks';
 
-export type FieldWithIndex = Field & { id: string; index?: number };
+export type ExplorerField = Field & {
+  id: string;
+  index?: number;
+};
 
 type Props = {
   className?: string;
-  fields: FieldWithIndex[];
+  fields: ExplorerField[];
   onColumnHeaderClick?: (field: Field) => void;
   rows: Object[];
   queryState: QueryState;
   enableBatchSync?: boolean;
 };
 
-export const defaultExplorerFields: FieldWithIndex[] = [
+export const defaultExplorerFields: ExplorerField[] = [
   {
     id: 'name',
     label: 'Name',
@@ -56,7 +59,6 @@ export const defaultExplorerFields: FieldWithIndex[] = [
 
       return <Link to={url}>{o.name}</Link>;
     },
-    sortValue: () => 'name',
   },
   {
     id: 'kind',
@@ -81,7 +83,6 @@ export const defaultExplorerFields: FieldWithIndex[] = [
   {
     id: 'status',
     label: 'Status',
-    sortValue: () => 'status',
     value: (o: Object) => {
       if (o.status === '-') {
         return '-';
@@ -117,8 +118,8 @@ export const defaultExplorerFields: FieldWithIndex[] = [
 ];
 
 export function addFieldsWithIndex(
-  fields: FieldWithIndex[],
-  extraFieldsWithIndex: FieldWithIndex[],
+  fields: ExplorerField[],
+  extraFieldsWithIndex: ExplorerField[],
 ) {
   const newFields = [...fields];
   // Allows for columns to be added anywhere in the table.

@@ -92,8 +92,8 @@ const TemplatesDashboard: FC<Props> = ({ location, className }) => {
       index: 3,
       id: 'type',
       label: 'Type',
-      value: 'templateType',
-      sortValue: ({ name }) => name,
+      value: (t: any) =>
+        t.parsed?.metadata?.labels?.['weave.works/template-type'] || '',
     },
     {
       id: 'action',

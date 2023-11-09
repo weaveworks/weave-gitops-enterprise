@@ -9,7 +9,7 @@ import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
 import ExplorerTable, {
-  FieldWithIndex,
+  ExplorerField,
   defaultExplorerFields,
 } from './ExplorerTable';
 import FilterDrawer from './FilterDrawer';
@@ -29,7 +29,7 @@ type Props = {
   category?: 'automation' | 'source' | 'gitopsset' | 'template';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
-  fields?: FieldWithIndex[];
+  fields?: ExplorerField[];
 };
 
 function Explorer({
@@ -73,7 +73,7 @@ function Explorer({
 
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
 
-  const tableFields: FieldWithIndex[] = (fields || defaultExplorerFields).map(
+  const tableFields: ExplorerField[] = (fields || defaultExplorerFields).map(
     field => ({
       ...field,
       defaultSort: queryState.orderBy === field.id,
