@@ -12,8 +12,8 @@ const (
 	fluxBoostrapCheckMsg     = "checking flux"
 	fluxExistingInstallMsg   = "flux is installed"
 	fluxExistingBootstrapMsg = "flux is bootstrapped"
-	fluxRecoverMsg           = "please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
-	fluxFatalErrorMsg        = "flux is not bootstrapped successfully, please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
+	fluxRecoverMsg           = "flux is not bootstrapped in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
+	fluxFatalErrorMsg        = "flux is not bootstrapped, please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
 )
 
 // VerifyFluxInstallation checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
