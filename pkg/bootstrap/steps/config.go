@@ -19,20 +19,32 @@ const (
 	defaultAdminPassword = "password"
 )
 
+// git schemes
+const (
+	httpsScheme = "https"
+	sshScheme   = "ssh"
+)
+
 // inputs names
 const (
-	Password           = "password"
-	WGEVersion         = "wgeVersion"
-	UserDomain         = "userDomain"
-	PrivateKeyPath     = "privateKeyPath"
-	PrivateKeyPassword = "privateKeyPassword"
-	existingCreds      = "existingCreds"
-	domainType         = "domainType"
-	DiscoveryURL       = "discoveryURL"
-	ClientID           = "clientID"
-	ClientSecret       = "clientSecret"
-	oidcInstalled      = "oidcInstalled"
-	existingOIDC       = "existingOIDC"
+	inPassword           = "password"
+	inWGEVersion         = "wgeVersion"
+	inUserDomain         = "userDomain"
+	inPrivateKeyPath     = "privateKeyPath"
+	inPrivateKeyPassword = "privateKeyPassword"
+	inExistingCreds      = "existingCreds"
+	inDomainType         = "domainType"
+	inDiscoveryURL       = "discoveryURL"
+	inClientID           = "clientID"
+	inClientSecret       = "clientSecret"
+	inOidcInstalled      = "oidcInstalled"
+	inExistingOIDC       = "existingOIDC"
+	inRepoURL            = "repoURL"
+	inBranch             = "branch"
+	inRepoPath           = "repoPath"
+	inGitUserName        = "username"
+	inGitPassword        = "gitPassowrd"
+	inBootstrapFlux      = "bootstrapFlux"
 )
 
 // input/output types
@@ -55,6 +67,12 @@ type ConfigBuilder struct {
 	domain                  string
 	privateKeyPath          string
 	privateKeyPassword      string
+	silent                  bool
+	gitUsername             string
+	gitToken                string
+	repoURL                 string
+	branch                  string
+	repoPath                string
 	authType                string
 	installOIDC             string
 	discoveryURL            string
@@ -99,9 +117,19 @@ func (c *ConfigBuilder) WithDomain(domain string) *ConfigBuilder {
 
 }
 
-func (c *ConfigBuilder) WithPrivateKey(privateKeyPath string, privateKeyPassword string) *ConfigBuilder {
+func (c *ConfigBuilder) WithGitAuthentication(privateKeyPath, privateKeyPassword, gitUsername, gitToken string) *ConfigBuilder {
 	c.privateKeyPath = privateKeyPath
 	c.privateKeyPassword = privateKeyPassword
+	c.gitUsername = gitUsername
+	c.gitToken = gitToken
+
+	return c
+}
+
+func (c *ConfigBuilder) WithGitRepository(repoURL, branch, repoPath string) *ConfigBuilder {
+	c.repoURL = repoURL
+	c.branch = branch
+	c.repoPath = repoPath
 	return c
 }
 
@@ -118,6 +146,11 @@ func (c *ConfigBuilder) WithOIDCConfig(discoveryURL string, clientID string, cli
 	return c
 }
 
+func (c *ConfigBuilder) WithSilentFlag(silent bool) *ConfigBuilder {
+	c.silent = silent
+	return c
+}
+
 // Config is the configuration struct to user for WGE installation. It includes
 // configuration values as well as other required structs like clients
 type Config struct {
@@ -131,8 +164,20 @@ type Config struct {
 	DomainType string
 	UserDomain string
 
+	GitScheme string
+
+	Silent bool
+
+	FluxInstallated    bool
 	PrivateKeyPath     string
 	PrivateKeyPassword string
+
+	GitUsername string
+	GitToken    string
+
+	RepoURL  string
+	Branch   string
+	RepoPath string
 
 	AuthType                string
 	InstallOIDC             string
@@ -167,6 +212,15 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		return Config{}, errors.New("password minimum characters should be >= 6")
 	}
 
+	// parse repo scheme
+	var scheme string
+	if cb.repoURL != "" {
+		scheme, err = parseRepoScheme(cb.repoURL)
+		if err != nil {
+			return Config{}, err
+		}
+	}
+
 	//TODO we should do validations in case invalid values and throw an error early
 	return Config{
 		KubernetesClient:        kubeHttp.Client,
@@ -175,8 +229,15 @@ func (cb *ConfigBuilder) Build() (Config, error) {
 		Logger:                  cb.logger,
 		DomainType:              cb.domainType,
 		UserDomain:              cb.domain,
+		GitScheme:               scheme,
+		Branch:                  cb.branch,
+		Silent:                  cb.silent,
+		RepoPath:                cb.repoPath,
+		RepoURL:                 cb.repoURL,
 		PrivateKeyPath:          cb.privateKeyPath,
 		PrivateKeyPassword:      cb.privateKeyPassword,
+		GitUsername:             cb.gitUsername,
+		GitToken:                cb.gitToken,
 		AuthType:                cb.authType,
 		InstallOIDC:             cb.installOIDC,
 		DiscoveryURL:            cb.discoveryURL,

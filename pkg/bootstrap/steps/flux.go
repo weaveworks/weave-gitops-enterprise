@@ -3,6 +3,7 @@ package steps
 import (
 	"fmt"
 
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/bootstrap/utils"
 	"github.com/weaveworks/weave-gitops/pkg/runner"
 )
 
@@ -11,7 +12,8 @@ const (
 	fluxBoostrapCheckMsg     = "checking flux"
 	fluxExistingInstallMsg   = "flux is installed"
 	fluxExistingBootstrapMsg = "flux is bootstrapped"
-	fluxRecoverMsg           = "please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
+	fluxRecoverMsg           = "flux is not bootstrapped in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
+	fluxFatalErrorMsg        = "flux is not bootstrapped, please bootstrap Flux in 'flux-system' namespace: more info https://fluxcd.io/flux/installation"
 )
 
 // VerifyFluxInstallation checks that Flux is present in the cluster. It fails in case not and returns next steps to install it.
@@ -27,16 +29,30 @@ func verifyFluxInstallation(input []StepInput, c *Config) ([]StepOutput, error) 
 	c.Logger.Actionf("verifying flux installation")
 	out, err := runner.Run("flux", "check")
 	if err != nil {
-		return []StepOutput{}, fmt.Errorf("flux installed error: %v. %s", string(out), fluxRecoverMsg)
+		c.Logger.Failuref("flux installed error: %v. %s", string(out), fluxRecoverMsg)
+		return []StepOutput{}, nil
 	}
 	c.Logger.Successf(fluxExistingInstallMsg)
 
 	c.Logger.Actionf("verifying flux reconcillation")
 	out, err = runner.Run("flux", "reconcile", "kustomization", "flux-system")
 	if err != nil {
-		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxRecoverMsg)
+		return []StepOutput{}, fmt.Errorf("flux bootstrapped error: %v. %s", string(out), fluxFatalErrorMsg)
 	}
 	c.Logger.Successf(fluxExistingBootstrapMsg)
+
+	repo, err := utils.GetGitRepositoryObject(c.KubernetesClient, WGEDefaultRepoName, WGEDefaultNamespace)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("failed to get flux repository: %v", err)
+	}
+	scheme, err := parseRepoScheme(repo.Spec.URL)
+	if err != nil {
+		return []StepOutput{}, fmt.Errorf("failed to parse flux repository: %v", err)
+	}
+	c.GitScheme = scheme
+	c.Logger.Successf("detected git scheme: %s", c.GitScheme)
+
+	c.FluxInstallated = true
 
 	return []StepOutput{}, nil
 }
