@@ -8,7 +8,10 @@ import { useHistory } from 'react-router-dom';
 import styled from 'styled-components';
 import { Facet } from '../../api/query/query.pb';
 import { useListFacets, useQueryService } from '../../hooks/query';
-import ExplorerTable, { FieldWithIndex } from './ExplorerTable';
+import ExplorerTable, {
+  FieldWithIndex,
+  defaultExplorerFields,
+} from './ExplorerTable';
 import FilterDrawer from './FilterDrawer';
 import Filters from './Filters';
 import {
@@ -26,8 +29,7 @@ type Props = {
   category?: 'automation' | 'source' | 'gitopsset' | 'template';
   enableBatchSync?: boolean;
   manager?: QueryStateManager;
-  extraColumns?: FieldWithIndex[];
-  linkToObject?: boolean;
+  fields?: FieldWithIndex[];
 };
 
 function Explorer({
@@ -35,8 +37,7 @@ function Explorer({
   category,
   enableBatchSync,
   manager,
-  extraColumns,
-  linkToObject,
+  fields,
 }: Props) {
   const history = useHistory();
   if (!manager) {
@@ -72,6 +73,12 @@ function Explorer({
 
   const filteredFacets = filterFacetsForCategory(facetsRes?.facets, category);
 
+  const tableFields: FieldWithIndex[] = (fields || defaultExplorerFields).map(
+    field => ({
+      ...field,
+      defaultSort: queryState.orderBy === field.id,
+    }),
+  );
   if (isLoading) {
     return (
       // Set min-width here to fix a weird stuttering issue where the spinner had
@@ -106,14 +113,12 @@ function Explorer({
         </Flex>
         <Flex wide>
           <ExplorerTableWithBusyAnimation
+            fields={tableFields}
             busy={isRespondingToQuery}
             queryState={queryState}
             rows={rows}
             onColumnHeaderClick={columnHeaderHandler(queryState, setQueryState)}
             enableBatchSync={enableBatchSync}
-            sortField={queryState.orderBy}
-            extraColumns={extraColumns}
-            linkToObject={linkToObject}
           />
 
           <FilterDrawer

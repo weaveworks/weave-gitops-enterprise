@@ -18,6 +18,10 @@ import useNotifications, {
 import { useIsEnabledForComponent } from '../../hooks/query';
 import useTemplates from '../../hooks/templates';
 import Explorer from '../Explorer/Explorer';
+import {
+  addFieldsWithIndex,
+  defaultExplorerFields,
+} from '../Explorer/ExplorerTable';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
@@ -73,6 +77,40 @@ const TemplatesDashboard: FC<Props> = ({ location, className }) => {
     [location?.state?.notification, setNotifications],
   );
 
+  const templateTableFields = defaultExplorerFields.filter(
+    field => !['name', 'status', 'tenant'].includes(field.id),
+  );
+
+  const fields = addFieldsWithIndex(templateTableFields, [
+    {
+      index: 0,
+      id: 'name',
+      label: 'Name',
+      value: 'name',
+    },
+    {
+      index: 3,
+      id: 'type',
+      label: 'Type',
+      value: 'templateType',
+      sortValue: ({ name }) => name,
+    },
+    {
+      id: 'action',
+      label: '',
+      value: (t: Template) => (
+        <Button
+          id="create-resource"
+          startIcon={<Icon type={IconType.AddIcon} size="base" />}
+          onClick={event => handleAddCluster(event, t)}
+          disabled={Boolean(t.error)}
+        >
+          USE THIS TEMPLATE
+        </Button>
+      ),
+    },
+  ]);
+
   return (
     <Page
       loading={isLoading}
@@ -88,38 +126,7 @@ const TemplatesDashboard: FC<Props> = ({ location, className }) => {
           <Explorer
             category="template"
             enableBatchSync={false}
-            extraColumns={[
-              {
-                label: 'Type',
-                value: o => {
-                  return _.get(o.parsed, [
-                    'metadata',
-                    'labels',
-                    'weave.works/template-type',
-                  ]);
-                },
-                sortValue: ({ name }) => name,
-              },
-              {
-                label: '',
-                value: (t: Template) => (
-                  <Button
-                    id="create-resource"
-                    startIcon={<Icon type={IconType.AddIcon} size="base" />}
-                    onClick={event => handleAddCluster(event, t)}
-                    disabled={Boolean(t.error)}
-                  >
-                    USE THIS TEMPLATE
-                  </Button>
-                ),
-              },
-              {
-                label: 'Description',
-                value: (o: Object) => o.message || '-',
-                index: 7,
-              },
-            ]}
-            linkToObject={false}
+            fields={fields}
           />
         ) : (
           <DataTable
@@ -198,16 +205,4 @@ const TemplatesDashboard: FC<Props> = ({ location, className }) => {
   );
 };
 
-export default styled(TemplatesDashboard)`
-  ${Explorer} {
-    /* Hiding Status, Message, and Tenant columns */
-    table td:nth-child(5),
-    table th:nth-child(5),
-    table td:nth-child(6),
-    table th:nth-child(6),
-    table td:nth-child(7),
-    table th:nth-child(7) {
-      display: none;
-    }
-  }
-`;
+export default TemplatesDashboard;

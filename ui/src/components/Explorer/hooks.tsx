@@ -2,6 +2,7 @@ import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { createContext, useContext, useMemo } from 'react';
 import { Object } from '../../api/query/query.pb';
+import { FieldWithIndex } from './ExplorerTable';
 import { QueryStateManager } from './QueryStateManager';
 
 export type QueryState = {
@@ -24,6 +25,8 @@ export const columnHeaderHandler =
     if (col === 'clusterName') {
       col = 'cluster';
     }
+
+    col = (field as FieldWithIndex).id || col;
 
     setQueryState({
       ...queryState,
