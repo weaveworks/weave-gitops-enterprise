@@ -509,7 +509,6 @@ github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 h1:tfuBGBXKqDEe
 github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572/go.mod h1:9Pwr4B2jHnOSGXyyzV8ROjYa2ojvAY6HCGYYfMoC3Ls=
 github.com/go-test/deep v1.0.4 h1:u2CU3YKy9I2pmu9pX0eq50wCgjfGIt539SqR7FbHiho=
 github.com/gobuffalo/flect v1.0.2 h1:eqjPGSo2WmjgY2XlpGwo2NXgL3RucAKo4k4qQMNA5sA=
-github.com/gobuffalo/flect v1.0.2/go.mod h1:A5msMlrHtLqh9umBSnvabjsMrCcCpAyzglnDvkbYKHs=
 github.com/gobuffalo/logger v1.0.6 h1:nnZNpxYo0zx+Aj9RfMPBm+x9zAU2OayFh/xrAWi34HU=
 github.com/gobuffalo/logger v1.0.6/go.mod h1:J31TBEHR1QLV2683OXTAItYIg8pv2JMHnF/quuAbMjs=
 github.com/gobuffalo/packd v1.0.1 h1:U2wXfRr4E9DH8IdsDLlRFwTZTK7hLfq9qT/QHXGVe/0=
@@ -1210,8 +1209,8 @@ github.com/weaveworks/templates-controller v0.2.0 h1:7pWLCoHasLyk1qgDH6N9XVgozZv
 github.com/weaveworks/templates-controller v0.2.0/go.mod h1:qO/4Eeqas5kjLCacboFKcisszFMjCjIUMxhtqxYlMUw=
 github.com/weaveworks/tf-controller/api v0.0.0-20231101110059-994a65055198 h1:lxF3p4ozFKz09MAkN9CO85ZzQm5JRZ8yiXm4S6o4z90=
 github.com/weaveworks/tf-controller/api v0.0.0-20231101110059-994a65055198/go.mod h1:201u5xXY+YI7+ggWljE0VvqMxa+zP1Y1lyRXc1RlXBc=
-github.com/weaveworks/weave-gitops v0.35.1-0.20231102103827-b9e6f12f92a7 h1:UrB5o3fE95Krg0p1mObi4V7+ZerbxguitsQVCDoNIy8=
-github.com/weaveworks/weave-gitops v0.35.1-0.20231102103827-b9e6f12f92a7/go.mod h1:k7wCRSz0E2Ttn6qjwg3hzmVXjmd6+jj/b11MQO+O6AY=
+github.com/weaveworks/weave-gitops v0.36.0 h1:mTIVhcu3WH7UX/KjETtRWSF/cSXO4u5Yzie6dhtO1as=
+github.com/weaveworks/weave-gitops v0.36.0/go.mod h1:k7wCRSz0E2Ttn6qjwg3hzmVXjmd6+jj/b11MQO+O6AY=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2 h1:7jeiQehqmI4ds6YIq8TW1Vqhlb6V7G2BVRJ8VM3r99I=
 github.com/weaveworks/weave-gitops-enterprise-credentials v0.0.2/go.mod h1:6PMYg+VtSNePnP7EXyNG+/hNRNZ3r0mQtolIZU4s/J0=
 github.com/xanzy/go-gitlab v0.90.0 h1:j8ZUHfLfXdnC+B8njeNaW/kM44c1zw8fiuNj7D+qQN8=
