@@ -15,7 +15,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr/testr"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
@@ -53,7 +53,7 @@ func TestDoQuery(t *testing.T) {
 	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
 	defaultNamespace := "default"
 
-	testLog := testr.New(t)
+	testLog := logr.Discard()
 
 	//Given a query environment
 	ctx := context.Background()
@@ -267,7 +267,7 @@ func TestListFacets(t *testing.T) {
 
 	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
 
-	testLog := testr.New(t)
+	testLog := logr.Discard()
 
 	//Given a query environment
 	ctx := context.Background()

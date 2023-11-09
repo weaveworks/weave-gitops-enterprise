@@ -17,7 +17,7 @@ const PolicyAuditList = () => {
     limit: queryState.limit,
     offset: queryState.offset,
     orderBy: queryState.orderBy,
-    ascending: queryState.orderAscending,
+    descending: queryState.orderDescending,
   });
 
   return (

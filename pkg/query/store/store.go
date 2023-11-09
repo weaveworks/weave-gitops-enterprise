@@ -60,7 +60,7 @@ type QueryOption interface {
 	GetLimit() int32
 	GetOffset() int32
 	GetOrderBy() string
-	GetAscending() bool
+	GetDescending() bool
 }
 
 // StoreReader is an interface for querying objects

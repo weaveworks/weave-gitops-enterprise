@@ -1,13 +1,13 @@
 import {
-  RenderResult,
   act,
   queryByLabelText,
   render,
+  RenderResult,
 } from '@testing-library/react';
 import QueryServiceProvider from '../../../contexts/QueryService';
 import {
-  MockQueryService,
   defaultContexts,
+  MockQueryService,
   withContext,
 } from '../../../utils/test-utils';
 import Explorer from '../Explorer';
@@ -101,7 +101,7 @@ describe('Explorer', () => {
         limit: 0,
         offset: 0,
         orderBy: '',
-        orderAscending: false,
+        orderDescending: false,
       })),
 
       write: jest.fn(),

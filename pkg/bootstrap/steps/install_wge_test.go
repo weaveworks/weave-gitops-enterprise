@@ -62,16 +62,6 @@ spec:
           - --enabled-generators=GitRepository,Cluster,PullRequests,List,APIClient,Matrix,Config
       enabled: true
     global: {}
-    ingress:
-      annotations:
-        external-dns.alpha.kubernetes.io/hostname: localhost
-      className: public-nginx
-      enabled: true
-      hosts:
-      - host: localhost
-        paths:
-        - path: /
-          pathType: ImplementationSpecific
     tls:
       enabled: false
 status: {}
@@ -147,7 +137,7 @@ func TestInstallWge(t *testing.T) {
 			domainType: "wrongType",
 			input: []StepInput{
 				{
-					Name:  UserDomain,
+					Name:  inUserDomain,
 					Value: "example.com",
 				},
 			},
@@ -158,7 +148,7 @@ func TestInstallWge(t *testing.T) {
 			domainType: domainTypeLocalhost,
 			input: []StepInput{
 				{
-					Name:  UserDomain,
+					Name:  inUserDomain,
 					Value: "localhost",
 				},
 			},
@@ -189,7 +179,7 @@ func TestInstallWge(t *testing.T) {
 			domainType: domainTypeExternalDNS,
 			input: []StepInput{
 				{
-					Name:  UserDomain,
+					Name:  inUserDomain,
 					Value: "example.com",
 				},
 			},

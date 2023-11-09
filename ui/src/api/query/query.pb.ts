@@ -20,7 +20,7 @@ export type DoQueryRequest = {
   offset?: number
   limit?: number
   orderBy?: string
-  ascending?: boolean
+  descending?: boolean
 }
 
 export type DoQueryResponse = {

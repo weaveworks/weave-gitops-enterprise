@@ -16,7 +16,7 @@ describe('Filters', () => {
         limit: 0,
         offset: 0,
         orderBy: '',
-        orderAscending: false,
+        orderDescending: false,
       })),
       write: jest.fn(),
     };
@@ -52,7 +52,7 @@ describe('Filters', () => {
       limit: 0,
       offset: 0,
       orderBy: '',
-      orderAscending: false,
+      orderDescending: false,
     };
 
     manager.read = jest.fn(() => qs);
