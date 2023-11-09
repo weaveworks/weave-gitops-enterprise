@@ -208,7 +208,7 @@ Entitlement stage
 - `GIT_REPO_URL_SSH`: git ssh url for the repo wge configuration repo.
 - `GIT_REPO_URL_HTTPS`: git https url for the repo wge configuration repo.
 - `GIT_USERNAME`: git username for testing https auth
-- `GIT_TOKEN`: git token for testing https auth
+- `GIT_PASSWORD`: git password for testing https auth
 - `GIT_BRANCH`: git branch for testing with flux bootstrap
 - `GIT_REPO_PATH`: git repo path for default cluster for testing with flux bootstrap
 

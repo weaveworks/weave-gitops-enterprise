@@ -15,7 +15,7 @@ const (
 
 	// https authentication
 	gitUserNameMsg = "please enter your git username"
-	gitTokenMsg    = "please enter your git authentication token with valid creds"
+	gitPasswordMsg = "please enter your git authentication password/token with valid creds"
 )
 const (
 	bootstrapFluxStepName = "git credentials"
@@ -50,10 +50,10 @@ var (
 		DefaultValue: "",
 		Enabled:      canAskForHTTPSGitConfig,
 	}
-	getGitToken = StepInput{
-		Name:         inGitToken,
+	getGitPassword = StepInput{
+		Name:         inGitPassword,
 		Type:         passwordInput,
-		Msg:          gitTokenMsg,
+		Msg:          gitPasswordMsg,
 		DefaultValue: "",
 		Enabled:      canAskForHTTPSGitConfig,
 		Required:     true,
@@ -76,7 +76,7 @@ func NewBootstrapFlux(config Config) BootstrapStep {
 		inputs = append(inputs, getGitUsername)
 	}
 	if config.GitToken == "" {
-		inputs = append(inputs, getGitToken)
+		inputs = append(inputs, getGitPassword)
 	}
 
 	return BootstrapStep{
@@ -109,7 +109,7 @@ func configureFluxCreds(input []StepInput, c *Config) ([]StepOutput, error) {
 				c.GitUsername = username
 			}
 		}
-		if param.Name == inGitToken {
+		if param.Name == inGitPassword {
 			token, ok := param.Value.(string)
 			if ok {
 				c.GitToken = token

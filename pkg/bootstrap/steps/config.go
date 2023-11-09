@@ -43,7 +43,7 @@ const (
 	inBranch             = "branch"
 	inRepoPath           = "repoPath"
 	inGitUserName        = "username"
-	inGitToken           = "gitToken"
+	inGitPassword        = "gitPassowrd"
 	inBootstrapFlux      = "bootstrapFlux"
 )
 

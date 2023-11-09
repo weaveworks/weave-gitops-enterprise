@@ -44,7 +44,7 @@ func TestConfigureFluxCreds(t *testing.T) {
 					Value: "testgitusername",
 				},
 				{
-					Name:  inGitToken,
+					Name:  inGitPassword,
 					Value: "testgittoken",
 				},
 			},

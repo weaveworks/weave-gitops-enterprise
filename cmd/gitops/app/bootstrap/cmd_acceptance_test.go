@@ -81,8 +81,8 @@ func TestBootstrapCmd(t *testing.T) {
 	g.Expect(repoURLHTTPS).NotTo(BeEmpty())
 	gitUsername := os.Getenv("GIT_USERNAME")
 	g.Expect(gitUsername).NotTo(BeEmpty())
-	gitToken := os.Getenv("GIT_TOKEN")
-	g.Expect(gitToken).NotTo(BeEmpty())
+	gitPassword := os.Getenv("GIT_PASSWORD")
+	g.Expect(gitPassword).NotTo(BeEmpty())
 	gitBranch := os.Getenv("GIT_BRANCH")
 	g.Expect(gitBranch).NotTo(BeEmpty())
 	gitRepoPath := os.Getenv("GIT_REPO_PATH")
@@ -94,7 +94,7 @@ func TestBootstrapCmd(t *testing.T) {
 	repoHTTPSURLFlag := fmt.Sprintf("--repo-url=%s", repoURLHTTPS)
 
 	gitUsernameFlag := fmt.Sprintf("--git-username=%s", gitUsername)
-	gitTokenFlag := fmt.Sprintf("--git-token=%s", gitToken)
+	gitPasswordFlag := fmt.Sprintf("--git-password=%s", gitPassword)
 
 	gitBranchFlag := fmt.Sprintf("--branch=%s", gitBranch)
 	gitRepoPathFlag := fmt.Sprintf("--repo-path=%s", gitRepoPath)
@@ -142,7 +142,7 @@ func TestBootstrapCmd(t *testing.T) {
 				"--domain-type=localhost",
 				"--discovery-url=https://dex-01.wge.dev.weave.works/.well-known/openid-configuration",
 				"--client-id=weave-gitops-enterprise",
-				gitUsernameFlag, gitTokenFlag, gitBranchFlag, gitRepoPathFlag,
+				gitUsernameFlag, gitPasswordFlag, gitBranchFlag, gitRepoPathFlag,
 				repoHTTPSURLFlag,
 				oidcClientSecretFlag, "-s",
 			},
