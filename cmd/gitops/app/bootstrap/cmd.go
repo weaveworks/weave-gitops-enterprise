@@ -131,7 +131,7 @@ func getBootstrapCmdRun(opts *config.Options) func(*cobra.Command, []string) err
 
 		err = Bootstrap(c)
 		if err != nil {
-			return fmt.Errorf("cannot execute bootstrap: %v", err)
+			return fmt.Errorf("cannot bootstrap: %v", err)
 		}
 		return nil
 	}

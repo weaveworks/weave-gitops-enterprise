@@ -62,6 +62,9 @@ func selectWgeVersion(input []StepInput, c *Config) ([]StepOutput, error) {
 		}
 
 ```
+
+
+
 ## How can I add a new step?
 
 Follow these indications:
