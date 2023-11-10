@@ -64,7 +64,7 @@ require (
 	github.com/spf13/viper v1.16.0
 	github.com/tonglil/buflogr v1.0.1
 	github.com/weaveworks/cluster-controller v1.5.5-0.20231109120053-8d9b8827acaf
-	github.com/weaveworks/cluster-reflector-controller v0.0.8-0.20231109120707-55c5023f803d
+	github.com/weaveworks/cluster-reflector-controller v0.0.7
 	github.com/weaveworks/gitopssets-controller v0.16.4
 	github.com/weaveworks/policy-agent/api v1.0.5
 	github.com/weaveworks/progressive-delivery v0.0.0-20230421131659-61a8aadf8aac
@@ -95,6 +95,11 @@ require (
 
 require (
 	github.com/AdaLogics/go-fuzz-headers v0.0.0-20230106234847-43070de90fa1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.7.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.3.1 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/internal v1.3.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/resourcemanager/containerservice/armcontainerservice/v4 v4.3.0 // indirect
+	github.com/AzureAD/microsoft-authentication-library-for-go v1.1.1 // indirect
 	github.com/RoaringBitmap/roaring v0.9.4 // indirect
 	github.com/bits-and-blooms/bitset v1.2.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
@@ -114,10 +119,12 @@ require (
 	github.com/blevesearch/zapx/v14 v14.3.7 // indirect
 	github.com/blevesearch/zapx/v15 v15.3.9 // indirect
 	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/geo v0.0.0-20210211234256-740aa86cb551 // indirect
 	github.com/google/go-github/v52 v52.0.0 // indirect
 	github.com/google/s2a-go v0.1.5 // indirect
 	github.com/klauspost/cpuid/v2 v2.0.4 // indirect
+	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/mschoch/smat v0.2.0 // indirect
 	github.com/stretchr/objx v0.5.0 // indirect
 	go.etcd.io/bbolt v1.3.7 // indirect

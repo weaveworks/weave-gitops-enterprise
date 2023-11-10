@@ -374,6 +374,15 @@ func defaultFluxObjectMessageFunc(obj client.Object) string {
 	return ""
 }
 
+type AutomatedClusterDiscoveryAdaptor struct {
+	client.Object
+}
+
+func (a *AutomatedClusterDiscoveryAdaptor) GetConditions() []metav1.Condition {
+	acd := a.Object.(*clusterreflectorv1alpha1.AutomatedClusterDiscovery)
+	return acd.Status.Conditions
+}
+
 func ToFluxObject(obj client.Object) (FluxObject, error) {
 	switch t := obj.(type) {
 	case *helmv2beta1.HelmRelease:
@@ -393,7 +402,7 @@ func ToFluxObject(obj client.Object) (FluxObject, error) {
 	case *gitopssets.GitOpsSet:
 		return t, nil
 	case *clusterreflectorv1alpha1.AutomatedClusterDiscovery:
-		return t, nil
+		return &AutomatedClusterDiscoveryAdaptor{Object: t}, nil
 	}
 
 	return nil, fmt.Errorf("unknown object type: %T", obj)

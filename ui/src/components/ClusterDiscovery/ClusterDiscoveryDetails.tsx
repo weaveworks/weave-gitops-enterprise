@@ -21,6 +21,7 @@ import {
   ReconciledObjectsAutomation,
   useSyncFluxObject,
   KubeStatusIndicator,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
 import React from 'react';
 import { useRouteMatch } from 'react-router-dom';
@@ -60,7 +61,7 @@ function ClusterDiscoveryDetails({
   namespace,
   clusterName,
 }: Props) {
-  const { data, error } = useGetAutomatedClusterDiscovery(
+  const { data: acd, error } = useGetAutomatedClusterDiscovery(
     name,
     namespace,
     clusterName,
@@ -88,7 +89,7 @@ function ClusterDiscoveryDetails({
           kind: 'AutomatedClusterDiscovery',
         },
       ],
-      suspend: !data?.suspended,
+      suspend: !acd?.suspended,
     },
     'object',
   );
@@ -109,11 +110,11 @@ function ClusterDiscoveryDetails({
   };
   const { setDetailModal } = React.useContext(AppContext);
 
-  if (!data) {
+  if (!acd) {
     return null;
   }
 
-  const { name: nameRef, namespace: namespaceRef } = data;
+  const { name: nameRef, namespace: namespaceRef } = acd;
   const objectRef = {
     name: nameRef,
     namespace: namespaceRef,
@@ -121,12 +122,12 @@ function ClusterDiscoveryDetails({
   };
   const reconciledObjectsAutomation: ReconciledObjectsAutomation = {
     source: objectRef || ({} as ObjectRef),
-    name: data.name || '',
-    namespace: data.namespace || '',
-    suspended: data.suspended || false,
-    conditions: data.conditions || ([] as Condition[]),
-    type: data.type || 'AutomatedClusterDiscovery',
-    clusterName: data.clusterName || '',
+    name: acd.name || '',
+    namespace: acd.namespace || '',
+    suspended: acd.suspended || false,
+    conditions: acd.conditions || ([] as Condition[]),
+    type: acd.type || 'AutomatedClusterDiscovery',
+    clusterName: acd.clusterName || '',
   };
 
   return (
@@ -138,15 +139,15 @@ function ClusterDiscoveryDetails({
           url: Routes.ClusterDiscovery,
         },
         {
-          label: data?.name || '',
+          label: acd?.name || '',
         },
       ]}
     >
       <NotificationsWrapper>
         <Box paddingBottom={3}>
           <KubeStatusIndicator
-            conditions={data?.conditions || []}
-            suspended={data?.suspended}
+            conditions={acd?.conditions || []}
+            suspended={acd?.suspended}
           />
         </Box>
         <Box paddingBottom={3}>
@@ -166,7 +167,7 @@ function ClusterDiscoveryDetails({
                 onClick={() => suspend.mutateAsync()}
                 style={{ marginRight: 0, textTransform: 'uppercase' }}
               >
-                {data?.suspended ? 'Resume' : 'Suspend'}
+                {acd?.suspended ? 'Resume' : 'Suspend'}
               </Button>
             </Box>
           </Flex>
@@ -177,8 +178,8 @@ function ClusterDiscoveryDetails({
               <InfoList
                 data-testid="info-list"
                 items={[
-                  ['Cluster', data?.clusterName],
-                  ['Suspended', data?.suspended ? 'True' : 'False'],
+                  ['Cluster', acd?.clusterName],
+                  ['Suspended', acd?.suspended ? 'True' : 'False'],
                 ]}
               />
               <TableWrapper>
@@ -210,12 +211,9 @@ function ClusterDiscoveryDetails({
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
-              yaml={data?.yaml}
-              object={{
-                kind: data?.type,
-                name: data?.name,
-                namespace: data?.namespace,
-              }}
+              yaml={acd?.yaml}
+              type="GitOpsSet"
+              header={createYamlCommand(acd?.type, acd?.name, acd?.namespace)}
             />
           </RouterTab>
         </SubRouterTabs>
