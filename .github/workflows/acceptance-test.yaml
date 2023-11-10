@@ -206,9 +206,6 @@ jobs:
           chmod +x /tmp/kubelogin
           mv /tmp/kubelogin /usr/local/bin/kubectl-oidc_login
           kubectl-oidc_login version
-      - name: Install docker
-        if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
-        uses: docker-practice/actions-setup-docker@master
       - name: Install helm
         run: |
           wget --no-verbose https://get.helm.sh/helm-v3.10.0-${{ inputs.os-name }}-amd64.tar.gz
@@ -220,12 +217,6 @@ jobs:
           curl -LO "https://dl.k8s.io/release/${{ inputs.kubectl-version }}/bin/${{ inputs.os-name }}/amd64/kubectl"
           chmod +x kubectl
           sudo mv ./kubectl /usr/local/bin/kubectl
-      - name: Install kind
-        if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
-        run: |
-          brew update
-          brew install kind
-          kind version
       - name: Install clusterctl
         run: |
           curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.1.4/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
