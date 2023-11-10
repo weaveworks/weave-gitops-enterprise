@@ -79,8 +79,8 @@ export const useGetPullRequestsForPipeline = (pipeline?: Pipeline) => {
       }
 
       return svc.ListPullRequests({
-        pipelineName: pipeline?.name,
-        pipelineNamespace: pipeline?.namespace,
+        name: pipeline?.name,
+        namespace: pipeline?.namespace,
       });
     },
 

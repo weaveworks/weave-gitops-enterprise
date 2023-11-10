@@ -110,7 +110,7 @@ func (s *server) GetWorkspace(ctx context.Context, req *capiv1_proto.GetWorkspac
 	}
 
 	if len(list.Items) == 0 {
-		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+		return nil, fmt.Errorf("workspace %s not found", req.Name)
 	}
 
 	var namespaces []string
@@ -119,7 +119,7 @@ func (s *server) GetWorkspace(ctx context.Context, req *capiv1_proto.GetWorkspac
 	}
 
 	return &capiv1_proto.GetWorkspaceResponse{
-		Name:        req.WorkspaceName,
+		Name:        req.Name,
 		ClusterName: req.ClusterName,
 		Namespaces:  namespaces,
 	}, nil
@@ -136,7 +136,7 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 	}
 
 	if !exists {
-		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+		return nil, fmt.Errorf("workspace %s not found", req.Name)
 	}
 
 	var list rbacv1.RoleList
@@ -173,7 +173,7 @@ func (s *server) GetWorkspaceRoles(ctx context.Context, req *capiv1_proto.GetWor
 	}
 
 	return &capiv1_proto.GetWorkspaceRolesResponse{
-		Name:        req.WorkspaceName,
+		Name:        req.Name,
 		ClusterName: req.ClusterName,
 		Objects:     roles,
 	}, nil
@@ -190,7 +190,7 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 	}
 
 	if !exists {
-		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+		return nil, fmt.Errorf("workspace %s not found", req.Name)
 	}
 
 	var list rbacv1.RoleBindingList
@@ -233,7 +233,7 @@ func (s *server) GetWorkspaceRoleBindings(ctx context.Context, req *capiv1_proto
 	}
 
 	return &capiv1_proto.GetWorkspaceRoleBindingsResponse{
-		Name:        req.WorkspaceName,
+		Name:        req.Name,
 		ClusterName: req.ClusterName,
 		Objects:     roleBindings,
 	}, nil
@@ -250,7 +250,7 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 	}
 
 	if !exists {
-		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+		return nil, fmt.Errorf("workspace %s not found", req.Name)
 	}
 
 	var list v1.ServiceAccountList
@@ -280,7 +280,7 @@ func (s *server) GetWorkspaceServiceAccounts(ctx context.Context, req *capiv1_pr
 	}
 
 	return &capiv1_proto.GetWorkspaceServiceAccountsResponse{
-		Name:        req.WorkspaceName,
+		Name:        req.Name,
 		ClusterName: req.ClusterName,
 		Objects:     serviceAccounts,
 	}, nil
@@ -297,7 +297,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 	}
 
 	if !exists {
-		return nil, fmt.Errorf("workspace %s not found", req.WorkspaceName)
+		return nil, fmt.Errorf("workspace %s not found", req.Name)
 	}
 
 	var policies []*capiv1_proto.WorkspacePolicy
@@ -330,7 +330,7 @@ func (s *server) GetWorkspacePolicies(ctx context.Context, req *capiv1_proto.Get
 	}
 
 	return &capiv1_proto.GetWorkspacePoliciesResponse{
-		Name:        req.WorkspaceName,
+		Name:        req.Name,
 		ClusterName: req.ClusterName,
 		Objects:     policies,
 	}, nil
@@ -340,7 +340,7 @@ func validateRequest(req *capiv1_proto.GetWorkspaceRequest) error {
 	if req.ClusterName == "" {
 		return errors.New("cluster name is required")
 	}
-	if req.WorkspaceName == "" {
+	if req.Name == "" {
 		return errors.New("workspace name is required")
 	}
 	return nil
@@ -365,7 +365,7 @@ func (s *server) listWorkspaceResources(ctx context.Context, req *capiv1_proto.G
 	}
 
 	opts := []client.ListOption{
-		client.MatchingLabels{tenantLabel: req.WorkspaceName},
+		client.MatchingLabels{tenantLabel: req.Name},
 	}
 	if err := clustersClient.List(ctx, req.ClusterName, list, opts...); err != nil {
 		return err

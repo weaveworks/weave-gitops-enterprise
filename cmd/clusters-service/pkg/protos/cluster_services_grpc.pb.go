@@ -61,6 +61,8 @@ type ClustersServiceClient interface {
 	// List GitOpsClusters
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Get the kubeconfig for a GitOpsCluster
+	//
+	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// Get the Weave Gitops Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
@@ -457,6 +459,8 @@ type ClustersServiceServer interface {
 	// List GitOpsClusters
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Get the kubeconfig for a GitOpsCluster
+	//
+	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	// Get the Weave Gitops Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)
