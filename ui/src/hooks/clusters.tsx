@@ -2,7 +2,10 @@ import { ReactQueryOptions } from '@weaveworks/weave-gitops/ui/lib/types';
 import fileDownload from 'js-file-download';
 import { useCallback, useContext, useMemo, useState } from 'react';
 import { useQuery } from 'react-query';
-import { ListGitopsClustersResponse } from '../cluster-services/cluster_services.pb';
+import {
+  GetKubeconfigRequest,
+  ListGitopsClustersResponse,
+} from '../cluster-services/cluster_services.pb';
 import { EnterpriseClientContext } from '../contexts/EnterpriseClient';
 import useNotifications from '../contexts/Notifications';
 import {
@@ -86,33 +89,12 @@ const useClusters = () => {
     [api],
   );
 
-  const getKubeconfig = useCallback(
-    (clusterName: string, clusterNamespace: string, filename: string) => {
-      return rawRequest(
-        'GET',
-        `/v1/namespaces/${clusterNamespace}/clusters/${clusterName}/kubeconfig`,
-        {
-          headers: {
-            Accept: 'application/octet-stream',
-          },
-        },
-      )
-        .then(res => fileDownload(res.message, filename))
-        .catch(err =>
-          setNotifications([
-            { message: { text: err?.message }, severity: 'error' },
-          ]),
-        );
-    },
-    [setNotifications],
-  );
   return {
     clusters,
     isLoading,
     count,
     loading,
     deleteCreatedClusters,
-    getKubeconfig,
     getDashboardAnnotations,
     getCluster,
   };
@@ -148,5 +130,30 @@ export const useListCluster = (
     },
   );
 };
+
+export function useGetKubeconfig() {
+  const { setNotifications } = useNotifications();
+  const getKubeconfig = useCallback(
+    (req: Required<GetKubeconfigRequest>, filename: string) => {
+      return rawRequest(
+        'GET',
+        `/v1/namespaces/${req.clusterNamespace}/clusters/${req.clusterName}/kubeconfig`,
+        {
+          headers: {
+            Accept: 'application/octet-stream',
+          },
+        },
+      )
+        .then(res => fileDownload(res.message, filename))
+        .catch(err =>
+          setNotifications([
+            { message: { text: err?.message }, severity: 'error' },
+          ]),
+        );
+    },
+    [setNotifications],
+  );
+  return getKubeconfig;
+}
 
 export default useClusters;
