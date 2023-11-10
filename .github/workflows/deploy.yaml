@@ -69,7 +69,6 @@ jobs:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
-      runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
       label-filter: "--label-filter='smoke&&capd'"
@@ -97,7 +96,6 @@ jobs:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
-      runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
       label-filter: "--label-filter='smoke&&deploy'"
@@ -127,7 +125,6 @@ jobs:
     needs: [build, coverage]
     uses: ./.github/workflows/acceptance-test.yaml
     with:
-      runs-on: ubuntu-latest
       os-name: linux
       timeout-minutes: 60
       label-filter: "--label-filter='smoke&&tenant'"

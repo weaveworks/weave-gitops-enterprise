@@ -8,10 +8,6 @@ name: "Acceptance Tests"
 on:
   workflow_call:
     inputs:
-      runs-on:
-        description: "The type of machine to run the job on e.g macOS-latest or ubuntu-latest"
-        required: true
-        type: string
       os-name:
         description: "`linux` or `darwin`"
         required: true
@@ -168,7 +164,7 @@ env:
 
 jobs:
   tests:
-    runs-on: ${{ inputs.runs-on }}
+    runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - name: Checkout code
@@ -266,9 +262,9 @@ jobs:
           path: /tmp
       - name: chmod gitops binary
         run: |
-          chmod +x /tmp/gitops-${{ inputs.runs-on }}
-          ls -la /tmp/gitops-${{ inputs.runs-on }}
-          sudo mv /tmp/gitops-${{ inputs.runs-on }} ${{ env.GITOPS_BIN_PATH }}
+          chmod +x /tmp/gitops-ubuntu-latest
+          ls -la /tmp/gitops-ubuntu-latest
+          sudo mv /tmp/gitops-ubuntu-latest ${{ env.GITOPS_BIN_PATH }}
           gitops version
       - name: Install chromedriver
         if: ${{ (runner.os == 'Linux') && (inputs.git-provider_hostname == 'gitlab.com') }}
