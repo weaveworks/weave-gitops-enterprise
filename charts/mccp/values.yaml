@@ -92,16 +92,6 @@ tls:
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
 
-clusterBootstrapController:
-  enabled: true
-  resources:
-    limits:
-      cpu: 200m
-      memory: 100Mi
-    requests:
-      cpu: 100m
-      memory: 20Mi
-
 rbac:
   userRoles:
     create: true
@@ -218,15 +208,14 @@ cluster-controller:
 
 cluster-bootstrap-controller:
   enabled: true
-  controllerManager:
-    manager:
-      # args:
-      #   - --health-probe-bind-address=:8081
-      #   - --metrics-bind-address=127.0.0.1:8080
-      #   - --leader-elect
-      #   - --zap-devel
-      image:
-        tag: pr-30
+  manager:
+    resources:
+      limits:
+        cpu: 200m
+        memory: 100Mi
+      requests:
+        cpu: 100m
+        memory: 20Mi
 
 #### Explorer
 explorer:
@@ -243,4 +232,3 @@ explorer:
     - sources
     - gitopssets
     - templates
-
