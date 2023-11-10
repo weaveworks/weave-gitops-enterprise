@@ -155,6 +155,8 @@ service ClustersService {
   }
 
   // Get the kubeconfig for a GitOpsCluster
+  //
+  // Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
   rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["clusters"]; };
     option (google.api.http) = {
@@ -556,8 +558,9 @@ message ListCredentialsResponse {
 }
 
 message GetKubeconfigRequest {
-  // The name of the workload cluster.
+  // The name of the `GitopsCluster`
   string name = 1;
+  // The namespace of the `GitopsCluster`
   string namespace = 2;
 }
 message GetKubeconfigResponse {

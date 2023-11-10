@@ -479,6 +479,7 @@
     "/v1/namespaces/{namespace}/clusters/{name}/kubeconfig": {
       "get": {
         "summary": "Get the kubeconfig for a GitOpsCluster",
+        "description": "Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig",
         "operationId": "ClustersService_GetKubeconfig",
         "responses": {
           "200": {
@@ -497,13 +498,14 @@
         "parameters": [
           {
             "name": "namespace",
+            "description": "The namespace of the `GitopsCluster`",
             "in": "path",
             "required": true,
             "type": "string"
           },
           {
             "name": "name",
-            "description": "The name of the workload cluster.",
+            "description": "The name of the `GitopsCluster`",
             "in": "path",
             "required": true,
             "type": "string"

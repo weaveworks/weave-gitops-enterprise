@@ -2060,8 +2060,9 @@ type GetKubeconfigRequest struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	// The name of the workload cluster.
-	Name      string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The name of the `GitopsCluster`
+	Name string `protobuf:"bytes,1,opt,name=name,proto3" json:"name,omitempty"`
+	// The namespace of the `GitopsCluster`
 	Namespace string `protobuf:"bytes,2,opt,name=namespace,proto3" json:"namespace,omitempty"`
 }
 
