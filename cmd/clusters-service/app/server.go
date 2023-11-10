@@ -162,7 +162,7 @@ type Params struct {
 	MonitoringBindAddress             string                    `mapstructure:"monitoring-bind-address"`
 	MetricsEnabled                    bool                      `mapstructure:"monitoring-metrics-enabled"`
 	ProfilingEnabled                  bool                      `mapstructure:"monitoring-profiling-enabled"`
-	EnableObjectCleaner               bool                      `mapstructure:"enable-object-cleaner"`
+	ExplorerCleanerDisabled           bool                      `mapstructure:"explorer-cleaner-disabled"`
 	NoAuthUser                        string                    `mapstructure:"insecure-no-authentication-user"`
 	ExplorerEnabledFor                []string                  `mapstructure:"explorer-enabled-for"`
 }
@@ -577,7 +577,7 @@ func StartServer(ctx context.Context, p Params, logOptions flux_logger.Options) 
 		WithPipelineControllerAddress(p.PipelineControllerAddress),
 		WithCollectorServiceAccount(p.CollectorServiceAccountName, p.CollectorServiceAccountNamespace),
 		WithMonitoring(p.MonitoringEnabled, p.MonitoringBindAddress, p.MetricsEnabled, p.ProfilingEnabled, log),
-		WithObjectCleaner(p.EnableObjectCleaner),
+		WithExplorerCleanerDisabled(p.ExplorerCleanerDisabled),
 		WithExplorerEnabledFor(p.ExplorerEnabledFor),
 	)
 }
@@ -698,7 +698,7 @@ func RunInProcessGateway(ctx context.Context, addr string, setters ...Option) er
 			SkipCollection:      false,
 			ObjectKinds:         configuration.SupportedObjectKinds,
 			ServiceAccount:      args.CollectorServiceAccount,
-			EnableObjectCleaner: args.EnableObjectCleaner,
+			EnableObjectCleaner: !args.ExplorerCleanerDisabled,
 			EnabledFor:          args.ExplorerEnabledFor,
 		})
 		if err != nil {
