@@ -39,8 +39,8 @@ export const Preview = ({
     const { parameterValues } = formData;
     setPreviewLoading(true);
     return renderTemplate({
-      templateName: template.name,
-      templateNamespace: template.namespace,
+      name: template.name,
+      namespace: template.namespace,
       values: parameterValues,
       profiles,
       credentials,

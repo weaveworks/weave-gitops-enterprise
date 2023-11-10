@@ -224,14 +224,14 @@ func request_Pipelines_ListPullRequests_0(ctx context.Context, marshaler runtime
 		_   = err
 	)
 
-	val, ok = pathParams["pipeline_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "pipeline_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.PipelineName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "pipeline_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := client.ListPullRequests(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -258,14 +258,14 @@ func local_request_Pipelines_ListPullRequests_0(ctx context.Context, marshaler r
 		_   = err
 	)
 
-	val, ok = pathParams["pipeline_name"]
+	val, ok = pathParams["name"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "pipeline_name")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "name")
 	}
 
-	protoReq.PipelineName, err = runtime.String(val)
+	protoReq.Name, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "pipeline_name", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "name", err)
 	}
 
 	msg, err := server.ListPullRequests(ctx, &protoReq)
@@ -362,7 +362,7 @@ func RegisterPipelinesHandlerServer(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPullRequests", runtime.WithHTTPPathPattern("/v1/pipelines/list_prs/{pipeline_name}"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPullRequests", runtime.WithHTTPPathPattern("/v1/pipelines/list_prs/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -492,7 +492,7 @@ func RegisterPipelinesHandlerClient(ctx context.Context, mux *runtime.ServeMux, 
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPullRequests", runtime.WithHTTPPathPattern("/v1/pipelines/list_prs/{pipeline_name}"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/pipelines.v1.Pipelines/ListPullRequests", runtime.WithHTTPPathPattern("/v1/pipelines/list_prs/{name}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -518,7 +518,7 @@ var (
 
 	pattern_Pipelines_ApprovePromotion_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "pipelines", "approve", "name"}, ""))
 
-	pattern_Pipelines_ListPullRequests_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "pipelines", "list_prs", "pipeline_name"}, ""))
+	pattern_Pipelines_ListPullRequests_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 3}, []string{"v1", "pipelines", "list_prs", "name"}, ""))
 )
 
 var (
