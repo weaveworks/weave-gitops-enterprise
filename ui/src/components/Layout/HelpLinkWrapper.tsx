@@ -1,15 +1,14 @@
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { Flex, Link } from '@weaveworks/weave-gitops';
+import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import styled from 'styled-components';
-import { Tooltip } from '../Shared';
-
-import { createStyles, makeStyles } from '@material-ui/core/styles';
-import React from 'react';
 import {
   useListConfigContext,
   useVersionContext,
 } from '../../contexts/ListConfig';
+import { Tooltip } from '../Shared';
 
 const HelpLink = styled(Flex)<{
   backgroundColor?: string;
@@ -54,11 +53,9 @@ const Footer = ({ version }: { version: string }) => {
     >
       {uiConfig?.footer?.content ? (
         <div>
-          <ReactMarkdown
-            children={uiConfig?.footer?.content || ''}
-            remarkPlugins={[remarkGfm]}
-            className={classes.editor}
-          />
+          <ReactMarkdown remarkPlugins={[remarkGfm]} className={classes.editor}>
+            {uiConfig?.footer?.content || ''}
+          </ReactMarkdown>
         </div>
       ) : (
         <div>

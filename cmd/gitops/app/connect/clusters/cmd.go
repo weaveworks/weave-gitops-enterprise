@@ -1,8 +1,6 @@
 package connect
 
 import (
-	// "github.com/go-logr/stdr"
-
 	"github.com/spf13/cobra"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/cluster/connector"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"

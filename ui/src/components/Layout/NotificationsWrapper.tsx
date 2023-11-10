@@ -1,4 +1,7 @@
-import { Flex } from '@weaveworks/weave-gitops';
+import {
+  AlertListErrors,
+  Flex
+} from '@weaveworks/weave-gitops';
 import { FC, useEffect } from 'react';
 import styled from 'styled-components';
 import { ListError } from '../../cluster-services/cluster_services.pb';
@@ -6,11 +9,6 @@ import { useVersionContext } from '../../contexts/ListConfig';
 import useNotifications, {
   NotificationData,
 } from '../../contexts/Notifications';
-import {
-  WarningIcon,
-  WarningWrapper,
-} from '../PolicyConfigs/PolicyConfigStyles';
-import { AlertListErrors } from './AlertListErrors';
 import Notifications from './Notifications';
 
 const ENTITLEMENT_ERROR =
@@ -63,15 +61,14 @@ export const NotificationsWrapper: FC<Props> = ({
         />
       )}
       {!!warningMsg && (
-        <WarningWrapper
-          severity="warning"
-          iconMapping={{
-            warning: <WarningIcon />,
-          }}
-        >
-          <span>{warningMsg}</span>
-        </WarningWrapper>
+        <Notifications
+          isClearable={false}
+          notifications={[
+            { message: { text: warningMsg }, severity: 'warning' },
+          ]}
+        />
       )}
+
       <Notifications notifications={topNotifications} />
 
       {children}

@@ -1,15 +1,14 @@
+import { Button, formatURL, Icon, IconType } from '@weaveworks/weave-gitops';
+import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
 import * as React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { Button, formatURL } from '@weaveworks/weave-gitops';
-import { Automation, Source } from '@weaveworks/weave-gitops/ui/lib/objects';
-import EditIcon from '@material-ui/icons/Edit';
-import { Tooltip } from '../../Shared';
-import { GitopsClusterEnriched } from '../../../types/custom';
-import { getCreateRequestAnnotation } from '../Form/utils';
-import { Routes } from '../../../utils/nav';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import { GitopsClusterEnriched } from '../../../types/custom';
+import { Routes } from '../../../utils/nav';
+import { Tooltip } from '../../Shared';
+import { getCreateRequestAnnotation } from '../Form/utils';
 
 export type Resource =
   | GitopsClusterEnriched
@@ -63,7 +62,7 @@ export const EditButton: React.FC<{
   resource: Resource;
   className?: string;
 }> = ({ resource, className }) => {
-  const disabled = !Boolean(getCreateRequestAnnotation(resource));
+  const disabled = !getCreateRequestAnnotation(resource);
   const link = getLink(resource);
 
   return (
@@ -71,9 +70,11 @@ export const EditButton: React.FC<{
       <Tooltip title={`Edit ${resource.type}`} placement="top">
         <div className={className}>
           <EditWrapper
+            startIcon={<Icon type={IconType.SettingsIcon} size="base" />}
             disabled={disabled}
-            startIcon={<EditIcon fontSize="small" />}
-          />
+          >
+            Edit
+          </EditWrapper>
         </div>
       </Tooltip>
     </Link>

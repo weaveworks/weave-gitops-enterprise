@@ -76,7 +76,9 @@ export function useGetTerraformObjectPlan(
 ) {
   const tf = useTerraform();
 
-  const onError = (error: Error) => {};
+  const onError = (error: Error) => {
+    return;
+  };
 
   return useQuery<GetTerraformObjectPlanResponse, RequestError>(
     [TERRAFORM_PLAN_KEY, clusterName, namespace, name],

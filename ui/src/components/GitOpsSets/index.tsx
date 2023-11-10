@@ -1,24 +1,25 @@
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import {
   DataTable,
-  KubeStatusIndicator,
-  Timestamp,
   filterByStatusCallback,
   filterConfig,
   formatURL,
+  KubeStatusIndicator,
   statusSortHelper,
-  useFeatureFlags,
+  Timestamp,
 } from '@weaveworks/weave-gitops';
 import { Field } from '@weaveworks/weave-gitops/ui/components/DataTable';
 import _ from 'lodash';
 import { FC } from 'react';
 import { Link } from 'react-router-dom';
 import { GitOpsSet, ResourceRef } from '../../api/gitopssets/types.pb';
+import { EnabledComponent } from '../../api/query/query.pb';
 import { useListGitOpsSets } from '../../hooks/gitopssets';
-import { Condition, computeMessage } from '../../utils/conditions';
+import { useIsEnabledForComponent } from '../../hooks/query';
+import { computeMessage, Condition } from '../../utils/conditions';
 import { Routes } from '../../utils/nav';
-import { Page } from '../Layout/App';
 import Explorer from '../Explorer/Explorer';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 export const getInventory = (gs: GitOpsSet | undefined) => {
   const entries = gs?.inventory || [];
@@ -36,17 +37,16 @@ export const getInventory = (gs: GitOpsSet | undefined) => {
 };
 
 const GitOpsSets: FC = () => {
-  const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.gitopssets,
   );
   const { isLoading, data } = useListGitOpsSets({
-    enabled: !useQueryServiceBackend,
+    enabled: !isExplorerEnabled,
   });
 
   const gitopssets = data?.gitopssets;
 
-  let initialFilterState = {
+  const initialFilterState = {
     ...filterConfig(gitopssets, 'status', filterByStatusCallback),
     ...filterConfig(gitopssets, 'type'),
     ...filterConfig(gitopssets, 'namespace'),
@@ -54,7 +54,7 @@ const GitOpsSets: FC = () => {
     ...filterConfig(gitopssets, 'clusterName'),
   };
 
-  let fields: Field[] = [
+  const fields: Field[] = [
     {
       label: 'Name',
       value: ({ name, namespace, clusterName }: GitOpsSet) => (
@@ -132,7 +132,7 @@ const GitOpsSets: FC = () => {
       loading={isLoading}
     >
       <NotificationsWrapper errors={data?.errors}>
-        {useQueryServiceBackend ? (
+        {isExplorerEnabled ? (
           <Explorer category="gitopsset" enableBatchSync={false} />
         ) : (
           <DataTable

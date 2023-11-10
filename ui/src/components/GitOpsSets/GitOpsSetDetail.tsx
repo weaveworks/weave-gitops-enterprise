@@ -2,6 +2,7 @@ import { Box } from '@material-ui/core';
 import {
   AppContext,
   Button,
+  createYamlCommand,
   filterByStatusCallback,
   filterConfig,
   Flex,
@@ -15,11 +16,16 @@ import {
   RequestStateHandler,
   RouterTab,
   SubRouterTabs,
+  SyncControls,
   YamlView,
 } from '@weaveworks/weave-gitops';
+import { GroupVersionKind } from '@weaveworks/weave-gitops/ui/lib/api/core/types.pb';
 import * as React from 'react';
 import { useRouteMatch } from 'react-router-dom';
 import styled from 'styled-components';
+// Importing this solves a problem with the YAML library not being found.
+// @ts-ignore
+import * as YAML from 'yaml/browser/dist/index.js';
 import { Condition, ObjectRef } from '../../api/gitopssets/types.pb';
 import useNotifications from '../../contexts/Notifications';
 import {
@@ -28,16 +34,14 @@ import {
   useSyncGitOpsSet,
   useToggleSuspendGitOpsSet,
 } from '../../hooks/gitopssets';
-import { getLabels, getMetadata } from '../../utils/formatters';
 import { RequestError } from '../../types/custom';
+import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
+import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
 import { getInventory } from '.';
-import { Page } from '../Layout/App';
-import ListEvents from '../ListEvents';
-
-const YAML = require('yaml');
 
 type Props = {
   className?: string;
@@ -128,8 +132,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
   } = useGetReconciledTree(
     gs?.name || '',
     gs?.namespace || '',
-    'GitOpsSet',
-    getInventory(gs) || [],
+    (getInventory(gs) as GroupVersionKind[]) || [],
     gs?.clusterName || '',
   );
 
@@ -155,6 +158,8 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
     clusterName: gs.clusterName || '',
   };
 
+  const suspended = gs?.suspended;
+
   return (
     <Page
       loading={gitOpsSetLoading || isLoading}
@@ -176,26 +181,16 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           />
         </Box>
         <Box paddingBottom={3}>
-          <Flex>
-            <Button
-              loading={syncing}
-              variant="outlined"
-              onClick={handleSyncClick}
-              style={{ marginRight: 0, textTransform: 'uppercase' }}
-            >
-              Sync
-            </Button>
-            <Box paddingLeft={1}>
-              <Button
-                loading={suspending}
-                variant="outlined"
-                onClick={handleSuspendClick}
-                style={{ marginRight: 0, textTransform: 'uppercase' }}
-              >
-                {gs?.suspended ? 'Resume' : 'Suspend'}
-              </Button>
-            </Box>
-          </Flex>
+          <SyncControls
+            hideSyncOptions
+            syncLoading={syncing}
+            syncDisabled={suspended}
+            suspendDisabled={suspending || suspended}
+            resumeDisabled={suspending || !suspended}
+            onSyncClick={handleSyncClick}
+            onSuspendClick={handleSuspendClick}
+            onResumeClick={handleSuspendClick}
+          />
         </Box>
         <SubRouterTabs rootPath={`${path}/details`}>
           <RouterTab name="Details" path={`${path}/details`}>
@@ -205,7 +200,7 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
                 items={[
                   ['Observed generation', gs?.observedGeneration],
                   ['Cluster', gs?.clusterName],
-                  ['Suspended', gs?.suspended ? 'True' : 'False'],
+                  ['Suspended', suspended ? 'True' : 'False'],
                 ]}
               />
               <Metadata metadata={getMetadata(gs)} labels={getLabels(gs)} />
@@ -248,12 +243,9 @@ function GitOpsDetail({ className, name, namespace, clusterName }: Props) {
           </RouterTab>
           <RouterTab name="Yaml" path={`${path}/yaml`}>
             <YamlView
-              yaml={gs?.yaml && YAML.stringify(JSON.parse(gs?.yaml as string))}
-              object={{
-                kind: gs?.type,
-                name: gs?.name,
-                namespace: gs?.namespace,
-              }}
+              yaml={YAML.stringify(JSON.parse(gs?.yaml || ('' as string)))}
+              type="GitOpsSet"
+              header={createYamlCommand(gs?.type, gs?.name, gs?.namespace)}
             />
           </RouterTab>
         </SubRouterTabs>

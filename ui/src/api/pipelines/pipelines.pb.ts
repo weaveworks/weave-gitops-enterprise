@@ -33,7 +33,7 @@ export type ApprovePromotionRequest = {
 }
 
 export type ApprovePromotionResponse = {
-  pullRequestURL?: string
+  pullRequestUrl?: string
 }
 
 export type ListError = {
@@ -42,8 +42,8 @@ export type ListError = {
 }
 
 export type ListPullRequestsRequest = {
-  pipelineName?: string
-  pipelineNamespace?: string
+  name?: string
+  namespace?: string
 }
 
 export type ListPullRequestsResponse = {
@@ -61,6 +61,6 @@ export class Pipelines {
     return fm.fetchReq<ApprovePromotionRequest, ApprovePromotionResponse>(`/v1/pipelines/approve/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ListPullRequests(req: ListPullRequestsRequest, initReq?: fm.InitReq): Promise<ListPullRequestsResponse> {
-    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list_prs/${req["pipelineName"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+    return fm.fetchReq<ListPullRequestsRequest, ListPullRequestsResponse>(`/v1/pipelines/list_prs/${req["name"]}`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
 }

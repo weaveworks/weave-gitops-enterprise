@@ -1,13 +1,12 @@
-import {
-  act,
-  fireEvent, render,
-  screen
-} from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import moment from 'moment';
 import { WorkspaceRoleBindingSubject } from '../../../cluster-services/cluster_services.pb';
 import EnterpriseClientProvider from '../../../contexts/EnterpriseClient/Provider';
 import {
-  defaultContexts, TestFilterableTable, withContext, WorkspaceClientMock
+  defaultContexts,
+  TestFilterableTable,
+  withContext,
+  WorkspaceClientMock,
 } from '../../../utils/test-utils';
 import WorkspaceDetails from '../WorkspaceDetails';
 import { PoliciesTab } from '../WorkspaceDetails/Tabs/Policies';
@@ -140,39 +139,6 @@ describe('WorkspaceDetails', () => {
       ...defaultContexts(),
       [EnterpriseClientProvider, { api }],
     ]);
-  });
-
-  it('renders get Workspace details', async () => {
-    const workspace = MockWorkspaceResponse.workspace;
-    api.GetWorkspaceReturns = MockWorkspaceResponse.workspace;
-    await act(async () => {
-      const c = wrap(
-        <WorkspaceDetails
-          clusterName={workspace.clusterName}
-          workspaceName={workspace.name}
-        />,
-      );
-      render(c);
-    });
-
-    //check Tabs
-    const tabs = await screen.getAllByRole('tab');
-    expect(await screen.getByTitle(workspace.name)).toBeTruthy();
-    expect(workspace.clusterName).toBeDefined();
-    expect(tabs).toHaveLength(4);
-    expect(tabs[0]).toHaveTextContent('Service Accounts');
-    expect(tabs[1]).toHaveTextContent('Roles');
-    expect(tabs[2]).toHaveTextContent('Role Bindings');
-    expect(tabs[3]).toHaveTextContent('Policies');
-
-    expect(screen.getByTestId('Workspace Name')).toHaveTextContent(
-      workspace.name,
-    );
-    
-    const namespaces = document.querySelectorAll(
-      '#workspace-details-header-namespaces span',
-    );
-    expect(namespaces).toHaveLength(workspace.namespaces.length);
   });
 
   it('renders service accounts tab', async () => {

@@ -1,9 +1,13 @@
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
-import { TableWrapper } from '../../../Shared';
-import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
+import {
+  DataTable,
+  YamlView,
+  createYamlCommand,
+} from '@weaveworks/weave-gitops';
 import moment from 'moment';
-import { RulesListWrapper } from '../../WorkspaceStyles';
 import { WorkspaceRoleRule } from '../../../../cluster-services/cluster_services.pb';
+import { useGetWorkspaceRoles } from '../../../../contexts/Workspaces';
+import { TableWrapper } from '../../../Shared';
+import { RulesListWrapper } from '../../WorkspaceStyles';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 
@@ -47,7 +51,7 @@ export const RolesTab = ({
     error,
   } = useGetWorkspaceRoles({
     clusterName,
-    workspaceName,
+    name: workspaceName,
   });
 
   return (
@@ -66,11 +70,8 @@ export const RolesTab = ({
                       content={
                         <YamlView
                           yaml={manifest}
-                          object={{
-                            kind: kind,
-                            name: name,
-                            namespace: namespace,
-                          }}
+                          type={kind}
+                          header={createYamlCommand(kind, name, namespace)}
                         />
                       }
                       title="Role Manifest"

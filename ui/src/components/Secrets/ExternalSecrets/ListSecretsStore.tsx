@@ -28,7 +28,7 @@ const ListSecretsStore = ({
         value={value}
         error={validateForm && !value}
       >
-        {!!data?.stores?.length ? (
+        {data?.stores?.length ? (
           data?.stores?.map((s, index: number) => {
             return (
               <MenuItem

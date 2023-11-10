@@ -1,8 +1,12 @@
-import { DataTable, YamlView } from '@weaveworks/weave-gitops';
-import { TableWrapper } from '../../../Shared';
-import { useGetWorkspaceRoleBinding } from '../../../../contexts/Workspaces';
+import {
+  DataTable,
+  YamlView,
+  createYamlCommand,
+} from '@weaveworks/weave-gitops';
 import moment from 'moment';
 import { WorkspaceRoleBindingSubject } from '../../../../cluster-services/cluster_services.pb';
+import { useGetWorkspaceRoleBinding } from '../../../../contexts/Workspaces';
+import { TableWrapper } from '../../../Shared';
 import WorkspaceModal from '../WorkspaceModal';
 import WorkspaceTabsWrapper from './WorkspaceTabsWrapper';
 
@@ -19,7 +23,7 @@ export const RoleBindingsTab = ({
     error,
   } = useGetWorkspaceRoleBinding({
     clusterName,
-    workspaceName,
+    name: workspaceName,
   });
 
   return (
@@ -38,11 +42,8 @@ export const RoleBindingsTab = ({
                       content={
                         <YamlView
                           yaml={manifest}
-                          object={{
-                            kind: kind,
-                            name: name,
-                            namespace: namespace,
-                          }}
+                          type={kind}
+                          header={createYamlCommand(kind, name, namespace)}
                         />
                       }
                       title="RoleBinding Manifest"

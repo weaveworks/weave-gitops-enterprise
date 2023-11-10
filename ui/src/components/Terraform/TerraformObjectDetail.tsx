@@ -1,6 +1,7 @@
 import { Box } from '@material-ui/core';
 import {
   Button,
+  createYamlCommand,
   Flex,
   formatURL,
   InfoList,
@@ -11,6 +12,8 @@ import {
   Metadata,
   RouterTab,
   SubRouterTabs,
+  SyncControls,
+  Timestamp,
   YamlView,
 } from '@weaveworks/weave-gitops';
 import { useState } from 'react';
@@ -31,13 +34,14 @@ import { getLabels, getMetadata } from '../../utils/formatters';
 import { Routes } from '../../utils/nav';
 import { Page } from '../Layout/App';
 import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
+import ListEvents from '../ListEvents';
 import { TableWrapper } from '../Shared';
 import useNotifications from './../../contexts/Notifications';
 import { EditButton } from './../Templates/Edit/EditButton';
 import TerraformDependenciesView from './TerraformDependencyView';
 import TerraformInventoryTable from './TerraformInventoryTable';
+import { getLastApplied } from './TerraformListTable';
 import TerraformPlanView from './TerraformPlanView';
-import ListEvents from '../ListEvents';
 
 type Props = {
   className?: string;
@@ -149,6 +153,8 @@ function TerraformObjectDetail({ className, ...params }: Props) {
   const shouldShowReplanButton =
     pathname.endsWith('/plan') && !isLoadingPlan && enablePlanViewing && !error;
 
+  const suspended = object?.suspended;
+
   return (
     <Page
       loading={isLoading}
@@ -167,27 +173,26 @@ function TerraformObjectDetail({ className, ...params }: Props) {
           <Box paddingBottom={3}>
             <KubeStatusIndicator
               conditions={object?.conditions || []}
-              suspended={object?.suspended}
+              suspended={suspended}
             />
           </Box>
           <Box paddingBottom={3}>
             <Flex wide wrap between gap="8">
               <Flex gap="12">
-                <Button
-                  loading={syncing}
-                  variant="outlined"
-                  onClick={handleSyncClick}
-                >
-                  Sync
-                </Button>
-
-                <Button
-                  loading={suspending}
-                  variant="outlined"
-                  onClick={handleSuspendClick}
-                >
-                  {object?.suspended ? 'Resume' : 'Suspend'}
-                </Button>
+                <SyncControls
+                  syncLoading={syncing}
+                  syncDisabled={suspended}
+                  suspendDisabled={suspending || suspended}
+                  resumeDisabled={suspending || !suspended}
+                  customActions={[
+                    <EditButton
+                      resource={data || ({} as GetTerraformObjectResponse)}
+                    />,
+                  ]}
+                  onSyncClick={handleSyncClick}
+                  onSuspendClick={handleSuspendClick}
+                  onResumeClick={handleSuspendClick}
+                />
 
                 {shouldShowReplanButton && (
                   <Button
@@ -199,10 +204,6 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                     Plan
                   </Button>
                 )}
-
-                <EditButton
-                  resource={data || ({} as GetTerraformObjectResponse)}
-                />
               </Flex>
               <Flex align gap="4">
                 <LargeInfo
@@ -235,6 +236,10 @@ function TerraformObjectDetail({ className, ...params }: Props) {
                       object?.driftDetectionResult ? 'True' : 'False',
                     ],
                     ['Suspended', object?.suspended ? 'True' : 'False'],
+                    [
+                      'Last Applied',
+                      <Timestamp time={getLastApplied(object || {})} />,
+                    ],
                   ]}
                 />
                 <Metadata
@@ -264,11 +269,12 @@ function TerraformObjectDetail({ className, ...params }: Props) {
             <RouterTab name="Yaml" path={`${path}/yaml`}>
               <YamlView
                 yaml={yaml || ''}
-                object={{
-                  kind: 'Terraform',
-                  name: object?.name,
-                  namespace: object?.namespace,
-                }}
+                type="Terraform"
+                header={createYamlCommand(
+                  'Terraform',
+                  object?.name,
+                  object?.namespace,
+                )}
               />
             </RouterTab>
             <RouterTab name="Plan" path={`${path}/plan`}>

@@ -25,6 +25,8 @@ import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { createGlobalStyle, ThemeProvider } from 'styled-components';
+import ProximaNova from 'url:./fonts/proximanova-regular.woff';
+import RobotoMono from 'url:./fonts/roboto-mono-regular.woff';
 import { Pipelines } from './api/pipelines/pipelines.pb';
 import { Query } from './api/query/query.pb';
 import { Terraform } from './api/terraform/terraform.pb';
@@ -42,8 +44,6 @@ import { ProgressiveDeliveryProvider } from './contexts/ProgressiveDelivery';
 import QueryServiceProvider from './contexts/QueryService';
 import RequestContextProvider from './contexts/Request';
 import { TerraformProvider } from './contexts/Terraform';
-import ProximaNova from './fonts/proximanova-regular.woff';
-import RobotoMono from './fonts/roboto-mono-regular.woff';
 import { muiTheme } from './muiTheme';
 import { resolver } from './utils/link-resolver';
 import { addTFSupport } from './utils/request';
@@ -107,34 +107,19 @@ const GlobalStyle = createGlobalStyle`
     .MuiFormControl-root {
       min-width: 0px;
     }
-   
+    .MuiPaper-root{
+      background-color: ${props =>
+        props.theme.mode === ThemeTypes.Dark
+          ? props.theme.colors.neutralGray
+          : props.theme.colors.white};
+    }
+    .MuiListItem-button:hover{
+      background-color: ${props =>
+        props.theme.mode === ThemeTypes.Dark
+          ? props.theme.colors.blueWithOpacity
+          : props.theme.colors.neutral10}};
   }
-  ::-webkit-scrollbar-track {
-    margin-top: 5px;
-    box-shadow: transparent;
-    background-color: transparent;
-    border-radius: 5px;
-  }
-  ::-webkit-scrollbar{
-    width: 5px;
-    height: 5px;
-    background-color: transparent;
-    margin-top: 50px;
-  }
- ::-webkit-scrollbar-thumb {
-    background-color: ${props => props.theme.colors.neutral30};
-    border-radius: 5px;
-  }
- ::-webkit-scrollbar-thumb:hover {
-    background-color: ${props => props.theme.colors.neutral30};
-  }
-  ::-webkit-scrollbar:hover{
-    width: 7px;
-    height:7px;
-  }
-  ::-webkit-scrollbar-corner{
-    background-color: transparent;
-  }
+  
   #root {
     /* Layout - grow to at least viewport height */
     display: flex;
@@ -173,6 +158,16 @@ const StylesProvider = ({ children }: { children: ReactNode }) => {
   const { settings } = React.useContext(AppContext);
   const mode = settings.theme;
   const appliedTheme = theme(mode);
+
+  // Related to: https://github.com/weaveworks/weave-gitops-enterprise/issues/3555
+  // The `<body>` element is set to use `colors.black`. We need to invert it for dark mode.
+  if (mode === ThemeTypes.Dark) {
+    appliedTheme.colors = {
+      ...appliedTheme.colors,
+      black: appliedTheme.colors.white,
+    };
+  }
+
   return (
     <ThemeProvider theme={appliedTheme}>
       <MuiThemeProvider theme={muiTheme(appliedTheme.colors, mode)}>

@@ -1,11 +1,11 @@
 import {
-  InputAdornment,
-  MenuItem,
   Divider as MuiDivider,
   FormControl as MuiFormControl,
   FormHelperText as MuiFormHelperText,
+  InputAdornment,
   InputBase as MuiInputBase,
   InputLabel as MuiInputLabel,
+  MenuItem,
   Select as MuiSelect,
   SelectProps as MuiSelectProps,
 } from '@material-ui/core';
@@ -14,7 +14,7 @@ import { Theme, withStyles } from '@material-ui/core/styles';
 import { debounce } from 'lodash';
 import React, { Dispatch, FC, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { ReactComponent as ErrorIcon } from './../assets/img/error.svg';
+import { ErrorIcon } from '../components/RemoteSVGIcon';
 
 const FormControl = withStyles((theme: Theme) => ({
   root: {
@@ -198,13 +198,20 @@ export const Select: FC<SelectProps> = ({
 );
 
 export const validateFormData = (
-  event: any,
+  event: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>,
   onSubmit: any,
   setFormError: Dispatch<React.SetStateAction<any>>,
-  setSubmitType?: Dispatch<React.SetStateAction<string>>,
 ) => {
   event.preventDefault();
-  const requiredButEmptyInputs = Array.from(event.target).filter(
+
+  const onClickFormData =
+    (event?.target as HTMLFormElement | HTMLButtonElement).form ||
+    ((event?.target as HTMLButtonElement).parentElement as HTMLButtonElement)
+      ?.form;
+
+  const requiredButEmptyInputs = Array.from(
+    event.type === 'submit' ? event.target : onClickFormData,
+  ).filter(
     (element: any) =>
       element.type === 'text' && element.required && element.value === '',
   );
@@ -215,7 +222,6 @@ export const validateFormData = (
     (firstEmpty as HTMLInputElement).focus();
     setFormError((firstEmpty as HTMLInputElement).name);
   }
-  setSubmitType && setSubmitType('');
 };
 
 interface InputDebounceProps extends InputProps {

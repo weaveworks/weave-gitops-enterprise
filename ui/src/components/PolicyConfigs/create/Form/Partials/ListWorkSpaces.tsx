@@ -49,7 +49,7 @@ export const ListWorkSpaces = ({
     });
   };
 
-  return !!cluster ? (
+  return cluster ? (
     <LoadingWrapper loading={isLoading} errorMessage={error?.message}>
       {workspaces.length ? (
         <FormGroup>

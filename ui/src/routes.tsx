@@ -27,8 +27,7 @@ import ClusterDetails from './components/Clusters/ClusterDetails';
 import Explorer from './components/Explorer';
 import ObjectViewerPage from './components/Explorer/ObjectViewerPage';
 import OAuthCallback from './components/GitAuth/OAuthCallback';
-import GitOpsRunDetail from './components/GitOpsRun/Detail';
-import GitOpsRun from './components/GitOpsRun/List';
+
 import GitOpsSets from './components/GitOpsSets';
 import GitOpsSetDetail from './components/GitOpsSets/GitOpsSetDetail';
 import ImageAutomationPage from './components/ImageAutomation';
@@ -40,14 +39,14 @@ import Policies from './components/Policies/PoliciesListPage';
 import PolicyDetailsPage from './components/Policies/PolicyDetailsPage';
 import PolicyViolationPage from './components/Policies/PolicyViolationPage';
 import PolicyConfigsList from './components/PolicyConfigs';
-import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import CreatePolicyConfig from './components/PolicyConfigs/create';
+import PolicyConfigsDetails from './components/PolicyConfigs/PolicyConfigDetails';
 import ProgressiveDelivery from './components/ProgressiveDelivery';
 import CanaryDetails from './components/ProgressiveDelivery/CanaryDetails';
 import SecretsList from './components/Secrets';
 import CreateExternalSecret from './components/Secrets/ExternalSecrets';
-import CreateSOPS from './components/Secrets/SOPS';
 import SecretDetails from './components/Secrets/SecretDetails';
+import CreateSOPS from './components/Secrets/SOPS';
 import TemplatesDashboard from './components/Templates';
 import AddClusterWithCredentials from './components/Templates/Create';
 import EditResourcePage from './components/Templates/Edit';
@@ -58,11 +57,13 @@ import Workspaces from './components/Workspaces';
 import WorkspaceDetails from './components/Workspaces/WorkspaceDetails';
 import { Routes } from './utils/nav';
 
-function withSearchParams(Cmp: any) {
-  return ({ location: { search }, ...rest }: any) => {
+function withSearchParams(Cmp: React.FC<any>) {
+  const ComponentWithParams = ({ location: { search }, ...rest }: any) => {
     const params = qs.parse(search);
     return <Cmp {...rest} {...params} />;
   };
+  ComponentWithParams.displayName = Cmp.displayName + 'WithParams';
+  return ComponentWithParams;
 }
 
 const Page404 = () => (
@@ -107,11 +108,6 @@ const AppRoutes = () => {
         component={withSearchParams(PolicyViolationPage)}
         exact
         path={V2Routes.PolicyViolationDetails}
-      />
-      <Route component={GitOpsRun} exact path={Routes.GitOpsRun} />
-      <Route
-        component={withSearchParams(GitOpsRunDetail)}
-        path={Routes.GitOpsRunDetail}
       />
       <Route
         component={(props: any) => <WGApplicationsDashboard {...props} />}

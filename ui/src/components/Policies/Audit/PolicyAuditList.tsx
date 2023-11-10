@@ -2,8 +2,8 @@ import { RequestStateHandler } from '@weaveworks/weave-gitops';
 import { useHistory } from 'react-router-dom';
 import { useQueryService } from '../../../hooks/query';
 import { RequestError } from '../../../types/custom';
-import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
 import { QueryStateProvider } from '../../Explorer/hooks';
+import { URLQueryStateManager } from '../../Explorer/QueryStateManager';
 import { AuditTable } from './AuditTable';
 
 const PolicyAuditList = () => {
@@ -17,7 +17,7 @@ const PolicyAuditList = () => {
     limit: queryState.limit,
     offset: queryState.offset,
     orderBy: queryState.orderBy,
-    ascending: queryState.orderAscending,
+    descending: queryState.orderDescending,
   });
 
   return (

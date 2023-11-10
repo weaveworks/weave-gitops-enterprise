@@ -41,7 +41,7 @@ service ClustersService {
   rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}/templates/{template_name}"
+      get : "/v1/namespaces/{namespace}/templates/{name}"
     };
   }
 
@@ -50,7 +50,7 @@ service ClustersService {
   rpc ListTemplateParams(ListTemplateParamsRequest) returns (ListTemplateParamsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}/templates/{template_name}/params"
+      get : "/v1/namespaces/{namespace}/templates/{name}/params"
     };
   }
 
@@ -60,7 +60,7 @@ service ClustersService {
   rpc ListTemplateProfiles(ListTemplateProfilesRequest) returns (ListTemplateProfilesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{template_namespace}/templates/{template_name}/profiles"
+      get : "/v1/namespaces/{namespace}/templates/{name}/profiles"
     };
   }
 
@@ -68,7 +68,7 @@ service ClustersService {
   rpc RenderTemplate(RenderTemplateRequest) returns (RenderTemplateResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      post : "/v1/namespaces/{template_namespace}/templates/{template_name}/render"
+      post : "/v1/namespaces/{namespace}/templates/{name}/render"
       body : "*"
     };
   }
@@ -77,7 +77,7 @@ service ClustersService {
   rpc CreatePullRequest(CreatePullRequestRequest) returns (CreatePullRequestResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      post : "/v1/templates/pull-request"
+      post : "/v1/namespaces/{namespace}/templates/{name}/pull-request"
       body : "*"
     };
   }
@@ -117,13 +117,18 @@ service ClustersService {
     };
   }
 
-  // List available credentials
+  // List available CAPI identities
   //
-  // These templates can be used when renderer certain templates
+  // Search the cluster for available CAPI identities:
+  // - `AWSClusterStaticIdentity`
+  // - `AWSClusterRoleIdentity`
+  // - `AzureClusterIdentity`
+  // - `VSphereClusterIdentity`
+  // 
   rpc ListCredentials(ListCredentialsRequest) returns (ListCredentialsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["templates"]; };
     option (google.api.http) = {
-      get : "/v1/credentials"
+      get : "/v1/templates/capi-identities"
     };
   }
 
@@ -150,10 +155,12 @@ service ClustersService {
   }
 
   // Get the kubeconfig for a GitOpsCluster
+  //
+  // Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
   rpc GetKubeconfig(GetKubeconfigRequest) returns (google.api.HttpBody) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["clusters"]; };
     option (google.api.http) = {
-      get : "/v1/namespaces/{cluster_namespace}/clusters/{cluster_name}/kubeconfig"
+      get : "/v1/namespaces/{namespace}/clusters/{name}/kubeconfig"
     };
   }
 
@@ -220,7 +227,7 @@ service ClustersService {
    rpc GetWorkspace(GetWorkspaceRequest) returns (GetWorkspaceResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}"
+      get : "/v1/workspaces/{name}"
     };
   }
 
@@ -228,7 +235,7 @@ service ClustersService {
    rpc GetWorkspaceRoles(GetWorkspaceRequest) returns (GetWorkspaceRolesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/roles"
+      get : "/v1/workspaces/{name}/roles"
     };
   }
 
@@ -236,7 +243,7 @@ service ClustersService {
    rpc GetWorkspaceRoleBindings(GetWorkspaceRequest) returns (GetWorkspaceRoleBindingsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/rolebindings"
+      get : "/v1/workspaces/{name}/rolebindings"
     };
   }
 
@@ -244,7 +251,7 @@ service ClustersService {
    rpc GetWorkspaceServiceAccounts(GetWorkspaceRequest) returns (GetWorkspaceServiceAccountsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/serviceaccounts"
+      get : "/v1/workspaces/{name}/serviceaccounts"
     };
   }
 
@@ -252,7 +259,7 @@ service ClustersService {
   rpc GetWorkspacePolicies(GetWorkspaceRequest) returns (GetWorkspacePoliciesResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["workspaces"]; };
     option (google.api.http) = {
-      get : "/v1/workspaces/{workspace_name}/policies"
+      get : "/v1/workspaces/{name}/policies"
     };
   }
 
@@ -284,7 +291,7 @@ service ClustersService {
   rpc SyncExternalSecrets(SyncExternalSecretsRequest) returns (SyncExternalSecretsResponse) {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = { tags: ["secrets"]; };
     option (google.api.http) = {
-      post : "/v1/external-secrets/sync"
+      patch : "/v1/external-secrets/sync"
       body : "*"
     };
   }
@@ -330,8 +337,8 @@ message ListTemplatesRequest {
 }
 
 message Pagination {
-    int32 pageSize = 1;
-    string pageToken = 2;
+    int32 page_size = 1;
+    string page_token = 2;
 }
 
 message ListError {
@@ -347,17 +354,17 @@ message ListTemplatesResponse {
 }
 
 message GetTemplateRequest {
-  string template_name = 1;
+  string name = 1;
   string template_kind = 2;
-  string template_namespace = 3;
+  string namespace = 3;
 }
 
 message GetTemplateResponse { Template template = 1; }
 
 message ListTemplateParamsRequest {
-  string template_name = 1;
+  string name = 1;
   string template_kind = 2;
-  string template_namespace = 3;
+  string namespace = 3;
 }
 message ListTemplateParamsResponse {
   repeated Parameter parameters = 1;
@@ -365,9 +372,9 @@ message ListTemplateParamsResponse {
 }
 
 message ListTemplateProfilesRequest {
-  string template_name = 1;
+  string name = 1;
   string template_kind = 2;
-  string template_namespace = 3;
+  string namespace = 3;
 }
 message ListTemplateProfilesResponse {
   repeated TemplateProfile profiles = 1;
@@ -375,14 +382,14 @@ message ListTemplateProfilesResponse {
 }
 
 message RenderTemplateRequest {
-  string template_name = 1;
+  string name = 1;
   map<string, string> values = 2;
   Credential credentials = 3;
   string template_kind = 4;
   string cluster_namespace = 5;
   repeated ProfileValues profiles = 6;
   repeated Kustomization kustomizations = 7;
-  string template_namespace = 8;
+  string namespace = 8;
   repeated ExternalSecret external_secrets = 9;
 }
 
@@ -405,7 +412,7 @@ message RenderTemplateResponse {
   repeated CommitFile rendered_templates = 1;
   repeated CommitFile profile_files = 2;
   repeated CommitFile kustomization_files = 3;
-  CostEstimate costEstimate = 4;
+  CostEstimate cost_estimate = 4;
   repeated CommitFile external_secrets_files = 5;
   repeated CommitFile policy_config_files = 6;
   repeated CommitFile sops_secret_files = 7;
@@ -449,7 +456,7 @@ message CreatePullRequestRequest {
   // The description of the pull request
   string description = 5;
   // The name of the template to create a pull request for.
-  string template_name = 6;
+  string name = 6;
   // The values that populate the template's parameters.
   map<string, string> parameter_values = 7;
   // The commit message
@@ -459,10 +466,10 @@ message CreatePullRequestRequest {
   // The values for each profile that will be installed.
   repeated ProfileValues values = 10;
   // The repo api url.
-  string repository_api_url = 11;
+  string repository_api_url = 11 [deprecated = true];
   string cluster_namespace = 12;
   repeated Kustomization kustomizations = 13;
-  string template_namespace = 14;
+  string namespace = 14;
   string template_kind = 15;
   PreviousValues previous_values = 16;
   repeated ExternalSecret external_secrets = 17;
@@ -499,14 +506,14 @@ message CreateTfControllerPullRequestRequest {
   // The description of the pull request
   string description = 5;
   // The name of the template to create a pull request for.
-  string template_name = 6;
+  string name = 6;
   // The values that populate the template's parameters.
   map<string, string> parameter_values = 7;
   // The commit message
   string commit_message = 8;
   // The repo api url.
   string repository_api_url = 11;
-  string template_namespace = 12;
+  string namespace = 12;
 }
 message CreateTfControllerPullRequestResponse {
   // The url of the new pull request.
@@ -536,7 +543,7 @@ message CreateDeletionPullRequestRequest {
   // Credentials
   Credential credentials = 8;
   // The repo api url.
-  string repository_api_url = 9;
+  string repository_api_url = 9 [deprecated = true];
   repeated ClusterNamespacedName cluster_namespaced_names = 10;
 }
 message CreateDeletionPullRequestResponse {
@@ -551,9 +558,10 @@ message ListCredentialsResponse {
 }
 
 message GetKubeconfigRequest {
-  // The name of the workload cluster.
-  string cluster_name = 1;
-  string cluster_namespace = 2;
+  // The name of the `GitopsCluster`
+  string name = 1;
+  // The namespace of the `GitopsCluster`
+  string namespace = 2;
 }
 message GetKubeconfigResponse {
   // The Kubeconfig of the workload cluster.
@@ -576,8 +584,8 @@ message GitopsCluster {
   map<string, string> annotations = 4;
   map<string, string> labels = 5;
   repeated Condition conditions = 6;
-  GitopsClusterRef capiClusterRef = 7;
-  GitopsClusterRef secretRef = 8;
+  GitopsClusterRef capi_cluster_ref = 7;
+  GitopsClusterRef secret_ref = 8;
   CapiCluster capi_cluster = 9;
   bool control_plane = 10;
   string type = 11;
@@ -681,7 +689,7 @@ message CreateAutomationsPullRequestRequest {
   // The commit message
   string commit_message = 6;
   // The repo api url.
-  string repository_api_url = 7;
+  string repository_api_url = 7 [deprecated = true];
   // A list of cluster and kustomization
   repeated ClusterAutomation cluster_automations = 8;
 }
@@ -754,7 +762,7 @@ message KustomizationSpec {
 
 message Decryption{
   string provider = 1;
-  SecretRef secretRef = 2;
+  SecretRef secret_ref = 2;
 }
 
 message SecretRef{
@@ -859,7 +867,7 @@ message Event {
 
 message ListEventsRequest {
   ObjectRef involved_object = 1;
-  string    clusterName    = 2;
+  string    cluster_name    = 2;
 }
 
 message ListEventsResponse {
@@ -911,7 +919,7 @@ message GetChartsJobResponse {
 
 message Workspace {
   string name = 1;
-  string clusterName = 2;
+  string cluster_name = 2;
   repeated string namespaces = 3;
 }
 
@@ -982,7 +990,7 @@ message WorkspacePolicy {
 
 message GetWorkspaceRequest{
   string cluster_name = 1;
-  string workspace_name = 2;
+  string name = 2;
 }
 
 message GetWorkspaceResponse{
@@ -1192,11 +1200,13 @@ message SopsSecretMetadata {
 }
 
 message SopsSecret {
+  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
   string apiVersion = 1;
   string kind = 2;
   SopsSecretMetadata metadata = 3;
   map<string,string> data = 4;
-  map<string,string> string_data = 5;
+  // protolint:disable:next FIELD_NAMES_LOWER_SNAKE_CASE
+  map<string,string> stringData = 5;
   string type = 6;
   bool immutable = 7;
   google.protobuf.Value sops = 8;

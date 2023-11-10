@@ -6,11 +6,12 @@ import {
   SubRouterTabs,
   Text,
   YamlView,
+  createYamlCommand,
 } from '@weaveworks/weave-gitops';
 import { GetExternalSecretResponse } from '../../../cluster-services/cluster_services.pb';
 import { Routes } from '../../../utils/nav';
-import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 import ListEvents from '../../ListEvents';
+import { RowHeaders, SectionRowHeader } from '../../RowHeader';
 
 const SecretDetailsTabs = ({
   clusterName,
@@ -27,7 +28,7 @@ const SecretDetailsTabs = ({
   const secretObj = new FluxObject({
     payload: secretDetails?.yaml,
   });
-  const props = secretObj.obj?.spec?.data?.map((d: any) => ({
+  const secretProps = secretObj.obj?.spec?.data?.map((d: any) => ({
     key: d.secretKey,
     value: d.remoteRef.property,
   }));
@@ -80,8 +81,8 @@ const SecretDetailsTabs = ({
                 Properties
               </Text>
               <DataTable
-                key={props?.length}
-                rows={props}
+                key={secretProps?.length}
+                rows={secretProps}
                 fields={[
                   {
                     label: 'PROPERTY',
@@ -110,11 +111,12 @@ const SecretDetailsTabs = ({
       <RouterTab name="Yaml" path={`${path}/yaml`}>
         <YamlView
           yaml={secretObj.yaml}
-          object={{
-            kind: 'ExternalSecret',
-            name: externalSecretName,
+          type="ExternalSecret"
+          header={createYamlCommand(
+            'ExternalSecret',
+            externalSecretName,
             namespace,
-          }}
+          )}
         />
       </RouterTab>
     </SubRouterTabs>

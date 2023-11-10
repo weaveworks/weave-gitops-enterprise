@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
+import * as yaml from 'yaml';
 import { ToggleSuspendTerraformObjectsResponse } from '../../../api/terraform/terraform.pb';
 import { TerraformProvider } from '../../../contexts/Terraform';
 import {
@@ -35,7 +36,7 @@ const res = {
 describe('TerraformObjectDetail', () => {
   let wrap: (el: JSX.Element) => JSX.Element;
   let api: TerraformClientMock;
-
+  jest.spyOn(yaml, 'parse').mockImplementation(() => '');
   beforeEach(() => {
     api = new TerraformClientMock();
     wrap = withContext([...defaultContexts(), [TerraformProvider, { api }]]);
@@ -62,7 +63,7 @@ describe('TerraformObjectDetail', () => {
       render(c);
     });
 
-    const button = await screen.findByText('Sync');
+    const button = await screen.findByTestId('sync-button');
 
     fireEvent.click(button);
 
@@ -104,7 +105,7 @@ describe('TerraformObjectDetail', () => {
 
     expect(suspendedValue).toEqual('Suspended:False');
 
-    const button = await screen.findByText('Suspend');
+    const button = await screen.findByTestId('suspend-button');
 
     fireEvent.click(button);
 

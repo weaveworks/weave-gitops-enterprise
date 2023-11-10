@@ -27,6 +27,7 @@ import (
 	store "github.com/weaveworks/weave-gitops-enterprise/pkg/query/store"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	"github.com/weaveworks/weave-gitops/pkg/server/auth"
+	v1 "k8s.io/api/core/v1"
 )
 
 type server struct {
@@ -38,6 +39,8 @@ type server struct {
 
 	cancelCollection context.CancelFunc
 	cleaner          cleaner.ObjectCleaner
+	enabledFor       []string
+	clustersManager  clustersmngr.ClustersManager
 }
 
 func (s *server) StopCollection() error {
@@ -69,16 +72,28 @@ type ServerOpts struct {
 	ObjectKinds         []configuration.ObjectKind
 	ServiceAccount      collector.ImpersonateServiceAccount
 	EnableObjectCleaner bool
+	EnabledFor          []string
 }
 
-func (s *server) DoQuery(ctx context.Context, msg *pb.QueryRequest) (*pb.QueryResponse, error) {
+func (s *server) DoQuery(ctx context.Context, msg *pb.DoQueryRequest) (*pb.DoQueryResponse, error) {
 	objs, err := s.qs.RunQuery(ctx, msg, msg)
-
 	if err != nil {
 		return nil, fmt.Errorf("failed to run query: %w", err)
 	}
 
-	return &pb.QueryResponse{
+	user := auth.Principal(ctx)
+	// Force update the cluster manager cache
+	// It appears this gets called every request by the GetImpersonatedClient call,
+	// which does not get called in the Query code path.
+	// It should be safe to call on every request here.
+	s.clustersManager.UpdateUserNamespaces(ctx, user)
+
+	// Existing tenants machinery requires that we know the user's available namespaces.
+	// We check those tenant namespaces against the object's namespace.
+	userNamespaces := s.clustersManager.GetUserNamespaces(user)
+	objs = withTenants(objs, userNamespaces)
+
+	return &pb.DoQueryResponse{
 		Objects: convertToPbObject(objs),
 	}, nil
 }
@@ -105,6 +120,27 @@ func (s *server) ListFacets(ctx context.Context, msg *pb.ListFacetsRequest) (*pb
 
 	return &pb.ListFacetsResponse{
 		Facets: convertToPbFacet(facets),
+	}, nil
+}
+
+func (s *server) ListEnabledComponents(ctx context.Context, msg *pb.ListEnabledComponentsRequest) (*pb.ListEnabledComponentsResponse, error) {
+	enabledFor := []pb.EnabledComponent{}
+
+	for _, cmp := range s.enabledFor {
+
+		key := pb.EnabledComponent_value[cmp]
+
+		if key == int32(pb.EnabledComponent_unknown) {
+			// Weird case were if we have an invalid component, we get the zero value of an int32,
+			// which means we get the first enum value.
+			// Protobufs require the first element of an enum to be 0.
+			continue
+		}
+		enabledFor = append(enabledFor, pb.EnabledComponent(key))
+	}
+
+	return &pb.ListEnabledComponentsResponse{
+		Components: enabledFor,
 	}, nil
 }
 
@@ -181,7 +217,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 	}
 
 	qs, err := query.NewQueryService(query.QueryServiceOpts{
-		Log:         debug,
+		Log:         opts.Logger,
 		StoreReader: s,
 		IndexReader: idx,
 		Authorizer:  authz,
@@ -191,7 +227,11 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 	}
 	debug.Info("query service created")
 
-	serv := &server{qs: qs}
+	serv := &server{
+		qs:              qs,
+		enabledFor:      opts.EnabledFor,
+		clustersManager: opts.ClustersManager,
+	}
 
 	if !opts.SkipCollection {
 		if len(opts.ObjectKinds) == 0 {
@@ -250,6 +290,7 @@ func NewServer(opts ServerOpts) (_ pb.QueryServer, _ func() error, reterr error)
 		serv.arc = rulesCollector
 		serv.objs = objsCollector
 		serv.cancelCollection = cancel
+
 		debug.Info("collectors started")
 	}
 	debug.Info("query server created")
@@ -282,6 +323,7 @@ func convertToPbObject(obj []models.Object) []*pb.Object {
 			Unstructured: string(o.Unstructured),
 			Id:           o.GetID(),
 			Tenant:       o.Tenant,
+			Labels:       o.Labels,
 		})
 	}
 
@@ -327,4 +369,22 @@ func convertToPbFacet(facets store.Facets) []*pb.Facet {
 	}
 
 	return pbFacets
+}
+
+// Replicating the logic from here:
+// https://github.com/weaveworks/weave-gitops/blob/8b293044e6afec872453fee40923da3d2f066f12/core/server/utils.go#L13
+func withTenants(objs []models.Object, nsList map[string][]v1.Namespace) []models.Object {
+	out := []models.Object{}
+	for _, obj := range objs {
+		namespaces := nsList[obj.Cluster]
+		for _, ns := range namespaces {
+			if ns.GetName() == obj.Namespace {
+				obj.Tenant = ns.Labels["toolkit.fluxcd.io/tenant"]
+				break
+			}
+		}
+		out = append(out, obj)
+	}
+
+	return out
 }

@@ -46,9 +46,13 @@ type ClustersServiceClient interface {
 	//
 	// Add kustomizations, helm releases, external secrets, policy configs, and sops secrets
 	CreateAutomationsPullRequest(ctx context.Context, in *CreateAutomationsPullRequestRequest, opts ...grpc.CallOption) (*CreateAutomationsPullRequestResponse, error)
-	// List available credentials
+	// List available CAPI identities
 	//
-	// These templates can be used when renderer certain templates
+	// Search the cluster for available CAPI identities:
+	// - `AWSClusterStaticIdentity`
+	// - `AWSClusterRoleIdentity`
+	// - `AzureClusterIdentity`
+	// - `VSphereClusterIdentity`
 	ListCredentials(ctx context.Context, in *ListCredentialsRequest, opts ...grpc.CallOption) (*ListCredentialsResponse, error)
 	// Creates a pull request from a tfcontroller template.
 	//
@@ -57,6 +61,8 @@ type ClustersServiceClient interface {
 	// List GitOpsClusters
 	ListGitopsClusters(ctx context.Context, in *ListGitopsClustersRequest, opts ...grpc.CallOption) (*ListGitopsClustersResponse, error)
 	// Get the kubeconfig for a GitOpsCluster
+	//
+	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(ctx context.Context, in *GetKubeconfigRequest, opts ...grpc.CallOption) (*httpbody.HttpBody, error)
 	// Get the Weave Gitops Enterprise version
 	GetEnterpriseVersion(ctx context.Context, in *GetEnterpriseVersionRequest, opts ...grpc.CallOption) (*GetEnterpriseVersionResponse, error)
@@ -438,9 +444,13 @@ type ClustersServiceServer interface {
 	//
 	// Add kustomizations, helm releases, external secrets, policy configs, and sops secrets
 	CreateAutomationsPullRequest(context.Context, *CreateAutomationsPullRequestRequest) (*CreateAutomationsPullRequestResponse, error)
-	// List available credentials
+	// List available CAPI identities
 	//
-	// These templates can be used when renderer certain templates
+	// Search the cluster for available CAPI identities:
+	// - `AWSClusterStaticIdentity`
+	// - `AWSClusterRoleIdentity`
+	// - `AzureClusterIdentity`
+	// - `VSphereClusterIdentity`
 	ListCredentials(context.Context, *ListCredentialsRequest) (*ListCredentialsResponse, error)
 	// Creates a pull request from a tfcontroller template.
 	//
@@ -449,6 +459,8 @@ type ClustersServiceServer interface {
 	// List GitOpsClusters
 	ListGitopsClusters(context.Context, *ListGitopsClustersRequest) (*ListGitopsClustersResponse, error)
 	// Get the kubeconfig for a GitOpsCluster
+	//
+	// Provide the name and namespace of a `GitOpsCluster` to retrieve its kubeconfig
 	GetKubeconfig(context.Context, *GetKubeconfigRequest) (*httpbody.HttpBody, error)
 	// Get the Weave Gitops Enterprise version
 	GetEnterpriseVersion(context.Context, *GetEnterpriseVersionRequest) (*GetEnterpriseVersionResponse, error)

@@ -1,23 +1,25 @@
-import { FC, useCallback, useEffect } from 'react';
-import styled from 'styled-components';
-import useNotifications, {
-  NotificationData,
-} from '../../contexts/Notifications';
-import useTemplates from '../../hooks/templates';
 import {
   Button,
   DataTable,
+  filterConfig,
   Icon,
   IconType,
   Link,
-  filterConfig,
-  useFeatureFlags,
 } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
+import { FC, useCallback, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import { EnabledComponent, Object } from '../../api/query/query.pb';
 import { Template } from '../../cluster-services/cluster_services.pb';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
-import { Page } from '../Layout/App';
+import useNotifications, {
+  NotificationData,
+} from '../../contexts/Notifications';
+import { useIsEnabledForComponent } from '../../hooks/query';
+import useTemplates from '../../hooks/templates';
 import Explorer from '../Explorer/Explorer';
+import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const Error = styled.span`
   color: ${props => props.theme.colors.alertOriginal};
@@ -31,15 +33,17 @@ const DocsLink = styled(Link)`
   padding-left: ${({ theme }) => theme.spacing.xxs};
 `;
 
-const TemplatesDashboard: FC<{
+type Props = {
+  className?: string;
   location: { state: { notification: NotificationData[] } };
-}> = ({ location }) => {
-  const { isFlagEnabled } = useFeatureFlags();
-  const useQueryServiceBackend = isFlagEnabled(
-    'WEAVE_GITOPS_FEATURE_QUERY_SERVICE_BACKEND',
+};
+
+const TemplatesDashboard: FC<Props> = ({ location, className }) => {
+  const isExplorerEnabled = useIsEnabledForComponent(
+    EnabledComponent.templates,
   );
   const { templates, isLoading } = useTemplates({
-    enabled: !useQueryServiceBackend,
+    enabled: !isExplorerEnabled,
   });
   const { setNotifications } = useNotifications();
   const history = useHistory();
@@ -72,6 +76,7 @@ const TemplatesDashboard: FC<{
   return (
     <Page
       loading={isLoading}
+      className={className}
       path={[
         {
           label: 'Templates',
@@ -79,14 +84,20 @@ const TemplatesDashboard: FC<{
       ]}
     >
       <NotificationsWrapper>
-        {useQueryServiceBackend ? (
+        {isExplorerEnabled ? (
           <Explorer
             category="template"
             enableBatchSync={false}
             extraColumns={[
               {
                 label: 'Type',
-                value: 'templateType',
+                value: o => {
+                  return _.get(o.parsed, [
+                    'metadata',
+                    'labels',
+                    'weave.works/template-type',
+                  ]);
+                },
                 sortValue: ({ name }) => name,
               },
               {
@@ -101,6 +112,11 @@ const TemplatesDashboard: FC<{
                     USE THIS TEMPLATE
                   </Button>
                 ),
+              },
+              {
+                label: 'Description',
+                value: (o: Object) => o.message || '-',
+                index: 7,
               },
             ]}
             linkToObject={false}
@@ -182,4 +198,16 @@ const TemplatesDashboard: FC<{
   );
 };
 
-export default TemplatesDashboard;
+export default styled(TemplatesDashboard)`
+  ${Explorer} {
+    /* Hiding Status, Message, and Tenant columns */
+    table td:nth-child(5),
+    table th:nth-child(5),
+    table td:nth-child(6),
+    table th:nth-child(6),
+    table td:nth-child(7),
+    table th:nth-child(7) {
+      display: none;
+    }
+  }
+`;

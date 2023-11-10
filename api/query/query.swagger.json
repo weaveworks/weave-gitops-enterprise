@@ -19,6 +19,7 @@
   "paths": {
     "/v1/debug/access-rules": {
       "get": {
+        "summary": "Get debug access rules",
         "operationId": "Query_DebugGetAccessRules",
         "responses": {
           "200": {
@@ -39,8 +40,32 @@
         ]
       }
     },
+    "/v1/enabled-components": {
+      "get": {
+        "summary": "FIXME",
+        "operationId": "Query_ListEnabledComponents",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/v1ListEnabledComponentsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "tags": [
+          "Query"
+        ]
+      }
+    },
     "/v1/facets": {
       "get": {
+        "summary": "List facets available for querying",
         "operationId": "Query_ListFacets",
         "responses": {
           "200": {
@@ -63,12 +88,13 @@
     },
     "/v1/query": {
       "post": {
+        "summary": "Query for resources across clusters",
         "operationId": "Query_DoQuery",
         "responses": {
           "200": {
             "description": "A successful response.",
             "schema": {
-              "$ref": "#/definitions/v1QueryResponse"
+              "$ref": "#/definitions/v1DoQueryResponse"
             }
           },
           "default": {
@@ -84,7 +110,7 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/v1QueryRequest"
+              "$ref": "#/definitions/v1DoQueryRequest"
             }
           }
         ],
@@ -168,6 +194,58 @@
         }
       }
     },
+    "v1DoQueryRequest": {
+      "type": "object",
+      "properties": {
+        "terms": {
+          "type": "string"
+        },
+        "filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "offset": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "limit": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "orderBy": {
+          "type": "string"
+        },
+        "descending": {
+          "type": "boolean"
+        }
+      }
+    },
+    "v1DoQueryResponse": {
+      "type": "object",
+      "properties": {
+        "objects": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1Object"
+          }
+        }
+      }
+    },
+    "v1EnabledComponent": {
+      "type": "string",
+      "enum": [
+        "unknown",
+        "applications",
+        "sources",
+        "gitopssets",
+        "templates"
+      ],
+      "default": "unknown",
+      "title": "EnabledComponent represents a component of the UI that can be enabled or disabled"
+    },
     "v1Facet": {
       "type": "object",
       "properties": {
@@ -178,6 +256,17 @@
           "type": "array",
           "items": {
             "type": "string"
+          }
+        }
+      }
+    },
+    "v1ListEnabledComponentsResponse": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/v1EnabledComponent"
           }
         }
       }
@@ -232,45 +321,11 @@
         },
         "tenant": {
           "type": "string"
-        }
-      }
-    },
-    "v1QueryRequest": {
-      "type": "object",
-      "properties": {
-        "terms": {
-          "type": "string"
         },
-        "filters": {
-          "type": "array",
-          "items": {
+        "labels": {
+          "type": "object",
+          "additionalProperties": {
             "type": "string"
-          }
-        },
-        "offset": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "limit": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "orderBy": {
-          "type": "string"
-        },
-        "ascending": {
-          "type": "boolean"
-        }
-      }
-    },
-    "v1QueryResponse": {
-      "type": "object",
-      "properties": {
-        "objects": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "$ref": "#/definitions/v1Object"
           }
         }
       }

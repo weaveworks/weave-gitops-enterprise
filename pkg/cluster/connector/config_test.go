@@ -81,3 +81,45 @@ func TestKubeConfigWithToken(t *testing.T) {
 
 	assert.Equal(t, want, *config)
 }
+
+// When the context use to connect is empty, default it to "default" for the
+// purposes of creating the kubeconfig.
+func TestKubeConfigWithToken_default(t *testing.T) {
+	opts := clientcmd.NewDefaultPathOptions()
+	opts.LoadingRules.ExplicitPath = "testdata/kube-config.yaml"
+
+	restCfg, err := configForContext(context.TODO(), opts, "spoke")
+	assert.NoError(t, err)
+	config, err := kubeConfigWithToken(context.TODO(), restCfg, "", []byte("testing-token"))
+	assert.NoError(t, err)
+
+	want := clientcmdapi.Config{
+		Kind:       "",
+		APIVersion: "",
+		Clusters: map[string]*clientcmdapi.Cluster{
+			"default": {
+				Server:                   "https://spoke.example.com",
+				CertificateAuthorityData: []byte("CADATA2"),
+				InsecureSkipTLSVerify:    true,
+			},
+		},
+		AuthInfos: map[string]*clientcmdapi.AuthInfo{
+			"default-cluster-user": {
+				Token: "testing-token",
+			},
+		},
+		Contexts: map[string]*clientcmdapi.Context{
+			"default": {
+				Cluster:  "default",
+				AuthInfo: "default-cluster-user",
+			},
+		},
+		CurrentContext: "default",
+		Preferences: clientcmdapi.Preferences{
+			Extensions: map[string]runtime.Object{},
+		},
+		Extensions: map[string]runtime.Object{},
+	}
+
+	assert.Equal(t, want, *config)
+}

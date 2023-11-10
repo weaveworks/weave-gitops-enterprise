@@ -5,16 +5,25 @@
 */
 
 import * as fm from "../../fetch.pb"
-export type QueryRequest = {
+
+export enum EnabledComponent {
+  unknown = "unknown",
+  applications = "applications",
+  sources = "sources",
+  gitopssets = "gitopssets",
+  templates = "templates",
+}
+
+export type DoQueryRequest = {
   terms?: string
   filters?: string[]
   offset?: number
   limit?: number
   orderBy?: string
-  ascending?: boolean
+  descending?: boolean
 }
 
-export type QueryResponse = {
+export type DoQueryResponse = {
   objects?: Object[]
 }
 
@@ -31,6 +40,7 @@ export type Object = {
   unstructured?: string
   id?: string
   tenant?: string
+  labels?: {[key: string]: string}
 }
 
 export type DebugGetAccessRulesRequest = {
@@ -67,14 +77,24 @@ export type Facet = {
   values?: string[]
 }
 
+export type ListEnabledComponentsRequest = {
+}
+
+export type ListEnabledComponentsResponse = {
+  components?: EnabledComponent[]
+}
+
 export class Query {
-  static DoQuery(req: QueryRequest, initReq?: fm.InitReq): Promise<QueryResponse> {
-    return fm.fetchReq<QueryRequest, QueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
+  static DoQuery(req: DoQueryRequest, initReq?: fm.InitReq): Promise<DoQueryResponse> {
+    return fm.fetchReq<DoQueryRequest, DoQueryResponse>(`/v1/query`, {...initReq, method: "POST", body: JSON.stringify(req, fm.replacer)})
   }
   static ListFacets(req: ListFacetsRequest, initReq?: fm.InitReq): Promise<ListFacetsResponse> {
     return fm.fetchReq<ListFacetsRequest, ListFacetsResponse>(`/v1/facets?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
   static DebugGetAccessRules(req: DebugGetAccessRulesRequest, initReq?: fm.InitReq): Promise<DebugGetAccessRulesResponse> {
     return fm.fetchReq<DebugGetAccessRulesRequest, DebugGetAccessRulesResponse>(`/v1/debug/access-rules?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
+  }
+  static ListEnabledComponents(req: ListEnabledComponentsRequest, initReq?: fm.InitReq): Promise<ListEnabledComponentsResponse> {
+    return fm.fetchReq<ListEnabledComponentsRequest, ListEnabledComponentsResponse>(`/v1/enabled-components?${fm.renderURLSearchParams(req, [])}`, {...initReq, method: "GET"})
   }
 }

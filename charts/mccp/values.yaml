@@ -33,6 +33,9 @@ enableTerraformUI: false
 # Turns on UI elements for GitOps Run
 enableRunUI: false
 
+# When set to true, this turns on the new Pipelines UI. This includes deploying the new API and controller.
+enableNewPipelines: false
+
 config:
   logLevel: info
   cluster:
@@ -89,6 +92,16 @@ tls:
   # if no tls secret is specified then we generate it in-mem in the server
   secretName: ""
 
+clusterBootstrapController:
+  enabled: true
+  resources:
+    limits:
+      cpu: 200m
+      memory: 100Mi
+    requests:
+      cpu: 100m
+      memory: 20Mi
+
 rbac:
   userRoles:
     create: true
@@ -98,19 +111,17 @@ rbac:
   adminUserRoleBindings:
     create: true
 
-#### Metrics - Prometheus metrics configuration
-metrics:
-  # Enables metrics generation and prometheus endpoint
+#### Monitoring Server
+#### Configures monitoring server and related services
+monitoring:
   enabled: true
   service:
-    # -- Port to start the metrics exporter on
+    name: monitoring
     port: 8080
-    # -- Annotations to set on the service
-    annotations:
-      prometheus.io/scrape: "false"
-      prometheus.io/path: "/metrics"
-      prometheus.io/port: "8080"
-
+  metrics:
+    enabled: true
+  profiling:
+    enabled: false
 
 service:
   type: ClusterIP
@@ -130,9 +141,6 @@ service:
   externalTrafficPolicy: ""
   healthCheckNodePort: 0
   annotations: {}
-
-cluster-controller:
-  enabled: true
 
 policy-agent:
   enabled: false
@@ -221,12 +229,8 @@ cluster-bootstrap-controller:
         tag: pr-30
 
 #### Explorer
-# Turns on explorer to true
-enableExplorer: false
-# Uses the query service for Applications and Sources views
-useQueryServiceBackend: false
-
 explorer:
+  enabled: false
   collector:
     # ServiceAccount that explorer will use to watch clusters for resources
     serviceAccount:
@@ -234,3 +238,9 @@ explorer:
       namespace: "flux-system"
   cleaner:
     disabled: false
+  enabledFor:
+    - applications
+    - sources
+    - gitopssets
+    - templates
+

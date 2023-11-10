@@ -8,10 +8,6 @@ name: "Acceptance Tests"
 on:
   workflow_call:
     inputs:
-      runs-on:
-        description: "The type of machine to run the job on e.g macOS-latest or ubuntu-latest"
-        required: true
-        type: string
       os-name:
         description: "`linux` or `darwin`"
         required: true
@@ -128,12 +124,6 @@ on:
       GCP_SA_KEY:
         description: "Google Cloud service account key"
         required: false
-      WGE_EKS_AWS_ACCESS_KEY_ID:
-        description: "AWS user access key id"
-        required: false
-      WGE_EKS_AWS_SECRET_ACCESS_KEY:
-        description: "AWS user access key secret"
-        required: false
 
 env:
   GO_CACHE_NAME: cache-go-modules
@@ -174,30 +164,17 @@ env:
 
 jobs:
   tests:
-    runs-on: ${{ inputs.runs-on }}
+    runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           fetch-depth: 0
       - name: Install Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@93397bea11091df50f3d7e59dc26a7711a8bcfbe # v4.1.0
         with:
           go-version: 1.20.x
-      - name: setup aws credentials
-        uses: aws-actions/configure-aws-credentials@v1-node16
-        with:
-          aws-access-key-id: ${{ secrets.WGE_EKS_AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.WGE_EKS_AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
-      - name: Install eksctl
-        if: ${{ inputs.management-cluster-kind == 'eks' }}
-        run: |
-          curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" | tar xz -C /tmp
-          sudo mv /tmp/eksctl /usr/local/bin
-          eksctl version
-          eksctl get clusters
       - name: Install flux
         run: |
           curl --silent --location https://github.com/fluxcd/flux2/releases/download/v2.0.0/flux_2.0.0_${{ inputs.os-name }}_amd64.tar.gz | tar xz -C /tmp
@@ -229,9 +206,6 @@ jobs:
           chmod +x /tmp/kubelogin
           mv /tmp/kubelogin /usr/local/bin/kubectl-oidc_login
           kubectl-oidc_login version
-      - name: Install docker
-        if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
-        uses: docker-practice/actions-setup-docker@master
       - name: Install helm
         run: |
           wget --no-verbose https://get.helm.sh/helm-v3.10.0-${{ inputs.os-name }}-amd64.tar.gz
@@ -243,12 +217,6 @@ jobs:
           curl -LO "https://dl.k8s.io/release/${{ inputs.kubectl-version }}/bin/${{ inputs.os-name }}/amd64/kubectl"
           chmod +x kubectl
           sudo mv ./kubectl /usr/local/bin/kubectl
-      - name: Install kind
-        if: ${{ (runner.os == 'macOS') && (inputs.management-cluster-kind == 'kind') }}
-        run: |
-          brew update
-          brew install kind
-          kind version
       - name: Install clusterctl
         run: |
           curl -L https://github.com/kubernetes-sigs/cluster-api/releases/download/v1.1.4/clusterctl-${{ inputs.os-name }}-amd64 -o clusterctl
@@ -279,15 +247,15 @@ jobs:
           tar -xf totp-cli-v1.1.17-${{ inputs.os-name }}-amd64.tar.gz
           mv ./totp-cli /usr/local/bin
       - name: Download gitops binary
-        uses: actions/download-artifact@v3.0.1
+        uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a # v3.0.2
         with:
           name: gitops
           path: /tmp
       - name: chmod gitops binary
         run: |
-          chmod +x /tmp/gitops-${{ inputs.runs-on }}
-          ls -la /tmp/gitops-${{ inputs.runs-on }}
-          sudo mv /tmp/gitops-${{ inputs.runs-on }} ${{ env.GITOPS_BIN_PATH }}
+          chmod +x /tmp/gitops-ubuntu-latest
+          ls -la /tmp/gitops-ubuntu-latest
+          sudo mv /tmp/gitops-ubuntu-latest ${{ env.GITOPS_BIN_PATH }}
           gitops version
       - name: Install chromedriver
         if: ${{ (runner.os == 'Linux') && (inputs.git-provider_hostname == 'gitlab.com') }}
@@ -338,7 +306,7 @@ jobs:
           ginkgo ${{ inputs.label-filter }} --v --output-dir=${{ env.ARTIFACTS_BASE_DIR }} --junit-report=${{ env.TEST_ARTIFACT_NAME }}.xml --timeout=2h test/acceptance/test/
       - name: Store test results
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3.1.1
+        uses: actions/upload-artifact@a8a3f3ad30e3422c9c7b888a15615d19a852ae32 # v3.1.3
         with:
           name: ${{ env.TEST_ARTIFACT_NAME }}
           path: ${{ env.ARTIFACTS_BASE_DIR }}

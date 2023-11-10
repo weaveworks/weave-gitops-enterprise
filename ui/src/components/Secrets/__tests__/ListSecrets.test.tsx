@@ -109,19 +109,27 @@ describe('ListSecrets', () => {
   });
 
   it('renders a list of secrets and sort by Name then by age', async () => {
-    await act(async () => {
-      const c = wrap(<SecretsList />);
-      render(c);
-    });
+    const c = wrap(<SecretsList />);
+    render(c);
 
     expect(await screen.findByText('Secrets')).toBeTruthy();
+
     const sortRowsBySecretName = mappedSecrets(
       secrests.sort((a, b) =>
-        b.externalSecretName.localeCompare(a.externalSecretName),
+        a.externalSecretName.localeCompare(b.externalSecretName),
       ),
     );
     filterTable.testSorthTableByColumn('Name', sortRowsBySecretName);
 
+
+    const reverseSortRowsBySecretName = mappedSecrets(
+      secrests.sort((a, b) =>
+        b.externalSecretName.localeCompare(a.externalSecretName),
+      ),
+    );
+    filterTable.testSorthTableByColumn('Name', reverseSortRowsBySecretName);
+
+    
     const sortRowsByAge = mappedSecrets(
       secrests.sort((a, b) => {
         const t1 = new Date(a.timestamp).getTime();

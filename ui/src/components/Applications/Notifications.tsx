@@ -1,8 +1,8 @@
-import { FC } from 'react';
 import { NotificationsTable, useListProviders } from '@weaveworks/weave-gitops';
-import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 import { Provider } from '@weaveworks/weave-gitops/ui/lib/objects';
+import { FC } from 'react';
 import { Page } from '../Layout/App';
+import { NotificationsWrapper } from '../Layout/NotificationsWrapper';
 
 const WGNotifications: FC = () => {
   const { data, isLoading, error } = useListProviders();

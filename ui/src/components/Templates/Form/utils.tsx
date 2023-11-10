@@ -3,18 +3,23 @@ import {
   GitRepository,
   Source,
 } from '@weaveworks/weave-gitops/ui/lib/objects';
+import GitUrlParse from 'git-url-parse';
+import styled from 'styled-components';
+import { SnakeCasedPropertiesDeep } from 'type-fest';
+import URI from 'urijs';
+// Importing this solves a problem with the YAML library not being found.
+// @ts-ignore
+import * as YAML from 'yaml/browser/dist/index.js';
 import { Pipeline } from '../../../api/pipelines/types.pb';
 import { GetTerraformObjectResponse } from '../../../api/terraform/terraform.pb';
+import {
+  CreatePullRequestRequest,
+  GetConfigResponse,
+} from '../../../cluster-services/cluster_services.pb';
+import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitopsClusterEnriched } from '../../../types/custom';
 import { Resource } from '../Edit/EditButton';
-import GitUrlParse from 'git-url-parse';
-import URI from 'urijs';
-import { GetConfigResponse } from '../../../cluster-services/cluster_services.pb';
-import { useListConfigContext } from '../../../contexts/ListConfig';
 import { GitRepositoryEnriched } from '.';
-import styled from 'styled-components';
-
-const yamlConverter = require('js-yaml');
 
 export const maybeParseJSON = (data: string) => {
   try {
@@ -25,34 +30,65 @@ export const maybeParseJSON = (data: string) => {
   }
 };
 
-export const getCreateRequestAnnotation = (resource: Resource) => {
-  const getAnnotation = (resource: Resource) => {
-    switch (resource.type) {
-      case 'GitopsCluster':
-        return (resource as GitopsClusterEnriched)?.annotations?.[
-          'templates.weave.works/create-request'
-        ];
-      case 'GitRepository':
-      case 'Bucket':
-      case 'HelmRepository':
-      case 'HelmChart':
-      case 'Kustomization':
-      case 'HelmRelease':
-      case 'OCIRepository':
-        return (resource as Automation | Source)?.obj?.metadata?.annotations?.[
-          'templates.weave.works/create-request'
-        ];
-      case 'Terraform':
-      case 'Pipeline':
-        return yamlConverter.load(
-          (resource as GetTerraformObjectResponse | Pipeline)?.yaml,
-        )?.metadata?.annotations?.['templates.weave.works/create-request'];
-      default:
-        return '';
-    }
-  };
+export type CreateRequestAnnotationV2 =
+  SnakeCasedPropertiesDeep<CreatePullRequestRequest>;
 
-  return maybeParseJSON(getAnnotation(resource));
+// This is the old version before we migrated:
+// - template_name -> name
+// - template_namespace -> namespace
+interface CreateRequestAnnotationV1
+  extends Omit<CreateRequestAnnotationV2, 'name' | 'namespace'> {
+  template_name?: string;
+  template_namespace?: string;
+}
+
+const getAnnotation = (resource: Resource) => {
+  switch (resource.type) {
+    case 'GitopsCluster':
+      return (resource as GitopsClusterEnriched)?.annotations?.[
+        'templates.weave.works/create-request'
+      ];
+    case 'GitRepository':
+    case 'Bucket':
+    case 'HelmRepository':
+    case 'HelmChart':
+    case 'Kustomization':
+    case 'HelmRelease':
+    case 'OCIRepository':
+      return (resource as Automation | Source)?.obj?.metadata?.annotations?.[
+        'templates.weave.works/create-request'
+      ];
+    case 'Terraform':
+    case 'Pipeline':
+      return YAML.parse(
+        (resource as GetTerraformObjectResponse | Pipeline)?.yaml || '',
+      )?.metadata?.annotations?.['templates.weave.works/create-request'];
+    default:
+      return '';
+  }
+};
+
+export const getCreateRequestAnnotation = (resource: Resource) => {
+  const resourceData = maybeParseJSON(getAnnotation(resource)) as
+    | undefined
+    | CreateRequestAnnotationV1
+    | CreateRequestAnnotationV2;
+
+  if (!resourceData) {
+    return undefined;
+  }
+
+  const isV1Annotation = 'template_name' in resourceData;
+
+  if (isV1Annotation) {
+    return {
+      ...resourceData,
+      name: resourceData.template_name,
+      namespace: resourceData.template_namespace,
+    } as CreateRequestAnnotationV2;
+  }
+
+  return resourceData as CreateRequestAnnotationV2;
 };
 
 export function getRepositoryUrl(repo: GitRepository) {
@@ -62,7 +98,13 @@ export function getRepositoryUrl(repo: GitRepository) {
   if (httpsUrl) {
     return httpsUrl;
   }
-  let uri = URI(repo?.obj?.spec?.url);
+  let uri;
+  try {
+    uri = URI(repo?.obj?.spec?.url);
+  } catch (e) {
+    return '';
+  }
+
   if (uri.hostname() === 'ssh.dev.azure.com') {
     uri = azureSshToHttps(uri.toString());
   }
@@ -96,7 +138,7 @@ export function getProvider(repo: GitRepository, config: GetConfigResponse) {
 }
 
 export function useGetInitialGitRepo(
-  initialUrl: string | null,
+  initialUrl: string | null | undefined,
   gitRepos: GitRepository[],
 ) {
   const configResponse = useListConfigContext();
@@ -106,12 +148,12 @@ export function useGetInitialGitRepo(
   // if no result, parse it and check for the protocol; if ssh, convert it to https and try again to compare it to the gitrepos links
   // createPRRepo signals that this refers to a pre-existing resource
   if (initialUrl) {
-    for (var repo of gitRepos) {
-      let repoUrl = repo?.obj?.spec?.url;
+    for (const repo of gitRepos) {
+      const repoUrl = repo?.obj?.spec?.url;
       if (repoUrl === initialUrl) {
         return { ...repo, createPRRepo: true };
       }
-      let parsedRepolUrl = GitUrlParse(repoUrl);
+      const parsedRepolUrl = GitUrlParse(repoUrl);
       if (parsedRepolUrl?.protocol === 'ssh') {
         if (
           initialUrl === parsedRepolUrl.href.replace('ssh://git@', 'https://')

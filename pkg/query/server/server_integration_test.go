@@ -1,5 +1,4 @@
 //go:build integration
-// +build integration
 
 package server_test
 
@@ -16,7 +15,7 @@ import (
 	apiextensionsv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 
 	sourcev1beta2 "github.com/fluxcd/source-controller/api/v1beta2"
-	"github.com/go-logr/logr/testr"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	gitopssets "github.com/weaveworks/gitopssets-controller/api/v1alpha1"
 	capiv1 "github.com/weaveworks/templates-controller/apis/capi/v1alpha2"
@@ -26,7 +25,6 @@ import (
 	v1 "k8s.io/api/core/v1"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -44,10 +42,10 @@ const (
 	defaultInterval = time.Second
 )
 
-// TestQueryServer is an integration test for exercising the integration of the
+// TestDoQuery is an integration test for exercising the integration of the
 // query system that includes both collecting from a cluster (using envtest) and doing queries via grpc.
 // It is also used in the context of logging events per https://github.com/weaveworks/weave-gitops-enterprise/issues/2691
-func TestQueryServer(t *testing.T) {
+func TestDoQuery(t *testing.T) {
 	g := NewGomegaWithT(t)
 	g.SetDefaultEventuallyTimeout(defaultTimeout)
 	g.SetDefaultEventuallyPollingInterval(defaultInterval)
@@ -55,9 +53,7 @@ func TestQueryServer(t *testing.T) {
 	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
 	defaultNamespace := "default"
 
-	createResources(context.Background(), t, k8sClient, newNamespace("flux-system"))
-
-	testLog := testr.New(t)
+	testLog := logr.Discard()
 
 	//Given a query environment
 	ctx := context.Background()
@@ -206,7 +202,7 @@ func TestQueryServer(t *testing.T) {
 			expectedNumObjects: 1,
 		},
 		{
-			name:   "should support gitops templates",
+			name:   "should support gitops templates (by label)",
 			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
 			objects: []client.Object{
 				&gapiv1.GitOpsTemplate{
@@ -217,10 +213,13 @@ func TestQueryServer(t *testing.T) {
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "cluster-template-1",
 						Namespace: "default",
+						Labels: map[string]string{
+							"weave.works/template-type": "cluster",
+						},
 					},
 				},
 			},
-			query:              "kind:GitOpsTemplate",
+			query:              "kind:GitOpsTemplate && labels.weave.works/template-type:cluster",
 			expectedNumObjects: 1,
 		},
 		{
@@ -250,7 +249,7 @@ func TestQueryServer(t *testing.T) {
 
 			//When query with expected results is successfully executed
 			querySucceeded := g.Eventually(func() bool {
-				query, err := c.DoQuery(ctx, &api.QueryRequest{Filters: []string{tt.query}})
+				query, err := c.DoQuery(ctx, &api.DoQueryRequest{Filters: []string{tt.query}})
 				g.Expect(err).To(BeNil())
 				return len(query.Objects) == tt.expectedNumObjects
 			}).Should(BeTrue())
@@ -261,9 +260,75 @@ func TestQueryServer(t *testing.T) {
 	}
 }
 
-func rawExtension(s string) runtime.RawExtension {
-	return runtime.RawExtension{
-		Raw: []byte(s),
+func TestListFacets(t *testing.T) {
+	g := NewGomegaWithT(t)
+	g.SetDefaultEventuallyTimeout(defaultTimeout)
+	g.SetDefaultEventuallyPollingInterval(defaultInterval)
+
+	principal := auth.NewUserPrincipal(auth.ID("user1"), auth.Groups([]string{"group-a"}))
+
+	testLog := logr.Discard()
+
+	//Given a query environment
+	ctx := context.Background()
+	c, err := makeQueryServer(t, cfg, principal, testLog)
+	g.Expect(err).To(BeNil())
+
+	tests := []struct {
+		name          string
+		objects       []client.Object
+		access        []client.Object
+		expectedValue string
+		expectedFacet string
+	}{
+		{
+			name:   "facets should include labels",
+			access: allowTemplatesAnyOnDefaultNamespace(principal.ID),
+			objects: []client.Object{
+				&gapiv1.GitOpsTemplate{
+					TypeMeta: metav1.TypeMeta{
+						Kind:       gapiv1.Kind,
+						APIVersion: "templates.weave.works/v1alpha2",
+					},
+					ObjectMeta: metav1.ObjectMeta{
+						Name:      "cluster-template-1",
+						Namespace: "default",
+						Annotations: map[string]string{
+							"annotationKey": "annotationValue",
+						},
+						Labels: map[string]string{
+							"weave.works/template-type": "cluster",
+						},
+					},
+				},
+			},
+			expectedFacet: "labels.weave.works/template-type",
+			expectedValue: "cluster",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			//When some access rules and objects ingested
+			createResources(ctx, t, k8sClient, tt.objects...)
+			createResources(ctx, t, k8sClient, tt.access...)
+
+			//When query with expected results is successfully executed
+			querySucceeded := g.Eventually(func() bool {
+				facetsResponse, err := c.ListFacets(ctx, &api.ListFacetsRequest{})
+				g.Expect(err).To(BeNil())
+				for _, f := range facetsResponse.GetFacets() {
+					if f.Field == tt.expectedFacet {
+						if len(f.Values) == 1 && f.Values[0] == tt.expectedValue {
+							return true
+						}
+					}
+				}
+				return false
+			}).Should(BeTrue())
+			//Then query is successfully executed
+			g.Expect(querySucceeded).To(BeTrue())
+
+		})
 	}
 }
 

@@ -1,92 +1,32 @@
-import { Grid } from '@material-ui/core';
-import { Flex, formatURL, Link } from '@weaveworks/weave-gitops';
+import { Flex, Link, Text } from '@weaveworks/weave-gitops';
+import _ from 'lodash';
 import styled from 'styled-components';
-import {
-  Pipeline,
-  PipelineTargetStatus,
-} from '../../../api/pipelines/types.pb';
-import { useListConfigContext } from '../../../contexts/ListConfig';
-import { ClusterDashboardLink } from '../../Clusters/ClusterDashboardLink';
+import { Pipeline, Promotion } from '../../../api/pipelines/types.pb';
 import PromotePipeline from './PromotePipeline';
-import {
-  CardContainer,
-  ClusterName,
-  LastAppliedVersion,
-  TargetNamespace,
-  TargetWrapper,
-  Title,
-  usePipelineStyles,
-  WorkloadWrapper,
-} from './styles';
-import WorkloadStatus from './WorkloadStatus';
+import PromotionInfo from './PromotionInfo';
+import { EnvironmentCard } from './styles';
+import Target from './Target';
 
-const PromotionContainer = styled.div`
-  height: 40px;
-  padding: ${props => props.theme.spacing.small} 0;
+const getStrategy = (promo?: Promotion) => {
+  if (!promo) return '-';
+  if (!promo.manual) return 'Automated';
+
+  const nonNullStrat = _.map(promo.strategy, (value, key) => {
+    if (value !== null) return key;
+  });
+  return _.startCase(nonNullStrat[0] || '-');
+};
+
+const EnvironmentContainer = styled(Flex)`
+  background: ${props => props.theme.colors.pipelineGray}};
+  border-radius: 8px;
+  padding: ${props => props.theme.spacing.small};
 `;
 
-const getTargetsCount = (targetsStatuses: PipelineTargetStatus[]) => {
-  return targetsStatuses?.reduce((prev, next) => {
-    return prev + (next.workloads?.length || 0);
-  }, 0);
-};
-
-const TargetStatus = ({
-  target,
-  classes,
-}: {
-  target: PipelineTargetStatus;
-  classes: any;
-}) => {
-  const configResponse = useListConfigContext();
-  const clusterName = target?.clusterRef?.name
-    ? `${target?.clusterRef?.namespace || 'default'}/${
-        target?.clusterRef?.name
-      }`
-    : configResponse?.data?.managementClusterName || 'undefined';
-  return (
-    <>
-      {target.workloads?.map((workload, wrkIndex) => (
-        <CardContainer key={wrkIndex} role="targeting">
-          <TargetWrapper className="workloadTarget">
-            <Title>Cluster</Title>
-            <ClusterName className="cluster-name">
-              <ClusterDashboardLink
-                clusterName={target?.clusterRef?.name || clusterName}
-              />
-            </ClusterName>
-            <Title>Namespace</Title>
-            <TargetNamespace className="workload-namespace">
-              {target?.namespace}
-            </TargetNamespace>
-          </TargetWrapper>
-          <WorkloadWrapper>
-            <Flex wide between>
-              <div className="automation">
-                <Link
-                  to={formatURL('/helm_release/details', {
-                    name: workload?.name,
-                    namespace: target?.namespace,
-                    clusterName,
-                  })}
-                >
-                  {workload && <WorkloadStatus workload={workload} />}
-                </Link>
-                <div className={`${classes.subtitle} ${classes.subtitleColor}`}>
-                  <span>Specification:</span>
-                  <span className={`version`}>{`v${workload?.version}`}</span>
-                </div>
-              </div>
-              {workload?.lastAppliedRevision && (
-                <LastAppliedVersion className="last-applied-version">{`v${workload?.lastAppliedRevision}`}</LastAppliedVersion>
-              )}
-            </Flex>
-          </WorkloadWrapper>
-        </CardContainer>
-      ))}
-    </>
-  );
-};
+const PromotionContainer = styled(Flex)`
+  height: 54px;
+  padding: ${props => props.theme.spacing.xs} 0;
+`;
 
 function Workloads({
   pipeline,
@@ -95,61 +35,83 @@ function Workloads({
   pipeline: Pipeline;
   className?: string;
 }) {
-  const classes = usePipelineStyles();
   const environments = pipeline?.environments || [];
   const targetsStatuses = pipeline?.status?.environments || {};
-  const manual = pipeline?.promotion?.manual || false;
 
   return (
-    <Grid
-      className={classes.gridWrapper + ` ${className}`}
-      container
-      spacing={4}
-    >
+    <Flex gap="4" tall wide className={className}>
       {environments.map((env, index) => {
         const status = targetsStatuses[env.name!].targetsStatuses || [];
         const promoteVersion =
           targetsStatuses[env.name!].waitingStatus?.revision || '';
+        const strategy = env.promotion
+          ? getStrategy(env.promotion)
+          : getStrategy(pipeline.promotion);
+        const { branch = '-', url = '-' } =
+          env.promotion?.strategy?.pullRequest || {};
 
         return (
-          <Grid
-            item
-            xs
-            key={index}
-            className={classes.gridContainer}
-            id={env.name}
-          >
-            <div className={classes.mbSmall}>
-              <div className={classes.title}>{env.name}</div>
-              <div className={classes.subtitle}>
-                {getTargetsCount(status || [])} Targets
-              </div>
-            </div>
-            <PromotionContainer>
-              {manual && index < environments.length - 1 && (
-                <PromotePipeline
-                  req={{
-                    name: pipeline.name,
-                    env: env.name,
-                    namespace: pipeline.namespace,
-                    revision: promoteVersion,
-                  }}
-                  promoteVersion={promoteVersion || ''}
-                />
-              )}
-            </PromotionContainer>
+          <EnvironmentContainer key={index} tall column gap="16">
+            <PromotionInfo targets={status} />
+            <EnvironmentCard background={index} column>
+              <Flex column gap="8" wide>
+                <Flex between align wide>
+                  <Text bold capitalize size="large">
+                    {env.name}
+                  </Text>
+                  <Text>{env.targets?.length || '0'} TARGETS</Text>
+                </Flex>
+                <Flex gap="8" wide start>
+                  <Text bold>Strategy:</Text>
+                  <Text> {strategy}</Text>
+                </Flex>
+              </Flex>
+              <PromotionContainer column gap="12" wide>
+                {strategy === 'Pull Request' && (
+                  <Flex column gap="8" wide start>
+                    <Flex gap="8" wide start>
+                      <Text bold>Branch:</Text>
+                      <Text> {branch}</Text>
+                    </Flex>
+                    <Flex gap="8" wide start>
+                      <Text bold>URL:</Text>
+                      <Link to={url}>{url}</Link>
+                    </Flex>
+                  </Flex>
+                )}
+                {strategy !== 'Automated' &&
+                  index < environments.length - 1 && (
+                    <PromotePipeline
+                      req={{
+                        name: pipeline.name,
+                        env: env.name,
+                        namespace: pipeline.namespace,
+                        revision: promoteVersion,
+                      }}
+                      promoteVersion={promoteVersion || ''}
+                    />
+                  )}
+              </PromotionContainer>
+            </EnvironmentCard>
             {status.map((target, indx) => (
-              <TargetStatus target={target} classes={classes} key={indx} />
+              <Target key={indx} target={target} background={index} />
             ))}
-          </Grid>
+          </EnvironmentContainer>
         );
       })}
-    </Grid>
+    </Flex>
   );
 }
 
 export default styled(Workloads)`
-  .MuiGrid-item {
-    background: ${props => props.theme.colors.neutralGray};
+  background: ${props => props.theme.colors.backGray}};
+  padding: ${props => props.theme.spacing.medium};
+  overflow-x: auto;
+  box-sizing: border-box;
+  //for PR url overflow
+  ${Link} {
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
   }
 `;

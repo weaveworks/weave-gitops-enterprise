@@ -52,7 +52,7 @@ func NewRoleCollector(w store.Store, mgr clusters.Subscriber, sa collector.Imper
 	return col, nil
 }
 
-func processRecords(objectTransactions []models.ObjectTransaction, store store.Store, debug logr.Logger) error {
+func processRecords(objectTransactions []models.ObjectTransaction, store store.Store, log logr.Logger) error {
 	ctx := context.Background()
 	deleteAll := []string{}
 
@@ -64,7 +64,7 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 
 	for _, obj := range objectTransactions {
 
-		debug.Info("processing object tx", "tx", obj.ClusterName())
+		log.Info("processing object tx", "tx", obj.ClusterName())
 
 		// Handle delete all tx first as does not hold objects
 		if obj.TransactionType() == models.TransactionTypeDeleteAll {
@@ -80,14 +80,16 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 				return fmt.Errorf("cannot create role: %w", err)
 			}
 
-			if len(role.GetRules()) == 0 {
-				// Certain roles have no policy rules for some reason.
-				// Possibly related to the rbac.authorization.k8s.io/aggregate-to-gitops-reader label?
+			if obj.TransactionType() == models.TransactionTypeDelete {
+				rolesToDelete = append(rolesToDelete, role.ToModel())
 				continue
 			}
 
-			if obj.TransactionType() == models.TransactionTypeDelete {
-				rolesToDelete = append(rolesToDelete, role.ToModel())
+			// Explorer should support aggregated clusteroles.
+			// Related issue: https://github.com/weaveworks/weave-gitops-enterprise/issues/3443
+			if len(role.GetRules()) == 0 {
+				// Certain roles have no policy rules for some reason.
+				// Possibly related to the rbac.authorization.k8s.io/aggregate-to-gitops-reader label?
 				continue
 			}
 
@@ -142,6 +144,6 @@ func processRecords(objectTransactions []models.ObjectTransaction, store store.S
 		}
 	}
 
-	debug.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
+	log.Info("roles processed", "roles-upsert", roles, "roles-delete", rolesToDelete, "rolebindings-upsert", bindings, "rolebindings-delete", bindingsToDelete, "deleteAll", deleteAll)
 	return nil
 }

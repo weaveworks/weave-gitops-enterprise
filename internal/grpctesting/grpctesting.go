@@ -39,14 +39,19 @@ func BuildScheme() *runtime.Scheme {
 }
 
 func MakeFactoryWithObjects(objects ...client.Object) (client.Client, *clustersmngrfakes.FakeClustersManager) {
-	k8s := fake.NewClientBuilder().WithScheme(BuildScheme()).WithObjects(objects...).Build()
+	k8s := fake.NewClientBuilder().WithScheme(BuildScheme()).WithObjects(objects...).WithStatusSubresource(&tfctrl.Terraform{}).Build()
 
-	factory := MakeClustersManager(k8s)
+	factory := MakeClustersManager(k8s, nil)
 
 	return k8s, factory
 }
 
-func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfakes.FakeClustersManager {
+// MakeClustersManager creates a fake ClustersManager for testing
+// Pass in nsMap to give the test "principal" access to more namespaces on clusters e.g.
+// "Default": {corev1.Namespace{ObjectMeta: metav1.ObjectMeta{Name: "default"}}}
+// will search for resources in ns: "default" on the "Default" cluster.
+// By default ("nil"), no namespaces will be searched.
+func MakeClustersManager(k8s client.Client, nsMap map[string][]v1.Namespace, clusters ...string) *clustersmngrfakes.FakeClustersManager {
 	clientsPool := &clustersmngrfakes.FakeClientsPool{}
 
 	clientsPool.ClientsReturns(map[string]client.Client{"Default": k8s})
@@ -67,7 +72,10 @@ func MakeClustersManager(k8s client.Client, clusters ...string) *clustersmngrfak
 		return nil, clustersmngr.ClusterNotFoundError{Cluster: s}
 	}
 
-	nsMap := map[string][]v1.Namespace{"Default": {}}
+	// default no namespaces
+	if nsMap == nil {
+		nsMap = map[string][]v1.Namespace{"Default": {}}
+	}
 	clustersClient := clustersmngr.NewClient(clientsPool, nsMap, logr.Discard())
 
 	factory := &clustersmngrfakes.FakeClustersManager{}

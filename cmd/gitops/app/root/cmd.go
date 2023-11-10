@@ -10,16 +10,16 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/add"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/bootstrap"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/connect"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/create"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/delete"
+	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/disconnect"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/generate"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/get"
-	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/remove"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/update"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/app/upgrade"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/gitops/pkg/adapters"
-	"github.com/weaveworks/weave-gitops/cmd/gitops/beta"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/check"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/config"
 	"github.com/weaveworks/weave-gitops/cmd/gitops/docs"
@@ -129,17 +129,17 @@ func Command(client *adapters.HTTPClient) *cobra.Command {
 	rootCmd.AddCommand(version.Cmd)
 	rootCmd.AddCommand(get.Command(options, client))
 	rootCmd.AddCommand(add.Command(options, client))
-	rootCmd.AddCommand(remove.RemoveCommand(options))
 	rootCmd.AddCommand(create.Command())
 	rootCmd.AddCommand(update.Command(options, client))
 	rootCmd.AddCommand(delete.Command(options, client))
 	rootCmd.AddCommand(upgrade.Cmd)
 	rootCmd.AddCommand(docs.Cmd)
 	rootCmd.AddCommand(check.Cmd)
-	rootCmd.AddCommand(beta.GetCommand(options))
 	rootCmd.AddCommand(set.SetCommand(options))
 	rootCmd.AddCommand(generate.Command())
+	rootCmd.AddCommand(bootstrap.Command(options))
 	rootCmd.AddCommand(connect.Command(options))
+	rootCmd.AddCommand(disconnect.Command(options))
 
 	return rootCmd
 }

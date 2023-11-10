@@ -1,11 +1,3 @@
-import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
-import useNotifications from '../contexts/Notifications';
-import { QueryClient, useQuery, useQueryClient } from 'react-query';
-import {
-  GetGitOpsSetResponse,
-  GitOpsSets,
-  ListGitOpsSetsResponse,
-} from '../api/gitopssets/gitopssets.pb';
 import {
   Bucket,
   FluxObject,
@@ -21,11 +13,19 @@ import {
   Provider,
   coreClient,
 } from '@weaveworks/weave-gitops';
+import { RequestError } from '@weaveworks/weave-gitops/ui/lib/types';
+import _ from 'lodash';
+import { QueryClient, useQuery, useQueryClient } from 'react-query';
+import {
+  GetGitOpsSetResponse,
+  GitOpsSets,
+  ListGitOpsSetsResponse,
+} from '../api/gitopssets/gitopssets.pb';
 import {
   GroupVersionKind,
   Object as ResponseObject,
 } from '../api/gitopssets/types.pb';
-import _ from 'lodash';
+import useNotifications from '../contexts/Notifications';
 
 const GITOPSSETS_KEY = 'gitopssets';
 const GITOPSSETS_POLL_INTERVAL = 5000;
@@ -111,22 +111,13 @@ export function useToggleSuspendGitOpsSet(params: DetailParams) {
 export function useGetReconciledTree(
   name: string,
   namespace: string,
-  type: 'GitOpsSet',
   kinds: GroupVersionKind[],
   clusterName = 'Default',
 ) {
   return useQuery<any[], RequestError>(
-    ['reconciled_objects', { name, namespace, type, kinds }],
+    ['reconciled_objects', { name, namespace, kinds }],
     () =>
-      getChildren(
-        coreClient,
-        GitOpsSets,
-        name,
-        namespace,
-        type,
-        kinds,
-        clusterName,
-      ),
+      getChildren(coreClient, GitOpsSets, name, namespace, kinds, clusterName),
     { retry: false, refetchInterval: 5000 },
   );
 }
@@ -136,14 +127,12 @@ export const getChildren = async (
   client: typeof GitOpsSets,
   name: string,
   namespace: string,
-  automationKind: string,
   kinds: GroupVersionKind[],
   clusterName: string,
 ): Promise<FluxObject[]> => {
   const { objects } = await client.GetReconciledObjects({
     name,
     namespace,
-    automationKind,
     kinds,
     clusterName,
   });
@@ -172,7 +161,7 @@ export const getChildrenRecursive = async (
 ) => {
   const children = [];
 
-  const k = lookup[object?.type!];
+  const k = lookup[object?.type || ''];
 
   if (k && k.children) {
     for (let i = 0; i < k.children.length; i++) {

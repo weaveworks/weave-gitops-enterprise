@@ -1,6 +1,5 @@
 import { MenuItem } from '@material-ui/core';
 import {
-  Button,
   Flex,
   GitRepository,
   Link,
@@ -17,6 +16,7 @@ import {
   CreateAutomationsPullRequestRequest,
   PolicyConfigApplicationMatch,
 } from '../../../cluster-services/cluster_services.pb';
+import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
 import CallbackStateContextProvider from '../../../contexts/GitAuth/CallbackStateContext';
 import useNotifications from '../../../contexts/Notifications';
 import { useGetClustersList } from '../../../contexts/PolicyConfigs';
@@ -38,10 +38,9 @@ import {
   getRepositoryUrl,
   useGetInitialGitRepo,
 } from '../../Templates/Form/utils';
-import { SelectMatchType } from './Form/Partials/SelectTargetList';
 import { SelectedPolicies } from './Form/Partials/SelectedPolicies';
-import { PreviewPRModal } from './PreviewPRModal';
-import { EnterpriseClientContext } from '../../../contexts/EnterpriseClient';
+import { SelectMatchType } from './Form/Partials/SelectTargetList';
+import { Preview } from './Preview';
 
 const FormWrapperPolicyConfig = styled(FormWrapper)`
   .policyField {
@@ -96,7 +95,7 @@ function getInitialData(
   callbackState: { state: { formData: FormData } } | null,
   random: string,
 ) {
-  let defaultFormData = {
+  const defaultFormData = {
     repo: null,
     provider: '',
     branchName: `add-policyConfig-branch-${random}`,
@@ -123,7 +122,7 @@ function getInitialData(
 const CreatePolicyConfig = () => {
   const history = useHistory();
 
-  let { data: allClusters } = useGetClustersList({});
+  const { data: allClusters } = useGetClustersList({});
   const clusters = allClusters?.gitopsClusters
     ?.filter(s => s.conditions![0].status === 'True')
     .sort();
@@ -170,7 +169,7 @@ const CreatePolicyConfig = () => {
     }
   }, [initialGitRepo, formData.repo, clusterName]);
 
-  const HandleSelectCluster = (event: React.ChangeEvent<any>) => {
+  const handleSelectCluster = (event: React.ChangeEvent<any>) => {
     const cluster = event.target.value;
     const value = JSON.parse(cluster);
     const clusterDetails = {
@@ -207,7 +206,7 @@ const CreatePolicyConfig = () => {
   }, [selectedWorkspacesList, selectedAppsList, matchType]);
 
   const getClusterAutomations = useCallback(() => {
-    let clusterAutomations: ClusterAutomation[] = [];
+    const clusterAutomations: ClusterAutomation[] = [];
     clusterAutomations.push({
       cluster: {
         name: clusterName,
@@ -348,7 +347,7 @@ const CreatePolicyConfig = () => {
                 label="CLUSTER"
                 value={selectedCluster || ''}
                 description="Select your cluster"
-                onChange={HandleSelectCluster}
+                onChange={handleSelectCluster}
                 error={formError === 'clusterName' && !clusterName}
               >
                 {!clusters?.length ? (
@@ -390,26 +389,21 @@ const CreatePolicyConfig = () => {
               />
             </Flex>
             <GitOps
+              loading={loading}
+              isAuthenticated={isAuthenticated}
               formData={formData}
               setFormData={setFormData}
               showAuthDialog={showAuthDialog}
               setShowAuthDialog={setShowAuthDialog}
               formError={formError}
               enableGitRepoSelection={true}
-            />
-            <Flex end className="gitops-cta">
-              <Button
-                loading={loading}
-                type="submit"
-                disabled={!isAuthenticated || loading}
-              >
-                CREATE PULL REQUEST
-              </Button>
-              <PreviewPRModal
+            >
+              <Preview
                 formData={formData}
                 getClusterAutomations={getClusterAutomations}
+                setFormError={setFormError}
               />
-            </Flex>
+            </GitOps>
           </FormWrapperPolicyConfig>
         </NotificationsWrapper>
       </CallbackStateContextProvider>

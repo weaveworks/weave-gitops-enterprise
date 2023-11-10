@@ -17,7 +17,7 @@ export const PoliciesTab = ({
     error,
   } = useGetWorkspacePolicies({
     clusterName,
-    workspaceName,
+    name: workspaceName,
   });
 
   return (

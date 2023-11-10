@@ -4,14 +4,15 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-logr/logr"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/metrics"
-	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
-
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/git"
 	"github.com/weaveworks/weave-gitops-enterprise/cmd/clusters-service/pkg/mgmtfetcher"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/estimation"
 	gitauth "github.com/weaveworks/weave-gitops-enterprise/pkg/gitauth/server"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/helm"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/metrics"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/monitoring/profiling"
+	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/collector"
 	"github.com/weaveworks/weave-gitops/core/clustersmngr"
 	core "github.com/weaveworks/weave-gitops/core/server"
 	"github.com/weaveworks/weave-gitops/pkg/kube"
@@ -57,8 +58,9 @@ type Options struct {
 	UIConfig                  string
 	PipelineControllerAddress string
 	CollectorServiceAccount   collector.ImpersonateServiceAccount
-	MetricsOptions            metrics.Options
+	MonitoringOptions         monitoring.Options
 	EnableObjectCleaner       bool
+	ExplorerEnabledFor        []string
 }
 
 type Option func(*Options)
@@ -266,13 +268,19 @@ func WithCollectorServiceAccount(name, namespace string) Option {
 	}
 }
 
-// WithMetrics configures prometheus metrics
-func WithMetrics(enabled bool, address string, log logr.Logger) Option {
+// WithMonitoring configures monitoring server
+func WithMonitoring(enabled bool, address string, metricsEnabled bool, profilingEnabled bool, log logr.Logger) Option {
 	return func(o *Options) {
-		o.MetricsOptions = metrics.Options{
+		o.MonitoringOptions = monitoring.Options{
 			Enabled:       enabled,
 			ServerAddress: address,
 			Log:           log,
+			MetricsOptions: metrics.Options{
+				Enabled: metricsEnabled,
+			},
+			ProfilingOptions: profiling.Options{
+				Enabled: profilingEnabled,
+			},
 		}
 	}
 }
@@ -281,5 +289,12 @@ func WithMetrics(enabled bool, address string, log logr.Logger) Option {
 func WithObjectCleaner(enabled bool) Option {
 	return func(o *Options) {
 		o.EnableObjectCleaner = enabled
+	}
+}
+
+// ExplorerEnabledFor turns on and off the explorer for different parts of the UI
+func WithExplorerEnabledFor(enabledFor []string) Option {
+	return func(o *Options) {
+		o.ExplorerEnabledFor = append(o.ExplorerEnabledFor, enabledFor...)
 	}
 }

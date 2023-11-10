@@ -3,6 +3,7 @@ package convert
 import (
 	"testing"
 
+	"github.com/fluxcd/pkg/apis/meta"
 	"github.com/stretchr/testify/assert"
 	ctrl "github.com/weaveworks/pipeline-controller/api/v1alpha1"
 	pb "github.com/weaveworks/weave-gitops-enterprise/pkg/api/pipelines"
@@ -35,6 +36,19 @@ func TestPipelineToProto(t *testing.T) {
 					},
 				}},
 			}},
+			Promotion: &ctrl.Promotion{
+				Manual: true,
+				Strategy: ctrl.Strategy{
+					PullRequest: &ctrl.PullRequestPromotion{
+						Type:       ctrl.Github,
+						URL:        "https://github.com/weaveworks/pipeline-controller",
+						BaseBranch: "main",
+					},
+					SecretRef: &meta.LocalObjectReference{
+						Name: "secret",
+					},
+				},
+			},
 		},
 	}}
 
@@ -56,6 +70,19 @@ func TestPipelineToProto(t *testing.T) {
 				},
 			}},
 		}},
+		Promotion: &pb.Promotion{
+			Manual: true,
+			Strategy: &pb.Strategy{
+				PullRequest: &pb.PullRequestPromotion{
+					Type:   "github",
+					Url:    "https://github.com/weaveworks/pipeline-controller",
+					Branch: "main",
+				},
+				SecretRef: &pb.LocalObjectReference{
+					Name: "secret",
+				},
+			},
+		},
 	}
 
 	converted := PipelineToProto(list[0])
@@ -66,6 +93,11 @@ func TestPipelineToProto(t *testing.T) {
 	assert.Equal(t, expected.AppRef.ApiVersion, converted.AppRef.ApiVersion)
 	assert.Equal(t, expected.AppRef.Kind, converted.AppRef.Kind)
 	assert.Equal(t, expected.AppRef.Name, converted.AppRef.Name)
+	assert.Equal(t, expected.Promotion.Manual, converted.Promotion.Manual)
+	assert.Equal(t, expected.Promotion.Strategy.PullRequest.Type, converted.Promotion.Strategy.PullRequest.Type)
+	assert.Equal(t, expected.Promotion.Strategy.PullRequest.Url, converted.Promotion.Strategy.PullRequest.Url)
+	assert.Equal(t, expected.Promotion.Strategy.PullRequest.Branch, converted.Promotion.Strategy.PullRequest.Branch)
+	assert.Equal(t, expected.Promotion.Strategy.SecretRef.Name, converted.Promotion.Strategy.SecretRef.Name)
 
 	expEnv := expected.Environments[0]
 	convEnv := converted.Environments[0]

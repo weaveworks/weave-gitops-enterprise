@@ -3,7 +3,7 @@ package rolecollector
 import (
 	"testing"
 
-	"github.com/go-logr/logr/testr"
+	"github.com/go-logr/logr"
 	. "github.com/onsi/gomega"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/internal/models"
 	"github.com/weaveworks/weave-gitops-enterprise/pkg/query/store/storefakes"
@@ -14,7 +14,7 @@ import (
 
 func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 	g := NewWithT(t)
-	log := testr.New(t)
+	log := logr.Discard()
 	fakeStore := &storefakes.FakeStore{}
 
 	//setup data
@@ -39,14 +39,18 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 		{
 			name: "can process non-empty roles collection with no errors",
 			objectRecords: []models.ObjectTransaction{
-				testutils.NewObjectTransaction("anyCluster", testutils.NewRole("createdOrUpdatedRole", clusterName), models.TransactionTypeUpsert),
-				testutils.NewObjectTransaction("anyCluster", testutils.NewRole("deletedRole", clusterName, func(hr *rbacv1.Role) {
+				testutils.NewObjectTransaction("anyCluster", testutils.NewRole("createdOrUpdatedRole", clusterName, true), models.TransactionTypeUpsert),
+				testutils.NewObjectTransaction("anyCluster", testutils.NewRole("deletedRole", clusterName, true, func(r *rbacv1.Role) {
 					now := metav1.Now()
-					hr.DeletionTimestamp = &now
+					r.DeletionTimestamp = &now
 				}), models.TransactionTypeDelete),
-				testutils.NewObjectTransaction("anyCluster2", testutils.NewRole("deletedRole2", clusterName, func(hr *rbacv1.Role) {
+				testutils.NewObjectTransaction("anyCluster2", testutils.NewRole("deletedRole2", clusterName, true, func(r *rbacv1.Role) {
 					now := metav1.Now()
-					hr.DeletionTimestamp = &now
+					r.DeletionTimestamp = &now
+				}), models.TransactionTypeDelete),
+				testutils.NewObjectTransaction("anyCluster", testutils.NewRole("deletedRole3", clusterName, true, func(r *rbacv1.Role) {
+					now := metav1.Now()
+					r.DeletionTimestamp = &now
 				}), models.TransactionTypeDelete),
 				testutils.NewObjectTransaction("anyCluster3", nil, models.TransactionTypeDeleteAll),
 			},
@@ -54,6 +58,27 @@ func TestRoleCollector_defaultProcessRecords(t *testing.T) {
 				models.TransactionTypeDelete:    1,
 				models.TransactionTypeUpsert:    1,
 				models.TransactionTypeDeleteAll: 1,
+			},
+			errPattern: "",
+		},
+		{
+			name: "can process non-empty cluster roles collection with no errors",
+			objectRecords: []models.ObjectTransaction{
+				testutils.NewObjectTransaction("anyCluster", testutils.NewClusterRole("createdOrUpdatedRole", true), models.TransactionTypeUpsert),
+				testutils.NewObjectTransaction("anyCluster", testutils.NewClusterRole("deletedRole", true, func(cr *rbacv1.ClusterRole) {
+					now := metav1.Now()
+					cr.DeletionTimestamp = &now
+				}), models.TransactionTypeDelete),
+				testutils.NewObjectTransaction("anyCluster2", testutils.NewClusterRole("deletedRole2", false, func(cr *rbacv1.ClusterRole) {
+					now := metav1.Now()
+					cr.DeletionTimestamp = &now
+				}), models.TransactionTypeDelete),
+				testutils.NewObjectTransaction("anyCluster3", nil, models.TransactionTypeDeleteAll),
+			},
+			expectedStoreNumCalls: map[models.TransactionType]int{
+				models.TransactionTypeDelete:    2,
+				models.TransactionTypeUpsert:    2,
+				models.TransactionTypeDeleteAll: 2,
 			},
 			errPattern: "",
 		},

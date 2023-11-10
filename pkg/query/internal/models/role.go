@@ -32,6 +32,26 @@ func (o Role) GetID() string {
 	return fmt.Sprintf("%s/%s/%s/%s", o.Cluster, o.Namespace, o.Kind, o.Name)
 }
 
+func (o Role) IsValidID() (bool, error) {
+	if o.Cluster == "" {
+		return false, fmt.Errorf("missing cluster field")
+	}
+
+	if o.Name == "" {
+		return false, fmt.Errorf("missing name field")
+	}
+
+	if o.Kind == "Role" && o.Namespace == "" {
+		return false, fmt.Errorf("missing namespace field")
+	}
+
+	if o.Kind == "" {
+		return false, fmt.Errorf("missing kind field")
+	}
+
+	return true, nil
+}
+
 func (o Role) Validate() error {
 	if o.Cluster == "" {
 		return fmt.Errorf("missing cluster field")

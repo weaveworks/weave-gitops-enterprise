@@ -12,6 +12,13 @@ config:
   # auth:
   #   noAuthentication:
   #     user: "wego-admin"
+  #
+  # un-comment to enable OIDC against dex-01
+  # oidc:
+  #   enabled: true
+  #   issuerURL: "https://dex-01.wge.dev.weave.works"
+  #   redirectURL: "http://localhost:3000/oauth2/callback"
+  #   clientCredentialsSecret: "oidc-auth"
 
 tls:
   enabled: false
@@ -19,12 +26,12 @@ tls:
 # Turns on pipelines features when using Tilt.
 enablePipelines: true
 
-enableExplorer: true
+# Turns on explorer globally. See the explorer.enabledFor option to enable it for specific components.
+explorer:
+  enabled: true
 
 # Turns on terraform UI features for local dev
 enableTerraformUI: true
-
-useQueryServiceBackend: false
 
 extraEnvVars:
   - name: WEAVE_GITOPS_FEATURE_COST_ESTIMATION
@@ -33,8 +40,6 @@ extraEnvVars:
     value: "false"
   - name: BITBUCKET_SERVER_HOSTNAME
     value: "bitbucket.yiannis.net"
-  - name: WEAVE_GITOPS_ENABLE_PROFILING
-    value: "true"
 
 extraEnvVarsSecret: ""
 
@@ -48,3 +53,4 @@ gitopssets-controller:
 global:
   capiEnabled: true
 
+enableNewPipelines: true

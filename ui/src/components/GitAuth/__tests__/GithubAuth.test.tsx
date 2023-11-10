@@ -1,5 +1,8 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
-import { GitProvider } from '../../../api/gitauth/gitauth.pb';
+import {
+  GetGithubDeviceCodeResponse,
+  GitProvider,
+} from '../../../api/gitauth/gitauth.pb';
 import { GitAuthProvider } from '../../../contexts/GitAuth';
 import {
   ApplicationsClientMock,
@@ -11,7 +14,9 @@ import { getProviderToken } from '../utils';
 
 Object.assign(navigator, {
   clipboard: {
-    writeText: () => {},
+    writeText: () => {
+      return;
+    },
   },
 });
 
@@ -39,15 +44,19 @@ describe('Github Authenticate', () => {
     api.GetGithubDeviceCodeReturn = {
       userCode: 'D410-08FF',
       deviceCode: 'd725410cbe2431c5fa5dfa93736304db124412b6',
-      validationURI: 'https://github.com/login/device',
+      validationUri: 'https://github.com/login/device',
       interval: 5,
-    };
+    } as GetGithubDeviceCodeResponse;
 
     await act(async () => {
       const c = wrap(
         <GithubDeviceAuthModal
-          onClose={() => {}}
-          onSuccess={() => {}}
+          onClose={() => {
+            return;
+          }}
+          onSuccess={() => {
+            return;
+          }}
           open={true}
           repoName="config"
         />,
@@ -56,7 +65,7 @@ describe('Github Authenticate', () => {
     });
     expect(await screen.findByText('AUTHORIZE GITHUB ACCESS')).toBeTruthy();
 
-    const ghCode = await screen.getByTestId('github-code');
+    const ghCode = screen.getByTestId('github-code');
     expect(ghCode.textContent).toEqual(api.GetGithubDeviceCodeReturn.userCode);
     await act(async () => {
       const copyButton = await (
@@ -81,8 +90,12 @@ describe('Github Authenticate', () => {
     await act(async () => {
       const c = wrap(
         <GithubDeviceAuthModal
-          onClose={() => {}}
-          onSuccess={() => {}}
+          onClose={() => {
+            return;
+          }}
+          onSuccess={() => {
+            return;
+          }}
           open={true}
           repoName="config"
         />,
